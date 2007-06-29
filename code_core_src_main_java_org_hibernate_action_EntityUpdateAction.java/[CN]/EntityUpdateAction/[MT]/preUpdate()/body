@@ -1,0 +1,11 @@
+{
+  PreUpdateEventListener[] preListeners=getSession().getListeners().getPreUpdateEventListeners();
+  boolean veto=false;
+  if (preListeners.length > 0) {
+    PreUpdateEvent preEvent=new PreUpdateEvent(getInstance(),getId(),state,previousState,getPersister(),getSession());
+    for (int i=0; i < preListeners.length; i++) {
+      veto=preListeners[i].onPreUpdate(preEvent) || veto;
+    }
+  }
+  return veto;
+}

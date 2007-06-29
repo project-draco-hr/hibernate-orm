@@ -1,0 +1,26 @@
+{
+  if (log.isTraceEnabled()) {
+    log.trace("deleting " + MessageHelper.infoString(persister,entityEntry.getId(),session.getFactory()));
+  }
+  final PersistenceContext persistenceContext=session.getPersistenceContext();
+  final Type[] propTypes=persister.getPropertyTypes();
+  final Object version=entityEntry.getVersion();
+  final Object[] currentState;
+  if (entityEntry.getLoadedState() == null) {
+    currentState=persister.getPropertyValues(entity,session.getEntityMode());
+  }
+ else {
+    currentState=entityEntry.getLoadedState();
+  }
+  final Object[] deletedState=createDeletedState(persister,currentState,session);
+  entityEntry.setDeletedState(deletedState);
+  session.getInterceptor().onDelete(entity,entityEntry.getId(),deletedState,persister.getPropertyNames(),propTypes);
+  persistenceContext.setEntryStatus(entityEntry,Status.DELETED);
+  EntityKey key=new EntityKey(entityEntry.getId(),persister,session.getEntityMode());
+  cascadeBeforeDelete(session,persister,entity,entityEntry,transientEntities);
+  new ForeignKeys.Nullifier(entity,true,false,session).nullifyTransientReferences(entityEntry.getDeletedState(),propTypes);
+  new Nullability(session).checkNullability(entityEntry.getDeletedState(),persister,true);
+  persistenceContext.getNullifiableEntityKeys().add(key);
+  session.getActionQueue().addAction(new EntityDeleteAction(entityEntry.getId(),deletedState,version,entity,persister,isCascadeDeleteEnabled,session));
+  cascadeAfterDelete(session,persister,entity,transientEntities);
+}

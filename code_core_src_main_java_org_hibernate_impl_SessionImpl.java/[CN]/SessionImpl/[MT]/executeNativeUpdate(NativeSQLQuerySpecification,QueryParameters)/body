@@ -1,0 +1,17 @@
+{
+  errorIfClosed();
+  checkTransactionSynchStatus();
+  queryParameters.validateParameters();
+  NativeSQLQueryPlan plan=getNativeSQLQueryPlan(nativeQuerySpecification);
+  autoFlushIfRequired(plan.getCustomQuery().getQuerySpaces());
+  boolean success=false;
+  int result=0;
+  try {
+    result=plan.performExecuteUpdate(queryParameters,this);
+    success=true;
+  }
+  finally {
+    afterOperation(success);
+  }
+  return result;
+}

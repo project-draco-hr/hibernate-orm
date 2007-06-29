@@ -1,0 +1,25 @@
+{
+  Insert insert=new Insert(getFactory().getDialect()).setTableName(getTableName(j));
+  for (int i=0; i < entityMetamodel.getPropertySpan(); i++) {
+    if (includeProperty[i] && isPropertyOfTable(i,j)) {
+      insert.addColumns(getPropertyColumnNames(i),propertyColumnInsertable[i]);
+    }
+  }
+  if (j == 0) {
+    addDiscriminatorToInsert(insert);
+  }
+  if (j == 0 && identityInsert) {
+    insert.addIdentityColumn(getKeyColumns(0)[0]);
+  }
+ else {
+    insert.addColumns(getKeyColumns(j));
+  }
+  if (getFactory().getSettings().isCommentsEnabled()) {
+    insert.setComment("insert " + getEntityName());
+  }
+  String result=insert.toStatementString();
+  if (j == 0 && identityInsert && useInsertSelectIdentity()) {
+    result=getFactory().getDialect().appendIdentitySelectToInsert(result);
+  }
+  return result;
+}

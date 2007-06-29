@@ -1,0 +1,21 @@
+{
+  final int entitySpan=getEntityPersisters().length;
+  final List hydratedObjects=entitySpan == 0 ? null : new ArrayList(entitySpan);
+  Object result=null;
+  final EntityKey[] loadedKeys=new EntityKey[entitySpan];
+  try {
+    do {
+      Object loaded=getRowFromResultSet(resultSet,session,queryParameters,getLockModes(queryParameters.getLockModes()),null,hydratedObjects,loadedKeys,returnProxies);
+      if (result == null) {
+        result=loaded;
+      }
+    }
+ while (keyToRead.equals(loadedKeys[0]) && resultSet.next());
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(factory.getSQLExceptionConverter(),sqle,"could not perform sequential read of results (forward)",getSQLString());
+  }
+  initializeEntitiesAndCollections(hydratedObjects,resultSet,session,queryParameters.isReadOnly());
+  session.getPersistenceContext().initializeNonLazyCollections();
+  return result;
+}

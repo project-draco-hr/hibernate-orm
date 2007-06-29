@@ -1,0 +1,56 @@
+{
+  final PersistenceContext persistenceContext=session.getPersistenceContext();
+  EntityEntry entityEntry=persistenceContext.getEntry(entity);
+  if (entityEntry == null) {
+    throw new AssertionFailure("possible non-threadsafe access to the session");
+  }
+  EntityPersister persister=entityEntry.getPersister();
+  Serializable id=entityEntry.getId();
+  Object[] hydratedState=entityEntry.getLoadedState();
+  if (log.isDebugEnabled())   log.debug("resolving associations for " + MessageHelper.infoString(persister,id,session.getFactory()));
+  Type[] types=persister.getPropertyTypes();
+  for (int i=0; i < hydratedState.length; i++) {
+    final Object value=hydratedState[i];
+    if (value != LazyPropertyInitializer.UNFETCHED_PROPERTY && value != BackrefPropertyAccessor.UNKNOWN) {
+      hydratedState[i]=types[i].resolve(value,session,entity);
+    }
+  }
+  if (session.isEventSource()) {
+    preLoadEvent.setEntity(entity).setState(hydratedState).setId(id).setPersister(persister);
+    PreLoadEventListener[] listeners=session.getListeners().getPreLoadEventListeners();
+    for (int i=0; i < listeners.length; i++) {
+      listeners[i].onPreLoad(preLoadEvent);
+    }
+  }
+  persister.setPropertyValues(entity,hydratedState,session.getEntityMode());
+  final SessionFactoryImplementor factory=session.getFactory();
+  if (persister.hasCache() && session.getCacheMode().isPutEnabled()) {
+    if (log.isDebugEnabled())     log.debug("adding entity to second-level cache: " + MessageHelper.infoString(persister,id,session.getFactory()));
+    Object version=Versioning.getVersion(hydratedState,persister);
+    CacheEntry entry=new CacheEntry(hydratedState,persister,entityEntry.isLoadedWithLazyPropertiesUnfetched(),version,session,entity);
+    CacheKey cacheKey=new CacheKey(id,persister.getIdentifierType(),persister.getRootEntityName(),session.getEntityMode(),session.getFactory());
+    boolean put=persister.getCacheAccessStrategy().putFromLoad(cacheKey,persister.getCacheEntryStructure().structure(entry),session.getTimestamp(),version,useMinimalPuts(session,entityEntry));
+    if (put && factory.getStatistics().isStatisticsEnabled()) {
+      factory.getStatisticsImplementor().secondLevelCachePut(persister.getCacheAccessStrategy().getRegion().getName());
+    }
+  }
+  if (readOnly || !persister.isMutable()) {
+    persistenceContext.setEntryStatus(entityEntry,Status.READ_ONLY);
+  }
+ else {
+    TypeFactory.deepCopy(hydratedState,persister.getPropertyTypes(),persister.getPropertyUpdateability(),hydratedState,session);
+    persistenceContext.setEntryStatus(entityEntry,Status.MANAGED);
+  }
+  persister.afterInitialize(entity,entityEntry.isLoadedWithLazyPropertiesUnfetched(),session);
+  if (session.isEventSource()) {
+    postLoadEvent.setEntity(entity).setId(id).setPersister(persister);
+    PostLoadEventListener[] listeners=session.getListeners().getPostLoadEventListeners();
+    for (int i=0; i < listeners.length; i++) {
+      listeners[i].onPostLoad(postLoadEvent);
+    }
+  }
+  if (log.isDebugEnabled())   log.debug("done materializing entity " + MessageHelper.infoString(persister,id,session.getFactory()));
+  if (factory.getStatistics().isStatisticsEnabled()) {
+    factory.getStatisticsImplementor().loadEntity(persister.getEntityName());
+  }
+}

@@ -1,0 +1,20 @@
+{
+  PersistentCollection coll;
+  if (collection instanceof PersistentCollection) {
+    coll=(PersistentCollection)collection;
+  }
+ else {
+    coll=getCollectionHolder(collection);
+    if (coll == null) {
+      Iterator wrappers=IdentityMap.keyIterator(collectionEntries);
+      while (wrappers.hasNext()) {
+        PersistentCollection pc=(PersistentCollection)wrappers.next();
+        if (pc.isWrapper(collection)) {
+          coll=pc;
+          break;
+        }
+      }
+    }
+  }
+  return (coll == null) ? null : getCollectionEntry(coll);
+}

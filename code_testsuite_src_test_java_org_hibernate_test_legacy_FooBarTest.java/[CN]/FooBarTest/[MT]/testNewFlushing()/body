@@ -1,0 +1,52 @@
+{
+  Session s=openSession();
+  Transaction txn=s.beginTransaction();
+  Baz baz=new Baz();
+  baz.setDefaults();
+  s.save(baz);
+  s.flush();
+  baz.getStringArray()[0]="a new value";
+  Iterator iter=s.iterate("from Baz baz");
+  assertTrue(iter.next() == baz);
+  iter=s.iterate("select elements(baz.stringArray) from Baz baz");
+  boolean found=false;
+  while (iter.hasNext()) {
+    if (iter.next().equals("a new value"))     found=true;
+  }
+  assertTrue(found);
+  baz.setStringArray(null);
+  s.iterate("from Baz baz");
+  iter=s.iterate("select elements(baz.stringArray) from Baz baz");
+  assertTrue(!iter.hasNext());
+  baz.getStringList().add("1E1");
+  iter=s.iterate("from Foo foo");
+  assertTrue(!iter.hasNext());
+  iter=s.iterate("select elements(baz.stringList) from Baz baz");
+  found=false;
+  while (iter.hasNext()) {
+    if (iter.next().equals("1E1"))     found=true;
+  }
+  assertTrue(found);
+  baz.getStringList().remove("1E1");
+  iter=s.iterate("select elements(baz.stringArray) from Baz baz");
+  iter=s.iterate("select elements(baz.stringList) from Baz baz");
+  found=false;
+  while (iter.hasNext()) {
+    if (iter.next().equals("1E1"))     found=true;
+  }
+  assertTrue(!found);
+  List newList=new ArrayList();
+  newList.add("value");
+  baz.setStringList(newList);
+  iter=s.iterate("from Foo foo");
+  baz.setStringList(null);
+  iter=s.iterate("select elements(baz.stringList) from Baz baz");
+  assertTrue(!iter.hasNext());
+  baz.setStringList(newList);
+  iter=s.iterate("from Foo foo");
+  iter=s.iterate("select elements(baz.stringList) from Baz baz");
+  assertTrue(iter.hasNext());
+  s.delete(baz);
+  txn.commit();
+  s.close();
+}

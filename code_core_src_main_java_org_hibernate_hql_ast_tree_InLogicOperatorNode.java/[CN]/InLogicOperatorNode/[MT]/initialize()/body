@@ -1,0 +1,20 @@
+{
+  Node lhs=getLeftHandOperand();
+  if (lhs == null) {
+    throw new SemanticException("left-hand operand of in operator was null");
+  }
+  Node inList=getInList();
+  if (inList == null) {
+    throw new SemanticException("right-hand operand of in operator was null");
+  }
+  if (SqlNode.class.isAssignableFrom(lhs.getClass())) {
+    Type lhsType=((SqlNode)lhs).getDataType();
+    AST inListChild=inList.getFirstChild();
+    while (inListChild != null) {
+      if (ExpectedTypeAwareNode.class.isAssignableFrom(inListChild.getClass())) {
+        ((ExpectedTypeAwareNode)inListChild).setExpectedType(lhsType);
+      }
+      inListChild=inListChild.getNextSibling();
+    }
+  }
+}

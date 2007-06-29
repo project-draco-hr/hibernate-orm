@@ -1,0 +1,36 @@
+{
+  List values=new ArrayList();
+  List types=new ArrayList();
+  Iterator iter=rootCriteria.iterateExpressionEntries();
+  while (iter.hasNext()) {
+    CriteriaImpl.CriterionEntry ce=(CriteriaImpl.CriterionEntry)iter.next();
+    TypedValue[] tv=ce.getCriterion().getTypedValues(ce.getCriteria(),this);
+    for (int i=0; i < tv.length; i++) {
+      values.add(tv[i].getValue());
+      types.add(tv[i].getType());
+    }
+  }
+  Object[] valueArray=values.toArray();
+  Type[] typeArray=ArrayHelper.toTypeArray(types);
+  RowSelection selection=new RowSelection();
+  selection.setFirstRow(rootCriteria.getFirstResult());
+  selection.setMaxRows(rootCriteria.getMaxResults());
+  selection.setTimeout(rootCriteria.getTimeout());
+  selection.setFetchSize(rootCriteria.getFetchSize());
+  Map lockModes=new HashMap();
+  iter=rootCriteria.getLockModes().entrySet().iterator();
+  while (iter.hasNext()) {
+    Map.Entry me=(Map.Entry)iter.next();
+    final Criteria subcriteria=getAliasedCriteria((String)me.getKey());
+    lockModes.put(getSQLAlias(subcriteria),me.getValue());
+  }
+  iter=rootCriteria.iterateSubcriteria();
+  while (iter.hasNext()) {
+    CriteriaImpl.Subcriteria subcriteria=(CriteriaImpl.Subcriteria)iter.next();
+    LockMode lm=subcriteria.getLockMode();
+    if (lm != null) {
+      lockModes.put(getSQLAlias(subcriteria),lm);
+    }
+  }
+  return new QueryParameters(typeArray,valueArray,lockModes,selection,rootCriteria.getCacheable(),rootCriteria.getCacheRegion(),rootCriteria.getComment(),rootCriteria.isLookupByNaturalKey(),rootCriteria.getResultTransformer());
+}

@@ -1,0 +1,16 @@
+{
+  if (loadCounter == 0) {
+    log.debug("initializing non-lazy collections");
+    loadCounter++;
+    try {
+      int size;
+      while ((size=nonlazyCollections.size()) > 0) {
+        ((PersistentCollection)nonlazyCollections.remove(size - 1)).forceInitialization();
+      }
+    }
+  finally {
+      loadCounter--;
+      clearNullProperties();
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  if (collection.isOneToMany()) {
+    OneToMany oneToMany=(OneToMany)collection.getElement();
+    String assocClass=oneToMany.getReferencedEntityName();
+    PersistentClass persistentClass=(PersistentClass)persistentClasses.get(assocClass);
+    if (persistentClass == null) {
+      throw new MappingException("Association references unmapped class: " + assocClass);
+    }
+    oneToMany.setAssociatedClass(persistentClass);
+    collection.setCollectionTable(persistentClass.getTable());
+    log.info("Mapping collection: " + collection.getRole() + " -> "+ collection.getCollectionTable().getName());
+  }
+  Attribute chNode=node.attribute("check");
+  if (chNode != null) {
+    collection.getCollectionTable().addCheckConstraint(chNode.getValue());
+  }
+  Iterator iter=node.elementIterator();
+  while (iter.hasNext()) {
+    Element subnode=(Element)iter.next();
+    String name=subnode.getName();
+    if ("key".equals(name)) {
+      KeyValue keyVal;
+      String propRef=collection.getReferencedPropertyName();
+      if (propRef == null) {
+        keyVal=collection.getOwner().getIdentifier();
+      }
+ else {
+        keyVal=(KeyValue)collection.getOwner().getRecursiveProperty(propRef).getValue();
+      }
+      SimpleValue key=new DependantValue(collection.getCollectionTable(),keyVal);
+      key.setCascadeDeleteEnabled("cascade".equals(subnode.attributeValue("on-delete")));
+      bindSimpleValue(subnode,key,collection.isOneToMany(),Collection.DEFAULT_KEY_COLUMN_NAME,mappings);
+      collection.setKey(key);
+      Attribute notNull=subnode.attribute("not-null");
+      ((DependantValue)key).setNullable(notNull == null || notNull.getValue().equals("false"));
+      Attribute updateable=subnode.attribute("update");
+      ((DependantValue)key).setUpdateable(updateable == null || updateable.getValue().equals("true"));
+    }
+ else     if ("element".equals(name)) {
+      SimpleValue elt=new SimpleValue(collection.getCollectionTable());
+      collection.setElement(elt);
+      bindSimpleValue(subnode,elt,true,Collection.DEFAULT_ELEMENT_COLUMN_NAME,mappings);
+    }
+ else     if ("many-to-many".equals(name)) {
+      ManyToOne element=new ManyToOne(collection.getCollectionTable());
+      collection.setElement(element);
+      bindManyToOne(subnode,element,Collection.DEFAULT_ELEMENT_COLUMN_NAME,false,mappings);
+      bindManyToManySubelements(collection,subnode,mappings);
+    }
+ else     if ("composite-element".equals(name)) {
+      Component element=new Component(collection);
+      collection.setElement(element);
+      bindComposite(subnode,element,collection.getRole() + ".element",true,mappings,inheritedMetas);
+    }
+ else     if ("many-to-any".equals(name)) {
+      Any element=new Any(collection.getCollectionTable());
+      collection.setElement(element);
+      bindAny(subnode,element,true,mappings);
+    }
+ else     if ("cache".equals(name)) {
+      collection.setCacheConcurrencyStrategy(subnode.attributeValue("usage"));
+      collection.setCacheRegionName(subnode.attributeValue("region"));
+    }
+    String nodeName=subnode.attributeValue("node");
+    if (nodeName != null)     collection.setElementNodeName(nodeName);
+  }
+  if (collection.isOneToMany() && !collection.isInverse() && !collection.getKey().isNullable()) {
+    String entityName=((OneToMany)collection.getElement()).getReferencedEntityName();
+    PersistentClass referenced=mappings.getClass(entityName);
+    Backref prop=new Backref();
+    prop.setName('_' + node.attributeValue("name") + "Backref");
+    prop.setUpdateable(false);
+    prop.setSelectable(false);
+    prop.setCollectionRole(collection.getRole());
+    prop.setEntityName(collection.getOwner().getEntityName());
+    prop.setValue(collection.getKey());
+    referenced.addProperty(prop);
+  }
+}

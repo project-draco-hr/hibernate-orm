@@ -1,0 +1,17 @@
+{
+  String importedClassName=getSessionFactoryHelper().getImportedClassName(path);
+  String className=StringHelper.isEmpty(importedClassName) ? path : importedClassName;
+  if (className == null) {
+    throw new SemanticException("Unable to locate class [" + path + "]");
+  }
+  try {
+    Class holderClass=ReflectHelper.classForName(className);
+    return ReflectHelper.getConstructor(holderClass,constructorArgumentTypes);
+  }
+ catch (  ClassNotFoundException e) {
+    throw new DetailedSemanticException("Unable to locate class [" + className + "]",e);
+  }
+catch (  PropertyNotFoundException e) {
+    throw new DetailedSemanticException("Unable to locate appropriate constructor on class [" + className + "]",e);
+  }
+}

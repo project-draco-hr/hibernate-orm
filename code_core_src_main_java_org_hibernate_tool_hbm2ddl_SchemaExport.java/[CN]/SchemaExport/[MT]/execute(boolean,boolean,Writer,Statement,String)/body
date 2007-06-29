@@ -1,0 +1,25 @@
+{
+  String formatted=format(sql);
+  if (delimiter != null) {
+    formatted+=delimiter;
+  }
+  if (script) {
+    System.out.println(formatted);
+  }
+  log.debug(formatted);
+  if (outputFile != null) {
+    fileOutput.write(formatted + "\n");
+  }
+  if (export) {
+    statement.executeUpdate(sql);
+    try {
+      SQLWarning warnings=statement.getWarnings();
+      if (warnings != null) {
+        JDBCExceptionReporter.logAndClearWarnings(connectionHelper.getConnection());
+      }
+    }
+ catch (    SQLException sqle) {
+      log.warn("unable to log SQLWarnings : " + sqle);
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  log.trace("post flush");
+  final PersistenceContext persistenceContext=session.getPersistenceContext();
+  persistenceContext.getCollectionsByKey().clear();
+  persistenceContext.getBatchFetchQueue().clearSubselects();
+  Iterator iter=persistenceContext.getCollectionEntries().entrySet().iterator();
+  while (iter.hasNext()) {
+    Map.Entry me=(Map.Entry)iter.next();
+    CollectionEntry collectionEntry=(CollectionEntry)me.getValue();
+    PersistentCollection persistentCollection=(PersistentCollection)me.getKey();
+    collectionEntry.postFlush(persistentCollection);
+    if (collectionEntry.getLoadedPersister() == null) {
+      persistenceContext.getCollectionEntries().remove(persistentCollection);
+    }
+ else {
+      CollectionKey collectionKey=new CollectionKey(collectionEntry.getLoadedPersister(),collectionEntry.getLoadedKey(),session.getEntityMode());
+      persistenceContext.getCollectionsByKey().put(collectionKey,persistentCollection);
+    }
+  }
+  session.getInterceptor().postFlush(new LazyIterator(persistenceContext.getEntitiesByKey()));
+}

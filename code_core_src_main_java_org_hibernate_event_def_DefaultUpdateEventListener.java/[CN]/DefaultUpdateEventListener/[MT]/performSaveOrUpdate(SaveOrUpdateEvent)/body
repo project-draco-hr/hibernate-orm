@@ -1,0 +1,15 @@
+{
+  EntityEntry entry=event.getSession().getPersistenceContext().getEntry(event.getEntity());
+  if (entry != null) {
+    if (entry.getStatus() == Status.DELETED) {
+      throw new ObjectDeletedException("deleted instance passed to update()",null,event.getEntityName());
+    }
+ else {
+      return entityIsPersistent(event);
+    }
+  }
+ else {
+    entityIsDetached(event);
+    return null;
+  }
+}

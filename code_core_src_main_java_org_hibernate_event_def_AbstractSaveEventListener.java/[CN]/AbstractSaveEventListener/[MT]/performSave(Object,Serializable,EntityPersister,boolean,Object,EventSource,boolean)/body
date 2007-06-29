@@ -1,0 +1,26 @@
+{
+  if (log.isTraceEnabled()) {
+    log.trace("saving " + MessageHelper.infoString(persister,id,source.getFactory()));
+  }
+  EntityKey key;
+  if (!useIdentityColumn) {
+    key=new EntityKey(id,persister,source.getEntityMode());
+    Object old=source.getPersistenceContext().getEntity(key);
+    if (old != null) {
+      if (source.getPersistenceContext().getEntry(old).getStatus() == Status.DELETED) {
+        source.forceFlush(source.getPersistenceContext().getEntry(old));
+      }
+ else {
+        throw new NonUniqueObjectException(id,persister.getEntityName());
+      }
+    }
+    persister.setIdentifier(entity,id,source.getEntityMode());
+  }
+ else {
+    key=null;
+  }
+  if (invokeSaveLifecycle(entity,persister,source)) {
+    return id;
+  }
+  return performSaveOrReplicate(entity,key,persister,useIdentityColumn,anything,source,requiresImmediateIdAccess);
+}

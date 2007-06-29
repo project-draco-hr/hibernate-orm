@@ -1,0 +1,25 @@
+{
+  Reader charReader=rs.getCharacterStream(name);
+  if (charReader == null)   return null;
+  StringBuffer sb=new StringBuffer();
+  try {
+    char[] buffer=new char[2048];
+    while (true) {
+      int amountRead=charReader.read(buffer,0,buffer.length);
+      if (amountRead == -1)       break;
+      sb.append(buffer,0,amountRead);
+    }
+  }
+ catch (  IOException ioe) {
+    throw new HibernateException("IOException occurred reading text",ioe);
+  }
+ finally {
+    try {
+      charReader.close();
+    }
+ catch (    IOException e) {
+      throw new HibernateException("IOException occurred closing stream",e);
+    }
+  }
+  return sb.toString();
+}

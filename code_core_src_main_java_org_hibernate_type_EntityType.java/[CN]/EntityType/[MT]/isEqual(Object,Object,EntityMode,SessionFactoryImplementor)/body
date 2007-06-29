@@ -1,0 +1,21 @@
+{
+  EntityPersister persister=factory.getEntityPersister(associatedEntityName);
+  if (!persister.canExtractIdOutOfEntity()) {
+    return super.isEqual(x,y,entityMode);
+  }
+  Serializable xid;
+  if (x instanceof HibernateProxy) {
+    xid=((HibernateProxy)x).getHibernateLazyInitializer().getIdentifier();
+  }
+ else {
+    xid=persister.getIdentifier(x,entityMode);
+  }
+  Serializable yid;
+  if (y instanceof HibernateProxy) {
+    yid=((HibernateProxy)y).getHibernateLazyInitializer().getIdentifier();
+  }
+ else {
+    yid=persister.getIdentifier(y,entityMode);
+  }
+  return persister.getIdentifierType().isEqual(xid,yid,entityMode,factory);
+}

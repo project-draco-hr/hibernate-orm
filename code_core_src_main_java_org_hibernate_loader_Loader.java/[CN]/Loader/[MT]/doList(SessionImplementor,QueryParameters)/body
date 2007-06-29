@@ -1,0 +1,16 @@
+{
+  final boolean stats=getFactory().getStatistics().isStatisticsEnabled();
+  long startTime=0;
+  if (stats)   startTime=System.currentTimeMillis();
+  List result;
+  try {
+    result=doQueryAndInitializeNonLazyCollections(session,queryParameters,true);
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(factory.getSQLExceptionConverter(),sqle,"could not execute query",getSQLString());
+  }
+  if (stats) {
+    getFactory().getStatisticsImplementor().queryExecuted(getQueryIdentifier(),result.size(),System.currentTimeMillis() - startTime);
+  }
+  return result;
+}

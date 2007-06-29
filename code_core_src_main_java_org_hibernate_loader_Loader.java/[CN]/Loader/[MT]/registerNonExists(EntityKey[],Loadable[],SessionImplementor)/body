@@ -1,0 +1,19 @@
+{
+  final int[] owners=getOwners();
+  if (owners != null) {
+    EntityType[] ownerAssociationTypes=getOwnerAssociationTypes();
+    for (int i=0; i < keys.length; i++) {
+      int owner=owners[i];
+      if (owner > -1) {
+        EntityKey ownerKey=keys[owner];
+        if (keys[i] == null && ownerKey != null) {
+          final PersistenceContext persistenceContext=session.getPersistenceContext();
+          boolean isOneToOneAssociation=ownerAssociationTypes != null && ownerAssociationTypes[i] != null && ownerAssociationTypes[i].isOneToOne();
+          if (isOneToOneAssociation) {
+            persistenceContext.addNullProperty(ownerKey,ownerAssociationTypes[i].getPropertyName());
+          }
+        }
+      }
+    }
+  }
+}

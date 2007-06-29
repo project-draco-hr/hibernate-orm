@@ -1,0 +1,22 @@
+{
+  if (currentElements.size() == 0)   return oldElements;
+  if (oldElements.size() == 0)   return oldElements;
+  Type idType=session.getFactory().getEntityPersister(entityName).getIdentifierType();
+  Collection res=new ArrayList();
+  java.util.Set currentIds=new HashSet();
+  for (Iterator it=currentElements.iterator(); it.hasNext(); ) {
+    Object current=it.next();
+    if (current != null && ForeignKeys.isNotTransient(entityName,current,null,session)) {
+      Serializable currentId=ForeignKeys.getEntityIdentifierIfNotUnsaved(entityName,current,session);
+      currentIds.add(new TypedValue(idType,currentId,session.getEntityMode()));
+    }
+  }
+  for (Iterator it=oldElements.iterator(); it.hasNext(); ) {
+    Object old=it.next();
+    Serializable oldId=ForeignKeys.getEntityIdentifierIfNotUnsaved(entityName,old,session);
+    if (!currentIds.contains(new TypedValue(idType,oldId,session.getEntityMode()))) {
+      res.add(old);
+    }
+  }
+  return res;
+}

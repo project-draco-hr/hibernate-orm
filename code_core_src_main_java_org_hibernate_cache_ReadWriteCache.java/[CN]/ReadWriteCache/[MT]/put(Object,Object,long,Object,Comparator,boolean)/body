@@ -1,0 +1,27 @@
+{
+  if (log.isTraceEnabled())   log.trace("Caching: " + key);
+  try {
+    cache.lock(key);
+    Lockable lockable=(Lockable)cache.get(key);
+    boolean puttable=lockable == null || lockable.isPuttable(txTimestamp,version,versionComparator);
+    if (puttable) {
+      cache.put(key,new Item(value,version,cache.nextTimestamp()));
+      if (log.isTraceEnabled())       log.trace("Cached: " + key);
+      return true;
+    }
+ else {
+      if (log.isTraceEnabled()) {
+        if (lockable.isLock()) {
+          log.trace("Item was locked: " + key);
+        }
+ else {
+          log.trace("Item was already cached: " + key);
+        }
+      }
+      return false;
+    }
+  }
+  finally {
+    cache.unlock(key);
+  }
+}

@@ -1,0 +1,20 @@
+{
+  if (batchSize == 0) {
+    log.debug("no batched statements to execute");
+  }
+ else {
+    if (log.isDebugEnabled()) {
+      log.debug("Executing batch size: " + batchSize);
+    }
+    try {
+      checkRowCounts(ps.executeBatch(),ps);
+    }
+ catch (    RuntimeException re) {
+      log.error("Exception executing batch: ",re);
+      throw re;
+    }
+ finally {
+      batchSize=0;
+    }
+  }
+}

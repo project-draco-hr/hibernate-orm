@@ -1,0 +1,36 @@
+{
+  String resultSetName=resultSetElem.attribute("name").getValue();
+  if (path != null) {
+    resultSetName=path + '.' + resultSetName;
+  }
+  ResultSetMappingDefinition definition=new ResultSetMappingDefinition(resultSetName);
+  int cnt=0;
+  Iterator returns=resultSetElem.elementIterator();
+  while (returns.hasNext()) {
+    cnt++;
+    Element returnElem=(Element)returns.next();
+    String name=returnElem.getName();
+    if ("return-scalar".equals(name)) {
+      String column=returnElem.attributeValue("column");
+      String typeFromXML=HbmBinder.getTypeFromXML(returnElem);
+      Type type=null;
+      if (typeFromXML != null) {
+        type=TypeFactory.heuristicType(typeFromXML);
+        if (type == null) {
+          throw new MappingException("could not determine type " + type);
+        }
+      }
+      definition.addQueryReturn(new NativeSQLQueryScalarReturn(column,type));
+    }
+ else     if ("return".equals(name)) {
+      definition.addQueryReturn(bindReturn(returnElem,mappings,cnt));
+    }
+ else     if ("return-join".equals(name)) {
+      definition.addQueryReturn(bindReturnJoin(returnElem,mappings));
+    }
+ else     if ("load-collection".equals(name)) {
+      definition.addQueryReturn(bindLoadCollection(returnElem,mappings));
+    }
+  }
+  return definition;
+}

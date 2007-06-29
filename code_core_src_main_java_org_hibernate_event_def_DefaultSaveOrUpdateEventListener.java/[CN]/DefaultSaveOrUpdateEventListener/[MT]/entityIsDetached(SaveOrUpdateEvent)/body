@@ -1,0 +1,10 @@
+{
+  log.trace("updating detached instance");
+  if (event.getSession().getPersistenceContext().isEntryFor(event.getEntity())) {
+    throw new AssertionFailure("entity was persistent");
+  }
+  Object entity=event.getEntity();
+  EntityPersister persister=event.getSession().getEntityPersister(event.getEntityName(),entity);
+  event.setRequestedId(getUpdateId(entity,persister,event.getRequestedId(),event.getSession().getEntityMode()));
+  performUpdate(event,entity,persister);
+}

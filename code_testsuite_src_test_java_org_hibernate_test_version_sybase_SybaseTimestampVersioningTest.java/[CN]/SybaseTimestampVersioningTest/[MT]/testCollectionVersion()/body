@@ -1,0 +1,34 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  User steve=new User("steve");
+  s.persist(steve);
+  Group admin=new Group("admin");
+  s.persist(admin);
+  t.commit();
+  s.close();
+  byte[] steveTimestamp=steve.getTimestamp();
+  s=openSession();
+  t=s.beginTransaction();
+  steve=(User)s.get(User.class,steve.getId());
+  admin=(Group)s.get(Group.class,admin.getId());
+  steve.getGroups().add(admin);
+  admin.getUsers().add(steve);
+  t.commit();
+  s.close();
+  assertFalse("owner version not incremented",Hibernate.BINARY.isEqual(steveTimestamp,steve.getTimestamp()));
+  steveTimestamp=steve.getTimestamp();
+  s=openSession();
+  t=s.beginTransaction();
+  steve=(User)s.get(User.class,steve.getId());
+  steve.getGroups().clear();
+  t.commit();
+  s.close();
+  assertFalse("owner version not incremented",Hibernate.BINARY.isEqual(steveTimestamp,steve.getTimestamp()));
+  s=openSession();
+  t=s.beginTransaction();
+  s.delete(s.load(User.class,steve.getId()));
+  s.delete(s.load(Group.class,admin.getId()));
+  t.commit();
+  s.close();
+}

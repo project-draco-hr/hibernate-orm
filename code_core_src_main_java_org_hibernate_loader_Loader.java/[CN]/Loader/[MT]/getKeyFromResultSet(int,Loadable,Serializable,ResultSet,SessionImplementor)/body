@@ -1,0 +1,13 @@
+{
+  Serializable resultId;
+  if (isSingleRowLoader() && id != null) {
+    resultId=id;
+  }
+ else {
+    Type idType=persister.getIdentifierType();
+    resultId=(Serializable)idType.nullSafeGet(rs,getEntityAliases()[i].getSuffixedKeyAliases(),session,null);
+    final boolean idIsResultId=id != null && resultId != null && idType.isEqual(id,resultId,session.getEntityMode(),factory);
+    if (idIsResultId)     resultId=id;
+  }
+  return resultId == null ? null : new EntityKey(resultId,persister,session.getEntityMode());
+}

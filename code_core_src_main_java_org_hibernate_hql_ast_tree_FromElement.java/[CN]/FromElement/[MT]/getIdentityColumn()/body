@@ -1,0 +1,23 @@
+{
+  checkInitialized();
+  String table=getTableAlias();
+  if (table == null) {
+    throw new IllegalStateException("No table alias for node " + this);
+  }
+  String[] cols;
+  String propertyName;
+  if (getEntityPersister() != null && getEntityPersister().getEntityMetamodel() != null && getEntityPersister().getEntityMetamodel().hasNonIdentifierPropertyNamedId()) {
+    propertyName=getEntityPersister().getIdentifierPropertyName();
+  }
+ else {
+    propertyName=EntityPersister.ENTITY_ID;
+  }
+  if (getWalker().getStatementType() == HqlSqlWalker.SELECT) {
+    cols=getPropertyMapping(propertyName).toColumns(table,propertyName);
+  }
+ else {
+    cols=getPropertyMapping(propertyName).toColumns(propertyName);
+  }
+  String result=StringHelper.join(", ",cols);
+  return cols.length == 1 ? result : "(" + result + ")";
+}

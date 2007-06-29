@@ -1,0 +1,13 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  try {
+    s.createQuery("update NonExistentEntity e set e.someProp = ?").executeUpdate();
+    fail("no exception thrown");
+  }
+ catch (  QueryException e) {
+    log.debug("Caught expected error type : " + e.getMessage());
+  }
+  t.commit();
+  s.close();
+}

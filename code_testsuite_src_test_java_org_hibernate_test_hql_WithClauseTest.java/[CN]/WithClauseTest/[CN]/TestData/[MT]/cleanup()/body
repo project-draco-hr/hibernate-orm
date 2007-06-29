@@ -1,0 +1,13 @@
+{
+  Session session=openSession();
+  Transaction txn=session.beginTransaction();
+  session.createQuery("delete Animal where mother is not null").executeUpdate();
+  List humansWithFriends=session.createQuery("from Human h where exists(from h.friends)").list();
+  Iterator itr=humansWithFriends.iterator();
+  while (itr.hasNext()) {
+    session.delete(itr.next());
+  }
+  session.createQuery("delete Animal").executeUpdate();
+  txn.commit();
+  session.close();
+}

@@ -1,0 +1,24 @@
+{
+  PersistentCollection collection=event.getCollection();
+  SessionImplementor source=event.getSession();
+  CollectionEntry ce=source.getPersistenceContext().getCollectionEntry(collection);
+  if (ce == null)   throw new HibernateException("collection was evicted");
+  if (!collection.wasInitialized()) {
+    if (log.isTraceEnabled()) {
+      log.trace("initializing collection " + MessageHelper.collectionInfoString(ce.getLoadedPersister(),ce.getLoadedKey(),source.getFactory()));
+    }
+    log.trace("checking second-level cache");
+    final boolean foundInCache=initializeCollectionFromCache(ce.getLoadedKey(),ce.getLoadedPersister(),collection,source);
+    if (foundInCache) {
+      log.trace("collection initialized from cache");
+    }
+ else {
+      log.trace("collection not cached");
+      ce.getLoadedPersister().initialize(ce.getLoadedKey(),source);
+      log.trace("collection initialized");
+      if (source.getFactory().getStatistics().isStatisticsEnabled()) {
+        source.getFactory().getStatisticsImplementor().fetchCollection(ce.getLoadedPersister().getRole());
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  try {
+    Class clazz;
+    int version;
+    try {
+      clazz=Class.forName("com.ibm.ws.Transaction.TransactionManagerFactory");
+      version=5;
+      log.info("WebSphere 5.1");
+    }
+ catch (    Exception e) {
+      try {
+        clazz=Class.forName("com.ibm.ejs.jts.jta.TransactionManagerFactory");
+        version=5;
+        log.info("WebSphere 5.0");
+      }
+ catch (      Exception e2) {
+        clazz=Class.forName("com.ibm.ejs.jts.jta.JTSXA");
+        version=4;
+        log.info("WebSphere 4");
+      }
+    }
+    tmfClass=clazz;
+    wsVersion=version;
+  }
+ catch (  Exception e) {
+    throw new HibernateException("Could not obtain WebSphere TransactionManagerFactory instance",e);
+  }
+}

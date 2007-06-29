@@ -1,0 +1,15 @@
+{
+  String rootPropertyName=StringHelper.root(propertyPath);
+  Type type=propertyMapping.toType(rootPropertyName);
+  if (type.isAssociationType()) {
+    AssociationType assocType=(AssociationType)type;
+    if (assocType.useLHSPrimaryKey()) {
+      return 0;
+    }
+ else     if (type.isCollectionType()) {
+      rootPropertyName=assocType.getLHSPropertyName();
+    }
+  }
+  int index=ArrayHelper.indexOf(getSubclassPropertyNameClosure(),rootPropertyName);
+  return index == -1 ? 0 : getSubclassPropertyTableNumber(index);
+}

@@ -1,0 +1,17 @@
+{
+  errorIfClosed();
+  EntityPersister persister=getEntityPersister(entityName,entity);
+  Serializable id=persister.getIdentifier(entity,EntityMode.POJO);
+  Object[] state=persister.getPropertyValues(entity,EntityMode.POJO);
+  Object oldVersion;
+  if (persister.isVersioned()) {
+    oldVersion=persister.getVersion(entity,EntityMode.POJO);
+    Object newVersion=Versioning.increment(oldVersion,persister.getVersionType(),this);
+    Versioning.setVersion(state,newVersion,persister);
+    persister.setPropertyValues(entity,state,EntityMode.POJO);
+  }
+ else {
+    oldVersion=null;
+  }
+  persister.update(id,state,null,false,null,oldVersion,entity,null,this);
+}

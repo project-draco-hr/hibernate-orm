@@ -1,0 +1,116 @@
+{
+  component.setEmbedded(isEmbedded);
+  component.setRoleName(path);
+  inheritedMetas=getMetas(node,inheritedMetas);
+  component.setMetaAttributes(inheritedMetas);
+  Attribute classNode=isIdentifierMapper ? null : node.attribute("class");
+  if (classNode != null) {
+    component.setComponentClassName(getClassName(classNode,mappings));
+  }
+ else   if ("dynamic-component".equals(node.getName())) {
+    component.setDynamic(true);
+  }
+ else   if (isEmbedded) {
+    if (component.getOwner().hasPojoRepresentation()) {
+      component.setComponentClassName(component.getOwner().getClassName());
+    }
+ else {
+      component.setDynamic(true);
+    }
+  }
+ else {
+    if (component.getOwner().hasPojoRepresentation()) {
+      Class reflectedClass=reflectedPropertyClass(ownerClassName,parentProperty);
+      if (reflectedClass != null) {
+        component.setComponentClassName(reflectedClass.getName());
+      }
+    }
+ else {
+      component.setDynamic(true);
+    }
+  }
+  String nodeName=node.attributeValue("node");
+  if (nodeName == null)   nodeName=node.attributeValue("name");
+  if (nodeName == null)   nodeName=component.getOwner().getNodeName();
+  component.setNodeName(nodeName);
+  Iterator iter=node.elementIterator();
+  while (iter.hasNext()) {
+    Element subnode=(Element)iter.next();
+    String name=subnode.getName();
+    String propertyName=getPropertyName(subnode);
+    String subpath=propertyName == null ? null : StringHelper.qualify(path,propertyName);
+    CollectionType collectType=CollectionType.collectionTypeFromString(name);
+    Value value=null;
+    if (collectType != null) {
+      Collection collection=collectType.create(subnode,subpath,component.getOwner(),mappings,inheritedMetas);
+      mappings.addCollection(collection);
+      value=collection;
+    }
+ else     if ("many-to-one".equals(name) || "key-many-to-one".equals(name)) {
+      value=new ManyToOne(component.getTable());
+      String relativePath;
+      if (isEmbedded) {
+        relativePath=propertyName;
+      }
+ else {
+        relativePath=subpath.substring(component.getOwner().getEntityName().length() + 1);
+      }
+      bindManyToOne(subnode,(ManyToOne)value,relativePath,isNullable,mappings);
+    }
+ else     if ("one-to-one".equals(name)) {
+      value=new OneToOne(component.getTable(),component.getOwner());
+      String relativePath;
+      if (isEmbedded) {
+        relativePath=propertyName;
+      }
+ else {
+        relativePath=subpath.substring(component.getOwner().getEntityName().length() + 1);
+      }
+      bindOneToOne(subnode,(OneToOne)value,relativePath,isNullable,mappings);
+    }
+ else     if ("any".equals(name)) {
+      value=new Any(component.getTable());
+      bindAny(subnode,(Any)value,isNullable,mappings);
+    }
+ else     if ("property".equals(name) || "key-property".equals(name)) {
+      value=new SimpleValue(component.getTable());
+      String relativePath;
+      if (isEmbedded) {
+        relativePath=propertyName;
+      }
+ else {
+        relativePath=subpath.substring(component.getOwner().getEntityName().length() + 1);
+      }
+      bindSimpleValue(subnode,(SimpleValue)value,isNullable,relativePath,mappings);
+    }
+ else     if ("component".equals(name) || "dynamic-component".equals(name) || "nested-composite-element".equals(name)) {
+      value=new Component(component);
+      bindComponent(subnode,(Component)value,component.getComponentClassName(),propertyName,subpath,isNullable,isEmbedded,mappings,inheritedMetas,isIdentifierMapper);
+    }
+ else     if ("parent".equals(name)) {
+      component.setParentProperty(propertyName);
+    }
+    if (value != null) {
+      Property property=createProperty(value,propertyName,component.getComponentClassName(),subnode,mappings,inheritedMetas);
+      if (isIdentifierMapper) {
+        property.setInsertable(false);
+        property.setUpdateable(false);
+      }
+      component.addProperty(property);
+    }
+  }
+  if ("true".equals(node.attributeValue("unique"))) {
+    iter=component.getColumnIterator();
+    ArrayList cols=new ArrayList();
+    while (iter.hasNext()) {
+      cols.add(iter.next());
+    }
+    component.getOwner().getTable().createUniqueKey(cols);
+  }
+  iter=node.elementIterator("tuplizer");
+  while (iter.hasNext()) {
+    final Element tuplizerElem=(Element)iter.next();
+    EntityMode mode=EntityMode.parse(tuplizerElem.attributeValue("entity-mode"));
+    component.addTuplizer(mode,tuplizerElem.attributeValue("class"));
+  }
+}

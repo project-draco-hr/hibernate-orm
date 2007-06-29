@@ -1,0 +1,30 @@
+{
+  Iterator itr=proxiesByKey.values().iterator();
+  while (itr.hasNext()) {
+    final LazyInitializer li=((HibernateProxy)itr.next()).getHibernateLazyInitializer();
+    li.setSession(null);
+  }
+  Map.Entry[] collectionEntryArray=IdentityMap.concurrentEntries(collectionEntries);
+  for (int i=0; i < collectionEntryArray.length; i++) {
+    ((PersistentCollection)collectionEntryArray[i].getKey()).unsetSession(getSession());
+  }
+  arrayHolders.clear();
+  entitiesByKey.clear();
+  entitiesByUniqueKey.clear();
+  entityEntries.clear();
+  entitySnapshotsByKey.clear();
+  collectionsByKey.clear();
+  collectionEntries.clear();
+  if (unownedCollections != null) {
+    unownedCollections.clear();
+  }
+  proxiesByKey.clear();
+  nullifiableEntityKeys.clear();
+  if (batchFetchQueue != null) {
+    batchFetchQueue.clear();
+  }
+  hasNonReadOnlyEntities=false;
+  if (loadContexts != null) {
+    loadContexts.cleanup();
+  }
+}

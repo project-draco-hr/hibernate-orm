@@ -1,0 +1,17 @@
+{
+  final EntityPersister persister=getPersister();
+  final SessionImplementor session=getSession();
+  final Object instance=getInstance();
+  boolean veto=preInsert();
+  if (!veto) {
+    generatedId=persister.insert(state,instance,session);
+    if (persister.hasInsertGeneratedProperties()) {
+      persister.processInsertGeneratedProperties(generatedId,instance,state,session);
+    }
+    persister.setIdentifier(instance,generatedId,session.getEntityMode());
+  }
+  postInsert();
+  if (session.getFactory().getStatistics().isStatisticsEnabled() && !veto) {
+    session.getFactory().getStatisticsImplementor().insertEntity(getPersister().getEntityName());
+  }
+}

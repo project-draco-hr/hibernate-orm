@@ -1,0 +1,34 @@
+{
+  if (!begun) {
+    throw new TransactionException("Transaction not successfully started");
+  }
+  log.debug("commit");
+  if (!transactionContext.isFlushModeNever() && callback) {
+    transactionContext.managedFlush();
+  }
+  notifyLocalSynchsBeforeTransactionCompletion();
+  if (callback) {
+    jdbcContext.beforeTransactionCompletion(this);
+  }
+  try {
+    commitAndResetAutoCommit();
+    log.debug("committed JDBC Connection");
+    committed=true;
+    if (callback) {
+      jdbcContext.afterTransactionCompletion(true,this);
+    }
+    notifyLocalSynchsAfterTransactionCompletion(Status.STATUS_COMMITTED);
+  }
+ catch (  SQLException e) {
+    log.error("JDBC commit failed",e);
+    commitFailed=true;
+    if (callback) {
+      jdbcContext.afterTransactionCompletion(false,this);
+    }
+    notifyLocalSynchsAfterTransactionCompletion(Status.STATUS_UNKNOWN);
+    throw new TransactionException("JDBC commit failed",e);
+  }
+ finally {
+    closeIfRequired();
+  }
+}

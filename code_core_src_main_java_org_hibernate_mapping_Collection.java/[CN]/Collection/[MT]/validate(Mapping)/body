@@ -1,0 +1,21 @@
+{
+  if (getKey().isCascadeDeleteEnabled() && (!isInverse() || !isOneToMany())) {
+    throw new MappingException("only inverse one-to-many associations may use on-delete=\"cascade\": " + getRole());
+  }
+  if (!getKey().isValid(mapping)) {
+    throw new MappingException("collection foreign key mapping has wrong number of columns: " + getRole() + " type: "+ getKey().getType().getName());
+  }
+  if (!getElement().isValid(mapping)) {
+    throw new MappingException("collection element mapping has wrong number of columns: " + getRole() + " type: "+ getElement().getType().getName());
+  }
+  checkColumnDuplication();
+  if (elementNodeName != null && elementNodeName.startsWith("@")) {
+    throw new MappingException("element node must not be an attribute: " + elementNodeName);
+  }
+  if (elementNodeName != null && elementNodeName.equals(".")) {
+    throw new MappingException("element node must not be the parent: " + elementNodeName);
+  }
+  if (nodeName != null && nodeName.indexOf('@') > -1) {
+    throw new MappingException("collection node must not be an attribute: " + elementNodeName);
+  }
+}

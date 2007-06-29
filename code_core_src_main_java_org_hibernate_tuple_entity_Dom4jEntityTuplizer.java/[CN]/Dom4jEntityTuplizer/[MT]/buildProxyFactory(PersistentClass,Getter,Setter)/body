@@ -1,0 +1,14 @@
+{
+  HashSet proxyInterfaces=new HashSet();
+  proxyInterfaces.add(HibernateProxy.class);
+  proxyInterfaces.add(Element.class);
+  ProxyFactory pf=new Dom4jProxyFactory();
+  try {
+    pf.postInstantiate(getEntityName(),Element.class,proxyInterfaces,null,null,mappingInfo.hasEmbeddedIdentifier() ? (AbstractComponentType)mappingInfo.getIdentifier().getType() : null);
+  }
+ catch (  HibernateException he) {
+    log.warn("could not create proxy factory for:" + getEntityName(),he);
+    pf=null;
+  }
+  return pf;
+}

@@ -1,0 +1,11 @@
+{
+  loaders.put(LockMode.NONE,createEntityLoader(LockMode.NONE));
+  UniqueEntityLoader readLoader=createEntityLoader(LockMode.READ);
+  loaders.put(LockMode.READ,readLoader);
+  boolean disableForUpdate=getSubclassTableSpan() > 1 && hasSubclasses() && !getFactory().getDialect().supportsOuterJoinForUpdate();
+  loaders.put(LockMode.UPGRADE,disableForUpdate ? readLoader : createEntityLoader(LockMode.UPGRADE));
+  loaders.put(LockMode.UPGRADE_NOWAIT,disableForUpdate ? readLoader : createEntityLoader(LockMode.UPGRADE_NOWAIT));
+  loaders.put(LockMode.FORCE,disableForUpdate ? readLoader : createEntityLoader(LockMode.FORCE));
+  loaders.put("merge",new CascadeEntityLoader(this,CascadingAction.MERGE,getFactory()));
+  loaders.put("refresh",new CascadeEntityLoader(this,CascadingAction.REFRESH,getFactory()));
+}

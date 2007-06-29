@@ -1,0 +1,17 @@
+{
+  if (!underlyingScrollSuccessful) {
+    currentRow=null;
+    return;
+  }
+  Object result=getLoader().loadSingleRow(getResultSet(),getSession(),getQueryParameters(),false);
+  if (result != null && result.getClass().isArray()) {
+    currentRow=(Object[])result;
+  }
+ else {
+    currentRow=new Object[]{result};
+  }
+  if (getHolderInstantiator() != null) {
+    currentRow=new Object[]{getHolderInstantiator().instantiate(currentRow)};
+  }
+  afterScrollOperation();
+}

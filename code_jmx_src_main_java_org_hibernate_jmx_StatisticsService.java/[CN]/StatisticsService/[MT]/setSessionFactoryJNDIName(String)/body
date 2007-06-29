@@ -1,0 +1,25 @@
+{
+  this.sfJNDIName=sfJNDIName;
+  try {
+    Object obj=new InitialContext().lookup(sfJNDIName);
+    if (obj instanceof Reference) {
+      Reference ref=(Reference)obj;
+      setSessionFactory((SessionFactory)SessionFactoryObjectFactory.getInstance((String)ref.get(0).getContent()));
+    }
+ else {
+      setSessionFactory((SessionFactory)obj);
+    }
+  }
+ catch (  NameNotFoundException e) {
+    log.error("No session factory with JNDI name " + sfJNDIName,e);
+    setSessionFactory(null);
+  }
+catch (  NamingException e) {
+    log.error("Error while accessing session factory with JNDI name " + sfJNDIName,e);
+    setSessionFactory(null);
+  }
+catch (  ClassCastException e) {
+    log.error("JNDI name " + sfJNDIName + " does not handle a session factory reference",e);
+    setSessionFactory(null);
+  }
+}

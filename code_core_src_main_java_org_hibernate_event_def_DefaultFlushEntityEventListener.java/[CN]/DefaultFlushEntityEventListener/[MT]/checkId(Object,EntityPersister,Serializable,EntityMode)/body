@@ -1,0 +1,14 @@
+{
+  if (id != null && id instanceof DelayedPostInsertIdentifier) {
+    return;
+  }
+  if (persister.canExtractIdOutOfEntity()) {
+    Serializable oid=persister.getIdentifier(object,entityMode);
+    if (id == null) {
+      throw new AssertionFailure("null id in " + persister.getEntityName() + " entry (don't flush the Session after an exception occurs)");
+    }
+    if (!persister.getIdentifierType().isEqual(id,oid,entityMode)) {
+      throw new HibernateException("identifier of an instance of " + persister.getEntityName() + " was altered from "+ id+ " to "+ oid);
+    }
+  }
+}

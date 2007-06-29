@@ -1,0 +1,16 @@
+{
+  boolean isIdent=(constant.getType() == IDENT || constant.getType() == WEIRD_IDENT);
+  if (resolveIdent && isIdent && isAlias(constant.getText())) {
+    IdentNode ident=(IdentNode)constant;
+    ident.resolve(false,true);
+  }
+ else {
+    Queryable queryable=walker.getSessionFactoryHelper().findQueryableUsingImports(constant.getText());
+    if (isIdent && queryable != null) {
+      constant.setText(queryable.getDiscriminatorSQLValue());
+    }
+ else {
+      processLiteral(constant);
+    }
+  }
+}

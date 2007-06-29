@@ -1,0 +1,15 @@
+{
+  Attribute tableNameNode=node.attribute("table");
+  String logicalTableName;
+  String physicalTableName;
+  if (tableNameNode == null) {
+    logicalTableName=StringHelper.unqualify(model.getEntityName());
+    physicalTableName=mappings.getNamingStrategy().classToTableName(model.getEntityName());
+  }
+ else {
+    logicalTableName=tableNameNode.getValue();
+    physicalTableName=mappings.getNamingStrategy().tableName(logicalTableName);
+  }
+  mappings.addTableBinding(schema,catalog,logicalTableName,physicalTableName,denormalizedSuperTable);
+  return physicalTableName;
+}

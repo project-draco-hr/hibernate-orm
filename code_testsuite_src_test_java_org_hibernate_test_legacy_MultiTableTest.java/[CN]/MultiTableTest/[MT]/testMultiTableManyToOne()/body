@@ -1,0 +1,30 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  assertTrue(s.find("from Top").size() == 0);
+  Multi multi=new Multi();
+  multi.setExtraProp("extra");
+  multi.setName("name");
+  Top simp=new Top();
+  simp.setDate(new Date());
+  simp.setName("simp");
+  s.save(multi);
+  Lower ls=new Lower();
+  ls.setOther(ls);
+  ls.setAnother(multi);
+  ls.setYetanother(ls);
+  ls.setName("Less Simple");
+  Serializable id=s.save(ls);
+  t.commit();
+  s.close();
+  assertTrue(ls.getOther() == ls && ls.getAnother() == multi && ls.getYetanother() == ls);
+  s=openSession();
+  t=s.beginTransaction();
+  ls=(Lower)s.load(Lower.class,id);
+  assertTrue(ls.getOther() == ls && ls.getYetanother() == ls);
+  assertTrue(ls.getAnother().getName().equals("name") && ls.getAnother() instanceof Multi);
+  s.delete(ls);
+  s.delete(ls.getAnother());
+  t.commit();
+  s.close();
+}

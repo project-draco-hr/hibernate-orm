@@ -1,0 +1,27 @@
+{
+  byte[] original=buildRecursively(BLOB_SIZE,true);
+  byte[] changed=buildRecursively(BLOB_SIZE,false);
+  Session s=openSession();
+  s.beginTransaction();
+  LobHolder entity=new LobHolder();
+  entity.setMaterializedBlob(original);
+  s.save(entity);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  entity=(LobHolder)s.get(LobHolder.class,entity.getId());
+  assertEquals(BLOB_SIZE,entity.getMaterializedBlob().length);
+  assertEquals(original,entity.getMaterializedBlob());
+  entity.setMaterializedBlob(changed);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  entity=(LobHolder)s.get(LobHolder.class,entity.getId());
+  assertEquals(BLOB_SIZE,entity.getMaterializedBlob().length);
+  assertEquals(changed,entity.getMaterializedBlob());
+  s.delete(entity);
+  s.getTransaction().commit();
+  s.close();
+}

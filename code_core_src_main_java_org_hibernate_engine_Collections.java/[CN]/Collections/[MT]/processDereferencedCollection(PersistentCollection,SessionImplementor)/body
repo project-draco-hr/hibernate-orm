@@ -1,0 +1,33 @@
+{
+  final PersistenceContext persistenceContext=session.getPersistenceContext();
+  CollectionEntry entry=persistenceContext.getCollectionEntry(coll);
+  final CollectionPersister loadedPersister=entry.getLoadedPersister();
+  if (log.isDebugEnabled() && loadedPersister != null)   log.debug("Collection dereferenced: " + MessageHelper.collectionInfoString(loadedPersister,entry.getLoadedKey(),session.getFactory()));
+  boolean hasOrphanDelete=loadedPersister != null && loadedPersister.hasOrphanDelete();
+  if (hasOrphanDelete) {
+    Serializable ownerId=loadedPersister.getOwnerEntityPersister().getIdentifier(coll.getOwner(),session.getEntityMode());
+    if (ownerId == null) {
+      if (session.getFactory().getSettings().isIdentifierRollbackEnabled()) {
+        EntityEntry ownerEntry=persistenceContext.getEntry(coll.getOwner());
+        if (ownerEntry != null) {
+          ownerId=ownerEntry.getId();
+        }
+      }
+      if (ownerId == null) {
+        throw new AssertionFailure("Unable to determine collection owner identifier for orphan-delete processing");
+      }
+    }
+    EntityKey key=new EntityKey(ownerId,loadedPersister.getOwnerEntityPersister(),session.getEntityMode());
+    Object owner=persistenceContext.getEntity(key);
+    if (owner == null) {
+      throw new AssertionFailure("collection owner not associated with session: " + loadedPersister.getRole());
+    }
+    EntityEntry e=persistenceContext.getEntry(owner);
+    if (e != null && e.getStatus() != Status.DELETED && e.getStatus() != Status.GONE) {
+      throw new HibernateException("A collection with cascade=\"all-delete-orphan\" was no longer referenced by the owning entity instance: " + loadedPersister.getRole());
+    }
+  }
+  entry.setCurrentPersister(null);
+  entry.setCurrentKey(null);
+  prepareCollectionForUpdate(coll,entry,session.getEntityMode(),session.getFactory());
+}

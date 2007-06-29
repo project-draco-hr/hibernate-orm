@@ -1,0 +1,17 @@
+{
+  EntityEntry entry=source.getPersistenceContext().getEntry(entity);
+  if (entry == null) {
+    Serializable id=persister.getIdentifier(entity,source.getEntityMode());
+    if (id != null) {
+      EntityKey key=new EntityKey(id,persister,source.getEntityMode());
+      Object managedEntity=source.getPersistenceContext().getEntity(key);
+      entry=source.getPersistenceContext().getEntry(managedEntity);
+    }
+  }
+  if (entry == null) {
+    return false;
+  }
+ else {
+    return entry.isExistsInDatabase();
+  }
+}

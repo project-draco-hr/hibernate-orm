@@ -1,0 +1,32 @@
+{
+  String methodName=method.getName();
+  int params=args.length;
+  if (params == 0) {
+    if ("writeReplace".equals(methodName)) {
+      return getReplacement();
+    }
+ else     if (!overridesEquals && "hashCode".equals(methodName)) {
+      return new Integer(System.identityHashCode(proxy));
+    }
+ else     if (isUninitialized() && method.equals(getIdentifierMethod)) {
+      return getIdentifier();
+    }
+ else     if ("getHibernateLazyInitializer".equals(methodName)) {
+      return this;
+    }
+  }
+ else   if (params == 1) {
+    if (!overridesEquals && "equals".equals(methodName)) {
+      return args[0] == proxy ? Boolean.TRUE : Boolean.FALSE;
+    }
+ else     if (method.equals(setIdentifierMethod)) {
+      initialize();
+      setIdentifier((Serializable)args[0]);
+      return INVOKE_IMPLEMENTATION;
+    }
+  }
+  if (componentIdType != null && componentIdType.isMethodOf(method)) {
+    return method.invoke(getIdentifier(),args);
+  }
+  return INVOKE_IMPLEMENTATION;
+}

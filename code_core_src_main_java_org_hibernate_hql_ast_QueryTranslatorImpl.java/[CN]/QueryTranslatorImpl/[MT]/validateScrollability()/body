@@ -1,0 +1,34 @@
+{
+  errorIfDML();
+  QueryNode query=(QueryNode)sqlAst;
+  List collectionFetches=query.getFromClause().getCollectionFetches();
+  if (collectionFetches.isEmpty()) {
+    return;
+  }
+  if (isShallowQuery()) {
+    return;
+  }
+  if (getReturnTypes().length > 1) {
+    throw new HibernateException("cannot scroll with collection fetches and returned tuples");
+  }
+  FromElement owner=null;
+  Iterator itr=query.getSelectClause().getFromElementsForLoad().iterator();
+  while (itr.hasNext()) {
+    final FromElement fromElement=(FromElement)itr.next();
+    if (fromElement.getOrigin() == null) {
+      owner=fromElement;
+      break;
+    }
+  }
+  if (owner == null) {
+    throw new HibernateException("unable to locate collection fetch(es) owner for scrollability checks");
+  }
+  AST primaryOrdering=query.getOrderByClause().getFirstChild();
+  if (primaryOrdering != null) {
+    String[] idColNames=owner.getQueryable().getIdentifierColumnNames();
+    String expectedPrimaryOrderSeq=StringHelper.join(", ",StringHelper.qualify(owner.getTableAlias(),idColNames));
+    if (!primaryOrdering.getText().startsWith(expectedPrimaryOrderSeq)) {
+      throw new HibernateException("cannot scroll results with collection fetches which are not ordered primarily by the root entity's PK");
+    }
+  }
+}

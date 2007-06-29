@@ -1,0 +1,13 @@
+{
+  errorIfClosed();
+  checkTransactionSynchStatus();
+  HQLQueryPlan plan=getHQLQueryPlan(query,false);
+  autoFlushIfRequired(plan.getQuerySpaces());
+  dontFlushFromFind++;
+  try {
+    return plan.performScroll(queryParameters,this);
+  }
+  finally {
+    dontFlushFromFind--;
+  }
+}

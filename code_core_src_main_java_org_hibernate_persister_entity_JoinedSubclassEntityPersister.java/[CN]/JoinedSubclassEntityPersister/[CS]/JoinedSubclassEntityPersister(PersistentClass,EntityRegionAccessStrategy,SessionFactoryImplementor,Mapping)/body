@@ -1,0 +1,178 @@
+{
+  super(persistentClass,cacheAccessStrategy,factory);
+  final Object discriminatorValue;
+  if (persistentClass.isPolymorphic()) {
+    try {
+      discriminatorValue=new Integer(persistentClass.getSubclassId());
+      discriminatorSQLString=discriminatorValue.toString();
+    }
+ catch (    Exception e) {
+      throw new MappingException("Could not format discriminator value to SQL string",e);
+    }
+  }
+ else {
+    discriminatorValue=null;
+    discriminatorSQLString=null;
+  }
+  if (optimisticLockMode() > Versioning.OPTIMISTIC_LOCK_VERSION) {
+    throw new MappingException("optimistic-lock=all|dirty not supported for joined-subclass mappings [" + getEntityName() + "]");
+  }
+  final int idColumnSpan=getIdentifierColumnSpan();
+  ArrayList tables=new ArrayList();
+  ArrayList keyColumns=new ArrayList();
+  ArrayList cascadeDeletes=new ArrayList();
+  Iterator titer=persistentClass.getTableClosureIterator();
+  Iterator kiter=persistentClass.getKeyClosureIterator();
+  while (titer.hasNext()) {
+    Table tab=(Table)titer.next();
+    KeyValue key=(KeyValue)kiter.next();
+    String tabname=tab.getQualifiedName(factory.getDialect(),factory.getSettings().getDefaultCatalogName(),factory.getSettings().getDefaultSchemaName());
+    tables.add(tabname);
+    String[] keyCols=new String[idColumnSpan];
+    Iterator citer=key.getColumnIterator();
+    for (int k=0; k < idColumnSpan; k++) {
+      keyCols[k]=((Column)citer.next()).getQuotedName(factory.getDialect());
+    }
+    keyColumns.add(keyCols);
+    cascadeDeletes.add(new Boolean(key.isCascadeDeleteEnabled() && factory.getDialect().supportsCascadeDelete()));
+  }
+  naturalOrderTableNames=ArrayHelper.toStringArray(tables);
+  naturalOrderTableKeyColumns=ArrayHelper.to2DStringArray(keyColumns);
+  naturalOrderCascadeDeleteEnabled=ArrayHelper.toBooleanArray(cascadeDeletes);
+  ArrayList subtables=new ArrayList();
+  ArrayList isConcretes=new ArrayList();
+  keyColumns=new ArrayList();
+  titer=persistentClass.getSubclassTableClosureIterator();
+  while (titer.hasNext()) {
+    Table tab=(Table)titer.next();
+    isConcretes.add(new Boolean(persistentClass.isClassOrSuperclassTable(tab)));
+    String tabname=tab.getQualifiedName(factory.getDialect(),factory.getSettings().getDefaultCatalogName(),factory.getSettings().getDefaultSchemaName());
+    subtables.add(tabname);
+    String[] key=new String[idColumnSpan];
+    Iterator citer=tab.getPrimaryKey().getColumnIterator();
+    for (int k=0; k < idColumnSpan; k++) {
+      key[k]=((Column)citer.next()).getQuotedName(factory.getDialect());
+    }
+    keyColumns.add(key);
+  }
+  subclassTableNameClosure=ArrayHelper.toStringArray(subtables);
+  subclassTableKeyColumnClosure=ArrayHelper.to2DStringArray(keyColumns);
+  isClassOrSuperclassTable=ArrayHelper.toBooleanArray(isConcretes);
+  constraintOrderedTableNames=new String[subclassTableNameClosure.length];
+  constraintOrderedKeyColumnNames=new String[subclassTableNameClosure.length][];
+  int currentPosition=0;
+  for (int i=subclassTableNameClosure.length - 1; i >= 0; i--, currentPosition++) {
+    constraintOrderedTableNames[currentPosition]=subclassTableNameClosure[i];
+    constraintOrderedKeyColumnNames[currentPosition]=subclassTableKeyColumnClosure[i];
+  }
+  tableSpan=naturalOrderTableNames.length;
+  tableNames=reverse(naturalOrderTableNames);
+  tableKeyColumns=reverse(naturalOrderTableKeyColumns);
+  reverse(subclassTableNameClosure,tableSpan);
+  reverse(subclassTableKeyColumnClosure,tableSpan);
+  spaces=ArrayHelper.join(tableNames,ArrayHelper.toStringArray(persistentClass.getSynchronizedTables()));
+  customSQLInsert=new String[tableSpan];
+  customSQLUpdate=new String[tableSpan];
+  customSQLDelete=new String[tableSpan];
+  insertCallable=new boolean[tableSpan];
+  updateCallable=new boolean[tableSpan];
+  deleteCallable=new boolean[tableSpan];
+  insertResultCheckStyles=new ExecuteUpdateResultCheckStyle[tableSpan];
+  updateResultCheckStyles=new ExecuteUpdateResultCheckStyle[tableSpan];
+  deleteResultCheckStyles=new ExecuteUpdateResultCheckStyle[tableSpan];
+  PersistentClass pc=persistentClass;
+  int jk=tableSpan - 1;
+  while (pc != null) {
+    customSQLInsert[jk]=pc.getCustomSQLInsert();
+    insertCallable[jk]=customSQLInsert[jk] != null && pc.isCustomInsertCallable();
+    insertResultCheckStyles[jk]=pc.getCustomSQLInsertCheckStyle() == null ? ExecuteUpdateResultCheckStyle.determineDefault(customSQLInsert[jk],insertCallable[jk]) : pc.getCustomSQLInsertCheckStyle();
+    customSQLUpdate[jk]=pc.getCustomSQLUpdate();
+    updateCallable[jk]=customSQLUpdate[jk] != null && pc.isCustomUpdateCallable();
+    updateResultCheckStyles[jk]=pc.getCustomSQLUpdateCheckStyle() == null ? ExecuteUpdateResultCheckStyle.determineDefault(customSQLUpdate[jk],updateCallable[jk]) : pc.getCustomSQLUpdateCheckStyle();
+    customSQLDelete[jk]=pc.getCustomSQLDelete();
+    deleteCallable[jk]=customSQLDelete[jk] != null && pc.isCustomDeleteCallable();
+    deleteResultCheckStyles[jk]=pc.getCustomSQLDeleteCheckStyle() == null ? ExecuteUpdateResultCheckStyle.determineDefault(customSQLDelete[jk],deleteCallable[jk]) : pc.getCustomSQLDeleteCheckStyle();
+    jk--;
+    pc=pc.getSuperclass();
+  }
+  if (jk != -1) {
+    throw new AssertionFailure("Tablespan does not match height of joined-subclass hiearchy.");
+  }
+  int hydrateSpan=getPropertySpan();
+  naturalOrderPropertyTableNumbers=new int[hydrateSpan];
+  propertyTableNumbers=new int[hydrateSpan];
+  Iterator iter=persistentClass.getPropertyClosureIterator();
+  int i=0;
+  while (iter.hasNext()) {
+    Property prop=(Property)iter.next();
+    String tabname=prop.getValue().getTable().getQualifiedName(factory.getDialect(),factory.getSettings().getDefaultCatalogName(),factory.getSettings().getDefaultSchemaName());
+    propertyTableNumbers[i]=getTableId(tabname,tableNames);
+    naturalOrderPropertyTableNumbers[i]=getTableId(tabname,naturalOrderTableNames);
+    i++;
+  }
+  ArrayList columnTableNumbers=new ArrayList();
+  ArrayList formulaTableNumbers=new ArrayList();
+  ArrayList propTableNumbers=new ArrayList();
+  iter=persistentClass.getSubclassPropertyClosureIterator();
+  while (iter.hasNext()) {
+    Property prop=(Property)iter.next();
+    Table tab=prop.getValue().getTable();
+    String tabname=tab.getQualifiedName(factory.getDialect(),factory.getSettings().getDefaultCatalogName(),factory.getSettings().getDefaultSchemaName());
+    Integer tabnum=new Integer(getTableId(tabname,subclassTableNameClosure));
+    propTableNumbers.add(tabnum);
+    Iterator citer=prop.getColumnIterator();
+    while (citer.hasNext()) {
+      Selectable thing=(Selectable)citer.next();
+      if (thing.isFormula()) {
+        formulaTableNumbers.add(tabnum);
+      }
+ else {
+        columnTableNumbers.add(tabnum);
+      }
+    }
+  }
+  subclassColumnTableNumberClosure=ArrayHelper.toIntArray(columnTableNumbers);
+  subclassPropertyTableNumberClosure=ArrayHelper.toIntArray(propTableNumbers);
+  subclassFormulaTableNumberClosure=ArrayHelper.toIntArray(formulaTableNumbers);
+  int subclassSpan=persistentClass.getSubclassSpan() + 1;
+  subclassClosure=new String[subclassSpan];
+  subclassClosure[subclassSpan - 1]=getEntityName();
+  if (persistentClass.isPolymorphic()) {
+    subclassesByDiscriminatorValue.put(discriminatorValue,getEntityName());
+    discriminatorValues=new String[subclassSpan];
+    discriminatorValues[subclassSpan - 1]=discriminatorSQLString;
+    notNullColumnTableNumbers=new int[subclassSpan];
+    final int id=getTableId(persistentClass.getTable().getQualifiedName(factory.getDialect(),factory.getSettings().getDefaultCatalogName(),factory.getSettings().getDefaultSchemaName()),subclassTableNameClosure);
+    notNullColumnTableNumbers[subclassSpan - 1]=id;
+    notNullColumnNames=new String[subclassSpan];
+    notNullColumnNames[subclassSpan - 1]=subclassTableKeyColumnClosure[id][0];
+  }
+ else {
+    discriminatorValues=null;
+    notNullColumnTableNumbers=null;
+    notNullColumnNames=null;
+  }
+  iter=persistentClass.getSubclassIterator();
+  int k=0;
+  while (iter.hasNext()) {
+    Subclass sc=(Subclass)iter.next();
+    subclassClosure[k]=sc.getEntityName();
+    try {
+      if (persistentClass.isPolymorphic()) {
+        Integer subclassId=new Integer(sc.getSubclassId());
+        subclassesByDiscriminatorValue.put(subclassId,sc.getEntityName());
+        discriminatorValues[k]=subclassId.toString();
+        int id=getTableId(sc.getTable().getQualifiedName(factory.getDialect(),factory.getSettings().getDefaultCatalogName(),factory.getSettings().getDefaultSchemaName()),subclassTableNameClosure);
+        notNullColumnTableNumbers[k]=id;
+        notNullColumnNames[k]=subclassTableKeyColumnClosure[id][0];
+      }
+    }
+ catch (    Exception e) {
+      throw new MappingException("Error parsing discriminator value",e);
+    }
+    k++;
+  }
+  initLockers();
+  initSubclassPropertyAliasesMap(persistentClass);
+  postConstruct(mapping);
+}

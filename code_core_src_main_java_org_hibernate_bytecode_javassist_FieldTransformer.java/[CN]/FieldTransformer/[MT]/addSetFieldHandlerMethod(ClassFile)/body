@@ -1,0 +1,15 @@
+{
+  ConstPool cp=classfile.getConstPool();
+  int this_class_index=cp.getThisClassInfo();
+  MethodInfo minfo=new MethodInfo(cp,SETFIELDHANDLER_METHOD_NAME,SETFIELDHANDLER_METHOD_DESCRIPTOR);
+  Bytecode code=new Bytecode(cp,3,3);
+  code.addAload(0);
+  code.addAload(1);
+  code.addOpcode(Opcode.PUTFIELD);
+  int field_index=cp.addFieldrefInfo(this_class_index,HANDLER_FIELD_NAME,HANDLER_FIELD_DESCRIPTOR);
+  code.addIndex(field_index);
+  code.addOpcode(Opcode.RETURN);
+  minfo.setCodeAttribute(code.toCodeAttribute());
+  minfo.setAccessFlags(AccessFlag.PUBLIC);
+  classfile.addMethod(minfo);
+}

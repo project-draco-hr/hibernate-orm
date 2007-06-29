@@ -1,0 +1,76 @@
+{
+  if (ArrayHelper.isAllFalse(elementColumnIsSettable))   return 0;
+  try {
+    PreparedStatement st=null;
+    Expectation expectation=Expectations.appropriateExpectation(getUpdateCheckStyle());
+    boolean callable=isUpdateCallable();
+    boolean useBatch=expectation.canBeBatched();
+    Iterator entries=collection.entries(this);
+    String sql=getSQLUpdateRowString();
+    int i=0;
+    int count=0;
+    while (entries.hasNext()) {
+      Object entry=entries.next();
+      if (collection.needsUpdating(entry,i,elementType)) {
+        int offset=1;
+        if (useBatch) {
+          if (st == null) {
+            if (callable) {
+              st=session.getBatcher().prepareBatchCallableStatement(sql);
+            }
+ else {
+              st=session.getBatcher().prepareBatchStatement(sql);
+            }
+          }
+        }
+ else {
+          if (callable) {
+            st=session.getBatcher().prepareCallableStatement(sql);
+          }
+ else {
+            st=session.getBatcher().prepareStatement(sql);
+          }
+        }
+        try {
+          offset+=expectation.prepare(st);
+          int loc=writeElement(st,collection.getElement(entry),offset,session);
+          if (hasIdentifier) {
+            writeIdentifier(st,collection.getIdentifier(entry,i),loc,session);
+          }
+ else {
+            loc=writeKey(st,id,loc,session);
+            if (hasIndex && !indexContainsFormula) {
+              writeIndexToWhere(st,collection.getIndex(entry,i,this),loc,session);
+            }
+ else {
+              writeElementToWhere(st,collection.getSnapshotElement(entry,i),loc,session);
+            }
+          }
+          if (useBatch) {
+            session.getBatcher().addToBatch(expectation);
+          }
+ else {
+            expectation.verifyOutcome(st.executeUpdate(),st,-1);
+          }
+        }
+ catch (        SQLException sqle) {
+          if (useBatch) {
+            session.getBatcher().abortBatch(sqle);
+          }
+          throw sqle;
+        }
+ finally {
+          if (!useBatch) {
+            session.getBatcher().closeStatement(st);
+          }
+        }
+        count++;
+      }
+      i++;
+    }
+    return count;
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(getSQLExceptionConverter(),sqle,"could not update collection rows: " + MessageHelper.collectionInfoString(this,id,getFactory()),getSQLUpdateRowString());
+  }
+}

@@ -1,0 +1,20 @@
+{
+  Object[] args=new Object[]{sql,columnNames};
+  try {
+    return (PreparedStatement)PREPARE_STATEMENT_METHOD.invoke(conn,args);
+  }
+ catch (  InvocationTargetException ite) {
+    if (ite.getTargetException() instanceof SQLException) {
+      throw (SQLException)ite.getTargetException();
+    }
+ else     if (ite.getTargetException() instanceof RuntimeException) {
+      throw (RuntimeException)ite.getTargetException();
+    }
+ else {
+      throw new AssertionFailure("InvocationTargetException preparing statement capable of returning generated keys (JDBC3)",ite);
+    }
+  }
+catch (  IllegalAccessException iae) {
+    throw new AssertionFailure("IllegalAccessException preparing statement capable of returning generated keys (JDBC3)",iae);
+  }
+}

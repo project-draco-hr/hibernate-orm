@@ -1,0 +1,75 @@
+{
+  Configuration cfg=new Configuration();
+  try {
+    cfg.addCacheableFile("completelybogus.hbm.xml");
+    fail();
+  }
+ catch (  MappingNotFoundException e) {
+    assertEquals(e.getType(),"file");
+    assertEquals(e.getPath(),"completelybogus.hbm.xml");
+  }
+  try {
+    cfg.addCacheableFile(new File("completelybogus.hbm.xml"));
+    fail();
+  }
+ catch (  MappingNotFoundException e) {
+    assertEquals(e.getType(),"file");
+    assertEquals(e.getPath(),"completelybogus.hbm.xml");
+  }
+  try {
+    cfg.addClass(Hibernate.class);
+    fail();
+  }
+ catch (  MappingNotFoundException inv) {
+    assertEquals(inv.getType(),"resource");
+    assertEquals(inv.getPath(),"org/hibernate/Hibernate.hbm.xml");
+  }
+  try {
+    cfg.addFile("completelybogus.hbm.xml");
+    fail();
+  }
+ catch (  MappingNotFoundException e) {
+    assertEquals(e.getType(),"file");
+    assertEquals(e.getPath(),"completelybogus.hbm.xml");
+  }
+  try {
+    cfg.addFile(new File("completelybogus.hbm.xml"));
+    fail();
+  }
+ catch (  MappingNotFoundException inv) {
+    assertEquals(inv.getType(),"file");
+    assertEquals(inv.getPath(),"completelybogus.hbm.xml");
+  }
+  try {
+    cfg.addInputStream(new ByteArrayInputStream(new byte[0]));
+    fail();
+  }
+ catch (  InvalidMappingException inv) {
+    assertEquals(inv.getType(),"input stream");
+    assertEquals(inv.getPath(),null);
+  }
+  try {
+    cfg.addResource("nothere");
+    fail();
+  }
+ catch (  MappingNotFoundException inv) {
+    assertEquals(inv.getType(),"resource");
+    assertEquals(inv.getPath(),"nothere");
+  }
+  try {
+    cfg.addResource("nothere",getClass().getClassLoader());
+    fail();
+  }
+ catch (  MappingNotFoundException inv) {
+    assertEquals(inv.getType(),"resource");
+    assertEquals(inv.getPath(),"nothere");
+  }
+  try {
+    cfg.addURL(new URL("file://nothere"));
+    fail();
+  }
+ catch (  InvalidMappingException inv) {
+    assertEquals(inv.getType(),"URL");
+    assertEquals(inv.getPath(),"file://nothere");
+  }
+}

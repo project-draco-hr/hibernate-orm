@@ -1,0 +1,40 @@
+{
+  if (isTransactionCallbackRegistered) {
+    return true;
+  }
+  boolean localCallbacksOnly=owner.getFactory().getSettings().getTransactionFactory().areCallbacksLocalToHibernateTransactions();
+  if (localCallbacksOnly) {
+    return false;
+  }
+  TransactionManager tm=owner.getFactory().getTransactionManager();
+  if (tm == null) {
+    return false;
+  }
+ else {
+    try {
+      if (!isTransactionInProgress()) {
+        log.trace("TransactionFactory reported no active transaction; Synchronization not registered");
+        return false;
+      }
+ else {
+        javax.transaction.Transaction tx=tm.getTransaction();
+        if (JTAHelper.isMarkedForRollback(tx)) {
+          log.debug("Transaction is marked for rollback; skipping Synchronization registration");
+          return false;
+        }
+ else {
+          tx.registerSynchronization(new CacheSynchronization(owner,this,tx,null));
+          isTransactionCallbackRegistered=true;
+          log.debug("successfully registered Synchronization");
+          return true;
+        }
+      }
+    }
+ catch (    HibernateException e) {
+      throw e;
+    }
+catch (    Exception e) {
+      throw new TransactionException("could not register synchronization with JTA TransactionManager",e);
+    }
+  }
+}

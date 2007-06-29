@@ -1,0 +1,18 @@
+{
+  long initialInsertCount=sfi().getStatistics().getEntityInsertCount();
+  Session s=openSession();
+  MyEntity myEntity=new MyEntity("test-persist");
+  myEntity.setSibling(new MySibling("test-persist-sibling-out"));
+  s.persist(myEntity);
+  assertEquals("persist on identity column not delayed",initialInsertCount,sfi().getStatistics().getEntityInsertCount());
+  assertNull(myEntity.getId());
+  s.flush();
+  assertEquals("delayed persist insert not executed on flush",initialInsertCount + 2,sfi().getStatistics().getEntityInsertCount());
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  s.createQuery("delete MyEntity").executeUpdate();
+  s.createQuery("delete MySibling").executeUpdate();
+  s.getTransaction().commit();
+  s.close();
+}

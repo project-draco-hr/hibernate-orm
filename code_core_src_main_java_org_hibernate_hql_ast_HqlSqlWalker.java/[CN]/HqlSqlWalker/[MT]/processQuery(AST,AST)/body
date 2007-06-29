@@ -1,0 +1,34 @@
+{
+  if (log.isDebugEnabled()) {
+    log.debug("processQuery() : " + query.toStringTree());
+  }
+  try {
+    QueryNode qn=(QueryNode)query;
+    boolean explicitSelect=select != null && select.getNumberOfChildren() > 0;
+    if (!explicitSelect) {
+      createSelectClauseFromFromClause(qn);
+    }
+ else {
+      useSelectClause(select);
+    }
+    JoinProcessor joinProcessor=new JoinProcessor(astFactory,queryTranslatorImpl);
+    joinProcessor.processJoins(qn,isSubQuery());
+    Iterator itr=qn.getFromClause().getProjectionList().iterator();
+    while (itr.hasNext()) {
+      final FromElement fromElement=(FromElement)itr.next();
+      if (fromElement.isFetch() && fromElement.getQueryableCollection() != null) {
+        if (fromElement.getQueryableCollection().hasOrdering()) {
+          String orderByFragment=fromElement.getQueryableCollection().getSQLOrderByString(fromElement.getCollectionTableAlias());
+          qn.getOrderByClause().addOrderFragment(orderByFragment);
+        }
+        if (fromElement.getQueryableCollection().hasManyToManyOrdering()) {
+          String orderByFragment=fromElement.getQueryableCollection().getManyToManyOrderByString(fromElement.getTableAlias());
+          qn.getOrderByClause().addOrderFragment(orderByFragment);
+        }
+      }
+    }
+  }
+  finally {
+    popFromClause();
+  }
+}

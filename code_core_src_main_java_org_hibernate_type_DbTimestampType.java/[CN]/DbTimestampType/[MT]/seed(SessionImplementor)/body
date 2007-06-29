@@ -1,0 +1,13 @@
+{
+  if (session == null) {
+    log.trace("incoming session was null; using current jvm time");
+    return super.seed(session);
+  }
+ else   if (!session.getFactory().getDialect().supportsCurrentTimestampSelection()) {
+    log.debug("falling back to vm-based timestamp, as dialect does not support current timestamp selection");
+    return super.seed(session);
+  }
+ else {
+    return getCurrentTimestamp(session);
+  }
+}

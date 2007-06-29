@@ -1,0 +1,45 @@
+{
+  log.trace("merging detached instance");
+  final Object entity=event.getEntity();
+  final EventSource source=event.getSession();
+  final EntityPersister persister=source.getEntityPersister(event.getEntityName(),entity);
+  final String entityName=persister.getEntityName();
+  Serializable id=event.getRequestedId();
+  if (id == null) {
+    id=persister.getIdentifier(entity,source.getEntityMode());
+  }
+ else {
+    Serializable entityId=persister.getIdentifier(entity,source.getEntityMode());
+    if (!persister.getIdentifierType().isEqual(id,entityId,source.getEntityMode(),source.getFactory())) {
+      throw new HibernateException("merge requested with id not matching id of passed entity");
+    }
+  }
+  String previousFetchProfile=source.getFetchProfile();
+  source.setFetchProfile("merge");
+  final Serializable clonedIdentifier=(Serializable)persister.getIdentifierType().deepCopy(id,source.getEntityMode(),source.getFactory());
+  final Object result=source.get(entityName,clonedIdentifier);
+  source.setFetchProfile(previousFetchProfile);
+  if (result == null) {
+    entityIsTransient(event,copyCache);
+  }
+ else {
+    copyCache.put(entity,result);
+    final Object target=source.getPersistenceContext().unproxy(result);
+    if (target == entity) {
+      throw new AssertionFailure("entity was not detached");
+    }
+ else     if (!source.getEntityName(target).equals(entityName)) {
+      throw new WrongClassException("class of the given object did not match class of persistent copy",event.getRequestedId(),entityName);
+    }
+ else     if (isVersionChanged(entity,source,persister,target)) {
+      if (source.getFactory().getStatistics().isStatisticsEnabled()) {
+        source.getFactory().getStatisticsImplementor().optimisticFailure(entityName);
+      }
+      throw new StaleObjectStateException(entityName,id);
+    }
+    cascadeOnMerge(source,persister,entity,copyCache);
+    copyValues(persister,entity,target,source,copyCache);
+    markInterceptorDirty(entity,target);
+    event.setResult(result);
+  }
+}

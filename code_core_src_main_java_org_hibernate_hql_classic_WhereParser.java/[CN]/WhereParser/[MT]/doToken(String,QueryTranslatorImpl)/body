@@ -1,0 +1,49 @@
+{
+  if (q.isName(StringHelper.root(token))) {
+    doPathExpression(q.unalias(token),q);
+  }
+ else   if (token.startsWith(ParserHelper.HQL_VARIABLE_PREFIX)) {
+    q.addNamedParameter(token.substring(1));
+    appendToken(q,"?");
+  }
+ else {
+    Queryable persister=q.getEntityPersisterUsingImports(token);
+    if (persister != null) {
+      final String discrim=persister.getDiscriminatorSQLValue();
+      if (InFragment.NULL.equals(discrim) || InFragment.NOT_NULL.equals(discrim)) {
+        throw new QueryException("subclass test not allowed for null or not null discriminator");
+      }
+ else {
+        appendToken(q,discrim);
+      }
+    }
+ else {
+      Object constant;
+      if (token.indexOf('.') > -1 && (constant=ReflectHelper.getConstantValue(token)) != null) {
+        Type type;
+        try {
+          type=TypeFactory.heuristicType(constant.getClass().getName());
+        }
+ catch (        MappingException me) {
+          throw new QueryException(me);
+        }
+        if (type == null)         throw new QueryException(QueryTranslator.ERROR_CANNOT_DETERMINE_TYPE + token);
+        try {
+          appendToken(q,((LiteralType)type).objectToSQLString(constant,q.getFactory().getDialect()));
+        }
+ catch (        Exception e) {
+          throw new QueryException(QueryTranslator.ERROR_CANNOT_FORMAT_LITERAL + token,e);
+        }
+      }
+ else {
+        String negatedToken=negated ? (String)NEGATIONS.get(token.toLowerCase()) : null;
+        if (negatedToken != null && (!betweenSpecialCase || !"or".equals(negatedToken))) {
+          appendToken(q,negatedToken);
+        }
+ else {
+          appendToken(q,token);
+        }
+      }
+    }
+  }
+}

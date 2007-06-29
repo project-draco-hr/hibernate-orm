@@ -1,0 +1,20 @@
+{
+  try {
+    expectation.verifyOutcome(rows,statement,-1);
+  }
+ catch (  StaleStateException e) {
+    if (!isNullableTable(tableNumber)) {
+      if (getFactory().getStatistics().isStatisticsEnabled()) {
+        getFactory().getStatisticsImplementor().optimisticFailure(getEntityName());
+      }
+      throw new StaleObjectStateException(getEntityName(),id);
+    }
+  }
+catch (  TooManyRowsAffectedException e) {
+    throw new HibernateException("Duplicate identifier in table for: " + MessageHelper.infoString(this,id,getFactory()));
+  }
+catch (  Throwable t) {
+    return false;
+  }
+  return true;
+}

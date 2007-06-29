@@ -1,0 +1,51 @@
+{
+  if (!hasNaturalIdentifier()) {
+    throw new MappingException("persistent class did not define a natural-id : " + MessageHelper.infoString(this));
+  }
+  if (log.isTraceEnabled()) {
+    log.trace("Getting current natural-id snapshot state for: " + MessageHelper.infoString(this,id,getFactory()));
+  }
+  int[] naturalIdPropertyIndexes=getNaturalIdentifierProperties();
+  int naturalIdPropertyCount=naturalIdPropertyIndexes.length;
+  boolean[] naturalIdMarkers=new boolean[getPropertySpan()];
+  Type[] extractionTypes=new Type[naturalIdPropertyCount];
+  for (int i=0; i < naturalIdPropertyCount; i++) {
+    extractionTypes[i]=getPropertyTypes()[naturalIdPropertyIndexes[i]];
+    naturalIdMarkers[naturalIdPropertyIndexes[i]]=true;
+  }
+  Select select=new Select(getFactory().getDialect());
+  if (getFactory().getSettings().isCommentsEnabled()) {
+    select.setComment("get current natural-id state " + getEntityName());
+  }
+  select.setSelectClause(concretePropertySelectFragmentSansLeadingComma(getRootAlias(),naturalIdMarkers));
+  select.setFromClause(fromTableFragment(getRootAlias()) + fromJoinFragment(getRootAlias(),true,false));
+  String[] aliasedIdColumns=StringHelper.qualify(getRootAlias(),getIdentifierColumnNames());
+  String whereClause=new StringBuffer().append(StringHelper.join("=? and ",aliasedIdColumns)).append("=?").append(whereJoinFragment(getRootAlias(),true,false)).toString();
+  String sql=select.setOuterJoins("","").setWhereClause(whereClause).toStatementString();
+  Object[] snapshot=new Object[naturalIdPropertyCount];
+  try {
+    PreparedStatement ps=session.getBatcher().prepareSelectStatement(sql);
+    try {
+      getIdentifierType().nullSafeSet(ps,id,1,session);
+      ResultSet rs=ps.executeQuery();
+      try {
+        if (!rs.next()) {
+          return null;
+        }
+        for (int i=0; i < naturalIdPropertyCount; i++) {
+          snapshot[i]=extractionTypes[i].hydrate(rs,getPropertyAliases("",naturalIdPropertyIndexes[i]),session,null);
+        }
+        return snapshot;
+      }
+  finally {
+        rs.close();
+      }
+    }
+  finally {
+      session.getBatcher().closeStatement(ps);
+    }
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(getFactory().getSQLExceptionConverter(),sqle,"could not retrieve snapshot: " + MessageHelper.infoString(this,id,getFactory()),sql);
+  }
+}

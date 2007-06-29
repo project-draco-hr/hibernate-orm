@@ -1,0 +1,54 @@
+{
+  String original=buildRecursively(CLOB_SIZE,'x');
+  String changed=buildRecursively(CLOB_SIZE,'y');
+  Session s=openSession();
+  s.beginTransaction();
+  LobHolder entity=new LobHolder();
+  entity.setClobLocator(Hibernate.createClob(original));
+  s.save(entity);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  entity=(LobHolder)s.get(LobHolder.class,entity.getId());
+  assertEquals(CLOB_SIZE,entity.getClobLocator().length());
+  assertEquals(original,extractData(entity.getClobLocator()));
+  s.getTransaction().commit();
+  s.close();
+  if (supportsLobValueChangePropogation()) {
+    s=openSession();
+    s.beginTransaction();
+    entity=(LobHolder)s.get(LobHolder.class,entity.getId(),LockMode.UPGRADE);
+    entity.getClobLocator().truncate(1);
+    entity.getClobLocator().setString(1,changed);
+    s.getTransaction().commit();
+    s.close();
+    s=openSession();
+    s.beginTransaction();
+    entity=(LobHolder)s.get(LobHolder.class,entity.getId(),LockMode.UPGRADE);
+    assertNotNull(entity.getClobLocator());
+    assertEquals(CLOB_SIZE,entity.getClobLocator().length());
+    assertEquals(changed,extractData(entity.getClobLocator()));
+    entity.getClobLocator().truncate(1);
+    entity.getClobLocator().setString(1,original);
+    s.getTransaction().commit();
+    s.close();
+  }
+  s=openSession();
+  s.beginTransaction();
+  entity=(LobHolder)s.get(LobHolder.class,entity.getId(),LockMode.UPGRADE);
+  assertNotNull(entity.getClobLocator());
+  assertEquals(CLOB_SIZE,entity.getClobLocator().length());
+  assertEquals(original,extractData(entity.getClobLocator()));
+  entity.setClobLocator(Hibernate.createClob(changed));
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  entity=(LobHolder)s.get(LobHolder.class,entity.getId());
+  assertEquals(CLOB_SIZE,entity.getClobLocator().length());
+  assertEquals(changed,extractData(entity.getClobLocator()));
+  s.delete(entity);
+  s.getTransaction().commit();
+  s.close();
+}

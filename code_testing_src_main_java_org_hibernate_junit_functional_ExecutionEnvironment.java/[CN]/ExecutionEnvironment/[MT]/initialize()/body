@@ -1,0 +1,23 @@
+{
+  if (sessionFactory != null) {
+    throw new IllegalStateException("attempt to initialize already initialized ExecutionEnvironment");
+  }
+  if (!settings.appliesTo(getDialect())) {
+    return;
+  }
+  Configuration configuration=new Configuration();
+  configuration.setProperty(Environment.CACHE_PROVIDER,"org.hibernate.cache.HashtableCacheProvider");
+  settings.configure(configuration);
+  applyMappings(configuration);
+  applyCacheSettings(configuration);
+  if (settings.createSchema()) {
+    configuration.setProperty(Environment.HBM2DDL_AUTO,"create-drop");
+  }
+  configuration.setProperty(Environment.DIALECT,getDialect().getClass().getName());
+  configuration.buildMappings();
+  settings.afterConfigurationBuilt(configuration.createMappings(),getDialect());
+  SessionFactory sessionFactory=configuration.buildSessionFactory();
+  this.configuration=configuration;
+  this.sessionFactory=sessionFactory;
+  settings.afterSessionFactoryBuilt((SessionFactoryImplementor)sessionFactory);
+}

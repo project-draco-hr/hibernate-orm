@@ -1,0 +1,16 @@
+{
+  final Status status=event.getEntityEntry().getStatus();
+  if (mightBeDirty || status == Status.DELETED) {
+    dirtyCheck(event);
+    if (isUpdateNecessary(event)) {
+      return true;
+    }
+ else {
+      FieldInterceptionHelper.clearDirty(event.getEntity());
+      return false;
+    }
+  }
+ else {
+    return hasDirtyCollections(event,event.getEntityEntry().getPersister(),status);
+  }
+}

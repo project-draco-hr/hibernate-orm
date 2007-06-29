@@ -1,0 +1,45 @@
+{
+  SessionFactoryImplementor factory=getSessionFactoryImplementor();
+  if (replacements == null) {
+    replacements=new HashMap();
+  }
+  QueryTranslator oldQueryTranslator=null;
+  Exception oldException=null;
+  try {
+    System.out.println("Compiling with classic QueryTranslator...");
+    QueryTranslatorFactory classic=new ClassicQueryTranslatorFactory();
+    oldQueryTranslator=classic.createQueryTranslator(hql,hql,Collections.EMPTY_MAP,factory);
+    oldQueryTranslator.compile(replacements,scalar);
+  }
+ catch (  QueryException e) {
+    oldException=e;
+  }
+catch (  MappingException e) {
+    oldException=e;
+  }
+  QueryTranslator newQueryTranslator=null;
+  Exception newException=null;
+  try {
+    System.out.println("Compiling with AST QueryTranslator...");
+    newQueryTranslator=createNewQueryTranslator(hql,replacements,scalar);
+  }
+ catch (  QueryException e) {
+    newException=e;
+  }
+catch (  MappingException e) {
+    newException=e;
+  }
+  if (oldException != null) {
+    assertNotNull("New query translator did *NOT* throw an exception, the old one did : " + oldException,newException);
+    assertEquals(oldException.getMessage(),newException.getMessage());
+    return;
+  }
+ else   if (newException != null) {
+    newException.printStackTrace();
+    assertNull("Old query translator did not throw an exception, the new one did",newException);
+  }
+  checkSql(oldQueryTranslator,newQueryTranslator,hql,scalar,sql);
+  checkQuerySpaces(oldQueryTranslator,newQueryTranslator);
+  checkReturnedTypes(oldQueryTranslator,newQueryTranslator);
+  checkColumnNames(oldQueryTranslator,newQueryTranslator);
+}

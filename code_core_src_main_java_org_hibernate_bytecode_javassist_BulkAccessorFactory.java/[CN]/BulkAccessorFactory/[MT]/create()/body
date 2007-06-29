@@ -1,0 +1,18 @@
+{
+  Method[] getters=new Method[getterNames.length];
+  Method[] setters=new Method[setterNames.length];
+  findAccessors(targetBean,getterNames,setterNames,types,getters,setters);
+  Class beanClass;
+  try {
+    ClassFile classfile=make(getters,setters);
+    ClassLoader loader=this.getClassLoader();
+    if (writeDirectory != null) {
+      FactoryHelper.writeFile(classfile,writeDirectory);
+    }
+    beanClass=FactoryHelper.toClass(classfile,loader,getDomain());
+    return (BulkAccessor)this.newInstance(beanClass);
+  }
+ catch (  Exception e) {
+    throw new BulkAccessorException(e.getMessage(),e);
+  }
+}

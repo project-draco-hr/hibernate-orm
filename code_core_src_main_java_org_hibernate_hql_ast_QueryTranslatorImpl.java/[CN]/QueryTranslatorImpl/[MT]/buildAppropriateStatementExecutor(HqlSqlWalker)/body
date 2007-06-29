@@ -1,0 +1,29 @@
+{
+  Statement statement=(Statement)walker.getAST();
+  if (walker.getStatementType() == HqlSqlTokenTypes.DELETE) {
+    FromElement fromElement=walker.getFinalFromClause().getFromElement();
+    Queryable persister=fromElement.getQueryable();
+    if (persister.isMultiTable()) {
+      return new MultiTableDeleteExecutor(walker);
+    }
+ else {
+      return new BasicExecutor(walker,persister);
+    }
+  }
+ else   if (walker.getStatementType() == HqlSqlTokenTypes.UPDATE) {
+    FromElement fromElement=walker.getFinalFromClause().getFromElement();
+    Queryable persister=fromElement.getQueryable();
+    if (persister.isMultiTable()) {
+      return new MultiTableUpdateExecutor(walker);
+    }
+ else {
+      return new BasicExecutor(walker,persister);
+    }
+  }
+ else   if (walker.getStatementType() == HqlSqlTokenTypes.INSERT) {
+    return new BasicExecutor(walker,((InsertStatement)statement).getIntoClause().getQueryable());
+  }
+ else {
+    throw new QueryException("Unexpected statement type");
+  }
+}

@@ -1,0 +1,21 @@
+{
+  String literalValue=text;
+  if (type == NUM_FLOAT) {
+    if (literalValue.endsWith("f") || literalValue.endsWith("F")) {
+      literalValue=literalValue.substring(0,literalValue.length() - 1);
+    }
+  }
+ else   if (type == NUM_DOUBLE) {
+    if (literalValue.endsWith("d") || literalValue.endsWith("D")) {
+      literalValue=literalValue.substring(0,literalValue.length() - 1);
+    }
+  }
+  BigDecimal number=null;
+  try {
+    number=new BigDecimal(literalValue);
+  }
+ catch (  Throwable t) {
+    throw new HibernateException("Could not parse literal [" + text + "] as big-decimal",t);
+  }
+  return formatters[DECIMAL_LITERAL_FORMAT].format(number);
+}

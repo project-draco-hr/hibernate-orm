@@ -1,0 +1,20 @@
+{
+  Session orphan=doUnbind(factory,false);
+  if (orphan != null) {
+    log.warn("Already session bound on call to bind(); make sure you clean up your sessions!");
+    try {
+      if (orphan.getTransaction() != null && orphan.getTransaction().isActive()) {
+        try {
+          orphan.getTransaction().rollback();
+        }
+ catch (        Throwable t) {
+          log.debug("Unable to rollback transaction for orphaned session",t);
+        }
+      }
+      orphan.close();
+    }
+ catch (    Throwable t) {
+      log.debug("Unable to close orphaned session",t);
+    }
+  }
+}

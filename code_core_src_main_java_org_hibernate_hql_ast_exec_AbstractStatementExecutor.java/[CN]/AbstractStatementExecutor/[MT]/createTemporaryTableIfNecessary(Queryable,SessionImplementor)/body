@@ -1,0 +1,36 @@
+{
+  IsolatedWork work=new IsolatedWork(){
+    public void doWork(    Connection connection) throws HibernateException {
+      Statement stmnt=null;
+      try {
+        stmnt=connection.createStatement();
+        stmnt.executeUpdate(persister.getTemporaryIdTableDDL());
+      }
+ catch (      Throwable t) {
+        log.debug("unable to create temporary id table [" + t.getMessage() + "]");
+      }
+ finally {
+        if (stmnt != null) {
+          try {
+            stmnt.close();
+          }
+ catch (          Throwable ignore) {
+          }
+        }
+      }
+    }
+  }
+;
+  if (shouldIsolateTemporaryTableDDL()) {
+    if (getFactory().getSettings().isDataDefinitionInTransactionSupported()) {
+      Isolater.doIsolatedWork(work,session);
+    }
+ else {
+      Isolater.doNonTransactedWork(work,session);
+    }
+  }
+ else {
+    work.doWork(session.getJDBCContext().getConnectionManager().getConnection());
+    session.getJDBCContext().getConnectionManager().afterStatement();
+  }
+}

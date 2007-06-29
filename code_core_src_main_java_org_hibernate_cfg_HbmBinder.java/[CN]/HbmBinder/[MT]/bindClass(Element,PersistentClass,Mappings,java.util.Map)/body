@@ -1,0 +1,15 @@
+{
+  Attribute lazyNode=node.attribute("lazy");
+  boolean lazy=lazyNode == null ? mappings.isDefaultLazy() : "true".equals(lazyNode.getValue());
+  persistentClass.setLazy(lazy);
+  String entityName=node.attributeValue("entity-name");
+  if (entityName == null)   entityName=getClassName(node.attribute("name"),mappings);
+  if (entityName == null) {
+    throw new MappingException("Unable to determine entity name");
+  }
+  persistentClass.setEntityName(entityName);
+  bindPojoRepresentation(node,persistentClass,mappings,inheritedMetas);
+  bindDom4jRepresentation(node,persistentClass,mappings,inheritedMetas);
+  bindMapRepresentation(node,persistentClass,mappings,inheritedMetas);
+  bindPersistentClassCommonValues(node,persistentClass,mappings,inheritedMetas);
+}

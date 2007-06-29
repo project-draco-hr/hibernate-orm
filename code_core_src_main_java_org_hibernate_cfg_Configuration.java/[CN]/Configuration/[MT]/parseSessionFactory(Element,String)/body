@@ -1,0 +1,29 @@
+{
+  Iterator elements=sfNode.elementIterator();
+  while (elements.hasNext()) {
+    Element subelement=(Element)elements.next();
+    String subelementName=subelement.getName();
+    if ("mapping".equals(subelementName)) {
+      parseMappingElement(subelement,name);
+    }
+ else     if ("class-cache".equals(subelementName)) {
+      String className=subelement.attributeValue("class");
+      Attribute regionNode=subelement.attribute("region");
+      final String region=(regionNode == null) ? className : regionNode.getValue();
+      boolean includeLazy=!"non-lazy".equals(subelement.attributeValue("include"));
+      setCacheConcurrencyStrategy(className,subelement.attributeValue("usage"),region,includeLazy);
+    }
+ else     if ("collection-cache".equals(subelementName)) {
+      String role=subelement.attributeValue("collection");
+      Attribute regionNode=subelement.attribute("region");
+      final String region=(regionNode == null) ? role : regionNode.getValue();
+      setCollectionCacheConcurrencyStrategy(role,subelement.attributeValue("usage"),region);
+    }
+ else     if ("listener".equals(subelementName)) {
+      parseListener(subelement);
+    }
+ else     if ("event".equals(subelementName)) {
+      parseEvent(subelement);
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  final boolean useVersion=j == 0 && isVersioned();
+  final Expectation expectation=Expectations.appropriateExpectation(updateResultCheckStyles[j]);
+  final boolean callable=isUpdateCallable(j);
+  final boolean useBatch=j == 0 && expectation.canBeBatched() && isBatchable();
+  if (log.isTraceEnabled()) {
+    log.trace("Updating entity: " + MessageHelper.infoString(this,id,getFactory()));
+    if (useVersion) {
+      log.trace("Existing version: " + oldVersion + " -> New version: "+ fields[getVersionProperty()]);
+    }
+  }
+  try {
+    int index=1;
+    final PreparedStatement update;
+    if (useBatch) {
+      if (callable) {
+        update=session.getBatcher().prepareBatchCallableStatement(sql);
+      }
+ else {
+        update=session.getBatcher().prepareBatchStatement(sql);
+      }
+    }
+ else {
+      if (callable) {
+        update=session.getBatcher().prepareCallableStatement(sql);
+      }
+ else {
+        update=session.getBatcher().prepareStatement(sql);
+      }
+    }
+    try {
+      index+=expectation.prepare(update);
+      index=dehydrate(id,fields,rowId,includeProperty,propertyColumnUpdateable,j,update,session,index);
+      if (useVersion && Versioning.OPTIMISTIC_LOCK_VERSION == entityMetamodel.getOptimisticLockMode()) {
+        if (checkVersion(includeProperty)) {
+          getVersionType().nullSafeSet(update,oldVersion,index,session);
+        }
+      }
+ else       if (entityMetamodel.getOptimisticLockMode() > Versioning.OPTIMISTIC_LOCK_VERSION && oldFields != null) {
+        boolean[] versionability=getPropertyVersionability();
+        boolean[] includeOldField=entityMetamodel.getOptimisticLockMode() == Versioning.OPTIMISTIC_LOCK_ALL ? getPropertyUpdateability() : includeProperty;
+        Type[] types=getPropertyTypes();
+        for (int i=0; i < entityMetamodel.getPropertySpan(); i++) {
+          boolean include=includeOldField[i] && isPropertyOfTable(i,j) && versionability[i];
+          if (include) {
+            boolean[] settable=types[i].toColumnNullness(oldFields[i],getFactory());
+            types[i].nullSafeSet(update,oldFields[i],index,settable,session);
+            index+=ArrayHelper.countTrue(settable);
+          }
+        }
+      }
+      if (useBatch) {
+        session.getBatcher().addToBatch(expectation);
+        return true;
+      }
+ else {
+        return check(update.executeUpdate(),id,j,expectation,update);
+      }
+    }
+ catch (    SQLException sqle) {
+      if (useBatch) {
+        session.getBatcher().abortBatch(sqle);
+      }
+      throw sqle;
+    }
+ finally {
+      if (!useBatch) {
+        session.getBatcher().closeStatement(update);
+      }
+    }
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(getFactory().getSQLExceptionConverter(),sqle,"could not update: " + MessageHelper.infoString(this,id,getFactory()),sql);
+  }
+}

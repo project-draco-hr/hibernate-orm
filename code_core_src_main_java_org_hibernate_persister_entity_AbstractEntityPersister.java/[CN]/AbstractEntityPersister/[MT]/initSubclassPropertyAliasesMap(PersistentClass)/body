@@ -1,0 +1,35 @@
+{
+  internalInitSubclassPropertyAliasesMap(null,model.getSubclassPropertyClosureIterator());
+  if (!entityMetamodel.hasNonIdentifierPropertyNamedId()) {
+    subclassPropertyAliases.put(ENTITY_ID,getIdentifierAliases());
+    subclassPropertyColumnNames.put(ENTITY_ID,getIdentifierColumnNames());
+  }
+  if (hasIdentifierProperty()) {
+    subclassPropertyAliases.put(getIdentifierPropertyName(),getIdentifierAliases());
+    subclassPropertyColumnNames.put(getIdentifierPropertyName(),getIdentifierColumnNames());
+  }
+  if (getIdentifierType().isComponentType()) {
+    AbstractComponentType componentId=(AbstractComponentType)getIdentifierType();
+    String[] idPropertyNames=componentId.getPropertyNames();
+    String[] idAliases=getIdentifierAliases();
+    String[] idColumnNames=getIdentifierColumnNames();
+    for (int i=0; i < idPropertyNames.length; i++) {
+      if (entityMetamodel.hasNonIdentifierPropertyNamedId()) {
+        subclassPropertyAliases.put(ENTITY_ID + "." + idPropertyNames[i],new String[]{idAliases[i]});
+        subclassPropertyColumnNames.put(ENTITY_ID + "." + getIdentifierPropertyName()+ "."+ idPropertyNames[i],new String[]{idColumnNames[i]});
+      }
+      if (hasIdentifierProperty()) {
+        subclassPropertyAliases.put(getIdentifierPropertyName() + "." + idPropertyNames[i],new String[]{idAliases[i]});
+        subclassPropertyColumnNames.put(getIdentifierPropertyName() + "." + idPropertyNames[i],new String[]{idColumnNames[i]});
+      }
+ else {
+        subclassPropertyAliases.put(idPropertyNames[i],new String[]{idAliases[i]});
+        subclassPropertyColumnNames.put(idPropertyNames[i],new String[]{idColumnNames[i]});
+      }
+    }
+  }
+  if (entityMetamodel.isPolymorphic()) {
+    subclassPropertyAliases.put(ENTITY_CLASS,new String[]{getDiscriminatorAlias()});
+    subclassPropertyColumnNames.put(ENTITY_CLASS,new String[]{getDiscriminatorColumnName()});
+  }
+}

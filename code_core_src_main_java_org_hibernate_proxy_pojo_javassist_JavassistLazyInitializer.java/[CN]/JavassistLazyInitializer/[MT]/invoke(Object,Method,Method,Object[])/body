@@ -1,0 +1,44 @@
+{
+  if (this.constructed) {
+    Object result;
+    try {
+      result=this.invoke(thisMethod,args,proxy);
+    }
+ catch (    Throwable t) {
+      throw new Exception(t.getCause());
+    }
+    if (result == INVOKE_IMPLEMENTATION) {
+      Object target=getImplementation();
+      final Object returnValue;
+      try {
+        if (ReflectHelper.isPublic(persistentClass,thisMethod)) {
+          if (!thisMethod.getDeclaringClass().isInstance(target)) {
+            throw new ClassCastException(target.getClass().getName());
+          }
+          returnValue=thisMethod.invoke(target,args);
+        }
+ else {
+          if (!thisMethod.isAccessible()) {
+            thisMethod.setAccessible(true);
+          }
+          returnValue=thisMethod.invoke(target,args);
+        }
+        return returnValue == target ? proxy : returnValue;
+      }
+ catch (      InvocationTargetException ite) {
+        throw ite.getTargetException();
+      }
+    }
+ else {
+      return result;
+    }
+  }
+ else {
+    if (thisMethod.getName().equals("getHibernateLazyInitializer")) {
+      return this;
+    }
+ else {
+      return proceed.invoke(proxy,args);
+    }
+  }
+}

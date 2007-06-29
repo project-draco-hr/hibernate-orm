@@ -1,0 +1,117 @@
+{
+  try {
+    int count=0;
+    if (isRowDeleteEnabled()) {
+      boolean useBatch=true;
+      PreparedStatement st=null;
+      try {
+        int i=0;
+        Iterator entries=collection.entries(this);
+        int offset=1;
+        Expectation expectation=Expectations.NONE;
+        while (entries.hasNext()) {
+          Object entry=entries.next();
+          if (collection.needsUpdating(entry,i,elementType)) {
+            if (st == null) {
+              String sql=getSQLDeleteRowString();
+              if (isDeleteCallable()) {
+                expectation=Expectations.appropriateExpectation(getDeleteCheckStyle());
+                useBatch=expectation.canBeBatched();
+                st=useBatch ? session.getBatcher().prepareBatchCallableStatement(sql) : session.getBatcher().prepareCallableStatement(sql);
+                offset+=expectation.prepare(st);
+              }
+ else {
+                st=session.getBatcher().prepareBatchStatement(getSQLDeleteRowString());
+              }
+            }
+            int loc=writeKey(st,id,offset,session);
+            writeElementToWhere(st,collection.getSnapshotElement(entry,i),loc,session);
+            if (useBatch) {
+              session.getBatcher().addToBatch(expectation);
+            }
+ else {
+              expectation.verifyOutcome(st.executeUpdate(),st,-1);
+            }
+            count++;
+          }
+          i++;
+        }
+      }
+ catch (      SQLException sqle) {
+        if (useBatch) {
+          session.getBatcher().abortBatch(sqle);
+        }
+        throw sqle;
+      }
+ finally {
+        if (!useBatch) {
+          session.getBatcher().closeStatement(st);
+        }
+      }
+    }
+    if (isRowInsertEnabled()) {
+      Expectation expectation=Expectations.appropriateExpectation(getInsertCheckStyle());
+      boolean callable=isInsertCallable();
+      boolean useBatch=expectation.canBeBatched();
+      String sql=getSQLInsertRowString();
+      PreparedStatement st=null;
+      try {
+        int i=0;
+        Iterator entries=collection.entries(this);
+        while (entries.hasNext()) {
+          Object entry=entries.next();
+          int offset=1;
+          if (collection.needsUpdating(entry,i,elementType)) {
+            if (useBatch) {
+              if (st == null) {
+                if (callable) {
+                  st=session.getBatcher().prepareBatchCallableStatement(sql);
+                }
+ else {
+                  st=session.getBatcher().prepareBatchStatement(sql);
+                }
+              }
+            }
+ else {
+              if (callable) {
+                st=session.getBatcher().prepareCallableStatement(sql);
+              }
+ else {
+                st=session.getBatcher().prepareStatement(sql);
+              }
+            }
+            offset+=expectation.prepare(st);
+            int loc=writeKey(st,id,offset,session);
+            if (hasIndex && !indexContainsFormula) {
+              loc=writeIndexToWhere(st,collection.getIndex(entry,i,this),loc,session);
+            }
+            writeElementToWhere(st,collection.getElement(entry),loc,session);
+            if (useBatch) {
+              session.getBatcher().addToBatch(expectation);
+            }
+ else {
+              expectation.verifyOutcome(st.executeUpdate(),st,-1);
+            }
+            count++;
+          }
+          i++;
+        }
+      }
+ catch (      SQLException sqle) {
+        if (useBatch) {
+          session.getBatcher().abortBatch(sqle);
+        }
+        throw sqle;
+      }
+ finally {
+        if (!useBatch) {
+          session.getBatcher().closeStatement(st);
+        }
+      }
+    }
+    return count;
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(getSQLExceptionConverter(),sqle,"could not update collection rows: " + MessageHelper.collectionInfoString(this,id,getFactory()),getSQLInsertRowString());
+  }
+}

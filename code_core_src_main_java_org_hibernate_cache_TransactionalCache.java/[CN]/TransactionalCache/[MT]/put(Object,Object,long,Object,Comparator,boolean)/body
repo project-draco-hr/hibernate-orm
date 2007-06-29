@@ -1,0 +1,18 @@
+{
+  if (minimalPut && cache.read(key) != null) {
+    if (log.isDebugEnabled()) {
+      log.debug("item already cached: " + key);
+    }
+    return false;
+  }
+  if (log.isDebugEnabled()) {
+    log.debug("caching: " + key);
+  }
+  if (cache instanceof OptimisticCache) {
+    ((OptimisticCache)cache).writeLoad(key,value,version);
+  }
+ else {
+    cache.put(key,value);
+  }
+  return true;
+}

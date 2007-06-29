@@ -1,0 +1,17 @@
+{
+  if (getIdentifier() instanceof Component) {
+    Component id=(Component)getIdentifier();
+    if (!id.isDynamic()) {
+      Class idClass=id.getComponentClass();
+      if (idClass != null && !ReflectHelper.overridesEquals(idClass)) {
+        LogFactory.getLog(RootClass.class).warn("composite-id class does not override equals(): " + id.getComponentClass().getName());
+      }
+      if (!ReflectHelper.overridesHashCode(idClass)) {
+        LogFactory.getLog(RootClass.class).warn("composite-id class does not override hashCode(): " + id.getComponentClass().getName());
+      }
+      if (!Serializable.class.isAssignableFrom(idClass)) {
+        throw new MappingException("composite-id class must implement Serializable: " + id.getComponentClass().getName());
+      }
+    }
+  }
+}

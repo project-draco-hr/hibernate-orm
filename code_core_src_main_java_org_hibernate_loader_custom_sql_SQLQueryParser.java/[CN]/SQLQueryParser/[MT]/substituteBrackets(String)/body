@@ -1,0 +1,44 @@
+{
+  StringBuffer result=new StringBuffer(sqlQuery.length() + 20);
+  int left, right;
+  for (int curr=0; curr < sqlQuery.length(); curr=right + 1) {
+    if ((left=sqlQuery.indexOf('{',curr)) < 0) {
+      result.append(sqlQuery.substring(curr));
+      break;
+    }
+    result.append(sqlQuery.substring(curr,left));
+    if ((right=sqlQuery.indexOf('}',left + 1)) < 0) {
+      throw new QueryException("Unmatched braces for alias path",sqlQuery);
+    }
+    String aliasPath=sqlQuery.substring(left + 1,right);
+    int firstDot=aliasPath.indexOf('.');
+    if (firstDot == -1) {
+      if (context.isEntityAlias(aliasPath)) {
+        result.append(aliasPath);
+        aliasesFound++;
+      }
+ else {
+        result.append('{').append(aliasPath).append('}');
+      }
+    }
+ else {
+      String aliasName=aliasPath.substring(0,firstDot);
+      boolean isCollection=context.isCollectionAlias(aliasName);
+      boolean isEntity=context.isEntityAlias(aliasName);
+      if (isCollection) {
+        String propertyName=aliasPath.substring(firstDot + 1);
+        result.append(resolveCollectionProperties(aliasName,propertyName));
+        aliasesFound++;
+      }
+ else       if (isEntity) {
+        String propertyName=aliasPath.substring(firstDot + 1);
+        result.append(resolveProperties(aliasName,propertyName));
+        aliasesFound++;
+      }
+ else {
+        result.append('{').append(aliasPath).append('}');
+      }
+    }
+  }
+  return result.toString();
+}

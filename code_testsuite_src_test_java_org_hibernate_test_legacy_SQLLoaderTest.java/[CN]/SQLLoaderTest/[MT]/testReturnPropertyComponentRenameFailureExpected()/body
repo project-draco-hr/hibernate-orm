@@ -1,0 +1,13 @@
+{
+  Session session=openSession();
+  Componentizable componentizable=setupComponentData(session);
+  Query namedQuery=session.getNamedQuery("queryComponentWithOtherColumn");
+  List list=namedQuery.list();
+  assertEquals(1,list.size());
+  assertEquals("flakky comp",((Componentizable)list.get(0)).getComponent().getName());
+  session.clear();
+  session.delete(componentizable);
+  session.flush();
+  session.connection().commit();
+  session.close();
+}

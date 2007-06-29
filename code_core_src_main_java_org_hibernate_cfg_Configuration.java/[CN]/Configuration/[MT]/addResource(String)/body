@@ -1,0 +1,20 @@
+{
+  log.info("Reading mappings from resource : " + resourceName);
+  ClassLoader contextClassLoader=Thread.currentThread().getContextClassLoader();
+  InputStream rsrc=null;
+  if (contextClassLoader != null) {
+    rsrc=contextClassLoader.getResourceAsStream(resourceName);
+  }
+  if (rsrc == null) {
+    rsrc=Environment.class.getClassLoader().getResourceAsStream(resourceName);
+  }
+  if (rsrc == null) {
+    throw new MappingNotFoundException("resource",resourceName);
+  }
+  try {
+    return addInputStream(rsrc);
+  }
+ catch (  MappingException me) {
+    throw new InvalidMappingException("resource",resourceName,me);
+  }
+}

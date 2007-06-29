@@ -1,0 +1,31 @@
+{
+  if (begun) {
+    return;
+  }
+  if (commitFailed) {
+    throw new TransactionException("cannot re-start transaction after failed commit");
+  }
+  log.debug("begin");
+  try {
+    toggleAutoCommit=jdbcContext.connection().getAutoCommit();
+    if (log.isDebugEnabled()) {
+      log.debug("current autocommit status: " + toggleAutoCommit);
+    }
+    if (toggleAutoCommit) {
+      log.debug("disabling autocommit");
+      jdbcContext.connection().setAutoCommit(false);
+    }
+  }
+ catch (  SQLException e) {
+    log.error("JDBC begin failed",e);
+    throw new TransactionException("JDBC begin failed: ",e);
+  }
+  callback=jdbcContext.registerCallbackIfNecessary();
+  begun=true;
+  committed=false;
+  rolledBack=false;
+  if (timeout > 0) {
+    jdbcContext.getConnectionManager().getBatcher().setTransactionTimeout(timeout);
+  }
+  jdbcContext.afterTransactionBegin(this);
+}

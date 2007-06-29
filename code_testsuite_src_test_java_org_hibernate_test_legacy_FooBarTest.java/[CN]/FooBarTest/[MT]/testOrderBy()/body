@@ -1,0 +1,89 @@
+{
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  Foo foo=new Foo();
+  s.save(foo);
+  List list=s.find("select foo from Foo foo, Fee fee where foo.dependent = fee order by foo.string desc, foo.component.count asc, fee.id");
+  assertTrue("order by",list.size() == 1);
+  Foo foo2=new Foo();
+  s.save(foo2);
+  foo.setFoo(foo2);
+  list=s.find("select foo.foo, foo.dependent from Foo foo order by foo.foo.string desc, foo.component.count asc, foo.dependent.id");
+  assertTrue("order by",list.size() == 1);
+  list=s.find("select foo from Foo foo order by foo.dependent.id, foo.dependent.fi");
+  assertTrue("order by",list.size() == 2);
+  s.delete(foo);
+  s.delete(foo2);
+  tx.commit();
+  s.close();
+  s=openSession();
+  Many manyB=new Many();
+  s.save(manyB);
+  One oneB=new One();
+  s.save(oneB);
+  oneB.setValue("b");
+  manyB.setOne(oneB);
+  Many manyA=new Many();
+  s.save(manyA);
+  One oneA=new One();
+  s.save(oneA);
+  oneA.setValue("a");
+  manyA.setOne(oneA);
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  Iterator it=s.iterate("SELECT one FROM " + One.class.getName() + " one ORDER BY one.value ASC");
+  int count=0;
+  while (it.hasNext()) {
+    One one=(One)it.next();
+switch (count) {
+case 0:
+      assertTrue("ordering failed","a".equals(one.getValue()));
+    break;
+case 1:
+  assertTrue("ordering failed","b".equals(one.getValue()));
+break;
+default :
+assertTrue("more than two elements",false);
+break;
+}
+count++;
+}
+s.flush();
+s.connection().commit();
+s.close();
+s=openSession();
+it=s.iterate("SELECT many.one FROM " + Many.class.getName() + " many ORDER BY many.one.value ASC, many.one.id");
+count=0;
+while (it.hasNext()) {
+One one=(One)it.next();
+switch (count) {
+case 0:
+assertTrue("'a' isn't first element","a".equals(one.getValue()));
+break;
+case 1:
+assertTrue("'b' isn't second element","b".equals(one.getValue()));
+break;
+default :
+assertTrue("more than two elements",false);
+break;
+}
+count++;
+}
+s.flush();
+s.connection().commit();
+s.close();
+s=openSession();
+oneA=(One)s.load(One.class,oneA.getKey());
+manyA=(Many)s.load(Many.class,manyA.getKey());
+oneB=(One)s.load(One.class,oneB.getKey());
+manyB=(Many)s.load(Many.class,manyB.getKey());
+s.delete(manyA);
+s.delete(oneA);
+s.delete(manyB);
+s.delete(oneB);
+s.flush();
+s.connection().commit();
+s.close();
+}

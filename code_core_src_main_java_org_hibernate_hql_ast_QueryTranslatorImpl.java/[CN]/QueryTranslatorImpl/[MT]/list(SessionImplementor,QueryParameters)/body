@@ -1,0 +1,42 @@
+{
+  errorIfDML();
+  QueryNode query=(QueryNode)sqlAst;
+  boolean hasLimit=queryParameters.getRowSelection() != null && queryParameters.getRowSelection().definesLimits();
+  boolean needsDistincting=(query.getSelectClause().isDistinct() || hasLimit) && containsCollectionFetches();
+  QueryParameters queryParametersToUse;
+  if (hasLimit && containsCollectionFetches()) {
+    log.warn("firstResult/maxResults specified with collection fetch; applying in memory!");
+    RowSelection selection=new RowSelection();
+    selection.setFetchSize(queryParameters.getRowSelection().getFetchSize());
+    selection.setTimeout(queryParameters.getRowSelection().getTimeout());
+    queryParametersToUse=queryParameters.createCopyUsing(selection);
+  }
+ else {
+    queryParametersToUse=queryParameters;
+  }
+  List results=queryLoader.list(session,queryParametersToUse);
+  if (needsDistincting) {
+    int includedCount=-1;
+    int first=!hasLimit || queryParameters.getRowSelection().getFirstRow() == null ? 0 : queryParameters.getRowSelection().getFirstRow().intValue();
+    int max=!hasLimit || queryParameters.getRowSelection().getMaxRows() == null ? -1 : queryParameters.getRowSelection().getMaxRows().intValue();
+    int size=results.size();
+    List tmp=new ArrayList();
+    IdentitySet distinction=new IdentitySet();
+    for (int i=0; i < size; i++) {
+      final Object result=results.get(i);
+      if (!distinction.add(result)) {
+        continue;
+      }
+      includedCount++;
+      if (includedCount < first) {
+        continue;
+      }
+      tmp.add(result);
+      if (max >= 0 && (includedCount - first) >= (max - 1)) {
+        break;
+      }
+    }
+    results=tmp;
+  }
+  return results;
+}

@@ -1,0 +1,33 @@
+{
+  if (!isVersioned()) {
+    throw new AssertionFailure("cannot force version increment on non-versioned entity");
+  }
+  if (isVersionPropertyGenerated()) {
+    throw new HibernateException("LockMode.FORCE is currently not supported for generated version properties");
+  }
+  Object nextVersion=getVersionType().next(currentVersion,session);
+  if (log.isTraceEnabled()) {
+    log.trace("Forcing version increment [" + MessageHelper.infoString(this,id,getFactory()) + "; "+ getVersionType().toLoggableString(currentVersion,getFactory())+ " -> "+ getVersionType().toLoggableString(nextVersion,getFactory())+ "]");
+  }
+  String versionIncrementString=generateVersionIncrementUpdateString();
+  PreparedStatement st=null;
+  try {
+    try {
+      st=session.getBatcher().prepareStatement(versionIncrementString);
+      getVersionType().nullSafeSet(st,nextVersion,1,session);
+      getIdentifierType().nullSafeSet(st,id,2,session);
+      getVersionType().nullSafeSet(st,currentVersion,2 + getIdentifierColumnSpan(),session);
+      int rows=st.executeUpdate();
+      if (rows != 1) {
+        throw new StaleObjectStateException(getEntityName(),id);
+      }
+    }
+  finally {
+      session.getBatcher().closeStatement(st);
+    }
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(getFactory().getSQLExceptionConverter(),sqle,"could not retrieve version: " + MessageHelper.infoString(this,id,getFactory()),getVersionSelectString());
+  }
+  return nextVersion;
+}

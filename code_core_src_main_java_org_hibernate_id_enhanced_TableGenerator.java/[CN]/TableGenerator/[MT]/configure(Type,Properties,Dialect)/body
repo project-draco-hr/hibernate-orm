@@ -1,0 +1,28 @@
+{
+  tableName=PropertiesHelper.getString(TABLE_PARAM,params,DEF_TABLE);
+  if (tableName.indexOf('.') < 0) {
+    String schemaName=params.getProperty(SCHEMA);
+    String catalogName=params.getProperty(CATALOG);
+    tableName=Table.qualify(catalogName,schemaName,tableName);
+  }
+  segmentColumnName=PropertiesHelper.getString(SEGMENT_COLUMN_PARAM,params,DEF_SEGMENT_COLUMN);
+  segmentValue=params.getProperty(SEGMENT_VALUE_PARAM);
+  if (StringHelper.isEmpty(segmentValue)) {
+    log.debug("explicit segment value for id generator [" + tableName + '.'+ segmentColumnName+ "] suggested; using default ["+ DEF_SEGMENT_VALUE+ "]");
+    segmentValue=DEF_SEGMENT_VALUE;
+  }
+  segmentValueLength=PropertiesHelper.getInt(SEGMENT_LENGTH_PARAM,params,DEF_SEGMENT_LENGTH);
+  valueColumnName=PropertiesHelper.getString(VALUE_COLUMN_PARAM,params,DEF_VALUE_COLUMN);
+  initialValue=PropertiesHelper.getInt(INITIAL_PARAM,params,DEFAULT_INITIAL_VALUE);
+  incrementSize=PropertiesHelper.getInt(INCREMENT_PARAM,params,DEFAULT_INCREMENT_SIZE);
+  identifierType=type;
+  String query="select " + valueColumnName + " from "+ tableName+ " tbl"+ " where tbl."+ segmentColumnName+ "=?";
+  HashMap lockMap=new HashMap();
+  lockMap.put("tbl",LockMode.UPGRADE);
+  this.query=dialect.applyLocksToSql(query,lockMap,CollectionHelper.EMPTY_MAP);
+  update="update " + tableName + " set "+ valueColumnName+ "=? "+ " where "+ valueColumnName+ "=? and "+ segmentColumnName+ "=?";
+  insert="insert into " + tableName + " ("+ segmentColumnName+ ", "+ valueColumnName+ ") "+ " values (?,?)";
+  String defOptStrategy=incrementSize <= 1 ? OptimizerFactory.NONE : OptimizerFactory.POOL;
+  String optimizationStrategy=PropertiesHelper.getString(OPT_PARAM,params,defOptStrategy);
+  optimizer=OptimizerFactory.buildOptimizer(optimizationStrategy,identifierType.getReturnedClass(),incrementSize);
+}

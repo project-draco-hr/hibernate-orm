@@ -1,0 +1,46 @@
+{
+  if (log.isDebugEnabled()) {
+    log.debug("checking cached query results in region: " + cacheRegion.getName());
+  }
+  List cacheable=(List)cacheRegion.get(key);
+  if (cacheable == null) {
+    log.debug("query results were not found in cache");
+    return null;
+  }
+  Long timestamp=(Long)cacheable.get(0);
+  if (!isNaturalKeyLookup && !isUpToDate(spaces,timestamp)) {
+    log.debug("cached query results were not up to date");
+    return null;
+  }
+  log.debug("returning cached query results");
+  for (int i=1; i < cacheable.size(); i++) {
+    if (returnTypes.length == 1) {
+      returnTypes[0].beforeAssemble((Serializable)cacheable.get(i),session);
+    }
+ else {
+      TypeFactory.beforeAssemble((Serializable[])cacheable.get(i),returnTypes,session);
+    }
+  }
+  List result=new ArrayList(cacheable.size() - 1);
+  for (int i=1; i < cacheable.size(); i++) {
+    try {
+      if (returnTypes.length == 1) {
+        result.add(returnTypes[0].assemble((Serializable)cacheable.get(i),session,null));
+      }
+ else {
+        result.add(TypeFactory.assemble((Serializable[])cacheable.get(i),returnTypes,session,null));
+      }
+    }
+ catch (    UnresolvableObjectException uoe) {
+      if (isNaturalKeyLookup) {
+        log.debug("could not reassemble cached result set");
+        cacheRegion.evict(key);
+        return null;
+      }
+ else {
+        throw uoe;
+      }
+    }
+  }
+  return result;
+}

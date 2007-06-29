@@ -1,0 +1,25 @@
+{
+  bindClass(node,joinedSubclass,mappings,inheritedMetas);
+  inheritedMetas=getMetas(node,inheritedMetas,true);
+  if (joinedSubclass.getEntityPersisterClass() == null) {
+    joinedSubclass.getRootClass().setEntityPersisterClass(JoinedSubclassEntityPersister.class);
+  }
+  Attribute schemaNode=node.attribute("schema");
+  String schema=schemaNode == null ? mappings.getSchemaName() : schemaNode.getValue();
+  Attribute catalogNode=node.attribute("catalog");
+  String catalog=catalogNode == null ? mappings.getCatalogName() : catalogNode.getValue();
+  Table mytable=mappings.addTable(schema,catalog,getClassTableName(joinedSubclass,node,schema,catalog,null,mappings),getSubselect(node),false);
+  joinedSubclass.setTable(mytable);
+  bindComment(mytable,node);
+  log.info("Mapping joined-subclass: " + joinedSubclass.getEntityName() + " -> "+ joinedSubclass.getTable().getName());
+  Element keyNode=node.element("key");
+  SimpleValue key=new DependantValue(mytable,joinedSubclass.getIdentifier());
+  joinedSubclass.setKey(key);
+  key.setCascadeDeleteEnabled("cascade".equals(keyNode.attributeValue("on-delete")));
+  bindSimpleValue(keyNode,key,false,joinedSubclass.getEntityName(),mappings);
+  joinedSubclass.createPrimaryKey();
+  joinedSubclass.createForeignKey();
+  Attribute chNode=node.attribute("check");
+  if (chNode != null)   mytable.addCheckConstraint(chNode.getValue());
+  createClassProperties(node,joinedSubclass,mappings,inheritedMetas);
+}

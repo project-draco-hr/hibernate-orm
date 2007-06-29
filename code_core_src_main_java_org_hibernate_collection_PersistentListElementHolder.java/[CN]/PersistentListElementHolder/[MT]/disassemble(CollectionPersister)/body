@@ -1,0 +1,14 @@
+{
+  Type elementType=persister.getElementType();
+  final String indexNodeName=getIndexAttributeName(persister);
+  List elements=element.elements(persister.getElementNodeName());
+  int length=elements.size();
+  Serializable[] result=new Serializable[length];
+  for (int i=0; i < length; i++) {
+    Element elem=(Element)elements.get(i);
+    Object object=elementType.fromXMLNode(elem,persister.getFactory());
+    Integer index=(Integer)Hibernate.INTEGER.fromStringValue(getIndex(elem,indexNodeName,i));
+    result[index.intValue()]=elementType.disassemble(object,getSession(),null);
+  }
+  return result;
+}

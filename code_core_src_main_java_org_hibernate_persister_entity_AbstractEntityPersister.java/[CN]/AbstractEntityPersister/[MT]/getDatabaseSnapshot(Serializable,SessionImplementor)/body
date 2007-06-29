@@ -1,0 +1,35 @@
+{
+  if (log.isTraceEnabled()) {
+    log.trace("Getting current persistent state for: " + MessageHelper.infoString(this,id,getFactory()));
+  }
+  try {
+    PreparedStatement ps=session.getBatcher().prepareSelectStatement(getSQLSnapshotSelectString());
+    try {
+      getIdentifierType().nullSafeSet(ps,id,1,session);
+      ResultSet rs=ps.executeQuery();
+      try {
+        if (!rs.next()) {
+          return null;
+        }
+        Type[] types=getPropertyTypes();
+        Object[] values=new Object[types.length];
+        boolean[] includeProperty=getPropertyUpdateability();
+        for (int i=0; i < types.length; i++) {
+          if (includeProperty[i]) {
+            values[i]=types[i].hydrate(rs,getPropertyAliases("",i),session,null);
+          }
+        }
+        return values;
+      }
+  finally {
+        rs.close();
+      }
+    }
+  finally {
+      session.getBatcher().closeStatement(ps);
+    }
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(getFactory().getSQLExceptionConverter(),sqle,"could not retrieve snapshot: " + MessageHelper.infoString(this,id,getFactory()),getSQLSnapshotSelectString());
+  }
+}

@@ -1,0 +1,64 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  Simple s1=new Simple();
+  s1.setName("s");
+  s1.setCount(0);
+  Simple s2=new Simple();
+  s2.setCount(2);
+  Simple s3=new Simple();
+  s3.setCount(3);
+  s.save(s1,new Long(1));
+  s.save(s2,new Long(2));
+  s.save(s3,new Long(3));
+  Container c=new Container();
+  Contained cd=new Contained();
+  List bag=new ArrayList();
+  bag.add(cd);
+  c.setBag(bag);
+  List l=new ArrayList();
+  l.add(s1);
+  l.add(s3);
+  l.add(s2);
+  c.setOneToMany(l);
+  l=new ArrayList();
+  l.add(s1);
+  l.add(null);
+  l.add(s2);
+  c.setManyToMany(l);
+  s.save(c);
+  Container cx=new Container();
+  s.save(cx);
+  Simple sx=new Simple();
+  sx.setCount(5);
+  sx.setName("s");
+  s.save(sx,new Long(5));
+  assertTrue(s.find("select c from ContainerX c, Simple s where c.oneToMany[2] = s").size() == 1);
+  assertTrue(s.find("select c from ContainerX c, Simple s where c.manyToMany[2] = s").size() == 1);
+  assertTrue(s.find("select c from ContainerX c, Simple s where s = c.oneToMany[2]").size() == 1);
+  assertTrue(s.find("select c from ContainerX c, Simple s where s = c.manyToMany[2]").size() == 1);
+  assertTrue(s.find("select c from ContainerX c where c.oneToMany[0].name = 's'").size() == 1);
+  assertTrue(s.find("select c from ContainerX c where c.manyToMany[0].name = 's'").size() == 1);
+  assertTrue(s.find("select c from ContainerX c where 's' = c.oneToMany[2 - 2].name").size() == 1);
+  assertTrue(s.find("select c from ContainerX c where 's' = c.manyToMany[(3+1)/4-1].name").size() == 1);
+  assertTrue(s.find("select c from ContainerX c where c.oneToMany[ c.manyToMany[0].count ].name = 's'").size() == 1);
+  assertTrue(s.find("select c from ContainerX c where c.manyToMany[ c.oneToMany[0].count ].name = 's'").size() == 1);
+  if (!(getDialect() instanceof MySQLDialect) && !(getDialect() instanceof org.hibernate.dialect.TimesTenDialect)) {
+    assertTrue(s.find("select c from ContainerX c where c.manyToMany[ maxindex(c.manyToMany) ].count = 2").size() == 1);
+  }
+  assertTrue(s.contains(cd));
+  if (!(getDialect() instanceof MySQLDialect) && !(getDialect() instanceof HSQLDialect)) {
+    s.filter(c.getBag(),"where 0 in elements(this.bag)");
+    s.filter(c.getBag(),"where 0 in elements(this.lazyBag)");
+  }
+  s.find("select count(comp.name) from ContainerX c join c.components comp");
+  s.delete(cd);
+  s.delete(c);
+  s.delete(s1);
+  s.delete(s2);
+  s.delete(s3);
+  s.delete(cx);
+  s.delete(sx);
+  t.commit();
+  s.close();
+}

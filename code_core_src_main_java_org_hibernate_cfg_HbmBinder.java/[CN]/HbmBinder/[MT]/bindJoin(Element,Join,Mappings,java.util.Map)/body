@@ -1,0 +1,62 @@
+{
+  PersistentClass persistentClass=join.getPersistentClass();
+  String path=persistentClass.getEntityName();
+  Attribute schemaNode=node.attribute("schema");
+  String schema=schemaNode == null ? mappings.getSchemaName() : schemaNode.getValue();
+  Attribute catalogNode=node.attribute("catalog");
+  String catalog=catalogNode == null ? mappings.getCatalogName() : catalogNode.getValue();
+  Table primaryTable=persistentClass.getTable();
+  Table table=mappings.addTable(schema,catalog,getClassTableName(persistentClass,node,schema,catalog,primaryTable,mappings),getSubselect(node),false);
+  join.setTable(table);
+  bindComment(table,node);
+  Attribute fetchNode=node.attribute("fetch");
+  if (fetchNode != null) {
+    join.setSequentialSelect("select".equals(fetchNode.getValue()));
+  }
+  Attribute invNode=node.attribute("inverse");
+  if (invNode != null) {
+    join.setInverse("true".equals(invNode.getValue()));
+  }
+  Attribute nullNode=node.attribute("optional");
+  if (nullNode != null) {
+    join.setOptional("true".equals(nullNode.getValue()));
+  }
+  log.info("Mapping class join: " + persistentClass.getEntityName() + " -> "+ join.getTable().getName());
+  Element keyNode=node.element("key");
+  SimpleValue key=new DependantValue(table,persistentClass.getIdentifier());
+  join.setKey(key);
+  key.setCascadeDeleteEnabled("cascade".equals(keyNode.attributeValue("on-delete")));
+  bindSimpleValue(keyNode,key,false,persistentClass.getEntityName(),mappings);
+  join.createPrimaryKey();
+  join.createForeignKey();
+  Iterator iter=node.elementIterator();
+  while (iter.hasNext()) {
+    Element subnode=(Element)iter.next();
+    String name=subnode.getName();
+    String propertyName=subnode.attributeValue("name");
+    Value value=null;
+    if ("many-to-one".equals(name)) {
+      value=new ManyToOne(table);
+      bindManyToOne(subnode,(ManyToOne)value,propertyName,true,mappings);
+    }
+ else     if ("any".equals(name)) {
+      value=new Any(table);
+      bindAny(subnode,(Any)value,true,mappings);
+    }
+ else     if ("property".equals(name)) {
+      value=new SimpleValue(table);
+      bindSimpleValue(subnode,(SimpleValue)value,true,propertyName,mappings);
+    }
+ else     if ("component".equals(name) || "dynamic-component".equals(name)) {
+      String subpath=StringHelper.qualify(path,propertyName);
+      value=new Component(join);
+      bindComponent(subnode,(Component)value,join.getPersistentClass().getClassName(),propertyName,subpath,true,false,mappings,inheritedMetas,false);
+    }
+    if (value != null) {
+      Property prop=createProperty(value,propertyName,persistentClass.getEntityName(),subnode,mappings,inheritedMetas);
+      prop.setOptional(join.isOptional());
+      join.addProperty(prop);
+    }
+  }
+  handleCustomSQL(node,join);
+}

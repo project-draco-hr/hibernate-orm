@@ -1,0 +1,23 @@
+{
+  if (isExtended()) {
+    collectClassNames();
+  }
+  logger.info("starting instrumentation");
+  Project project=getProject();
+  Iterator filesets=filesets();
+  while (filesets.hasNext()) {
+    FileSet fs=(FileSet)filesets.next();
+    DirectoryScanner ds=fs.getDirectoryScanner(project);
+    String[] includedFiles=ds.getIncludedFiles();
+    File d=fs.getDir(project);
+    for (int i=0; i < includedFiles.length; ++i) {
+      File file=new File(d,includedFiles[i]);
+      try {
+        processFile(file);
+      }
+ catch (      Exception e) {
+        throw new BuildException(e);
+      }
+    }
+  }
+}

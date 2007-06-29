@@ -1,0 +1,57 @@
+{
+  log.info("Running hbm2ddl schema update");
+  Connection connection=null;
+  Statement stmt=null;
+  exceptions.clear();
+  try {
+    DatabaseMetadata meta;
+    try {
+      log.info("fetching database metadata");
+      connectionHelper.prepare(true);
+      connection=connectionHelper.getConnection();
+      meta=new DatabaseMetadata(connection,dialect);
+      stmt=connection.createStatement();
+    }
+ catch (    SQLException sqle) {
+      exceptions.add(sqle);
+      log.error("could not get database metadata",sqle);
+      throw sqle;
+    }
+    log.info("updating schema");
+    String[] createSQL=configuration.generateSchemaUpdateScript(dialect,meta);
+    for (int j=0; j < createSQL.length; j++) {
+      final String sql=createSQL[j];
+      try {
+        if (script) {
+          System.out.println(sql);
+        }
+        if (doUpdate) {
+          log.debug(sql);
+          stmt.executeUpdate(sql);
+        }
+      }
+ catch (      SQLException e) {
+        exceptions.add(e);
+        log.error("Unsuccessful: " + sql);
+        log.error(e.getMessage());
+      }
+    }
+    log.info("schema update complete");
+  }
+ catch (  Exception e) {
+    exceptions.add(e);
+    log.error("could not complete schema update",e);
+  }
+ finally {
+    try {
+      if (stmt != null) {
+        stmt.close();
+      }
+      connectionHelper.release();
+    }
+ catch (    Exception e) {
+      exceptions.add(e);
+      log.error("Error closing connection",e);
+    }
+  }
+}

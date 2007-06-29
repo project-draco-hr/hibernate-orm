@@ -1,0 +1,14 @@
+{
+  Insert insert=identityDelegate.prepareIdentifierGeneratingInsert();
+  insert.setTableName(getTableName(0));
+  for (int i=0; i < entityMetamodel.getPropertySpan(); i++) {
+    if (includeProperty[i] && isPropertyOfTable(i,0)) {
+      insert.addColumns(getPropertyColumnNames(i),propertyColumnInsertable[i]);
+    }
+  }
+  addDiscriminatorToInsert(insert);
+  if (getFactory().getSettings().isCommentsEnabled()) {
+    insert.setComment("insert " + getEntityName());
+  }
+  return insert.toStatementString();
+}

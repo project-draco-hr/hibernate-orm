@@ -1,0 +1,24 @@
+{
+  if (inputStream == null) {
+    throw new IllegalArgumentException("The InputStream must not be null");
+  }
+  log.trace("Starting deserialization of object");
+  CustomObjectInputStream in=null;
+  try {
+    in=new CustomObjectInputStream(inputStream);
+    return in.readObject();
+  }
+ catch (  ClassNotFoundException ex) {
+    throw new SerializationException("could not deserialize",ex);
+  }
+catch (  IOException ex) {
+    throw new SerializationException("could not deserialize",ex);
+  }
+ finally {
+    try {
+      if (in != null)       in.close();
+    }
+ catch (    IOException ex) {
+    }
+  }
+}

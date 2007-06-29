@@ -1,0 +1,22 @@
+{
+  org.dom4j.Document doc;
+  try {
+    List errors=new ArrayList();
+    doc=xmlHelper.createSAXReader(resourceName,errors,entityResolver).read(new InputSource(stream));
+    if (errors.size() != 0) {
+      throw new MappingException("invalid configuration",(Throwable)errors.get(0));
+    }
+  }
+ catch (  DocumentException e) {
+    throw new HibernateException("Could not parse configuration: " + resourceName,e);
+  }
+ finally {
+    try {
+      stream.close();
+    }
+ catch (    IOException ioe) {
+      log.warn("could not close input stream for: " + resourceName,ioe);
+    }
+  }
+  return doConfigure(doc);
+}

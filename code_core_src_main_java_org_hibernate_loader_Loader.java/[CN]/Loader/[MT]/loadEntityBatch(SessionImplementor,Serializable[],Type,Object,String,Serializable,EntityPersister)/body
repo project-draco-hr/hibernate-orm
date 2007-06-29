@@ -1,0 +1,16 @@
+{
+  if (log.isDebugEnabled()) {
+    log.debug("batch loading entity: " + MessageHelper.infoString(persister,ids,getFactory()));
+  }
+  Type[] types=new Type[ids.length];
+  Arrays.fill(types,idType);
+  List result;
+  try {
+    result=doQueryAndInitializeNonLazyCollections(session,new QueryParameters(types,ids,optionalObject,optionalEntityName,optionalId),false);
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(factory.getSQLExceptionConverter(),sqle,"could not load an entity batch: " + MessageHelper.infoString(getEntityPersisters()[0],ids,getFactory()),getSQLString());
+  }
+  log.debug("done entity batch load");
+  return result;
+}

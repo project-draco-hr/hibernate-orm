@@ -1,0 +1,34 @@
+{
+  final Object id;
+  if (entityMetamodel.getIdentifierProperty().isEmbedded()) {
+    id=entity;
+  }
+ else {
+    if (idGetter == null) {
+      if (identifierMapperType == null) {
+        throw new HibernateException("The class has no identifier property: " + getEntityName());
+      }
+ else {
+        ComponentType copier=(ComponentType)entityMetamodel.getIdentifierProperty().getType();
+        id=copier.instantiate(getEntityMode());
+        copier.setPropertyValues(id,identifierMapperType.getPropertyValues(entity,getEntityMode()),getEntityMode());
+      }
+    }
+ else {
+      id=idGetter.get(entity);
+    }
+  }
+  try {
+    return (Serializable)id;
+  }
+ catch (  ClassCastException cce) {
+    StringBuffer msg=new StringBuffer("Identifier classes must be serializable. ");
+    if (id != null) {
+      msg.append(id.getClass().getName() + " is not serializable. ");
+    }
+    if (cce.getMessage() != null) {
+      msg.append(cce.getMessage());
+    }
+    throw new ClassCastException(msg.toString());
+  }
+}

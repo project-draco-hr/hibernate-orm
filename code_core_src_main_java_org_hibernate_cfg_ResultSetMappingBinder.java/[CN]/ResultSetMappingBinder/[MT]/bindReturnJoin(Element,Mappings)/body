@@ -1,0 +1,13 @@
+{
+  String alias=returnElem.attributeValue("alias");
+  String roleAttribute=returnElem.attributeValue("property");
+  LockMode lockMode=getLockMode(returnElem.attributeValue("lock-mode"));
+  int dot=roleAttribute.lastIndexOf('.');
+  if (dot == -1) {
+    throw new MappingException("Role attribute for sql query return [alias=" + alias + "] not formatted correctly {owningAlias.propertyName}");
+  }
+  String roleOwnerAlias=roleAttribute.substring(0,dot);
+  String roleProperty=roleAttribute.substring(dot + 1);
+  java.util.Map propertyResults=bindPropertyResults(alias,returnElem,null,mappings);
+  return new NativeSQLQueryJoinReturn(alias,roleOwnerAlias,roleProperty,propertyResults,lockMode);
+}

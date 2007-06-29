@@ -1,0 +1,30 @@
+{
+  identifierType=type;
+  boolean forceTableUse=PropertiesHelper.getBoolean(FORCE_TBL_PARAM,params,false);
+  String sequenceName=PropertiesHelper.getString(SEQUENCE_PARAM,params,DEF_SEQUENCE_NAME);
+  if (sequenceName.indexOf('.') < 0) {
+    String schemaName=params.getProperty(SCHEMA);
+    String catalogName=params.getProperty(CATALOG);
+    sequenceName=Table.qualify(catalogName,schemaName,sequenceName);
+  }
+  int initialValue=PropertiesHelper.getInt(INITIAL_PARAM,params,DEFAULT_INITIAL_VALUE);
+  int incrementSize=PropertiesHelper.getInt(INCREMENT_PARAM,params,DEFAULT_INCREMENT_SIZE);
+  String valueColumnName=PropertiesHelper.getString(VALUE_COLUMN_PARAM,params,DEF_VALUE_COLUMN);
+  String defOptStrategy=incrementSize <= 1 ? OptimizerFactory.NONE : OptimizerFactory.POOL;
+  String optimizationStrategy=PropertiesHelper.getString(OPT_PARAM,params,defOptStrategy);
+  if (OptimizerFactory.NONE.equals(optimizationStrategy) && incrementSize > 1) {
+    log.warn("config specified explicit optimizer of [" + OptimizerFactory.NONE + "], but ["+ INCREMENT_PARAM+ "="+ incrementSize+ "; honoring optimizer setting");
+    incrementSize=1;
+  }
+  if (dialect.supportsSequences() && !forceTableUse) {
+    if (OptimizerFactory.POOL.equals(optimizationStrategy) && !dialect.supportsPooledSequences()) {
+      optimizationStrategy=OptimizerFactory.HILO;
+    }
+    databaseStructure=new SequenceStructure(dialect,sequenceName,initialValue,incrementSize);
+  }
+ else {
+    databaseStructure=new TableStructure(dialect,sequenceName,valueColumnName,initialValue,incrementSize);
+  }
+  optimizer=OptimizerFactory.buildOptimizer(optimizationStrategy,identifierType.getReturnedClass(),incrementSize);
+  databaseStructure.prepare(optimizer);
+}

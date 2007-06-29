@@ -1,0 +1,21 @@
+{
+  SessionImplementor session=event.getSession();
+  Object old=session.getEntityUsingInterceptor(keyToLoad);
+  if (old != null) {
+    EntityEntry oldEntry=session.getPersistenceContext().getEntry(old);
+    if (options.isCheckDeleted()) {
+      Status status=oldEntry.getStatus();
+      if (status == Status.DELETED || status == Status.GONE) {
+        return REMOVED_ENTITY_MARKER;
+      }
+    }
+    if (options.isAllowNulls()) {
+      EntityPersister persister=event.getSession().getFactory().getEntityPersister(event.getEntityClassName());
+      if (!persister.isInstance(old,event.getSession().getEntityMode())) {
+        return INCONSISTENT_RTN_CLASS_MARKER;
+      }
+    }
+    upgradeLock(old,oldEntry,event.getLockMode(),session);
+  }
+  return old;
+}

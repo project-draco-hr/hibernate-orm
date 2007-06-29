@@ -1,0 +1,21 @@
+{
+  EntityEntry entityEntry=session.getPersistenceContext().getEntry(owner);
+  if (entityEntry == null)   return null;
+  if (foreignKeyPropertyName == null) {
+    return entityEntry.getId();
+  }
+ else {
+    Object id;
+    if (entityEntry.getLoadedState() != null) {
+      id=entityEntry.getLoadedValue(foreignKeyPropertyName);
+    }
+ else {
+      id=entityEntry.getPersister().getPropertyValue(owner,foreignKeyPropertyName,session.getEntityMode());
+    }
+    Type keyType=getPersister(session).getKeyType();
+    if (!keyType.getReturnedClass().isInstance(id)) {
+      id=(Serializable)keyType.semiResolve(entityEntry.getLoadedValue(foreignKeyPropertyName),session,owner);
+    }
+    return (Serializable)id;
+  }
+}

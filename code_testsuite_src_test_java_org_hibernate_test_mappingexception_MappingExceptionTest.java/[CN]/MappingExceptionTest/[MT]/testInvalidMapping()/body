@@ -1,0 +1,90 @@
+{
+  String resourceName="org/hibernate/test/mappingexception/InvalidMapping.hbm.xml";
+  File file=File.createTempFile("TempInvalidMapping",".hbm.xml");
+  file.deleteOnExit();
+  copy(ConfigHelper.getConfigStream(resourceName),file);
+  Configuration cfg=new Configuration();
+  try {
+    cfg.addCacheableFile(file.getAbsolutePath());
+    fail();
+  }
+ catch (  InvalidMappingException inv) {
+    assertEquals(inv.getType(),"file");
+    assertNotNull(inv.getPath());
+    assertTrue(inv.getPath().endsWith(".hbm.xml"));
+    assertTrue(!(inv.getCause() instanceof MappingNotFoundException));
+  }
+  try {
+    cfg.addCacheableFile(file);
+    fail();
+  }
+ catch (  InvalidMappingException inv) {
+    assertEquals(inv.getType(),"file");
+    assertNotNull(inv.getPath());
+    assertTrue(inv.getPath().endsWith(".hbm.xml"));
+    assertTrue(!(inv.getCause() instanceof MappingNotFoundException));
+  }
+  try {
+    cfg.addClass(InvalidMapping.class);
+    fail();
+  }
+ catch (  InvalidMappingException inv) {
+    assertEquals(inv.getType(),"resource");
+    assertEquals(inv.getPath(),"org/hibernate/test/mappingexception/InvalidMapping.hbm.xml");
+    assertTrue(!(inv.getCause() instanceof MappingNotFoundException));
+  }
+  try {
+    cfg.addFile(file.getAbsolutePath());
+    fail();
+  }
+ catch (  InvalidMappingException inv) {
+    assertEquals(inv.getType(),"file");
+    assertEquals(inv.getPath(),file.getPath());
+    assertTrue(!(inv.getCause() instanceof MappingNotFoundException));
+  }
+  try {
+    cfg.addFile(file);
+    fail();
+  }
+ catch (  InvalidMappingException inv) {
+    assertEquals(inv.getType(),"file");
+    assertEquals(inv.getPath(),file.getPath());
+    assertTrue(!(inv.getCause() instanceof MappingNotFoundException));
+  }
+  try {
+    cfg.addInputStream(ConfigHelper.getResourceAsStream(resourceName));
+    fail();
+  }
+ catch (  InvalidMappingException inv) {
+    assertEquals(inv.getType(),"input stream");
+    assertEquals(inv.getPath(),null);
+    assertTrue(!(inv.getCause() instanceof MappingNotFoundException));
+  }
+  try {
+    cfg.addResource(resourceName);
+    fail();
+  }
+ catch (  InvalidMappingException inv) {
+    assertEquals(inv.getType(),"resource");
+    assertEquals(inv.getPath(),resourceName);
+    assertTrue(!(inv.getCause() instanceof MappingNotFoundException));
+  }
+  try {
+    cfg.addResource(resourceName,getClass().getClassLoader());
+    fail();
+  }
+ catch (  InvalidMappingException inv) {
+    assertEquals(inv.getType(),"resource");
+    assertEquals(inv.getPath(),resourceName);
+    assertTrue(!(inv.getCause() instanceof MappingNotFoundException));
+  }
+  try {
+    cfg.addURL(ConfigHelper.findAsResource(resourceName));
+    fail();
+  }
+ catch (  InvalidMappingException inv) {
+    assertEquals(inv.getType(),"URL");
+    assertTrue(inv.getPath().endsWith("InvalidMapping.hbm.xml"));
+    assertTrue(!(inv.getCause() instanceof MappingNotFoundException));
+  }
+}

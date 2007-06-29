@@ -1,0 +1,18 @@
+{
+  Joinable joinable=type.getAssociatedJoinable(getFactory());
+  String subalias=generateTableAlias(associations.size() + 1,path,joinable);
+  OuterJoinableAssociation assoc=new OuterJoinableAssociation(type,alias,aliasedLhsColumns,subalias,joinType,getFactory(),enabledFilters);
+  assoc.validateJoin(path);
+  associations.add(assoc);
+  int nextDepth=currentDepth + 1;
+  if (!joinable.isCollection()) {
+    if (joinable instanceof OuterJoinLoadable) {
+      walkEntityTree((OuterJoinLoadable)joinable,subalias,path,nextDepth);
+    }
+  }
+ else {
+    if (joinable instanceof QueryableCollection) {
+      walkCollectionTree((QueryableCollection)joinable,subalias,path,nextDepth);
+    }
+  }
+}

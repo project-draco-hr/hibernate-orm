@@ -1,0 +1,36 @@
+{
+  final EntityEntry entry=event.getEntityEntry();
+  final EventSource session=event.getSession();
+  final Object entity=event.getEntity();
+  final Status status=entry.getStatus();
+  final EntityMode entityMode=session.getEntityMode();
+  final EntityPersister persister=entry.getPersister();
+  final Object[] values=event.getPropertyValues();
+  if (log.isTraceEnabled()) {
+    if (status == Status.DELETED) {
+      log.trace("Updating deleted entity: " + MessageHelper.infoString(persister,entry.getId(),session.getFactory()));
+    }
+ else {
+      log.trace("Updating entity: " + MessageHelper.infoString(persister,entry.getId(),session.getFactory()));
+    }
+  }
+  final boolean intercepted;
+  if (!entry.isBeingReplicated()) {
+    intercepted=handleInterception(event);
+  }
+ else {
+    intercepted=false;
+  }
+  validate(entity,persister,status,entityMode);
+  final Object nextVersion=getNextVersion(event);
+  int[] dirtyProperties=event.getDirtyProperties();
+  if (event.isDirtyCheckPossible() && dirtyProperties == null) {
+    if (!intercepted && !event.hasDirtyCollection()) {
+      throw new AssertionFailure("dirty, but no dirty properties");
+    }
+    dirtyProperties=ArrayHelper.EMPTY_INT_ARRAY;
+  }
+  new Nullability(session).checkNullability(values,persister,true);
+  session.getActionQueue().addAction(new EntityUpdateAction(entry.getId(),values,dirtyProperties,event.hasDirtyCollection(),entry.getLoadedState(),entry.getVersion(),nextVersion,entity,entry.getRowId(),persister,session));
+  return intercepted;
+}

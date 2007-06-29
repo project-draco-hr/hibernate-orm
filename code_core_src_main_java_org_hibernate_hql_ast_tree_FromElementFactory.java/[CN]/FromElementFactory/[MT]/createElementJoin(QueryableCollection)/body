@@ -1,0 +1,34 @@
+{
+  FromElement elem;
+  implied=true;
+  inElementsFunction=true;
+  Type elementType=queryableCollection.getElementType();
+  if (!elementType.isEntityType()) {
+    throw new IllegalArgumentException("Cannot create element join for a collection of non-entities!");
+  }
+  this.queryableCollection=queryableCollection;
+  SessionFactoryHelper sfh=fromClause.getSessionFactoryHelper();
+  FromElement destination=null;
+  String tableAlias=null;
+  EntityPersister entityPersister=queryableCollection.getElementPersister();
+  tableAlias=fromClause.getAliasGenerator().createName(entityPersister.getEntityName());
+  String associatedEntityName=entityPersister.getEntityName();
+  EntityPersister targetEntityPersister=sfh.requireClassPersister(associatedEntityName);
+  destination=createAndAddFromElement(associatedEntityName,classAlias,targetEntityPersister,(EntityType)queryableCollection.getElementType(),tableAlias);
+  if (implied) {
+    destination.setIncludeSubclasses(false);
+  }
+  fromClause.addCollectionJoinFromElementByPath(path,destination);
+  fromClause.getWalker().addQuerySpaces(entityPersister.getQuerySpaces());
+  CollectionType type=queryableCollection.getCollectionType();
+  String role=type.getRole();
+  String roleAlias=origin.getTableAlias();
+  String[] targetColumns=sfh.getCollectionElementColumns(role,roleAlias);
+  AssociationType elementAssociationType=sfh.getElementAssociationType(type);
+  int joinType=JoinFragment.INNER_JOIN;
+  JoinSequence joinSequence=sfh.createJoinSequence(implied,elementAssociationType,tableAlias,joinType,targetColumns);
+  elem=initializeJoin(path,destination,joinSequence,targetColumns,origin,false);
+  elem.setUseFromFragment(true);
+  elem.setCollectionTableAlias(roleAlias);
+  return elem;
+}

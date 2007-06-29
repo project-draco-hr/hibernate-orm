@@ -1,0 +1,45 @@
+{
+  if (!collection) {
+    throw new IllegalStateException("FromElementFactory not initialized for collections!");
+  }
+  this.inElementsFunction=indexed;
+  FromElement elem;
+  this.queryableCollection=queryableCollection;
+  collectionType=queryableCollection.getCollectionType();
+  String roleAlias=fromClause.getAliasGenerator().createName(role);
+  boolean explicitSubqueryFromElement=fromClause.isSubQuery() && !implied;
+  if (explicitSubqueryFromElement) {
+    String pathRoot=StringHelper.root(path);
+    FromElement origin=fromClause.getFromElement(pathRoot);
+    if (origin == null || origin.getFromClause() != fromClause) {
+      implied=true;
+    }
+  }
+  if (explicitSubqueryFromElement && DotNode.useThetaStyleImplicitJoins) {
+    implied=true;
+  }
+  Type elementType=queryableCollection.getElementType();
+  if (elementType.isEntityType()) {
+    elem=createEntityAssociation(role,roleAlias,joinType);
+  }
+ else   if (elementType.isComponentType()) {
+    JoinSequence joinSequence=createJoinSequence(roleAlias,joinType);
+    elem=createCollectionJoin(joinSequence,roleAlias);
+  }
+ else {
+    JoinSequence joinSequence=createJoinSequence(roleAlias,joinType);
+    elem=createCollectionJoin(joinSequence,roleAlias);
+  }
+  elem.setRole(role);
+  elem.setQueryableCollection(queryableCollection);
+  if (implied) {
+    elem.setIncludeSubclasses(false);
+  }
+  if (explicitSubqueryFromElement) {
+    elem.setInProjectionList(true);
+  }
+  if (fetchFlag) {
+    elem.setFetch(true);
+  }
+  return elem;
+}

@@ -1,0 +1,14 @@
+{
+  String alias=returnElem.attributeValue("alias");
+  if (StringHelper.isEmpty(alias)) {
+    alias="alias_" + elementCount;
+  }
+  String entityName=HbmBinder.getEntityName(returnElem,mappings);
+  if (entityName == null) {
+    throw new MappingException("<return alias='" + alias + "'> must specify either a class or entity-name");
+  }
+  LockMode lockMode=getLockMode(returnElem.attributeValue("lock-mode"));
+  PersistentClass pc=mappings.getClass(entityName);
+  java.util.Map propertyResults=bindPropertyResults(alias,returnElem,pc,mappings);
+  return new NativeSQLQueryRootReturn(alias,entityName,propertyResults,lockMode);
+}

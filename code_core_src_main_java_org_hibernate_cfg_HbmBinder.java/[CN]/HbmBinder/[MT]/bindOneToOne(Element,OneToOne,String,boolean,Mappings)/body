@@ -1,0 +1,17 @@
+{
+  bindColumns(node,oneToOne,isNullable,false,null,mappings);
+  Attribute constrNode=node.attribute("constrained");
+  boolean constrained=constrNode != null && constrNode.getValue().equals("true");
+  oneToOne.setConstrained(constrained);
+  oneToOne.setForeignKeyType(constrained ? ForeignKeyDirection.FOREIGN_KEY_FROM_PARENT : ForeignKeyDirection.FOREIGN_KEY_TO_PARENT);
+  initOuterJoinFetchSetting(node,oneToOne);
+  initLaziness(node,oneToOne,mappings,true);
+  oneToOne.setEmbedded("true".equals(node.attributeValue("embed-xml")));
+  Attribute fkNode=node.attribute("foreign-key");
+  if (fkNode != null)   oneToOne.setForeignKeyName(fkNode.getValue());
+  Attribute ukName=node.attribute("property-ref");
+  if (ukName != null)   oneToOne.setReferencedPropertyName(ukName.getValue());
+  oneToOne.setPropertyName(node.attributeValue("name"));
+  oneToOne.setReferencedEntityName(getEntityName(node,mappings));
+  validateCascade(node,path);
+}

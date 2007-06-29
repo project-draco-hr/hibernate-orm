@@ -1,0 +1,32 @@
+{
+  StringBuffer buf=new StringBuffer(guesstimatedBufferSize);
+  if (StringHelper.isNotEmpty(comment)) {
+    buf.append("/* ").append(comment).append(" */ ");
+  }
+  buf.append("select ").append(selectClause).append(" from ").append(fromClause);
+  if (StringHelper.isNotEmpty(outerJoinsAfterFrom)) {
+    buf.append(outerJoinsAfterFrom);
+  }
+  if (StringHelper.isNotEmpty(whereClause) || StringHelper.isNotEmpty(outerJoinsAfterWhere)) {
+    buf.append(" where ");
+    if (StringHelper.isNotEmpty(outerJoinsAfterWhere)) {
+      buf.append(outerJoinsAfterWhere);
+      if (StringHelper.isNotEmpty(whereClause)) {
+        buf.append(" and ");
+      }
+    }
+    if (StringHelper.isNotEmpty(whereClause)) {
+      buf.append(whereClause);
+    }
+  }
+  if (StringHelper.isNotEmpty(groupByClause)) {
+    buf.append(" group by ").append(groupByClause);
+  }
+  if (StringHelper.isNotEmpty(orderByClause)) {
+    buf.append(" order by ").append(orderByClause);
+  }
+  if (lockMode != null) {
+    buf.append(dialect.getForUpdateString(lockMode));
+  }
+  return dialect.transformSelectString(buf.toString());
+}

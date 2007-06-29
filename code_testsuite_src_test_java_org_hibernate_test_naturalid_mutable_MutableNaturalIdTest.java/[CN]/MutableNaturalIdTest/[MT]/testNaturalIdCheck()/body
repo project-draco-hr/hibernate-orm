@@ -1,0 +1,19 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  User u=new User("gavin","hb","secret");
+  s.persist(u);
+  Field name=u.getClass().getDeclaredField("name");
+  name.setAccessible(true);
+  name.set(u,"Gavin");
+  try {
+    s.flush();
+    fail();
+  }
+ catch (  HibernateException he) {
+  }
+  name.set(u,"gavin");
+  s.delete(u);
+  t.commit();
+  s.close();
+}

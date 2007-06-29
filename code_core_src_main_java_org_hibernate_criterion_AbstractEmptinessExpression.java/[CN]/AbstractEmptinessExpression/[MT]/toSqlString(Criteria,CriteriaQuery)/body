@@ -1,0 +1,11 @@
+{
+  String entityName=criteriaQuery.getEntityName(criteria,propertyName);
+  String actualPropertyName=criteriaQuery.getPropertyName(propertyName);
+  String sqlAlias=criteriaQuery.getSQLAlias(criteria,propertyName);
+  SessionFactoryImplementor factory=criteriaQuery.getFactory();
+  QueryableCollection collectionPersister=getQueryableCollection(entityName,actualPropertyName,factory);
+  String[] collectionKeys=collectionPersister.getKeyColumnNames();
+  String[] ownerKeys=((Loadable)factory.getEntityPersister(entityName)).getIdentifierColumnNames();
+  String innerSelect="(select 1 from " + collectionPersister.getTableName() + " where "+ new ConditionFragment().setTableAlias(sqlAlias).setCondition(ownerKeys,collectionKeys).toFragmentString()+ ")";
+  return excludeEmpty() ? "exists " + innerSelect : "not exists " + innerSelect;
+}

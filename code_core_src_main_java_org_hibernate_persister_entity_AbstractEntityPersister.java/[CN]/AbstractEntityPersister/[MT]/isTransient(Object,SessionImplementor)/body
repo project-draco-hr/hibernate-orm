@@ -1,0 +1,30 @@
+{
+  final Serializable id;
+  if (canExtractIdOutOfEntity()) {
+    id=getIdentifier(entity,session.getEntityMode());
+  }
+ else {
+    id=null;
+  }
+  if (id == null) {
+    return Boolean.TRUE;
+  }
+  final Object version=getVersion(entity,session.getEntityMode());
+  if (isVersioned()) {
+    Boolean result=entityMetamodel.getVersionProperty().getUnsavedValue().isUnsaved(version);
+    if (result != null) {
+      return result;
+    }
+  }
+  Boolean result=entityMetamodel.getIdentifierProperty().getUnsavedValue().isUnsaved(id);
+  if (result != null) {
+    return result;
+  }
+  if (hasCache()) {
+    CacheKey ck=new CacheKey(id,getIdentifierType(),getRootEntityName(),session.getEntityMode(),session.getFactory());
+    if (getCacheAccessStrategy().get(ck,session.getTimestamp()) != null) {
+      return Boolean.FALSE;
+    }
+  }
+  return null;
+}

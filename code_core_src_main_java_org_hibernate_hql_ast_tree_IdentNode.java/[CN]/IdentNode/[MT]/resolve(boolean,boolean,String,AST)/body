@@ -1,0 +1,38 @@
+{
+  if (!isResolved()) {
+    if (getWalker().getCurrentFromClause().isFromElementAlias(getText())) {
+      if (resolveAsAlias()) {
+        setResolved();
+      }
+    }
+ else     if (parent != null && parent.getType() == SqlTokenTypes.DOT) {
+      DotNode dot=(DotNode)parent;
+      if (parent.getFirstChild() == this) {
+        if (resolveAsNakedComponentPropertyRefLHS(dot)) {
+          setResolved();
+        }
+      }
+ else {
+        if (resolveAsNakedComponentPropertyRefRHS(dot)) {
+          setResolved();
+        }
+      }
+    }
+ else {
+      int result=resolveAsNakedPropertyRef();
+      if (result == PROPERTY_REF) {
+        setResolved();
+      }
+ else       if (result == COMPONENT_REF) {
+        return;
+      }
+    }
+    if (!isResolved()) {
+      try {
+        getWalker().getLiteralProcessor().processConstant(this,false);
+      }
+ catch (      Throwable ignore) {
+      }
+    }
+  }
+}

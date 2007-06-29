@@ -1,0 +1,66 @@
+{
+  Calendar cal=new GregorianCalendar();
+  cal.set(1977,6,3,0,0,0);
+  java.sql.Timestamp testvalue=new java.sql.Timestamp(cal.getTimeInMillis());
+  testvalue.setNanos(0);
+  Calendar cal3=new GregorianCalendar();
+  cal3.set(1976,2,3,0,0,0);
+  java.sql.Timestamp testvalue3=new java.sql.Timestamp(cal3.getTimeInMillis());
+  testvalue3.setNanos(0);
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  try {
+    Statement stmt=s.connection().createStatement();
+    stmt.executeUpdate("DROP FUNCTION spLock FROM TestInterSystemsFunctionsClass");
+    t.commit();
+  }
+ catch (  Exception ex) {
+    System.out.println("as we expected stored procedure sp does not exist when we drop it");
+  }
+  t=s.beginTransaction();
+  Statement stmt=s.connection().createStatement();
+  String create_function="CREATE FUNCTION SQLUser.TestInterSystemsFunctionsClass_spLock\n" + "     ( INOUT pHandle %SQLProcContext, \n" + "       ROWID INTEGER \n"+ " )\n"+ " FOR User.TestInterSystemsFunctionsClass "+ "    PROCEDURE\n"+ "    RETURNS INTEGER\n"+ "    LANGUAGE OBJECTSCRIPT\n"+ "    {\n"+ "        q 0\n"+ "     }";
+  stmt.executeUpdate(create_function);
+  t.commit();
+  t=s.beginTransaction();
+  TestInterSystemsFunctionsClass object=new TestInterSystemsFunctionsClass();
+  object.setDateText("1977-07-03");
+  object.setDate1(testvalue);
+  object.setDate3(testvalue3);
+  s.save(object,new Long(10));
+  t.commit();
+  s.close();
+  s=openSession();
+  s.clear();
+  t=s.beginTransaction();
+  TestInterSystemsFunctionsClass test=(TestInterSystemsFunctionsClass)s.get(TestInterSystemsFunctionsClass.class,new Long(10));
+  assertTrue(test.getDate1().equals(testvalue));
+  test=(TestInterSystemsFunctionsClass)s.get(TestInterSystemsFunctionsClass.class,new Long(10),LockMode.UPGRADE);
+  assertTrue(test.getDate1().equals(testvalue));
+  Date value=(Date)s.find("select nvl(o.date,o.dateText) from TestInterSystemsFunctionsClass as o").get(0);
+  assertTrue(value.equals(testvalue));
+  Object nv=s.find("select nullif(o.dateText,o.dateText) from TestInterSystemsFunctionsClass as o").get(0);
+  assertTrue(nv == null);
+  String dateText=(String)s.find("select nvl(o.dateText,o.date) from TestInterSystemsFunctionsClass as o").get(0);
+  assertTrue(dateText.equals("1977-07-03"));
+  value=(Date)s.find("select ifnull(o.date,o.date1) from TestInterSystemsFunctionsClass as o").get(0);
+  assertTrue(value.equals(testvalue));
+  value=(Date)s.find("select ifnull(o.date3,o.date,o.date1) from TestInterSystemsFunctionsClass as o").get(0);
+  assertTrue(value.equals(testvalue));
+  Integer pos=(Integer)s.find("select position('07', o.dateText) from TestInterSystemsFunctionsClass as o").get(0);
+  assertTrue(pos.intValue() == 6);
+  String st=(String)s.find("select convert(o.date1, SQL_TIME) from TestInterSystemsFunctionsClass as o").get(0);
+  assertTrue(st.equals("00:00:00"));
+  java.sql.Time tm=(java.sql.Time)s.find("select cast(o.date1, time) from TestInterSystemsFunctionsClass as o").get(0);
+  assertTrue(tm.toString().equals("00:00:00"));
+  Double diff=(Double)s.find("select timestampdiff(SQL_TSI_FRAC_SECOND, o.date3, o.date1) from TestInterSystemsFunctionsClass as o").get(0);
+  assertTrue(diff.doubleValue() != 0.0);
+  diff=(Double)s.find("select timestampdiff(SQL_TSI_MONTH, o.date3, o.date1) from TestInterSystemsFunctionsClass as o").get(0);
+  assertTrue(diff.doubleValue() == 16.0);
+  diff=(Double)s.find("select timestampdiff(SQL_TSI_WEEK, o.date3, o.date1) from TestInterSystemsFunctionsClass as o").get(0);
+  assertTrue(diff.doubleValue() >= 16 * 4);
+  diff=(Double)s.find("select timestampdiff(SQL_TSI_YEAR, o.date3, o.date1) from TestInterSystemsFunctionsClass as o").get(0);
+  assertTrue(diff.doubleValue() == 1.0);
+  t.commit();
+  s.close();
+}

@@ -1,0 +1,22 @@
+{
+  if (parameterMetadata.getOrdinalParameterCount() == 0) {
+    throw new IllegalArgumentException("No positional parameters in query: " + getQueryString());
+  }
+  if (position < 0 || position > parameterMetadata.getOrdinalParameterCount() - 1) {
+    throw new IllegalArgumentException("Positional parameter does not exist: " + position + " in query: "+ getQueryString());
+  }
+  int size=values.size();
+  if (position < size) {
+    values.set(position,val);
+    types.set(position,type);
+  }
+ else {
+    for (int i=0; i < position - size; i++) {
+      values.add(UNSET_PARAMETER);
+      types.add(UNSET_TYPE);
+    }
+    values.add(val);
+    types.add(type);
+  }
+  return this;
+}

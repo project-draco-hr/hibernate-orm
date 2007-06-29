@@ -1,0 +1,26 @@
+{
+  log.debug("registered: " + uid + " ("+ ((name == null) ? "unnamed" : name)+ ')');
+  INSTANCES.put(uid,instance);
+  if (name != null)   NAMED_INSTANCES.put(name,instance);
+  if (name == null) {
+    log.info("Not binding factory to JNDI, no JNDI name configured");
+  }
+ else {
+    log.info("Factory name: " + name);
+    try {
+      Context ctx=NamingHelper.getInitialContext(properties);
+      NamingHelper.bind(ctx,name,instance);
+      log.info("Bound factory to JNDI name: " + name);
+      ((EventContext)ctx).addNamingListener(name,EventContext.OBJECT_SCOPE,LISTENER);
+    }
+ catch (    InvalidNameException ine) {
+      log.error("Invalid JNDI name: " + name,ine);
+    }
+catch (    NamingException ne) {
+      log.warn("Could not bind factory to JNDI",ne);
+    }
+catch (    ClassCastException cce) {
+      log.warn("InitialContext did not implement EventContext");
+    }
+  }
+}

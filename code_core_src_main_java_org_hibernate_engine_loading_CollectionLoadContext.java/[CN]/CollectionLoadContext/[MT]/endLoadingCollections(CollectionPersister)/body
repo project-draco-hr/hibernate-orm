@@ -1,0 +1,33 @@
+{
+  SessionImplementor session=getLoadContext().getPersistenceContext().getSession();
+  if (!loadContexts.hasLoadingCollectionEntries() || localLoadingCollectionKeys.isEmpty()) {
+    return;
+  }
+  List matches=null;
+  Iterator iter=localLoadingCollectionKeys.iterator();
+  while (iter.hasNext()) {
+    final CollectionKey collectionKey=(CollectionKey)iter.next();
+    final LoadingCollectionEntry lce=loadContexts.locateLoadingCollectionEntry(collectionKey);
+    if (lce == null) {
+      log.warn("In CollectionLoadContext#endLoadingCollections, localLoadingCollectionKeys contained [" + collectionKey + "], but no LoadingCollectionEntry was found in loadContexts");
+    }
+ else     if (lce.getResultSet() == resultSet && lce.getPersister() == persister) {
+      if (matches == null) {
+        matches=new ArrayList();
+      }
+      matches.add(lce);
+      if (lce.getCollection().getOwner() == null) {
+        session.getPersistenceContext().addUnownedCollection(new CollectionKey(persister,lce.getKey(),session.getEntityMode()),lce.getCollection());
+      }
+      if (log.isTraceEnabled()) {
+        log.trace("removing collection load entry [" + lce + "]");
+      }
+      loadContexts.unregisterLoadingCollectionXRef(collectionKey);
+      iter.remove();
+    }
+  }
+  endLoadingCollections(persister,matches);
+  if (localLoadingCollectionKeys.isEmpty()) {
+    loadContexts.cleanup(resultSet);
+  }
+}

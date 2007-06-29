@@ -1,0 +1,21 @@
+{
+  checkInitialized();
+  if (queryableCollection == null) {
+    return (PropertyMapping)persister;
+  }
+  if (CollectionProperties.isCollectionProperty(propertyName)) {
+    if (collectionPropertyMapping == null) {
+      collectionPropertyMapping=new CollectionPropertyMapping(queryableCollection);
+    }
+    return collectionPropertyMapping;
+  }
+  if (queryableCollection.getElementType().isAnyType()) {
+    return queryableCollection;
+  }
+  if (queryableCollection.getElementType().isComponentType()) {
+    if (propertyName.equals(EntityPersister.ENTITY_ID)) {
+      return (PropertyMapping)queryableCollection.getOwnerEntityPersister();
+    }
+  }
+  return queryableCollection;
+}

@@ -1,0 +1,23 @@
+{
+  String text=ASTUtil.getPathText(node);
+  Queryable persister=walker.getSessionFactoryHelper().findQueryableUsingImports(text);
+  if (persister != null) {
+    final String discrim=persister.getDiscriminatorSQLValue();
+    node.setDataType(persister.getDiscriminatorType());
+    if (InFragment.NULL.equals(discrim) || InFragment.NOT_NULL.equals(discrim)) {
+      throw new InvalidPathException("subclass test not allowed for null or not null discriminator: '" + text + "'");
+    }
+ else {
+      setSQLValue(node,text,discrim);
+    }
+  }
+ else {
+    Object value=ReflectHelper.getConstantValue(text);
+    if (value == null) {
+      throw new InvalidPathException("Invalid path: '" + text + "'");
+    }
+ else {
+      setConstantValue(node,text,value);
+    }
+  }
+}

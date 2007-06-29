@@ -1,0 +1,29 @@
+{
+  log.info("Running schema validator");
+  Connection connection=null;
+  try {
+    DatabaseMetadata meta;
+    try {
+      log.info("fetching database metadata");
+      connectionHelper.prepare(false);
+      connection=connectionHelper.getConnection();
+      meta=new DatabaseMetadata(connection,dialect,false);
+    }
+ catch (    SQLException sqle) {
+      log.error("could not get database metadata",sqle);
+      throw sqle;
+    }
+    configuration.validateSchema(dialect,meta);
+  }
+ catch (  SQLException e) {
+    log.error("could not complete schema validation",e);
+  }
+ finally {
+    try {
+      connectionHelper.release();
+    }
+ catch (    Exception e) {
+      log.error("Error closing connection",e);
+    }
+  }
+}

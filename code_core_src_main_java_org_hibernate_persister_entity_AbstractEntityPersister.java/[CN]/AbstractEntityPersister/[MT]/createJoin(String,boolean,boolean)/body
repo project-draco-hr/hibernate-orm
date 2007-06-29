@@ -1,0 +1,12 @@
+{
+  final String[] idCols=StringHelper.qualify(name,getIdentifierColumnNames());
+  final JoinFragment join=getFactory().getDialect().createOuterJoinFragment();
+  final int tableSpan=getSubclassTableSpan();
+  for (int j=1; j < tableSpan; j++) {
+    final boolean joinIsIncluded=isClassOrSuperclassTable(j) || (includeSubclasses && !isSubclassTableSequentialSelect(j) && !isSubclassTableLazy(j));
+    if (joinIsIncluded) {
+      join.addJoin(getSubclassTableName(j),generateTableAlias(name,j),idCols,getSubclassTableKeyColumns(j),innerJoin && isClassOrSuperclassTable(j) && !isInverseTable(j)&& !isNullableTable(j) ? JoinFragment.INNER_JOIN : JoinFragment.LEFT_OUTER_JOIN);
+    }
+  }
+  return join;
+}

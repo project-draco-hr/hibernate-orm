@@ -1,0 +1,54 @@
+{
+  Session s=openSession();
+  s.enableFilter("region").setParameter("userRegion","US");
+  Transaction t=s.beginTransaction();
+  prepareTestData(s);
+  s.clear();
+  List results=s.createQuery("from Person").list();
+  assertEquals("Incorrect qry result count",4,results.size());
+  s.clear();
+  results=s.createQuery("from Employee").list();
+  assertEquals("Incorrect qry result count",2,results.size());
+  Iterator itr=results.iterator();
+  while (itr.hasNext()) {
+    final Person p=(Person)itr.next();
+    if (p.getName().equals("John Doe")) {
+      Employee john=(Employee)p;
+      assertEquals("Incorrect fecthed minions count",2,john.getMinions().size());
+      break;
+    }
+  }
+  s.clear();
+  results=new ArrayList(new HashSet(s.createQuery("from Person as p left join fetch p.minions").list()));
+  assertEquals("Incorrect qry result count",4,results.size());
+  itr=results.iterator();
+  while (itr.hasNext()) {
+    final Person p=(Person)itr.next();
+    if (p.getName().equals("John Doe")) {
+      Employee john=(Employee)p;
+      assertEquals("Incorrect fecthed minions count",2,john.getMinions().size());
+      break;
+    }
+  }
+  s.clear();
+  results=new ArrayList(new HashSet(s.createQuery("from Employee as p left join fetch p.minions").list()));
+  assertEquals("Incorrect qry result count",2,results.size());
+  itr=results.iterator();
+  while (itr.hasNext()) {
+    final Person p=(Person)itr.next();
+    if (p.getName().equals("John Doe")) {
+      Employee john=(Employee)p;
+      assertEquals("Incorrect fecthed minions count",2,john.getMinions().size());
+      break;
+    }
+  }
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  s.createQuery("delete Customer where contactOwner is not null").executeUpdate();
+  s.createQuery("delete Employee where manager is not null").executeUpdate();
+  s.createQuery("delete Person").executeUpdate();
+  t.commit();
+  s.close();
+}

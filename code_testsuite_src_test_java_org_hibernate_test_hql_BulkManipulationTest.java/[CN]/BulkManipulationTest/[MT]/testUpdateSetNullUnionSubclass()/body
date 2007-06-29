@@ -1,0 +1,15 @@
+{
+  TestData data=new TestData();
+  data.prepare();
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  int count=s.createQuery("update Vehicle set owner = 'Steve'").executeUpdate();
+  assertEquals("incorrect restricted update count",4,count);
+  count=s.createQuery("update Vehicle set owner = null where owner = 'Steve'").executeUpdate();
+  assertEquals("incorrect restricted update count",4,count);
+  count=s.createQuery("delete Vehicle where owner is null").executeUpdate();
+  assertEquals("incorrect restricted update count",4,count);
+  t.commit();
+  s.close();
+  data.cleanup();
+}

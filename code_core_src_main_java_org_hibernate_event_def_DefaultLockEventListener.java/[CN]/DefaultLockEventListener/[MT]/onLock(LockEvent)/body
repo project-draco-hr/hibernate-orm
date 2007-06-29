@@ -1,0 +1,21 @@
+{
+  if (event.getObject() == null) {
+    throw new NullPointerException("attempted to lock null");
+  }
+  if (event.getLockMode() == LockMode.WRITE) {
+    throw new HibernateException("Invalid lock mode for lock()");
+  }
+  SessionImplementor source=event.getSession();
+  Object entity=source.getPersistenceContext().unproxyAndReassociate(event.getObject());
+  EntityEntry entry=source.getPersistenceContext().getEntry(entity);
+  if (entry == null) {
+    final EntityPersister persister=source.getEntityPersister(event.getEntityName(),entity);
+    final Serializable id=persister.getIdentifier(entity,source.getEntityMode());
+    if (!ForeignKeys.isNotTransient(event.getEntityName(),entity,Boolean.FALSE,source)) {
+      throw new TransientObjectException("cannot lock an unsaved transient instance: " + persister.getEntityName());
+    }
+    entry=reassociate(event,entity,id,persister);
+    cascadeOnLock(event,persister,entity);
+  }
+  upgradeLock(entity,entry,event.getLockMode(),source);
+}

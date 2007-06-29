@@ -1,0 +1,18 @@
+{
+  Session session=openSession();
+  Transaction txn=session.beginTransaction();
+  JobBatch batch=new JobBatch(new Date());
+  batch.createJob().setProcessingInstructions("Just do it!");
+  batch.createJob().setProcessingInstructions("I know you can do it!");
+  session.persist(batch);
+  session.flush();
+  updateStatuses(session.connection());
+  session.refresh(batch);
+  Iterator itr=batch.getJobs().iterator();
+  while (itr.hasNext()) {
+    Job job=(Job)itr.next();
+    assertEquals("Jobs not refreshed!",1,job.getStatus());
+  }
+  txn.rollback();
+  session.close();
+}

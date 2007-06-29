@@ -1,0 +1,23 @@
+{
+  CodeSource ejbCS=clazz.getProtectionDomain().getCodeSource();
+  try {
+    setContextID(contextID);
+    Policy policy=Policy.getPolicy();
+    Subject caller=getContextSubject();
+    Principal[] principals=null;
+    if (caller != null) {
+      Set principalsSet=caller.getPrincipals();
+      principals=new Principal[principalsSet.size()];
+      principalsSet.toArray(principals);
+    }
+    ProtectionDomain pd=new ProtectionDomain(ejbCS,null,null,principals);
+    if (policy.implies(pd,methodPerm) == false) {
+      String msg="Denied: " + methodPerm + ", caller="+ caller;
+      SecurityException e=new SecurityException(msg);
+      throw e;
+    }
+  }
+ catch (  PolicyContextException e) {
+    throw new RuntimeException(e);
+  }
+}

@@ -1,0 +1,25 @@
+{
+  if (associations.size() == 0) {
+    return "";
+  }
+ else {
+    StringBuffer buf=new StringBuffer(associations.size() * 100).append(", ");
+    int entityAliasCount=0;
+    int collectionAliasCount=0;
+    for (int i=0; i < associations.size(); i++) {
+      OuterJoinableAssociation join=(OuterJoinableAssociation)associations.get(i);
+      OuterJoinableAssociation next=(i == associations.size() - 1) ? null : (OuterJoinableAssociation)associations.get(i + 1);
+      final Joinable joinable=join.getJoinable();
+      final String entitySuffix=(suffixes == null || entityAliasCount >= suffixes.length) ? null : suffixes[entityAliasCount];
+      final String collectionSuffix=(collectionSuffixes == null || collectionAliasCount >= collectionSuffixes.length) ? null : collectionSuffixes[collectionAliasCount];
+      final String selectFragment=joinable.selectFragment(next == null ? null : next.getJoinable(),next == null ? null : next.getRHSAlias(),join.getRHSAlias(),entitySuffix,collectionSuffix,join.getJoinType() == JoinFragment.LEFT_OUTER_JOIN);
+      buf.append(selectFragment);
+      if (joinable.consumesEntityAlias())       entityAliasCount++;
+      if (joinable.consumesCollectionAlias() && join.getJoinType() == JoinFragment.LEFT_OUTER_JOIN)       collectionAliasCount++;
+      if (i < associations.size() - 1 && selectFragment.trim().length() > 0) {
+        buf.append(", ");
+      }
+    }
+    return buf.toString();
+  }
+}

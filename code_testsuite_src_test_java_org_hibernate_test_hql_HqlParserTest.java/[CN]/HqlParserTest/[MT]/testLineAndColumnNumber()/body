@@ -1,0 +1,25 @@
+{
+  AST ast=doParse("from Foo f\nwhere f.name = 'fred'",false);
+  ASTIterator iter=new ASTIterator(ast);
+  boolean foundFoo=false;
+  boolean foundName=false;
+  while (iter.hasNext()) {
+    AST n=iter.nextNode();
+    if ("Foo".equals(n.getText())) {
+      if (foundFoo)       fail("Already found 'Foo'!");
+      foundFoo=true;
+      Node node=(Node)n;
+      assertEquals(1,node.getLine());
+      assertEquals(6,node.getColumn());
+    }
+ else     if ("name".equals(n.getText())) {
+      if (foundName)       fail("Already found 'name'!");
+      foundName=true;
+      Node node=(Node)n;
+      assertEquals(2,node.getLine());
+      assertEquals(9,node.getColumn());
+    }
+  }
+  assertTrue(foundFoo);
+  assertTrue(foundName);
+}

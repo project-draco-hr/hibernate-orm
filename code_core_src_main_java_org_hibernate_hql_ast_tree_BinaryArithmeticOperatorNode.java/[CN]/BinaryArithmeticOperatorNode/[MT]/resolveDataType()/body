@@ -1,0 +1,33 @@
+{
+  Node lhs=getLeftHandOperand();
+  Node rhs=getRightHandOperand();
+  Type lhType=(lhs instanceof SqlNode) ? ((SqlNode)lhs).getDataType() : null;
+  Type rhType=(rhs instanceof SqlNode) ? ((SqlNode)rhs).getDataType() : null;
+  if (isDateTimeType(lhType) || isDateTimeType(rhType)) {
+    return resolveDateTimeArithmeticResultType(lhType,rhType);
+  }
+ else {
+    if (lhType == null) {
+      if (rhType == null) {
+        return Hibernate.DOUBLE;
+      }
+ else {
+        return rhType;
+      }
+    }
+ else {
+      if (rhType == null) {
+        return lhType;
+      }
+ else {
+        if (lhType == Hibernate.DOUBLE || rhType == Hibernate.DOUBLE)         return Hibernate.DOUBLE;
+        if (lhType == Hibernate.FLOAT || rhType == Hibernate.FLOAT)         return Hibernate.FLOAT;
+        if (lhType == Hibernate.BIG_DECIMAL || rhType == Hibernate.BIG_DECIMAL)         return Hibernate.BIG_DECIMAL;
+        if (lhType == Hibernate.BIG_INTEGER || rhType == Hibernate.BIG_INTEGER)         return Hibernate.BIG_INTEGER;
+        if (lhType == Hibernate.LONG || rhType == Hibernate.LONG)         return Hibernate.LONG;
+        if (lhType == Hibernate.INTEGER || rhType == Hibernate.INTEGER)         return Hibernate.INTEGER;
+        return lhType;
+      }
+    }
+  }
+}

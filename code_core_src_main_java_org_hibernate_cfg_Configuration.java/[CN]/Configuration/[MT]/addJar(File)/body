@@ -1,0 +1,36 @@
+{
+  log.info("Searching for mapping documents in jar: " + jar.getName());
+  JarFile jarFile=null;
+  try {
+    try {
+      jarFile=new JarFile(jar);
+    }
+ catch (    IOException ioe) {
+      throw new InvalidMappingException("Could not read mapping documents from jar: " + jar.getName(),"jar",jar.getName(),ioe);
+    }
+    Enumeration jarEntries=jarFile.entries();
+    while (jarEntries.hasMoreElements()) {
+      ZipEntry ze=(ZipEntry)jarEntries.nextElement();
+      if (ze.getName().endsWith(".hbm.xml")) {
+        log.info("Found mapping document in jar: " + ze.getName());
+        try {
+          addInputStream(jarFile.getInputStream(ze));
+        }
+ catch (        Exception e) {
+          throw new InvalidMappingException("Could not read mapping documents from jar: " + jar.getName(),"jar",jar.getName(),e);
+        }
+      }
+    }
+  }
+  finally {
+    try {
+      if (jarFile != null) {
+        jarFile.close();
+      }
+    }
+ catch (    IOException ioe) {
+      log.error("could not close jar",ioe);
+    }
+  }
+  return this;
+}

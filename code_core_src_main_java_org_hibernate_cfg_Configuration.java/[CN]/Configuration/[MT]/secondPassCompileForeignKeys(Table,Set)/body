@@ -1,0 +1,26 @@
+{
+  table.createForeignKeys();
+  Iterator iter=table.getForeignKeyIterator();
+  while (iter.hasNext()) {
+    ForeignKey fk=(ForeignKey)iter.next();
+    if (!done.contains(fk)) {
+      done.add(fk);
+      final String referencedEntityName=fk.getReferencedEntityName();
+      if (referencedEntityName == null) {
+        throw new MappingException("An association from the table " + fk.getTable().getName() + " does not specify the referenced entity");
+      }
+      if (log.isDebugEnabled()) {
+        log.debug("resolving reference to class: " + referencedEntityName);
+      }
+      PersistentClass referencedClass=(PersistentClass)classes.get(referencedEntityName);
+      if (referencedClass == null) {
+        throw new MappingException("An association from the table " + fk.getTable().getName() + " refers to an unmapped class: "+ referencedEntityName);
+      }
+      if (referencedClass.isJoinedSubclass()) {
+        secondPassCompileForeignKeys(referencedClass.getSuperclass().getTable(),done);
+      }
+      fk.setReferencedTable(referencedClass.getTable());
+      fk.alignColumns();
+    }
+  }
+}

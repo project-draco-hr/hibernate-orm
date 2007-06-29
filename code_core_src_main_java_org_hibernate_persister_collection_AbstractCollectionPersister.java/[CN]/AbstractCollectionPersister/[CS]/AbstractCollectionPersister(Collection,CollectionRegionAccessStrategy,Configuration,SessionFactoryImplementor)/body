@@ -1,0 +1,243 @@
+{
+  this.factory=factory;
+  this.cacheAccessStrategy=cacheAccessStrategy;
+  if (factory.getSettings().isStructuredCacheEntriesEnabled()) {
+    cacheEntryStructure=collection.isMap() ? (CacheEntryStructure)new StructuredMapCacheEntry() : (CacheEntryStructure)new StructuredCollectionCacheEntry();
+  }
+ else {
+    cacheEntryStructure=new UnstructuredCacheEntry();
+  }
+  dialect=factory.getDialect();
+  sqlExceptionConverter=factory.getSQLExceptionConverter();
+  collectionType=collection.getCollectionType();
+  role=collection.getRole();
+  entityName=collection.getOwnerEntityName();
+  ownerPersister=factory.getEntityPersister(entityName);
+  queryLoaderName=collection.getLoaderName();
+  nodeName=collection.getNodeName();
+  isMutable=collection.isMutable();
+  Table table=collection.getCollectionTable();
+  fetchMode=collection.getElement().getFetchMode();
+  elementType=collection.getElement().getType();
+  isPrimitiveArray=collection.isPrimitiveArray();
+  isArray=collection.isArray();
+  subselectLoadable=collection.isSubselectLoadable();
+  qualifiedTableName=table.getQualifiedName(dialect,factory.getSettings().getDefaultCatalogName(),factory.getSettings().getDefaultSchemaName());
+  int spacesSize=1 + collection.getSynchronizedTables().size();
+  spaces=new String[spacesSize];
+  spaces[0]=qualifiedTableName;
+  Iterator iter=collection.getSynchronizedTables().iterator();
+  for (int i=1; i < spacesSize; i++) {
+    spaces[i]=(String)iter.next();
+  }
+  sqlOrderByString=collection.getOrderBy();
+  hasOrder=sqlOrderByString != null;
+  sqlOrderByStringTemplate=hasOrder ? Template.renderOrderByStringTemplate(sqlOrderByString,dialect,factory.getSqlFunctionRegistry()) : null;
+  sqlWhereString=StringHelper.isNotEmpty(collection.getWhere()) ? "( " + collection.getWhere() + ") " : null;
+  hasWhere=sqlWhereString != null;
+  sqlWhereStringTemplate=hasWhere ? Template.renderWhereStringTemplate(sqlWhereString,dialect,factory.getSqlFunctionRegistry()) : null;
+  hasOrphanDelete=collection.hasOrphanDelete();
+  int batch=collection.getBatchSize();
+  if (batch == -1) {
+    batch=factory.getSettings().getDefaultBatchFetchSize();
+  }
+  batchSize=batch;
+  isVersioned=collection.isOptimisticLocked();
+  keyType=collection.getKey().getType();
+  iter=collection.getKey().getColumnIterator();
+  int keySpan=collection.getKey().getColumnSpan();
+  keyColumnNames=new String[keySpan];
+  keyColumnAliases=new String[keySpan];
+  int k=0;
+  while (iter.hasNext()) {
+    Column col=((Column)iter.next());
+    keyColumnNames[k]=col.getQuotedName(dialect);
+    keyColumnAliases[k]=col.getAlias(dialect);
+    k++;
+  }
+  String elemNode=collection.getElementNodeName();
+  if (elementType.isEntityType()) {
+    String entityName=((EntityType)elementType).getAssociatedEntityName();
+    elementPersister=factory.getEntityPersister(entityName);
+    if (elemNode == null) {
+      elemNode=cfg.getClassMapping(entityName).getNodeName();
+    }
+  }
+ else {
+    elementPersister=null;
+  }
+  elementNodeName=elemNode;
+  int elementSpan=collection.getElement().getColumnSpan();
+  elementColumnAliases=new String[elementSpan];
+  elementColumnNames=new String[elementSpan];
+  elementFormulaTemplates=new String[elementSpan];
+  elementFormulas=new String[elementSpan];
+  elementColumnIsSettable=new boolean[elementSpan];
+  elementColumnIsInPrimaryKey=new boolean[elementSpan];
+  boolean isPureFormula=true;
+  boolean hasNotNullableColumns=false;
+  int j=0;
+  iter=collection.getElement().getColumnIterator();
+  while (iter.hasNext()) {
+    Selectable selectable=(Selectable)iter.next();
+    elementColumnAliases[j]=selectable.getAlias(dialect);
+    if (selectable.isFormula()) {
+      Formula form=(Formula)selectable;
+      elementFormulaTemplates[j]=form.getTemplate(dialect,factory.getSqlFunctionRegistry());
+      elementFormulas[j]=form.getFormula();
+    }
+ else {
+      Column col=(Column)selectable;
+      elementColumnNames[j]=col.getQuotedName(dialect);
+      elementColumnIsSettable[j]=true;
+      elementColumnIsInPrimaryKey[j]=!col.isNullable();
+      if (!col.isNullable()) {
+        hasNotNullableColumns=true;
+      }
+      isPureFormula=false;
+    }
+    j++;
+  }
+  elementIsPureFormula=isPureFormula;
+  if (!hasNotNullableColumns) {
+    Arrays.fill(elementColumnIsInPrimaryKey,true);
+  }
+  hasIndex=collection.isIndexed();
+  if (hasIndex) {
+    IndexedCollection indexedCollection=(IndexedCollection)collection;
+    indexType=indexedCollection.getIndex().getType();
+    int indexSpan=indexedCollection.getIndex().getColumnSpan();
+    iter=indexedCollection.getIndex().getColumnIterator();
+    indexColumnNames=new String[indexSpan];
+    indexFormulaTemplates=new String[indexSpan];
+    indexFormulas=new String[indexSpan];
+    indexColumnIsSettable=new boolean[indexSpan];
+    indexColumnAliases=new String[indexSpan];
+    int i=0;
+    boolean hasFormula=false;
+    while (iter.hasNext()) {
+      Selectable s=(Selectable)iter.next();
+      indexColumnAliases[i]=s.getAlias(dialect);
+      if (s.isFormula()) {
+        Formula indexForm=(Formula)s;
+        indexFormulaTemplates[i]=indexForm.getTemplate(dialect,factory.getSqlFunctionRegistry());
+        indexFormulas[i]=indexForm.getFormula();
+        hasFormula=true;
+      }
+ else {
+        Column indexCol=(Column)s;
+        indexColumnNames[i]=indexCol.getQuotedName(dialect);
+        indexColumnIsSettable[i]=true;
+      }
+      i++;
+    }
+    indexContainsFormula=hasFormula;
+    baseIndex=indexedCollection.isList() ? ((List)indexedCollection).getBaseIndex() : 0;
+    indexNodeName=indexedCollection.getIndexNodeName();
+  }
+ else {
+    indexContainsFormula=false;
+    indexColumnIsSettable=null;
+    indexFormulaTemplates=null;
+    indexFormulas=null;
+    indexType=null;
+    indexColumnNames=null;
+    indexColumnAliases=null;
+    baseIndex=0;
+    indexNodeName=null;
+  }
+  hasIdentifier=collection.isIdentified();
+  if (hasIdentifier) {
+    if (collection.isOneToMany()) {
+      throw new MappingException("one-to-many collections with identifiers are not supported");
+    }
+    IdentifierCollection idColl=(IdentifierCollection)collection;
+    identifierType=idColl.getIdentifier().getType();
+    iter=idColl.getIdentifier().getColumnIterator();
+    Column col=(Column)iter.next();
+    identifierColumnName=col.getQuotedName(dialect);
+    identifierColumnAlias=col.getAlias(dialect);
+    identifierGenerator=idColl.getIdentifier().createIdentifierGenerator(factory.getDialect(),factory.getSettings().getDefaultCatalogName(),factory.getSettings().getDefaultSchemaName(),null);
+  }
+ else {
+    identifierType=null;
+    identifierColumnName=null;
+    identifierColumnAlias=null;
+    identifierGenerator=null;
+  }
+  if (collection.getCustomSQLInsert() == null) {
+    sqlInsertRowString=generateInsertRowString();
+    insertCallable=false;
+    insertCheckStyle=ExecuteUpdateResultCheckStyle.COUNT;
+  }
+ else {
+    sqlInsertRowString=collection.getCustomSQLInsert();
+    insertCallable=collection.isCustomInsertCallable();
+    insertCheckStyle=collection.getCustomSQLInsertCheckStyle() == null ? ExecuteUpdateResultCheckStyle.determineDefault(collection.getCustomSQLInsert(),insertCallable) : collection.getCustomSQLInsertCheckStyle();
+  }
+  if (collection.getCustomSQLUpdate() == null) {
+    sqlUpdateRowString=generateUpdateRowString();
+    updateCallable=false;
+    updateCheckStyle=ExecuteUpdateResultCheckStyle.COUNT;
+  }
+ else {
+    sqlUpdateRowString=collection.getCustomSQLUpdate();
+    updateCallable=collection.isCustomUpdateCallable();
+    updateCheckStyle=collection.getCustomSQLUpdateCheckStyle() == null ? ExecuteUpdateResultCheckStyle.determineDefault(collection.getCustomSQLUpdate(),insertCallable) : collection.getCustomSQLUpdateCheckStyle();
+  }
+  if (collection.getCustomSQLDelete() == null) {
+    sqlDeleteRowString=generateDeleteRowString();
+    deleteCallable=false;
+    deleteCheckStyle=ExecuteUpdateResultCheckStyle.NONE;
+  }
+ else {
+    sqlDeleteRowString=collection.getCustomSQLDelete();
+    deleteCallable=collection.isCustomDeleteCallable();
+    deleteCheckStyle=ExecuteUpdateResultCheckStyle.NONE;
+  }
+  if (collection.getCustomSQLDeleteAll() == null) {
+    sqlDeleteString=generateDeleteString();
+    deleteAllCallable=false;
+    deleteAllCheckStyle=ExecuteUpdateResultCheckStyle.NONE;
+  }
+ else {
+    sqlDeleteString=collection.getCustomSQLDeleteAll();
+    deleteAllCallable=collection.isCustomDeleteAllCallable();
+    deleteAllCheckStyle=ExecuteUpdateResultCheckStyle.NONE;
+  }
+  sqlSelectSizeString=generateSelectSizeString(collection.isIndexed() && !collection.isMap());
+  sqlDetectRowByIndexString=generateDetectRowByIndexString();
+  sqlDetectRowByElementString=generateDetectRowByElementString();
+  sqlSelectRowByIndexString=generateSelectRowByIndexString();
+  logStaticSQL();
+  isLazy=collection.isLazy();
+  isExtraLazy=collection.isExtraLazy();
+  isInverse=collection.isInverse();
+  if (collection.isArray()) {
+    elementClass=((org.hibernate.mapping.Array)collection).getElementClass();
+  }
+ else {
+    elementClass=null;
+  }
+  if (elementType.isComponentType()) {
+    elementPropertyMapping=new CompositeElementPropertyMapping(elementColumnNames,elementFormulaTemplates,(AbstractComponentType)elementType,factory);
+  }
+ else   if (!elementType.isEntityType()) {
+    elementPropertyMapping=new ElementPropertyMapping(elementColumnNames,elementType);
+  }
+ else {
+    if (elementPersister instanceof PropertyMapping) {
+      elementPropertyMapping=(PropertyMapping)elementPersister;
+    }
+ else {
+      elementPropertyMapping=new ElementPropertyMapping(elementColumnNames,elementType);
+    }
+  }
+  filterHelper=new FilterHelper(collection.getFilterMap(),dialect,factory.getSqlFunctionRegistry());
+  manyToManyFilterHelper=new FilterHelper(collection.getManyToManyFilterMap(),dialect,factory.getSqlFunctionRegistry());
+  manyToManyWhereString=StringHelper.isNotEmpty(collection.getManyToManyWhere()) ? "( " + collection.getManyToManyWhere() + ")" : null;
+  manyToManyWhereTemplate=manyToManyWhereString == null ? null : Template.renderWhereStringTemplate(manyToManyWhereString,factory.getDialect(),factory.getSqlFunctionRegistry());
+  manyToManyOrderByString=collection.getManyToManyOrdering();
+  manyToManyOrderByTemplate=manyToManyOrderByString == null ? null : Template.renderOrderByStringTemplate(manyToManyOrderByString,factory.getDialect(),factory.getSqlFunctionRegistry());
+  initCollectionPropertyMap();
+}

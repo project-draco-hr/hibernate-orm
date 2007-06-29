@@ -1,0 +1,17 @@
+{
+  QueryTranslatorImpl translator=createNewQueryTranslator("select o.orderDate - o.orderDate from Order o");
+  assertEquals("incorrect return type count",1,translator.getReturnTypes().length);
+  assertEquals("incorrect return type",Hibernate.DOUBLE,translator.getReturnTypes()[0]);
+  translator=createNewQueryTranslator("select o.orderDate + 2 from Order o");
+  assertEquals("incorrect return type count",1,translator.getReturnTypes().length);
+  assertEquals("incorrect return type",Hibernate.CALENDAR_DATE,translator.getReturnTypes()[0]);
+  translator=createNewQueryTranslator("select o.orderDate -2 from Order o");
+  assertEquals("incorrect return type count",1,translator.getReturnTypes().length);
+  assertEquals("incorrect return type",Hibernate.CALENDAR_DATE,translator.getReturnTypes()[0]);
+  translator=createNewQueryTranslator("from Order o where o.orderDate > ?");
+  assertEquals("incorrect expected param type",Hibernate.CALENDAR_DATE,translator.getParameterTranslations().getOrdinalParameterExpectedType(1));
+  translator=createNewQueryTranslator("select o.orderDate + ? from Order o");
+  assertEquals("incorrect return type count",1,translator.getReturnTypes().length);
+  assertEquals("incorrect return type",Hibernate.CALENDAR_DATE,translator.getReturnTypes()[0]);
+  assertEquals("incorrect expected param type",Hibernate.DOUBLE,translator.getParameterTranslations().getOrdinalParameterExpectedType(1));
+}

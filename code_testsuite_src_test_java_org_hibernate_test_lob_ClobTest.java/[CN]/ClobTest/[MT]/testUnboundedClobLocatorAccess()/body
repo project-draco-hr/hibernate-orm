@@ -1,0 +1,25 @@
+{
+  if (!supportsUnboundedLobLocatorMaterialization()) {
+    return;
+  }
+  String original=buildRecursively(CLOB_SIZE,'x');
+  Session s=openSession();
+  s.beginTransaction();
+  LobHolder entity=new LobHolder();
+  entity.setClobLocator(Hibernate.createClob(original));
+  s.save(entity);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  entity=(LobHolder)s.get(LobHolder.class,entity.getId());
+  s.getTransaction().commit();
+  s.close();
+  assertEquals(CLOB_SIZE,entity.getClobLocator().length());
+  assertEquals(original,extractData(entity.getClobLocator()));
+  s=openSession();
+  s.beginTransaction();
+  s.delete(entity);
+  s.getTransaction().commit();
+  s.close();
+}

@@ -1,0 +1,80 @@
+{
+  if (isInverseTable(j)) {
+    return;
+  }
+  final boolean useVersion=j == 0 && isVersioned();
+  final boolean callable=isDeleteCallable(j);
+  final Expectation expectation=Expectations.appropriateExpectation(deleteResultCheckStyles[j]);
+  final boolean useBatch=j == 0 && isBatchable() && expectation.canBeBatched();
+  if (log.isTraceEnabled()) {
+    log.trace("Deleting entity: " + MessageHelper.infoString(this,id,getFactory()));
+    if (useVersion) {
+      log.trace("Version: " + version);
+    }
+  }
+  if (isTableCascadeDeleteEnabled(j)) {
+    if (log.isTraceEnabled()) {
+      log.trace("delete handled by foreign key constraint: " + getTableName(j));
+    }
+    return;
+  }
+  try {
+    PreparedStatement delete;
+    int index=1;
+    if (useBatch) {
+      if (callable) {
+        delete=session.getBatcher().prepareBatchCallableStatement(sql);
+      }
+ else {
+        delete=session.getBatcher().prepareBatchStatement(sql);
+      }
+    }
+ else {
+      if (callable) {
+        delete=session.getBatcher().prepareCallableStatement(sql);
+      }
+ else {
+        delete=session.getBatcher().prepareStatement(sql);
+      }
+    }
+    try {
+      index+=expectation.prepare(delete);
+      getIdentifierType().nullSafeSet(delete,id,index,session);
+      index+=getIdentifierColumnSpan();
+      if (useVersion) {
+        getVersionType().nullSafeSet(delete,version,index,session);
+      }
+ else       if (entityMetamodel.getOptimisticLockMode() > Versioning.OPTIMISTIC_LOCK_VERSION && loadedState != null) {
+        boolean[] versionability=getPropertyVersionability();
+        Type[] types=getPropertyTypes();
+        for (int i=0; i < entityMetamodel.getPropertySpan(); i++) {
+          if (isPropertyOfTable(i,j) && versionability[i]) {
+            boolean[] settable=types[i].toColumnNullness(loadedState[i],getFactory());
+            types[i].nullSafeSet(delete,loadedState[i],index,settable,session);
+            index+=ArrayHelper.countTrue(settable);
+          }
+        }
+      }
+      if (useBatch) {
+        session.getBatcher().addToBatch(expectation);
+      }
+ else {
+        check(delete.executeUpdate(),id,j,expectation,delete);
+      }
+    }
+ catch (    SQLException sqle) {
+      if (useBatch) {
+        session.getBatcher().abortBatch(sqle);
+      }
+      throw sqle;
+    }
+ finally {
+      if (!useBatch) {
+        session.getBatcher().closeStatement(delete);
+      }
+    }
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(getFactory().getSQLExceptionConverter(),sqle,"could not delete: " + MessageHelper.infoString(this,id,getFactory()),sql);
+  }
+}

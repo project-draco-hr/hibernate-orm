@@ -1,0 +1,45 @@
+{
+  Session s=openSession();
+  Serializable fid=null;
+  try {
+    Foo f=new Foo();
+    s.save(f);
+    fid=s.getIdentifier(f);
+    s.flush();
+    s.connection().commit();
+  }
+ catch (  Exception e) {
+    s.connection().rollback();
+    throw e;
+  }
+ finally {
+    s.close();
+  }
+  s=openSession();
+  try {
+    Foo f=new Foo();
+    s.delete(f);
+    s.flush();
+    s.connection().commit();
+  }
+ catch (  Exception e) {
+    s.connection().rollback();
+  }
+ finally {
+    s.close();
+  }
+  s=openSession();
+  try {
+    Foo f=(Foo)s.load(Foo.class,fid,LockMode.UPGRADE);
+    s.delete(f);
+    s.flush();
+    s.connection().commit();
+  }
+ catch (  Exception e) {
+    s.connection().rollback();
+    throw e;
+  }
+ finally {
+    assertTrue(s.close() == null);
+  }
+}

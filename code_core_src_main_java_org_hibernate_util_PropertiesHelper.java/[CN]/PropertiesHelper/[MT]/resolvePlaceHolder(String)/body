@@ -1,0 +1,30 @@
+{
+  if (property.indexOf(PLACEHOLDER_START) < 0) {
+    return property;
+  }
+  StringBuffer buff=new StringBuffer();
+  char[] chars=property.toCharArray();
+  for (int pos=0; pos < chars.length; pos++) {
+    if (chars[pos] == '$') {
+      if (chars[pos + 1] == '{') {
+        String systemPropertyName="";
+        int x=pos + 2;
+        for (; x < chars.length && chars[x] != '}'; x++) {
+          systemPropertyName+=chars[x];
+          if (x == chars.length - 1) {
+            throw new IllegalArgumentException("unmatched placeholder start [" + property + "]");
+          }
+        }
+        String systemProperty=extractFromSystem(systemPropertyName);
+        buff.append(systemProperty == null ? "" : systemProperty);
+        pos=x + 1;
+        if (pos >= chars.length) {
+          break;
+        }
+      }
+    }
+    buff.append(chars[pos]);
+  }
+  String rtn=buff.toString();
+  return StringHelper.isEmpty(rtn) ? null : rtn;
+}

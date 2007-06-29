@@ -1,0 +1,40 @@
+{
+  QueryJoinFragment joinFragment=new QueryJoinFragment(factory.getDialect(),useThetaStyle);
+  if (rootJoinable != null) {
+    joinFragment.addCrossJoin(rootJoinable.getTableName(),rootAlias);
+    String filterCondition=rootJoinable.filterFragment(rootAlias,enabledFilters);
+    joinFragment.setHasFilterCondition(joinFragment.addCondition(filterCondition));
+    if (includeExtraJoins) {
+      addExtraJoins(joinFragment,rootAlias,rootJoinable,true);
+    }
+  }
+  Joinable last=rootJoinable;
+  for (int i=0; i < joins.size(); i++) {
+    Join join=(Join)joins.get(i);
+    String on=join.getAssociationType().getOnCondition(join.getAlias(),factory,enabledFilters);
+    String condition=null;
+    if (last != null && isManyToManyRoot(last) && ((QueryableCollection)last).getElementType() == join.getAssociationType()) {
+      String manyToManyFilter=((QueryableCollection)last).getManyToManyFilterFragment(join.getAlias(),enabledFilters);
+      condition="".equals(manyToManyFilter) ? on : "".equals(on) ? manyToManyFilter : on + " and " + manyToManyFilter;
+    }
+ else {
+      condition=on;
+    }
+    if (withClauseFragment != null) {
+      if (join.getAlias().equals(withClauseJoinAlias)) {
+        condition+=" and " + withClauseFragment;
+      }
+    }
+    joinFragment.addJoin(join.getJoinable().getTableName(),join.getAlias(),join.getLHSColumns(),JoinHelper.getRHSColumnNames(join.getAssociationType(),factory),join.joinType,condition);
+    if (includeExtraJoins) {
+      addExtraJoins(joinFragment,join.getAlias(),join.getJoinable(),join.joinType == JoinFragment.INNER_JOIN);
+    }
+    last=join.getJoinable();
+  }
+  if (next != null) {
+    joinFragment.addFragment(next.toJoinFragment(enabledFilters,includeExtraJoins));
+  }
+  joinFragment.addCondition(conditions.toString());
+  if (isFromPart)   joinFragment.clearWherePart();
+  return joinFragment;
+}

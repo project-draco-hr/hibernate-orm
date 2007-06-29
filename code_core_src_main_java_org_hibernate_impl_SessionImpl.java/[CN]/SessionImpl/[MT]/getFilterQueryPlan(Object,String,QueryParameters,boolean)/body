@@ -1,0 +1,35 @@
+{
+  if (collection == null) {
+    throw new NullPointerException("null collection passed to filter");
+  }
+  CollectionEntry entry=persistenceContext.getCollectionEntryOrNull(collection);
+  final CollectionPersister roleBeforeFlush=(entry == null) ? null : entry.getLoadedPersister();
+  FilterQueryPlan plan=null;
+  if (roleBeforeFlush == null) {
+    flush();
+    entry=persistenceContext.getCollectionEntryOrNull(collection);
+    CollectionPersister roleAfterFlush=(entry == null) ? null : entry.getLoadedPersister();
+    if (roleAfterFlush == null) {
+      throw new QueryException("The collection was unreferenced");
+    }
+    plan=factory.getQueryPlanCache().getFilterQueryPlan(filter,roleAfterFlush.getRole(),shallow,getEnabledFilters());
+  }
+ else {
+    plan=factory.getQueryPlanCache().getFilterQueryPlan(filter,roleBeforeFlush.getRole(),shallow,getEnabledFilters());
+    if (autoFlushIfRequired(plan.getQuerySpaces())) {
+      entry=persistenceContext.getCollectionEntryOrNull(collection);
+      CollectionPersister roleAfterFlush=(entry == null) ? null : entry.getLoadedPersister();
+      if (roleBeforeFlush != roleAfterFlush) {
+        if (roleAfterFlush == null) {
+          throw new QueryException("The collection was dereferenced");
+        }
+        plan=factory.getQueryPlanCache().getFilterQueryPlan(filter,roleAfterFlush.getRole(),shallow,getEnabledFilters());
+      }
+    }
+  }
+  if (parameters != null) {
+    parameters.getPositionalParameterValues()[0]=entry.getLoadedKey();
+    parameters.getPositionalParameterTypes()[0]=entry.getLoadedPersister().getKeyType();
+  }
+  return plan;
+}

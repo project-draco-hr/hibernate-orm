@@ -1,0 +1,22 @@
+{
+  if (isClassFile(file)) {
+    byte[] bytes=ByteCodeHelper.readByteCode(file);
+    ClassDescriptor descriptor=getClassDescriptor(bytes);
+    classNames.add(descriptor.getName());
+  }
+ else   if (isJarFile(file)) {
+    ZipEntryHandler collector=new ZipEntryHandler(){
+      public void handleEntry(      ZipEntry entry,      byte[] byteCode) throws Exception {
+        if (!entry.isDirectory()) {
+          DataInputStream din=new DataInputStream(new ByteArrayInputStream(byteCode));
+          if (din.readInt() == CLASS_MAGIC) {
+            classNames.add(getClassDescriptor(byteCode).getName());
+          }
+        }
+      }
+    }
+;
+    ZipFileProcessor processor=new ZipFileProcessor(collector);
+    processor.process(file);
+  }
+}

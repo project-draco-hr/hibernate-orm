@@ -1,0 +1,34 @@
+{
+  log.trace("Processing unreferenced collections");
+  List list=IdentityMap.entries(session.getPersistenceContext().getCollectionEntries());
+  int size=list.size();
+  for (int i=0; i < size; i++) {
+    Map.Entry me=(Map.Entry)list.get(i);
+    CollectionEntry ce=(CollectionEntry)me.getValue();
+    if (!ce.isReached() && !ce.isIgnore()) {
+      Collections.processUnreachableCollection((PersistentCollection)me.getKey(),session);
+    }
+  }
+  log.trace("Scheduling collection removes/(re)creates/updates");
+  list=IdentityMap.entries(session.getPersistenceContext().getCollectionEntries());
+  size=list.size();
+  ActionQueue actionQueue=session.getActionQueue();
+  for (int i=0; i < size; i++) {
+    Map.Entry me=(Map.Entry)list.get(i);
+    PersistentCollection coll=(PersistentCollection)me.getKey();
+    CollectionEntry ce=(CollectionEntry)me.getValue();
+    if (ce.isDorecreate()) {
+      session.getInterceptor().onCollectionRecreate(coll,ce.getCurrentKey());
+      actionQueue.addAction(new CollectionRecreateAction(coll,ce.getCurrentPersister(),ce.getCurrentKey(),session));
+    }
+    if (ce.isDoremove()) {
+      session.getInterceptor().onCollectionRemove(coll,ce.getLoadedKey());
+      actionQueue.addAction(new CollectionRemoveAction(coll,ce.getLoadedPersister(),ce.getLoadedKey(),ce.isSnapshotEmpty(coll),session));
+    }
+    if (ce.isDoupdate()) {
+      session.getInterceptor().onCollectionUpdate(coll,ce.getLoadedKey());
+      actionQueue.addAction(new CollectionUpdateAction(coll,ce.getLoadedPersister(),ce.getLoadedKey(),ce.isSnapshotEmpty(coll),session));
+    }
+  }
+  actionQueue.sortCollectionActions();
+}

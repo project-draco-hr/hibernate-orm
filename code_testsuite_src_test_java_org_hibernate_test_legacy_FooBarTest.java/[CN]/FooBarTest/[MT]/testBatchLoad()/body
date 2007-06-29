@@ -1,0 +1,54 @@
+{
+  Session s=openSession();
+  Baz baz=new Baz();
+  SortedSet stringSet=new TreeSet();
+  stringSet.add("foo");
+  stringSet.add("bar");
+  Set fooSet=new HashSet();
+  for (int i=0; i < 3; i++) {
+    Foo foo=new Foo();
+    s.save(foo);
+    fooSet.add(foo);
+  }
+  baz.setFooSet(fooSet);
+  baz.setStringSet(stringSet);
+  s.save(baz);
+  Baz baz2=new Baz();
+  fooSet=new HashSet();
+  for (int i=0; i < 2; i++) {
+    Foo foo=new Foo();
+    s.save(foo);
+    fooSet.add(foo);
+  }
+  baz2.setFooSet(fooSet);
+  s.save(baz2);
+  Baz baz3=new Baz();
+  stringSet=new TreeSet();
+  stringSet.add("foo");
+  stringSet.add("baz");
+  baz3.setStringSet(stringSet);
+  s.save(baz3);
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  baz=(Baz)s.load(Baz.class,baz.getCode());
+  baz2=(Baz)s.load(Baz.class,baz2.getCode());
+  baz3=(Baz)s.load(Baz.class,baz3.getCode());
+  assertFalse(Hibernate.isInitialized(baz.getFooSet()) || Hibernate.isInitialized(baz2.getFooSet()) || Hibernate.isInitialized(baz3.getFooSet()));
+  assertFalse(Hibernate.isInitialized(baz.getStringSet()) || Hibernate.isInitialized(baz2.getStringSet()) || Hibernate.isInitialized(baz3.getStringSet()));
+  assertTrue(baz.getFooSet().size() == 3);
+  assertTrue(Hibernate.isInitialized(baz.getFooSet()) && Hibernate.isInitialized(baz2.getFooSet()) && Hibernate.isInitialized(baz3.getFooSet()));
+  assertTrue(baz2.getFooSet().size() == 2);
+  assertTrue(baz3.getStringSet().contains("baz"));
+  assertTrue(Hibernate.isInitialized(baz.getStringSet()) && Hibernate.isInitialized(baz2.getStringSet()) && Hibernate.isInitialized(baz3.getStringSet()));
+  assertTrue(baz.getStringSet().size() == 2 && baz2.getStringSet().size() == 0);
+  s.delete(baz);
+  s.delete(baz2);
+  s.delete(baz3);
+  Iterator iter=new JoinedIterator(new Iterator[]{baz.getFooSet().iterator(),baz2.getFooSet().iterator()});
+  while (iter.hasNext())   s.delete(iter.next());
+  s.flush();
+  s.connection().commit();
+  s.close();
+}

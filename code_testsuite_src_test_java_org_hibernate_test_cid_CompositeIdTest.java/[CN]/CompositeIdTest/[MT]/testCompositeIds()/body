@@ -1,0 +1,78 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  Product p=new Product();
+  p.setProductId("A123");
+  p.setDescription("nipple ring");
+  p.setPrice(new BigDecimal(1.0));
+  p.setNumberAvailable(1004);
+  s.persist(p);
+  Product p2=new Product();
+  p2.setProductId("X525");
+  p2.setDescription("nose stud");
+  p2.setPrice(new BigDecimal(3.0));
+  p2.setNumberAvailable(105);
+  s.persist(p2);
+  Customer c=new Customer();
+  c.setAddress("St Kilda Rd, MEL, 3000");
+  c.setName("Virginia");
+  c.setCustomerId("C111");
+  s.persist(c);
+  Order o=new Order(c);
+  o.setOrderDate(Calendar.getInstance());
+  LineItem li=new LineItem(o,p);
+  li.setQuantity(2);
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  o=(Order)s.get(Order.class,new Order.Id("C111",0));
+  assertEquals(o.getTotal().intValue(),2);
+  o.getCustomer().getName();
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  s.createQuery("from Customer c left join fetch c.orders o left join fetch o.lineItems li left join fetch li.product p").list();
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  s.createQuery("from Order o left join fetch o.lineItems li left join fetch li.product p").list();
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  Iterator iter=s.createQuery("select o.id, li.id from Order o join o.lineItems li").list().iterator();
+  while (iter.hasNext()) {
+    Object[] stuff=(Object[])iter.next();
+    assertTrue(stuff.length == 2);
+  }
+  iter=s.createQuery("from Order o join o.lineItems li").iterate();
+  while (iter.hasNext()) {
+    Object[] stuff=(Object[])iter.next();
+    assertTrue(stuff.length == 2);
+  }
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  c=(Customer)s.get(Customer.class,"C111");
+  Order o2=new Order(c);
+  o2.setOrderDate(Calendar.getInstance());
+  s.flush();
+  LineItem li2=new LineItem(o2,p2);
+  li2.setQuantity(5);
+  List bigOrders=s.createQuery("from Order o where o.total>10.0").list();
+  assertEquals(bigOrders.size(),1);
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  s.createQuery("delete from LineItem").executeUpdate();
+  s.createQuery("delete from Order").executeUpdate();
+  s.createQuery("delete from Customer").executeUpdate();
+  s.createQuery("delete from Product").executeUpdate();
+  t.commit();
+  s.close();
+}

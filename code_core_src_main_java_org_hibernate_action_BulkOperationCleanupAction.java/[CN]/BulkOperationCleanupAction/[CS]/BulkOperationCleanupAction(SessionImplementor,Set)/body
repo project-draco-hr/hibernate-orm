@@ -1,0 +1,25 @@
+{
+  this.session=session;
+  Set tmpSpaces=new HashSet(querySpaces);
+  SessionFactoryImplementor factory=session.getFactory();
+  Iterator iterator=factory.getAllClassMetadata().entrySet().iterator();
+  while (iterator.hasNext()) {
+    Map.Entry entry=(Map.Entry)iterator.next();
+    String entityName=(String)entry.getKey();
+    EntityPersister persister=factory.getEntityPersister(entityName);
+    Serializable[] entitySpaces=persister.getQuerySpaces();
+    if (affectedEntity(querySpaces,entitySpaces)) {
+      if (persister.hasCache()) {
+        affectedEntityNames.add(persister.getEntityName());
+      }
+      Set roles=session.getFactory().getCollectionRolesByEntityParticipant(persister.getEntityName());
+      if (roles != null) {
+        affectedCollectionRoles.addAll(roles);
+      }
+      for (int y=0; y < entitySpaces.length; y++) {
+        tmpSpaces.add(entitySpaces[y]);
+      }
+    }
+  }
+  this.spaces=(Serializable[])tmpSpaces.toArray(new Serializable[tmpSpaces.size()]);
+}

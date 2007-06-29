@@ -1,0 +1,28 @@
+{
+  CollectionPersister persister=getPersister(session);
+  final PersistenceContext persistenceContext=session.getPersistenceContext();
+  final EntityMode entityMode=session.getEntityMode();
+  if (entityMode == EntityMode.DOM4J && !isEmbeddedInXML) {
+    return UNFETCHED_COLLECTION;
+  }
+  PersistentCollection collection=persistenceContext.getLoadContexts().locateLoadingCollection(persister,key);
+  if (collection == null) {
+    collection=persistenceContext.useUnownedCollection(new CollectionKey(persister,key,entityMode));
+    if (collection == null) {
+      collection=instantiate(session,persister,key);
+      collection.setOwner(owner);
+      persistenceContext.addUninitializedCollection(persister,collection,key);
+      if (initializeImmediately(entityMode)) {
+        session.initializeCollection(collection,false);
+      }
+ else       if (!persister.isLazy()) {
+        persistenceContext.addNonLazyCollection(collection);
+      }
+      if (hasHolder(entityMode)) {
+        session.getPersistenceContext().addCollectionHolder(collection);
+      }
+    }
+  }
+  collection.setOwner(owner);
+  return collection.getValue();
+}

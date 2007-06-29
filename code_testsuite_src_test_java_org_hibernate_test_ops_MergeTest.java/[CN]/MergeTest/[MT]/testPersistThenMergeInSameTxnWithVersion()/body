@@ -1,0 +1,16 @@
+{
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  VersionedEntity entity=new VersionedEntity("test","test");
+  s.persist(entity);
+  s.merge(new VersionedEntity("test","test-2"));
+  try {
+    s.saveOrUpdate(new VersionedEntity("test","test-3"));
+    fail("saveOrUpdate() should fail here");
+  }
+ catch (  NonUniqueObjectException expected) {
+  }
+  tx.commit();
+  s.close();
+  cleanup();
+}

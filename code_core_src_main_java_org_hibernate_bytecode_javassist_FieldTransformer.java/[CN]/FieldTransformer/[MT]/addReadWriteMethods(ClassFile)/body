@@ -1,0 +1,14 @@
+{
+  List fields=classfile.getFields();
+  for (Iterator field_iter=fields.iterator(); field_iter.hasNext(); ) {
+    FieldInfo finfo=(FieldInfo)field_iter.next();
+    if ((finfo.getAccessFlags() & AccessFlag.STATIC) == 0 && (!finfo.getName().equals(HANDLER_FIELD_NAME))) {
+      if (filter.handleRead(finfo.getDescriptor(),finfo.getName())) {
+        addReadMethod(classfile,finfo);
+      }
+      if (filter.handleWrite(finfo.getDescriptor(),finfo.getName())) {
+        addWriteMethod(classfile,finfo);
+      }
+    }
+  }
+}

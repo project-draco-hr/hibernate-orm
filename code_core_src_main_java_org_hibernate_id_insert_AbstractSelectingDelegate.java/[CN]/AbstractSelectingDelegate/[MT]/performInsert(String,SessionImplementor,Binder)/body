@@ -1,0 +1,35 @@
+{
+  try {
+    PreparedStatement insert=session.getBatcher().prepareStatement(insertSQL,false);
+    try {
+      binder.bindValues(insert);
+      insert.executeUpdate();
+    }
+  finally {
+      session.getBatcher().closeStatement(insert);
+    }
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(session.getFactory().getSQLExceptionConverter(),sqle,"could not insert: " + MessageHelper.infoString(persister),insertSQL);
+  }
+  final String selectSQL=getSelectSQL();
+  try {
+    PreparedStatement idSelect=session.getBatcher().prepareStatement(selectSQL);
+    try {
+      bindParameters(session,idSelect,binder.getEntity());
+      ResultSet rs=idSelect.executeQuery();
+      try {
+        return getResult(session,rs,binder.getEntity());
+      }
+  finally {
+        rs.close();
+      }
+    }
+  finally {
+      session.getBatcher().closeStatement(idSelect);
+    }
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(session.getFactory().getSQLExceptionConverter(),sqle,"could not retrieve generated id after insert: " + MessageHelper.infoString(persister),insertSQL);
+  }
+}

@@ -1,0 +1,48 @@
+{
+  int result;
+  int rows;
+  do {
+    SQL.debug(query);
+    PreparedStatement qps=conn.prepareStatement(query);
+    PreparedStatement ips=null;
+    try {
+      ResultSet rs=qps.executeQuery();
+      boolean isInitialized=rs.next();
+      if (!isInitialized) {
+        result=0;
+        ips=conn.prepareStatement(insert);
+        ips.setInt(1,result);
+        ips.execute();
+      }
+ else {
+        result=rs.getInt(1);
+      }
+      rs.close();
+    }
+ catch (    SQLException sqle) {
+      log.error("could not read or init a hi value",sqle);
+      throw sqle;
+    }
+ finally {
+      if (ips != null) {
+        ips.close();
+      }
+      qps.close();
+    }
+    PreparedStatement ups=conn.prepareStatement(update);
+    try {
+      ups.setInt(1,result + 1);
+      ups.setInt(2,result);
+      rows=ups.executeUpdate();
+    }
+ catch (    SQLException sqle) {
+      log.error("could not update hi value in: " + tableName,sqle);
+      throw sqle;
+    }
+ finally {
+      ups.close();
+    }
+  }
+ while (rows == 0);
+  return new Integer(result);
+}

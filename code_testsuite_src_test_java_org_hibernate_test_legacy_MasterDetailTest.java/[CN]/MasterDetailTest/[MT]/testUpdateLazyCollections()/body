@@ -1,0 +1,37 @@
+{
+  Session s=openSession();
+  Master m=new Master();
+  Serializable mid=s.save(m);
+  Detail d1=new Detail();
+  Detail d2=new Detail();
+  d2.setX(14);
+  d1.setMaster(m);
+  d2.setMaster(m);
+  s.save(d1);
+  s.save(d2);
+  m.addDetail(d1);
+  m.addDetail(d2);
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  m=(Master)s.load(Master.class,mid);
+  s.connection().commit();
+  s.close();
+  m.setName("New Name");
+  s=openSession();
+  s.update(m,mid);
+  Iterator iter=m.getDetails().iterator();
+  int i=0;
+  while (iter.hasNext()) {
+    assertTrue(iter.next() != null);
+    i++;
+  }
+  assertTrue(i == 2);
+  iter=m.getDetails().iterator();
+  while (iter.hasNext())   s.delete(iter.next());
+  s.delete(m);
+  s.flush();
+  s.connection().commit();
+  s.close();
+}

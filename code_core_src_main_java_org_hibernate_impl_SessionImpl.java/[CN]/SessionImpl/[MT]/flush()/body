@@ -1,0 +1,11 @@
+{
+  errorIfClosed();
+  checkTransactionSynchStatus();
+  if (persistenceContext.getCascadeLevel() > 0) {
+    throw new HibernateException("Flush during cascade is dangerous");
+  }
+  FlushEventListener[] flushEventListener=listeners.getFlushEventListeners();
+  for (int i=0; i < flushEventListener.length; i++) {
+    flushEventListener[i].onFlush(new FlushEvent(this));
+  }
+}

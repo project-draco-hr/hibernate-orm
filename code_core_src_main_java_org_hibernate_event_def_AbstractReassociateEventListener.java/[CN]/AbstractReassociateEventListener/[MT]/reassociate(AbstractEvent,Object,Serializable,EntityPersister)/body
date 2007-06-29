@@ -1,0 +1,15 @@
+{
+  if (log.isTraceEnabled()) {
+    log.trace("reassociating transient instance: " + MessageHelper.infoString(persister,id,event.getSession().getFactory()));
+  }
+  EventSource source=event.getSession();
+  EntityKey key=new EntityKey(id,persister,source.getEntityMode());
+  source.getPersistenceContext().checkUniqueness(key,object);
+  Object[] values=persister.getPropertyValues(object,source.getEntityMode());
+  TypeFactory.deepCopy(values,persister.getPropertyTypes(),persister.getPropertyUpdateability(),values,source);
+  Object version=Versioning.getVersion(values,persister);
+  EntityEntry newEntry=source.getPersistenceContext().addEntity(object,Status.MANAGED,values,key,version,LockMode.NONE,true,persister,false,true);
+  new OnLockVisitor(source,id,object).process(object,persister);
+  persister.afterReassociate(object,source);
+  return newEntry;
+}

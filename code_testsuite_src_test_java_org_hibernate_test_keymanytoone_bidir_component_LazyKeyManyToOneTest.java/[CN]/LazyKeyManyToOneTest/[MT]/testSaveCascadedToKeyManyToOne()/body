@@ -1,0 +1,13 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  Customer cust=new Customer("Acme, Inc.");
+  Order order=new Order(new Order.Id(cust,1));
+  cust.getOrders().add(order);
+  s.save(cust);
+  s.flush();
+  assertEquals(2,sfi().getStatistics().getEntityInsertCount());
+  s.delete(cust);
+  s.getTransaction().commit();
+  s.close();
+}

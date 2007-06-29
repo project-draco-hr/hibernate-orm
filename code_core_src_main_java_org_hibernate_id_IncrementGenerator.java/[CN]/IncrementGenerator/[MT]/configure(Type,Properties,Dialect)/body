@@ -1,0 +1,23 @@
+{
+  String tableList=params.getProperty("tables");
+  if (tableList == null)   tableList=params.getProperty(PersistentIdentifierGenerator.TABLES);
+  String[] tables=StringHelper.split(", ",tableList);
+  String column=params.getProperty("column");
+  if (column == null)   column=params.getProperty(PersistentIdentifierGenerator.PK);
+  String schema=params.getProperty(PersistentIdentifierGenerator.SCHEMA);
+  String catalog=params.getProperty(PersistentIdentifierGenerator.CATALOG);
+  returnClass=type.getReturnedClass();
+  StringBuffer buf=new StringBuffer();
+  for (int i=0; i < tables.length; i++) {
+    if (tables.length > 1) {
+      buf.append("select ").append(column).append(" from ");
+    }
+    buf.append(Table.qualify(catalog,schema,tables[i]));
+    if (i < tables.length - 1)     buf.append(" union ");
+  }
+  if (tables.length > 1) {
+    buf.insert(0,"( ").append(" ) ids_");
+    column="ids_." + column;
+  }
+  sql="select max(" + column + ") from "+ buf.toString();
+}

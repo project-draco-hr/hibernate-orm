@@ -1,0 +1,26 @@
+{
+  FromElement fromElement=locateSingleFromElement();
+  if (fromElement == null) {
+    return UNKNOWN;
+  }
+  Queryable persister=fromElement.getQueryable();
+  if (persister == null) {
+    return UNKNOWN;
+  }
+  Type propertyType=getNakedPropertyType(fromElement);
+  if (propertyType == null) {
+    return UNKNOWN;
+  }
+  if ((propertyType.isComponentType() || propertyType.isAssociationType())) {
+    return COMPONENT_REF;
+  }
+  setFromElement(fromElement);
+  String property=getText();
+  String[] columns=getWalker().isSelectStatement() ? persister.toColumns(fromElement.getTableAlias(),property) : persister.toColumns(property);
+  String text=StringHelper.join(", ",columns);
+  setText(columns.length == 1 ? text : "(" + text + ")");
+  setType(SqlTokenTypes.SQL_TOKEN);
+  super.setDataType(propertyType);
+  nakedPropertyRef=true;
+  return PROPERTY_REF;
+}

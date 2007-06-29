@@ -1,0 +1,11 @@
+{
+  tableName=PropertiesHelper.getString(TABLE,params,DEFAULT_TABLE_NAME);
+  columnName=PropertiesHelper.getString(COLUMN,params,DEFAULT_COLUMN_NAME);
+  String schemaName=params.getProperty(SCHEMA);
+  String catalogName=params.getProperty(CATALOG);
+  if (tableName.indexOf('.') < 0) {
+    tableName=Table.qualify(catalogName,schemaName,tableName);
+  }
+  query="select " + columnName + " from "+ dialect.appendLockHint(LockMode.UPGRADE,tableName)+ dialect.getForUpdateString();
+  update="update " + tableName + " set "+ columnName+ " = ? where "+ columnName+ " = ?";
+}

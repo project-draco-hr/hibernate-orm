@@ -1,0 +1,19 @@
+{
+  Session s=openSession();
+  Vetoer v=new Vetoer();
+  v.setStrings(new String[]{"foo","bar","baz"});
+  s.save(v);
+  Serializable id=s.save(v);
+  v.getStrings()[1]="osama";
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  v=(Vetoer)s.load(Vetoer.class,id);
+  assertTrue("serializable type",v.getStrings()[1].equals("osama"));
+  s.delete(v);
+  s.delete(v);
+  s.flush();
+  s.connection().commit();
+  s.close();
+}

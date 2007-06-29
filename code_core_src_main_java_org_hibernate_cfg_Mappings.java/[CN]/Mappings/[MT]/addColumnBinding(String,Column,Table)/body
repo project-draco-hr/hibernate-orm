@@ -1,0 +1,15 @@
+{
+  ColumnNames binding=(ColumnNames)columnNameBindingPerTable.get(table);
+  if (binding == null) {
+    binding=new ColumnNames();
+    columnNameBindingPerTable.put(table,binding);
+  }
+  String oldFinalName=(String)binding.logicalToPhysical.put(logicalName.toLowerCase(),finalColumn.getQuotedName());
+  if (oldFinalName != null && !(finalColumn.isQuoted() ? oldFinalName.equals(finalColumn.getQuotedName()) : oldFinalName.equalsIgnoreCase(finalColumn.getQuotedName()))) {
+    throw new MappingException("Same logical column name referenced by different physical ones: " + table.getName() + "."+ logicalName+ " => '"+ oldFinalName+ "' and '"+ finalColumn.getQuotedName()+ "'");
+  }
+  String oldLogicalName=(String)binding.physicalToLogical.put(finalColumn.getQuotedName(),logicalName);
+  if (oldLogicalName != null && !oldLogicalName.equals(logicalName)) {
+    throw new MappingException("Same physical column represented by different logical column names: " + table.getName() + "."+ finalColumn.getQuotedName()+ " => '"+ oldLogicalName+ "' and '"+ logicalName+ "'");
+  }
+}

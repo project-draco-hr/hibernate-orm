@@ -1,0 +1,32 @@
+{
+  Session s=openSession();
+  Custom c=new Custom();
+  c.setName("foo");
+  c.id="100";
+  String id=(String)s.save(c);
+  assertTrue(c == s.load(Custom.class,id));
+  s.flush();
+  s.close();
+  s=openSession();
+  c=(Custom)s.load(Custom.class,id);
+  assertTrue(c.getName().equals("foo"));
+  c.setName("bar");
+  s.flush();
+  s.close();
+  s=openSession();
+  c=(Custom)s.load(Custom.class,id);
+  assertTrue(c.getName().equals("bar"));
+  s.delete(c);
+  s.flush();
+  s.close();
+  s=openSession();
+  boolean none=false;
+  try {
+    s.load(Custom.class,id);
+  }
+ catch (  ObjectNotFoundException onfe) {
+    none=true;
+  }
+  assertTrue(none);
+  s.close();
+}

@@ -1,0 +1,59 @@
+{
+  PersistentClass owner=component.getOwner();
+  Map userSuppliedTuplizerImpls=new HashMap();
+  if (component.getTuplizerMap() != null) {
+    userSuppliedTuplizerImpls.putAll(component.getTuplizerMap());
+  }
+  Tuplizer dynamicMapTuplizer=null;
+  String tuplizerImpl=(String)userSuppliedTuplizerImpls.remove(EntityMode.MAP);
+  if (tuplizerImpl == null) {
+    dynamicMapTuplizer=new DynamicMapComponentTuplizer(component);
+  }
+ else {
+    dynamicMapTuplizer=buildComponentTuplizer(tuplizerImpl,component);
+  }
+  tuplizerImpl=(String)userSuppliedTuplizerImpls.remove(EntityMode.POJO);
+  Tuplizer pojoTuplizer=null;
+  if (owner.hasPojoRepresentation() && component.hasPojoRepresentation()) {
+    if (tuplizerImpl == null) {
+      pojoTuplizer=new PojoComponentTuplizer(component);
+    }
+ else {
+      pojoTuplizer=buildComponentTuplizer(tuplizerImpl,component);
+    }
+  }
+ else {
+    pojoTuplizer=dynamicMapTuplizer;
+  }
+  Tuplizer dom4jTuplizer=null;
+  tuplizerImpl=(String)userSuppliedTuplizerImpls.remove(EntityMode.DOM4J);
+  if (owner.hasDom4jRepresentation()) {
+    if (tuplizerImpl == null) {
+      dom4jTuplizer=new Dom4jComponentTuplizer(component);
+    }
+ else {
+      dom4jTuplizer=buildComponentTuplizer(tuplizerImpl,component);
+    }
+  }
+ else {
+    dom4jTuplizer=null;
+  }
+  if (pojoTuplizer != null) {
+    addTuplizer(EntityMode.POJO,pojoTuplizer);
+  }
+  if (dynamicMapTuplizer != null) {
+    addTuplizer(EntityMode.MAP,dynamicMapTuplizer);
+  }
+  if (dom4jTuplizer != null) {
+    addTuplizer(EntityMode.DOM4J,dom4jTuplizer);
+  }
+  if (!userSuppliedTuplizerImpls.isEmpty()) {
+    Iterator itr=userSuppliedTuplizerImpls.entrySet().iterator();
+    while (itr.hasNext()) {
+      Map.Entry entry=(Map.Entry)itr.next();
+      EntityMode entityMode=(EntityMode)entry.getKey();
+      ComponentTuplizer tuplizer=buildComponentTuplizer((String)entry.getValue(),component);
+      addTuplizer(entityMode,tuplizer);
+    }
+  }
+}

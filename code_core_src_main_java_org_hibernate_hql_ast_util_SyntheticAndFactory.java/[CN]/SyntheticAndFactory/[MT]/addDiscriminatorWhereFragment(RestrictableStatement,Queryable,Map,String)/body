@@ -1,0 +1,21 @@
+{
+  String whereFragment=persister.filterFragment(alias,enabledFilters).trim();
+  if ("".equals(whereFragment)) {
+    return;
+  }
+  if (whereFragment.startsWith("and")) {
+    whereFragment=whereFragment.substring(4);
+  }
+  whereFragment=StringHelper.replace(whereFragment,persister.generateFilterConditionAlias(alias) + ".","");
+  AST discrimNode=astFactory.create(SQL_TOKEN,whereFragment);
+  if (statement.getWhereClause().getNumberOfChildren() == 0) {
+    statement.getWhereClause().setFirstChild(discrimNode);
+  }
+ else {
+    AST and=astFactory.create(AND,"{and}");
+    AST currentFirstChild=statement.getWhereClause().getFirstChild();
+    and.setFirstChild(discrimNode);
+    and.addChild(currentFirstChild);
+    statement.getWhereClause().setFirstChild(and);
+  }
+}

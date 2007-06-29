@@ -1,0 +1,36 @@
+{
+  Serializable id=getId();
+  EntityPersister persister=getPersister();
+  SessionImplementor session=getSession();
+  Object instance=getInstance();
+  boolean veto=preDelete();
+  Object version=this.version;
+  if (persister.isVersionPropertyGenerated()) {
+    version=persister.getVersion(instance,session.getEntityMode());
+  }
+  final CacheKey ck;
+  if (persister.hasCache()) {
+    ck=new CacheKey(id,persister.getIdentifierType(),persister.getRootEntityName(),session.getEntityMode(),session.getFactory());
+    lock=persister.getCacheAccessStrategy().lockItem(ck,version);
+  }
+ else {
+    ck=null;
+  }
+  if (!isCascadeDeleteEnabled && !veto) {
+    persister.delete(id,version,instance,session);
+  }
+  final PersistenceContext persistenceContext=session.getPersistenceContext();
+  EntityEntry entry=persistenceContext.removeEntry(instance);
+  if (entry == null) {
+    throw new AssertionFailure("possible nonthreadsafe access to session");
+  }
+  entry.postDelete();
+  EntityKey key=new EntityKey(entry.getId(),entry.getPersister(),session.getEntityMode());
+  persistenceContext.removeEntity(key);
+  persistenceContext.removeProxy(key);
+  if (persister.hasCache())   persister.getCacheAccessStrategy().remove(ck);
+  postDelete();
+  if (getSession().getFactory().getStatistics().isStatisticsEnabled() && !veto) {
+    getSession().getFactory().getStatisticsImplementor().deleteEntity(getPersister().getEntityName());
+  }
+}

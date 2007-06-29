@@ -1,0 +1,19 @@
+{
+  if (!isSubselectLoadable()) {
+    return null;
+  }
+  final PersistenceContext persistenceContext=session.getPersistenceContext();
+  SubselectFetch subselect=persistenceContext.getBatchFetchQueue().getSubselect(new EntityKey(key,getOwnerEntityPersister(),session.getEntityMode()));
+  if (subselect == null) {
+    return null;
+  }
+ else {
+    Iterator iter=subselect.getResult().iterator();
+    while (iter.hasNext()) {
+      if (!persistenceContext.containsEntity((EntityKey)iter.next())) {
+        iter.remove();
+      }
+    }
+    return createSubselectInitializer(subselect,session);
+  }
+}

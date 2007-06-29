@@ -1,0 +1,21 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  Parent p=new Parent("p");
+  p.getChildren().add(new Child("c"));
+  s.save(p);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  p=(Parent)s.get(Parent.class,"p");
+  s.evict(p);
+  s.update(p);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  s.delete(p);
+  s.getTransaction().commit();
+  s.close();
+}

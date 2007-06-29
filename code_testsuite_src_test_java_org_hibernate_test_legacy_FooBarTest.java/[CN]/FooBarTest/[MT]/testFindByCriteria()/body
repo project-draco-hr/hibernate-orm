@@ -1,0 +1,52 @@
+{
+  if (getDialect() instanceof DB2Dialect)   return;
+  Session s=openSession();
+  Transaction txn=s.beginTransaction();
+  Foo f=new Foo();
+  s.save(f);
+  s.flush();
+  List list=s.createCriteria(Foo.class).add(Expression.eq("integer",f.getInteger())).add(Expression.eqProperty("integer","integer")).add(Expression.like("string",f.getString().toUpperCase()).ignoreCase()).add(Expression.in("boolean",new Boolean[]{f.getBoolean(),f.getBoolean()})).setFetchMode("foo",FetchMode.JOIN).setFetchMode("baz",FetchMode.SELECT).setFetchMode("abstracts",FetchMode.JOIN).list();
+  assertTrue(list.size() == 1 && list.get(0) == f);
+  list=s.createCriteria(Foo.class).add(Expression.disjunction().add(Expression.eq("integer",f.getInteger())).add(Expression.like("string",f.getString())).add(Expression.eq("boolean",f.getBoolean()))).add(Expression.isNotNull("boolean")).list();
+  assertTrue(list.size() == 1 && list.get(0) == f);
+  Foo example=new Foo();
+  example.setString("a STRing");
+  list=s.createCriteria(Foo.class).add(Example.create(example).excludeZeroes().ignoreCase().excludeProperty("bool").excludeProperty("char").excludeProperty("yesno")).list();
+  assertTrue("Example API without like did not work correctly, size was " + list.size(),list.size() == 1 && list.get(0) == f);
+  example.setString("rin");
+  list=s.createCriteria(Foo.class).add(Example.create(example).excludeZeroes().enableLike(MatchMode.ANYWHERE).excludeProperty("bool").excludeProperty("char").excludeProperty("yesno")).list();
+  assertTrue("Example API without like did not work correctly, size was " + list.size(),list.size() == 1 && list.get(0) == f);
+  list=s.createCriteria(Foo.class).add(Expression.or(Expression.and(Expression.eq("integer",f.getInteger()),Expression.like("string",f.getString())),Expression.eq("boolean",f.getBoolean()))).list();
+  assertTrue(list.size() == 1 && list.get(0) == f);
+  list=s.createCriteria(Foo.class).setMaxResults(5).addOrder(Order.asc("date")).list();
+  assertTrue(list.size() == 1 && list.get(0) == f);
+  if (!(getDialect() instanceof TimesTenDialect)) {
+    list=s.createCriteria(Foo.class).setMaxResults(0).list();
+    assertTrue(list.size() == 0);
+  }
+  list=s.createCriteria(Foo.class).setFirstResult(1).addOrder(Order.asc("date")).addOrder(Order.desc("string")).list();
+  assertTrue(list.size() == 0);
+  list=s.createCriteria(Foo.class).setFetchMode("component.importantDates",FetchMode.EAGER).list();
+  assertTrue(list.size() == 3);
+  list=s.createCriteria(Foo.class).setFetchMode("component.importantDates",FetchMode.EAGER).setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY).list();
+  assertTrue(list.size() == 1);
+  f.setFoo(new Foo());
+  s.save(f.getFoo());
+  txn.commit();
+  s.close();
+  s=openSession();
+  txn=s.beginTransaction();
+  list=s.createCriteria(Foo.class).add(Expression.eq("integer",f.getInteger())).add(Expression.like("string",f.getString())).add(Expression.in("boolean",new Boolean[]{f.getBoolean(),f.getBoolean()})).add(Expression.isNotNull("foo")).setFetchMode("foo",FetchMode.EAGER).setFetchMode("baz",FetchMode.LAZY).setFetchMode("component.glarch",FetchMode.LAZY).setFetchMode("foo.baz",FetchMode.LAZY).setFetchMode("foo.component.glarch",FetchMode.LAZY).list();
+  f=(Foo)list.get(0);
+  assertTrue(Hibernate.isInitialized(f.getFoo()));
+  assertTrue(!Hibernate.isInitialized(f.getComponent().getGlarch()));
+  s.save(new Bar());
+  list=s.createCriteria(Bar.class).list();
+  assertTrue(list.size() == 1);
+  assertTrue(s.createCriteria(Foo.class).list().size() == 3);
+  s.delete(list.get(0));
+  s.delete(f.getFoo());
+  s.delete(f);
+  txn.commit();
+  s.close();
+}

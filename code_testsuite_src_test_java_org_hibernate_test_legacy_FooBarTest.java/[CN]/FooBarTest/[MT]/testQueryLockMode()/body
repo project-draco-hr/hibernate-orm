@@ -1,0 +1,53 @@
+{
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  Bar bar=new Bar();
+  s.save(bar);
+  s.flush();
+  bar.setString("changed");
+  Baz baz=new Baz();
+  baz.setFoo(bar);
+  s.save(baz);
+  Query q=s.createQuery("from Foo foo, Bar bar");
+  if (!(getDialect() instanceof DB2Dialect)) {
+    q.setLockMode("bar",LockMode.UPGRADE);
+  }
+  Object[] result=(Object[])q.uniqueResult();
+  Object b=result[0];
+  assertTrue(s.getCurrentLockMode(b) == LockMode.WRITE && s.getCurrentLockMode(result[1]) == LockMode.WRITE);
+  tx.commit();
+  s.disconnect();
+  s.reconnect();
+  tx=s.beginTransaction();
+  assertTrue(s.getCurrentLockMode(b) == LockMode.NONE);
+  s.find("from Foo foo");
+  assertTrue(s.getCurrentLockMode(b) == LockMode.NONE);
+  q=s.createQuery("from Foo foo");
+  q.setLockMode("foo",LockMode.READ);
+  q.list();
+  assertTrue(s.getCurrentLockMode(b) == LockMode.READ);
+  s.evict(baz);
+  tx.commit();
+  s.disconnect();
+  s.reconnect();
+  tx=s.beginTransaction();
+  assertTrue(s.getCurrentLockMode(b) == LockMode.NONE);
+  s.delete(s.load(Baz.class,baz.getCode()));
+  assertTrue(s.getCurrentLockMode(b) == LockMode.NONE);
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  q=s.createQuery("from Foo foo, Bar bar, Bar bar2");
+  if (!(getDialect() instanceof DB2Dialect)) {
+    q.setLockMode("bar",LockMode.UPGRADE);
+  }
+  q.setLockMode("bar2",LockMode.READ);
+  result=(Object[])q.list().get(0);
+  if (!(getDialect() instanceof DB2Dialect)) {
+    assertTrue(s.getCurrentLockMode(result[0]) == LockMode.UPGRADE && s.getCurrentLockMode(result[1]) == LockMode.UPGRADE);
+  }
+  s.delete(result[0]);
+  tx.commit();
+  s.close();
+}

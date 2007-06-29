@@ -1,0 +1,21 @@
+{
+  Queryable persister=(Queryable)sessionFactory.getEntityPersister(rootEntityName);
+  StringTokenizer tokens=new StringTokenizer(path,".");
+  String componentPath="";
+  while (tokens.hasMoreTokens()) {
+    componentPath+=tokens.nextToken();
+    Type type=persister.toType(componentPath);
+    if (type.isAssociationType()) {
+      AssociationType atype=(AssociationType)type;
+      persister=(Queryable)sessionFactory.getEntityPersister(atype.getAssociatedEntityName(sessionFactory));
+      componentPath="";
+    }
+ else     if (type.isComponentType()) {
+      componentPath+='.';
+    }
+ else {
+      throw new QueryException("not an association: " + componentPath);
+    }
+  }
+  return persister.getEntityName();
+}

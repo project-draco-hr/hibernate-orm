@@ -1,0 +1,21 @@
+{
+  Session s=openSession();
+  Bar bar=new Bar();
+  One one=new One();
+  bar.setObject(one);
+  s.save(bar);
+  GlarchProxy g=bar.getComponent().getGlarch();
+  bar.getComponent().setGlarch(null);
+  s.delete(g);
+  s.flush();
+  assertTrue(s.contains(one));
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  Bar bar2=(Bar)s.saveOrUpdateCopy(bar);
+  s.flush();
+  s.delete(bar2);
+  s.flush();
+  s.connection().commit();
+  s.close();
+}

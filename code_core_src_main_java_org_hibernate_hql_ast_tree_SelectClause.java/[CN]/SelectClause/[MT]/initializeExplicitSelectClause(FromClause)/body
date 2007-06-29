@@ -1,0 +1,75 @@
+{
+  if (prepared) {
+    throw new IllegalStateException("SelectClause was already prepared!");
+  }
+  ArrayList queryReturnTypeList=new ArrayList();
+  SelectExpression[] selectExpressions=collectSelectExpressions();
+  for (int i=0; i < selectExpressions.length; i++) {
+    SelectExpression expr=selectExpressions[i];
+    if (expr.isConstructor()) {
+      constructorNode=(ConstructorNode)expr;
+      List constructorArgumentTypeList=constructorNode.getConstructorArgumentTypeList();
+      queryReturnTypeList.addAll(constructorArgumentTypeList);
+      scalarSelect=true;
+    }
+ else {
+      Type type=expr.getDataType();
+      if (type == null) {
+        throw new IllegalStateException("No data type for node: " + expr.getClass().getName() + " "+ new ASTPrinter(SqlTokenTypes.class).showAsString((AST)expr,""));
+      }
+      if (expr.isScalar()) {
+        scalarSelect=true;
+      }
+      if (isReturnableEntity(expr)) {
+        fromElementsForLoad.add(expr.getFromElement());
+      }
+      queryReturnTypeList.add(type);
+    }
+  }
+  initAliases(selectExpressions);
+  if (!getWalker().isShallowQuery()) {
+    List fromElements=fromClause.getProjectionList();
+    ASTAppender appender=new ASTAppender(getASTFactory(),this);
+    int size=fromElements.size();
+    Iterator iterator=fromElements.iterator();
+    for (int k=0; iterator.hasNext(); k++) {
+      FromElement fromElement=(FromElement)iterator.next();
+      if (fromElement.isFetch()) {
+        FromElement origin=null;
+        if (fromElement.getRealOrigin() == null) {
+          if (fromElement.getOrigin() == null) {
+            throw new QueryException("Unable to determine origin of join fetch [" + fromElement.getDisplayText() + "]");
+          }
+ else {
+            origin=fromElement.getOrigin();
+          }
+        }
+ else {
+          origin=fromElement.getRealOrigin();
+        }
+        if (!fromElementsForLoad.contains(origin)) {
+          throw new QueryException("query specified join fetching, but the owner " + "of the fetched association was not present in the select list " + "[" + fromElement.getDisplayText() + "]");
+        }
+        Type type=fromElement.getSelectType();
+        addCollectionFromElement(fromElement);
+        if (type != null) {
+          boolean collectionOfElements=fromElement.isCollectionOfValuesOrComponents();
+          if (!collectionOfElements) {
+            fromElement.setIncludeSubclasses(true);
+            fromElementsForLoad.add(fromElement);
+            String text=fromElement.renderIdentifierSelect(size,k);
+            SelectExpressionImpl generatedExpr=(SelectExpressionImpl)appender.append(SqlTokenTypes.SELECT_EXPR,text,false);
+            if (generatedExpr != null) {
+              generatedExpr.setFromElement(fromElement);
+            }
+          }
+        }
+      }
+    }
+    renderNonScalarSelects(collectSelectExpressions(),fromClause);
+  }
+  if (scalarSelect || getWalker().isShallowQuery()) {
+    renderScalarSelects(selectExpressions,fromClause);
+  }
+  finishInitialization(queryReturnTypeList);
+}

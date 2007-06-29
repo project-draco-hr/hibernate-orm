@@ -1,0 +1,28 @@
+{
+  TestData data=new TestData();
+  data.prepare();
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  List l=s.createQuery("from Vehicle").list();
+  assertEquals(l.size(),4);
+  s.createSQLQuery("insert into PICKUP (id, vin, owner) select id, vin, owner from Car").executeUpdate();
+  l=s.createQuery("from Vehicle").list();
+  assertEquals(l.size(),5);
+  t.commit();
+  t=s.beginTransaction();
+  s.createSQLQuery("delete from TRUCK").executeUpdate();
+  l=s.createQuery("from Vehicle").list();
+  assertEquals(l.size(),4);
+  Car c=(Car)s.createQuery("from Car where owner = 'Kirsten'").uniqueResult();
+  c.setOwner("NotKirsten");
+  assertEquals(0,s.getNamedQuery("native-delete-car").setString(0,"Kirsten").executeUpdate());
+  assertEquals(1,s.getNamedQuery("native-delete-car").setString(0,"NotKirsten").executeUpdate());
+  assertEquals(0,s.createSQLQuery("delete from SUV where owner = :owner").setString("owner","NotThere").executeUpdate());
+  assertEquals(1,s.createSQLQuery("delete from SUV where owner = :owner").setString("owner","Joe").executeUpdate());
+  s.createSQLQuery("delete from PICKUP").executeUpdate();
+  l=s.createQuery("from Vehicle").list();
+  assertEquals(l.size(),0);
+  t.commit();
+  s.close();
+  data.cleanup();
+}

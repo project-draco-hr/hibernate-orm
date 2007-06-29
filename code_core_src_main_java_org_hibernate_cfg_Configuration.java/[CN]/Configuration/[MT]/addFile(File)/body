@@ -1,0 +1,24 @@
+{
+  log.info("Reading mappings from file: " + xmlFile.getPath());
+  if (!xmlFile.exists()) {
+    throw new MappingNotFoundException("file",xmlFile.toString());
+  }
+  try {
+    List errors=new ArrayList();
+    org.dom4j.Document doc=xmlHelper.createSAXReader(xmlFile.toString(),errors,entityResolver).read(xmlFile);
+    if (errors.size() != 0) {
+      throw new InvalidMappingException("file",xmlFile.toString(),(Throwable)errors.get(0));
+    }
+    add(doc);
+    return this;
+  }
+ catch (  InvalidMappingException e) {
+    throw e;
+  }
+catch (  MappingNotFoundException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    throw new InvalidMappingException("file",xmlFile.toString(),e);
+  }
+}

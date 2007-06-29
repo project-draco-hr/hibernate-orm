@@ -1,0 +1,23 @@
+{
+  testPosition++;
+  if (environmentSetupError != null) {
+    testResult.startTest(test);
+    testResult.addError(test,environmentSetupError);
+    testResult.endTest(test);
+    return;
+  }
+  if (!(test instanceof FunctionalTestCase)) {
+    super.runTest(test,testResult);
+  }
+ else {
+    FunctionalTestCase functionalTest=((FunctionalTestCase)test);
+    try {
+      environment.setAllowRebuild(testPosition < testCount);
+      functionalTest.setEnvironment(environment);
+      super.runTest(functionalTest,testResult);
+    }
+  finally {
+      functionalTest.setEnvironment(null);
+    }
+  }
+}

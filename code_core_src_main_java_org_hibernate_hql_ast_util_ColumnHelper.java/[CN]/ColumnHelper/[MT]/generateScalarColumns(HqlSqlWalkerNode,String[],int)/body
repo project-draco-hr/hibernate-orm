@@ -1,0 +1,16 @@
+{
+  if (sqlColumns.length == 1) {
+    generateSingleScalarColumn(node,i);
+  }
+ else {
+    ASTFactory factory=node.getASTFactory();
+    AST n=node;
+    n.setText(sqlColumns[0]);
+    for (int j=0; j < sqlColumns.length; j++) {
+      if (j > 0) {
+        n=ASTUtil.createSibling(factory,SqlTokenTypes.SQL_TOKEN,sqlColumns[j],n);
+      }
+      n=ASTUtil.createSibling(factory,SqlTokenTypes.SELECT_COLUMNS," as " + NameGenerator.scalarName(i,j),n);
+    }
+  }
+}

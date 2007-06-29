@@ -1,0 +1,18 @@
+{
+  Session s=openSession();
+  Immutable im=new Immutable();
+  s.save(im);
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  s.load(im,im.getId());
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  s.load(im,im.getId());
+  assertTrue("cached object identity",s.find("from Immutable im where im = ?",im,Hibernate.entity(Immutable.class)).get(0) == im && im == s.load(Immutable.class,im.getId()));
+  s.connection().createStatement().executeUpdate("delete from immut");
+  s.connection().commit();
+  s.close();
+}

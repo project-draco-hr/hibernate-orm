@@ -1,0 +1,14 @@
+{
+  if (isAfterTransactionRelease()) {
+    aggressiveRelease();
+  }
+ else   if (isAggressiveReleaseNoTransactionCheck() && batcher.hasOpenResources()) {
+    log.info("forcing batcher resource cleanup on transaction completion; forgot to close ScrollableResults/Iterator?");
+    batcher.closeStatements();
+    aggressiveRelease();
+  }
+ else   if (isOnCloseRelease()) {
+    log.debug("transaction completed on session with on_close connection release mode; be sure to close the session to release JDBC resources!");
+  }
+  batcher.unsetTransactionTimeout();
+}

@@ -1,0 +1,39 @@
+{
+  Session s=openSession();
+  Fo fo=Fo.newFo();
+  Properties props=new Properties();
+  props.setProperty("foo","bar");
+  props.setProperty("bar","foo");
+  fo.setSerial(props);
+  fo.setBuf("abcdefghij1`23%$*^*$*\n\t".getBytes());
+  s.save(fo,fumKey("an instance of fo"));
+  s.flush();
+  props.setProperty("x","y");
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  fo=(Fo)s.load(Fo.class,fumKey("an instance of fo"));
+  props=(Properties)fo.getSerial();
+  assertTrue(props.getProperty("foo").equals("bar"));
+  assertTrue(props.getProperty("x").equals("y"));
+  assertTrue(fo.getBuf()[0] == 'a');
+  fo.getBuf()[1]=(byte)126;
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  fo=(Fo)s.load(Fo.class,fumKey("an instance of fo"));
+  assertTrue(fo.getBuf()[1] == 126);
+  assertTrue(s.iterate("from Fo fo where fo.id.string like 'an instance of fo'").next() == fo);
+  s.delete(fo);
+  s.flush();
+  try {
+    s.save(Fo.newFo());
+    assertTrue(false);
+  }
+ catch (  Exception e) {
+  }
+  s.connection().commit();
+  s.close();
+}

@@ -1,0 +1,19 @@
+{
+  Iterator iter=props.keySet().iterator();
+  Map propertiesToAdd=new HashMap();
+  while (iter.hasNext()) {
+    final Object propertyName=iter.next();
+    Object newPropertyName=OBSOLETE_PROPERTIES.get(propertyName);
+    if (newPropertyName != null) {
+      log.warn("Usage of obsolete property: " + propertyName + " no longer supported, use: "+ newPropertyName);
+    }
+    newPropertyName=RENAMED_PROPERTIES.get(propertyName);
+    if (newPropertyName != null) {
+      log.warn("Property [" + propertyName + "] has been renamed to ["+ newPropertyName+ "]; update your properties appropriately");
+      if (!props.containsKey(newPropertyName)) {
+        propertiesToAdd.put(newPropertyName,props.get(propertyName));
+      }
+    }
+  }
+  props.putAll(propertiesToAdd);
+}

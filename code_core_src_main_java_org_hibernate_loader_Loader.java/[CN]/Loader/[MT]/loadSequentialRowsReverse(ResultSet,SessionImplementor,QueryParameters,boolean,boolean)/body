@@ -1,0 +1,38 @@
+{
+  try {
+    if (resultSet.isFirst()) {
+      return null;
+    }
+    EntityKey keyToRead=null;
+    if (resultSet.isAfterLast() && isLogicallyAfterLast) {
+      resultSet.last();
+      keyToRead=getKeyFromResultSet(0,getEntityPersisters()[0],null,resultSet,session);
+    }
+ else {
+      resultSet.previous();
+      boolean firstPass=true;
+      final EntityKey lastKey=getKeyFromResultSet(0,getEntityPersisters()[0],null,resultSet,session);
+      while (resultSet.previous()) {
+        EntityKey checkKey=getKeyFromResultSet(0,getEntityPersisters()[0],null,resultSet,session);
+        if (firstPass) {
+          firstPass=false;
+          keyToRead=checkKey;
+        }
+        if (!lastKey.equals(checkKey)) {
+          break;
+        }
+      }
+    }
+    while (resultSet.previous()) {
+      EntityKey checkKey=getKeyFromResultSet(0,getEntityPersisters()[0],null,resultSet,session);
+      if (!keyToRead.equals(checkKey)) {
+        break;
+      }
+    }
+    resultSet.next();
+    return sequentialLoad(resultSet,session,queryParameters,returnProxies,keyToRead);
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(factory.getSQLExceptionConverter(),sqle,"could not perform sequential read of results (forward)",getSQLString());
+  }
+}

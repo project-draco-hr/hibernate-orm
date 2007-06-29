@@ -1,0 +1,43 @@
+{
+class NamedParamTempHolder {
+    String name;
+    Type type;
+    List positions=new ArrayList();
+  }
+  int size=parameterSpecifications.size();
+  List ordinalParameterList=new ArrayList();
+  Map namedParameterMap=new HashMap();
+  for (int i=0; i < size; i++) {
+    final ParameterSpecification spec=(ParameterSpecification)parameterSpecifications.get(i);
+    if (PositionalParameterSpecification.class.isAssignableFrom(spec.getClass())) {
+      PositionalParameterSpecification ordinalSpec=(PositionalParameterSpecification)spec;
+      ordinalParameterList.add(new ParameterInfo(i,ordinalSpec.getExpectedType()));
+    }
+ else     if (NamedParameterSpecification.class.isAssignableFrom(spec.getClass())) {
+      NamedParameterSpecification namedSpec=(NamedParameterSpecification)spec;
+      NamedParamTempHolder paramHolder=(NamedParamTempHolder)namedParameterMap.get(namedSpec.getName());
+      if (paramHolder == null) {
+        paramHolder=new NamedParamTempHolder();
+        paramHolder.name=namedSpec.getName();
+        paramHolder.type=namedSpec.getExpectedType();
+        namedParameterMap.put(namedSpec.getName(),paramHolder);
+      }
+      paramHolder.positions.add(new Integer(i));
+    }
+ else {
+    }
+  }
+  ordinalParameters=(ParameterInfo[])ordinalParameterList.toArray(new ParameterInfo[ordinalParameterList.size()]);
+  if (namedParameterMap.isEmpty()) {
+    namedParameters=java.util.Collections.EMPTY_MAP;
+  }
+ else {
+    Map namedParametersBacking=new HashMap(namedParameterMap.size());
+    Iterator itr=namedParameterMap.values().iterator();
+    while (itr.hasNext()) {
+      final NamedParamTempHolder holder=(NamedParamTempHolder)itr.next();
+      namedParametersBacking.put(holder.name,new ParameterInfo(ArrayHelper.toIntArray(holder.positions),holder.type));
+    }
+    namedParameters=java.util.Collections.unmodifiableMap(namedParametersBacking);
+  }
+}

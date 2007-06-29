@@ -1,0 +1,40 @@
+{
+  if (!hasLazyProperties()) {
+    throw new AssertionFailure("no lazy properties");
+  }
+  log.trace("initializing lazy properties from datastore");
+  try {
+    Object result=null;
+    PreparedStatement ps=null;
+    ResultSet rs=null;
+    try {
+      final String lazySelect=getSQLLazySelectString();
+      if (lazySelect != null) {
+        ps=session.getBatcher().prepareSelectStatement(lazySelect);
+        getIdentifierType().nullSafeSet(ps,id,1,session);
+        rs=session.getBatcher().getResultSet(ps);
+        rs.next();
+      }
+      final Object[] snapshot=entry.getLoadedState();
+      for (int j=0; j < lazyPropertyNames.length; j++) {
+        Object propValue=lazyPropertyTypes[j].nullSafeGet(rs,lazyPropertyColumnAliases[j],session,entity);
+        if (initializeLazyProperty(fieldName,entity,session,snapshot,j,propValue)) {
+          result=propValue;
+        }
+      }
+    }
+  finally {
+      if (rs != null) {
+        session.getBatcher().closeQueryStatement(ps,rs);
+      }
+ else       if (ps != null) {
+        session.getBatcher().closeStatement(ps);
+      }
+    }
+    log.trace("done initializing lazy properties");
+    return result;
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(getFactory().getSQLExceptionConverter(),sqle,"could not initialize lazy properties: " + MessageHelper.infoString(this,id,getFactory()),getSQLLazySelectString());
+  }
+}

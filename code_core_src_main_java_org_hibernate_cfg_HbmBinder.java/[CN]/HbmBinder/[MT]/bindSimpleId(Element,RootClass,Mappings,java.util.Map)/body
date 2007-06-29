@@ -1,0 +1,26 @@
+{
+  String propertyName=idNode.attributeValue("name");
+  SimpleValue id=new SimpleValue(entity.getTable());
+  entity.setIdentifier(id);
+  if (propertyName == null) {
+    bindSimpleValue(idNode,id,false,RootClass.DEFAULT_IDENTIFIER_COLUMN_NAME,mappings);
+  }
+ else {
+    bindSimpleValue(idNode,id,false,propertyName,mappings);
+  }
+  if (propertyName == null || !entity.hasPojoRepresentation()) {
+    if (!id.isTypeSpecified()) {
+      throw new MappingException("must specify an identifier type: " + entity.getEntityName());
+    }
+  }
+ else {
+    id.setTypeUsingReflection(entity.getClassName(),propertyName);
+  }
+  if (propertyName != null) {
+    Property prop=new Property();
+    prop.setValue(id);
+    bindProperty(idNode,prop,mappings,inheritedMetas);
+    entity.setIdentifierProperty(prop);
+  }
+  makeIdentifier(idNode,id,mappings);
+}

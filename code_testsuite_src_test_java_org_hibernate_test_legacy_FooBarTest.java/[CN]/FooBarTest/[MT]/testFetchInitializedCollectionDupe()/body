@@ -1,0 +1,29 @@
+{
+  Session s=openSession();
+  Baz baz=new Baz();
+  Collection fooBag=new ArrayList();
+  fooBag.add(new Foo());
+  fooBag.add(new Foo());
+  baz.setFooBag(fooBag);
+  s.save(baz);
+  s.flush();
+  fooBag=baz.getFooBag();
+  s.find("from Baz baz left join fetch baz.fooBag");
+  assertTrue(Hibernate.isInitialized(fooBag));
+  assertTrue(fooBag == baz.getFooBag());
+  assertTrue(baz.getFooBag().size() == 2);
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  baz=(Baz)s.load(Baz.class,baz.getCode());
+  Object bag=baz.getFooBag();
+  assertFalse(Hibernate.isInitialized(bag));
+  s.find("from Baz baz left join fetch baz.fooBag");
+  assertTrue(Hibernate.isInitialized(bag));
+  assertTrue(bag == baz.getFooBag());
+  assertTrue(baz.getFooBag().size() == 2);
+  s.delete(baz);
+  s.flush();
+  s.connection().commit();
+  s.close();
+}

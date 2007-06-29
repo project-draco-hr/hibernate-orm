@@ -1,0 +1,35 @@
+{
+  Session session=openSession();
+  session.beginTransaction();
+  User user=new User();
+  Document document=new Document();
+  document.setOwner(user);
+  session.persist(document);
+  session.getTransaction().commit();
+  session.close();
+  session=openSession();
+  session.beginTransaction();
+  document=(Document)session.get(Document.class,document.getId());
+  assertNotNull(document.getOwner());
+  assertNull(document.getOwner().getPersonalInfo());
+  session.getTransaction().commit();
+  session.close();
+  Address addr=new Address();
+  addr.setStreet1("123 6th St");
+  addr.setCity("Austin");
+  addr.setState("TX");
+  document.getOwner().setPersonalInfo(new PersonalInfo(addr));
+  session=openSession();
+  session.beginTransaction();
+  session.merge(document);
+  session.getTransaction().commit();
+  session.close();
+  session=openSession();
+  session.beginTransaction();
+  document=(Document)session.get(Document.class,document.getId());
+  assertNotNull(document.getOwner());
+  assertNotNull(document.getOwner().getPersonalInfo());
+  assertNotNull(document.getOwner().getPersonalInfo().getHomeAddress());
+  session.getTransaction().commit();
+  session.close();
+}

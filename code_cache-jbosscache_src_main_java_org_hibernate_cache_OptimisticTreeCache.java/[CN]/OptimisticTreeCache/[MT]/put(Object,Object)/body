@@ -1,0 +1,15 @@
+{
+  try {
+    log.trace("performing put() into region [" + regionName + "]");
+    Option option=new Option();
+    option.setFailSilently(true);
+    option.setDataVersion(NonLockingDataVersion.INSTANCE);
+    cache.put(new Fqn(regionFqn,key),ITEM,value,option);
+  }
+ catch (  TimeoutException te) {
+    log.debug("ignoring write lock acquisition failure");
+  }
+catch (  Exception e) {
+    throw new CacheException(e);
+  }
+}

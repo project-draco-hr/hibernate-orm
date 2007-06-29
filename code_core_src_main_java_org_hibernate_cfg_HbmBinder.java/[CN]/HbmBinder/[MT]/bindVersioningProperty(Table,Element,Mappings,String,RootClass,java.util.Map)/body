@@ -1,0 +1,27 @@
+{
+  String propertyName=subnode.attributeValue("name");
+  SimpleValue val=new SimpleValue(table);
+  bindSimpleValue(subnode,val,false,propertyName,mappings);
+  if (!val.isTypeSpecified()) {
+    if ("version".equals(name)) {
+      val.setTypeName("integer");
+    }
+ else {
+      if ("db".equals(subnode.attributeValue("source"))) {
+        val.setTypeName("dbtimestamp");
+      }
+ else {
+        val.setTypeName("timestamp");
+      }
+    }
+  }
+  Property prop=new Property();
+  prop.setValue(val);
+  bindProperty(subnode,prop,mappings,inheritedMetas);
+  if (prop.getGeneration() == PropertyGeneration.INSERT) {
+    throw new MappingException("'generated' attribute cannot be 'insert' for versioning property");
+  }
+  makeVersion(subnode,val);
+  entity.setVersion(prop);
+  entity.addProperty(prop);
+}

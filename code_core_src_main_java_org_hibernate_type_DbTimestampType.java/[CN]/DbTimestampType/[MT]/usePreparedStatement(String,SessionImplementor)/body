@@ -1,0 +1,26 @@
+{
+  PreparedStatement ps=null;
+  try {
+    ps=session.getBatcher().prepareStatement(timestampSelectString);
+    ResultSet rs=session.getBatcher().getResultSet(ps);
+    rs.next();
+    Timestamp ts=rs.getTimestamp(1);
+    if (log.isTraceEnabled()) {
+      log.trace("current timestamp retreived from db : " + ts + " (nanos="+ ts.getNanos()+ ", time="+ ts.getTime()+ ")");
+    }
+    return ts;
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(session.getFactory().getSQLExceptionConverter(),sqle,"could not select current db timestamp",timestampSelectString);
+  }
+ finally {
+    if (ps != null) {
+      try {
+        session.getBatcher().closeStatement(ps);
+      }
+ catch (      SQLException sqle) {
+        log.warn("unable to clean up prepared statement",sqle);
+      }
+    }
+  }
+}

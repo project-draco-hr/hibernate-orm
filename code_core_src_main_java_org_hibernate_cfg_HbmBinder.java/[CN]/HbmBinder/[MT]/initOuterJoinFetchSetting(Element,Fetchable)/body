@@ -1,0 +1,37 @@
+{
+  Attribute fetchNode=node.attribute("fetch");
+  final FetchMode fetchStyle;
+  boolean lazy=true;
+  if (fetchNode == null) {
+    Attribute jfNode=node.attribute("outer-join");
+    if (jfNode == null) {
+      if ("many-to-many".equals(node.getName())) {
+        lazy=false;
+        fetchStyle=FetchMode.JOIN;
+      }
+ else       if ("one-to-one".equals(node.getName())) {
+        lazy=((OneToOne)model).isConstrained();
+        fetchStyle=lazy ? FetchMode.DEFAULT : FetchMode.JOIN;
+      }
+ else {
+        fetchStyle=FetchMode.DEFAULT;
+      }
+    }
+ else {
+      String eoj=jfNode.getValue();
+      if ("auto".equals(eoj)) {
+        fetchStyle=FetchMode.DEFAULT;
+      }
+ else {
+        boolean join="true".equals(eoj);
+        fetchStyle=join ? FetchMode.JOIN : FetchMode.SELECT;
+      }
+    }
+  }
+ else {
+    boolean join="join".equals(fetchNode.getValue());
+    fetchStyle=join ? FetchMode.JOIN : FetchMode.SELECT;
+  }
+  model.setFetchMode(fetchStyle);
+  model.setLazy(lazy);
+}

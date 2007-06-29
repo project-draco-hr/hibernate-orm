@@ -1,0 +1,15 @@
+{
+  Session s=openSession();
+  s.find("select fum1.fo from Fum fum1 where fum1.fo.fum is not null");
+  s.find("from Fum fum1 where fum1.fo.fum is not null order by fum1.fo.fum");
+  if (!(getDialect() instanceof MySQLDialect) && !(getDialect() instanceof HSQLDialect) && !(getDialect() instanceof MckoiDialect)&& !(getDialect() instanceof PointbaseDialect)) {
+    s.find("from Fum fum1 where exists elements(fum1.friends)");
+    if (!(getDialect() instanceof TimesTenDialect)) {
+      s.find("from Fum fum1 where size(fum1.friends) = 0");
+    }
+  }
+  s.find("select elements(fum1.friends) from Fum fum1");
+  s.find("from Fum fum1, fr in elements( fum1.friends )");
+  s.connection().commit();
+  s.close();
+}

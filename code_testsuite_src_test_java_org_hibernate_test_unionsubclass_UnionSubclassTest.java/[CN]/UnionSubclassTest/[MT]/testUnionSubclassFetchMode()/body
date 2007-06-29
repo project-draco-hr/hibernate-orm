@@ -1,0 +1,28 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  Location mel=new Location("Earth");
+  s.save(mel);
+  Human gavin=new Human();
+  gavin.setIdentity("gavin");
+  gavin.setSex('M');
+  gavin.setLocation(mel);
+  mel.addBeing(gavin);
+  Human max=new Human();
+  max.setIdentity("max");
+  max.setSex('M');
+  max.setLocation(mel);
+  mel.addBeing(gavin);
+  s.flush();
+  s.clear();
+  List list=s.createCriteria(Human.class).setFetchMode("location",FetchMode.JOIN).setFetchMode("location.beings",FetchMode.JOIN).list();
+  for (int i=0; i < list.size(); i++) {
+    Human h=(Human)list.get(i);
+    assertTrue(Hibernate.isInitialized(h.getLocation()));
+    assertTrue(Hibernate.isInitialized(h.getLocation().getBeings()));
+    s.delete(h);
+  }
+  s.delete(s.get(Location.class,new Long(mel.getId())));
+  t.commit();
+  s.close();
+}

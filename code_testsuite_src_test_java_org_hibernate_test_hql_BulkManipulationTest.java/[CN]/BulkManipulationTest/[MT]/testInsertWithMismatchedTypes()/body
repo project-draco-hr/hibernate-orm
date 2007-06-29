@@ -1,0 +1,18 @@
+{
+  TestData data=new TestData();
+  data.prepare();
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  try {
+    s.createQuery("insert into Pickup (owner, vin, id) select id, vin, owner from Car").executeUpdate();
+    fail("mismatched types did not error");
+  }
+ catch (  QueryException e) {
+  }
+  t.commit();
+  t=s.beginTransaction();
+  s.createQuery("delete Vehicle").executeUpdate();
+  t.commit();
+  s.close();
+  data.cleanup();
+}

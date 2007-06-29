@@ -1,0 +1,45 @@
+{
+  Dialect dialect=getFactory().getDialect();
+  Settings settings=getFactory().getSettings();
+  if (!model.hasSubclasses()) {
+    return model.getTable().getQualifiedName(dialect,settings.getDefaultCatalogName(),settings.getDefaultSchemaName());
+  }
+  HashSet columns=new HashSet();
+  Iterator titer=model.getSubclassTableClosureIterator();
+  while (titer.hasNext()) {
+    Table table=(Table)titer.next();
+    if (!table.isAbstractUnionTable()) {
+      Iterator citer=table.getColumnIterator();
+      while (citer.hasNext())       columns.add(citer.next());
+    }
+  }
+  StringBuffer buf=new StringBuffer().append("( ");
+  Iterator siter=new JoinedIterator(new SingletonIterator(model),model.getSubclassIterator());
+  while (siter.hasNext()) {
+    PersistentClass clazz=(PersistentClass)siter.next();
+    Table table=clazz.getTable();
+    if (!table.isAbstractUnionTable()) {
+      buf.append("select ");
+      Iterator citer=columns.iterator();
+      while (citer.hasNext()) {
+        Column col=(Column)citer.next();
+        if (!table.containsColumn(col)) {
+          int sqlType=col.getSqlTypeCode(mapping);
+          buf.append(dialect.getSelectClauseNullString(sqlType)).append(" as ");
+        }
+        buf.append(col.getName());
+        buf.append(", ");
+      }
+      buf.append(clazz.getSubclassId()).append(" as clazz_");
+      buf.append(" from ").append(table.getQualifiedName(dialect,settings.getDefaultCatalogName(),settings.getDefaultSchemaName()));
+      buf.append(" union ");
+      if (dialect.supportsUnionAll()) {
+        buf.append("all ");
+      }
+    }
+  }
+  if (buf.length() > 2) {
+    buf.setLength(buf.length() - (dialect.supportsUnionAll() ? 11 : 7));
+  }
+  return buf.append(" )").toString();
+}

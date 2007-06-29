@@ -1,0 +1,43 @@
+{
+  if (compiled) {
+    if (log.isDebugEnabled()) {
+      log.debug("compile() : The query is already compiled, skipping...");
+    }
+    return;
+  }
+  this.tokenReplacements=replacements;
+  if (tokenReplacements == null) {
+    tokenReplacements=new HashMap();
+  }
+  this.shallowQuery=shallow;
+  try {
+    HqlParser parser=parse(true);
+    HqlSqlWalker w=analyze(parser,collectionRole);
+    sqlAst=(Statement)w.getAST();
+    if (sqlAst.needsExecutor()) {
+      statementExecutor=buildAppropriateStatementExecutor(w);
+    }
+ else {
+      generate((QueryNode)sqlAst);
+      queryLoader=new QueryLoader(this,factory,w.getSelectClause());
+    }
+    compiled=true;
+  }
+ catch (  QueryException qe) {
+    qe.setQueryString(hql);
+    throw qe;
+  }
+catch (  RecognitionException e) {
+    if (log.isTraceEnabled()) {
+      log.trace("converted antlr.RecognitionException",e);
+    }
+    throw QuerySyntaxException.convert(e,hql);
+  }
+catch (  ANTLRException e) {
+    if (log.isTraceEnabled()) {
+      log.trace("converted antlr.ANTLRException",e);
+    }
+    throw new QueryException(e.getMessage(),hql);
+  }
+  this.enabledFilters=null;
+}

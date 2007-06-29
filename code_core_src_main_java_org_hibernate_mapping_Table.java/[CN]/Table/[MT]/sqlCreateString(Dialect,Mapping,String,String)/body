@@ -1,0 +1,76 @@
+{
+  StringBuffer buf=new StringBuffer(hasPrimaryKey() ? dialect.getCreateTableString() : dialect.getCreateMultisetTableString()).append(' ').append(getQualifiedName(dialect,defaultCatalog,defaultSchema)).append(" (");
+  boolean identityColumn=idValue != null && idValue.isIdentityColumn(dialect);
+  String pkname=null;
+  if (hasPrimaryKey() && identityColumn) {
+    pkname=((Column)getPrimaryKey().getColumnIterator().next()).getQuotedName(dialect);
+  }
+  Iterator iter=getColumnIterator();
+  while (iter.hasNext()) {
+    Column col=(Column)iter.next();
+    buf.append(col.getQuotedName(dialect)).append(' ');
+    if (identityColumn && col.getQuotedName(dialect).equals(pkname)) {
+      if (dialect.hasDataTypeInIdentityColumn()) {
+        buf.append(col.getSqlType(dialect,p));
+      }
+      buf.append(' ').append(dialect.getIdentityColumnString(col.getSqlTypeCode(p)));
+    }
+ else {
+      buf.append(col.getSqlType(dialect,p));
+      String defaultValue=col.getDefaultValue();
+      if (defaultValue != null) {
+        buf.append(" default ").append(defaultValue);
+      }
+      if (col.isNullable()) {
+        buf.append(dialect.getNullColumnString());
+      }
+ else {
+        buf.append(" not null");
+      }
+    }
+    boolean useUniqueConstraint=col.isUnique() && (!col.isNullable() || dialect.supportsNotNullUnique());
+    if (useUniqueConstraint) {
+      if (dialect.supportsUnique()) {
+        buf.append(" unique");
+      }
+ else {
+        UniqueKey uk=getOrCreateUniqueKey(col.getQuotedName(dialect) + '_');
+        uk.addColumn(col);
+      }
+    }
+    if (col.hasCheckConstraint() && dialect.supportsColumnCheck()) {
+      buf.append(" check (").append(col.getCheckConstraint()).append(")");
+    }
+    String columnComment=col.getComment();
+    if (columnComment != null) {
+      buf.append(dialect.getColumnComment(columnComment));
+    }
+    if (iter.hasNext()) {
+      buf.append(", ");
+    }
+  }
+  if (hasPrimaryKey()) {
+    buf.append(", ").append(getPrimaryKey().sqlConstraintString(dialect));
+  }
+  if (dialect.supportsUniqueConstraintInCreateAlterTable()) {
+    Iterator ukiter=getUniqueKeyIterator();
+    while (ukiter.hasNext()) {
+      UniqueKey uk=(UniqueKey)ukiter.next();
+      String constraint=uk.sqlConstraintString(dialect);
+      if (constraint != null) {
+        buf.append(", ").append(constraint);
+      }
+    }
+  }
+  if (dialect.supportsTableCheck()) {
+    Iterator chiter=checkConstraints.iterator();
+    while (chiter.hasNext()) {
+      buf.append(", check (").append(chiter.next()).append(')');
+    }
+  }
+  buf.append(')');
+  if (comment != null) {
+    buf.append(dialect.getTableComment(comment));
+  }
+  return buf.append(dialect.getTableTypeString()).toString();
+}

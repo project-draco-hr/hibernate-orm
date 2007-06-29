@@ -1,0 +1,28 @@
+{
+  Attribute rsrc=subelement.attribute("resource");
+  Attribute file=subelement.attribute("file");
+  Attribute jar=subelement.attribute("jar");
+  Attribute pkg=subelement.attribute("package");
+  Attribute clazz=subelement.attribute("class");
+  if (rsrc != null) {
+    log.debug(name + "<-" + rsrc);
+    addResource(rsrc.getValue());
+  }
+ else   if (jar != null) {
+    log.debug(name + "<-" + jar);
+    addJar(new File(jar.getValue()));
+  }
+ else   if (pkg != null) {
+    throw new MappingException("An AnnotationConfiguration instance is required to use <mapping package=\"" + pkg.getValue() + "\"/>");
+  }
+ else   if (clazz != null) {
+    throw new MappingException("An AnnotationConfiguration instance is required to use <mapping class=\"" + clazz.getValue() + "\"/>");
+  }
+ else {
+    if (file == null) {
+      throw new MappingException("<mapping> element in configuration specifies no attributes");
+    }
+    log.debug(name + "<-" + file);
+    addFile(file.getValue());
+  }
+}

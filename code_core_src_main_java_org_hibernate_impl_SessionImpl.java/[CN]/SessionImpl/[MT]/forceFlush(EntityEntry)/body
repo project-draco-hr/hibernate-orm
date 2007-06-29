@@ -1,0 +1,10 @@
+{
+  errorIfClosed();
+  if (log.isDebugEnabled()) {
+    log.debug("flushing to force deletion of re-saved object: " + MessageHelper.infoString(entityEntry.getPersister(),entityEntry.getId(),getFactory()));
+  }
+  if (persistenceContext.getCascadeLevel() > 0) {
+    throw new ObjectDeletedException("deleted object would be re-saved by cascade (remove deleted object from associations)",entityEntry.getId(),entityEntry.getPersister().getEntityName());
+  }
+  flush();
+}

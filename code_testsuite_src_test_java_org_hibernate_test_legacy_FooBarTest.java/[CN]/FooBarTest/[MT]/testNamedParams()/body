@@ -1,0 +1,60 @@
+{
+  Bar bar=new Bar();
+  Bar bar2=new Bar();
+  bar.setName("Bar");
+  bar2.setName("Bar Two");
+  bar.setX(10);
+  bar2.setX(1000);
+  Baz baz=new Baz();
+  baz.setCascadingBars(new HashSet());
+  baz.getCascadingBars().add(bar);
+  bar.setBaz(baz);
+  Session s=openSession();
+  Transaction txn=s.beginTransaction();
+  s.save(baz);
+  s.save(bar2);
+  List list=s.find("from Bar bar left join bar.baz baz left join baz.cascadingBars b where bar.name like 'Bar %'");
+  Object row=list.iterator().next();
+  assertTrue(row instanceof Object[] && ((Object[])row).length == 3);
+  Query q=s.createQuery("select bar, b from Bar bar left join bar.baz baz left join baz.cascadingBars b where bar.name like 'Bar%'");
+  list=q.list();
+  if (!(getDialect() instanceof SAPDBDialect))   assertTrue(list.size() == 2);
+  q=s.createQuery("select bar, b from Bar bar left join bar.baz baz left join baz.cascadingBars b where ( bar.name in (:nameList) or bar.name in (:nameList) ) and bar.string = :stringVal");
+  HashSet nameList=new HashSet();
+  nameList.add("bar");
+  nameList.add("Bar");
+  nameList.add("Bar Two");
+  q.setParameterList("nameList",nameList);
+  q.setParameter("stringVal","a string");
+  list=q.list();
+  if (!(getDialect() instanceof SAPDBDialect))   assertTrue(list.size() == 2);
+  try {
+    q.setParameterList("nameList",(Collection)null);
+    fail("Should throw an queryexception when passing a null!");
+  }
+ catch (  QueryException qe) {
+  }
+  if (dialectSupportsEmptyInList("HQL 'x in (:name)'  with EMPTY_LIST.")) {
+    q.setParameterList("nameList",Collections.EMPTY_LIST);
+    list=q.list();
+    assertTrue(list.size() == 0);
+  }
+  q=s.createQuery("select bar, b from Bar bar inner join bar.baz baz inner join baz.cascadingBars b where bar.name like 'Bar%'");
+  Object result=q.uniqueResult();
+  assertTrue(result != null);
+  q=s.createQuery("select bar, b from Bar bar left join bar.baz baz left join baz.cascadingBars b where bar.name like :name and b.name like :name");
+  q.setString("name","Bar%");
+  list=q.list();
+  assertTrue(list.size() == 1);
+  q=s.createQuery("select bar from Bar bar order by ((bar.x - :valueX)*(bar.x - :valueX))");
+  q.setInteger("valueX",bar.getX() + 1);
+  list=q.list();
+  assertTrue(((Bar)list.get(0)).getX() == bar.getX());
+  q.setInteger("valueX",bar2.getX() + 1);
+  list=q.list();
+  assertTrue(((Bar)list.get(0)).getX() == bar2.getX());
+  s.delete(baz);
+  s.delete(bar2);
+  txn.commit();
+  s.close();
+}

@@ -1,0 +1,64 @@
+{
+  InsertStatement insertStatement=(InsertStatement)insert;
+  insertStatement.validate();
+  SelectClause selectClause=insertStatement.getSelectClause();
+  Queryable persister=insertStatement.getIntoClause().getQueryable();
+  if (!insertStatement.getIntoClause().isExplicitIdInsertion()) {
+    IdentifierGenerator generator=persister.getIdentifierGenerator();
+    if (!supportsIdGenWithBulkInsertion(generator)) {
+      throw new QueryException("can only generate ids as part of bulk insert with either sequence or post-insert style generators");
+    }
+    AST idSelectExprNode=null;
+    if (SequenceGenerator.class.isAssignableFrom(generator.getClass())) {
+      String seqName=(String)((SequenceGenerator)generator).generatorKey();
+      String nextval=sessionFactoryHelper.getFactory().getDialect().getSelectSequenceNextValString(seqName);
+      idSelectExprNode=getASTFactory().create(HqlSqlTokenTypes.SQL_TOKEN,nextval);
+    }
+ else {
+    }
+    if (idSelectExprNode != null) {
+      AST currentFirstSelectExprNode=selectClause.getFirstChild();
+      selectClause.setFirstChild(idSelectExprNode);
+      idSelectExprNode.setNextSibling(currentFirstSelectExprNode);
+      insertStatement.getIntoClause().prependIdColumnSpec();
+    }
+  }
+  final boolean includeVersionProperty=persister.isVersioned() && !insertStatement.getIntoClause().isExplicitVersionInsertion() && persister.isVersionPropertyInsertable();
+  if (includeVersionProperty) {
+    VersionType versionType=persister.getVersionType();
+    AST versionValueNode=null;
+    if (sessionFactoryHelper.getFactory().getDialect().supportsParametersInInsertSelect()) {
+      versionValueNode=getASTFactory().create(HqlSqlTokenTypes.PARAM,"?");
+      ParameterSpecification paramSpec=new VersionTypeSeedParameterSpecification(versionType);
+      ((ParameterNode)versionValueNode).setHqlParameterSpecification(paramSpec);
+      parameters.add(0,paramSpec);
+    }
+ else {
+      if (isIntegral(versionType)) {
+        try {
+          Object seedValue=versionType.seed(null);
+          versionValueNode=getASTFactory().create(HqlSqlTokenTypes.SQL_TOKEN,seedValue.toString());
+        }
+ catch (        Throwable t) {
+          throw new QueryException("could not determine seed value for version on bulk insert [" + versionType + "]");
+        }
+      }
+ else       if (isDatabaseGeneratedTimestamp(versionType)) {
+        String functionName=sessionFactoryHelper.getFactory().getDialect().getCurrentTimestampSQLFunctionName();
+        versionValueNode=getASTFactory().create(HqlSqlTokenTypes.SQL_TOKEN,functionName);
+      }
+ else {
+        throw new QueryException("cannot handle version type [" + versionType + "] on bulk inserts with dialects not supporting parameters in insert-select statements");
+      }
+    }
+    AST currentFirstSelectExprNode=selectClause.getFirstChild();
+    selectClause.setFirstChild(versionValueNode);
+    versionValueNode.setNextSibling(currentFirstSelectExprNode);
+    insertStatement.getIntoClause().prependVersionColumnSpec();
+  }
+  if (insertStatement.getIntoClause().isDiscriminated()) {
+    String sqlValue=insertStatement.getIntoClause().getQueryable().getDiscriminatorSQLValue();
+    AST discrimValue=getASTFactory().create(HqlSqlTokenTypes.SQL_TOKEN,sqlValue);
+    insertStatement.getSelectClause().addChild(discrimValue);
+  }
+}

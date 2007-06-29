@@ -1,0 +1,14 @@
+{
+  Type elementType=persister.getElementType();
+  String indexNode=getIndexAttributeName(persister);
+  HashMap snapshot=(HashMap)getSnapshot();
+  List elements=element.elements(persister.getElementNodeName());
+  if (snapshot.size() != elements.size())   return false;
+  for (int i=0; i < snapshot.size(); i++) {
+    Element elem=(Element)elements.get(i);
+    Object old=snapshot.get(getIndex(elem,indexNode,i));
+    Object current=elementType.fromXMLNode(elem,persister.getFactory());
+    if (elementType.isDirty(old,current,getSession()))     return false;
+  }
+  return true;
+}

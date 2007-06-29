@@ -1,0 +1,51 @@
+{
+  if (quoted) {
+    quotedString.append(token);
+  }
+  if ("'".equals(token)) {
+    if (quoted) {
+      token=quotedString.toString();
+    }
+ else {
+      quotedString=new StringBuffer(20).append(token);
+    }
+    quoted=!quoted;
+  }
+  if (quoted)   return;
+  if (ParserHelper.isWhitespace(token))   return;
+  String substoken=(String)replacements.get(token);
+  token=(substoken == null) ? token : substoken;
+  if (currentCollectionProp != null) {
+    if ("(".equals(token)) {
+      return;
+    }
+ else     if (")".equals(token)) {
+      currentCollectionProp=null;
+      return;
+    }
+ else {
+      token=StringHelper.qualify(token,currentCollectionProp);
+    }
+  }
+ else {
+    String prop=CollectionProperties.getNormalizedPropertyName(token.toLowerCase());
+    if (prop != null) {
+      currentCollectionProp=prop;
+      return;
+    }
+  }
+  if (lastToken == null) {
+    lastToken=token;
+  }
+ else {
+    String doubleToken=(token.length() > 1) ? lastToken + ' ' + token : lastToken + token;
+    if (HQL_OPERATORS.contains(doubleToken.toLowerCase())) {
+      parser.token(doubleToken,q);
+      lastToken=null;
+    }
+ else {
+      parser.token(lastToken,q);
+      lastToken=token;
+    }
+  }
+}

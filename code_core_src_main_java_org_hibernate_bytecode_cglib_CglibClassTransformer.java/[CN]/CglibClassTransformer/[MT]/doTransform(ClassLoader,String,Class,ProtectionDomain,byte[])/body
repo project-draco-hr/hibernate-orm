@@ -1,0 +1,34 @@
+{
+  ClassReader reader;
+  try {
+    reader=new ClassReader(new ByteArrayInputStream(classfileBuffer));
+  }
+ catch (  IOException e) {
+    log.error("Unable to read class",e);
+    throw new HibernateException("Unable to read class: " + e.getMessage());
+  }
+  String[] names=ClassNameReader.getClassInfo(reader);
+  ClassWriter w=new DebuggingClassWriter(true);
+  ClassTransformer t=getClassTransformer(names);
+  if (t != null) {
+    if (log.isDebugEnabled()) {
+      log.debug("Enhancing " + className);
+    }
+    ByteArrayOutputStream out;
+    byte[] result;
+    try {
+      reader=new ClassReader(new ByteArrayInputStream(classfileBuffer));
+      new TransformingClassGenerator(new ClassReaderGenerator(reader,attributes(),skipDebug()),t).generateClass(w);
+      out=new ByteArrayOutputStream();
+      out.write(w.toByteArray());
+      result=out.toByteArray();
+      out.close();
+    }
+ catch (    Exception e) {
+      log.error("Unable to transform class",e);
+      throw new HibernateException("Unable to transform class: " + e.getMessage());
+    }
+    return result;
+  }
+  return classfileBuffer;
+}

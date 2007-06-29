@@ -1,0 +1,14 @@
+{
+  log.trace("initializing lazy properties from second-level cache");
+  Object result=null;
+  Serializable[] disassembledValues=cacheEntry.getDisassembledState();
+  final Object[] snapshot=entry.getLoadedState();
+  for (int j=0; j < lazyPropertyNames.length; j++) {
+    final Object propValue=lazyPropertyTypes[j].assemble(disassembledValues[lazyPropertyNumbers[j]],session,entity);
+    if (initializeLazyProperty(fieldName,entity,session,snapshot,j,propValue)) {
+      result=propValue;
+    }
+  }
+  log.trace("done initializing lazy properties");
+  return result;
+}

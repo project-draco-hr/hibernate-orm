@@ -1,0 +1,38 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  User u=new User("gavin","hb","secret");
+  s.persist(u);
+  t.commit();
+  s.close();
+  getSessions().getStatistics().clear();
+  s=openSession();
+  t=s.beginTransaction();
+  u=(User)s.createCriteria(User.class).add(Restrictions.naturalId().set("name","gavin").set("org","hb")).setCacheable(true).uniqueResult();
+  assertNotNull(u);
+  t.commit();
+  s.close();
+  assertEquals(getSessions().getStatistics().getQueryExecutionCount(),1);
+  assertEquals(getSessions().getStatistics().getQueryCacheHitCount(),0);
+  assertEquals(getSessions().getStatistics().getQueryCachePutCount(),1);
+  s=openSession();
+  t=s.beginTransaction();
+  User v=new User("xam","hb","foobar");
+  s.persist(v);
+  t.commit();
+  s.close();
+  getSessions().getStatistics().clear();
+  s=openSession();
+  t=s.beginTransaction();
+  u=(User)s.createCriteria(User.class).add(Restrictions.naturalId().set("name","gavin").set("org","hb")).setCacheable(true).uniqueResult();
+  assertNotNull(u);
+  t.commit();
+  s.close();
+  assertEquals(getSessions().getStatistics().getQueryExecutionCount(),0);
+  assertEquals(getSessions().getStatistics().getQueryCacheHitCount(),1);
+  s=openSession();
+  t=s.beginTransaction();
+  s.createQuery("delete User").executeUpdate();
+  t.commit();
+  s.close();
+}

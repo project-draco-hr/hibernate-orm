@@ -1,0 +1,44 @@
+{
+  String[] tokens=StringHelper.split(StringHelper.WHITESPACE + "(),",query,true);
+  if (tokens.length == 0)   return new String[]{query};
+  ArrayList placeholders=new ArrayList();
+  ArrayList replacements=new ArrayList();
+  StringBuffer templateQuery=new StringBuffer(40);
+  int count=0;
+  String last=null;
+  int nextIndex=0;
+  String next=null;
+  boolean isSelectClause=false;
+  templateQuery.append(tokens[0]);
+  if ("select".equals(tokens[0].toLowerCase()))   isSelectClause=true;
+  for (int i=1; i < tokens.length; i++) {
+    if (!ParserHelper.isWhitespace(tokens[i - 1]))     last=tokens[i - 1].toLowerCase();
+    if ("from".equals(tokens[i].toLowerCase()))     isSelectClause=false;
+    String token=tokens[i];
+    if (!ParserHelper.isWhitespace(token) || last == null) {
+      if (nextIndex <= i) {
+        for (nextIndex=i + 1; nextIndex < tokens.length; nextIndex++) {
+          next=tokens[nextIndex].toLowerCase();
+          if (!ParserHelper.isWhitespace(next))           break;
+        }
+      }
+      boolean process=!isSelectClause && isJavaIdentifier(token) && isPossiblyClassName(last,next);
+      if (process) {
+        String importedClassName=getImportedClass(token,factory);
+        if (importedClassName != null) {
+          String[] implementors=factory.getImplementors(importedClassName);
+          String placeholder="$clazz" + count++ + "$";
+          if (implementors != null) {
+            placeholders.add(placeholder);
+            replacements.add(implementors);
+          }
+          token=placeholder;
+        }
+      }
+    }
+    templateQuery.append(token);
+  }
+  String[] results=StringHelper.multiply(templateQuery.toString(),placeholders.iterator(),replacements.iterator());
+  if (results.length == 0)   log.warn("no persistent classes found for query class: " + query);
+  return results;
+}

@@ -1,0 +1,29 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  Node parent=new Node("parent");
+  Node child=new Node("child");
+  parent.getChildren().add(child);
+  child.setParent(parent);
+  s.persist(parent);
+  s.getTransaction().commit();
+  s.close();
+  clearCounts();
+  s=openSession();
+  s.beginTransaction();
+  parent=(Node)s.merge(parent);
+  s.getTransaction().commit();
+  s.close();
+  assertUpdateCount(0);
+  assertInsertCount(0);
+  ((Node)parent.getChildren().iterator().next()).setDescription("child's new description");
+  parent.getChildren().add(new Node("second child"));
+  s=openSession();
+  s.beginTransaction();
+  parent=(Node)s.merge(parent);
+  s.getTransaction().commit();
+  s.close();
+  assertUpdateCount(1);
+  assertInsertCount(1);
+  cleanup();
+}

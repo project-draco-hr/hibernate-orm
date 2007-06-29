@@ -1,0 +1,21 @@
+{
+  StringBuffer buffer=new StringBuffer(dialect.getCreateTemporaryTableString()).append(' ').append(name).append(" (");
+  Iterator itr=getColumnIterator();
+  while (itr.hasNext()) {
+    final Column column=(Column)itr.next();
+    buffer.append(column.getQuotedName(dialect)).append(' ');
+    buffer.append(column.getSqlType(dialect,mapping));
+    if (column.isNullable()) {
+      buffer.append(dialect.getNullColumnString());
+    }
+ else {
+      buffer.append(" not null");
+    }
+    if (itr.hasNext()) {
+      buffer.append(", ");
+    }
+  }
+  buffer.append(") ");
+  buffer.append(dialect.getCreateTemporaryTablePostfix());
+  return buffer.toString();
+}

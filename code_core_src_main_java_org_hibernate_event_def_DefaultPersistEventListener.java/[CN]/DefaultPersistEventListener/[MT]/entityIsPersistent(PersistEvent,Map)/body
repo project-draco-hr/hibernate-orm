@@ -1,0 +1,10 @@
+{
+  log.trace("ignoring persistent instance");
+  final EventSource source=event.getSession();
+  final Object entity=source.getPersistenceContext().unproxy(event.getObject());
+  final EntityPersister persister=source.getEntityPersister(event.getEntityName(),entity);
+  if (createCache.put(entity,entity) == null) {
+    cascadeBeforeSave(source,persister,entity,createCache);
+    cascadeAfterSave(source,persister,entity,createCache);
+  }
+}

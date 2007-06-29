@@ -1,0 +1,41 @@
+{
+  checkInitialized();
+  PropertyMapping propertyMapping=getPropertyMapping(path);
+  if (!inSelect && queryableCollection != null && CollectionProperties.isCollectionProperty(path)) {
+    Map enabledFilters=fromElement.getWalker().getEnabledFilters();
+    String subquery=CollectionSubqueryFactory.createCollectionSubquery(joinSequence,enabledFilters,propertyMapping.toColumns(tableAlias,path));
+    if (log.isDebugEnabled()) {
+      log.debug("toColumns(" + tableAlias + ","+ path+ ") : subquery = "+ subquery);
+    }
+    return new String[]{"(" + subquery + ")"};
+  }
+ else {
+    if (forceAlias) {
+      return propertyMapping.toColumns(tableAlias,path);
+    }
+ else     if (fromElement.getWalker().getStatementType() == HqlSqlTokenTypes.SELECT) {
+      return propertyMapping.toColumns(tableAlias,path);
+    }
+ else     if (fromElement.getWalker().getCurrentClauseType() == HqlSqlTokenTypes.SELECT) {
+      return propertyMapping.toColumns(tableAlias,path);
+    }
+ else     if (fromElement.getWalker().isSubQuery()) {
+      if (isCorrelation()) {
+        if (isMultiTable()) {
+          return propertyMapping.toColumns(tableAlias,path);
+        }
+ else {
+          return propertyMapping.toColumns(extractTableName(),path);
+        }
+      }
+ else {
+        return propertyMapping.toColumns(tableAlias,path);
+      }
+    }
+ else {
+      String[] columns=propertyMapping.toColumns(path);
+      log.trace("Using non-qualified column reference [" + path + " -> ("+ ArrayHelper.toString(columns)+ ")]");
+      return columns;
+    }
+  }
+}

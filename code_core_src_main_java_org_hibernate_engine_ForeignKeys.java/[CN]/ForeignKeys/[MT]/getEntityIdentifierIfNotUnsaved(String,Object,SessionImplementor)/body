@@ -1,0 +1,15 @@
+{
+  if (object == null) {
+    return null;
+  }
+ else {
+    Serializable id=session.getContextEntityIdentifier(object);
+    if (id == null) {
+      if (isTransient(entityName,object,Boolean.FALSE,session)) {
+        throw new TransientObjectException("object references an unsaved transient instance - save the transient instance before flushing: " + (entityName == null ? session.guessEntityName(object) : entityName));
+      }
+      id=session.getEntityPersister(entityName,object).getIdentifier(object,session.getEntityMode());
+    }
+    return id;
+  }
+}

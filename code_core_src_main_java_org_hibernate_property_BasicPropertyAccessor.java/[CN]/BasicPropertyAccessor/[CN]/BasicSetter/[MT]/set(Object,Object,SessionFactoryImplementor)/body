@@ -1,0 +1,29 @@
+{
+  try {
+    method.invoke(target,new Object[]{value});
+  }
+ catch (  NullPointerException npe) {
+    if (value == null && method.getParameterTypes()[0].isPrimitive()) {
+      throw new PropertyAccessException(npe,"Null value was assigned to a property of primitive type",true,clazz,propertyName);
+    }
+ else {
+      throw new PropertyAccessException(npe,"NullPointerException occurred while calling",true,clazz,propertyName);
+    }
+  }
+catch (  InvocationTargetException ite) {
+    throw new PropertyAccessException(ite,"Exception occurred inside",true,clazz,propertyName);
+  }
+catch (  IllegalAccessException iae) {
+    throw new PropertyAccessException(iae,"IllegalAccessException occurred while calling",true,clazz,propertyName);
+  }
+catch (  IllegalArgumentException iae) {
+    if (value == null && method.getParameterTypes()[0].isPrimitive()) {
+      throw new PropertyAccessException(iae,"Null value was assigned to a property of primitive type",true,clazz,propertyName);
+    }
+ else {
+      log.error("IllegalArgumentException in class: " + clazz.getName() + ", setter method of property: "+ propertyName);
+      log.error("expected type: " + method.getParameterTypes()[0].getName() + ", actual value: "+ (value == null ? null : value.getClass().getName()));
+      throw new PropertyAccessException(iae,"IllegalArgumentException occurred while calling",true,clazz,propertyName);
+    }
+  }
+}

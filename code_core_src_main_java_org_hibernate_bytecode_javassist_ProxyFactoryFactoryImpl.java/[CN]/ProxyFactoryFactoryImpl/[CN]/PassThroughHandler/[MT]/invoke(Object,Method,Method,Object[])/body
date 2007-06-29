@@ -1,0 +1,30 @@
+{
+  String name=method.getName();
+  if ("toString".equals(name)) {
+    return proxiedClassName + "@" + System.identityHashCode(object);
+  }
+ else   if ("equals".equals(name)) {
+    return proxiedObject == object ? Boolean.TRUE : Boolean.FALSE;
+  }
+ else   if ("hashCode".equals(name)) {
+    return new Integer(System.identityHashCode(object));
+  }
+  boolean hasGetterSignature=method.getParameterTypes().length == 0 && method.getReturnType() != null;
+  boolean hasSetterSignature=method.getParameterTypes().length == 1 && (method.getReturnType() == null || method.getReturnType() == void.class);
+  if (name.startsWith("get") && hasGetterSignature) {
+    String propName=name.substring(3);
+    return data.get(propName);
+  }
+ else   if (name.startsWith("is") && hasGetterSignature) {
+    String propName=name.substring(2);
+    return data.get(propName);
+  }
+ else   if (name.startsWith("set") && hasSetterSignature) {
+    String propName=name.substring(3);
+    data.put(propName,args[0]);
+    return null;
+  }
+ else {
+    return null;
+  }
+}

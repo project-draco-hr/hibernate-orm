@@ -1,0 +1,23 @@
+{
+  super(walker,log);
+  if (!walker.getSessionFactoryHelper().getFactory().getDialect().supportsTemporaryTables()) {
+    throw new HibernateException("cannot perform multi-table deletes using dialect not supporting temp tables");
+  }
+  DeleteStatement deleteStatement=(DeleteStatement)walker.getAST();
+  FromElement fromElement=deleteStatement.getFromClause().getFromElement();
+  String bulkTargetAlias=fromElement.getTableAlias();
+  this.persister=fromElement.getQueryable();
+  this.idInsertSelect=generateIdInsertSelect(persister,bulkTargetAlias,deleteStatement.getWhereClause());
+  log.trace("Generated ID-INSERT-SELECT SQL (multi-table delete) : " + idInsertSelect);
+  String[] tableNames=persister.getConstraintOrderedTableNameClosure();
+  String[][] columnNames=persister.getContraintOrderedTableKeyColumnClosure();
+  String idSubselect=generateIdSubselect(persister);
+  deletes=new String[tableNames.length];
+  for (int i=tableNames.length - 1; i >= 0; i--) {
+    final Delete delete=new Delete().setTableName(tableNames[i]).setWhere("(" + StringHelper.join(", ",columnNames[i]) + ") IN ("+ idSubselect+ ")");
+    if (getFactory().getSettings().isCommentsEnabled()) {
+      delete.setComment("bulk delete");
+    }
+    deletes[i]=delete.toStatementString();
+  }
+}

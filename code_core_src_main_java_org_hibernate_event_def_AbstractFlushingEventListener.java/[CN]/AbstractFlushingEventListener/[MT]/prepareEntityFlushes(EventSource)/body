@@ -1,0 +1,14 @@
+{
+  log.debug("processing flush-time cascades");
+  final Map.Entry[] list=IdentityMap.concurrentEntries(session.getPersistenceContext().getEntityEntries());
+  final int size=list.length;
+  final Object anything=getAnything();
+  for (int i=0; i < size; i++) {
+    Map.Entry me=list[i];
+    EntityEntry entry=(EntityEntry)me.getValue();
+    Status status=entry.getStatus();
+    if (status == Status.MANAGED || status == Status.SAVING) {
+      cascadeOnFlush(session,entry.getPersister(),me.getKey(),anything);
+    }
+  }
+}

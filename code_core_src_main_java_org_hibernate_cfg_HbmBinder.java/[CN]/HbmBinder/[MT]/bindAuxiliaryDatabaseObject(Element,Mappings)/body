@@ -1,0 +1,24 @@
+{
+  AuxiliaryDatabaseObject auxDbObject=null;
+  Element definitionNode=auxDbObjectNode.element("definition");
+  if (definitionNode != null) {
+    try {
+      auxDbObject=(AuxiliaryDatabaseObject)ReflectHelper.classForName(definitionNode.attributeValue("class")).newInstance();
+    }
+ catch (    ClassNotFoundException e) {
+      throw new MappingException("could not locate custom database object class [" + definitionNode.attributeValue("class") + "]");
+    }
+catch (    Throwable t) {
+      throw new MappingException("could not instantiate custom database object class [" + definitionNode.attributeValue("class") + "]");
+    }
+  }
+ else {
+    auxDbObject=new SimpleAuxiliaryDatabaseObject(auxDbObjectNode.elementTextTrim("create"),auxDbObjectNode.elementTextTrim("drop"));
+  }
+  Iterator dialectScopings=auxDbObjectNode.elementIterator("dialect-scope");
+  while (dialectScopings.hasNext()) {
+    Element dialectScoping=(Element)dialectScopings.next();
+    auxDbObject.addDialectScope(dialectScoping.attributeValue("name"));
+  }
+  mappings.addAuxiliaryDatabaseObject(auxDbObject);
+}

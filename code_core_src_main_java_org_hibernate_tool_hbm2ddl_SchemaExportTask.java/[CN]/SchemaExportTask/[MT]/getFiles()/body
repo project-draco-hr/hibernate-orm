@@ -1,0 +1,16 @@
+{
+  List files=new LinkedList();
+  for (Iterator i=fileSets.iterator(); i.hasNext(); ) {
+    FileSet fs=(FileSet)i.next();
+    DirectoryScanner ds=fs.getDirectoryScanner(getProject());
+    String[] dsFiles=ds.getIncludedFiles();
+    for (int j=0; j < dsFiles.length; j++) {
+      File f=new File(dsFiles[j]);
+      if (!f.isFile()) {
+        f=new File(ds.getBasedir(),dsFiles[j]);
+      }
+      files.add(f.getAbsolutePath());
+    }
+  }
+  return ArrayHelper.toStringArray(files);
+}

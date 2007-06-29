@@ -1,0 +1,36 @@
+{
+  Session s=openSession();
+  s.delete("from Assignable");
+  s.delete("from Category");
+  Category c=new Category();
+  c.setName("NAME");
+  Assignable assn=new Assignable();
+  assn.setId("i.d.");
+  List l=new ArrayList();
+  l.add(c);
+  assn.setCategories(l);
+  c.setAssignable(assn);
+  s.save(assn);
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  List list=s.createSQLQuery("select {category.*} from category {category}","category",Category.class).list();
+  list.get(0);
+  s.connection().commit();
+  s.close();
+  if (getDialect() instanceof MySQLDialect)   return;
+  if (getDialect() instanceof OracleDialect)   return;
+  s=openSession();
+  Query query=s.getNamedQuery("namedsql");
+  assertNotNull(query);
+  list=query.list();
+  assertNotNull(list);
+  Object[] values=(Object[])list.get(0);
+  assertNotNull(values[0]);
+  assertNotNull(values[1]);
+  assertTrue("wrong type: " + values[0].getClass(),values[0] instanceof Category);
+  assertTrue("wrong type: " + values[1].getClass(),values[1] instanceof Assignable);
+  s.connection().commit();
+  s.close();
+}

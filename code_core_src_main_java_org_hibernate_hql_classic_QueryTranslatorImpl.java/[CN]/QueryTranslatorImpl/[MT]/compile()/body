@@ -1,0 +1,23 @@
+{
+  log.trace("compiling query");
+  try {
+    ParserHelper.parse(new PreprocessingParser(tokenReplacements),queryString,ParserHelper.HQL_SEPARATORS,this);
+    renderSQL();
+  }
+ catch (  QueryException qe) {
+    qe.setQueryString(queryString);
+    throw qe;
+  }
+catch (  MappingException me) {
+    throw me;
+  }
+catch (  Exception e) {
+    log.debug("unexpected query compilation problem",e);
+    e.printStackTrace();
+    QueryException qe=new QueryException("Incorrect query syntax",e);
+    qe.setQueryString(queryString);
+    throw qe;
+  }
+  postInstantiate();
+  compiled=true;
+}

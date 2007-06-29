@@ -1,0 +1,26 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  VersionedEntity entity=new VersionedEntity("entity","entity");
+  s.persist(entity);
+  s.getTransaction().commit();
+  s.close();
+  clearCounts();
+  s=openSession();
+  s.beginTransaction();
+  VersionedEntity mergedEntity=(VersionedEntity)s.merge(entity);
+  s.getTransaction().commit();
+  s.close();
+  assertUpdateCount(0);
+  assertInsertCount(0);
+  assertEquals("unexpected version increment",entity.getVersion(),mergedEntity.getVersion());
+  entity.setName("new name");
+  s=openSession();
+  s.beginTransaction();
+  entity=(VersionedEntity)s.merge(entity);
+  s.getTransaction().commit();
+  s.close();
+  assertUpdateCount(1);
+  assertInsertCount(0);
+  cleanup();
+}

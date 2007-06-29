@@ -1,0 +1,31 @@
+{
+  Class execClass=null;
+  Object executable=null;
+  try {
+    execClass=Thread.currentThread().getContextClassLoader().loadClass(name);
+    executable=execClass.newInstance();
+  }
+ catch (  Throwable t) {
+    throw new HibernateException("could not load executable",t);
+  }
+  try {
+    execClass.getMethod("prepare",SIG).invoke(executable,ARGS);
+    execClass.getMethod("execute",SIG).invoke(executable,ARGS);
+  }
+ catch (  NoSuchMethodException e) {
+    throw new HibernateException("could not exeucte executable",e);
+  }
+catch (  IllegalAccessException e) {
+    throw new HibernateException("could not exeucte executable",e);
+  }
+catch (  InvocationTargetException e) {
+    throw new HibernateException("could not exeucte executable",e.getTargetException());
+  }
+ finally {
+    try {
+      execClass.getMethod("complete",SIG).invoke(executable,ARGS);
+    }
+ catch (    Throwable ignore) {
+    }
+  }
+}

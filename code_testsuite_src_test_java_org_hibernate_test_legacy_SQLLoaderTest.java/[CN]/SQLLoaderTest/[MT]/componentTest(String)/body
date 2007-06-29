@@ -1,0 +1,15 @@
+{
+  Session session=openSession();
+  Componentizable c=setupComponentData(session);
+  Query q=session.createSQLQuery(sql,"comp",Componentizable.class);
+  List list=q.list();
+  assertEquals(list.size(),1);
+  Componentizable co=(Componentizable)list.get(0);
+  assertEquals(c.getNickName(),co.getNickName());
+  assertEquals(c.getComponent().getName(),co.getComponent().getName());
+  assertEquals(c.getComponent().getSubComponent().getSubName(),co.getComponent().getSubComponent().getSubName());
+  session.delete(co);
+  session.flush();
+  session.connection().commit();
+  session.close();
+}

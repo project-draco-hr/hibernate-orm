@@ -1,0 +1,26 @@
+{
+  if (log.isDebugEnabled()) {
+    log.debug("createFromElementInSubselect() : path = " + path);
+  }
+  FromElement fromElement=evaluateFromElementPath(path,classAlias);
+  EntityPersister entityPersister=fromElement.getEntityPersister();
+  String tableAlias=null;
+  boolean correlatedSubselect=pathAlias.equals(parentFromElement.getClassAlias());
+  if (correlatedSubselect) {
+    tableAlias=fromElement.getTableAlias();
+  }
+ else {
+    tableAlias=null;
+  }
+  if (fromElement.getFromClause() != fromClause) {
+    if (log.isDebugEnabled()) {
+      log.debug("createFromElementInSubselect() : creating a new FROM element...");
+    }
+    fromElement=createFromElement(entityPersister);
+    initializeAndAddFromElement(fromElement,path,classAlias,entityPersister,(EntityType)((Queryable)entityPersister).getType(),tableAlias);
+  }
+  if (log.isDebugEnabled()) {
+    log.debug("createFromElementInSubselect() : " + path + " -> "+ fromElement);
+  }
+  return fromElement;
+}

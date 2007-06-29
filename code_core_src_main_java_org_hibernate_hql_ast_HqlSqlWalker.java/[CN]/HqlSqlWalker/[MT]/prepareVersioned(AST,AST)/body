@@ -1,0 +1,35 @@
+{
+  UpdateStatement updateStatement=(UpdateStatement)updateNode;
+  FromClause fromClause=updateStatement.getFromClause();
+  if (versioned != null) {
+    Queryable persister=fromClause.getFromElement().getQueryable();
+    if (!persister.isVersioned()) {
+      throw new SemanticException("increment option specified for update of non-versioned entity");
+    }
+    VersionType versionType=persister.getVersionType();
+    if (versionType instanceof UserVersionType) {
+      throw new SemanticException("user-defined version types not supported for increment option");
+    }
+    AST eq=getASTFactory().create(HqlSqlTokenTypes.EQ,"=");
+    AST versionPropertyNode=generateVersionPropertyNode(persister);
+    eq.setFirstChild(versionPropertyNode);
+    AST versionIncrementNode=null;
+    if (Date.class.isAssignableFrom(versionType.getReturnedClass())) {
+      versionIncrementNode=getASTFactory().create(HqlSqlTokenTypes.PARAM,"?");
+      ParameterSpecification paramSpec=new VersionTypeSeedParameterSpecification(versionType);
+      ((ParameterNode)versionIncrementNode).setHqlParameterSpecification(paramSpec);
+      parameters.add(0,paramSpec);
+    }
+ else {
+      versionIncrementNode=getASTFactory().create(HqlSqlTokenTypes.PLUS,"+");
+      versionIncrementNode.setFirstChild(generateVersionPropertyNode(persister));
+      versionIncrementNode.addChild(getASTFactory().create(HqlSqlTokenTypes.IDENT,"1"));
+    }
+    eq.addChild(versionIncrementNode);
+    evaluateAssignment(eq,persister,0);
+    AST setClause=updateStatement.getSetClause();
+    AST currentFirstSetElement=setClause.getFirstChild();
+    setClause.setFirstChild(eq);
+    eq.setNextSibling(currentFirstSetElement);
+  }
+}

@@ -1,0 +1,16 @@
+{
+  if (maybeProxy instanceof ElementWrapper) {
+    maybeProxy=((ElementWrapper)maybeProxy).getElement();
+  }
+  if (maybeProxy instanceof HibernateProxy) {
+    HibernateProxy proxy=(HibernateProxy)maybeProxy;
+    LazyInitializer li=proxy.getHibernateLazyInitializer();
+    if (li.isUninitialized()) {
+      throw new PersistentObjectException("object was an uninitialized proxy for " + li.getEntityName());
+    }
+    return li.getImplementation();
+  }
+ else {
+    return maybeProxy;
+  }
+}

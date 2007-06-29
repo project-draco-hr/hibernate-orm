@@ -1,0 +1,17 @@
+{
+  if (regionName == null) {
+    return getQueryCache();
+  }
+  if (!settings.isQueryCacheEnabled()) {
+    return null;
+  }
+synchronized (allCacheRegions) {
+    QueryCache currentQueryCache=(QueryCache)queryCaches.get(regionName);
+    if (currentQueryCache == null) {
+      currentQueryCache=settings.getQueryCacheFactory().getQueryCache(regionName,updateTimestampsCache,settings,properties);
+      queryCaches.put(regionName,currentQueryCache);
+      allCacheRegions.put(currentQueryCache.getRegion().getName(),currentQueryCache.getRegion());
+    }
+    return currentQueryCache;
+  }
+}

@@ -1,0 +1,27 @@
+{
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  NumberedNode root=new NumberedNode("root");
+  s.persist(root);
+  tx.commit();
+  clearCounts();
+  tx=s.beginTransaction();
+  NumberedNode child=new NumberedNode("child");
+  root.addChild(child);
+  assertSame(root,s.merge(root));
+  Object mergedChild=root.getChildren().iterator().next();
+  assertNotSame(mergedChild,child);
+  assertTrue(s.contains(mergedChild));
+  assertFalse(s.contains(child));
+  assertEquals(root.getChildren().size(),1);
+  assertTrue(root.getChildren().contains(mergedChild));
+  tx.commit();
+  assertInsertCount(1);
+  assertUpdateCount(0);
+  assertEquals(root.getChildren().size(),1);
+  assertTrue(root.getChildren().contains(mergedChild));
+  tx=s.beginTransaction();
+  assertEquals(s.createCriteria(NumberedNode.class).setProjection(Projections.rowCount()).uniqueResult(),new Integer(2));
+  s.close();
+  cleanup();
+}

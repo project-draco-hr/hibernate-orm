@@ -1,0 +1,18 @@
+{
+  if (node instanceof DotNode) {
+    DotNode dotNode=(DotNode)node;
+    FromElement fromElement=dotNode.getFromElement();
+    if (referencedFromElement != null) {
+      if (fromElement != referencedFromElement) {
+        throw new HibernateException("with-clause referenced two different from-clause elements");
+      }
+    }
+ else {
+      referencedFromElement=fromElement;
+      joinAlias=extractAppliedAlias(dotNode);
+      if (!joinAlias.equals(referencedFromElement.getTableAlias())) {
+        throw new InvalidWithClauseException("with clause can only reference columns in the driving table");
+      }
+    }
+  }
+}

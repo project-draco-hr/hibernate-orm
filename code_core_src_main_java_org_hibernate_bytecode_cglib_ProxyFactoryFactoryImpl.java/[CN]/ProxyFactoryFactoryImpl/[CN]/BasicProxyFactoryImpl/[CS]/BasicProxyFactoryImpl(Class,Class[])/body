@@ -1,0 +1,24 @@
+{
+  if (superClass == null && (interfaces == null || interfaces.length < 1)) {
+    throw new AssertionFailure("attempting to build proxy without any superclass or interfaces");
+  }
+  Enhancer en=new Enhancer();
+  en.setUseCache(false);
+  en.setInterceptDuringConstruction(false);
+  en.setUseFactory(true);
+  en.setCallbackTypes(CALLBACK_TYPES);
+  en.setCallbackFilter(FINALIZE_FILTER);
+  if (superClass != null) {
+    en.setSuperclass(superClass);
+  }
+  if (interfaces != null && interfaces.length > 0) {
+    en.setInterfaces(interfaces);
+  }
+  proxyClass=en.createClass();
+  try {
+    factory=(Factory)proxyClass.newInstance();
+  }
+ catch (  Throwable t) {
+    throw new HibernateException("Unable to build CGLIB Factory instance");
+  }
+}

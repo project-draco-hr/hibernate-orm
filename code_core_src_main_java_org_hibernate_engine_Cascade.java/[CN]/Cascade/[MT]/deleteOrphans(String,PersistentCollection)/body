@@ -1,0 +1,20 @@
+{
+  final Collection orphans;
+  if (pc.wasInitialized()) {
+    CollectionEntry ce=eventSource.getPersistenceContext().getCollectionEntry(pc);
+    orphans=ce == null ? CollectionHelper.EMPTY_COLLECTION : ce.getOrphans(entityName,pc);
+  }
+ else {
+    orphans=pc.getQueuedOrphans(entityName);
+  }
+  final Iterator orphanIter=orphans.iterator();
+  while (orphanIter.hasNext()) {
+    Object orphan=orphanIter.next();
+    if (orphan != null) {
+      if (log.isTraceEnabled()) {
+        log.trace("deleting orphaned entity instance: " + entityName);
+      }
+      eventSource.delete(entityName,orphan,false,null);
+    }
+  }
+}

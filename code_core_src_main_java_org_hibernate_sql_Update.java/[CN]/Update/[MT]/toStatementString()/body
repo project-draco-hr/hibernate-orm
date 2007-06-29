@@ -1,0 +1,54 @@
+{
+  StringBuffer buf=new StringBuffer((columns.size() * 15) + tableName.length() + 10);
+  if (comment != null) {
+    buf.append("/* ").append(comment).append(" */ ");
+  }
+  buf.append("update ").append(tableName).append(" set ");
+  boolean assignmentsAppended=false;
+  Iterator iter=columns.entrySet().iterator();
+  while (iter.hasNext()) {
+    Map.Entry e=(Map.Entry)iter.next();
+    buf.append(e.getKey()).append('=').append(e.getValue());
+    if (iter.hasNext()) {
+      buf.append(", ");
+    }
+    assignmentsAppended=true;
+  }
+  if (assignments != null) {
+    if (assignmentsAppended) {
+      buf.append(", ");
+    }
+    buf.append(assignments);
+  }
+  boolean conditionsAppended=false;
+  if (primaryKeyColumnNames != null || where != null || !whereColumns.isEmpty() || versionColumnName != null) {
+    buf.append(" where ");
+  }
+  if (primaryKeyColumnNames != null) {
+    buf.append(StringHelper.join("=? and ",primaryKeyColumnNames)).append("=?");
+    conditionsAppended=true;
+  }
+  if (where != null) {
+    if (conditionsAppended) {
+      buf.append(" and ");
+    }
+    buf.append(where);
+    conditionsAppended=true;
+  }
+  iter=whereColumns.entrySet().iterator();
+  while (iter.hasNext()) {
+    final Map.Entry e=(Map.Entry)iter.next();
+    if (conditionsAppended) {
+      buf.append(" and ");
+    }
+    buf.append(e.getKey()).append(e.getValue());
+    conditionsAppended=true;
+  }
+  if (versionColumnName != null) {
+    if (conditionsAppended) {
+      buf.append(" and ");
+    }
+    buf.append(versionColumnName).append("=?");
+  }
+  return buf.toString();
+}

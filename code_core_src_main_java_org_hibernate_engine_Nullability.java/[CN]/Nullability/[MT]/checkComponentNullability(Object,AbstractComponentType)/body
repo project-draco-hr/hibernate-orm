@@ -1,0 +1,20 @@
+{
+  boolean[] nullability=compType.getPropertyNullability();
+  if (nullability != null) {
+    final Object[] values=compType.getPropertyValues(value,session.getEntityMode());
+    final Type[] propertyTypes=compType.getSubtypes();
+    for (int i=0; i < values.length; i++) {
+      final Object subvalue=values[i];
+      if (!nullability[i] && subvalue == null) {
+        return compType.getPropertyNames()[i];
+      }
+ else       if (subvalue != null) {
+        String breakProperties=checkSubElementsNullability(propertyTypes[i],subvalue);
+        if (breakProperties != null) {
+          return buildPropertyPath(compType.getPropertyNames()[i],breakProperties);
+        }
+      }
+    }
+  }
+  return null;
+}

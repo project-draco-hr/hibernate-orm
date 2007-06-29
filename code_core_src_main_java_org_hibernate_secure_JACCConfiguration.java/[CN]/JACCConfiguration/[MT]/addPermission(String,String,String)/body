@@ -1,0 +1,19 @@
+{
+  if (action.equals("*")) {
+    action="insert,read,update,delete";
+  }
+  StringTokenizer tok=new StringTokenizer(action,",");
+  while (tok.hasMoreTokens()) {
+    String methodName=tok.nextToken().trim();
+    EJBMethodPermission permission=new EJBMethodPermission(entityName,methodName,null,null);
+    if (log.isDebugEnabled()) {
+      log.debug("adding permission to role " + role + ": "+ permission);
+    }
+    try {
+      policyConfiguration.addToRole(role,permission);
+    }
+ catch (    PolicyContextException pce) {
+      throw new HibernateException("policy context exception occurred",pce);
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  int oldSize=event.getSession().getActionQueue().numberOfCollectionRemovals();
+  try {
+    flushEverythingToExecutions(event);
+    boolean wasNeeded=event.getSession().getActionQueue().hasAnyQueuedActions();
+    log.debug(wasNeeded ? "session dirty" : "session not dirty");
+    event.setDirty(wasNeeded);
+  }
+  finally {
+    event.getSession().getActionQueue().clearFromFlushNeededCheck(oldSize);
+  }
+}

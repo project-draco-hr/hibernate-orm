@@ -1,0 +1,39 @@
+{
+  if (prepared) {
+    throw new IllegalStateException("SelectClause was already prepared!");
+  }
+  List fromElements=fromClause.getProjectionList();
+  ASTAppender appender=new ASTAppender(getASTFactory(),this);
+  int size=fromElements.size();
+  ArrayList sqlResultTypeList=new ArrayList(size);
+  ArrayList queryReturnTypeList=new ArrayList(size);
+  Iterator iterator=fromElements.iterator();
+  for (int k=0; iterator.hasNext(); k++) {
+    FromElement fromElement=(FromElement)iterator.next();
+    Type type=fromElement.getSelectType();
+    addCollectionFromElement(fromElement);
+    if (type != null) {
+      boolean collectionOfElements=fromElement.isCollectionOfValuesOrComponents();
+      if (!collectionOfElements) {
+        if (!fromElement.isFetch()) {
+          queryReturnTypeList.add(type);
+        }
+        fromElementsForLoad.add(fromElement);
+        sqlResultTypeList.add(type);
+        String text=fromElement.renderIdentifierSelect(size,k);
+        SelectExpressionImpl generatedExpr=(SelectExpressionImpl)appender.append(SqlTokenTypes.SELECT_EXPR,text,false);
+        if (generatedExpr != null) {
+          generatedExpr.setFromElement(fromElement);
+        }
+      }
+    }
+  }
+  SelectExpression[] selectExpressions=collectSelectExpressions();
+  if (getWalker().isShallowQuery()) {
+    renderScalarSelects(selectExpressions,fromClause);
+  }
+ else {
+    renderNonScalarSelects(selectExpressions,fromClause);
+  }
+  finishInitialization(queryReturnTypeList);
+}

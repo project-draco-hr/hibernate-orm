@@ -1,0 +1,16 @@
+{
+  bindClass(node,unionSubclass,mappings,inheritedMetas);
+  inheritedMetas=getMetas(node,inheritedMetas,true);
+  if (unionSubclass.getEntityPersisterClass() == null) {
+    unionSubclass.getRootClass().setEntityPersisterClass(UnionSubclassEntityPersister.class);
+  }
+  Attribute schemaNode=node.attribute("schema");
+  String schema=schemaNode == null ? mappings.getSchemaName() : schemaNode.getValue();
+  Attribute catalogNode=node.attribute("catalog");
+  String catalog=catalogNode == null ? mappings.getCatalogName() : catalogNode.getValue();
+  Table denormalizedSuperTable=unionSubclass.getSuperclass().getTable();
+  Table mytable=mappings.addDenormalizedTable(schema,catalog,getClassTableName(unionSubclass,node,schema,catalog,denormalizedSuperTable,mappings),unionSubclass.isAbstract() != null && unionSubclass.isAbstract().booleanValue(),getSubselect(node),denormalizedSuperTable);
+  unionSubclass.setTable(mytable);
+  log.info("Mapping union-subclass: " + unionSubclass.getEntityName() + " -> "+ unionSubclass.getTable().getName());
+  createClassProperties(node,unionSubclass,mappings,inheritedMetas);
+}

@@ -1,0 +1,36 @@
+{
+  if (value == null) {
+    return null;
+  }
+ else   if (type.isEntityType()) {
+    EntityType entityType=(EntityType)type;
+    if (entityType.isOneToOne()) {
+      return value;
+    }
+ else {
+      String entityName=entityType.getAssociatedEntityName();
+      return isNullifiable(entityName,value) ? null : value;
+    }
+  }
+ else   if (type.isAnyType()) {
+    return isNullifiable(null,value) ? null : value;
+  }
+ else   if (type.isComponentType()) {
+    AbstractComponentType actype=(AbstractComponentType)type;
+    Object[] subvalues=actype.getPropertyValues(value,session);
+    Type[] subtypes=actype.getSubtypes();
+    boolean substitute=false;
+    for (int i=0; i < subvalues.length; i++) {
+      Object replacement=nullifyTransientReferences(subvalues[i],subtypes[i]);
+      if (replacement != subvalues[i]) {
+        substitute=true;
+        subvalues[i]=replacement;
+      }
+    }
+    if (substitute)     actype.setPropertyValues(value,subvalues,session.getEntityMode());
+    return value;
+  }
+ else {
+    return value;
+  }
+}

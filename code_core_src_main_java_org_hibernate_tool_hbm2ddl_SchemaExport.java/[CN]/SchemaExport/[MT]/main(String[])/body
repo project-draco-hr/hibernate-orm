@@ -1,0 +1,79 @@
+{
+  try {
+    Configuration cfg=new Configuration();
+    boolean script=true;
+    boolean drop=false;
+    boolean create=false;
+    boolean halt=false;
+    boolean export=true;
+    String outFile=null;
+    String importFile="/import.sql";
+    String propFile=null;
+    boolean format=false;
+    String delim=null;
+    for (int i=0; i < args.length; i++) {
+      if (args[i].startsWith("--")) {
+        if (args[i].equals("--quiet")) {
+          script=false;
+        }
+ else         if (args[i].equals("--drop")) {
+          drop=true;
+        }
+ else         if (args[i].equals("--create")) {
+          create=true;
+        }
+ else         if (args[i].equals("--haltonerror")) {
+          halt=true;
+        }
+ else         if (args[i].equals("--text")) {
+          export=false;
+        }
+ else         if (args[i].startsWith("--output=")) {
+          outFile=args[i].substring(9);
+        }
+ else         if (args[i].startsWith("--import=")) {
+          importFile=args[i].substring(9);
+        }
+ else         if (args[i].startsWith("--properties=")) {
+          propFile=args[i].substring(13);
+        }
+ else         if (args[i].equals("--format")) {
+          format=true;
+        }
+ else         if (args[i].startsWith("--delimiter=")) {
+          delim=args[i].substring(12);
+        }
+ else         if (args[i].startsWith("--config=")) {
+          cfg.configure(args[i].substring(9));
+        }
+ else         if (args[i].startsWith("--naming=")) {
+          cfg.setNamingStrategy((NamingStrategy)ReflectHelper.classForName(args[i].substring(9)).newInstance());
+        }
+      }
+ else {
+        String filename=args[i];
+        if (filename.endsWith(".jar")) {
+          cfg.addJar(new File(filename));
+        }
+ else {
+          cfg.addFile(filename);
+        }
+      }
+    }
+    if (propFile != null) {
+      Properties props=new Properties();
+      props.putAll(cfg.getProperties());
+      props.load(new FileInputStream(propFile));
+      cfg.setProperties(props);
+    }
+    SchemaExport se=new SchemaExport(cfg).setHaltOnError(halt).setOutputFile(outFile).setImportFile(importFile).setDelimiter(delim);
+    if (format) {
+      se.setFormat(true);
+    }
+    se.execute(script,export,drop,create);
+  }
+ catch (  Exception e) {
+    log.error("Error creating schema ",e);
+    e.printStackTrace();
+  }
+}

@@ -1,0 +1,48 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  Human joe=new Human();
+  joe.setName(new Name("Joe",'Q',"Public"));
+  s.save(joe);
+  Human doll=new Human();
+  doll.setName(new Name("Kyu",'P',"Doll"));
+  doll.setFriends(new ArrayList());
+  doll.getFriends().add(joe);
+  s.save(doll);
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  String updateQryString="update Human h " + "set h.description = 'updated' " + "where exists ("+ "      select f.id "+ "      from h.friends f "+ "      where f.name.last = 'Public' "+ ")";
+  int count=s.createQuery(updateQryString).executeUpdate();
+  assertEquals(1,count);
+  s.delete(doll);
+  s.delete(joe);
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  SimpleEntityWithAssociation entity=new SimpleEntityWithAssociation();
+  SimpleEntityWithAssociation other=new SimpleEntityWithAssociation();
+  entity.setName("main");
+  other.setName("many-to-many-association");
+  entity.getManyToManyAssociatedEntities().add(other);
+  entity.addAssociation("one-to-many-association");
+  s.save(entity);
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  updateQryString="update SimpleEntityWithAssociation e " + "set e.name = 'updated' " + "where exists ("+ "      select a.id "+ "      from e.associatedEntities a "+ "      where a.name = 'one-to-many-association' "+ ")";
+  count=s.createQuery(updateQryString).executeUpdate();
+  assertEquals(1,count);
+  if (supportsSubqueryOnMutatingTable()) {
+    updateQryString="update SimpleEntityWithAssociation e " + "set e.name = 'updated' " + "where exists ("+ "      select a.id "+ "      from e.manyToManyAssociatedEntities a "+ "      where a.name = 'many-to-many-association' "+ ")";
+    count=s.createQuery(updateQryString).executeUpdate();
+    assertEquals(1,count);
+  }
+  s.delete(entity.getManyToManyAssociatedEntities().iterator().next());
+  s.delete(entity);
+  t.commit();
+  s.close();
+}

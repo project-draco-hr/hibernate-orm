@@ -1,0 +1,35 @@
+{
+  FastClass fastClass;
+  BulkBean bulkBean;
+  try {
+    fastClass=FastClass.create(clazz);
+    bulkBean=BulkBean.create(clazz,getterNames,setterNames,types);
+    if (!clazz.isInterface() && !Modifier.isAbstract(clazz.getModifiers())) {
+      if (fastClass == null) {
+        bulkBean=null;
+      }
+ else {
+        Object instance=fastClass.newInstance();
+        bulkBean.setPropertyValues(instance,bulkBean.getPropertyValues(instance));
+      }
+    }
+  }
+ catch (  Throwable t) {
+    fastClass=null;
+    bulkBean=null;
+    String message="reflection optimizer disabled for: " + clazz.getName() + " ["+ StringHelper.unqualify(t.getClass().getName())+ ": "+ t.getMessage();
+    if (t instanceof BulkBeanException) {
+      int index=((BulkBeanException)t).getIndex();
+      if (index >= 0) {
+        message+=" (property " + setterNames[index] + ")";
+      }
+    }
+    log.debug(message);
+  }
+  if (fastClass != null && bulkBean != null) {
+    return new ReflectionOptimizerImpl(new InstantiationOptimizerAdapter(fastClass),new AccessOptimizerAdapter(bulkBean,clazz));
+  }
+ else {
+    return null;
+  }
+}

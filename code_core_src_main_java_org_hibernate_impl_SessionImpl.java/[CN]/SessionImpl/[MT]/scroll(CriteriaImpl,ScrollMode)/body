@@ -1,0 +1,14 @@
+{
+  errorIfClosed();
+  checkTransactionSynchStatus();
+  String entityName=criteria.getEntityOrClassName();
+  CriteriaLoader loader=new CriteriaLoader(getOuterJoinLoadable(entityName),factory,criteria,entityName,getEnabledFilters());
+  autoFlushIfRequired(loader.getQuerySpaces());
+  dontFlushFromFind++;
+  try {
+    return loader.scroll(this,scrollMode);
+  }
+  finally {
+    dontFlushFromFind--;
+  }
+}

@@ -1,0 +1,25 @@
+{
+  final String sql=session.getFactory().getDialect().getSelectGUIDString();
+  try {
+    PreparedStatement st=session.getBatcher().prepareSelectStatement(sql);
+    try {
+      ResultSet rs=st.executeQuery();
+      final String result;
+      try {
+        rs.next();
+        result=rs.getString(1);
+      }
+  finally {
+        rs.close();
+      }
+      log.debug("GUID identifier generated: " + result);
+      return result;
+    }
+  finally {
+      session.getBatcher().closeStatement(st);
+    }
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(session.getFactory().getSQLExceptionConverter(),sqle,"could not retrieve GUID",sql);
+  }
+}

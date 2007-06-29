@@ -1,0 +1,36 @@
+{
+  Type type=TypeFactory.basic(typeName);
+  if (type == null) {
+    Class typeClass;
+    try {
+      typeClass=ReflectHelper.classForName(typeName);
+    }
+ catch (    ClassNotFoundException cnfe) {
+      typeClass=null;
+    }
+    if (typeClass != null) {
+      if (Type.class.isAssignableFrom(typeClass)) {
+        try {
+          type=(Type)typeClass.newInstance();
+        }
+ catch (        Exception e) {
+          throw new MappingException("Could not instantiate Type: " + typeClass.getName(),e);
+        }
+        injectParameters(type,parameters);
+      }
+ else       if (CompositeUserType.class.isAssignableFrom(typeClass)) {
+        type=new CompositeCustomType(typeClass,parameters);
+      }
+ else       if (UserType.class.isAssignableFrom(typeClass)) {
+        type=new CustomType(typeClass,parameters);
+      }
+ else       if (Lifecycle.class.isAssignableFrom(typeClass)) {
+        type=Hibernate.entity(typeClass);
+      }
+ else       if (Serializable.class.isAssignableFrom(typeClass)) {
+        type=Hibernate.serializable(typeClass);
+      }
+    }
+  }
+  return type;
+}

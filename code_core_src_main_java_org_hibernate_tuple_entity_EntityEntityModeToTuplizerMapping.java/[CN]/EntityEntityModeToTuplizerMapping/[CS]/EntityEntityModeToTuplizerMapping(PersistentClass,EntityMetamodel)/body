@@ -1,0 +1,58 @@
+{
+  Map userSuppliedTuplizerImpls=new HashMap();
+  if (mappedEntity.getTuplizerMap() != null) {
+    userSuppliedTuplizerImpls.putAll(mappedEntity.getTuplizerMap());
+  }
+  Tuplizer dynamicMapTuplizer=null;
+  String tuplizerImpl=(String)userSuppliedTuplizerImpls.remove(EntityMode.MAP);
+  if (tuplizerImpl == null) {
+    dynamicMapTuplizer=new DynamicMapEntityTuplizer(em,mappedEntity);
+  }
+ else {
+    dynamicMapTuplizer=buildEntityTuplizer(tuplizerImpl,mappedEntity,em);
+  }
+  Tuplizer pojoTuplizer=null;
+  tuplizerImpl=(String)userSuppliedTuplizerImpls.remove(EntityMode.POJO);
+  if (mappedEntity.hasPojoRepresentation()) {
+    if (tuplizerImpl == null) {
+      pojoTuplizer=new PojoEntityTuplizer(em,mappedEntity);
+    }
+ else {
+      pojoTuplizer=buildEntityTuplizer(tuplizerImpl,mappedEntity,em);
+    }
+  }
+ else {
+    pojoTuplizer=dynamicMapTuplizer;
+  }
+  Tuplizer dom4jTuplizer=null;
+  tuplizerImpl=(String)userSuppliedTuplizerImpls.remove(EntityMode.DOM4J);
+  if (mappedEntity.hasDom4jRepresentation()) {
+    if (tuplizerImpl == null) {
+      dom4jTuplizer=new Dom4jEntityTuplizer(em,mappedEntity);
+    }
+ else {
+      dom4jTuplizer=buildEntityTuplizer(tuplizerImpl,mappedEntity,em);
+    }
+  }
+ else {
+    dom4jTuplizer=null;
+  }
+  if (pojoTuplizer != null) {
+    addTuplizer(EntityMode.POJO,pojoTuplizer);
+  }
+  if (dynamicMapTuplizer != null) {
+    addTuplizer(EntityMode.MAP,dynamicMapTuplizer);
+  }
+  if (dom4jTuplizer != null) {
+    addTuplizer(EntityMode.DOM4J,dom4jTuplizer);
+  }
+  if (!userSuppliedTuplizerImpls.isEmpty()) {
+    Iterator itr=userSuppliedTuplizerImpls.entrySet().iterator();
+    while (itr.hasNext()) {
+      Map.Entry entry=(Map.Entry)itr.next();
+      EntityMode entityMode=(EntityMode)entry.getKey();
+      EntityTuplizer tuplizer=buildEntityTuplizer((String)entry.getValue(),mappedEntity,em);
+      addTuplizer(entityMode,tuplizer);
+    }
+  }
+}

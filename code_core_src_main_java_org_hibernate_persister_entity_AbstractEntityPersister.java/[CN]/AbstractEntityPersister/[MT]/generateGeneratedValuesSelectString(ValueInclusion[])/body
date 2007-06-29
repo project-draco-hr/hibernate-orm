@@ -1,0 +1,12 @@
+{
+  Select select=new Select(getFactory().getDialect());
+  if (getFactory().getSettings().isCommentsEnabled()) {
+    select.setComment("get generated state " + getEntityName());
+  }
+  String[] aliasedIdColumns=StringHelper.qualify(getRootAlias(),getIdentifierColumnNames());
+  String selectClause=concretePropertySelectFragment(getRootAlias(),inclusions);
+  selectClause=selectClause.substring(2);
+  String fromClause=fromTableFragment(getRootAlias()) + fromJoinFragment(getRootAlias(),true,false);
+  String whereClause=new StringBuffer().append(StringHelper.join("=? and ",aliasedIdColumns)).append("=?").append(whereJoinFragment(getRootAlias(),true,false)).toString();
+  return select.setSelectClause(selectClause).setFromClause(fromClause).setOuterJoins("","").setWhereClause(whereClause).toStatementString();
+}

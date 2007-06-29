@@ -1,0 +1,20 @@
+{
+  Session s=openSession();
+  Serializable id=s.save(new Baz());
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  Baz baz=(Baz)s.load(Baz.class,id);
+  Set foos=baz.getFooSet();
+  assertTrue(foos.size() == 0);
+  Foo foo=new Foo();
+  foos.add(foo);
+  s.save(foo);
+  s.flush();
+  s.delete(foo);
+  s.delete(baz);
+  s.flush();
+  s.connection().commit();
+  s.close();
+}

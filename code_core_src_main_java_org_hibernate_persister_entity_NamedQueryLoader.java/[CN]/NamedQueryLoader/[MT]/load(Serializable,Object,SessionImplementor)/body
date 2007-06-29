@@ -1,0 +1,18 @@
+{
+  if (log.isDebugEnabled()) {
+    log.debug("loading entity: " + persister.getEntityName() + " using named query: "+ queryName);
+  }
+  AbstractQueryImpl query=(AbstractQueryImpl)session.getNamedQuery(queryName);
+  if (query.hasNamedParameters()) {
+    query.setParameter(query.getNamedParameters()[0],id,persister.getIdentifierType());
+  }
+ else {
+    query.setParameter(0,id,persister.getIdentifierType());
+  }
+  query.setOptionalId(id);
+  query.setOptionalEntityName(persister.getEntityName());
+  query.setOptionalObject(optionalObject);
+  query.setFlushMode(FlushMode.MANUAL);
+  query.list();
+  return session.getPersistenceContext().getEntity(new EntityKey(id,persister,session.getEntityMode()));
+}

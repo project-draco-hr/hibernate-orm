@@ -1,0 +1,37 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  Person person=new Person();
+  person.setName("Noob");
+  Product product=new Product();
+  product.setProductId(new Product.ProductId());
+  product.getProductId().setOrgid("x");
+  product.getProductId().setProductnumber("1234");
+  product.setName("Hibernate 3");
+  Order order=new Order();
+  order.setOrderId(new Order.OrderId());
+  order.getOrderId().setOrdernumber("1");
+  order.getOrderId().setOrgid("y");
+  product.getOrders().add(order);
+  order.setProduct(product);
+  order.setPerson(person);
+  s.save(product);
+  s.save(order);
+  s.save(person);
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  Product p=(Product)s.createQuery("from Product p join fetch p.orders").list().get(0);
+  assertTrue(Hibernate.isInitialized(p.getOrders()));
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  Object[] o=(Object[])s.createSQLQuery("select\r\n" + "        product.orgid as {product.id.orgid}," + "        product.productnumber as {product.id.productnumber},"+ "        {prod_orders}.orgid as orgid3_1_,\r\n"+ "        {prod_orders}.ordernumber as ordernum2_3_1_,\r\n"+ "        product.name as {product.name},"+ "        {prod_orders.element.*}"+ "    from\r\n"+ "        Product product \r\n"+ "    inner join\r\n"+ "        TBL_ORDER {prod_orders} \r\n"+ "            on product.orgid={prod_orders}.PROD_ORGID \r\n"+ "            and product.productnumber={prod_orders}.PROD_NO").addEntity("product",Product.class).addJoin("prod_orders","product.orders").list().get(0);
+  p=(Product)o[0];
+  assertTrue(Hibernate.isInitialized(p.getOrders()));
+  assertNotNull(p.getOrders().iterator().next());
+  t.commit();
+  s.close();
+}

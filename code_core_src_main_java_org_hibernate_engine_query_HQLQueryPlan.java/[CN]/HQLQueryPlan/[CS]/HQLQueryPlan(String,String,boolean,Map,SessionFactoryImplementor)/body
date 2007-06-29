@@ -1,0 +1,45 @@
+{
+  this.sourceQuery=hql;
+  this.shallow=shallow;
+  Set copy=new HashSet();
+  copy.addAll(enabledFilters.keySet());
+  this.enabledFilterNames=java.util.Collections.unmodifiableSet(copy);
+  Set combinedQuerySpaces=new HashSet();
+  String[] concreteQueryStrings=QuerySplitter.concreteQueries(hql,factory);
+  final int length=concreteQueryStrings.length;
+  translators=new QueryTranslator[length];
+  List sqlStringList=new ArrayList();
+  for (int i=0; i < length; i++) {
+    if (collectionRole == null) {
+      translators[i]=factory.getSettings().getQueryTranslatorFactory().createQueryTranslator(hql,concreteQueryStrings[i],enabledFilters,factory);
+      translators[i].compile(factory.getSettings().getQuerySubstitutions(),shallow);
+    }
+ else {
+      translators[i]=factory.getSettings().getQueryTranslatorFactory().createFilterTranslator(hql,concreteQueryStrings[i],enabledFilters,factory);
+      ((FilterTranslator)translators[i]).compile(collectionRole,factory.getSettings().getQuerySubstitutions(),shallow);
+    }
+    combinedQuerySpaces.addAll(translators[i].getQuerySpaces());
+    sqlStringList.addAll(translators[i].collectSqlStrings());
+  }
+  this.sqlStrings=ArrayHelper.toStringArray(sqlStringList);
+  this.querySpaces=combinedQuerySpaces;
+  if (length == 0) {
+    parameterMetadata=new ParameterMetadata(null,null);
+    returnMetadata=null;
+  }
+ else {
+    this.parameterMetadata=buildParameterMetadata(translators[0].getParameterTranslations(),hql);
+    if (translators[0].isManipulationStatement()) {
+      returnMetadata=null;
+    }
+ else {
+      if (length > 1) {
+        final int returns=translators[0].getReturnTypes().length;
+        returnMetadata=new ReturnMetadata(translators[0].getReturnAliases(),new Type[returns]);
+      }
+ else {
+        returnMetadata=new ReturnMetadata(translators[0].getReturnAliases(),translators[0].getReturnTypes());
+      }
+    }
+  }
+}

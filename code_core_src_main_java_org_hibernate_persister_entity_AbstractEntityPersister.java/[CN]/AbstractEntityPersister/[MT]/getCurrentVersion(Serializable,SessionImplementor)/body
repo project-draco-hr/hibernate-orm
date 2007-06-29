@@ -1,0 +1,30 @@
+{
+  if (log.isTraceEnabled()) {
+    log.trace("Getting version: " + MessageHelper.infoString(this,id,getFactory()));
+  }
+  try {
+    PreparedStatement st=session.getBatcher().prepareSelectStatement(getVersionSelectString());
+    try {
+      getIdentifierType().nullSafeSet(st,id,1,session);
+      ResultSet rs=st.executeQuery();
+      try {
+        if (!rs.next()) {
+          return null;
+        }
+        if (!isVersioned()) {
+          return this;
+        }
+        return getVersionType().nullSafeGet(rs,getVersionColumnName(),session,null);
+      }
+  finally {
+        rs.close();
+      }
+    }
+  finally {
+      session.getBatcher().closeStatement(st);
+    }
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(getFactory().getSQLExceptionConverter(),sqle,"could not retrieve version: " + MessageHelper.infoString(this,id,getFactory()),getVersionSelectString());
+  }
+}

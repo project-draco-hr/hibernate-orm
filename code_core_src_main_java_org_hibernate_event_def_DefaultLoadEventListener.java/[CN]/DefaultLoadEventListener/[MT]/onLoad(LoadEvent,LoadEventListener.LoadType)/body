@@ -1,0 +1,40 @@
+{
+  final SessionImplementor source=event.getSession();
+  EntityPersister persister;
+  if (event.getInstanceToLoad() != null) {
+    persister=source.getEntityPersister(null,event.getInstanceToLoad());
+    event.setEntityClassName(event.getInstanceToLoad().getClass().getName());
+  }
+ else {
+    persister=source.getFactory().getEntityPersister(event.getEntityClassName());
+  }
+  if (persister == null) {
+    throw new HibernateException("Unable to locate persister: " + event.getEntityClassName());
+  }
+  if (persister.getIdentifierType().isComponentType() && EntityMode.DOM4J == event.getSession().getEntityMode()) {
+  }
+ else {
+    Class idClass=persister.getIdentifierType().getReturnedClass();
+    if (idClass != null && !idClass.isInstance(event.getEntityId())) {
+      throw new TypeMismatchException("Provided id of the wrong type. Expected: " + idClass + ", got "+ event.getEntityId().getClass());
+    }
+  }
+  EntityKey keyToLoad=new EntityKey(event.getEntityId(),persister,source.getEntityMode());
+  try {
+    if (loadType.isNakedEntityReturned()) {
+      event.setResult(load(event,persister,keyToLoad,loadType));
+    }
+ else {
+      if (event.getLockMode() == LockMode.NONE) {
+        event.setResult(proxyOrLoad(event,persister,keyToLoad,loadType));
+      }
+ else {
+        event.setResult(lockAndLoad(event,persister,keyToLoad,loadType,source));
+      }
+    }
+  }
+ catch (  HibernateException e) {
+    log.info("Error performing load command",e);
+    throw e;
+  }
+}

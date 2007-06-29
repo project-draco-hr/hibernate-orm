@@ -1,0 +1,33 @@
+{
+  final SessionImplementor source=event.getSession();
+  final Object object=event.getObject();
+  final Object entity;
+  if (object instanceof HibernateProxy) {
+    LazyInitializer li=((HibernateProxy)object).getHibernateLazyInitializer();
+    if (li.isUninitialized()) {
+      if (li.getSession() == source) {
+        return;
+      }
+ else {
+        throw new PersistentObjectException("uninitialized proxy passed to persist()");
+      }
+    }
+    entity=li.getImplementation();
+  }
+ else {
+    entity=object;
+  }
+  int entityState=getEntityState(entity,event.getEntityName(),source.getPersistenceContext().getEntry(entity),source);
+switch (entityState) {
+case DETACHED:
+    throw new PersistentObjectException("detached entity passed to persist: " + getLoggableName(event.getEntityName(),entity));
+case PERSISTENT:
+  entityIsPersistent(event,createCache);
+break;
+case TRANSIENT:
+entityIsTransient(event,createCache);
+break;
+default :
+throw new ObjectDeletedException("deleted entity passed to persist",null,getLoggableName(event.getEntityName(),entity));
+}
+}

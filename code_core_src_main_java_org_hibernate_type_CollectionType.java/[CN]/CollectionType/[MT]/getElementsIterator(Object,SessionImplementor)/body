@@ -1,0 +1,17 @@
+{
+  if (session.getEntityMode() == EntityMode.DOM4J) {
+    final SessionFactoryImplementor factory=session.getFactory();
+    final CollectionPersister persister=factory.getCollectionPersister(getRole());
+    final Type elementType=persister.getElementType();
+    List elements=((Element)collection).elements(persister.getElementNodeName());
+    ArrayList results=new ArrayList();
+    for (int i=0; i < elements.size(); i++) {
+      Element value=(Element)elements.get(i);
+      results.add(elementType.fromXMLNode(value,factory));
+    }
+    return results.iterator();
+  }
+ else {
+    return getElementsIterator(collection);
+  }
+}

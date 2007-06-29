@@ -1,0 +1,59 @@
+{
+  if (token != null)   path.append(token);
+  String alias=q.getPathAlias(path.toString());
+  if (alias != null) {
+    reset(q);
+    currentName=alias;
+    currentPropertyMapping=q.getPropertyMapping(currentName);
+    if (!ignoreInitialJoin) {
+      JoinSequence ojf=q.getPathJoin(path.toString());
+      try {
+        joinSequence.addCondition(ojf.toJoinFragment(q.getEnabledFilters(),true).toWhereFragmentString());
+      }
+ catch (      MappingException me) {
+        throw new QueryException(me);
+      }
+    }
+  }
+ else   if (".".equals(token)) {
+    dotcount++;
+  }
+ else {
+    if (dotcount == 0) {
+      if (!continuation) {
+        if (!q.isName(token))         throw new QueryException("undefined alias: " + token);
+        currentName=token;
+        currentPropertyMapping=q.getPropertyMapping(currentName);
+      }
+    }
+ else     if (dotcount == 1) {
+      if (currentName != null) {
+        currentProperty=token;
+      }
+ else       if (collectionName != null) {
+        continuation=false;
+      }
+ else {
+        throw new QueryException("unexpected");
+      }
+    }
+ else {
+      Type propertyType=getPropertyType();
+      if (propertyType == null) {
+        throw new QueryException("unresolved property: " + path);
+      }
+      if (propertyType.isComponentType()) {
+        dereferenceComponent(token);
+      }
+ else       if (propertyType.isEntityType()) {
+        if (!isCollectionValued())         dereferenceEntity(token,(EntityType)propertyType,q);
+      }
+ else       if (propertyType.isCollectionType()) {
+        dereferenceCollection(token,((CollectionType)propertyType).getRole(),q);
+      }
+ else {
+        if (token != null)         throw new QueryException("dereferenced: " + path);
+      }
+    }
+  }
+}

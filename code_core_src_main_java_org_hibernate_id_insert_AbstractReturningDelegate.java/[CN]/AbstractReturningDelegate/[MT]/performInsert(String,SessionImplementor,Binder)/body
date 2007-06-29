@@ -1,0 +1,15 @@
+{
+  try {
+    PreparedStatement insert=prepare(insertSQL,session);
+    try {
+      binder.bindValues(insert);
+      return executeAndExtract(insert);
+    }
+  finally {
+      releaseStatement(insert,session);
+    }
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(session.getFactory().getSQLExceptionConverter(),sqle,"could not insert: " + MessageHelper.infoString(persister),insertSQL);
+  }
+}

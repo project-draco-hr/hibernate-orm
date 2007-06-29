@@ -1,0 +1,15 @@
+{
+  prepare();
+  Session sessionUnderTest=getSessionUnderTest();
+  sessionUnderTest.createQuery("from Silly").scroll();
+  try {
+    SerializationHelper.serialize(sessionUnderTest);
+    fail("Serialization of connected session allowed!");
+  }
+ catch (  IllegalStateException e) {
+  }
+ finally {
+    release(sessionUnderTest);
+    done();
+  }
+}

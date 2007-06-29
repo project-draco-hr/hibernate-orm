@@ -1,0 +1,28 @@
+{
+  if (log.isTraceEnabled()) {
+    log.debug("ending loading collection [" + lce + "]");
+  }
+  final SessionImplementor session=getLoadContext().getPersistenceContext().getSession();
+  final EntityMode em=session.getEntityMode();
+  boolean hasNoQueuedAdds=lce.getCollection().endRead();
+  if (persister.getCollectionType().hasHolder(em)) {
+    getLoadContext().getPersistenceContext().addCollectionHolder(lce.getCollection());
+  }
+  CollectionEntry ce=getLoadContext().getPersistenceContext().getCollectionEntry(lce.getCollection());
+  if (ce == null) {
+    ce=getLoadContext().getPersistenceContext().addInitializedCollection(persister,lce.getCollection(),lce.getKey());
+  }
+ else {
+    ce.postInitialize(lce.getCollection());
+  }
+  boolean addToCache=hasNoQueuedAdds && persister.hasCache() && session.getCacheMode().isPutEnabled()&& !ce.isDoremove();
+  if (addToCache) {
+    addCollectionToCache(lce,persister);
+  }
+  if (log.isDebugEnabled()) {
+    log.debug("collection fully initialized: " + MessageHelper.collectionInfoString(persister,lce.getKey(),session.getFactory()));
+  }
+  if (session.getFactory().getStatistics().isStatisticsEnabled()) {
+    session.getFactory().getStatisticsImplementor().loadCollection(persister.getRole());
+  }
+}

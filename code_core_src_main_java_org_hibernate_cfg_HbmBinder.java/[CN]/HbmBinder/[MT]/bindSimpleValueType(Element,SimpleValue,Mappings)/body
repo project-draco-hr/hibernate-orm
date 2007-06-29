@@ -1,0 +1,26 @@
+{
+  String typeName=null;
+  Properties parameters=new Properties();
+  Attribute typeNode=node.attribute("type");
+  if (typeNode == null)   typeNode=node.attribute("id-type");
+  if (typeNode != null)   typeName=typeNode.getValue();
+  Element typeChild=node.element("type");
+  if (typeName == null && typeChild != null) {
+    typeName=typeChild.attribute("name").getValue();
+    Iterator typeParameters=typeChild.elementIterator("param");
+    while (typeParameters.hasNext()) {
+      Element paramElement=(Element)typeParameters.next();
+      parameters.setProperty(paramElement.attributeValue("name"),paramElement.getTextTrim());
+    }
+  }
+  TypeDef typeDef=mappings.getTypeDef(typeName);
+  if (typeDef != null) {
+    typeName=typeDef.getTypeClass();
+    Properties allParameters=new Properties();
+    allParameters.putAll(typeDef.getParameters());
+    allParameters.putAll(parameters);
+    parameters=allParameters;
+  }
+  if (!parameters.isEmpty())   simpleValue.setTypeParameters(parameters);
+  if (typeName != null)   simpleValue.setTypeName(typeName);
+}

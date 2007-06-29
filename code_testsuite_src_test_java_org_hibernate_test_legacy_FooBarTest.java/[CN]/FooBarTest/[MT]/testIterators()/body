@@ -1,0 +1,35 @@
+{
+  Session s=openSession();
+  for (int i=0; i < 10; i++) {
+    Qux q=new Qux();
+    Object qid=s.save(q);
+    assertTrue("not null",qid != null);
+  }
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  Iterator iter=s.iterate("from Qux q where q.stuff is null");
+  int count=0;
+  while (iter.hasNext()) {
+    Qux q=(Qux)iter.next();
+    q.setStuff("foo");
+    if (count == 0 || count == 5)     iter.remove();
+    count++;
+  }
+  assertTrue("iterate",count == 10);
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  assertTrue("delete by query",s.delete("from Qux q where q.stuff=?","foo",Hibernate.STRING) == 8);
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  iter=s.iterate("from Qux q");
+  assertTrue("empty iterator",!iter.hasNext());
+  s.flush();
+  s.connection().commit();
+  s.close();
+}

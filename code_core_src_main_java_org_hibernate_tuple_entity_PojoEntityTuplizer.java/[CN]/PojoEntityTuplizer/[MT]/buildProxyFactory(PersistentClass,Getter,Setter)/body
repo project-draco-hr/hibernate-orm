@@ -1,0 +1,53 @@
+{
+  HashSet proxyInterfaces=new HashSet();
+  proxyInterfaces.add(HibernateProxy.class);
+  Class mappedClass=persistentClass.getMappedClass();
+  Class proxyInterface=persistentClass.getProxyInterface();
+  if (proxyInterface != null && !mappedClass.equals(proxyInterface)) {
+    if (!proxyInterface.isInterface()) {
+      throw new MappingException("proxy must be either an interface, or the class itself: " + getEntityName());
+    }
+    proxyInterfaces.add(proxyInterface);
+  }
+  if (mappedClass.isInterface()) {
+    proxyInterfaces.add(mappedClass);
+  }
+  Iterator iter=persistentClass.getSubclassIterator();
+  while (iter.hasNext()) {
+    Subclass subclass=(Subclass)iter.next();
+    Class subclassProxy=subclass.getProxyInterface();
+    Class subclassClass=subclass.getMappedClass();
+    if (subclassProxy != null && !subclassClass.equals(subclassProxy)) {
+      if (!proxyInterface.isInterface()) {
+        throw new MappingException("proxy must be either an interface, or the class itself: " + subclass.getEntityName());
+      }
+      proxyInterfaces.add(subclassProxy);
+    }
+  }
+  Iterator properties=persistentClass.getPropertyIterator();
+  Class clazz=persistentClass.getMappedClass();
+  while (properties.hasNext()) {
+    Property property=(Property)properties.next();
+    Method method=property.getGetter(clazz).getMethod();
+    if (method != null && Modifier.isFinal(method.getModifiers())) {
+      log.error("Getters of lazy classes cannot be final: " + persistentClass.getEntityName() + "."+ property.getName());
+    }
+    method=property.getSetter(clazz).getMethod();
+    if (method != null && Modifier.isFinal(method.getModifiers())) {
+      log.error("Setters of lazy classes cannot be final: " + persistentClass.getEntityName() + "."+ property.getName());
+    }
+  }
+  Method idGetterMethod=idGetter == null ? null : idGetter.getMethod();
+  Method idSetterMethod=idSetter == null ? null : idSetter.getMethod();
+  Method proxyGetIdentifierMethod=idGetterMethod == null || proxyInterface == null ? null : ReflectHelper.getMethod(proxyInterface,idGetterMethod);
+  Method proxySetIdentifierMethod=idSetterMethod == null || proxyInterface == null ? null : ReflectHelper.getMethod(proxyInterface,idSetterMethod);
+  ProxyFactory pf=buildProxyFactoryInternal(persistentClass,idGetter,idSetter);
+  try {
+    pf.postInstantiate(getEntityName(),mappedClass,proxyInterfaces,proxyGetIdentifierMethod,proxySetIdentifierMethod,persistentClass.hasEmbeddedIdentifier() ? (AbstractComponentType)persistentClass.getIdentifier().getType() : null);
+  }
+ catch (  HibernateException he) {
+    log.warn("could not create proxy factory for:" + getEntityName(),he);
+    pf=null;
+  }
+  return pf;
+}

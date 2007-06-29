@@ -1,0 +1,24 @@
+{
+  try {
+    Session s=openSession();
+    s.beginTransaction();
+    Parent p=new Parent("parent");
+    Child c=new Child("child");
+    c.setParent(p);
+    s.persist(c);
+    try {
+      s.getTransaction().commit();
+      fail("expecting TransientObjectException on flush");
+    }
+ catch (    TransientObjectException e) {
+      log.trace("handled expected exception",e);
+      s.getTransaction().rollback();
+    }
+ finally {
+      s.close();
+    }
+  }
+  finally {
+    cleanupData();
+  }
+}

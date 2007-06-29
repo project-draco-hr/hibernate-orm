@@ -1,0 +1,23 @@
+{
+  if (x == y)   return true;
+  if (x == null || y == null)   return false;
+  long xTime=((java.util.Date)x).getTime();
+  long yTime=((java.util.Date)y).getTime();
+  boolean xts=x instanceof Timestamp;
+  boolean yts=y instanceof Timestamp;
+  int xNanos=xts ? ((Timestamp)x).getNanos() : 0;
+  int yNanos=yts ? ((Timestamp)y).getNanos() : 0;
+  if (!Environment.jvmHasJDK14Timestamp()) {
+    xTime+=xNanos / 1000000;
+    yTime+=yNanos / 1000000;
+  }
+  if (xTime != yTime)   return false;
+  if (xts && yts) {
+    int xn=xNanos % 1000000;
+    int yn=yNanos % 1000000;
+    return xn == yn;
+  }
+ else {
+    return true;
+  }
+}

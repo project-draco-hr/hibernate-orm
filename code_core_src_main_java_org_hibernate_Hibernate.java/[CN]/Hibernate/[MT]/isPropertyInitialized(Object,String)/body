@@ -1,0 +1,22 @@
+{
+  Object entity;
+  if (proxy instanceof HibernateProxy) {
+    LazyInitializer li=((HibernateProxy)proxy).getHibernateLazyInitializer();
+    if (li.isUninitialized()) {
+      return false;
+    }
+ else {
+      entity=li.getImplementation();
+    }
+  }
+ else {
+    entity=proxy;
+  }
+  if (FieldInterceptionHelper.isInstrumented(entity)) {
+    FieldInterceptor interceptor=FieldInterceptionHelper.extractFieldInterceptor(entity);
+    return interceptor == null || interceptor.isInitialized(propertyName);
+  }
+ else {
+    return true;
+  }
+}

@@ -1,0 +1,19 @@
+{
+  if (persister.isOneToMany()) {
+    walkEntityTree((OuterJoinLoadable)persister.getElementPersister(),alias,path,currentDepth);
+  }
+ else {
+    Type type=persister.getElementType();
+    if (type.isAssociationType()) {
+      AssociationType associationType=(AssociationType)type;
+      String[] aliasedLhsColumns=persister.getElementColumnNames(alias);
+      String[] lhsColumns=persister.getElementColumnNames();
+      boolean useInnerJoin=currentDepth == 0;
+      final int joinType=getJoinType(associationType,persister.getFetchMode(),path,persister.getTableName(),lhsColumns,!useInnerJoin,currentDepth - 1,null);
+      addAssociationToJoinTreeIfNecessary(associationType,aliasedLhsColumns,alias,path,currentDepth - 1,joinType);
+    }
+ else     if (type.isComponentType()) {
+      walkCompositeElementTree((AbstractComponentType)type,persister.getElementColumnNames(),persister,alias,path,currentDepth);
+    }
+  }
+}

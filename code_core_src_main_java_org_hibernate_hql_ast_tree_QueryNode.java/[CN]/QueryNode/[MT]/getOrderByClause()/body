@@ -1,0 +1,16 @@
+{
+  if (orderByClause == null) {
+    orderByClause=locateOrderByClause();
+    if (orderByClause == null) {
+      log.debug("getOrderByClause() : Creating a new ORDER BY clause");
+      orderByClause=(OrderByClause)ASTUtil.create(getWalker().getASTFactory(),SqlTokenTypes.ORDER,"ORDER");
+      AST prevSibling=ASTUtil.findTypeInChildren(this,SqlTokenTypes.WHERE);
+      if (prevSibling == null) {
+        prevSibling=ASTUtil.findTypeInChildren(this,SqlTokenTypes.FROM);
+      }
+      orderByClause.setNextSibling(prevSibling.getNextSibling());
+      prevSibling.setNextSibling(orderByClause);
+    }
+  }
+  return orderByClause;
+}

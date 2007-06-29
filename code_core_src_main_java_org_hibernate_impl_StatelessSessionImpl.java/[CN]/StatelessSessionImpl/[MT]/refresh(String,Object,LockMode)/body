@@ -1,0 +1,21 @@
+{
+  final EntityPersister persister=this.getEntityPersister(entityName,entity);
+  final Serializable id=persister.getIdentifier(entity,getEntityMode());
+  if (log.isTraceEnabled()) {
+    log.trace("refreshing transient " + MessageHelper.infoString(persister,id,this.getFactory()));
+  }
+  if (persister.hasCache()) {
+    final CacheKey ck=new CacheKey(id,persister.getIdentifierType(),persister.getRootEntityName(),this.getEntityMode(),this.getFactory());
+    persister.getCacheAccessStrategy().evict(ck);
+  }
+  String previousFetchProfile=this.getFetchProfile();
+  Object result=null;
+  try {
+    this.setFetchProfile("refresh");
+    result=persister.load(id,entity,lockMode,this);
+  }
+  finally {
+    this.setFetchProfile(previousFetchProfile);
+  }
+  UnresolvableObjectException.throwIfNull(result,id,persister.getEntityName());
+}

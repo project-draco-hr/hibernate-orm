@@ -1,0 +1,10 @@
+{
+  Object[] assembledProps=TypeFactory.assemble(values,persister.getPropertyTypes(),session,result);
+  PreLoadEvent preLoadEvent=new PreLoadEvent(session).setEntity(result).setState(assembledProps).setId(id).setPersister(persister);
+  PreLoadEventListener[] listeners=session.getListeners().getPreLoadEventListeners();
+  for (int i=0; i < listeners.length; i++) {
+    listeners[i].onPreLoad(preLoadEvent);
+  }
+  persister.setPropertyValues(result,assembledProps,session.getEntityMode());
+  return assembledProps;
+}

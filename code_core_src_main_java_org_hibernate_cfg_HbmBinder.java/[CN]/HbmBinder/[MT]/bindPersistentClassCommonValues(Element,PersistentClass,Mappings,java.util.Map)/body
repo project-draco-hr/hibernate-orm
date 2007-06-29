@@ -1,0 +1,38 @@
+{
+  Attribute discriminatorNode=node.attribute("discriminator-value");
+  entity.setDiscriminatorValue((discriminatorNode == null) ? entity.getEntityName() : discriminatorNode.getValue());
+  Attribute dynamicNode=node.attribute("dynamic-update");
+  entity.setDynamicUpdate(dynamicNode != null && "true".equals(dynamicNode.getValue()));
+  Attribute insertNode=node.attribute("dynamic-insert");
+  entity.setDynamicInsert(insertNode != null && "true".equals(insertNode.getValue()));
+  mappings.addImport(entity.getEntityName(),entity.getEntityName());
+  if (mappings.isAutoImport() && entity.getEntityName().indexOf('.') > 0) {
+    mappings.addImport(entity.getEntityName(),StringHelper.unqualify(entity.getEntityName()));
+  }
+  Attribute batchNode=node.attribute("batch-size");
+  if (batchNode != null)   entity.setBatchSize(Integer.parseInt(batchNode.getValue()));
+  Attribute sbuNode=node.attribute("select-before-update");
+  if (sbuNode != null)   entity.setSelectBeforeUpdate("true".equals(sbuNode.getValue()));
+  Attribute olNode=node.attribute("optimistic-lock");
+  entity.setOptimisticLockMode(getOptimisticLockMode(olNode));
+  entity.setMetaAttributes(getMetas(node,inheritedMetas));
+  Attribute persisterNode=node.attribute("persister");
+  if (persisterNode == null) {
+  }
+ else {
+    try {
+      entity.setEntityPersisterClass(ReflectHelper.classForName(persisterNode.getValue()));
+    }
+ catch (    ClassNotFoundException cnfe) {
+      throw new MappingException("Could not find persister class: " + persisterNode.getValue());
+    }
+  }
+  handleCustomSQL(node,entity);
+  Iterator tables=node.elementIterator("synchronize");
+  while (tables.hasNext()) {
+    entity.addSynchronizedTable(((Element)tables.next()).attributeValue("table"));
+  }
+  Attribute abstractNode=node.attribute("abstract");
+  Boolean isAbstract=abstractNode == null ? null : "true".equals(abstractNode.getValue()) ? Boolean.TRUE : "false".equals(abstractNode.getValue()) ? Boolean.FALSE : null;
+  entity.setAbstract(isAbstract);
+}

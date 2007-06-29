@@ -1,0 +1,19 @@
+{
+  if (dirtyProperties == null) {
+    return getTableHasColumns();
+  }
+ else {
+    boolean[] updateability=getPropertyUpdateability();
+    int[] propertyTableNumbers=getPropertyTableNumbers();
+    boolean[] tableUpdateNeeded=new boolean[getTableSpan()];
+    for (int i=0; i < dirtyProperties.length; i++) {
+      int property=dirtyProperties[i];
+      int table=propertyTableNumbers[property];
+      tableUpdateNeeded[table]=tableUpdateNeeded[table] || (getPropertyColumnSpan(property) > 0 && updateability[property]);
+    }
+    if (isVersioned()) {
+      tableUpdateNeeded[0]=tableUpdateNeeded[0] || Versioning.isVersionIncrementRequired(dirtyProperties,hasDirtyCollection,getPropertyVersionability());
+    }
+    return tableUpdateNeeded;
+  }
+}

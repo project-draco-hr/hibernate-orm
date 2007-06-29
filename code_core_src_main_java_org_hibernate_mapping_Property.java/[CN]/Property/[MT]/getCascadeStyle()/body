@@ -1,0 +1,23 @@
+{
+  Type type=value.getType();
+  if (type.isComponentType() && !type.isAnyType()) {
+    AbstractComponentType actype=(AbstractComponentType)type;
+    int length=actype.getSubtypes().length;
+    for (int i=0; i < length; i++) {
+      if (actype.getCascadeStyle(i) != CascadeStyle.NONE)       return CascadeStyle.ALL;
+    }
+    return CascadeStyle.NONE;
+  }
+ else   if (cascade == null || cascade.equals("none")) {
+    return CascadeStyle.NONE;
+  }
+ else {
+    StringTokenizer tokens=new StringTokenizer(cascade,", ");
+    CascadeStyle[] styles=new CascadeStyle[tokens.countTokens()];
+    int i=0;
+    while (tokens.hasMoreTokens()) {
+      styles[i++]=CascadeStyle.getCascadeStyle(tokens.nextToken());
+    }
+    return new CascadeStyle.MultipleCascadeStyle(styles);
+  }
+}

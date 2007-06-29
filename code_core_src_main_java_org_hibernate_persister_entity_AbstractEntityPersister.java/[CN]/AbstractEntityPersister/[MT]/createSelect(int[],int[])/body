@@ -1,0 +1,22 @@
+{
+  SelectFragment selectFragment=new SelectFragment();
+  int[] columnTableNumbers=getSubclassColumnTableNumberClosure();
+  String[] columnAliases=getSubclassColumnAliasClosure();
+  String[] columns=getSubclassColumnClosure();
+  for (int i=0; i < subclassColumnNumbers.length; i++) {
+    if (subclassColumnSelectableClosure[i]) {
+      int columnNumber=subclassColumnNumbers[i];
+      final String subalias=generateTableAlias(getRootAlias(),columnTableNumbers[columnNumber]);
+      selectFragment.addColumn(subalias,columns[columnNumber],columnAliases[columnNumber]);
+    }
+  }
+  int[] formulaTableNumbers=getSubclassFormulaTableNumberClosure();
+  String[] formulaTemplates=getSubclassFormulaTemplateClosure();
+  String[] formulaAliases=getSubclassFormulaAliasClosure();
+  for (int i=0; i < subclassFormulaNumbers.length; i++) {
+    int formulaNumber=subclassFormulaNumbers[i];
+    final String subalias=generateTableAlias(getRootAlias(),formulaTableNumbers[formulaNumber]);
+    selectFragment.addFormula(subalias,formulaTemplates[formulaNumber],formulaAliases[formulaNumber]);
+  }
+  return selectFragment;
+}

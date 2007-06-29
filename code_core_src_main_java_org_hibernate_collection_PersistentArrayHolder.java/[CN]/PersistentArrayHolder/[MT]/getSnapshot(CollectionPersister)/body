@@ -1,0 +1,16 @@
+{
+  EntityMode entityMode=getSession().getEntityMode();
+  int length=Array.getLength(array);
+  Serializable result=(Serializable)Array.newInstance(persister.getElementClass(),length);
+  for (int i=0; i < length; i++) {
+    Object elt=Array.get(array,i);
+    try {
+      Array.set(result,i,persister.getElementType().deepCopy(elt,entityMode,persister.getFactory()));
+    }
+ catch (    IllegalArgumentException iae) {
+      log.error("Array element type error",iae);
+      throw new HibernateException("Array element type error",iae);
+    }
+  }
+  return result;
+}

@@ -1,0 +1,31 @@
+{
+  StringBuffer buf=new StringBuffer(columns.size() * 10 + tableName.length() + whereTokens.size() * 10 + 10);
+  if (comment != null) {
+    buf.append("/* ").append(comment).append(" */ ");
+  }
+  buf.append("select ");
+  Set uniqueColumns=new HashSet();
+  Iterator iter=columns.iterator();
+  boolean appendComma=false;
+  while (iter.hasNext()) {
+    String col=(String)iter.next();
+    String alias=(String)aliases.get(col);
+    if (uniqueColumns.add(alias == null ? col : alias)) {
+      if (appendComma)       buf.append(", ");
+      buf.append(col);
+      if (alias != null && !alias.equals(col)) {
+        buf.append(" as ").append(alias);
+      }
+      appendComma=true;
+    }
+  }
+  buf.append(" from ").append(dialect.appendLockHint(lockMode,tableName));
+  if (whereTokens.size() > 0) {
+    buf.append(" where ").append(toWhereClause());
+  }
+  if (orderBy != null)   buf.append(orderBy);
+  if (lockMode != null) {
+    buf.append(dialect.getForUpdateString(lockMode));
+  }
+  return dialect.transformSelectString(buf.toString());
+}

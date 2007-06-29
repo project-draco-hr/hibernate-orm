@@ -1,0 +1,9 @@
+{
+  Update update=new Update(getDialect()).setTableName(qualifiedTableName).addColumns(keyColumnNames,"null");
+  if (hasIndex && !indexContainsFormula)   update.addColumns(indexColumnNames,"null");
+  if (getFactory().getSettings().isCommentsEnabled()) {
+    update.setComment("delete one-to-many row " + getRole());
+  }
+  String[] rowSelectColumnNames=ArrayHelper.join(keyColumnNames,elementColumnNames);
+  return update.setPrimaryKeyColumnNames(rowSelectColumnNames).toStatementString();
+}

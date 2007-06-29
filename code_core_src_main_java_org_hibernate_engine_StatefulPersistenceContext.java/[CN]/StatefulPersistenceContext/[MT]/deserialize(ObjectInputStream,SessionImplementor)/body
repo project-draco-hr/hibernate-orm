@@ -1,0 +1,78 @@
+{
+  log.trace("deserializing persistent-context");
+  StatefulPersistenceContext rtn=new StatefulPersistenceContext(session);
+  try {
+    rtn.hasNonReadOnlyEntities=ois.readBoolean();
+    int count=ois.readInt();
+    log.trace("staring deserialization of [" + count + "] entitiesByKey entries");
+    rtn.entitiesByKey=new HashMap(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
+    for (int i=0; i < count; i++) {
+      rtn.entitiesByKey.put(EntityKey.deserialize(ois,session),ois.readObject());
+    }
+    count=ois.readInt();
+    log.trace("staring deserialization of [" + count + "] entitiesByUniqueKey entries");
+    rtn.entitiesByUniqueKey=new HashMap(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
+    for (int i=0; i < count; i++) {
+      rtn.entitiesByUniqueKey.put(EntityUniqueKey.deserialize(ois,session),ois.readObject());
+    }
+    count=ois.readInt();
+    log.trace("staring deserialization of [" + count + "] proxiesByKey entries");
+    rtn.proxiesByKey=new ReferenceMap(ReferenceMap.HARD,ReferenceMap.WEAK,count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count,.75f);
+    for (int i=0; i < count; i++) {
+      EntityKey ek=EntityKey.deserialize(ois,session);
+      Object proxy=ois.readObject();
+      if (proxy instanceof HibernateProxy) {
+        ((HibernateProxy)proxy).getHibernateLazyInitializer().setSession(session);
+        rtn.proxiesByKey.put(ek,proxy);
+      }
+ else {
+        log.trace("encountered prunded proxy");
+      }
+    }
+    count=ois.readInt();
+    log.trace("staring deserialization of [" + count + "] entitySnapshotsByKey entries");
+    rtn.entitySnapshotsByKey=new HashMap(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
+    for (int i=0; i < count; i++) {
+      rtn.entitySnapshotsByKey.put(EntityKey.deserialize(ois,session),ois.readObject());
+    }
+    count=ois.readInt();
+    log.trace("staring deserialization of [" + count + "] entityEntries entries");
+    rtn.entityEntries=IdentityMap.instantiateSequenced(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
+    for (int i=0; i < count; i++) {
+      Object entity=ois.readObject();
+      EntityEntry entry=EntityEntry.deserialize(ois,session);
+      rtn.entityEntries.put(entity,entry);
+    }
+    count=ois.readInt();
+    log.trace("staring deserialization of [" + count + "] collectionsByKey entries");
+    rtn.collectionsByKey=new HashMap(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
+    for (int i=0; i < count; i++) {
+      rtn.collectionsByKey.put(CollectionKey.deserialize(ois,session),ois.readObject());
+    }
+    count=ois.readInt();
+    log.trace("staring deserialization of [" + count + "] collectionEntries entries");
+    rtn.collectionEntries=IdentityMap.instantiateSequenced(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
+    for (int i=0; i < count; i++) {
+      final PersistentCollection pc=(PersistentCollection)ois.readObject();
+      final CollectionEntry ce=CollectionEntry.deserialize(ois,session);
+      pc.setCurrentSession(session);
+      rtn.collectionEntries.put(pc,ce);
+    }
+    count=ois.readInt();
+    log.trace("staring deserialization of [" + count + "] arrayHolders entries");
+    rtn.arrayHolders=IdentityMap.instantiate(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
+    for (int i=0; i < count; i++) {
+      rtn.arrayHolders.put(ois.readObject(),ois.readObject());
+    }
+    count=ois.readInt();
+    log.trace("staring deserialization of [" + count + "] nullifiableEntityKeys entries");
+    rtn.nullifiableEntityKeys=new HashSet();
+    for (int i=0; i < count; i++) {
+      rtn.nullifiableEntityKeys.add(EntityKey.deserialize(ois,session));
+    }
+  }
+ catch (  HibernateException he) {
+    throw new InvalidObjectException(he.getMessage());
+  }
+  return rtn;
+}

@@ -1,0 +1,16 @@
+{
+  if (log.isTraceEnabled())   log.trace("Releasing: " + key);
+  try {
+    cache.lock(key);
+    Lockable lockable=(Lockable)cache.get(key);
+    if (isUnlockable(clientLock,lockable)) {
+      decrementLock(key,(Lock)lockable);
+    }
+ else {
+      handleLockExpiry(key);
+    }
+  }
+  finally {
+    cache.unlock(key);
+  }
+}

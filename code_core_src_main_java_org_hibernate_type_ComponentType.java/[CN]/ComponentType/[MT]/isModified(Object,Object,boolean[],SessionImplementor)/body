@@ -1,0 +1,21 @@
+{
+  if (current == null) {
+    return old != null;
+  }
+  if (old == null) {
+    return current != null;
+  }
+  Object[] currentValues=getPropertyValues(current,session);
+  Object[] oldValues=(Object[])old;
+  int loc=0;
+  for (int i=0; i < currentValues.length; i++) {
+    int len=propertyTypes[i].getColumnSpan(session.getFactory());
+    boolean[] subcheckable=new boolean[len];
+    System.arraycopy(checkable,loc,subcheckable,0,len);
+    if (propertyTypes[i].isModified(oldValues[i],currentValues[i],subcheckable,session)) {
+      return true;
+    }
+    loc+=len;
+  }
+  return false;
+}

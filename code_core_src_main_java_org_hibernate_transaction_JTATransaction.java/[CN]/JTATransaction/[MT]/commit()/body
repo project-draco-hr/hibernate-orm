@@ -1,0 +1,32 @@
+{
+  if (!begun) {
+    throw new TransactionException("Transaction not successfully started");
+  }
+  log.debug("commit");
+  boolean flush=!transactionContext.isFlushModeNever() && (callback || !transactionContext.isFlushBeforeCompletionEnabled());
+  if (flush) {
+    transactionContext.managedFlush();
+  }
+  if (callback && newTransaction) {
+    jdbcContext.beforeTransactionCompletion(this);
+  }
+  closeIfRequired();
+  if (newTransaction) {
+    try {
+      ut.commit();
+      commitSucceeded=true;
+      log.debug("Committed JTA UserTransaction");
+    }
+ catch (    Exception e) {
+      commitFailed=true;
+      log.error("JTA commit failed",e);
+      throw new TransactionException("JTA commit failed: ",e);
+    }
+ finally {
+      afterCommitRollback();
+    }
+  }
+ else {
+    afterCommitRollback();
+  }
+}

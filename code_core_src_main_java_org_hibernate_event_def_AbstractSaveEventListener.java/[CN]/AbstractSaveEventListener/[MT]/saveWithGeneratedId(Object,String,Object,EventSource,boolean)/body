@@ -1,0 +1,19 @@
+{
+  EntityPersister persister=source.getEntityPersister(entityName,entity);
+  Serializable generatedId=persister.getIdentifierGenerator().generate(source,entity);
+  if (generatedId == null) {
+    throw new IdentifierGenerationException("null id generated for:" + entity.getClass());
+  }
+ else   if (generatedId == IdentifierGeneratorFactory.SHORT_CIRCUIT_INDICATOR) {
+    return source.getIdentifier(entity);
+  }
+ else   if (generatedId == IdentifierGeneratorFactory.POST_INSERT_INDICATOR) {
+    return performSave(entity,null,persister,true,anything,source,requiresImmediateIdAccess);
+  }
+ else {
+    if (log.isDebugEnabled()) {
+      log.debug("generated identifier: " + persister.getIdentifierType().toLoggableString(generatedId,source.getFactory()) + ", using strategy: "+ persister.getIdentifierGenerator().getClass().getName());
+    }
+    return performSave(entity,generatedId,persister,false,anything,source,true);
+  }
+}

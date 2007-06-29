@@ -1,0 +1,18 @@
+{
+  try {
+    final JavassistLazyInitializer instance=new JavassistLazyInitializer(entityName,persistentClass,interfaces,id,getIdentifierMethod,setIdentifierMethod,componentIdType,session);
+    ProxyFactory factory=new ProxyFactory();
+    factory.setSuperclass(interfaces.length == 1 ? persistentClass : null);
+    factory.setInterfaces(interfaces);
+    factory.setFilter(FINALIZE_FILTER);
+    Class cl=factory.createClass();
+    final HibernateProxy proxy=(HibernateProxy)cl.newInstance();
+    ((ProxyObject)proxy).setHandler(instance);
+    instance.constructed=true;
+    return proxy;
+  }
+ catch (  Throwable t) {
+    LogFactory.getLog(BasicLazyInitializer.class).error("Javassist Enhancement failed: " + entityName,t);
+    throw new HibernateException("Javassist Enhancement failed: " + entityName,t);
+  }
+}

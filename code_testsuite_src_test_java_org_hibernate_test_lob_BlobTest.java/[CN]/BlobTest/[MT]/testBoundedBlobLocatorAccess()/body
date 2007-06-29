@@ -1,0 +1,54 @@
+{
+  byte[] original=buildRecursively(BLOB_SIZE,true);
+  byte[] changed=buildRecursively(BLOB_SIZE,false);
+  Session s=openSession();
+  s.beginTransaction();
+  LobHolder entity=new LobHolder();
+  entity.setBlobLocator(Hibernate.createBlob(original));
+  s.save(entity);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  entity=(LobHolder)s.get(LobHolder.class,entity.getId());
+  assertEquals(BLOB_SIZE,entity.getBlobLocator().length());
+  assertEquals(original,extractData(entity.getBlobLocator()));
+  s.getTransaction().commit();
+  s.close();
+  if (supportsLobValueChangePropogation()) {
+    s=openSession();
+    s.beginTransaction();
+    entity=(LobHolder)s.get(LobHolder.class,entity.getId(),LockMode.UPGRADE);
+    entity.getBlobLocator().truncate(1);
+    entity.getBlobLocator().setBytes(1,changed);
+    s.getTransaction().commit();
+    s.close();
+    s=openSession();
+    s.beginTransaction();
+    entity=(LobHolder)s.get(LobHolder.class,entity.getId(),LockMode.UPGRADE);
+    assertNotNull(entity.getBlobLocator());
+    assertEquals(BLOB_SIZE,entity.getBlobLocator().length());
+    assertEquals(changed,extractData(entity.getBlobLocator()));
+    entity.getBlobLocator().truncate(1);
+    entity.getBlobLocator().setBytes(1,original);
+    s.getTransaction().commit();
+    s.close();
+  }
+  s=openSession();
+  s.beginTransaction();
+  entity=(LobHolder)s.get(LobHolder.class,entity.getId(),LockMode.UPGRADE);
+  assertNotNull(entity.getBlobLocator());
+  assertEquals(BLOB_SIZE,entity.getBlobLocator().length());
+  assertEquals(original,extractData(entity.getBlobLocator()));
+  entity.setBlobLocator(Hibernate.createBlob(changed));
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  entity=(LobHolder)s.get(LobHolder.class,entity.getId());
+  assertEquals(BLOB_SIZE,entity.getBlobLocator().length());
+  assertEquals(changed,extractData(entity.getBlobLocator()));
+  s.delete(entity);
+  s.getTransaction().commit();
+  s.close();
+}

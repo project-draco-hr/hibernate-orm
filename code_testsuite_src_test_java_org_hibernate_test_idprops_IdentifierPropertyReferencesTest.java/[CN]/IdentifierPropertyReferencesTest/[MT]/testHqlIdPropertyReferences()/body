@@ -1,0 +1,45 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  Person p=new Person(new Long(1),"steve",123);
+  s.save(p);
+  Order o=new Order(new Long(1),p);
+  LineItem l=new LineItem(o,"my-product",2);
+  l.setId("456");
+  s.save(o);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  long count=extractCount(s,"select count(*) from Person p where p.id = 123");
+  assertEquals("Person by id prop (non-identifier)",1,count);
+  count=extractCount(s,"select count(*) from Person p where p.pk = 1");
+  assertEquals("Person by pk prop (identifier)",1,count);
+  count=extractCount(s,"select count(*) from Order o where o.id = 1");
+  assertEquals("Order by number prop (named identifier)",1,count);
+  count=extractCount(s,"select count(*) from Order o where o.number = 1");
+  assertEquals("Order by id prop (virtual identifier)",1,count);
+  count=extractCount(s,"select count(*) from LineItem l where l.id = '456'");
+  assertEquals("LineItem by id prop (non-identifier",1,count);
+  if (getDialect().supportsRowValueConstructorSyntax()) {
+    Query q=s.createQuery("select count(*) from LineItem l where l.pk = (:order, :product)").setEntity("order",o).setString("product","my-product");
+    count=extractCount(q);
+    assertEquals("LineItem by pk prop (named composite identifier",1,count);
+  }
+  count=extractCount(s,"select count(*) from Order o where o.orderee.id = 1");
+  assertEquals(0,count);
+  count=extractCount(s,"select count(*) from Order o where o.orderee.pk = 1");
+  assertEquals(1,count);
+  count=extractCount(s,"select count(*) from Order o where o.orderee.id = 123");
+  assertEquals(1,count);
+  count=extractCount(s,"select count(*) from LineItem l where l.pk.order.id = 1");
+  assertEquals(1,count);
+  count=extractCount(s,"select count(*) from LineItem l where l.pk.order.number = 1");
+  assertEquals(1,count);
+  count=extractCount(s,"select count(*) from LineItem l where l.pk.order.orderee.pk = 1");
+  assertEquals(1,count);
+  s.delete(o);
+  s.delete(p);
+  s.getTransaction().commit();
+  s.close();
+}

@@ -1,0 +1,21 @@
+{
+  if (!supportsCircularCascadeDelete()) {
+    return;
+  }
+  Session s=openSession();
+  Baz baz=new Baz();
+  baz.subs=new ArrayList();
+  Baz sub=new Baz();
+  sub.superBaz=baz;
+  baz.subs.add(sub);
+  s.save(baz);
+  s.flush();
+  assertTrue(s.createQuery("from Baz").list().size() == 2);
+  s.connection().commit();
+  s.delete(baz);
+  s.flush();
+  s.connection().commit();
+  assertTrue(s.createQuery("from Baz").list().size() == 0);
+  s.connection().commit();
+  s.close();
+}

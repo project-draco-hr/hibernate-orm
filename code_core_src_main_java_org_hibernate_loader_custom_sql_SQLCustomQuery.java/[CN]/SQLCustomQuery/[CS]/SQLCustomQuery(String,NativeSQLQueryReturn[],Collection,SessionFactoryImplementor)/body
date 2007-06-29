@@ -1,0 +1,12 @@
+{
+  log.trace("starting processing of sql query [" + sqlQuery + "]");
+  SQLQueryReturnProcessor processor=new SQLQueryReturnProcessor(queryReturns,factory);
+  SQLQueryReturnProcessor.ResultAliasContext aliasContext=processor.process();
+  SQLQueryParser parser=new SQLQueryParser(sqlQuery,new ParserContext(aliasContext));
+  this.sql=parser.process();
+  this.namedParameterBindPoints.putAll(parser.getNamedParameters());
+  customQueryReturns.addAll(processor.generateCustomReturns(parser.queryHasAliases()));
+  if (additionalQuerySpaces != null) {
+    querySpaces.addAll(additionalQuerySpaces);
+  }
+}

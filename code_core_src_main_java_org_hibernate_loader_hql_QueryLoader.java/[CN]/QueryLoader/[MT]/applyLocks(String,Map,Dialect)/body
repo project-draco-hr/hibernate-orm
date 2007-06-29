@@ -1,0 +1,24 @@
+{
+  if (lockModes == null || lockModes.size() == 0) {
+    return sql;
+  }
+  final Map aliasedLockModes=new HashMap();
+  final Map keyColumnNames=dialect.forUpdateOfColumns() ? new HashMap() : null;
+  final Iterator iter=lockModes.entrySet().iterator();
+  while (iter.hasNext()) {
+    Map.Entry me=(Map.Entry)iter.next();
+    final String userAlias=(String)me.getKey();
+    final String drivingSqlAlias=(String)sqlAliasByEntityAlias.get(userAlias);
+    if (drivingSqlAlias == null) {
+      throw new IllegalArgumentException("could not locate alias to apply lock mode : " + userAlias);
+    }
+    final QueryNode select=(QueryNode)queryTranslator.getSqlAST();
+    final Lockable drivingPersister=(Lockable)select.getFromClause().getFromElement(userAlias).getQueryable();
+    final String sqlAlias=drivingPersister.getRootTableAlias(drivingSqlAlias);
+    aliasedLockModes.put(sqlAlias,me.getValue());
+    if (keyColumnNames != null) {
+      keyColumnNames.put(sqlAlias,drivingPersister.getRootTableIdentifierColumnNames());
+    }
+  }
+  return dialect.applyLocksToSql(sql,aliasedLockModes,keyColumnNames);
+}

@@ -1,0 +1,61 @@
+{
+  if (isInverseTable(j)) {
+    return;
+  }
+  if (isNullableTable(j) && isAllNull(fields,j)) {
+    return;
+  }
+  if (log.isTraceEnabled()) {
+    log.trace("Inserting entity: " + MessageHelper.infoString(this,id,getFactory()));
+    if (j == 0 && isVersioned()) {
+      log.trace("Version: " + Versioning.getVersion(fields,this));
+    }
+  }
+  Expectation expectation=Expectations.appropriateExpectation(insertResultCheckStyles[j]);
+  boolean callable=isInsertCallable(j);
+  final boolean useBatch=j == 0 && expectation.canBeBatched();
+  try {
+    final PreparedStatement insert;
+    if (useBatch) {
+      if (callable) {
+        insert=session.getBatcher().prepareBatchCallableStatement(sql);
+      }
+ else {
+        insert=session.getBatcher().prepareBatchStatement(sql);
+      }
+    }
+ else {
+      if (callable) {
+        insert=session.getBatcher().prepareCallableStatement(sql);
+      }
+ else {
+        insert=session.getBatcher().prepareStatement(sql);
+      }
+    }
+    try {
+      int index=1;
+      index+=expectation.prepare(insert);
+      dehydrate(id,fields,null,notNull,propertyColumnInsertable,j,insert,session,index);
+      if (useBatch) {
+        session.getBatcher().addToBatch(expectation);
+      }
+ else {
+        expectation.verifyOutcome(insert.executeUpdate(),insert,-1);
+      }
+    }
+ catch (    SQLException sqle) {
+      if (useBatch) {
+        session.getBatcher().abortBatch(sqle);
+      }
+      throw sqle;
+    }
+ finally {
+      if (!useBatch) {
+        session.getBatcher().closeStatement(insert);
+      }
+    }
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(getFactory().getSQLExceptionConverter(),sqle,"could not insert: " + MessageHelper.infoString(this),sql);
+  }
+}

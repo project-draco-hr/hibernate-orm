@@ -1,0 +1,39 @@
+{
+  ResultSetMetaData oldmeta=null;
+  ResultSetMetaData newmeta=null;
+  int colCount=0;
+  Type[] types=null;
+  try {
+    oldmeta=oldrs.getMetaData();
+    newmeta=newrs.getMetaData();
+    assertEquals("Different column counts",oldmeta.getColumnCount(),newmeta.getColumnCount());
+    colCount=oldmeta.getColumnCount();
+    types=new Type[colCount];
+    for (int i=1, max=colCount; i < max; i++) {
+      assertEquals("Column names were different",oldmeta.getColumnName(i),newmeta.getColumnName(i));
+      assertEquals("Column types were different",oldmeta.getColumnType(i),newmeta.getColumnType(i));
+      assertEquals("Java types were different",oldmeta.getColumnClassName(i),newmeta.getColumnClassName(i));
+      types[i]=TypeFactory.basic(oldmeta.getColumnClassName(i));
+    }
+  }
+ catch (  Throwable t) {
+    fail("Error comparing result set metadata");
+  }
+  try {
+    while (oldrs.next() & newrs.next()) {
+      for (int i=1; i < colCount; i++) {
+        Object oldval=oldrs.getObject(i);
+        if (oldrs.wasNull())         oldval=null;
+        Object newval=newrs.getObject(i);
+        if (newrs.wasNull())         newval=null;
+        checkLogicalEquality(oldval,newval,types[i]);
+      }
+    }
+    while (oldrs.next())     ;
+    while (newrs.next())     ;
+    assertEquals("Different row counts",oldrs.getRow(),newrs.getRow());
+  }
+ catch (  Throwable t) {
+    fail("Error comparing result set structure");
+  }
+}

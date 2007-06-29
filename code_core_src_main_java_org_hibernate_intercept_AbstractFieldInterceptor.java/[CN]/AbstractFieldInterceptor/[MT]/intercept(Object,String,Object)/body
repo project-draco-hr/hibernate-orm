@@ -1,0 +1,26 @@
+{
+  if (initializing) {
+    return value;
+  }
+  if (uninitializedFields != null && uninitializedFields.contains(fieldName)) {
+    if (session == null) {
+      throw new LazyInitializationException("entity with lazy properties is not associated with a session");
+    }
+ else     if (!session.isOpen() || !session.isConnected()) {
+      throw new LazyInitializationException("session is not connected");
+    }
+    final Object result;
+    initializing=true;
+    try {
+      result=((LazyPropertyInitializer)session.getFactory().getEntityPersister(entityName)).initializeLazyProperty(fieldName,target,session);
+    }
+  finally {
+      initializing=false;
+    }
+    uninitializedFields=null;
+    return result;
+  }
+ else {
+    return value;
+  }
+}

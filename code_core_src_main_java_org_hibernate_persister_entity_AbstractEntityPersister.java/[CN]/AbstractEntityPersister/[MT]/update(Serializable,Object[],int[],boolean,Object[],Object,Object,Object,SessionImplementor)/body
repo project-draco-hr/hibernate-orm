@@ -1,0 +1,22 @@
+{
+  final boolean[] tableUpdateNeeded=getTableUpdateNeeded(dirtyFields,hasDirtyCollection);
+  final int span=getTableSpan();
+  final boolean[] propsToUpdate;
+  final String[] updateStrings;
+  if (entityMetamodel.isDynamicUpdate() && dirtyFields != null) {
+    propsToUpdate=getPropertiesToUpdate(dirtyFields,hasDirtyCollection);
+    updateStrings=new String[span];
+    for (int j=0; j < span; j++) {
+      updateStrings[j]=tableUpdateNeeded[j] ? generateUpdateString(propsToUpdate,j,oldFields,j == 0 && rowId != null) : null;
+    }
+  }
+ else {
+    updateStrings=getUpdateStrings(rowId != null,hasUninitializedLazyProperties(object,session.getEntityMode()));
+    propsToUpdate=getPropertyUpdateability(object,session.getEntityMode());
+  }
+  for (int j=0; j < span; j++) {
+    if (tableUpdateNeeded[j]) {
+      updateOrInsert(id,fields,oldFields,j == 0 ? rowId : null,propsToUpdate,j,oldVersion,object,updateStrings[j],session);
+    }
+  }
+}

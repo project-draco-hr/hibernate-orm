@@ -1,0 +1,21 @@
+{
+  if (referencedPropertyName != null) {
+    PersistentClass pc=(PersistentClass)persistentClasses.get(getReferencedEntityName());
+    Property property=pc.getReferencedProperty(getReferencedPropertyName());
+    if (property == null) {
+      throw new MappingException("Could not find property " + getReferencedPropertyName() + " on "+ getReferencedEntityName());
+    }
+ else {
+      if (!hasFormula() && !"none".equals(getForeignKeyName())) {
+        java.util.List refColumns=new ArrayList();
+        Iterator iter=property.getColumnIterator();
+        while (iter.hasNext()) {
+          Column col=(Column)iter.next();
+          refColumns.add(col);
+        }
+        ForeignKey fk=getTable().createForeignKey(getForeignKeyName(),getConstraintColumns(),((EntityType)getType()).getAssociatedEntityName(),refColumns);
+        fk.setCascadeDeleteEnabled(isCascadeDeleteEnabled());
+      }
+    }
+  }
+}

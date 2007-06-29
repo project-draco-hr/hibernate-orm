@@ -1,0 +1,73 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  User steve=new User("steve");
+  s.persist(steve);
+  t.commit();
+  s.close();
+  Session s1=null;
+  Session s2=null;
+  Transaction t1=null;
+  Transaction t2=null;
+  try {
+    s1=getSessions().openSession();
+    t1=s1.beginTransaction();
+    s2=getSessions().openSession();
+    t2=s2.beginTransaction();
+    User user1=(User)s1.get(User.class,steve.getId());
+    User user2=(User)s2.get(User.class,steve.getId());
+    user1.setUsername("se");
+    t1.commit();
+    t1=null;
+    user2.setUsername("steve-e");
+    try {
+      t2.commit();
+      fail("optimistic lock check did not fail");
+    }
+ catch (    HibernateException e) {
+      try {
+        t2.rollback();
+      }
+ catch (      Throwable ignore) {
+      }
+    }
+  }
+ catch (  Throwable error) {
+    if (t1 != null) {
+      try {
+        t1.rollback();
+      }
+ catch (      Throwable ignore) {
+      }
+    }
+    if (t2 != null) {
+      try {
+        t2.rollback();
+      }
+ catch (      Throwable ignore) {
+      }
+    }
+    throw error;
+  }
+ finally {
+    if (s1 != null) {
+      try {
+        s1.close();
+      }
+ catch (      Throwable ignore) {
+      }
+    }
+    if (s2 != null) {
+      try {
+        s2.close();
+      }
+ catch (      Throwable ignore) {
+      }
+    }
+  }
+  s=openSession();
+  t=s.beginTransaction();
+  s.delete(s.load(User.class,steve.getId()));
+  t.commit();
+  s.close();
+}

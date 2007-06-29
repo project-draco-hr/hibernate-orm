@@ -1,0 +1,58 @@
+{
+  final EventSource source=event.getSession();
+  final Object original=event.getOriginal();
+  if (original != null) {
+    final Object entity;
+    if (original instanceof HibernateProxy) {
+      LazyInitializer li=((HibernateProxy)original).getHibernateLazyInitializer();
+      if (li.isUninitialized()) {
+        log.trace("ignoring uninitialized proxy");
+        event.setResult(source.load(li.getEntityName(),li.getIdentifier()));
+        return;
+      }
+ else {
+        entity=li.getImplementation();
+      }
+    }
+ else {
+      entity=original;
+    }
+    if (copyCache.containsKey(entity)) {
+      log.trace("already merged");
+      event.setResult(entity);
+    }
+ else {
+      event.setEntity(entity);
+      int entityState=-1;
+      EntityEntry entry=source.getPersistenceContext().getEntry(entity);
+      if (entry == null) {
+        EntityPersister persister=source.getEntityPersister(event.getEntityName(),entity);
+        Serializable id=persister.getIdentifier(entity,source.getEntityMode());
+        if (id != null) {
+          EntityKey key=new EntityKey(id,persister,source.getEntityMode());
+          Object managedEntity=source.getPersistenceContext().getEntity(key);
+          entry=source.getPersistenceContext().getEntry(managedEntity);
+          if (entry != null) {
+            entityState=DETACHED;
+          }
+        }
+      }
+      if (entityState == -1) {
+        entityState=getEntityState(entity,event.getEntityName(),entry,source);
+      }
+switch (entityState) {
+case DETACHED:
+        entityIsDetached(event,copyCache);
+      break;
+case TRANSIENT:
+    entityIsTransient(event,copyCache);
+  break;
+case PERSISTENT:
+entityIsPersistent(event,copyCache);
+break;
+default :
+throw new ObjectDeletedException("deleted instance passed to merge",null,getLoggableName(event.getEntityName(),entity));
+}
+}
+}
+}

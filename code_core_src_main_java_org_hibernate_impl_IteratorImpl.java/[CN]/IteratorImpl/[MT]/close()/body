@@ -1,0 +1,24 @@
+{
+  if (ps != null) {
+    try {
+      log.debug("closing iterator");
+      nextResult=null;
+      session.getBatcher().closeQueryStatement(ps,rs);
+      ps=null;
+      rs=null;
+      hasNext=false;
+    }
+ catch (    SQLException e) {
+      log.info("Unable to close iterator",e);
+      throw JDBCExceptionHelper.convert(session.getFactory().getSQLExceptionConverter(),e,"Unable to close iterator");
+    }
+ finally {
+      try {
+        session.getPersistenceContext().getLoadContexts().cleanup(rs);
+      }
+ catch (      Throwable ignore) {
+        log.trace("exception trying to cleanup load context : " + ignore.getMessage());
+      }
+    }
+  }
+}

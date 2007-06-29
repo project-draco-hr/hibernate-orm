@@ -1,0 +1,20 @@
+{
+  if (isNotEmbedded(session)) {
+    return value;
+  }
+  if (isReferenceToPrimaryKey()) {
+    return ForeignKeys.getEntityIdentifierIfNotUnsaved(getAssociatedEntityName(),value,session);
+  }
+ else   if (value == null) {
+    return null;
+  }
+ else {
+    EntityPersister entityPersister=session.getFactory().getEntityPersister(getAssociatedEntityName());
+    Object propertyValue=entityPersister.getPropertyValue(value,uniqueKeyPropertyName,session.getEntityMode());
+    Type type=entityPersister.getPropertyType(uniqueKeyPropertyName);
+    if (type.isEntityType()) {
+      propertyValue=((EntityType)type).getIdentifier(propertyValue,session);
+    }
+    return propertyValue;
+  }
+}

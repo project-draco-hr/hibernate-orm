@@ -1,0 +1,12 @@
+{
+  if ((getDialect() instanceof MySQLDialect) || (getDialect() instanceof DB2Dialect)) {
+    return;
+  }
+  Session session=openSession();
+  Transaction txn=session.beginTransaction();
+  session.createQuery("from Human h where h.nickName like 'G%'").list();
+  session.createQuery("from Animal a where cast(a.bodyWeight as string) like '1.%'").list();
+  session.createQuery("from Animal a where cast(a.bodyWeight as integer) = 1").list();
+  txn.commit();
+  session.close();
+}

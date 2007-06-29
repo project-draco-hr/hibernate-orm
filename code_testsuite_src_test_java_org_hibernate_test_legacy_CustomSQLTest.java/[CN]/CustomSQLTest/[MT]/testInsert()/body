@@ -1,0 +1,21 @@
+{
+  if (getDialect() instanceof HSQLDialect)   return;
+  if (getDialect() instanceof MySQLDialect)   return;
+  Role p=new Role();
+  p.setName("Patient");
+  Session s=openSession();
+  s.save(p);
+  s.flush();
+  s.connection().commit();
+  s.close();
+  getSessions().evict(Role.class);
+  s=openSession();
+  Role p2=(Role)s.get(Role.class,new Long(p.getId()));
+  assertNotSame(p,p2);
+  assertEquals(p2.getId(),p.getId());
+  assertTrue(p2.getName().equalsIgnoreCase(p.getName()));
+  s.delete(p2);
+  s.flush();
+  s.connection().commit();
+  s.close();
+}

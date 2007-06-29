@@ -1,0 +1,32 @@
+{
+  EntityPersister persister=sfi().getEntityPersister(PettingZoo.class.getName());
+  IdentifierGenerator generator=persister.getIdentifierGenerator();
+  if (!HqlSqlWalker.supportsIdGenWithBulkInsertion(generator)) {
+    return;
+  }
+  Zoo zoo=new Zoo();
+  zoo.setName("zoo");
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  s.save(zoo);
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  int count=s.createQuery("insert into PettingZoo (name) select name from Zoo").executeUpdate();
+  t.commit();
+  s.close();
+  assertEquals("unexpected insertion count",1,count);
+  s=openSession();
+  t=s.beginTransaction();
+  PettingZoo pz=(PettingZoo)s.createQuery("from PettingZoo").uniqueResult();
+  t.commit();
+  s.close();
+  assertEquals(zoo.getName(),pz.getName());
+  assertTrue(zoo.getId() != pz.getId());
+  s=openSession();
+  t=s.beginTransaction();
+  s.createQuery("delete Zoo").executeUpdate();
+  t.commit();
+  s.close();
+}

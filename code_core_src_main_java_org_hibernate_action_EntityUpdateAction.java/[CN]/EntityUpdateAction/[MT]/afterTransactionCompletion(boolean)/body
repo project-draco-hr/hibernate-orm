@@ -1,0 +1,16 @@
+{
+  EntityPersister persister=getPersister();
+  if (persister.hasCache()) {
+    final CacheKey ck=new CacheKey(getId(),persister.getIdentifierType(),persister.getRootEntityName(),getSession().getEntityMode(),getSession().getFactory());
+    if (success && cacheEntry != null) {
+      boolean put=persister.getCacheAccessStrategy().afterUpdate(ck,cacheEntry,nextVersion,previousVersion,lock);
+      if (put && getSession().getFactory().getStatistics().isStatisticsEnabled()) {
+        getSession().getFactory().getStatisticsImplementor().secondLevelCachePut(getPersister().getCacheAccessStrategy().getRegion().getName());
+      }
+    }
+ else {
+      persister.getCacheAccessStrategy().unlockItem(ck,lock);
+    }
+  }
+  postCommitUpdate();
+}

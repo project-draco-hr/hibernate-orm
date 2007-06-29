@@ -1,0 +1,35 @@
+{
+  final Object entity=event.getEntity();
+  final Object[] values=event.getPropertyValues();
+  final SessionImplementor session=event.getSession();
+  final EntityEntry entry=event.getEntityEntry();
+  final EntityPersister persister=entry.getPersister();
+  final Serializable id=entry.getId();
+  final Object[] loadedState=entry.getLoadedState();
+  int[] dirtyProperties=session.getInterceptor().findDirty(entity,id,values,loadedState,persister.getPropertyNames(),persister.getPropertyTypes());
+  event.setDatabaseSnapshot(null);
+  final boolean interceptorHandledDirtyCheck;
+  boolean cannotDirtyCheck;
+  if (dirtyProperties == null) {
+    interceptorHandledDirtyCheck=false;
+    cannotDirtyCheck=loadedState == null;
+    if (!cannotDirtyCheck) {
+      dirtyProperties=persister.findDirty(values,loadedState,entity,session);
+    }
+ else {
+      final Object[] databaseSnapshot=getDatabaseSnapshot(session,persister,id);
+      if (databaseSnapshot != null) {
+        dirtyProperties=persister.findModified(databaseSnapshot,values,entity,session);
+        cannotDirtyCheck=false;
+        event.setDatabaseSnapshot(databaseSnapshot);
+      }
+    }
+  }
+ else {
+    cannotDirtyCheck=false;
+    interceptorHandledDirtyCheck=true;
+  }
+  event.setDirtyProperties(dirtyProperties);
+  event.setDirtyCheckHandledByInterceptor(interceptorHandledDirtyCheck);
+  event.setDirtyCheckPossible(!cannotDirtyCheck);
+}

@@ -1,0 +1,46 @@
+{
+  Update update=new Update(getFactory().getDialect()).setTableName(getTableName(j));
+  if (useRowId) {
+    update.setPrimaryKeyColumnNames(new String[]{rowIdName});
+  }
+ else {
+    update.setPrimaryKeyColumnNames(getKeyColumns(j));
+  }
+  boolean hasColumns=false;
+  for (int i=0; i < entityMetamodel.getPropertySpan(); i++) {
+    if (includeProperty[i] && isPropertyOfTable(i,j)) {
+      update.addColumns(getPropertyColumnNames(i),propertyColumnUpdateable[i]);
+      hasColumns=hasColumns || getPropertyColumnSpan(i) > 0;
+    }
+  }
+  if (j == 0 && isVersioned() && entityMetamodel.getOptimisticLockMode() == Versioning.OPTIMISTIC_LOCK_VERSION) {
+    if (checkVersion(includeProperty)) {
+      update.setVersionColumnName(getVersionColumnName());
+      hasColumns=true;
+    }
+  }
+ else   if (entityMetamodel.getOptimisticLockMode() > Versioning.OPTIMISTIC_LOCK_VERSION && oldFields != null) {
+    boolean[] includeInWhere=entityMetamodel.getOptimisticLockMode() == Versioning.OPTIMISTIC_LOCK_ALL ? getPropertyUpdateability() : includeProperty;
+    boolean[] versionability=getPropertyVersionability();
+    Type[] types=getPropertyTypes();
+    for (int i=0; i < entityMetamodel.getPropertySpan(); i++) {
+      boolean include=includeInWhere[i] && isPropertyOfTable(i,j) && versionability[i];
+      if (include) {
+        String[] propertyColumnNames=getPropertyColumnNames(i);
+        boolean[] propertyNullness=types[i].toColumnNullness(oldFields[i],getFactory());
+        for (int k=0; k < propertyNullness.length; k++) {
+          if (propertyNullness[k]) {
+            update.addWhereColumn(propertyColumnNames[k]);
+          }
+ else {
+            update.addWhereColumn(propertyColumnNames[k]," is null");
+          }
+        }
+      }
+    }
+  }
+  if (getFactory().getSettings().isCommentsEnabled()) {
+    update.setComment("update " + getEntityName());
+  }
+  return hasColumns ? update.toStatementString() : null;
+}

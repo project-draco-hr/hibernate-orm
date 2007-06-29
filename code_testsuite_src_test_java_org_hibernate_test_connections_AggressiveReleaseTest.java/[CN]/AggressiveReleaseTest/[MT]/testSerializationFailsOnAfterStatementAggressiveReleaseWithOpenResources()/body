@@ -1,0 +1,20 @@
+{
+  prepare();
+  Session s=getSessionUnderTest();
+  Silly silly=new Silly("silly");
+  s.save(silly);
+  s.flush();
+  ScrollableResults sr=s.createQuery("from Silly").scroll();
+  try {
+    SerializationHelper.serialize(s);
+    fail("Serialization allowed on connected session; or aggressive release released connection with open resources");
+  }
+ catch (  IllegalStateException e) {
+  }
+  sr.close();
+  SerializationHelper.serialize(s);
+  s.delete(silly);
+  s.flush();
+  release(s);
+  done();
+}

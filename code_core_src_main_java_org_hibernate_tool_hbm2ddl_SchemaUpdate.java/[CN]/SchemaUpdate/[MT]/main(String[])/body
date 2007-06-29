@@ -1,0 +1,41 @@
+{
+  try {
+    Configuration cfg=new Configuration();
+    boolean script=true;
+    boolean doUpdate=true;
+    String propFile=null;
+    for (int i=0; i < args.length; i++) {
+      if (args[i].startsWith("--")) {
+        if (args[i].equals("--quiet")) {
+          script=false;
+        }
+ else         if (args[i].startsWith("--properties=")) {
+          propFile=args[i].substring(13);
+        }
+ else         if (args[i].startsWith("--config=")) {
+          cfg.configure(args[i].substring(9));
+        }
+ else         if (args[i].startsWith("--text")) {
+          doUpdate=false;
+        }
+ else         if (args[i].startsWith("--naming=")) {
+          cfg.setNamingStrategy((NamingStrategy)ReflectHelper.classForName(args[i].substring(9)).newInstance());
+        }
+      }
+ else {
+        cfg.addFile(args[i]);
+      }
+    }
+    if (propFile != null) {
+      Properties props=new Properties();
+      props.putAll(cfg.getProperties());
+      props.load(new FileInputStream(propFile));
+      cfg.setProperties(props);
+    }
+    new SchemaUpdate(cfg).execute(script,doUpdate);
+  }
+ catch (  Exception e) {
+    log.error("Error running schema update",e);
+    e.printStackTrace();
+  }
+}

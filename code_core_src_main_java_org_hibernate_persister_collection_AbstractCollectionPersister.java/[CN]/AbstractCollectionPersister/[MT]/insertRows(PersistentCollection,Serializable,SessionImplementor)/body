@@ -1,0 +1,79 @@
+{
+  if (!isInverse && isRowInsertEnabled()) {
+    if (log.isDebugEnabled()) {
+      log.debug("Inserting rows of collection: " + MessageHelper.collectionInfoString(this,id,getFactory()));
+    }
+    try {
+      collection.preInsert(this);
+      Iterator entries=collection.entries(this);
+      Expectation expectation=Expectations.appropriateExpectation(getInsertCheckStyle());
+      boolean callable=isInsertCallable();
+      boolean useBatch=expectation.canBeBatched();
+      String sql=getSQLInsertRowString();
+      int i=0;
+      int count=0;
+      while (entries.hasNext()) {
+        int offset=1;
+        Object entry=entries.next();
+        PreparedStatement st=null;
+        if (collection.needsInserting(entry,i,elementType)) {
+          if (useBatch) {
+            if (st == null) {
+              if (callable) {
+                st=session.getBatcher().prepareBatchCallableStatement(sql);
+              }
+ else {
+                st=session.getBatcher().prepareBatchStatement(sql);
+              }
+            }
+          }
+ else {
+            if (callable) {
+              st=session.getBatcher().prepareCallableStatement(sql);
+            }
+ else {
+              st=session.getBatcher().prepareStatement(sql);
+            }
+          }
+          try {
+            offset+=expectation.prepare(st);
+            offset=writeKey(st,id,offset,session);
+            if (hasIdentifier) {
+              offset=writeIdentifier(st,collection.getIdentifier(entry,i),offset,session);
+            }
+            if (hasIndex) {
+              offset=writeIndex(st,collection.getIndex(entry,i,this),offset,session);
+            }
+            writeElement(st,collection.getElement(entry),offset,session);
+            if (useBatch) {
+              session.getBatcher().addToBatch(expectation);
+            }
+ else {
+              expectation.verifyOutcome(st.executeUpdate(),st,-1);
+            }
+            collection.afterRowInsert(this,entry,i);
+            count++;
+          }
+ catch (          SQLException sqle) {
+            if (useBatch) {
+              session.getBatcher().abortBatch(sqle);
+            }
+            throw sqle;
+          }
+ finally {
+            if (!useBatch) {
+              session.getBatcher().closeStatement(st);
+            }
+          }
+        }
+        i++;
+      }
+      if (log.isDebugEnabled()) {
+        log.debug("done inserting rows: " + count + " inserted");
+      }
+    }
+ catch (    SQLException sqle) {
+      throw JDBCExceptionHelper.convert(sqlExceptionConverter,sqle,"could not insert collection rows: " + MessageHelper.collectionInfoString(this,id,getFactory()),getSQLInsertRowString());
+    }
+  }
+}

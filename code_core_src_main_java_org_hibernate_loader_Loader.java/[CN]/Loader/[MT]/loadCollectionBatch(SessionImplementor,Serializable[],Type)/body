@@ -1,0 +1,14 @@
+{
+  if (log.isDebugEnabled()) {
+    log.debug("batch loading collection: " + MessageHelper.collectionInfoString(getCollectionPersisters()[0],ids,getFactory()));
+  }
+  Type[] idTypes=new Type[ids.length];
+  Arrays.fill(idTypes,type);
+  try {
+    doQueryAndInitializeNonLazyCollections(session,new QueryParameters(idTypes,ids,ids),true);
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(factory.getSQLExceptionConverter(),sqle,"could not initialize a collection batch: " + MessageHelper.collectionInfoString(getCollectionPersisters()[0],ids,getFactory()),getSQLString());
+  }
+  log.debug("done batch load");
+}

@@ -1,0 +1,18 @@
+{
+  if (log.isTraceEnabled()) {
+    log.trace("Inserting entity: " + getEntityName() + " (native id)");
+    if (isVersioned()) {
+      log.trace("Version: " + Versioning.getVersion(fields,this));
+    }
+  }
+  Binder binder=new Binder(){
+    public void bindValues(    PreparedStatement ps) throws SQLException {
+      dehydrate(null,fields,notNull,propertyColumnInsertable,0,ps,session);
+    }
+    public Object getEntity(){
+      return object;
+    }
+  }
+;
+  return identityDelegate.performInsert(sql,session,binder);
+}

@@ -1,0 +1,19 @@
+{
+  Session s=openSession();
+  Parent g=new Parent();
+  Foo foo=new Foo();
+  g.setAny(foo);
+  s.save(g);
+  s.save(foo);
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  g=(Parent)s.load(Parent.class,new Long(g.getId()));
+  assertTrue(g.getAny() != null && g.getAny() instanceof FooProxy);
+  s.delete(g.getAny());
+  s.delete(g);
+  s.flush();
+  s.connection().commit();
+  s.close();
+}

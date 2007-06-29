@@ -1,0 +1,17 @@
+{
+  java.util.Collection result=(java.util.Collection)target;
+  result.clear();
+  Type elemType=getElementType(session.getFactory());
+  Iterator iter=((java.util.Collection)original).iterator();
+  while (iter.hasNext()) {
+    result.add(elemType.replace(iter.next(),null,session,owner,copyCache));
+  }
+  if (original instanceof PersistentCollection) {
+    if (result instanceof PersistentCollection) {
+      if (!((PersistentCollection)original).isDirty()) {
+        ((PersistentCollection)result).clearDirty();
+      }
+    }
+  }
+  return result;
+}

@@ -1,0 +1,32 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  Organization ifa=new Organization("IFA");
+  Organization jboss=new Organization("JBoss");
+  Person gavin=new Person("Gavin");
+  Employment emp=new Employment(gavin,jboss,"AU");
+  s.persist(ifa);
+  s.persist(jboss);
+  s.persist(gavin);
+  s.persist(emp);
+  List l=s.createSQLQuery(getOrgEmpRegionSQL()).addEntity("org",Organization.class).addJoin("emp","org.employments").addScalar("regionCode",Hibernate.STRING).list();
+  assertEquals(2,l.size());
+  l=s.createSQLQuery(getOrgEmpPersonSQL()).addEntity("org",Organization.class).addJoin("emp","org.employments").addJoin("pers","emp.employee").list();
+  assertEquals(l.size(),1);
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  l=s.createSQLQuery("select {org.*}, {emp.*} " + "from ORGANIZATION org " + "     left outer join EMPLOYMENT emp on org.ORGID = emp.EMPLOYER, ORGANIZATION org2").addEntity("org",Organization.class).addJoin("emp","org.employments").setResultTransformer(new DistinctRootEntityResultTransformer()).list();
+  assertEquals(l.size(),2);
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  s.delete(emp);
+  s.delete(gavin);
+  s.delete(ifa);
+  s.delete(jboss);
+  t.commit();
+  s.close();
+}

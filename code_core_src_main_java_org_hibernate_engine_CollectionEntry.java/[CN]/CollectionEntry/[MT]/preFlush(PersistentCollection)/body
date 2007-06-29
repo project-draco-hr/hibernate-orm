@@ -1,0 +1,15 @@
+{
+  boolean nonMutableChange=collection.isDirty() && getLoadedPersister() != null && !getLoadedPersister().isMutable();
+  if (nonMutableChange) {
+    throw new HibernateException("changed an immutable collection instance: " + MessageHelper.collectionInfoString(getLoadedPersister().getRole(),getLoadedKey()));
+  }
+  dirty(collection);
+  if (log.isDebugEnabled() && collection.isDirty() && getLoadedPersister() != null) {
+    log.debug("Collection dirty: " + MessageHelper.collectionInfoString(getLoadedPersister().getRole(),getLoadedKey()));
+  }
+  setDoupdate(false);
+  setDoremove(false);
+  setDorecreate(false);
+  setReached(false);
+  setProcessed(false);
+}

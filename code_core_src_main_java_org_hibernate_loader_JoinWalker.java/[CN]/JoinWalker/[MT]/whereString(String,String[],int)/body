@@ -1,0 +1,24 @@
+{
+  if (columnNames.length == 1) {
+    InFragment in=new InFragment().setColumn(alias,columnNames[0]);
+    for (int i=0; i < batchSize; i++)     in.addValue("?");
+    return new StringBuffer(in.toFragmentString());
+  }
+ else {
+    ConditionFragment byId=new ConditionFragment().setTableAlias(alias).setCondition(columnNames,"?");
+    StringBuffer whereString=new StringBuffer();
+    if (batchSize == 1) {
+      whereString.append(byId.toFragmentString());
+    }
+ else {
+      whereString.append('(');
+      DisjunctionFragment df=new DisjunctionFragment();
+      for (int i=0; i < batchSize; i++) {
+        df.addCondition(byId);
+      }
+      whereString.append(df.toFragmentString());
+      whereString.append(')');
+    }
+    return whereString;
+  }
+}

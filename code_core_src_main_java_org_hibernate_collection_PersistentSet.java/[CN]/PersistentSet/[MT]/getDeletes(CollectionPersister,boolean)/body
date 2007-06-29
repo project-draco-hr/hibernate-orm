@@ -1,0 +1,21 @@
+{
+  Type elementType=persister.getElementType();
+  final java.util.Map sn=(java.util.Map)getSnapshot();
+  ArrayList deletes=new ArrayList(sn.size());
+  Iterator iter=sn.keySet().iterator();
+  while (iter.hasNext()) {
+    Object test=iter.next();
+    if (!set.contains(test)) {
+      deletes.add(test);
+    }
+  }
+  iter=set.iterator();
+  while (iter.hasNext()) {
+    Object test=iter.next();
+    Object oldValue=sn.get(test);
+    if (oldValue != null && elementType.isDirty(test,oldValue,getSession())) {
+      deletes.add(oldValue);
+    }
+  }
+  return deletes.iterator();
+}

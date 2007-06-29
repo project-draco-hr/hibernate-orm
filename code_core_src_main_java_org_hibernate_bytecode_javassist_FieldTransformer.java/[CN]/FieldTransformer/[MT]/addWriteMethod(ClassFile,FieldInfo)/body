@@ -1,0 +1,37 @@
+{
+  ConstPool cp=classfile.getConstPool();
+  int this_class_index=cp.getThisClassInfo();
+  String desc="(" + finfo.getDescriptor() + ")V";
+  MethodInfo minfo=new MethodInfo(cp,EACH_WRITE_METHOD_PREFIX + finfo.getName(),desc);
+  Bytecode code=new Bytecode(cp,6,3);
+  code.addAload(0);
+  int enabled_class_index=cp.addClassInfo(FIELD_HANDLED_TYPE_NAME);
+  code.addInvokeinterface(enabled_class_index,GETFIELDHANDLER_METHOD_NAME,GETFIELDHANDLER_METHOD_DESCRIPTOR,1);
+  code.addOpcode(Opcode.IFNONNULL);
+  code.addIndex(9);
+  code.addAload(0);
+  addTypeDependDataLoad(code,finfo.getDescriptor(),1);
+  code.addOpcode(Opcode.PUTFIELD);
+  int base_field_index=cp.addFieldrefInfo(this_class_index,finfo.getName(),finfo.getDescriptor());
+  code.addIndex(base_field_index);
+  code.growStack(-Descriptor.dataSize(finfo.getDescriptor()));
+  code.addOpcode(Opcode.RETURN);
+  code.addAload(0);
+  code.addOpcode(Opcode.DUP);
+  code.addInvokeinterface(enabled_class_index,GETFIELDHANDLER_METHOD_NAME,GETFIELDHANDLER_METHOD_DESCRIPTOR,1);
+  code.addAload(0);
+  code.addLdc(finfo.getName());
+  code.addAload(0);
+  code.addOpcode(Opcode.GETFIELD);
+  code.addIndex(base_field_index);
+  code.growStack(Descriptor.dataSize(finfo.getDescriptor()) - 1);
+  addTypeDependDataLoad(code,finfo.getDescriptor(),1);
+  addInvokeFieldHandlerMethod(classfile,code,finfo.getDescriptor(),false);
+  code.addOpcode(Opcode.PUTFIELD);
+  code.addIndex(base_field_index);
+  code.growStack(-Descriptor.dataSize(finfo.getDescriptor()));
+  code.addOpcode(Opcode.RETURN);
+  minfo.setCodeAttribute(code.toCodeAttribute());
+  minfo.setAccessFlags(AccessFlag.PUBLIC);
+  classfile.addMethod(minfo);
+}

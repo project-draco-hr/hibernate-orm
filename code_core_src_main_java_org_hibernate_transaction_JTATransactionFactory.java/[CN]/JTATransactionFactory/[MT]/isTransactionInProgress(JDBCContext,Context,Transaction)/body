@@ -1,0 +1,25 @@
+{
+  try {
+    if (transaction != null) {
+      UserTransaction ut=((JTATransaction)transaction).getUserTransaction();
+      if (ut != null) {
+        return JTAHelper.isInProgress(ut.getStatus());
+      }
+    }
+    if (jdbcContext.getFactory().getTransactionManager() != null) {
+      return JTAHelper.isInProgress(jdbcContext.getFactory().getTransactionManager().getStatus());
+    }
+ else {
+      try {
+        UserTransaction ut=(UserTransaction)context.lookup(utName);
+        return ut != null && JTAHelper.isInProgress(ut.getStatus());
+      }
+ catch (      NamingException ne) {
+        throw new TransactionException("Unable to locate UserTransaction to check status",ne);
+      }
+    }
+  }
+ catch (  SystemException se) {
+    throw new TransactionException("Unable to check transaction status",se);
+  }
+}

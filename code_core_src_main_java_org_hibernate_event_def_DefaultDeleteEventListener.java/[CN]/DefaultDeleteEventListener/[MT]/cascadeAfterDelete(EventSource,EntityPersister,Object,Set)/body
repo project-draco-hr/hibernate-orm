@@ -1,0 +1,12 @@
+{
+  CacheMode cacheMode=session.getCacheMode();
+  session.setCacheMode(CacheMode.GET);
+  session.getPersistenceContext().incrementCascadeLevel();
+  try {
+    new Cascade(CascadingAction.DELETE,Cascade.BEFORE_INSERT_AFTER_DELETE,session).cascade(persister,entity,transientEntities);
+  }
+  finally {
+    session.getPersistenceContext().decrementCascadeLevel();
+    session.setCacheMode(cacheMode);
+  }
+}

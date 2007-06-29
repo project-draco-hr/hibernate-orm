@@ -1,0 +1,26 @@
+{
+  if (uniqueKeys.size() > 1) {
+    Iterator it=uniqueKeys.entrySet().iterator();
+    Map finalUniqueKeys=new HashMap(uniqueKeys.size());
+    while (it.hasNext()) {
+      Map.Entry entry=(Map.Entry)it.next();
+      UniqueKey uk=(UniqueKey)entry.getValue();
+      List columns=uk.getColumns();
+      int size=finalUniqueKeys.size();
+      boolean skip=false;
+      Iterator tempUks=finalUniqueKeys.entrySet().iterator();
+      while (tempUks.hasNext()) {
+        final UniqueKey currentUk=(UniqueKey)((Map.Entry)tempUks.next()).getValue();
+        if (currentUk.getColumns().containsAll(columns) && columns.containsAll(currentUk.getColumns())) {
+          skip=true;
+          break;
+        }
+      }
+      if (!skip)       finalUniqueKeys.put(entry.getKey(),uk);
+    }
+    return finalUniqueKeys;
+  }
+ else {
+    return uniqueKeys;
+  }
+}

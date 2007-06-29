@@ -1,0 +1,43 @@
+{
+  Session s=openSession();
+  Transaction txn=s.beginTransaction();
+  Foo foo=new Foo();
+  s.save(foo);
+  Foo foo1=new Foo();
+  s.save(foo1);
+  foo.setFoo(foo1);
+  List l=s.find("select parent, child from Foo parent, Foo child where parent.foo = child");
+  assertTrue("multi-column find",l.size() == 1);
+  Iterator rs=s.iterate("select count(distinct child.id), count(distinct parent.id) from Foo parent, Foo child where parent.foo = child");
+  Object[] row=(Object[])rs.next();
+  assertTrue("multi-column count",((Long)row[0]).intValue() == 1);
+  assertTrue("multi-column count",((Long)row[1]).intValue() == 1);
+  assertTrue(!rs.hasNext());
+  rs=s.iterate("select child.id, parent.id, child.long from Foo parent, Foo child where parent.foo = child");
+  row=(Object[])rs.next();
+  assertTrue("multi-column id",row[0].equals(foo.getFoo().getKey()));
+  assertTrue("multi-column id",row[1].equals(foo.getKey()));
+  assertTrue("multi-column property",row[2].equals(foo.getFoo().getLong()));
+  assertTrue(!rs.hasNext());
+  rs=s.iterate("select child.id, parent.id, child.long, child, parent.foo from Foo parent, Foo child where parent.foo = child");
+  row=(Object[])rs.next();
+  assertTrue(foo.getFoo().getKey().equals(row[0]) && foo.getKey().equals(row[1]) && foo.getFoo().getLong().equals(row[2])&& row[3] == foo.getFoo() && row[3] == row[4]);
+  assertTrue(!rs.hasNext());
+  row=(Object[])l.get(0);
+  assertTrue("multi-column find",row[0] == foo && row[1] == foo.getFoo());
+  txn.commit();
+  s.close();
+  s=openSession();
+  txn=s.beginTransaction();
+  Iterator iter=s.iterate("select parent, child from Foo parent, Foo child where parent.foo = child and parent.string='a string'");
+  int deletions=0;
+  while (iter.hasNext()) {
+    Object[] pnc=(Object[])iter.next();
+    s.delete(pnc[0]);
+    s.delete(pnc[1]);
+    deletions++;
+  }
+  assertTrue("multi-column iterate",deletions == 1);
+  txn.commit();
+  s.close();
+}

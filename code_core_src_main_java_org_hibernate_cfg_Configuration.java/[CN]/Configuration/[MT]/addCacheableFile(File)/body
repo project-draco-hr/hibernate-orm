@@ -1,0 +1,56 @@
+{
+  try {
+    File cachedFile=new File(xmlFile.getAbsolutePath() + ".bin");
+    org.dom4j.Document doc=null;
+    final boolean useCachedFile=xmlFile.exists() && cachedFile.exists() && xmlFile.lastModified() < cachedFile.lastModified();
+    if (useCachedFile) {
+      try {
+        log.info("Reading mappings from cache file: " + cachedFile);
+        doc=(org.dom4j.Document)SerializationHelper.deserialize(new FileInputStream(cachedFile));
+      }
+ catch (      SerializationException e) {
+        log.warn("Could not deserialize cache file: " + cachedFile.getPath(),e);
+      }
+catch (      FileNotFoundException e) {
+        log.warn("I/O reported cached file could not be found : " + cachedFile.getPath(),e);
+      }
+    }
+    if (doc == null) {
+      if (!xmlFile.exists()) {
+        throw new MappingNotFoundException("file",xmlFile.toString());
+      }
+      log.info("Reading mappings from file: " + xmlFile);
+      List errors=new ArrayList();
+      try {
+        doc=xmlHelper.createSAXReader(xmlFile.getAbsolutePath(),errors,entityResolver).read(xmlFile);
+        if (errors.size() != 0) {
+          throw new MappingException("invalid mapping",(Throwable)errors.get(0));
+        }
+      }
+ catch (      DocumentException e) {
+        throw new MappingException("invalid mapping",e);
+      }
+      try {
+        log.debug("Writing cache file for: " + xmlFile + " to: "+ cachedFile);
+        SerializationHelper.serialize((Serializable)doc,new FileOutputStream(cachedFile));
+      }
+ catch (      SerializationException e) {
+        log.warn("Could not write cached file: " + cachedFile,e);
+      }
+catch (      FileNotFoundException e) {
+        log.warn("I/O reported error writing cached file : " + cachedFile.getPath(),e);
+      }
+    }
+    add(doc);
+    return this;
+  }
+ catch (  InvalidMappingException e) {
+    throw e;
+  }
+catch (  MappingNotFoundException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    throw new InvalidMappingException("file",xmlFile.toString(),e);
+  }
+}

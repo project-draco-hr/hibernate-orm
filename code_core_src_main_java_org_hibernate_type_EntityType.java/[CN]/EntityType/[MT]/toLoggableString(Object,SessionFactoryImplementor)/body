@@ -1,0 +1,22 @@
+{
+  if (value == null) {
+    return "null";
+  }
+  EntityPersister persister=factory.getEntityPersister(associatedEntityName);
+  StringBuffer result=new StringBuffer().append(associatedEntityName);
+  if (persister.hasIdentifierProperty()) {
+    final EntityMode entityMode=persister.guessEntityMode(value);
+    final Serializable id;
+    if (entityMode == null) {
+      if (isEmbeddedInXML) {
+        throw new ClassCastException(value.getClass().getName());
+      }
+      id=(Serializable)value;
+    }
+ else {
+      id=getIdentifier(value,persister,entityMode);
+    }
+    result.append('#').append(persister.getIdentifierType().toLoggableString(id,factory));
+  }
+  return result.toString();
+}

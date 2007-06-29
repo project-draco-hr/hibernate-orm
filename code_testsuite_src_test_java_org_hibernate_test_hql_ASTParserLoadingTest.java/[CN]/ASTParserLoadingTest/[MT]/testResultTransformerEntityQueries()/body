@@ -1,0 +1,34 @@
+{
+  createTestBaseData();
+  String query="select an as an from Animal an order by bodyWeight desc";
+  Session session=openSession();
+  List results=session.createQuery(query).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+  assertEquals("Incorrect result size",results.size(),2);
+  assertTrue("Incorrect return type",results.get(0) instanceof Map);
+  Map map=((Map)results.get(0));
+  assertEquals(1,map.size());
+  Animal firstAnimal=(Animal)map.get("an");
+  map=((Map)results.get(1));
+  Animal secondAnimal=(Animal)map.get("an");
+  assertEquals("Mammal #1",firstAnimal.getDescription());
+  assertEquals("Mammal #2",secondAnimal.getDescription());
+  assertTrue(session.contains(firstAnimal));
+  assertSame(firstAnimal,session.get(Animal.class,firstAnimal.getId()));
+  session.close();
+  session=openSession();
+  Iterator iter=session.createQuery(query).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).iterate();
+  assertTrue("Incorrect result size",iter.hasNext());
+  map=(Map)iter.next();
+  firstAnimal=(Animal)map.get("an");
+  assertEquals("Mammal #1",firstAnimal.getDescription());
+  assertTrue("Incorrect result size",iter.hasNext());
+  session.close();
+  session=openSession();
+  ScrollableResults sr=session.createQuery(query).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).scroll();
+  assertTrue("Incorrect result size",sr.next());
+  assertTrue("Incorrect return type",sr.get(0) instanceof Map);
+  assertFalse(session.contains(sr.get(0)));
+  sr.close();
+  session.close();
+  destroyTestBaseData();
+}

@@ -1,0 +1,32 @@
+{
+  Element subnode=node.element("generator");
+  if (subnode != null) {
+    model.setIdentifierGeneratorStrategy(subnode.attributeValue("class"));
+    Properties params=new Properties();
+    if (mappings.getSchemaName() != null) {
+      params.setProperty(PersistentIdentifierGenerator.SCHEMA,mappings.getSchemaName());
+    }
+    if (mappings.getCatalogName() != null) {
+      params.setProperty(PersistentIdentifierGenerator.CATALOG,mappings.getCatalogName());
+    }
+    Iterator iter=subnode.elementIterator("param");
+    while (iter.hasNext()) {
+      Element childNode=(Element)iter.next();
+      params.setProperty(childNode.attributeValue("name"),childNode.getText());
+    }
+    model.setIdentifierGeneratorProperties(params);
+  }
+  model.getTable().setIdentifierValue(model);
+  Attribute nullValueNode=node.attribute("unsaved-value");
+  if (nullValueNode != null) {
+    model.setNullValue(nullValueNode.getValue());
+  }
+ else {
+    if ("assigned".equals(model.getIdentifierGeneratorStrategy())) {
+      model.setNullValue("undefined");
+    }
+ else {
+      model.setNullValue(null);
+    }
+  }
+}

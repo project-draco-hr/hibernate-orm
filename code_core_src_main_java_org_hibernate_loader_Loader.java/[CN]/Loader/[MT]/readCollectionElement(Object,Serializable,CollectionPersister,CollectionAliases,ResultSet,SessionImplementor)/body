@@ -1,0 +1,25 @@
+{
+  final PersistenceContext persistenceContext=session.getPersistenceContext();
+  final Serializable collectionRowKey=(Serializable)persister.readKey(rs,descriptor.getSuffixedKeyAliases(),session);
+  if (collectionRowKey != null) {
+    if (log.isDebugEnabled()) {
+      log.debug("found row of collection: " + MessageHelper.collectionInfoString(persister,collectionRowKey,getFactory()));
+    }
+    Object owner=optionalOwner;
+    if (owner == null) {
+      owner=persistenceContext.getCollectionOwner(collectionRowKey,persister);
+      if (owner == null) {
+      }
+    }
+    PersistentCollection rowCollection=persistenceContext.getLoadContexts().getCollectionLoadContext(rs).getLoadingCollection(persister,collectionRowKey);
+    if (rowCollection != null) {
+      rowCollection.readFrom(rs,persister,descriptor,owner);
+    }
+  }
+ else   if (optionalKey != null) {
+    if (log.isDebugEnabled()) {
+      log.debug("result set contains (possibly empty) collection: " + MessageHelper.collectionInfoString(persister,optionalKey,getFactory()));
+    }
+    persistenceContext.getLoadContexts().getCollectionLoadContext(rs).getLoadingCollection(persister,optionalKey);
+  }
+}

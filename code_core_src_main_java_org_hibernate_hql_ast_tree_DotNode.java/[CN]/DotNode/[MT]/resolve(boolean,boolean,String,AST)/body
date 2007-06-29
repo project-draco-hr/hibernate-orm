@@ -1,0 +1,34 @@
+{
+  if (isResolved()) {
+    return;
+  }
+  Type propertyType=prepareLhs();
+  if (propertyType == null) {
+    if (parent == null) {
+      getWalker().getLiteralProcessor().lookupConstant(this);
+    }
+    return;
+  }
+  if (propertyType.isComponentType()) {
+    checkLhsIsNotCollection();
+    dereferenceComponent(parent);
+    initText();
+  }
+ else   if (propertyType.isEntityType()) {
+    checkLhsIsNotCollection();
+    dereferenceEntity((EntityType)propertyType,implicitJoin,classAlias,generateJoin,parent);
+    initText();
+  }
+ else   if (propertyType.isCollectionType()) {
+    checkLhsIsNotCollection();
+    dereferenceCollection((CollectionType)propertyType,implicitJoin,false,classAlias,parent);
+  }
+ else {
+    if (!CollectionProperties.isAnyCollectionProperty(propertyName)) {
+      checkLhsIsNotCollection();
+    }
+    dereferenceType=DEREF_PRIMITIVE;
+    initText();
+  }
+  setResolved();
+}

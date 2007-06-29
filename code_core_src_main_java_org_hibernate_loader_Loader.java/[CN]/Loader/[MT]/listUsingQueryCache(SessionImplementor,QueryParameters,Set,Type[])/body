@@ -1,0 +1,11 @@
+{
+  QueryCache queryCache=factory.getQueryCache(queryParameters.getCacheRegion());
+  Set filterKeys=FilterKey.createFilterKeys(session.getEnabledFilters(),session.getEntityMode());
+  QueryKey key=new QueryKey(getSQLString(),queryParameters,filterKeys,session.getEntityMode());
+  List result=getResultFromQueryCache(session,queryParameters,querySpaces,resultTypes,queryCache,key);
+  if (result == null) {
+    result=doList(session,queryParameters);
+    putResultInQueryCache(session,queryParameters,resultTypes,queryCache,key,result);
+  }
+  return getResultList(result,queryParameters.getResultTransformer());
+}

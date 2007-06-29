@@ -1,0 +1,13 @@
+{
+  if (log.isDebugEnabled()) {
+    log.debug("initializing collection: " + persister.getRole() + " using named query: "+ queryName);
+  }
+  AbstractQueryImpl query=(AbstractQueryImpl)session.getNamedSQLQuery(queryName);
+  if (query.getNamedParameters().length > 0) {
+    query.setParameter(query.getNamedParameters()[0],key,persister.getKeyType());
+  }
+ else {
+    query.setParameter(0,key,persister.getKeyType());
+  }
+  query.setCollectionKey(key).setFlushMode(FlushMode.MANUAL).list();
+}

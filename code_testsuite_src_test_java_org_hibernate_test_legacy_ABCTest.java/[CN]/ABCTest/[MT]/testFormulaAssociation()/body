@@ -1,0 +1,28 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  D d=new D();
+  Long did=new Long(12);
+  s.save(d,did);
+  A a=new A();
+  a.setName("a");
+  s.save(a,did);
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  d=(D)s.get(D.class,did);
+  assertTrue(d.getReverse().getId().equals(did));
+  s.clear();
+  getSessions().evict(D.class);
+  getSessions().evict(A.class);
+  d=(D)s.get(D.class,did);
+  assertTrue(d.inverse.getId().equals(did));
+  assertTrue(d.inverse.getName().equals("a"));
+  s.clear();
+  getSessions().evict(D.class);
+  getSessions().evict(A.class);
+  assertTrue(s.find("from D d join d.reverse r join d.inverse i where i = r").size() == 1);
+  t.commit();
+  s.close();
+}

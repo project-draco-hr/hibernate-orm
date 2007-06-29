@@ -1,0 +1,18 @@
+{
+  File perfs=new File("perfsrc");
+  generateTestFiles(perfs,"perftest");
+  if (perfs.exists()) {
+    SessionFactory factory=saveAndLoad("perfsrc/perftest/",new File(perfs,"perftest").list(new FilenameFilter(){
+      public boolean accept(      File dir,      String name){
+        return name.endsWith(".hbm.xml");
+      }
+    }
+),"hibernateperftest.cfg.bin");
+    Session session=factory.openSession();
+    Object o=session.load("perftest.Test1",new Long(42));
+    System.out.println(o);
+  }
+ else {
+    System.err.println(perfs.getAbsoluteFile() + " not found");
+  }
+}

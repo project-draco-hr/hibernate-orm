@@ -1,0 +1,19 @@
+{
+  errorIfClosed();
+  checkTransactionSynchStatus();
+  queryParameters.validateParameters();
+  HQLQueryPlan plan=getHQLQueryPlan(query,false);
+  autoFlushIfRequired(plan.getQuerySpaces());
+  List results=CollectionHelper.EMPTY_LIST;
+  boolean success=false;
+  dontFlushFromFind++;
+  try {
+    results=plan.performList(queryParameters,this);
+    success=true;
+  }
+  finally {
+    dontFlushFromFind--;
+    afterOperation(success);
+  }
+  return results;
+}

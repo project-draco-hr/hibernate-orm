@@ -1,0 +1,20 @@
+{
+  int loc=propertyPath.indexOf('.');
+  String basePropertyName=loc > 0 ? propertyPath.substring(0,loc) : propertyPath;
+  String[] propertyNames=type.getPropertyNames();
+  int index=0;
+  for (; index < propertyNames.length; index++) {
+    if (basePropertyName.equals(propertyNames[index]))     break;
+  }
+  if (index == propertyNames.length) {
+    throw new MappingException("component property not found: " + basePropertyName);
+  }
+  Object baseValue=type.getPropertyValue(component,index,getEntityMode());
+  if (loc > 0) {
+    ComponentType subtype=(ComponentType)type.getSubtypes()[index];
+    return getComponentValue(subtype,baseValue,propertyPath.substring(loc + 1));
+  }
+ else {
+    return baseValue;
+  }
+}

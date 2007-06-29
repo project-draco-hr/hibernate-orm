@@ -1,0 +1,35 @@
+{
+  Session session=openSession();
+  Transaction t=session.beginTransaction();
+  Course course=new Course();
+  course.setCourseCode("HIB");
+  course.setDescription("Hibernate Training");
+  session.persist(course);
+  Student gavin=new Student();
+  gavin.setName("Gavin King");
+  gavin.setStudentNumber(232);
+  session.persist(gavin);
+  Enrolment enrolment2=new Enrolment();
+  enrolment2.setCourse(course);
+  enrolment2.setCourseCode(course.getCourseCode());
+  enrolment2.setSemester((short)3);
+  enrolment2.setYear((short)1998);
+  enrolment2.setStudent(gavin);
+  enrolment2.setStudentNumber(gavin.getStudentNumber());
+  gavin.getEnrolments().add(enrolment2);
+  session.persist(enrolment2);
+  DetachedCriteria dc=DetachedCriteria.forClass(Student.class).add(Property.forName("studentNumber").eq(new Long(232))).setProjection(Property.forName("name"));
+  session.createCriteria(Student.class).add(Subqueries.propertyEqAll("name",dc)).list();
+  session.createCriteria(Student.class).add(Subqueries.exists(dc)).list();
+  session.createCriteria(Student.class).add(Property.forName("name").eqAll(dc)).list();
+  session.createCriteria(Student.class).add(Subqueries.in("Gavin King",dc)).list();
+  DetachedCriteria dc2=DetachedCriteria.forClass(Student.class,"st").add(Property.forName("st.studentNumber").eqProperty("e.studentNumber")).setProjection(Property.forName("name"));
+  session.createCriteria(Enrolment.class,"e").add(Subqueries.eq("Gavin King",dc2)).list();
+  DetachedCriteria dc3=DetachedCriteria.forClass(Student.class,"st").createCriteria("enrolments").createCriteria("course").add(Property.forName("description").eq("Hibernate Training")).setProjection(Property.forName("st.name"));
+  session.createCriteria(Enrolment.class,"e").add(Subqueries.eq("Gavin King",dc3)).list();
+  session.delete(enrolment2);
+  session.delete(gavin);
+  session.delete(course);
+  t.commit();
+  session.close();
+}

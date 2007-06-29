@@ -1,0 +1,56 @@
+{
+  if (log.isTraceEnabled()) {
+    log.trace("Hydrating entity: " + MessageHelper.infoString(this,id,getFactory()));
+  }
+  final AbstractEntityPersister rootPersister=(AbstractEntityPersister)rootLoadable;
+  final boolean hasDeferred=rootPersister.hasSequentialSelect();
+  PreparedStatement sequentialSelect=null;
+  ResultSet sequentialResultSet=null;
+  boolean sequentialSelectEmpty=false;
+  try {
+    if (hasDeferred) {
+      final String sql=rootPersister.getSequentialSelect(getEntityName());
+      if (sql != null) {
+        sequentialSelect=session.getBatcher().prepareSelectStatement(sql);
+        rootPersister.getIdentifierType().nullSafeSet(sequentialSelect,id,1,session);
+        sequentialResultSet=sequentialSelect.executeQuery();
+        if (!sequentialResultSet.next()) {
+          sequentialSelectEmpty=true;
+        }
+      }
+    }
+    final String[] propNames=getPropertyNames();
+    final Type[] types=getPropertyTypes();
+    final Object[] values=new Object[types.length];
+    final boolean[] laziness=getPropertyLaziness();
+    final String[] propSubclassNames=getSubclassPropertySubclassNameClosure();
+    for (int i=0; i < types.length; i++) {
+      if (!propertySelectable[i]) {
+        values[i]=BackrefPropertyAccessor.UNKNOWN;
+      }
+ else       if (allProperties || !laziness[i]) {
+        final boolean propertyIsDeferred=hasDeferred && rootPersister.isSubclassPropertyDeferred(propNames[i],propSubclassNames[i]);
+        if (propertyIsDeferred && sequentialSelectEmpty) {
+          values[i]=null;
+        }
+ else {
+          final ResultSet propertyResultSet=propertyIsDeferred ? sequentialResultSet : rs;
+          final String[] cols=propertyIsDeferred ? propertyColumnAliases[i] : suffixedPropertyColumns[i];
+          values[i]=types[i].hydrate(propertyResultSet,cols,session,object);
+        }
+      }
+ else {
+        values[i]=LazyPropertyInitializer.UNFETCHED_PROPERTY;
+      }
+    }
+    if (sequentialResultSet != null) {
+      sequentialResultSet.close();
+    }
+    return values;
+  }
+  finally {
+    if (sequentialSelect != null) {
+      session.getBatcher().closeStatement(sequentialSelect);
+    }
+  }
+}

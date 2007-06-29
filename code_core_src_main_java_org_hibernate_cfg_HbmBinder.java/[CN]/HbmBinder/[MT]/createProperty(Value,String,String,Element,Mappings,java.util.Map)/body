@@ -1,0 +1,25 @@
+{
+  if (StringHelper.isEmpty(propertyName)) {
+    throw new MappingException(subnode.getName() + " mapping must defined a name attribute [" + className+ "]");
+  }
+  value.setTypeUsingReflection(className,propertyName);
+  if (value instanceof ToOne) {
+    ToOne toOne=(ToOne)value;
+    String propertyRef=toOne.getReferencedPropertyName();
+    if (propertyRef != null) {
+      mappings.addUniquePropertyReference(toOne.getReferencedEntityName(),propertyRef);
+    }
+  }
+ else   if (value instanceof Collection) {
+    Collection coll=(Collection)value;
+    String propertyRef=coll.getReferencedPropertyName();
+    if (propertyRef != null) {
+      mappings.addPropertyReference(coll.getOwnerEntityName(),propertyRef);
+    }
+  }
+  value.createForeignKey();
+  Property prop=new Property();
+  prop.setValue(value);
+  bindProperty(subnode,prop,mappings,inheritedMetas);
+  return prop;
+}

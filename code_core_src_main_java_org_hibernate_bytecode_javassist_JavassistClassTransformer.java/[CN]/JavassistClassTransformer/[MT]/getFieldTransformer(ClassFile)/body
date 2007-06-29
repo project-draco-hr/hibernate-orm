@@ -1,0 +1,20 @@
+{
+  if (alreadyInstrumented(classfile)) {
+    return null;
+  }
+  return new FieldTransformer(new FieldFilter(){
+    public boolean handleRead(    String desc,    String name){
+      return fieldFilter.shouldInstrumentField(classfile.getName(),name);
+    }
+    public boolean handleWrite(    String desc,    String name){
+      return fieldFilter.shouldInstrumentField(classfile.getName(),name);
+    }
+    public boolean handleReadAccess(    String fieldOwnerClassName,    String fieldName){
+      return fieldFilter.shouldTransformFieldAccess(classfile.getName(),fieldOwnerClassName,fieldName);
+    }
+    public boolean handleWriteAccess(    String fieldOwnerClassName,    String fieldName){
+      return fieldFilter.shouldTransformFieldAccess(classfile.getName(),fieldOwnerClassName,fieldName);
+    }
+  }
+);
+}

@@ -1,0 +1,14 @@
+{
+  Type elementType=persister.getElementType();
+  Type indexType=persister.getIndexType();
+  final String indexNodeName=getIndexAttributeName(persister);
+  Serializable[] cached=(Serializable[])disassembled;
+  for (int i=0; i < cached.length; ) {
+    Object index=indexType.assemble(cached[i++],getSession(),owner);
+    Object object=elementType.assemble(cached[i++],getSession(),owner);
+    Element subelement=element.addElement(persister.getElementNodeName());
+    elementType.setToXMLNode(subelement,object,persister.getFactory());
+    String indexString=((NullableType)indexType).toXMLString(index,persister.getFactory());
+    setIndex(subelement,indexNodeName,indexString);
+  }
+}

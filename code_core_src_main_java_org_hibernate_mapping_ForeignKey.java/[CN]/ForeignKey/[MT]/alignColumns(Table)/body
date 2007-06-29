@@ -1,0 +1,16 @@
+{
+  if (referencedTable.getPrimaryKey().getColumnSpan() != getColumnSpan()) {
+    StringBuffer sb=new StringBuffer();
+    sb.append("Foreign key (").append(getName() + ":").append(getTable().getName()).append(" [");
+    appendColumns(sb,getColumnIterator());
+    sb.append("])").append(") must have same number of columns as the referenced primary key (").append(referencedTable.getName()).append(" [");
+    appendColumns(sb,referencedTable.getPrimaryKey().getColumnIterator());
+    sb.append("])");
+    throw new MappingException(sb.toString());
+  }
+  Iterator fkCols=getColumnIterator();
+  Iterator pkCols=referencedTable.getPrimaryKey().getColumnIterator();
+  while (pkCols.hasNext()) {
+    ((Column)fkCols.next()).setLength(((Column)pkCols.next()).getLength());
+  }
+}

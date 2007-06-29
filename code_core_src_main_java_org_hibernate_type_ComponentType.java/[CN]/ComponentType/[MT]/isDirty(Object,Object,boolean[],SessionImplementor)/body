@@ -1,0 +1,31 @@
+{
+  if (x == y) {
+    return false;
+  }
+  if (x == null || y == null) {
+    return true;
+  }
+  EntityMode entityMode=session.getEntityMode();
+  Object[] xvalues=getPropertyValues(x,entityMode);
+  Object[] yvalues=getPropertyValues(y,entityMode);
+  int loc=0;
+  for (int i=0; i < xvalues.length; i++) {
+    int len=propertyTypes[i].getColumnSpan(session.getFactory());
+    if (len <= 1) {
+      final boolean dirty=(len == 0 || checkable[loc]) && propertyTypes[i].isDirty(xvalues[i],yvalues[i],session);
+      if (dirty) {
+        return true;
+      }
+    }
+ else {
+      boolean[] subcheckable=new boolean[len];
+      System.arraycopy(checkable,loc,subcheckable,0,len);
+      final boolean dirty=propertyTypes[i].isDirty(xvalues[i],yvalues[i],subcheckable,session);
+      if (dirty) {
+        return true;
+      }
+    }
+    loc+=len;
+  }
+  return false;
+}

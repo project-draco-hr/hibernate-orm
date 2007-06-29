@@ -1,0 +1,20 @@
+{
+  final Projection projection=rootCriteria.getProjection();
+  String[] projectionColumns=projection == null ? null : projection.getColumnAliases(propertyName,0);
+  if (projectionColumns == null) {
+    try {
+      return getColumns(propertyName,subcriteria);
+    }
+ catch (    HibernateException he) {
+      if (outerQueryTranslator != null) {
+        return outerQueryTranslator.getColumnsUsingProjection(subcriteria,propertyName);
+      }
+ else {
+        throw he;
+      }
+    }
+  }
+ else {
+    return projectionColumns;
+  }
+}

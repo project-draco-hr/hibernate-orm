@@ -1,0 +1,29 @@
+{
+  errorIfClosed();
+  checkTransactionSynchStatus();
+  String[] implementors=factory.getImplementors(criteria.getEntityOrClassName());
+  int size=implementors.length;
+  CriteriaLoader[] loaders=new CriteriaLoader[size];
+  Set spaces=new HashSet();
+  for (int i=0; i < size; i++) {
+    loaders[i]=new CriteriaLoader(getOuterJoinLoadable(implementors[i]),factory,criteria,implementors[i],getEnabledFilters());
+    spaces.addAll(loaders[i].getQuerySpaces());
+  }
+  autoFlushIfRequired(spaces);
+  List results=Collections.EMPTY_LIST;
+  dontFlushFromFind++;
+  boolean success=false;
+  try {
+    for (int i=0; i < size; i++) {
+      final List currentResults=loaders[i].list(this);
+      currentResults.addAll(results);
+      results=currentResults;
+    }
+    success=true;
+  }
+  finally {
+    dontFlushFromFind--;
+    afterOperation(success);
+  }
+  return results;
+}

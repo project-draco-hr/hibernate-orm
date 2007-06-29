@@ -1,0 +1,23 @@
+{
+  if (collection == CollectionType.UNFETCHED_COLLECTION) {
+    return null;
+  }
+  EventSource session=getSession();
+  CollectionPersister persister=session.getFactory().getCollectionPersister(type.getRole());
+  if (isUpdate) {
+    removeCollection(persister,extractCollectionKeyFromOwner(persister),session);
+  }
+  if (collection != null && (collection instanceof PersistentCollection)) {
+    PersistentCollection wrapper=(PersistentCollection)collection;
+    wrapper.setCurrentSession(session);
+    if (wrapper.wasInitialized()) {
+      session.getPersistenceContext().addNewCollection(persister,wrapper);
+    }
+ else {
+      reattachCollection(wrapper,type);
+    }
+  }
+ else {
+  }
+  return null;
+}

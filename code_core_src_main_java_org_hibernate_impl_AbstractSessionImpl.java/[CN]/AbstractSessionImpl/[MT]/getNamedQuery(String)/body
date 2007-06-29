@@ -1,0 +1,21 @@
+{
+  errorIfClosed();
+  NamedQueryDefinition nqd=factory.getNamedQuery(queryName);
+  final Query query;
+  if (nqd != null) {
+    String queryString=nqd.getQueryString();
+    query=new QueryImpl(queryString,nqd.getFlushMode(),this,getHQLQueryPlan(queryString,false).getParameterMetadata());
+    query.setComment("named HQL query " + queryName);
+  }
+ else {
+    NamedSQLQueryDefinition nsqlqd=factory.getNamedSQLQuery(queryName);
+    if (nsqlqd == null) {
+      throw new MappingException("Named query not known: " + queryName);
+    }
+    query=new SQLQueryImpl(nsqlqd,this,factory.getQueryPlanCache().getSQLParameterMetadata(nsqlqd.getQueryString()));
+    query.setComment("named native SQL query " + queryName);
+    nqd=nsqlqd;
+  }
+  initQuery(query,nqd);
+  return query;
+}

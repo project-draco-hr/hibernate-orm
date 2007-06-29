@@ -1,0 +1,26 @@
+{
+  if (persister.hasNaturalIdentifier()) {
+    Object[] snapshot=null;
+    Type[] types=persister.getPropertyTypes();
+    int[] props=persister.getNaturalIdentifierProperties();
+    boolean[] updateable=persister.getPropertyUpdateability();
+    for (int i=0; i < props.length; i++) {
+      int prop=props[i];
+      if (!updateable[prop]) {
+        Object loadedVal;
+        if (loaded == null) {
+          if (snapshot == null) {
+            snapshot=session.getPersistenceContext().getNaturalIdSnapshot(identifier,persister);
+          }
+          loadedVal=snapshot[i];
+        }
+ else {
+          loadedVal=loaded[prop];
+        }
+        if (!types[prop].isEqual(current[prop],loadedVal,entityMode)) {
+          throw new HibernateException("immutable natural identifier of an instance of " + persister.getEntityName() + " was altered");
+        }
+      }
+    }
+  }
+}

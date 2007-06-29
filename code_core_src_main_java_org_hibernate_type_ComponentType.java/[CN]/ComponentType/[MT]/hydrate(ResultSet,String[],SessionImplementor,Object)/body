@@ -1,0 +1,21 @@
+{
+  int begin=0;
+  boolean notNull=false;
+  Object[] values=new Object[propertySpan];
+  for (int i=0; i < propertySpan; i++) {
+    int length=propertyTypes[i].getColumnSpan(session.getFactory());
+    String[] range=ArrayHelper.slice(names,begin,length);
+    Object val=propertyTypes[i].hydrate(rs,range,session,owner);
+    if (val == null) {
+      if (isKey) {
+        return null;
+      }
+    }
+ else {
+      notNull=true;
+    }
+    values[i]=val;
+    begin+=length;
+  }
+  return notNull ? values : null;
+}

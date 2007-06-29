@@ -1,0 +1,27 @@
+{
+  prepare();
+  Session s=getSessionUnderTest();
+  s.beginTransaction();
+  List entities=new ArrayList();
+  for (int i=0; i < 10; i++) {
+    Other other=new Other("other-" + i);
+    Silly silly=new Silly("silly-" + i,other);
+    entities.add(silly);
+    s.save(silly);
+  }
+  s.flush();
+  Iterator itr=entities.iterator();
+  while (itr.hasNext()) {
+    Silly silly=(Silly)itr.next();
+    silly.setName("new-" + silly.getName());
+    silly.getOther().setName("new-" + silly.getOther().getName());
+  }
+  long initialCount=getSessions().getStatistics().getConnectCount();
+  s.flush();
+  assertEquals("connection not maintained through flush",initialCount + 1,getSessions().getStatistics().getConnectCount());
+  s.createQuery("delete from Silly").executeUpdate();
+  s.createQuery("delete from Other").executeUpdate();
+  s.getTransaction().commit();
+  release(s);
+  done();
+}

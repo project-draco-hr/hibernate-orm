@@ -1,0 +1,26 @@
+{
+  PropertyDescriptor[] pds=beanInfo.getPropertyDescriptors();
+  try {
+    for (int i=0, max=pds.length; i < max; i++) {
+      final Object listener=pds[i].getReadMethod().invoke(this,READER_METHOD_ARGS);
+      if (listener == null) {
+        throw new HibernateException("Listener [" + pds[i].getName() + "] was null");
+      }
+      if (listener.getClass().isArray()) {
+        Object[] listenerArray=(Object[])listener;
+        int length=listenerArray.length;
+        for (int index=0; index < length; index++) {
+          if (listenerArray[index] == null) {
+            throw new HibernateException("Listener in [" + pds[i].getName() + "] was null");
+          }
+        }
+      }
+    }
+  }
+ catch (  HibernateException e) {
+    throw e;
+  }
+catch (  Throwable t) {
+    throw new HibernateException("Unable to validate listener config");
+  }
+}

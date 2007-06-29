@@ -1,0 +1,24 @@
+{
+  Session s=openSession();
+  Qux q=new Qux();
+  s.save(q);
+  q.setStuff("foo bar baz qux");
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  q=(Qux)s.load(Qux.class,q.getKey());
+  assertTrue("lifecycle create",q.getCreated());
+  assertTrue("lifecycle load",q.getLoaded());
+  assertTrue("lifecycle subobject",q.getFoo() != null);
+  s.delete(q);
+  assertTrue("lifecycle delete",q.getDeleted());
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  assertTrue("subdeletion",s.find("from Foo foo").size() == 0);
+  s.flush();
+  s.connection().commit();
+  s.close();
+}

@@ -1,0 +1,28 @@
+{
+  if (!persister.hasNaturalIdentifier()) {
+    return null;
+  }
+  int[] props=persister.getNaturalIdentifierProperties();
+  boolean[] updateable=persister.getPropertyUpdateability();
+  boolean allNatualIdPropsAreUpdateable=true;
+  for (int i=0; i < props.length; i++) {
+    if (!updateable[props[i]]) {
+      allNatualIdPropsAreUpdateable=false;
+      break;
+    }
+  }
+  if (allNatualIdPropsAreUpdateable) {
+    Object[] entitySnapshot=getDatabaseSnapshot(id,persister);
+    if (entitySnapshot == NO_ROW) {
+      return null;
+    }
+    Object[] naturalIdSnapshot=new Object[props.length];
+    for (int i=0; i < props.length; i++) {
+      naturalIdSnapshot[i]=entitySnapshot[props[i]];
+    }
+    return naturalIdSnapshot;
+  }
+ else {
+    return persister.getNaturalIdentifierSnapshot(id,session);
+  }
+}

@@ -1,0 +1,47 @@
+{
+  validate(entity,persister,source);
+  Serializable id=key == null ? null : key.getIdentifier();
+  boolean inTxn=source.getJDBCContext().isTransactionInProgress();
+  boolean shouldDelayIdentityInserts=!inTxn && !requiresImmediateIdAccess;
+  if (useIdentityColumn && !shouldDelayIdentityInserts) {
+    log.trace("executing insertions");
+    source.getActionQueue().executeInserts();
+  }
+  source.getPersistenceContext().addEntry(entity,Status.SAVING,null,null,id,null,LockMode.WRITE,useIdentityColumn,persister,false,false);
+  cascadeBeforeSave(source,persister,entity,anything);
+  Object[] values=persister.getPropertyValuesToInsert(entity,getMergeMap(anything),source);
+  Type[] types=persister.getPropertyTypes();
+  boolean substitute=substituteValuesIfNecessary(entity,id,values,persister,source);
+  if (persister.hasCollections()) {
+    substitute=substitute || visitCollectionsBeforeSave(entity,id,values,types,source);
+  }
+  if (substitute) {
+    persister.setPropertyValues(entity,values,source.getEntityMode());
+  }
+  TypeFactory.deepCopy(values,types,persister.getPropertyUpdateability(),values,source);
+  new ForeignKeys.Nullifier(entity,false,useIdentityColumn,source).nullifyTransientReferences(values,types);
+  new Nullability(source).checkNullability(values,persister,false);
+  if (useIdentityColumn) {
+    EntityIdentityInsertAction insert=new EntityIdentityInsertAction(values,entity,persister,source,shouldDelayIdentityInserts);
+    if (!shouldDelayIdentityInserts) {
+      log.debug("executing identity-insert immediately");
+      source.getActionQueue().execute(insert);
+      id=insert.getGeneratedId();
+      key=new EntityKey(id,persister,source.getEntityMode());
+      source.getPersistenceContext().checkUniqueness(key,entity);
+    }
+ else {
+      log.debug("delaying identity-insert due to no transaction in progress");
+      source.getActionQueue().addAction(insert);
+      key=insert.getDelayedEntityKey();
+    }
+  }
+  Object version=Versioning.getVersion(values,persister);
+  source.getPersistenceContext().addEntity(entity,Status.MANAGED,values,key,version,LockMode.WRITE,useIdentityColumn,persister,isVersionIncrementDisabled(),false);
+  if (!useIdentityColumn) {
+    source.getActionQueue().addAction(new EntityInsertAction(id,values,entity,version,persister,source));
+  }
+  cascadeAfterSave(source,persister,entity,anything);
+  markInterceptorDirty(entity,persister,source);
+  return id;
+}

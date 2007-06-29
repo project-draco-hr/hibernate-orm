@@ -1,0 +1,37 @@
+{
+  StringBuffer buf=new StringBuffer(50);
+  if (comment != null)   buf.append("/* ").append(comment).append(" */ ");
+  buf.append("select ");
+  if (distinct)   buf.append("distinct ");
+  String from=joins.toFromFragmentString();
+  if (from.startsWith(",")) {
+    from=from.substring(1);
+  }
+ else   if (from.startsWith(" inner join")) {
+    from=from.substring(11);
+  }
+  buf.append(select.toString()).append(" from").append(from);
+  String outerJoinsAfterWhere=joins.toWhereFragmentString().trim();
+  String whereConditions=where.toString().trim();
+  boolean hasOuterJoinsAfterWhere=outerJoinsAfterWhere.length() > 0;
+  boolean hasWhereConditions=whereConditions.length() > 0;
+  if (hasOuterJoinsAfterWhere || hasWhereConditions) {
+    buf.append(" where ");
+    if (hasOuterJoinsAfterWhere) {
+      buf.append(outerJoinsAfterWhere.substring(4));
+    }
+    if (hasWhereConditions) {
+      if (hasOuterJoinsAfterWhere) {
+        buf.append(" and (");
+      }
+      buf.append(whereConditions);
+      if (hasOuterJoinsAfterWhere) {
+        buf.append(")");
+      }
+    }
+  }
+  if (groupBy.length() > 0)   buf.append(" group by ").append(groupBy.toString());
+  if (having.length() > 0)   buf.append(" having ").append(having.toString());
+  if (orderBy.length() > 0)   buf.append(" order by ").append(orderBy.toString());
+  return dialect.transformSelectString(buf.toString());
+}

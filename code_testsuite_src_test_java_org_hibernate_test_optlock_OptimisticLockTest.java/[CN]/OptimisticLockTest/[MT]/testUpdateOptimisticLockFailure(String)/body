@@ -1,0 +1,53 @@
+{
+  if (getDialect().doesRepeatableReadCauseReadersToBlockWriters()) {
+    reportSkip("deadlock","update optimistic locking");
+    return;
+  }
+  Session mainSession=openSession();
+  mainSession.beginTransaction();
+  Document doc=new Document();
+  doc.setTitle("Hibernate in Action");
+  doc.setAuthor("Bauer et al");
+  doc.setSummary("Very boring book about persistence");
+  doc.setText("blah blah yada yada yada");
+  doc.setPubDate(new PublicationDate(2004));
+  mainSession.save(entityName,doc);
+  mainSession.getTransaction().commit();
+  mainSession.close();
+  mainSession=openSession();
+  mainSession.beginTransaction();
+  doc=(Document)mainSession.get(entityName,doc.getId());
+  Session otherSession=getSessions().openSession();
+  otherSession.beginTransaction();
+  Document otherDoc=(Document)otherSession.get(entityName,doc.getId());
+  otherDoc.setSummary("A modern classic");
+  otherSession.getTransaction().commit();
+  otherSession.close();
+  try {
+    doc.setSummary("A machiavelian achievement of epic proportions");
+    mainSession.flush();
+    fail("expecting opt lock failure");
+  }
+ catch (  StaleObjectStateException expected) {
+  }
+catch (  StaleStateException expected) {
+  }
+catch (  JDBCException e) {
+    if (!(getDialect() instanceof SQLServerDialect && e.getErrorCode() == 3960)) {
+      throw e;
+    }
+ else {
+      mainSession.getTransaction().rollback();
+      mainSession.beginTransaction();
+    }
+  }
+  mainSession.clear();
+  mainSession.getTransaction().commit();
+  mainSession.close();
+  mainSession=openSession();
+  mainSession.beginTransaction();
+  doc=(Document)mainSession.load(entityName,doc.getId());
+  mainSession.delete(entityName,doc);
+  mainSession.getTransaction().commit();
+  mainSession.close();
+}

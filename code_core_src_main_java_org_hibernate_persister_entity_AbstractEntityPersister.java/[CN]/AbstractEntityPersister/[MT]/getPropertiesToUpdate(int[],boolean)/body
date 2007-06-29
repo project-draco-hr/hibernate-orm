@@ -1,0 +1,14 @@
+{
+  final boolean[] propsToUpdate=new boolean[entityMetamodel.getPropertySpan()];
+  final boolean[] updateability=getPropertyUpdateability();
+  for (int j=0; j < dirtyProperties.length; j++) {
+    int property=dirtyProperties[j];
+    if (updateability[property]) {
+      propsToUpdate[property]=true;
+    }
+  }
+  if (isVersioned()) {
+    propsToUpdate[getVersionProperty()]=Versioning.isVersionIncrementRequired(dirtyProperties,hasDirtyCollection,getPropertyVersionability());
+  }
+  return propsToUpdate;
+}

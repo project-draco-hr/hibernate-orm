@@ -1,0 +1,26 @@
+{
+  if (persister.hasCascades() || action.requiresNoCascadeChecking()) {
+    if (log.isTraceEnabled()) {
+      log.trace("processing cascade " + action + " for: "+ persister.getEntityName());
+    }
+    Type[] types=persister.getPropertyTypes();
+    CascadeStyle[] cascadeStyles=persister.getPropertyCascadeStyles();
+    EntityMode entityMode=eventSource.getEntityMode();
+    boolean hasUninitializedLazyProperties=persister.hasUninitializedLazyProperties(parent,entityMode);
+    for (int i=0; i < types.length; i++) {
+      CascadeStyle style=cascadeStyles[i];
+      if (hasUninitializedLazyProperties && persister.getPropertyLaziness()[i] && !action.performOnLazyProperty()) {
+        continue;
+      }
+      if (style.doCascade(action)) {
+        cascadeProperty(persister.getPropertyValue(parent,i,entityMode),types[i],style,anything,false);
+      }
+ else       if (action.requiresNoCascadeChecking()) {
+        action.noCascade(eventSource,persister.getPropertyValue(parent,i,entityMode),parent,persister,i);
+      }
+    }
+    if (log.isTraceEnabled()) {
+      log.trace("done processing cascade " + action + " for: "+ persister.getEntityName());
+    }
+  }
+}

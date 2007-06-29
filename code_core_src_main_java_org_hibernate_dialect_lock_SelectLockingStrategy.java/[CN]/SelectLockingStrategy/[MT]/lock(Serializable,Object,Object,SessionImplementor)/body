@@ -1,0 +1,30 @@
+{
+  SessionFactoryImplementor factory=session.getFactory();
+  try {
+    PreparedStatement st=session.getBatcher().prepareSelectStatement(sql);
+    try {
+      lockable.getIdentifierType().nullSafeSet(st,id,1,session);
+      if (lockable.isVersioned()) {
+        lockable.getVersionType().nullSafeSet(st,version,lockable.getIdentifierType().getColumnSpan(factory) + 1,session);
+      }
+      ResultSet rs=st.executeQuery();
+      try {
+        if (!rs.next()) {
+          if (factory.getStatistics().isStatisticsEnabled()) {
+            factory.getStatisticsImplementor().optimisticFailure(lockable.getEntityName());
+          }
+          throw new StaleObjectStateException(lockable.getEntityName(),id);
+        }
+      }
+  finally {
+        rs.close();
+      }
+    }
+  finally {
+      session.getBatcher().closeStatement(st);
+    }
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(session.getFactory().getSQLExceptionConverter(),sqle,"could not lock: " + MessageHelper.infoString(lockable,id,session.getFactory()),sql);
+  }
+}

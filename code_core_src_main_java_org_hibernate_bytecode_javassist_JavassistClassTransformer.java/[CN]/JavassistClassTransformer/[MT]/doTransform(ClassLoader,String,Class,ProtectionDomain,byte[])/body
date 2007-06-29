@@ -1,0 +1,36 @@
+{
+  ClassFile classfile;
+  try {
+    classfile=new ClassFile(new DataInputStream(new ByteArrayInputStream(classfileBuffer)));
+  }
+ catch (  IOException e) {
+    log.error("Unable to build enhancement metamodel for " + className);
+    return classfileBuffer;
+  }
+  FieldTransformer transformer=getFieldTransformer(classfile);
+  if (transformer != null) {
+    if (log.isDebugEnabled()) {
+      log.debug("Enhancing " + className);
+    }
+    DataOutputStream out=null;
+    try {
+      transformer.transform(classfile);
+      ByteArrayOutputStream byteStream=new ByteArrayOutputStream();
+      out=new DataOutputStream(byteStream);
+      classfile.write(out);
+      return byteStream.toByteArray();
+    }
+ catch (    Exception e) {
+      log.error("Unable to transform class",e);
+      throw new HibernateException("Unable to transform class: " + e.getMessage());
+    }
+ finally {
+      try {
+        if (out != null)         out.close();
+      }
+ catch (      IOException e) {
+      }
+    }
+  }
+  return classfileBuffer;
+}

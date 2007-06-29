@@ -1,0 +1,23 @@
+{
+  final Projection projection=rootCriteria.getProjection();
+  Type[] projectionTypes=projection == null ? null : projection.getTypes(propertyName,subcriteria,this);
+  if (projectionTypes == null) {
+    try {
+      return getType(subcriteria,propertyName);
+    }
+ catch (    HibernateException he) {
+      if (outerQueryTranslator != null) {
+        return outerQueryTranslator.getType(subcriteria,propertyName);
+      }
+ else {
+        throw he;
+      }
+    }
+  }
+ else {
+    if (projectionTypes.length != 1) {
+      throw new QueryException("not a single-length projection: " + propertyName);
+    }
+    return projectionTypes[0];
+  }
+}

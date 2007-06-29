@@ -1,0 +1,39 @@
+{
+  if (systemId != null) {
+    log.debug("trying to resolve system-id [" + systemId + "]");
+    if (systemId.startsWith(HIBERNATE_NAMESPACE)) {
+      log.debug("recognized hibernate namespace; attempting to resolve on classpath under org/hibernate/");
+      String path="org/hibernate/" + systemId.substring(HIBERNATE_NAMESPACE.length());
+      InputStream dtdStream=resolveInHibernateNamespace(path);
+      if (dtdStream == null) {
+        log.debug("unable to locate [" + systemId + "] on classpath");
+        if (systemId.substring(HIBERNATE_NAMESPACE.length()).indexOf("2.0") > -1) {
+          log.error("Don't use old DTDs, read the Hibernate 3.x Migration Guide!");
+        }
+      }
+ else {
+        log.debug("located [" + systemId + "] in classpath");
+        InputSource source=new InputSource(dtdStream);
+        source.setPublicId(publicId);
+        source.setSystemId(systemId);
+        return source;
+      }
+    }
+ else     if (systemId.startsWith(USER_NAMESPACE)) {
+      log.debug("recognized local namespace; attempting to resolve on classpath");
+      String path=systemId.substring(USER_NAMESPACE.length());
+      InputStream stream=resolveInLocalNamespace(path);
+      if (stream == null) {
+        log.debug("unable to locate [" + systemId + "] on classpath");
+      }
+ else {
+        log.debug("located [" + systemId + "] in classpath");
+        InputSource source=new InputSource(stream);
+        source.setPublicId(publicId);
+        source.setSystemId(systemId);
+        return source;
+      }
+    }
+  }
+  return null;
+}

@@ -1,0 +1,53 @@
+{
+  if (log.isDebugEnabled()) {
+    log.debug("setConstantValue() " + text + " -> "+ value+ " "+ value.getClass().getName());
+  }
+  node.setFirstChild(null);
+  if (value instanceof String) {
+    node.setType(SqlTokenTypes.QUOTED_STRING);
+  }
+ else   if (value instanceof Character) {
+    node.setType(SqlTokenTypes.QUOTED_STRING);
+  }
+ else   if (value instanceof Byte) {
+    node.setType(SqlTokenTypes.NUM_INT);
+  }
+ else   if (value instanceof Short) {
+    node.setType(SqlTokenTypes.NUM_INT);
+  }
+ else   if (value instanceof Integer) {
+    node.setType(SqlTokenTypes.NUM_INT);
+  }
+ else   if (value instanceof Long) {
+    node.setType(SqlTokenTypes.NUM_LONG);
+  }
+ else   if (value instanceof Double) {
+    node.setType(SqlTokenTypes.NUM_DOUBLE);
+  }
+ else   if (value instanceof Float) {
+    node.setType(SqlTokenTypes.NUM_FLOAT);
+  }
+ else {
+    node.setType(SqlTokenTypes.CONSTANT);
+  }
+  Type type;
+  try {
+    type=TypeFactory.heuristicType(value.getClass().getName());
+  }
+ catch (  MappingException me) {
+    throw new QueryException(me);
+  }
+  if (type == null) {
+    throw new QueryException(QueryTranslator.ERROR_CANNOT_DETERMINE_TYPE + node.getText());
+  }
+  try {
+    LiteralType literalType=(LiteralType)type;
+    Dialect dialect=walker.getSessionFactoryHelper().getFactory().getDialect();
+    node.setText(literalType.objectToSQLString(value,dialect));
+  }
+ catch (  Exception e) {
+    throw new QueryException(QueryTranslator.ERROR_CANNOT_FORMAT_LITERAL + node.getText(),e);
+  }
+  node.setDataType(type);
+  node.setResolvedConstant(text);
+}

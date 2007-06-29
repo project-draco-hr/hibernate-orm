@@ -1,0 +1,27 @@
+{
+  if (manager != null) {
+    log.warn("Attempt to restart an already started EhCacheProvider. Use sessionFactory.close() " + " between repeated calls to buildSessionFactory. Using previously created EhCacheProvider." + " If this behaviour is required, consider using net.sf.ehcache.hibernate.SingletonEhCacheProvider.");
+    return;
+  }
+  try {
+    String configurationResourceName=null;
+    if (properties != null) {
+      configurationResourceName=(String)properties.get(Environment.CACHE_PROVIDER_CONFIG);
+    }
+    if (StringHelper.isEmpty(configurationResourceName)) {
+      manager=new CacheManager();
+    }
+ else {
+      URL url=loadResource(configurationResourceName);
+      manager=new CacheManager(url);
+    }
+  }
+ catch (  net.sf.ehcache.CacheException e) {
+    if (e.getMessage().startsWith("Cannot parseConfiguration CacheManager. Attempt to create a new instance of " + "CacheManager using the diskStorePath")) {
+      throw new CacheException("Attempt to restart an already started EhCacheProvider. Use sessionFactory.close() " + " between repeated calls to buildSessionFactory. Consider using net.sf.ehcache.hibernate.SingletonEhCacheProvider.",e);
+    }
+ else {
+      throw e;
+    }
+  }
+}

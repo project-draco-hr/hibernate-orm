@@ -1,0 +1,36 @@
+{
+  createTestBaseData();
+  String query="select an.description as description, an.bodyWeight as bodyWeight from Animal an order by bodyWeight desc";
+  Session session=openSession();
+  List results=session.createQuery(query).setResultTransformer(Transformers.aliasToBean(Animal.class)).list();
+  assertEquals("Incorrect result size",results.size(),2);
+  assertTrue("Incorrect return type",results.get(0) instanceof Animal);
+  Animal firstAnimal=(Animal)results.get(0);
+  Animal secondAnimal=(Animal)results.get(1);
+  assertEquals("Mammal #1",firstAnimal.getDescription());
+  assertEquals("Mammal #2",secondAnimal.getDescription());
+  assertFalse(session.contains(firstAnimal));
+  session.close();
+  session=openSession();
+  Iterator iter=session.createQuery(query).setResultTransformer(Transformers.aliasToBean(Animal.class)).iterate();
+  assertTrue("Incorrect result size",iter.hasNext());
+  assertTrue("Incorrect return type",iter.next() instanceof Animal);
+  session.close();
+  session=openSession();
+  ScrollableResults sr=session.createQuery(query).setResultTransformer(Transformers.aliasToBean(Animal.class)).scroll();
+  assertTrue("Incorrect result size",sr.next());
+  assertTrue("Incorrect return type",sr.get(0) instanceof Animal);
+  assertFalse(session.contains(sr.get(0)));
+  sr.close();
+  session.close();
+  session=openSession();
+  results=session.createQuery("select a from Animal a, Animal b order by a.id").setResultTransformer(new DistinctRootEntityResultTransformer()).list();
+  assertEquals("Incorrect result size",2,results.size());
+  assertTrue("Incorrect return type",results.get(0) instanceof Animal);
+  firstAnimal=(Animal)results.get(0);
+  secondAnimal=(Animal)results.get(1);
+  assertEquals("Mammal #1",firstAnimal.getDescription());
+  assertEquals("Mammal #2",secondAnimal.getDescription());
+  session.close();
+  destroyTestBaseData();
+}

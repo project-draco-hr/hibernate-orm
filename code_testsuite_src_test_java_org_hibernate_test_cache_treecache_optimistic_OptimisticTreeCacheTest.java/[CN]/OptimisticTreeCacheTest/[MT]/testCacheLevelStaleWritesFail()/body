@@ -1,0 +1,35 @@
+{
+  Fqn fqn=new Fqn("whatever");
+  TreeCache treeCache=((OptimisticTreeCacheProvider)((RegionFactoryCacheProviderBridge)sfi().getSettings().getRegionFactory()).getCacheProvider()).getUnderlyingCache();
+  Long long1=new Long(1);
+  Long long2=new Long(2);
+  try {
+    System.out.println("****************************************************************");
+    DummyTransactionManager.INSTANCE.begin();
+    treeCache.put(fqn,"ITEM",long1,ManualDataVersion.gen(1));
+    DummyTransactionManager.INSTANCE.commit();
+    System.out.println("****************************************************************");
+    DummyTransactionManager.INSTANCE.begin();
+    treeCache.put(fqn,"ITEM",long2,ManualDataVersion.gen(2));
+    DummyTransactionManager.INSTANCE.commit();
+    try {
+      System.out.println("****************************************************************");
+      DummyTransactionManager.INSTANCE.begin();
+      treeCache.put(fqn,"ITEM",long1,ManualDataVersion.gen(1));
+      DummyTransactionManager.INSTANCE.commit();
+      fail("stale write allowed");
+    }
+ catch (    Throwable ignore) {
+      DummyTransactionManager.INSTANCE.rollback();
+    }
+    Long current=(Long)treeCache.get(fqn,"ITEM");
+    assertEquals("unexpected current value",2,current.longValue());
+  }
+  finally {
+    try {
+      treeCache.remove(fqn,"ITEM");
+    }
+ catch (    Throwable ignore) {
+    }
+  }
+}

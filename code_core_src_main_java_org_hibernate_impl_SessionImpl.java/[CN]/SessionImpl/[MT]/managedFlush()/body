@@ -1,0 +1,14 @@
+{
+  if (isClosed()) {
+    log.trace("skipping auto-flush due to session closed");
+    return;
+  }
+  log.trace("automatically flushing session");
+  flush();
+  if (childSessionsByEntityMode != null) {
+    Iterator iter=childSessionsByEntityMode.values().iterator();
+    while (iter.hasNext()) {
+      ((Session)iter.next()).flush();
+    }
+  }
+}

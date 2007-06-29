@@ -1,0 +1,17 @@
+{
+class Work implements IsolatedWork {
+    Serializable generatedValue;
+    public void doWork(    Connection connection) throws HibernateException {
+      String sql=null;
+      try {
+        generatedValue=doWorkInCurrentTransaction(connection,sql);
+      }
+ catch (      SQLException sqle) {
+        throw JDBCExceptionHelper.convert(session.getFactory().getSQLExceptionConverter(),sqle,"could not get or update next value",sql);
+      }
+    }
+  }
+  Work work=new Work();
+  Isolater.doIsolatedWork(work,session);
+  return work.generatedValue;
+}

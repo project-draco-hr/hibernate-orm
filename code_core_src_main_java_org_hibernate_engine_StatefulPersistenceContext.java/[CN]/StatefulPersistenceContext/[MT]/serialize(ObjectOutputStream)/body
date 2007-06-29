@@ -1,0 +1,75 @@
+{
+  log.trace("serializing persistent-context");
+  oos.writeBoolean(hasNonReadOnlyEntities);
+  oos.writeInt(entitiesByKey.size());
+  log.trace("starting serialization of [" + entitiesByKey.size() + "] entitiesByKey entries");
+  Iterator itr=entitiesByKey.entrySet().iterator();
+  while (itr.hasNext()) {
+    Map.Entry entry=(Map.Entry)itr.next();
+    ((EntityKey)entry.getKey()).serialize(oos);
+    oos.writeObject(entry.getValue());
+  }
+  oos.writeInt(entitiesByUniqueKey.size());
+  log.trace("starting serialization of [" + entitiesByUniqueKey.size() + "] entitiesByUniqueKey entries");
+  itr=entitiesByUniqueKey.entrySet().iterator();
+  while (itr.hasNext()) {
+    Map.Entry entry=(Map.Entry)itr.next();
+    ((EntityUniqueKey)entry.getKey()).serialize(oos);
+    oos.writeObject(entry.getValue());
+  }
+  oos.writeInt(proxiesByKey.size());
+  log.trace("starting serialization of [" + proxiesByKey.size() + "] proxiesByKey entries");
+  itr=proxiesByKey.entrySet().iterator();
+  while (itr.hasNext()) {
+    Map.Entry entry=(Map.Entry)itr.next();
+    ((EntityKey)entry.getKey()).serialize(oos);
+    oos.writeObject(entry.getValue());
+  }
+  oos.writeInt(entitySnapshotsByKey.size());
+  log.trace("starting serialization of [" + entitySnapshotsByKey.size() + "] entitySnapshotsByKey entries");
+  itr=entitySnapshotsByKey.entrySet().iterator();
+  while (itr.hasNext()) {
+    Map.Entry entry=(Map.Entry)itr.next();
+    ((EntityKey)entry.getKey()).serialize(oos);
+    oos.writeObject(entry.getValue());
+  }
+  oos.writeInt(entityEntries.size());
+  log.trace("starting serialization of [" + entityEntries.size() + "] entityEntries entries");
+  itr=entityEntries.entrySet().iterator();
+  while (itr.hasNext()) {
+    Map.Entry entry=(Map.Entry)itr.next();
+    oos.writeObject(entry.getKey());
+    ((EntityEntry)entry.getValue()).serialize(oos);
+  }
+  oos.writeInt(collectionsByKey.size());
+  log.trace("starting serialization of [" + collectionsByKey.size() + "] collectionsByKey entries");
+  itr=collectionsByKey.entrySet().iterator();
+  while (itr.hasNext()) {
+    Map.Entry entry=(Map.Entry)itr.next();
+    ((CollectionKey)entry.getKey()).serialize(oos);
+    oos.writeObject(entry.getValue());
+  }
+  oos.writeInt(collectionEntries.size());
+  log.trace("starting serialization of [" + collectionEntries.size() + "] collectionEntries entries");
+  itr=collectionEntries.entrySet().iterator();
+  while (itr.hasNext()) {
+    Map.Entry entry=(Map.Entry)itr.next();
+    oos.writeObject(entry.getKey());
+    ((CollectionEntry)entry.getValue()).serialize(oos);
+  }
+  oos.writeInt(arrayHolders.size());
+  log.trace("starting serialization of [" + arrayHolders.size() + "] arrayHolders entries");
+  itr=arrayHolders.entrySet().iterator();
+  while (itr.hasNext()) {
+    Map.Entry entry=(Map.Entry)itr.next();
+    oos.writeObject(entry.getKey());
+    oos.writeObject(entry.getValue());
+  }
+  oos.writeInt(nullifiableEntityKeys.size());
+  log.trace("starting serialization of [" + nullifiableEntityKeys.size() + "] nullifiableEntityKeys entries");
+  itr=nullifiableEntityKeys.iterator();
+  while (itr.hasNext()) {
+    EntityKey entry=(EntityKey)itr.next();
+    entry.serialize(oos);
+  }
+}

@@ -1,0 +1,34 @@
+{
+  Node lhs=getLeftHandOperand();
+  Node rhs=getRightHandOperand();
+  if (lhs == null) {
+    throw new SemanticException("left-hand operand of a binary operator was null");
+  }
+  if (rhs == null) {
+    throw new SemanticException("right-hand operand of a binary operator was null");
+  }
+  Type lhType=(lhs instanceof SqlNode) ? ((SqlNode)lhs).getDataType() : null;
+  Type rhType=(rhs instanceof SqlNode) ? ((SqlNode)rhs).getDataType() : null;
+  if (ExpectedTypeAwareNode.class.isAssignableFrom(lhs.getClass()) && rhType != null) {
+    Type expectedType=null;
+    if (isDateTimeType(rhType)) {
+      expectedType=getType() == HqlSqlTokenTypes.PLUS ? Hibernate.DOUBLE : rhType;
+    }
+ else {
+      expectedType=rhType;
+    }
+    ((ExpectedTypeAwareNode)lhs).setExpectedType(expectedType);
+  }
+ else   if (ParameterNode.class.isAssignableFrom(rhs.getClass()) && lhType != null) {
+    Type expectedType=null;
+    if (isDateTimeType(lhType)) {
+      if (getType() == HqlSqlTokenTypes.PLUS) {
+        expectedType=Hibernate.DOUBLE;
+      }
+    }
+ else {
+      expectedType=lhType;
+    }
+    ((ExpectedTypeAwareNode)rhs).setExpectedType(expectedType);
+  }
+}

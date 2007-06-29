@@ -1,0 +1,14 @@
+{
+  String contextId=secNode.attributeValue("context");
+  setProperty(Environment.JACC_CONTEXTID,contextId);
+  log.info("JACC contextID: " + contextId);
+  JACCConfiguration jcfg=new JACCConfiguration(contextId);
+  Iterator grantElements=secNode.elementIterator();
+  while (grantElements.hasNext()) {
+    Element grantElement=(Element)grantElements.next();
+    String elementName=grantElement.getName();
+    if ("grant".equals(elementName)) {
+      jcfg.addPermission(grantElement.attributeValue("role"),grantElement.attributeValue("entity-name"),grantElement.attributeValue("actions"));
+    }
+  }
+}

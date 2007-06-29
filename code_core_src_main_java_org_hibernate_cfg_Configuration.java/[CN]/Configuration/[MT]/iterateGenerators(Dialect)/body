@@ -1,0 +1,26 @@
+{
+  TreeMap generators=new TreeMap();
+  String defaultCatalog=properties.getProperty(Environment.DEFAULT_CATALOG);
+  String defaultSchema=properties.getProperty(Environment.DEFAULT_SCHEMA);
+  Iterator iter=classes.values().iterator();
+  while (iter.hasNext()) {
+    PersistentClass pc=(PersistentClass)iter.next();
+    if (!pc.isInherited()) {
+      IdentifierGenerator ig=pc.getIdentifier().createIdentifierGenerator(dialect,defaultCatalog,defaultSchema,(RootClass)pc);
+      if (ig instanceof PersistentIdentifierGenerator) {
+        generators.put(((PersistentIdentifierGenerator)ig).generatorKey(),ig);
+      }
+    }
+  }
+  iter=collections.values().iterator();
+  while (iter.hasNext()) {
+    Collection collection=(Collection)iter.next();
+    if (collection.isIdentified()) {
+      IdentifierGenerator ig=((IdentifierCollection)collection).getIdentifier().createIdentifierGenerator(dialect,defaultCatalog,defaultSchema,null);
+      if (ig instanceof PersistentIdentifierGenerator) {
+        generators.put(((PersistentIdentifierGenerator)ig).generatorKey(),ig);
+      }
+    }
+  }
+  return generators.values().iterator();
+}

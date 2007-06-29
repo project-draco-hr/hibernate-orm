@@ -1,0 +1,20 @@
+{
+  String queryName=queryElem.attributeValue("name");
+  if (path != null)   queryName=path + '.' + queryName;
+  String query=queryElem.getText();
+  log.debug("Named query: " + queryName + " -> "+ query);
+  boolean cacheable="true".equals(queryElem.attributeValue("cacheable"));
+  String region=queryElem.attributeValue("cache-region");
+  Attribute tAtt=queryElem.attribute("timeout");
+  Integer timeout=tAtt == null ? null : new Integer(tAtt.getValue());
+  Attribute fsAtt=queryElem.attribute("fetch-size");
+  Integer fetchSize=fsAtt == null ? null : new Integer(fsAtt.getValue());
+  Attribute roAttr=queryElem.attribute("read-only");
+  boolean readOnly=roAttr != null && "true".equals(roAttr.getValue());
+  Attribute cacheModeAtt=queryElem.attribute("cache-mode");
+  String cacheMode=cacheModeAtt == null ? null : cacheModeAtt.getValue();
+  Attribute cmAtt=queryElem.attribute("comment");
+  String comment=cmAtt == null ? null : cmAtt.getValue();
+  NamedQueryDefinition namedQuery=new NamedQueryDefinition(query,cacheable,region,timeout,fetchSize,getFlushMode(queryElem.attributeValue("flush-mode")),getCacheMode(cacheMode),readOnly,comment,getParameterTypes(queryElem));
+  mappings.addQuery(queryName,namedQuery);
+}

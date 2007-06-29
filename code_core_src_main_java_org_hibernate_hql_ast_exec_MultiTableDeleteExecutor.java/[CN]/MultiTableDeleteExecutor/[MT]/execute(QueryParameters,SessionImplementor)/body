@@ -1,0 +1,48 @@
+{
+  coordinateSharedCacheCleanup(session);
+  createTemporaryTableIfNecessary(persister,session);
+  try {
+    PreparedStatement ps=null;
+    int resultCount=0;
+    try {
+      try {
+        ps=session.getBatcher().prepareStatement(idInsertSelect);
+        Iterator paramSpecifications=getWalker().getParameters().iterator();
+        int pos=1;
+        while (paramSpecifications.hasNext()) {
+          final ParameterSpecification paramSpec=(ParameterSpecification)paramSpecifications.next();
+          pos+=paramSpec.bind(ps,parameters,session,pos);
+        }
+        resultCount=ps.executeUpdate();
+      }
+  finally {
+        if (ps != null) {
+          session.getBatcher().closeStatement(ps);
+        }
+      }
+    }
+ catch (    SQLException e) {
+      throw JDBCExceptionHelper.convert(getFactory().getSQLExceptionConverter(),e,"could not insert/select ids for bulk delete",idInsertSelect);
+    }
+    for (int i=0; i < deletes.length; i++) {
+      try {
+        try {
+          ps=session.getBatcher().prepareStatement(deletes[i]);
+          ps.executeUpdate();
+        }
+  finally {
+          if (ps != null) {
+            session.getBatcher().closeStatement(ps);
+          }
+        }
+      }
+ catch (      SQLException e) {
+        throw JDBCExceptionHelper.convert(getFactory().getSQLExceptionConverter(),e,"error performing bulk delete",deletes[i]);
+      }
+    }
+    return resultCount;
+  }
+  finally {
+    dropTemporaryTableIfNecessary(persister,session);
+  }
+}

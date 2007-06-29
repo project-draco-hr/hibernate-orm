@@ -1,0 +1,60 @@
+{
+  if (isResolved()) {
+    return;
+  }
+  FromReferenceNode collectionNode=(FromReferenceNode)getFirstChild();
+  SessionFactoryHelper sessionFactoryHelper=getSessionFactoryHelper();
+  collectionNode.resolveIndex(this);
+  Type type=collectionNode.getDataType();
+  if (!type.isCollectionType()) {
+    throw new SemanticException("The [] operator cannot be applied to type " + type.toString());
+  }
+  String collectionRole=((CollectionType)type).getRole();
+  QueryableCollection queryableCollection=sessionFactoryHelper.requireQueryableCollection(collectionRole);
+  if (!queryableCollection.hasIndex()) {
+    throw new QueryException("unindexed fromElement before []: " + collectionNode.getPath());
+  }
+  FromElement fromElement=collectionNode.getFromElement();
+  String elementTable=fromElement.getTableAlias();
+  FromClause fromClause=fromElement.getFromClause();
+  String path=collectionNode.getPath();
+  FromElement elem=fromClause.findCollectionJoin(path);
+  if (elem == null) {
+    FromElementFactory factory=new FromElementFactory(fromClause,fromElement,path);
+    elem=factory.createCollectionElementsJoin(queryableCollection,elementTable);
+    if (log.isDebugEnabled()) {
+      log.debug("No FROM element found for the elements of collection join path " + path + ", created "+ elem);
+    }
+  }
+ else {
+    if (log.isDebugEnabled()) {
+      log.debug("FROM element found for collection join path " + path);
+    }
+  }
+  AST index=collectionNode.getNextSibling();
+  if (index == null) {
+    throw new QueryException("No index value!");
+  }
+  setFromElement(fromElement);
+  String collectionTableAlias=elementTable;
+  if (elem.getCollectionTableAlias() != null) {
+    collectionTableAlias=elem.getCollectionTableAlias();
+  }
+  JoinSequence joinSequence=fromElement.getJoinSequence();
+  String[] indexCols=queryableCollection.getIndexColumnNames();
+  if (indexCols.length != 1) {
+    throw new QueryException("composite-index appears in []: " + collectionNode.getPath());
+  }
+  SqlGenerator gen=new SqlGenerator(getSessionFactoryHelper().getFactory());
+  try {
+    gen.simpleExpr(index);
+  }
+ catch (  RecognitionException e) {
+    throw new QueryException(e.getMessage(),e);
+  }
+  String expression=gen.getSQL();
+  joinSequence.addCondition(collectionTableAlias + '.' + indexCols[0]+ " = "+ expression);
+  String[] elementColumns=queryableCollection.getElementColumnNames(elementTable);
+  setText(elementColumns[0]);
+  setResolved();
+}

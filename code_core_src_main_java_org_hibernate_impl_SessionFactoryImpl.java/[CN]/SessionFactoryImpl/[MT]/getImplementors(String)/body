@@ -1,0 +1,46 @@
+{
+  final Class clazz;
+  try {
+    clazz=ReflectHelper.classForName(className);
+  }
+ catch (  ClassNotFoundException cnfe) {
+    return new String[]{className};
+  }
+  ArrayList results=new ArrayList();
+  Iterator iter=entityPersisters.values().iterator();
+  while (iter.hasNext()) {
+    EntityPersister testPersister=(EntityPersister)iter.next();
+    if (testPersister instanceof Queryable) {
+      Queryable testQueryable=(Queryable)testPersister;
+      String testClassName=testQueryable.getEntityName();
+      boolean isMappedClass=className.equals(testClassName);
+      if (testQueryable.isExplicitPolymorphism()) {
+        if (isMappedClass) {
+          return new String[]{className};
+        }
+      }
+ else {
+        if (isMappedClass) {
+          results.add(testClassName);
+        }
+ else {
+          final Class mappedClass=testQueryable.getMappedClass(EntityMode.POJO);
+          if (mappedClass != null && clazz.isAssignableFrom(mappedClass)) {
+            final boolean assignableSuperclass;
+            if (testQueryable.isInherited()) {
+              Class mappedSuperclass=getEntityPersister(testQueryable.getMappedSuperclass()).getMappedClass(EntityMode.POJO);
+              assignableSuperclass=clazz.isAssignableFrom(mappedSuperclass);
+            }
+ else {
+              assignableSuperclass=false;
+            }
+            if (!assignableSuperclass) {
+              results.add(testClassName);
+            }
+          }
+        }
+      }
+    }
+  }
+  return (String[])results.toArray(new String[results.size()]);
+}

@@ -1,0 +1,17 @@
+{
+  Session s=openSession();
+  Bar bar=new Bar();
+  s.save(bar);
+  bar.setBarString("bar bar");
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  FooProxy foo=(FooProxy)s.load(Foo.class,bar.getKey());
+  assertTrue("polymorphic",foo instanceof BarProxy);
+  assertTrue("subclass property",((BarProxy)foo).getBarString().equals(bar.getBarString()));
+  s.delete(foo);
+  s.flush();
+  s.connection().commit();
+  s.close();
+}

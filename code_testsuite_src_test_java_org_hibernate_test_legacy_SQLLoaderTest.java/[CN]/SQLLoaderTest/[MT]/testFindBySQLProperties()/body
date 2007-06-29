@@ -1,0 +1,19 @@
+{
+  Session session=openSession();
+  session.delete("from Category");
+  Category s=new Category();
+  s.setName(String.valueOf(nextLong++));
+  session.save(s);
+  s=new Category();
+  s.setName("WannaBeFound");
+  session.flush();
+  Query query=session.createSQLQuery("select {category.*} from category {category} where {category}.name = :name","category",Category.class);
+  query.setProperties(s);
+  query.list();
+  query=session.createSQLQuery("select {category.*} from category {category} where {category}.name in (:names)","category",Category.class);
+  String[] str=new String[]{"WannaBeFound","NotThere"};
+  query.setParameterList("names",str);
+  query.uniqueResult();
+  session.connection().commit();
+  session.close();
+}

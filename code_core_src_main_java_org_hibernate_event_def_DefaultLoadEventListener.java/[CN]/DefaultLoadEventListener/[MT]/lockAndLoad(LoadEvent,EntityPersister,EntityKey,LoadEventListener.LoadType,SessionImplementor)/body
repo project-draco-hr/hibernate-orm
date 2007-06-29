@@ -1,0 +1,21 @@
+{
+  SoftLock lock=null;
+  final CacheKey ck;
+  if (persister.hasCache()) {
+    ck=new CacheKey(event.getEntityId(),persister.getIdentifierType(),persister.getRootEntityName(),source.getEntityMode(),source.getFactory());
+    lock=persister.getCacheAccessStrategy().lockItem(ck,null);
+  }
+ else {
+    ck=null;
+  }
+  Object entity;
+  try {
+    entity=load(event,persister,keyToLoad,options);
+  }
+  finally {
+    if (persister.hasCache()) {
+      persister.getCacheAccessStrategy().unlockItem(ck,lock);
+    }
+  }
+  return event.getSession().getPersistenceContext().proxyFor(persister,keyToLoad,entity);
+}

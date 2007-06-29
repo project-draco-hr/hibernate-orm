@@ -1,0 +1,16 @@
+{
+  String text=fromElement.renderPropertySelect(nonscalarSize,k);
+  appender.append(SqlTokenTypes.SQL_TOKEN,text,false);
+  if (fromElement.getQueryableCollection() != null && fromElement.isFetch()) {
+    text=fromElement.renderCollectionSelectFragment(nonscalarSize,k);
+    appender.append(SqlTokenTypes.SQL_TOKEN,text,false);
+  }
+  ASTIterator iter=new ASTIterator(fromElement);
+  while (iter.hasNext()) {
+    FromElement child=(FromElement)iter.next();
+    if (child.isCollectionOfValuesOrComponents() && child.isFetch()) {
+      text=child.renderValueCollectionSelectFragment(nonscalarSize,nonscalarSize + k);
+      appender.append(SqlTokenTypes.SQL_TOKEN,text,false);
+    }
+  }
+}

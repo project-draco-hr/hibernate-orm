@@ -1,0 +1,21 @@
+{
+  SchemaExport se=new SchemaExport(getCfg());
+  se.create(true,true);
+  Session session=openSession();
+  Connection conn=session.connection();
+  Statement stat=conn.createStatement();
+  stat.execute("ALTER TABLE \"SB\".\"Team\" DROP COLUMN name ");
+  try {
+    SchemaValidator sv=new SchemaValidator(getCfg());
+    sv.validate();
+    fail("should fail since we mutated the current schema.");
+  }
+ catch (  HibernateException he) {
+  }
+  se.drop(true,true);
+  stat.execute("DROP TABLE \"SA\".\"Team\" ");
+  stat.execute(" DROP SCHEMA sa ");
+  stat.execute("DROP SCHEMA sb ");
+  stat.close();
+  session.close();
+}

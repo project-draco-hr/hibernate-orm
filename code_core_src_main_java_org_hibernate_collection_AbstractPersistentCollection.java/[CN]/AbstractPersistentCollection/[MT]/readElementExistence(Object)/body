@@ -1,0 +1,15 @@
+{
+  if (!initialized) {
+    throwLazyInitializationExceptionIfNotConnected();
+    CollectionEntry entry=session.getPersistenceContext().getCollectionEntry(this);
+    CollectionPersister persister=entry.getLoadedPersister();
+    if (persister.isExtraLazy()) {
+      if (hasQueuedOperations()) {
+        session.flush();
+      }
+      return new Boolean(persister.elementExists(entry.getLoadedKey(),element,session));
+    }
+  }
+  read();
+  return null;
+}

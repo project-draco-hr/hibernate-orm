@@ -1,0 +1,24 @@
+{
+  StringBuffer buf=new StringBuffer(columns.size() * 10);
+  Iterator iter=columns.iterator();
+  Iterator columnAliasIter=columnAliases.iterator();
+  HashSet columnsUnique=new HashSet();
+  if (usedAliases != null)   columnsUnique.addAll(Arrays.asList(usedAliases));
+  while (iter.hasNext()) {
+    String column=(String)iter.next();
+    String columnAlias=(String)columnAliasIter.next();
+    if (columnsUnique.add(columnAlias)) {
+      buf.append(", ").append(column).append(" as ");
+      if (suffix == null) {
+        buf.append(columnAlias);
+      }
+ else {
+        buf.append(new Alias(suffix).toAliasString(columnAlias));
+      }
+    }
+  }
+  if (extraSelectList != null) {
+    buf.append(", ").append(extraSelectList);
+  }
+  return buf.toString();
+}

@@ -1,0 +1,19 @@
+{
+  String uuid=ois.readUTF();
+  boolean isNamed=ois.readBoolean();
+  String name=null;
+  if (isNamed) {
+    name=ois.readUTF();
+  }
+  Object result=SessionFactoryObjectFactory.getInstance(uuid);
+  if (result == null) {
+    log.trace("could not locate session factory by uuid [" + uuid + "] during session deserialization; trying name");
+    if (isNamed) {
+      result=SessionFactoryObjectFactory.getNamedInstance(name);
+    }
+    if (result == null) {
+      throw new InvalidObjectException("could not resolve session factory during session deserialization [uuid=" + uuid + ", name="+ name+ "]");
+    }
+  }
+  return (SessionFactoryImpl)result;
+}

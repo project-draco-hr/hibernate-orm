@@ -1,0 +1,28 @@
+{
+  super(component);
+  this.componentClass=component.getComponentClass();
+  String[] getterNames=new String[propertySpan];
+  String[] setterNames=new String[propertySpan];
+  Class[] propTypes=new Class[propertySpan];
+  for (int i=0; i < propertySpan; i++) {
+    getterNames[i]=getters[i].getMethodName();
+    setterNames[i]=setters[i].getMethodName();
+    propTypes[i]=getters[i].getReturnType();
+  }
+  final String parentPropertyName=component.getParentProperty();
+  if (parentPropertyName == null) {
+    parentSetter=null;
+    parentGetter=null;
+  }
+ else {
+    PropertyAccessor pa=PropertyAccessorFactory.getPropertyAccessor(null);
+    parentSetter=pa.getSetter(componentClass,parentPropertyName);
+    parentGetter=pa.getGetter(componentClass,parentPropertyName);
+  }
+  if (hasCustomAccessors || !Environment.useReflectionOptimizer()) {
+    optimizer=null;
+  }
+ else {
+    optimizer=Environment.getBytecodeProvider().getReflectionOptimizer(componentClass,getterNames,setterNames,propTypes);
+  }
+}

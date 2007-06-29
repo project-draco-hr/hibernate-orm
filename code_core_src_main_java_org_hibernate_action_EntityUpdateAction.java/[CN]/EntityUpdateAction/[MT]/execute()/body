@@ -1,0 +1,54 @@
+{
+  Serializable id=getId();
+  EntityPersister persister=getPersister();
+  SessionImplementor session=getSession();
+  Object instance=getInstance();
+  boolean veto=preUpdate();
+  final SessionFactoryImplementor factory=getSession().getFactory();
+  Object previousVersion=this.previousVersion;
+  if (persister.isVersionPropertyGenerated()) {
+    previousVersion=persister.getVersion(instance,session.getEntityMode());
+  }
+  final CacheKey ck;
+  if (persister.hasCache()) {
+    ck=new CacheKey(id,persister.getIdentifierType(),persister.getRootEntityName(),session.getEntityMode(),session.getFactory());
+    lock=persister.getCacheAccessStrategy().lockItem(ck,previousVersion);
+  }
+ else {
+    ck=null;
+  }
+  if (!veto) {
+    persister.update(id,state,dirtyFields,hasDirtyCollection,previousState,previousVersion,instance,rowId,session);
+  }
+  EntityEntry entry=getSession().getPersistenceContext().getEntry(instance);
+  if (entry == null) {
+    throw new AssertionFailure("possible nonthreadsafe access to session");
+  }
+  if (entry.getStatus() == Status.MANAGED || persister.isVersionPropertyGenerated()) {
+    TypeFactory.deepCopy(state,persister.getPropertyTypes(),persister.getPropertyCheckability(),state,session);
+    if (persister.hasUpdateGeneratedProperties()) {
+      persister.processUpdateGeneratedProperties(id,instance,state,session);
+      if (persister.isVersionPropertyGenerated()) {
+        nextVersion=Versioning.getVersion(state,persister);
+      }
+    }
+    entry.postUpdate(instance,state,nextVersion);
+  }
+  if (persister.hasCache()) {
+    if (persister.isCacheInvalidationRequired() || entry.getStatus() != Status.MANAGED) {
+      persister.getCacheAccessStrategy().remove(ck);
+    }
+ else {
+      CacheEntry ce=new CacheEntry(state,persister,persister.hasUninitializedLazyProperties(instance,session.getEntityMode()),nextVersion,getSession(),instance);
+      cacheEntry=persister.getCacheEntryStructure().structure(ce);
+      boolean put=persister.getCacheAccessStrategy().update(ck,cacheEntry,nextVersion,previousVersion);
+      if (put && factory.getStatistics().isStatisticsEnabled()) {
+        factory.getStatisticsImplementor().secondLevelCachePut(getPersister().getCacheAccessStrategy().getRegion().getName());
+      }
+    }
+  }
+  postUpdate();
+  if (factory.getStatistics().isStatisticsEnabled() && !veto) {
+    factory.getStatisticsImplementor().updateEntity(getPersister().getEntityName());
+  }
+}

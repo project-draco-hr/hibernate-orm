@@ -1,0 +1,16 @@
+{
+  errorIfClosed();
+  queryParameters.validateParameters();
+  HQLQueryPlan plan=getHQLQueryPlan(query,false);
+  boolean success=false;
+  List results=CollectionHelper.EMPTY_LIST;
+  try {
+    results=plan.performList(queryParameters,this);
+    success=true;
+  }
+  finally {
+    afterOperation(success);
+  }
+  temporaryPersistenceContext.clear();
+  return results;
+}

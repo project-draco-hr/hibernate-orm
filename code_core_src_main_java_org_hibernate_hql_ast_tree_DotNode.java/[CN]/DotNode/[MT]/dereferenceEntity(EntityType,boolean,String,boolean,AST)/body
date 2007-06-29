@@ -1,0 +1,26 @@
+{
+  checkForCorrelatedSubquery("dereferenceEntity");
+  DotNode parentAsDotNode=null;
+  String property=propertyName;
+  final boolean joinIsNeeded;
+  if (isDotNode(parent)) {
+    parentAsDotNode=(DotNode)parent;
+    property=parentAsDotNode.propertyName;
+    joinIsNeeded=generateJoin && !isReferenceToPrimaryKey(parentAsDotNode.propertyName,entityType);
+  }
+ else   if (!getWalker().isSelectStatement()) {
+    joinIsNeeded=false;
+  }
+ else   if (REGRESSION_STYLE_JOIN_SUPPRESSION) {
+    joinIsNeeded=generateJoin && (!getWalker().isInSelect() || !getWalker().isShallowQuery());
+  }
+ else {
+    joinIsNeeded=generateJoin || (getWalker().isInSelect() || getWalker().isInFrom());
+  }
+  if (joinIsNeeded) {
+    dereferenceEntityJoin(classAlias,entityType,implicitJoin,parent);
+  }
+ else {
+    dereferenceEntityIdentifier(property,parentAsDotNode);
+  }
+}

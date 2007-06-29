@@ -1,0 +1,28 @@
+{
+  if (outputStream == null) {
+    throw new IllegalArgumentException("The OutputStream must not be null");
+  }
+  if (log.isTraceEnabled()) {
+    if (Hibernate.isInitialized(obj)) {
+      log.trace("Starting serialization of object [" + obj + "]");
+    }
+ else {
+      log.trace("Starting serialization of [uninitialized proxy]");
+    }
+  }
+  ObjectOutputStream out=null;
+  try {
+    out=new ObjectOutputStream(outputStream);
+    out.writeObject(obj);
+  }
+ catch (  IOException ex) {
+    throw new SerializationException("could not serialize",ex);
+  }
+ finally {
+    try {
+      if (out != null)       out.close();
+    }
+ catch (    IOException ignored) {
+    }
+  }
+}

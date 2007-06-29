@@ -1,0 +1,19 @@
+{
+  TestData data=new TestData();
+  data.prepare();
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  try {
+    s.createQuery("insert into Joiner (name, joinedName) select vin, owner from Car").executeUpdate();
+    fail("mapped-join insertion did not error");
+  }
+ catch (  QueryException e) {
+  }
+  t.commit();
+  t=s.beginTransaction();
+  s.createQuery("delete Joiner").executeUpdate();
+  s.createQuery("delete Vehicle").executeUpdate();
+  t.commit();
+  s.close();
+  data.cleanup();
+}

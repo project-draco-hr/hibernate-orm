@@ -1,0 +1,65 @@
+{
+  Table table=simpleValue.getTable();
+  Attribute columnAttribute=node.attribute("column");
+  if (columnAttribute == null) {
+    Iterator iter=node.elementIterator();
+    int count=0;
+    while (iter.hasNext()) {
+      Element columnElement=(Element)iter.next();
+      if (columnElement.getName().equals("column")) {
+        Column column=new Column();
+        column.setValue(simpleValue);
+        column.setTypeIndex(count++);
+        bindColumn(columnElement,column,isNullable);
+        String logicalColumnName=mappings.getNamingStrategy().logicalColumnName(columnElement.attributeValue("name"),propertyPath);
+        column.setName(mappings.getNamingStrategy().columnName(logicalColumnName));
+        if (table != null) {
+          table.addColumn(column);
+          mappings.addColumnBinding(logicalColumnName,column,table);
+        }
+        simpleValue.addColumn(column);
+        bindIndex(columnElement.attribute("index"),table,column,mappings);
+        bindIndex(node.attribute("index"),table,column,mappings);
+        bindUniqueKey(columnElement.attribute("unique-key"),table,column,mappings);
+        bindUniqueKey(node.attribute("unique-key"),table,column,mappings);
+      }
+ else       if (columnElement.getName().equals("formula")) {
+        Formula formula=new Formula();
+        formula.setFormula(columnElement.getText());
+        simpleValue.addFormula(formula);
+      }
+    }
+  }
+ else {
+    if (node.elementIterator("column").hasNext()) {
+      throw new MappingException("column attribute may not be used together with <column> subelement");
+    }
+    if (node.elementIterator("formula").hasNext()) {
+      throw new MappingException("column attribute may not be used together with <formula> subelement");
+    }
+    Column column=new Column();
+    column.setValue(simpleValue);
+    bindColumn(node,column,isNullable);
+    String logicalColumnName=mappings.getNamingStrategy().logicalColumnName(columnAttribute.getValue(),propertyPath);
+    column.setName(mappings.getNamingStrategy().columnName(logicalColumnName));
+    if (table != null) {
+      table.addColumn(column);
+      mappings.addColumnBinding(logicalColumnName,column,table);
+    }
+    simpleValue.addColumn(column);
+    bindIndex(node.attribute("index"),table,column,mappings);
+    bindUniqueKey(node.attribute("unique-key"),table,column,mappings);
+  }
+  if (autoColumn && simpleValue.getColumnSpan() == 0) {
+    Column column=new Column();
+    column.setValue(simpleValue);
+    bindColumn(node,column,isNullable);
+    column.setName(mappings.getNamingStrategy().propertyToColumnName(propertyPath));
+    String logicalName=mappings.getNamingStrategy().logicalColumnName(null,propertyPath);
+    mappings.addColumnBinding(logicalName,column,table);
+    simpleValue.getTable().addColumn(column);
+    simpleValue.addColumn(column);
+    bindIndex(node.attribute("index"),table,column,mappings);
+    bindUniqueKey(node.attribute("unique-key"),table,column,mappings);
+  }
+}

@@ -1,0 +1,59 @@
+{
+  String propName=node.attributeValue("name");
+  property.setName(propName);
+  String nodeName=node.attributeValue("node");
+  if (nodeName == null)   nodeName=propName;
+  property.setNodeName(nodeName);
+  Attribute accessNode=node.attribute("access");
+  if (accessNode != null) {
+    property.setPropertyAccessorName(accessNode.getValue());
+  }
+ else   if (node.getName().equals("properties")) {
+    property.setPropertyAccessorName("embedded");
+  }
+ else {
+    property.setPropertyAccessorName(mappings.getDefaultAccess());
+  }
+  Attribute cascadeNode=node.attribute("cascade");
+  property.setCascade(cascadeNode == null ? mappings.getDefaultCascade() : cascadeNode.getValue());
+  Attribute updateNode=node.attribute("update");
+  property.setUpdateable(updateNode == null || "true".equals(updateNode.getValue()));
+  Attribute insertNode=node.attribute("insert");
+  property.setInsertable(insertNode == null || "true".equals(insertNode.getValue()));
+  Attribute lockNode=node.attribute("optimistic-lock");
+  property.setOptimisticLocked(lockNode == null || "true".equals(lockNode.getValue()));
+  Attribute generatedNode=node.attribute("generated");
+  String generationName=generatedNode == null ? null : generatedNode.getValue();
+  PropertyGeneration generation=PropertyGeneration.parse(generationName);
+  property.setGeneration(generation);
+  if (generation == PropertyGeneration.ALWAYS || generation == PropertyGeneration.INSERT) {
+    if (property.isInsertable()) {
+      if (insertNode == null) {
+        property.setInsertable(false);
+      }
+ else {
+        throw new MappingException("cannot specify both insert=\"true\" and generated=\"" + generation.getName() + "\" for property: "+ propName);
+      }
+    }
+    if (property.isUpdateable() && generation == PropertyGeneration.ALWAYS) {
+      if (updateNode == null) {
+        property.setUpdateable(false);
+      }
+ else {
+        throw new MappingException("cannot specify both update=\"true\" and generated=\"" + generation.getName() + "\" for property: "+ propName);
+      }
+    }
+  }
+  boolean isLazyable="property".equals(node.getName()) || "component".equals(node.getName()) || "many-to-one".equals(node.getName())|| "one-to-one".equals(node.getName())|| "any".equals(node.getName());
+  if (isLazyable) {
+    Attribute lazyNode=node.attribute("lazy");
+    property.setLazy(lazyNode != null && "true".equals(lazyNode.getValue()));
+  }
+  if (log.isDebugEnabled()) {
+    String msg="Mapped property: " + property.getName();
+    String columns=columns(property.getValue());
+    if (columns.length() > 0)     msg+=" -> " + columns;
+    log.debug(msg);
+  }
+  property.setMetaAttributes(getMetas(node,inheritedMetas));
+}

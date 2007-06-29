@@ -1,0 +1,26 @@
+{
+  secondPassCompile();
+  String defaultCatalog=properties.getProperty(Environment.DEFAULT_CATALOG);
+  String defaultSchema=properties.getProperty(Environment.DEFAULT_SCHEMA);
+  Iterator iter=getTableMappings();
+  while (iter.hasNext()) {
+    Table table=(Table)iter.next();
+    if (table.isPhysicalTable()) {
+      TableMetadata tableInfo=databaseMetadata.getTableMetadata(table.getName(),(table.getSchema() == null) ? defaultSchema : table.getSchema(),(table.getCatalog() == null) ? defaultCatalog : table.getCatalog(),table.isQuoted());
+      if (tableInfo == null) {
+        throw new HibernateException("Missing table: " + table.getName());
+      }
+ else {
+        table.validateColumns(dialect,mapping,tableInfo);
+      }
+    }
+  }
+  iter=iterateGenerators(dialect);
+  while (iter.hasNext()) {
+    PersistentIdentifierGenerator generator=(PersistentIdentifierGenerator)iter.next();
+    Object key=generator.generatorKey();
+    if (!databaseMetadata.isSequence(key) && !databaseMetadata.isTable(key)) {
+      throw new HibernateException("Missing sequence or table: " + key);
+    }
+  }
+}

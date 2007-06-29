@@ -1,0 +1,24 @@
+{
+  if (maxPosition != null && maxPosition.intValue() <= currentPosition) {
+    currentRow=null;
+    currentPosition=maxPosition.intValue() + 1;
+    return false;
+  }
+  Object row=getLoader().loadSequentialRowsForward(getResultSet(),getSession(),getQueryParameters(),false);
+  boolean afterLast;
+  try {
+    afterLast=getResultSet().isAfterLast();
+  }
+ catch (  SQLException e) {
+    throw JDBCExceptionHelper.convert(getSession().getFactory().getSQLExceptionConverter(),e,"exception calling isAfterLast()");
+  }
+  currentPosition++;
+  currentRow=new Object[]{row};
+  if (afterLast) {
+    if (maxPosition == null) {
+      maxPosition=new Integer(currentPosition);
+    }
+  }
+  afterScrollOperation();
+  return true;
+}

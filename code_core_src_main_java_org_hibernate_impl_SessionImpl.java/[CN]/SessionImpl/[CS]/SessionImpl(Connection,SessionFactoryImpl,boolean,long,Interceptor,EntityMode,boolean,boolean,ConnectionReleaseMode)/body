@@ -1,0 +1,20 @@
+{
+  super(factory);
+  this.rootSession=null;
+  this.timestamp=timestamp;
+  this.entityMode=entityMode;
+  this.interceptor=interceptor;
+  this.listeners=factory.getEventListeners();
+  this.actionQueue=new ActionQueue(this);
+  this.persistenceContext=new StatefulPersistenceContext(this);
+  this.flushBeforeCompletionEnabled=flushBeforeCompletionEnabled;
+  this.autoCloseSessionEnabled=autoCloseSessionEnabled;
+  this.connectionReleaseMode=connectionReleaseMode;
+  this.jdbcContext=new JDBCContext(this,connection,interceptor);
+  if (factory.getStatistics().isStatisticsEnabled()) {
+    factory.getStatisticsImplementor().openSession();
+  }
+  if (log.isDebugEnabled()) {
+    log.debug("opened session at timestamp: " + timestamp);
+  }
+}

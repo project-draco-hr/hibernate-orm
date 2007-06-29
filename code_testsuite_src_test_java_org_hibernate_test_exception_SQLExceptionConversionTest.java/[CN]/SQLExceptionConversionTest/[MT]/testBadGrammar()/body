@@ -1,0 +1,24 @@
+{
+  SQLExceptionConverter converter=getDialect().buildSQLExceptionConverter();
+  Session session=openSession();
+  Connection connection=session.connection();
+  PreparedStatement ps=null;
+  try {
+    ps=connection.prepareStatement("SELECT user_id, user_name FROM tbl_no_there");
+    ps.executeQuery();
+    fail("SQL compilation should have failed");
+  }
+ catch (  SQLException sqle) {
+    assertEquals("Bad conversion [" + sqle.getMessage() + "]",SQLGrammarException.class,converter.convert(sqle,null,null).getClass());
+  }
+ finally {
+    if (ps != null) {
+      try {
+        ps.close();
+      }
+ catch (      Throwable ignore) {
+      }
+    }
+  }
+  session.close();
+}

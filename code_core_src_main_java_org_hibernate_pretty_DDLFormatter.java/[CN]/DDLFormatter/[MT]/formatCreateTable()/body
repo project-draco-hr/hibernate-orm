@@ -1,0 +1,29 @@
+{
+  StringBuffer result=new StringBuffer(60).append("\n    ");
+  StringTokenizer tokens=new StringTokenizer(sql,"(,)'[]\"",true);
+  int depth=0;
+  boolean quoted=false;
+  while (tokens.hasMoreTokens()) {
+    String token=tokens.nextToken();
+    if (isQuote(token)) {
+      quoted=!quoted;
+      result.append(token);
+    }
+ else     if (quoted) {
+      result.append(token);
+    }
+ else {
+      if (")".equals(token)) {
+        depth--;
+        if (depth == 0)         result.append("\n    ");
+      }
+      result.append(token);
+      if (",".equals(token) && depth == 1)       result.append("\n       ");
+      if ("(".equals(token)) {
+        depth++;
+        if (depth == 1)         result.append("\n        ");
+      }
+    }
+  }
+  return result.toString();
+}

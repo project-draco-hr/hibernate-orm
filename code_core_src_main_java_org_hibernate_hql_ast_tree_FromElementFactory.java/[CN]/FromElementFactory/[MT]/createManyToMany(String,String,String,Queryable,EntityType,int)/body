@@ -1,0 +1,17 @@
+{
+  FromElement elem;
+  SessionFactoryHelper sfh=fromClause.getSessionFactoryHelper();
+  if (inElementsFunction) {
+    JoinSequence joinSequence=createJoinSequence(roleAlias,joinType);
+    elem=createJoin(associatedEntityName,roleAlias,joinSequence,type,true);
+  }
+ else {
+    String tableAlias=fromClause.getAliasGenerator().createName(entityPersister.getEntityName());
+    String[] secondJoinColumns=sfh.getCollectionElementColumns(role,roleAlias);
+    JoinSequence joinSequence=createJoinSequence(roleAlias,joinType);
+    joinSequence.addJoin(sfh.getElementAssociationType(collectionType),tableAlias,joinType,secondJoinColumns);
+    elem=createJoin(associatedEntityName,tableAlias,joinSequence,type,false);
+    elem.setUseFromFragment(true);
+  }
+  return elem;
+}

@@ -1,0 +1,28 @@
+{
+  final int joins=countEntityPersisters(associations);
+  final int collectionJoins=countCollectionPersisters(associations) + 1;
+  suffixes=BasicLoader.generateSuffixes(joins);
+  collectionSuffixes=BasicLoader.generateSuffixes(joins,collectionJoins);
+  StringBuffer whereString=whereString(alias,collectionPersister.getKeyColumnNames(),subquery,batchSize);
+  String manyToManyOrderBy="";
+  String filter=collectionPersister.filterFragment(alias,getEnabledFilters());
+  if (collectionPersister.isManyToMany()) {
+    Iterator itr=associations.iterator();
+    AssociationType associationType=(AssociationType)collectionPersister.getElementType();
+    while (itr.hasNext()) {
+      OuterJoinableAssociation oja=(OuterJoinableAssociation)itr.next();
+      if (oja.getJoinableType() == associationType) {
+        filter+=collectionPersister.getManyToManyFilterFragment(oja.getRHSAlias(),getEnabledFilters());
+        manyToManyOrderBy+=collectionPersister.getManyToManyOrderByString(oja.getRHSAlias());
+      }
+    }
+  }
+  whereString.insert(0,StringHelper.moveAndToBeginning(filter));
+  JoinFragment ojf=mergeOuterJoins(associations);
+  Select select=new Select(getDialect()).setSelectClause(collectionPersister.selectFragment(alias,collectionSuffixes[0]) + selectString(associations)).setFromClause(collectionPersister.getTableName(),alias).setWhereClause(whereString.toString()).setOuterJoins(ojf.toFromFragmentString(),ojf.toWhereFragmentString());
+  select.setOrderByClause(orderBy(associations,mergeOrderings(collectionPersister.getSQLOrderByString(alias),manyToManyOrderBy)));
+  if (getFactory().getSettings().isCommentsEnabled()) {
+    select.setComment("load collection " + collectionPersister.getRole());
+  }
+  sql=select.toStatementString();
+}

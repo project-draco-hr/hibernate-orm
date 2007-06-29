@@ -1,0 +1,25 @@
+{
+  List methods=classfile.getMethods();
+  for (Iterator method_iter=methods.iterator(); method_iter.hasNext(); ) {
+    MethodInfo minfo=(MethodInfo)method_iter.next();
+    String methodName=minfo.getName();
+    if (methodName.startsWith(EACH_READ_METHOD_PREFIX) || methodName.startsWith(EACH_WRITE_METHOD_PREFIX) || methodName.equals(GETFIELDHANDLER_METHOD_NAME)|| methodName.equals(SETFIELDHANDLER_METHOD_NAME)) {
+      continue;
+    }
+    CodeAttribute codeAttr=minfo.getCodeAttribute();
+    if (codeAttr == null) {
+      return;
+    }
+    CodeIterator iter=codeAttr.iterator();
+    while (iter.hasNext()) {
+      try {
+        int pos=iter.next();
+        pos=transformInvokevirtualsIntoGetfields(classfile,iter,pos);
+        pos=transformInvokevirtualsIntoPutfields(classfile,iter,pos);
+      }
+ catch (      BadBytecode e) {
+        throw new CannotCompileException(e);
+      }
+    }
+  }
+}

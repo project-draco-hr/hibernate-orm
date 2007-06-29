@@ -1,0 +1,26 @@
+{
+  Attribute where=manyToManyNode.attribute("where");
+  String whereCondition=where == null ? null : where.getValue();
+  collection.setManyToManyWhere(whereCondition);
+  Attribute order=manyToManyNode.attribute("order-by");
+  String orderFragment=order == null ? null : order.getValue();
+  collection.setManyToManyOrdering(orderFragment);
+  Iterator filters=manyToManyNode.elementIterator("filter");
+  if ((filters.hasNext() || whereCondition != null) && collection.getFetchMode() == FetchMode.JOIN && collection.getElement().getFetchMode() != FetchMode.JOIN) {
+    throw new MappingException("many-to-many defining filter or where without join fetching " + "not valid within collection using join fetching [" + collection.getRole() + "]");
+  }
+  while (filters.hasNext()) {
+    final Element filterElement=(Element)filters.next();
+    final String name=filterElement.attributeValue("name");
+    String condition=filterElement.getTextTrim();
+    if (StringHelper.isEmpty(condition))     condition=filterElement.attributeValue("condition");
+    if (StringHelper.isEmpty(condition)) {
+      condition=model.getFilterDefinition(name).getDefaultFilterCondition();
+    }
+    if (condition == null) {
+      throw new MappingException("no filter condition found for filter: " + name);
+    }
+    log.debug("Applying many-to-many filter [" + name + "] as ["+ condition+ "] to role ["+ collection.getRole()+ "]");
+    collection.addManyToManyFilter(name,condition);
+  }
+}

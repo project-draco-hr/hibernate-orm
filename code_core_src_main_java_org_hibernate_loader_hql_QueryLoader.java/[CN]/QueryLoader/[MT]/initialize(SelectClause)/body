@@ -1,0 +1,59 @@
+{
+  List fromElementList=selectClause.getFromElementsForLoad();
+  hasScalars=selectClause.isScalarSelect();
+  scalarColumnNames=selectClause.getColumnNames();
+  queryReturnTypes=selectClause.getQueryReturnTypes();
+  selectNewTransformer=HolderInstantiator.createSelectNewTransformer(selectClause.getConstructor(),selectClause.isMap(),selectClause.isList());
+  queryReturnAliases=selectClause.getQueryReturnAliases();
+  List collectionFromElements=selectClause.getCollectionFromElements();
+  if (collectionFromElements != null && collectionFromElements.size() != 0) {
+    int length=collectionFromElements.size();
+    collectionPersisters=new QueryableCollection[length];
+    collectionOwners=new int[length];
+    collectionSuffixes=new String[length];
+    for (int i=0; i < length; i++) {
+      FromElement collectionFromElement=(FromElement)collectionFromElements.get(i);
+      collectionPersisters[i]=collectionFromElement.getQueryableCollection();
+      collectionOwners[i]=fromElementList.indexOf(collectionFromElement.getOrigin());
+      collectionSuffixes[i]=collectionFromElement.getCollectionSuffix();
+    }
+  }
+  int size=fromElementList.size();
+  entityPersisters=new Queryable[size];
+  entityEagerPropertyFetches=new boolean[size];
+  entityAliases=new String[size];
+  sqlAliases=new String[size];
+  sqlAliasSuffixes=new String[size];
+  includeInSelect=new boolean[size];
+  owners=new int[size];
+  ownerAssociationTypes=new EntityType[size];
+  for (int i=0; i < size; i++) {
+    final FromElement element=(FromElement)fromElementList.get(i);
+    entityPersisters[i]=(Queryable)element.getEntityPersister();
+    if (entityPersisters[i] == null) {
+      throw new IllegalStateException("No entity persister for " + element.toString());
+    }
+    entityEagerPropertyFetches[i]=element.isAllPropertyFetch();
+    sqlAliases[i]=element.getTableAlias();
+    entityAliases[i]=element.getClassAlias();
+    sqlAliasByEntityAlias.put(entityAliases[i],sqlAliases[i]);
+    sqlAliasSuffixes[i]=(size == 1) ? "" : Integer.toString(i) + "_";
+    includeInSelect[i]=!element.isFetch();
+    if (includeInSelect[i]) {
+      selectLength++;
+    }
+    owners[i]=-1;
+    if (element.isFetch()) {
+      if (element.isCollectionJoin() || element.getQueryableCollection() != null) {
+      }
+ else       if (element.getDataType().isEntityType()) {
+        EntityType entityType=(EntityType)element.getDataType();
+        if (entityType.isOneToOne()) {
+          owners[i]=fromElementList.indexOf(element.getOrigin());
+        }
+        ownerAssociationTypes[i]=entityType;
+      }
+    }
+  }
+  defaultLockModes=ArrayHelper.fillArray(LockMode.NONE,size);
+}

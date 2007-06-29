@@ -1,0 +1,31 @@
+{
+  if (inputStream == null) {
+    throw new IOException("null input stream");
+  }
+  byte[] buffer=new byte[409600];
+  byte[] classBytes=new byte[0];
+  int r=0;
+  try {
+    r=inputStream.read(buffer);
+    while (r >= buffer.length) {
+      byte[] temp=new byte[classBytes.length + buffer.length];
+      System.arraycopy(classBytes,0,temp,0,classBytes.length);
+      System.arraycopy(buffer,0,temp,classBytes.length,buffer.length);
+      classBytes=temp;
+    }
+    if (r != -1) {
+      byte[] temp=new byte[classBytes.length + r];
+      System.arraycopy(classBytes,0,temp,0,classBytes.length);
+      System.arraycopy(buffer,0,temp,classBytes.length,r);
+      classBytes=temp;
+    }
+  }
+  finally {
+    try {
+      inputStream.close();
+    }
+ catch (    IOException ignore) {
+    }
+  }
+  return classBytes;
+}

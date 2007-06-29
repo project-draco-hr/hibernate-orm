@@ -1,0 +1,16 @@
+{
+  try {
+    Metadata metadata=new Metadata(getFactory(),rs);
+    List aliases=new ArrayList();
+    List types=new ArrayList();
+    rowProcessor.prepareForAutoDiscovery(metadata);
+    for (int i=0; i < rowProcessor.columnProcessors.length; i++) {
+      rowProcessor.columnProcessors[i].performDiscovery(metadata,types,aliases);
+    }
+    resultTypes=ArrayHelper.toTypeArray(types);
+    transformerAliases=ArrayHelper.toStringArray(aliases);
+  }
+ catch (  SQLException e) {
+    throw new HibernateException("Exception while trying to autodiscover types.",e);
+  }
+}

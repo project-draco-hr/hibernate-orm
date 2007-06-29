@@ -1,0 +1,31 @@
+{
+  String impl=properties.getProperty(Environment.CURRENT_SESSION_CONTEXT_CLASS);
+  if (impl == null && transactionManager != null) {
+    impl="jta";
+  }
+  if (impl == null) {
+    return null;
+  }
+ else   if ("jta".equals(impl)) {
+    if (settings.getTransactionFactory().areCallbacksLocalToHibernateTransactions()) {
+      log.warn("JTASessionContext being used with JDBCTransactionFactory; auto-flush will not operate correctly with getCurrentSession()");
+    }
+    return new JTASessionContext(this);
+  }
+ else   if ("thread".equals(impl)) {
+    return new ThreadLocalSessionContext(this);
+  }
+ else   if ("managed".equals(impl)) {
+    return new ManagedSessionContext(this);
+  }
+ else {
+    try {
+      Class implClass=ReflectHelper.classForName(impl);
+      return (CurrentSessionContext)implClass.getConstructor(new Class[]{SessionFactoryImplementor.class}).newInstance(new Object[]{this});
+    }
+ catch (    Throwable t) {
+      log.error("Unable to construct current session context [" + impl + "]",t);
+      return null;
+    }
+  }
+}

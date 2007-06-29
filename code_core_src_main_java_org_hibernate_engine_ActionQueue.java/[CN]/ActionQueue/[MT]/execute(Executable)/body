@@ -1,0 +1,10 @@
+{
+  final boolean lockQueryCache=session.getFactory().getSettings().isQueryCacheEnabled();
+  if (executable.hasAfterTransactionCompletion() || lockQueryCache) {
+    executions.add(executable);
+  }
+  if (lockQueryCache) {
+    session.getFactory().getUpdateTimestampsCache().preinvalidate(executable.getPropertySpaces());
+  }
+  executable.execute();
+}

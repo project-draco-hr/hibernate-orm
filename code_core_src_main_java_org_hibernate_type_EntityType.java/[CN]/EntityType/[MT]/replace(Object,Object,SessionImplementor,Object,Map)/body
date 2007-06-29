@@ -1,0 +1,20 @@
+{
+  if (original == null) {
+    return null;
+  }
+  Object cached=copyCache.get(original);
+  if (cached != null) {
+    return cached;
+  }
+ else {
+    if (original == target) {
+      return target;
+    }
+    Object id=getIdentifier(original,session);
+    if (id == null) {
+      throw new AssertionFailure("cannot copy a reference to an object with a null id");
+    }
+    id=getIdentifierOrUniqueKeyType(session.getFactory()).replace(id,null,session,owner,copyCache);
+    return resolve(id,session,owner);
+  }
+}

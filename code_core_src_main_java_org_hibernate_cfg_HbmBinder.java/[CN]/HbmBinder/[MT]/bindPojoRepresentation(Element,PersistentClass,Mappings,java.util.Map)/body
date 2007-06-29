@@ -1,0 +1,16 @@
+{
+  String className=getClassName(node.attribute("name"),mappings);
+  String proxyName=getClassName(node.attribute("proxy"),mappings);
+  entity.setClassName(className);
+  if (proxyName != null) {
+    entity.setProxyInterfaceName(proxyName);
+    entity.setLazy(true);
+  }
+ else   if (entity.isLazy()) {
+    entity.setProxyInterfaceName(className);
+  }
+  Element tuplizer=locateTuplizerDefinition(node,EntityMode.POJO);
+  if (tuplizer != null) {
+    entity.addTuplizer(EntityMode.POJO,tuplizer.attributeValue("class"));
+  }
+}

@@ -1,0 +1,21 @@
+{
+  final boolean doValidate=getName().endsWith("FailureExpected") && Boolean.getBoolean("hibernate.test.validatefailureexpected");
+  try {
+    log.info("Starting test [" + fullTestName() + "]");
+    super.runBare();
+    if (doValidate) {
+      fail("Test marked as FailureExpected, but did not fail!");
+    }
+  }
+ catch (  Throwable t) {
+    if (doValidate) {
+      skipExpectedFailure(t);
+    }
+ else {
+      throw t;
+    }
+  }
+ finally {
+    log.info("Completed test [" + fullTestName() + "]");
+  }
+}

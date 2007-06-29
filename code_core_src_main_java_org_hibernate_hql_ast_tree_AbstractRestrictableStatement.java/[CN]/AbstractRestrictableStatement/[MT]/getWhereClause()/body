@@ -1,0 +1,13 @@
+{
+  if (whereClause == null) {
+    whereClause=locateWhereClause();
+    if (whereClause == null) {
+      getLog().debug("getWhereClause() : Creating a new WHERE clause...");
+      whereClause=ASTUtil.create(getWalker().getASTFactory(),HqlSqlTokenTypes.WHERE,"WHERE");
+      AST parent=ASTUtil.findTypeInChildren(this,getWhereClauseParentTokenType());
+      whereClause.setNextSibling(parent.getNextSibling());
+      parent.setNextSibling(whereClause);
+    }
+  }
+  return whereClause;
+}

@@ -1,0 +1,21 @@
+{
+  component.setKey(true);
+  String path=StringHelper.qualify(persistentClass.getEntityName(),propertyName == null ? "id" : propertyName);
+  bindComponent(node,component,persistentClass.getClassName(),propertyName,path,false,node.attribute("class") == null && propertyName == null,mappings,inheritedMetas,false);
+  if ("true".equals(node.attributeValue("mapped"))) {
+    if (propertyName != null) {
+      throw new MappingException("cannot combine mapped=\"true\" with specified name");
+    }
+    Component mapper=new Component(persistentClass);
+    bindComponent(node,mapper,persistentClass.getClassName(),null,path,false,true,mappings,inheritedMetas,true);
+    persistentClass.setIdentifierMapper(mapper);
+    Property property=new Property();
+    property.setName("_identifierMapper");
+    property.setNodeName("id");
+    property.setUpdateable(false);
+    property.setInsertable(false);
+    property.setValue(mapper);
+    property.setPropertyAccessorName("embedded");
+    persistentClass.addProperty(property);
+  }
+}

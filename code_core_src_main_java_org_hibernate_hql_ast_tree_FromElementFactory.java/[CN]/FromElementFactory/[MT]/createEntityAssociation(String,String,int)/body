@@ -1,0 +1,21 @@
+{
+  FromElement elem;
+  Queryable entityPersister=(Queryable)queryableCollection.getElementPersister();
+  String associatedEntityName=entityPersister.getEntityName();
+  if (queryableCollection.isOneToMany()) {
+    if (log.isDebugEnabled()) {
+      log.debug("createEntityAssociation() : One to many - path = " + path + " role = "+ role+ " associatedEntityName = "+ associatedEntityName);
+    }
+    JoinSequence joinSequence=createJoinSequence(roleAlias,joinType);
+    elem=createJoin(associatedEntityName,roleAlias,joinSequence,(EntityType)queryableCollection.getElementType(),false);
+  }
+ else {
+    if (log.isDebugEnabled()) {
+      log.debug("createManyToMany() : path = " + path + " role = "+ role+ " associatedEntityName = "+ associatedEntityName);
+    }
+    elem=createManyToMany(role,associatedEntityName,roleAlias,entityPersister,(EntityType)queryableCollection.getElementType(),joinType);
+    fromClause.getWalker().addQuerySpaces(queryableCollection.getCollectionSpaces());
+  }
+  elem.setCollectionTableAlias(roleAlias);
+  return elem;
+}

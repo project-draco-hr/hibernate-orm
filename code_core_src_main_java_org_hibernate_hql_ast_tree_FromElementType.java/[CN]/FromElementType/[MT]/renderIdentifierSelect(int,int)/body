@@ -1,0 +1,19 @@
+{
+  checkInitialized();
+  if (fromElement.getFromClause().isSubQuery()) {
+    String[] idColumnNames=(persister != null) ? ((Queryable)persister).getIdentifierColumnNames() : new String[0];
+    StringBuffer buf=new StringBuffer();
+    for (int i=0; i < idColumnNames.length; i++) {
+      buf.append(fromElement.getTableAlias()).append('.').append(idColumnNames[i]);
+      if (i != idColumnNames.length - 1)       buf.append(", ");
+    }
+    return buf.toString();
+  }
+ else {
+    if (persister == null) {
+      throw new QueryException("not an entity");
+    }
+    String fragment=((Queryable)persister).identifierSelectFragment(getTableAlias(),getSuffix(size,k));
+    return trimLeadingCommaAndSpaces(fragment);
+  }
+}

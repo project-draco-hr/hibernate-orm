@@ -1,0 +1,21 @@
+{
+  String alias=name;
+  String unique=Integer.toString(uniqueInteger) + '_';
+  int lastLetter=StringHelper.lastIndexOfLetter(name);
+  if (lastLetter == -1) {
+    alias="column";
+  }
+ else   if (lastLetter < name.length() - 1) {
+    alias=name.substring(0,lastLetter + 1);
+  }
+  if (alias.length() > dialect.getMaxAliasLength()) {
+    alias=alias.substring(0,dialect.getMaxAliasLength() - unique.length());
+  }
+  boolean useRawName=name.equals(alias) && !quoted && !name.toLowerCase().equals("rowid");
+  if (useRawName) {
+    return alias;
+  }
+ else {
+    return alias + unique;
+  }
+}

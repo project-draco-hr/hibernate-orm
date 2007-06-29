@@ -1,0 +1,40 @@
+{
+  if (whereFragment == null) {
+    return;
+  }
+  whereFragment=whereFragment.trim();
+  if (StringHelper.isEmpty(whereFragment)) {
+    return;
+  }
+ else   if (!fromElement.useWhereFragment() && !joinFragment.hasThetaJoins()) {
+    return;
+  }
+  if (whereFragment.startsWith("and")) {
+    whereFragment=whereFragment.substring(4);
+  }
+  if (log.isDebugEnabled())   log.debug("Using WHERE fragment [" + whereFragment + "]");
+  SqlFragment fragment=(SqlFragment)ASTUtil.create(astFactory,SQL_TOKEN,whereFragment);
+  fragment.setJoinFragment(joinFragment);
+  fragment.setFromElement(fromElement);
+  if (fragment.getFromElement().isFilter() || fragment.hasFilterCondition()) {
+    if (filters == null) {
+      AST where=query.getWhereClause();
+      filters=astFactory.create(FILTERS,"{filter conditions}");
+      ASTUtil.insertChild(where,filters);
+    }
+    filters.addChild(fragment);
+  }
+ else {
+    if (thetaJoins == null) {
+      AST where=query.getWhereClause();
+      thetaJoins=astFactory.create(THETA_JOINS,"{theta joins}");
+      if (filters == null) {
+        ASTUtil.insertChild(where,thetaJoins);
+      }
+ else {
+        ASTUtil.insertSibling(thetaJoins,filters);
+      }
+    }
+    thetaJoins.addChild(fragment);
+  }
+}

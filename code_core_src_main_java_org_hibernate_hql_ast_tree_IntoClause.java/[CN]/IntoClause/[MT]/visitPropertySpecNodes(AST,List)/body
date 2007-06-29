@@ -1,0 +1,22 @@
+{
+  if (propertyNode == null) {
+    return;
+  }
+  String name=propertyNode.getText();
+  if (isSuperclassProperty(name)) {
+    throw new QueryException("INSERT statements cannot refer to superclass/joined properties [" + name + "]");
+  }
+  if (name.equals(persister.getIdentifierPropertyName())) {
+    explicitIdInsertion=true;
+  }
+  if (persister.isVersioned()) {
+    if (name.equals(persister.getPropertyNames()[persister.getVersionProperty()])) {
+      explicitVersionInsertion=true;
+    }
+  }
+  String[] columnNames=persister.toColumns(name);
+  renderColumns(columnNames);
+  types.add(persister.toType(name));
+  visitPropertySpecNodes(propertyNode.getNextSibling(),types);
+  visitPropertySpecNodes(propertyNode.getFirstChild(),types);
+}

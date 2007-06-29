@@ -1,0 +1,11 @@
+{
+  SessionFactoryImplementor factory=lockable.getFactory();
+  SimpleSelect select=new SimpleSelect(factory.getDialect()).setLockMode(lockMode).setTableName(lockable.getRootTableName()).addColumn(lockable.getRootTableIdentifierColumnNames()[0]).addCondition(lockable.getRootTableIdentifierColumnNames(),"=?");
+  if (lockable.isVersioned()) {
+    select.addCondition(lockable.getVersionColumnName(),"=?");
+  }
+  if (factory.getSettings().isCommentsEnabled()) {
+    select.setComment(lockMode + " lock " + lockable.getEntityName());
+  }
+  return select.toStatementString();
+}

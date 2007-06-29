@@ -1,0 +1,39 @@
+{
+  log.debug("processing extends queue");
+  processExtendsQueue();
+  log.debug("processing collection mappings");
+  Iterator iter=secondPasses.iterator();
+  while (iter.hasNext()) {
+    SecondPass sp=(SecondPass)iter.next();
+    if (!(sp instanceof QuerySecondPass)) {
+      sp.doSecondPass(classes);
+      iter.remove();
+    }
+  }
+  log.debug("processing native query and ResultSetMapping mappings");
+  iter=secondPasses.iterator();
+  while (iter.hasNext()) {
+    SecondPass sp=(SecondPass)iter.next();
+    sp.doSecondPass(classes);
+    iter.remove();
+  }
+  log.debug("processing association property references");
+  iter=propertyReferences.iterator();
+  while (iter.hasNext()) {
+    Mappings.PropertyReference upr=(Mappings.PropertyReference)iter.next();
+    PersistentClass clazz=getClassMapping(upr.referencedClass);
+    if (clazz == null) {
+      throw new MappingException("property-ref to unmapped class: " + upr.referencedClass);
+    }
+    Property prop=clazz.getReferencedProperty(upr.propertyName);
+    if (upr.unique) {
+      ((SimpleValue)prop.getValue()).setAlternateUniqueKey(true);
+    }
+  }
+  log.debug("processing foreign key constraints");
+  iter=getTableMappings();
+  Set done=new HashSet();
+  while (iter.hasNext()) {
+    secondPassCompileForeignKeys((Table)iter.next(),done);
+  }
+}

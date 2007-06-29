@@ -1,0 +1,22 @@
+{
+  bindColumnsOrFormula(node,manyToOne,path,isNullable,mappings);
+  initOuterJoinFetchSetting(node,manyToOne);
+  initLaziness(node,manyToOne,mappings,true);
+  Attribute ukName=node.attribute("property-ref");
+  if (ukName != null) {
+    manyToOne.setReferencedPropertyName(ukName.getValue());
+  }
+  manyToOne.setReferencedEntityName(getEntityName(node,mappings));
+  String embed=node.attributeValue("embed-xml");
+  manyToOne.setEmbedded(embed == null || "true".equals(embed));
+  String notFound=node.attributeValue("not-found");
+  manyToOne.setIgnoreNotFound("ignore".equals(notFound));
+  if (ukName != null && !manyToOne.isIgnoreNotFound()) {
+    if (!node.getName().equals("many-to-many")) {
+      mappings.addSecondPass(new ManyToOneSecondPass(manyToOne));
+    }
+  }
+  Attribute fkNode=node.attribute("foreign-key");
+  if (fkNode != null)   manyToOne.setForeignKeyName(fkNode.getValue());
+  validateCascade(node,path);
+}

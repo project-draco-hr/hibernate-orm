@@ -1,0 +1,56 @@
+{
+  queryParameters.processFilters(getSQLString(),session);
+  String sql=queryParameters.getFilteredSQL();
+  final Dialect dialect=getFactory().getDialect();
+  final RowSelection selection=queryParameters.getRowSelection();
+  boolean useLimit=useLimit(selection,dialect);
+  boolean hasFirstRow=getFirstRow(selection) > 0;
+  boolean useOffset=hasFirstRow && useLimit && dialect.supportsLimitOffset();
+  boolean callable=queryParameters.isCallable();
+  boolean useScrollableResultSetToSkip=hasFirstRow && !useOffset && getFactory().getSettings().isScrollableResultSetsEnabled();
+  ScrollMode scrollMode=scroll ? queryParameters.getScrollMode() : ScrollMode.SCROLL_INSENSITIVE;
+  if (useLimit) {
+    sql=dialect.getLimitString(sql.trim(),useOffset ? getFirstRow(selection) : 0,getMaxOrLimit(selection,dialect));
+  }
+  sql=preprocessSQL(sql,queryParameters,dialect);
+  PreparedStatement st=null;
+  if (callable) {
+    st=session.getBatcher().prepareCallableQueryStatement(sql,scroll || useScrollableResultSetToSkip,scrollMode);
+  }
+ else {
+    st=session.getBatcher().prepareQueryStatement(sql,scroll || useScrollableResultSetToSkip,scrollMode);
+  }
+  try {
+    int col=1;
+    if (useLimit && dialect.bindLimitParametersFirst()) {
+      col+=bindLimitParameters(st,col,selection);
+    }
+    if (callable) {
+      col=dialect.registerResultSetOutParameter((CallableStatement)st,col);
+    }
+    col+=bindParameterValues(st,queryParameters,col,session);
+    if (useLimit && !dialect.bindLimitParametersFirst()) {
+      col+=bindLimitParameters(st,col,selection);
+    }
+    if (!useLimit) {
+      setMaxRows(st,selection);
+    }
+    if (selection != null) {
+      if (selection.getTimeout() != null) {
+        st.setQueryTimeout(selection.getTimeout().intValue());
+      }
+      if (selection.getFetchSize() != null) {
+        st.setFetchSize(selection.getFetchSize().intValue());
+      }
+    }
+  }
+ catch (  SQLException sqle) {
+    session.getBatcher().closeQueryStatement(st,null);
+    throw sqle;
+  }
+catch (  HibernateException he) {
+    session.getBatcher().closeQueryStatement(st,null);
+    throw he;
+  }
+  return st;
+}

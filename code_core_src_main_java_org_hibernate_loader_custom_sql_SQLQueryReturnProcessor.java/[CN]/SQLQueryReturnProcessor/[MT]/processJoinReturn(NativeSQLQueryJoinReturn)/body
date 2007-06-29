@@ -1,0 +1,26 @@
+{
+  String alias=fetchReturn.getAlias();
+  if (alias2Persister.containsKey(alias) || alias2CollectionPersister.containsKey(alias)) {
+    return;
+  }
+  String ownerAlias=fetchReturn.getOwnerAlias();
+  if (!alias2Return.containsKey(ownerAlias)) {
+    throw new HibernateException("Owner alias [" + ownerAlias + "] is unknown for alias ["+ alias+ "]");
+  }
+  if (!alias2Persister.containsKey(ownerAlias)) {
+    NativeSQLQueryNonScalarReturn ownerReturn=(NativeSQLQueryNonScalarReturn)alias2Return.get(ownerAlias);
+    processReturn(ownerReturn);
+  }
+  SQLLoadable ownerPersister=(SQLLoadable)alias2Persister.get(ownerAlias);
+  Type returnType=ownerPersister.getPropertyType(fetchReturn.getOwnerProperty());
+  if (returnType.isCollectionType()) {
+    String role=ownerPersister.getEntityName() + '.' + fetchReturn.getOwnerProperty();
+    addCollection(role,alias,fetchReturn.getPropertyResultsMap());
+  }
+ else   if (returnType.isEntityType()) {
+    EntityType eType=(EntityType)returnType;
+    String returnEntityName=eType.getAssociatedEntityName();
+    SQLLoadable persister=getSQLLoadable(returnEntityName);
+    addPersister(alias,fetchReturn.getPropertyResultsMap(),persister);
+  }
+}

@@ -1,0 +1,26 @@
+{
+  if (getQueryableCollection() != null && CollectionProperties.isCollectionProperty(propertyName)) {
+    return;
+  }
+  if (propertySource.isComponentType()) {
+    return;
+  }
+  Queryable persister=getQueryable();
+  if (persister != null) {
+    try {
+      Queryable.Declarer propertyDeclarer=persister.getSubclassPropertyDeclarer(propertyName);
+      if (log.isTraceEnabled()) {
+        log.trace("handling property dereference [" + persister.getEntityName() + " ("+ getClassAlias()+ ") -> "+ propertyName+ " ("+ propertyDeclarer+ ")]");
+      }
+      if (propertyDeclarer == Queryable.Declarer.SUBCLASS) {
+        dereferencedBySubclassProperty=true;
+        includeSubclasses=true;
+      }
+ else       if (propertyDeclarer == Queryable.Declarer.SUPERCLASS) {
+        dereferencedBySuperclassProperty=true;
+      }
+    }
+ catch (    QueryException ignore) {
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  ComponentNotNullMaster master=new ComponentNotNullMaster();
+  ComponentNotNull nullable=new ComponentNotNull();
+  ComponentNotNull supercomp=new ComponentNotNull();
+  ComponentNotNull subcomp=new ComponentNotNull();
+  master.setNullable(nullable);
+  subcomp.setProp1Subcomp("test");
+  supercomp.setSubcomp(subcomp);
+  master.setSupercomp(supercomp);
+  master.setComponents(new ArrayList());
+  ComponentNotNullMaster.ContainerInnerClass cc=new ComponentNotNullMaster.ContainerInnerClass();
+  master.getComponents().add(cc);
+  try {
+    s.save(master);
+    t.commit();
+    fail("Inserting not-null many-to-one should fail");
+  }
+ catch (  PropertyValueException e) {
+  }
+  t.rollback();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  master=new ComponentNotNullMaster();
+  nullable=new ComponentNotNull();
+  supercomp=new ComponentNotNull();
+  subcomp=new ComponentNotNull();
+  master.setNullable(nullable);
+  subcomp.setProp1Subcomp("test");
+  supercomp.setSubcomp(subcomp);
+  master.setSupercomp(supercomp);
+  master.setComponentsImplicit(new ArrayList());
+  ComponentNotNullMaster.ContainerInnerClass nestedCc=new ComponentNotNullMaster.ContainerInnerClass();
+  cc=new ComponentNotNullMaster.ContainerInnerClass();
+  cc.setNested(nestedCc);
+  master.getComponentsImplicit().add(cc);
+  try {
+    s.save(master);
+    t.commit();
+    fail("Inserting not-null null property should fail");
+  }
+ catch (  PropertyValueException e) {
+  }
+  t.rollback();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  master=new ComponentNotNullMaster();
+  nullable=new ComponentNotNull();
+  supercomp=new ComponentNotNull();
+  subcomp=new ComponentNotNull();
+  master.setNullable(nullable);
+  subcomp.setProp1Subcomp("test");
+  supercomp.setSubcomp(subcomp);
+  master.setSupercomp(supercomp);
+  master.setComponentsImplicit(new ArrayList());
+  nestedCc=new ComponentNotNullMaster.ContainerInnerClass();
+  cc=new ComponentNotNullMaster.ContainerInnerClass();
+  cc.setNested(nestedCc);
+  nestedCc.setNestedproperty("test");
+  master.getComponentsImplicit().add(cc);
+  s.save(master);
+  t.commit();
+  s.close();
+}

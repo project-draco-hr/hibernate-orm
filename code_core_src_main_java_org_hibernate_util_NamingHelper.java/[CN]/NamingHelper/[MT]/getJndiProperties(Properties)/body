@@ -1,0 +1,18 @@
+{
+  HashSet specialProps=new HashSet();
+  specialProps.add(Environment.JNDI_CLASS);
+  specialProps.add(Environment.JNDI_URL);
+  Iterator iter=properties.keySet().iterator();
+  Properties result=new Properties();
+  while (iter.hasNext()) {
+    String prop=(String)iter.next();
+    if (prop.indexOf(Environment.JNDI_PREFIX) > -1 && !specialProps.contains(prop)) {
+      result.setProperty(prop.substring(Environment.JNDI_PREFIX.length() + 1),properties.getProperty(prop));
+    }
+  }
+  String jndiClass=properties.getProperty(Environment.JNDI_CLASS);
+  String jndiURL=properties.getProperty(Environment.JNDI_URL);
+  if (jndiClass != null)   result.put(Context.INITIAL_CONTEXT_FACTORY,jndiClass);
+  if (jndiURL != null)   result.put(Context.PROVIDER_URL,jndiURL);
+  return result;
+}

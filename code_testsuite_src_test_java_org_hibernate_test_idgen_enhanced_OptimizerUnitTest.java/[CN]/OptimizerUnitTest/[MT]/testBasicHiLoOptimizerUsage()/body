@@ -1,0 +1,28 @@
+{
+  int increment=10;
+  Long next;
+  SourceMock sequence=new SourceMock(1);
+  Optimizer optimizer=OptimizerFactory.buildOptimizer(OptimizerFactory.HILO,Long.class,increment);
+  for (int i=1; i <= increment; i++) {
+    next=(Long)optimizer.generate(sequence);
+    assertEquals(i,next.intValue());
+  }
+  assertEquals(1,sequence.getTimesCalled());
+  assertEquals(1,sequence.getCurrentValue());
+  next=(Long)optimizer.generate(sequence);
+  assertEquals(11,next.intValue());
+  assertEquals(2,sequence.getTimesCalled());
+  assertEquals(2,sequence.getCurrentValue());
+  sequence=new SourceMock(0);
+  optimizer=OptimizerFactory.buildOptimizer(OptimizerFactory.HILO,Long.class,increment);
+  for (int i=1; i <= increment; i++) {
+    next=(Long)optimizer.generate(sequence);
+    assertEquals(i,next.intValue());
+  }
+  assertEquals(2,sequence.getTimesCalled());
+  assertEquals(1,sequence.getCurrentValue());
+  next=(Long)optimizer.generate(sequence);
+  assertEquals(11,next.intValue());
+  assertEquals(3,sequence.getTimesCalled());
+  assertEquals(2,sequence.getCurrentValue());
+}

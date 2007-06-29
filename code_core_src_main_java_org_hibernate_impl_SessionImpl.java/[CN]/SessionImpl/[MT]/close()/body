@@ -1,0 +1,32 @@
+{
+  log.trace("closing session");
+  if (isClosed()) {
+    throw new SessionException("Session was already closed");
+  }
+  if (factory.getStatistics().isStatisticsEnabled()) {
+    factory.getStatisticsImplementor().closeSession();
+  }
+  try {
+    try {
+      if (childSessionsByEntityMode != null) {
+        Iterator childSessions=childSessionsByEntityMode.values().iterator();
+        while (childSessions.hasNext()) {
+          final SessionImpl child=(SessionImpl)childSessions.next();
+          child.close();
+        }
+      }
+    }
+ catch (    Throwable t) {
+    }
+    if (rootSession == null) {
+      return jdbcContext.getConnectionManager().close();
+    }
+ else {
+      return null;
+    }
+  }
+  finally {
+    setClosed();
+    cleanup();
+  }
+}

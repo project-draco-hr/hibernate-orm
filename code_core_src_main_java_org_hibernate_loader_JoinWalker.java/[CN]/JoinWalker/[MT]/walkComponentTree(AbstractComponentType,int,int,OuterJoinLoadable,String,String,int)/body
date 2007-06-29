@@ -1,0 +1,21 @@
+{
+  Type[] types=componentType.getSubtypes();
+  String[] propertyNames=componentType.getPropertyNames();
+  for (int i=0; i < types.length; i++) {
+    if (types[i].isAssociationType()) {
+      AssociationType associationType=(AssociationType)types[i];
+      String[] aliasedLhsColumns=JoinHelper.getAliasedLHSColumnNames(associationType,alias,propertyNumber,begin,persister,getFactory());
+      String[] lhsColumns=JoinHelper.getLHSColumnNames(associationType,propertyNumber,begin,persister,getFactory());
+      String lhsTable=JoinHelper.getLHSTableName(associationType,propertyNumber,persister);
+      String subpath=subPath(path,propertyNames[i]);
+      final boolean[] propertyNullability=componentType.getPropertyNullability();
+      final int joinType=getJoinType(associationType,componentType.getFetchMode(i),subpath,lhsTable,lhsColumns,propertyNullability == null || propertyNullability[i],currentDepth,componentType.getCascadeStyle(i));
+      addAssociationToJoinTreeIfNecessary(associationType,aliasedLhsColumns,alias,subpath,currentDepth,joinType);
+    }
+ else     if (types[i].isComponentType()) {
+      String subpath=subPath(path,propertyNames[i]);
+      walkComponentTree((AbstractComponentType)types[i],propertyNumber,begin,persister,alias,subpath,currentDepth);
+    }
+    begin+=types[i].getColumnSpan(getFactory());
+  }
+}

@@ -1,0 +1,26 @@
+{
+  if (log.isTraceEnabled())   log.trace("Updating: " + key);
+  try {
+    cache.lock(key);
+    Lockable lockable=(Lockable)cache.get(key);
+    if (isUnlockable(clientLock,lockable)) {
+      Lock lock=(Lock)lockable;
+      if (lock.wasLockedConcurrently()) {
+        decrementLock(key,lock);
+        return false;
+      }
+ else {
+        cache.update(key,new Item(value,version,cache.nextTimestamp()));
+        if (log.isTraceEnabled())         log.trace("Updated: " + key);
+        return true;
+      }
+    }
+ else {
+      handleLockExpiry(key);
+      return false;
+    }
+  }
+  finally {
+    cache.unlock(key);
+  }
+}

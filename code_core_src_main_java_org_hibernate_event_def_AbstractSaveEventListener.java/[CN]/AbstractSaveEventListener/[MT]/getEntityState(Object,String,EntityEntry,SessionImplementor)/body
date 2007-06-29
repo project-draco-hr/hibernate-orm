@@ -1,0 +1,30 @@
+{
+  if (entry != null) {
+    if (entry.getStatus() != Status.DELETED) {
+      if (log.isTraceEnabled()) {
+        log.trace("persistent instance of: " + getLoggableName(entityName,entity));
+      }
+      return PERSISTENT;
+    }
+ else {
+      if (log.isTraceEnabled()) {
+        log.trace("deleted instance of: " + getLoggableName(entityName,entity));
+      }
+      return DELETED;
+    }
+  }
+ else {
+    if (ForeignKeys.isTransient(entityName,entity,getAssumedUnsaved(),source)) {
+      if (log.isTraceEnabled()) {
+        log.trace("transient instance of: " + getLoggableName(entityName,entity));
+      }
+      return TRANSIENT;
+    }
+ else {
+      if (log.isTraceEnabled()) {
+        log.trace("detached instance of: " + getLoggableName(entityName,entity));
+      }
+      return DETACHED;
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  log.trace("flushing session");
+  EventSource session=event.getSession();
+  final PersistenceContext persistenceContext=session.getPersistenceContext();
+  session.getInterceptor().preFlush(new LazyIterator(persistenceContext.getEntitiesByKey()));
+  prepareEntityFlushes(session);
+  prepareCollectionFlushes(session);
+  persistenceContext.setFlushing(true);
+  try {
+    flushEntities(event);
+    flushCollections(session);
+  }
+  finally {
+    persistenceContext.setFlushing(false);
+  }
+  if (log.isDebugEnabled()) {
+    log.debug("Flushed: " + session.getActionQueue().numberOfInsertions() + " insertions, "+ session.getActionQueue().numberOfUpdates()+ " updates, "+ session.getActionQueue().numberOfDeletions()+ " deletions to "+ persistenceContext.getEntityEntries().size()+ " objects");
+    log.debug("Flushed: " + session.getActionQueue().numberOfCollectionCreations() + " (re)creations, "+ session.getActionQueue().numberOfCollectionUpdates()+ " updates, "+ session.getActionQueue().numberOfCollectionRemovals()+ " removals to "+ persistenceContext.getCollectionEntries().size()+ " collections");
+    new Printer(session.getFactory()).toString(persistenceContext.getEntitiesByKey().values().iterator(),session.getEntityMode());
+  }
+}

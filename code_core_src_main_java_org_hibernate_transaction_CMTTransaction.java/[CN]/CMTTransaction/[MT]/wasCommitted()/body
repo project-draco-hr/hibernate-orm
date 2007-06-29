@@ -1,0 +1,17 @@
+{
+  if (!begun)   return false;
+  final int status;
+  try {
+    status=getTransaction().getStatus();
+  }
+ catch (  SystemException se) {
+    log.error("Could not determine transaction status",se);
+    throw new TransactionException("Could not determine transaction status: ",se);
+  }
+  if (status == Status.STATUS_UNKNOWN) {
+    throw new TransactionException("Could not determine transaction status");
+  }
+ else {
+    return status == Status.STATUS_COMMITTED;
+  }
+}

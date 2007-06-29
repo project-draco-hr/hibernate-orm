@@ -1,0 +1,25 @@
+{
+  if (!persister.isMutable()) {
+    log.trace("immutable instance passed to doUpdate(), locking");
+    reassociate(event,entity,event.getRequestedId(),persister);
+  }
+ else {
+    if (log.isTraceEnabled()) {
+      log.trace("updating " + MessageHelper.infoString(persister,event.getRequestedId(),event.getSession().getFactory()));
+    }
+    final EventSource source=event.getSession();
+    EntityKey key=new EntityKey(event.getRequestedId(),persister,source.getEntityMode());
+    source.getPersistenceContext().checkUniqueness(key,entity);
+    if (invokeUpdateLifecycle(entity,persister,source)) {
+      reassociate(event,event.getObject(),event.getRequestedId(),persister);
+      return;
+    }
+    new OnUpdateVisitor(source,event.getRequestedId(),entity).process(entity,persister);
+    source.getPersistenceContext().addEntity(entity,Status.MANAGED,null,key,persister.getVersion(entity,source.getEntityMode()),LockMode.NONE,true,persister,false,true);
+    persister.afterReassociate(entity,source);
+    if (log.isTraceEnabled()) {
+      log.trace("updating " + MessageHelper.infoString(persister,event.getRequestedId(),source.getFactory()));
+    }
+    cascadeOnUpdate(event,persister,entity);
+  }
+}

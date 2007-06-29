@@ -1,0 +1,17 @@
+{
+  if (log.isDebugEnabled()) {
+    log.debug("Mapping XML:\n" + xml);
+  }
+  try {
+    List errors=new ArrayList();
+    org.dom4j.Document doc=xmlHelper.createSAXReader("XML String",errors,entityResolver).read(new StringReader(xml));
+    if (errors.size() != 0) {
+      throw new MappingException("invalid mapping",(Throwable)errors.get(0));
+    }
+    add(doc);
+  }
+ catch (  DocumentException e) {
+    throw new MappingException("Could not parse mapping document in XML string",e);
+  }
+  return this;
+}

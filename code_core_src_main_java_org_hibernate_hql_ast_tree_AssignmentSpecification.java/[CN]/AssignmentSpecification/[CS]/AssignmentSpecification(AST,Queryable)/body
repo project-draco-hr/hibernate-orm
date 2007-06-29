@@ -1,0 +1,44 @@
+{
+  if (eq.getType() != HqlSqlTokenTypes.EQ) {
+    throw new QueryException("assignment in set-clause not associated with equals");
+  }
+  this.eq=eq;
+  this.factory=persister.getFactory();
+  DotNode lhs=(DotNode)eq.getFirstChild();
+  SqlNode rhs=(SqlNode)lhs.getNextSibling();
+  validateLhs(lhs);
+  final String propertyPath=lhs.getPropertyPath();
+  Set temp=new HashSet();
+  if (persister instanceof UnionSubclassEntityPersister) {
+    UnionSubclassEntityPersister usep=(UnionSubclassEntityPersister)persister;
+    String[] tables=persister.getConstraintOrderedTableNameClosure();
+    int size=tables.length;
+    for (int i=0; i < size; i++) {
+      temp.add(tables[i]);
+    }
+  }
+ else {
+    temp.add(persister.getSubclassTableName(persister.getSubclassPropertyTableNumber(propertyPath)));
+  }
+  this.tableNames=Collections.unmodifiableSet(temp);
+  if (rhs == null) {
+    hqlParameters=new ParameterSpecification[0];
+  }
+ else   if (isParam(rhs)) {
+    hqlParameters=new ParameterSpecification[]{((ParameterNode)rhs).getHqlParameterSpecification()};
+  }
+ else {
+    List parameterList=ASTUtil.collectChildren(rhs,new ASTUtil.IncludePredicate(){
+      public boolean include(      AST node){
+        return isParam(node);
+      }
+    }
+);
+    hqlParameters=new ParameterSpecification[parameterList.size()];
+    Iterator itr=parameterList.iterator();
+    int i=0;
+    while (itr.hasNext()) {
+      hqlParameters[i++]=((ParameterNode)itr.next()).getHqlParameterSpecification();
+    }
+  }
+}

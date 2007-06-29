@@ -1,0 +1,71 @@
+{
+  if (args.size() == 1) {
+    return BOTH_SPACE_TRIM.render(args,factory);
+  }
+ else   if ("from".equalsIgnoreCase((String)args.get(0))) {
+    return BOTH_SPACE_TRIM_FROM.render(args,factory);
+  }
+ else {
+    boolean leading=true;
+    boolean trailing=true;
+    String trimCharacter=null;
+    String trimSource=null;
+    int potentialTrimCharacterArgIndex=1;
+    String firstArg=(String)args.get(0);
+    if ("leading".equalsIgnoreCase(firstArg)) {
+      trailing=false;
+    }
+ else     if ("trailing".equalsIgnoreCase(firstArg)) {
+      leading=false;
+    }
+ else     if ("both".equalsIgnoreCase(firstArg)) {
+    }
+ else {
+      potentialTrimCharacterArgIndex=0;
+    }
+    String potentialTrimCharacter=(String)args.get(potentialTrimCharacterArgIndex);
+    if ("from".equalsIgnoreCase(potentialTrimCharacter)) {
+      trimCharacter="' '";
+      trimSource=(String)args.get(potentialTrimCharacterArgIndex + 1);
+    }
+ else     if (potentialTrimCharacterArgIndex + 1 >= args.size()) {
+      trimCharacter="' '";
+      trimSource=potentialTrimCharacter;
+    }
+ else {
+      trimCharacter=potentialTrimCharacter;
+      if ("from".equalsIgnoreCase((String)args.get(potentialTrimCharacterArgIndex + 1))) {
+        trimSource=(String)args.get(potentialTrimCharacterArgIndex + 2);
+      }
+ else {
+        trimSource=(String)args.get(potentialTrimCharacterArgIndex + 1);
+      }
+    }
+    List argsToUse=null;
+    argsToUse=new ArrayList();
+    argsToUse.add(trimSource);
+    argsToUse.add(trimCharacter);
+    if (trimCharacter.equals("' '")) {
+      if (leading && trailing) {
+        return BOTH_SPACE_TRIM.render(argsToUse,factory);
+      }
+ else       if (leading) {
+        return LEADING_SPACE_TRIM.render(argsToUse,factory);
+      }
+ else {
+        return TRAILING_SPACE_TRIM.render(argsToUse,factory);
+      }
+    }
+ else {
+      if (leading && trailing) {
+        return BOTH_TRIM.render(argsToUse,factory);
+      }
+ else       if (leading) {
+        return LEADING_TRIM.render(argsToUse,factory);
+      }
+ else {
+        return TRAILING_TRIM.render(argsToUse,factory);
+      }
+    }
+  }
+}

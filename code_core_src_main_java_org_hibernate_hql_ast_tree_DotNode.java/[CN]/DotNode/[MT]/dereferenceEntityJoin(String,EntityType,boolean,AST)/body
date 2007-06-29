@@ -1,0 +1,26 @@
+{
+  dereferenceType=DEREF_ENTITY;
+  if (log.isDebugEnabled()) {
+    log.debug("dereferenceEntityJoin() : generating join for " + propertyName + " in "+ getFromElement().getClassName()+ " "+ ((classAlias == null) ? "{no alias}" : "(" + classAlias + ")")+ " parent = "+ ASTUtil.getDebugString(parent));
+  }
+  String associatedEntityName=propertyType.getAssociatedEntityName();
+  String tableAlias=getAliasGenerator().createName(associatedEntityName);
+  String[] joinColumns=getColumns();
+  String joinPath=getPath();
+  if (impliedJoin && getWalker().isInFrom()) {
+    joinType=getWalker().getImpliedJoinType();
+  }
+  FromClause currentFromClause=getWalker().getCurrentFromClause();
+  FromElement elem=currentFromClause.findJoinByPath(joinPath);
+  if (elem == null) {
+    JoinSequence joinSequence=getSessionFactoryHelper().createJoinSequence(impliedJoin,propertyType,tableAlias,joinType,joinColumns);
+    FromElementFactory factory=new FromElementFactory(currentFromClause,getLhs().getFromElement(),joinPath,classAlias,joinColumns,impliedJoin);
+    elem=factory.createEntityJoin(associatedEntityName,tableAlias,joinSequence,fetch,getWalker().isInFrom(),propertyType);
+  }
+ else {
+    currentFromClause.addDuplicateAlias(classAlias,elem);
+  }
+  setImpliedJoin(elem);
+  getWalker().addQuerySpaces(elem.getEntityPersister().getQuerySpaces());
+  setFromElement(elem);
+}

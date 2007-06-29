@@ -1,0 +1,14 @@
+{
+  try {
+    final CGLIBLazyInitializer instance=new CGLIBLazyInitializer(entityName,persistentClass,interfaces,id,getIdentifierMethod,setIdentifierMethod,componentIdType,session);
+    final HibernateProxy proxy;
+    Class factory=getProxyFactory(persistentClass,interfaces);
+    proxy=getProxyInstance(factory,instance);
+    instance.constructed=true;
+    return proxy;
+  }
+ catch (  Throwable t) {
+    LogFactory.getLog(BasicLazyInitializer.class).error("CGLIB Enhancement failed: " + entityName,t);
+    throw new HibernateException("CGLIB Enhancement failed: " + entityName,t);
+  }
+}

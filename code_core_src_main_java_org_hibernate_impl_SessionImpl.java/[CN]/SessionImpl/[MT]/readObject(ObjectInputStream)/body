@@ -1,0 +1,34 @@
+{
+  log.trace("deserializing session");
+  boolean isRootSession=ois.readBoolean();
+  connectionReleaseMode=ConnectionReleaseMode.parse((String)ois.readObject());
+  entityMode=EntityMode.parse((String)ois.readObject());
+  autoClear=ois.readBoolean();
+  flushMode=FlushMode.parse((String)ois.readObject());
+  cacheMode=CacheMode.parse((String)ois.readObject());
+  flushBeforeCompletionEnabled=ois.readBoolean();
+  autoCloseSessionEnabled=ois.readBoolean();
+  fetchProfile=(String)ois.readObject();
+  interceptor=(Interceptor)ois.readObject();
+  factory=SessionFactoryImpl.deserialize(ois);
+  listeners=factory.getEventListeners();
+  if (isRootSession) {
+    jdbcContext=JDBCContext.deserialize(ois,this,interceptor);
+  }
+  persistenceContext=StatefulPersistenceContext.deserialize(ois,this);
+  actionQueue=ActionQueue.deserialize(ois,this);
+  enabledFilters=(Map)ois.readObject();
+  childSessionsByEntityMode=(Map)ois.readObject();
+  Iterator iter=enabledFilters.values().iterator();
+  while (iter.hasNext()) {
+    ((FilterImpl)iter.next()).afterDeserialize(factory);
+  }
+  if (isRootSession && childSessionsByEntityMode != null) {
+    iter=childSessionsByEntityMode.values().iterator();
+    while (iter.hasNext()) {
+      final SessionImpl child=((SessionImpl)iter.next());
+      child.rootSession=this;
+      child.jdbcContext=this.jdbcContext;
+    }
+  }
+}

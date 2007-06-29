@@ -1,0 +1,88 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  Location mel=new Location("Melbourne, Australia");
+  Location atl=new Location("Atlanta, GA");
+  Location mars=new Location("Mars");
+  s.save(mel);
+  s.save(atl);
+  s.save(mars);
+  Human gavin=new Human();
+  gavin.setIdentity("gavin");
+  gavin.setSex('M');
+  gavin.setLocation(mel);
+  mel.addBeing(gavin);
+  Alien x23y4=new Alien();
+  x23y4.setIdentity("x23y4$$hu%3");
+  x23y4.setLocation(mars);
+  x23y4.setSpecies("martian");
+  mars.addBeing(x23y4);
+  Hive hive=new Hive();
+  hive.setLocation(mars);
+  hive.getMembers().add(x23y4);
+  x23y4.setHive(hive);
+  s.persist(hive);
+  assertEquals(s.createQuery("from Being").list().size(),2);
+  assertEquals(s.createQuery("from Being b where b.class = Alien").list().size(),1);
+  assertEquals(s.createQuery("from Alien").list().size(),1);
+  s.clear();
+  List beings=s.createQuery("from Being b left join fetch b.location").list();
+  for (Iterator iter=beings.iterator(); iter.hasNext(); ) {
+    Being b=(Being)iter.next();
+    assertTrue(Hibernate.isInitialized(b.getLocation()));
+    assertNotNull(b.getLocation().getName());
+    assertNotNull(b.getIdentity());
+    assertNotNull(b.getSpecies());
+  }
+  assertEquals(beings.size(),2);
+  s.clear();
+  beings=s.createQuery("from Being").list();
+  for (Iterator iter=beings.iterator(); iter.hasNext(); ) {
+    Being b=(Being)iter.next();
+    assertFalse(Hibernate.isInitialized(b.getLocation()));
+    assertNotNull(b.getLocation().getName());
+    assertNotNull(b.getIdentity());
+    assertNotNull(b.getSpecies());
+  }
+  assertEquals(beings.size(),2);
+  s.clear();
+  List locations=s.createQuery("from Location").list();
+  int count=0;
+  for (Iterator iter=locations.iterator(); iter.hasNext(); ) {
+    Location l=(Location)iter.next();
+    assertNotNull(l.getName());
+    Iterator iter2=l.getBeings().iterator();
+    while (iter2.hasNext()) {
+      count++;
+      assertSame(((Being)iter2.next()).getLocation(),l);
+    }
+  }
+  assertEquals(count,2);
+  assertEquals(locations.size(),3);
+  s.clear();
+  locations=s.createQuery("from Location loc left join fetch loc.beings").list();
+  count=0;
+  for (Iterator iter=locations.iterator(); iter.hasNext(); ) {
+    Location l=(Location)iter.next();
+    assertNotNull(l.getName());
+    Iterator iter2=l.getBeings().iterator();
+    while (iter2.hasNext()) {
+      count++;
+      assertSame(((Being)iter2.next()).getLocation(),l);
+    }
+  }
+  assertEquals(count,2);
+  assertEquals(locations.size(),3);
+  s.clear();
+  gavin=(Human)s.get(Human.class,new Long(gavin.getId()));
+  atl=(Location)s.get(Location.class,new Long(atl.getId()));
+  atl.addBeing(gavin);
+  assertEquals(s.createQuery("from Human h where h.location.name like '%GA'").list().size(),1);
+  s.delete(gavin);
+  x23y4=(Alien)s.createCriteria(Alien.class).uniqueResult();
+  s.delete(x23y4.getHive());
+  assertTrue(s.createQuery("from Being").list().isEmpty());
+  s.createQuery("delete from Location").executeUpdate();
+  t.commit();
+  s.close();
+}

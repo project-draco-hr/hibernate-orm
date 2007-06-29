@@ -1,0 +1,20 @@
+{
+  Class c;
+  AST t;
+  try {
+    c=Class.forName(className);
+    Class[] tokenArgType=new Class[]{antlr.Token.class};
+    Constructor ctor=c.getConstructor(tokenArgType);
+    if (ctor != null) {
+      t=(AST)ctor.newInstance(new Object[]{token});
+      initializeSqlNode(t);
+    }
+ else {
+      t=create(c);
+    }
+  }
+ catch (  Exception e) {
+    throw new IllegalArgumentException("Invalid class or can't make instance, " + className);
+  }
+  return t;
+}

@@ -1,0 +1,25 @@
+{
+  if (!isSubQuery()) {
+    if (isFilter()) {
+      QueryableCollection persister=sessionFactoryHelper.getCollectionPersister(collectionFilterRole);
+      Type collectionElementType=persister.getElementType();
+      if (!collectionElementType.isEntityType()) {
+        throw new QueryException("collection of values in filter: this");
+      }
+      String collectionElementEntityName=persister.getElementPersister().getEntityName();
+      ASTFactory inputAstFactory=hqlParser.getASTFactory();
+      AST fromElement=ASTUtil.create(inputAstFactory,HqlTokenTypes.FILTER_ENTITY,collectionElementEntityName);
+      ASTUtil.createSibling(inputAstFactory,HqlTokenTypes.ALIAS,"this",fromElement);
+      fromClauseInput.addChild(fromElement);
+      if (log.isDebugEnabled()) {
+        log.debug("prepareFromClauseInputTree() : Filter - Added 'this' as a from element...");
+      }
+      queryTranslatorImpl.showHqlAst(hqlParser.getAST());
+      Type collectionFilterKeyType=sessionFactoryHelper.requireQueryableCollection(collectionFilterRole).getKeyType();
+      ParameterNode collectionFilterKeyParameter=(ParameterNode)astFactory.create(PARAM,"?");
+      CollectionFilterKeyParameterSpecification collectionFilterKeyParameterSpec=new CollectionFilterKeyParameterSpecification(collectionFilterRole,collectionFilterKeyType,positionalParameterCount++);
+      collectionFilterKeyParameter.setHqlParameterSpecification(collectionFilterKeyParameterSpec);
+      parameters.add(collectionFilterKeyParameterSpec);
+    }
+  }
+}

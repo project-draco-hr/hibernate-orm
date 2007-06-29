@@ -1,0 +1,80 @@
+{
+  String entityName=persistentClass.getEntityName();
+  Table table=persistentClass.getTable();
+  Iterator iter=node.elementIterator();
+  while (iter.hasNext()) {
+    Element subnode=(Element)iter.next();
+    String name=subnode.getName();
+    String propertyName=subnode.attributeValue("name");
+    CollectionType collectType=CollectionType.collectionTypeFromString(name);
+    Value value=null;
+    if (collectType != null) {
+      Collection collection=collectType.create(subnode,StringHelper.qualify(entityName,propertyName),persistentClass,mappings,inheritedMetas);
+      mappings.addCollection(collection);
+      value=collection;
+    }
+ else     if ("many-to-one".equals(name)) {
+      value=new ManyToOne(table);
+      bindManyToOne(subnode,(ManyToOne)value,propertyName,nullable,mappings);
+    }
+ else     if ("any".equals(name)) {
+      value=new Any(table);
+      bindAny(subnode,(Any)value,nullable,mappings);
+    }
+ else     if ("one-to-one".equals(name)) {
+      value=new OneToOne(table,persistentClass);
+      bindOneToOne(subnode,(OneToOne)value,propertyName,true,mappings);
+    }
+ else     if ("property".equals(name)) {
+      value=new SimpleValue(table);
+      bindSimpleValue(subnode,(SimpleValue)value,nullable,propertyName,mappings);
+    }
+ else     if ("component".equals(name) || "dynamic-component".equals(name) || "properties".equals(name)) {
+      String subpath=StringHelper.qualify(entityName,propertyName);
+      value=new Component(persistentClass);
+      bindComponent(subnode,(Component)value,persistentClass.getClassName(),propertyName,subpath,true,"properties".equals(name),mappings,inheritedMetas,false);
+    }
+ else     if ("join".equals(name)) {
+      Join join=new Join();
+      join.setPersistentClass(persistentClass);
+      bindJoin(subnode,join,mappings,inheritedMetas);
+      persistentClass.addJoin(join);
+    }
+ else     if ("subclass".equals(name)) {
+      handleSubclass(persistentClass,mappings,subnode,inheritedMetas);
+    }
+ else     if ("joined-subclass".equals(name)) {
+      handleJoinedSubclass(persistentClass,mappings,subnode,inheritedMetas);
+    }
+ else     if ("union-subclass".equals(name)) {
+      handleUnionSubclass(persistentClass,mappings,subnode,inheritedMetas);
+    }
+ else     if ("filter".equals(name)) {
+      parseFilter(subnode,persistentClass,mappings);
+    }
+ else     if ("natural-id".equals(name)) {
+      UniqueKey uk=new UniqueKey();
+      uk.setName("_UniqueKey");
+      uk.setTable(table);
+      boolean mutableId="true".equals(subnode.attributeValue("mutable"));
+      createClassProperties(subnode,persistentClass,mappings,inheritedMetas,uk,mutableId,false,true);
+      table.addUniqueKey(uk);
+    }
+ else     if ("query".equals(name)) {
+      bindNamedQuery(subnode,persistentClass.getEntityName(),mappings);
+    }
+ else     if ("sql-query".equals(name)) {
+      bindNamedSQLQuery(subnode,persistentClass.getEntityName(),mappings);
+    }
+ else     if ("resultset".equals(name)) {
+      bindResultSetMappingDefinition(subnode,persistentClass.getEntityName(),mappings);
+    }
+    if (value != null) {
+      Property property=createProperty(value,propertyName,persistentClass.getClassName(),subnode,mappings,inheritedMetas);
+      if (!mutable)       property.setUpdateable(false);
+      if (naturalId)       property.setNaturalIdentifier(true);
+      persistentClass.addProperty(property);
+      if (uniqueKey != null)       uniqueKey.addColumns(property.getColumnIterator());
+    }
+  }
+}

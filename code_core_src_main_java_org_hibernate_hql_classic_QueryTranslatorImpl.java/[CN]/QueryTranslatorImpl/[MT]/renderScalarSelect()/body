@@ -1,0 +1,67 @@
+{
+  boolean isSubselect=superQuery != null;
+  StringBuffer buf=new StringBuffer(20);
+  if (scalarTypes.size() == 0) {
+    int size=returnedTypes.size();
+    for (int k=0; k < size; k++) {
+      scalarTypes.add(TypeFactory.manyToOne(persisters[k].getEntityName(),shallowQuery));
+      String[] idColumnNames=persisters[k].getIdentifierColumnNames();
+      for (int i=0; i < idColumnNames.length; i++) {
+        buf.append(returnedTypes.get(k)).append('.').append(idColumnNames[i]);
+        if (!isSubselect)         buf.append(" as ").append(NameGenerator.scalarName(k,i));
+        if (i != idColumnNames.length - 1 || k != size - 1)         buf.append(", ");
+      }
+    }
+  }
+ else {
+    Iterator iter=scalarSelectTokens.iterator();
+    int c=0;
+    boolean nolast=false;
+    int parenCount=0;
+    while (iter.hasNext()) {
+      Object next=iter.next();
+      if (next instanceof String) {
+        String token=(String)next;
+        if ("(".equals(token)) {
+          parenCount++;
+        }
+ else         if (")".equals(token)) {
+          parenCount--;
+        }
+        String lc=token.toLowerCase();
+        if (lc.equals(", ")) {
+          if (nolast) {
+            nolast=false;
+          }
+ else {
+            if (!isSubselect && parenCount == 0) {
+              int x=c++;
+              buf.append(" as ").append(NameGenerator.scalarName(x,0));
+            }
+          }
+        }
+        buf.append(token);
+        if (lc.equals("distinct") || lc.equals("all")) {
+          buf.append(' ');
+        }
+      }
+ else {
+        nolast=true;
+        String[] tokens=(String[])next;
+        for (int i=0; i < tokens.length; i++) {
+          buf.append(tokens[i]);
+          if (!isSubselect) {
+            buf.append(" as ").append(NameGenerator.scalarName(c,i));
+          }
+          if (i != tokens.length - 1)           buf.append(", ");
+        }
+        c++;
+      }
+    }
+    if (!isSubselect && !nolast) {
+      int x=c++;
+      buf.append(" as ").append(NameGenerator.scalarName(x,0));
+    }
+  }
+  return buf.toString();
+}

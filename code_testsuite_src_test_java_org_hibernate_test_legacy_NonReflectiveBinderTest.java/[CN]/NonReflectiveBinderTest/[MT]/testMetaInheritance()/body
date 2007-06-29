@@ -1,0 +1,40 @@
+{
+  PersistentClass cm=cfg.getClassMapping("org.hibernate.test.legacy.Wicked");
+  Map m=cm.getMetaAttributes();
+  assertNotNull(m);
+  assertNotNull(cm.getMetaAttribute("global"));
+  assertNull(cm.getMetaAttribute("globalnoinherit"));
+  MetaAttribute metaAttribute=cm.getMetaAttribute("implements");
+  assertNotNull(metaAttribute);
+  assertEquals("implements",metaAttribute.getName());
+  assertTrue(metaAttribute.isMultiValued());
+  assertEquals(3,metaAttribute.getValues().size());
+  assertEquals("java.lang.Observer",metaAttribute.getValues().get(0));
+  assertEquals("java.lang.Observer",metaAttribute.getValues().get(1));
+  assertEquals("org.foo.BogusVisitor",metaAttribute.getValues().get(2));
+  Iterator propertyIterator=cm.getPropertyIterator();
+  while (propertyIterator.hasNext()) {
+    Property element=(Property)propertyIterator.next();
+    System.out.println(element);
+    Map ma=element.getMetaAttributes();
+    assertNotNull(ma);
+    assertNotNull(element.getMetaAttribute("global"));
+    MetaAttribute metaAttribute2=element.getMetaAttribute("implements");
+    assertNotNull(metaAttribute2);
+    assertNull(element.getMetaAttribute("globalnoinherit"));
+  }
+  Property element=cm.getProperty("component");
+  Map ma=element.getMetaAttributes();
+  assertNotNull(ma);
+  assertNotNull(element.getMetaAttribute("global"));
+  assertNotNull(element.getMetaAttribute("componentonly"));
+  assertNotNull(element.getMetaAttribute("allcomponent"));
+  assertNull(element.getMetaAttribute("globalnoinherit"));
+  MetaAttribute compimplements=element.getMetaAttribute("implements");
+  assertNotNull(compimplements);
+  assertEquals(compimplements.getValue(),"AnotherInterface");
+  Property xp=((Component)element.getValue()).getProperty("x");
+  MetaAttribute propximplements=xp.getMetaAttribute("implements");
+  assertNotNull(propximplements);
+  assertEquals(propximplements.getValue(),"AnotherInterface");
+}

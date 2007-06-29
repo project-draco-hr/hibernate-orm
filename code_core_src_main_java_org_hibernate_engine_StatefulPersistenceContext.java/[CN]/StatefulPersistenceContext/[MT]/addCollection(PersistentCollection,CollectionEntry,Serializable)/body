@@ -1,0 +1,12 @@
+{
+  collectionEntries.put(coll,entry);
+  CollectionKey collectionKey=new CollectionKey(entry.getLoadedPersister(),key,session.getEntityMode());
+  PersistentCollection old=(PersistentCollection)collectionsByKey.put(collectionKey,coll);
+  if (old != null) {
+    if (old == coll) {
+      throw new AssertionFailure("bug adding collection twice");
+    }
+    old.unsetSession(session);
+    collectionEntries.remove(old);
+  }
+}

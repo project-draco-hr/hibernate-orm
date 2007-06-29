@@ -1,0 +1,30 @@
+{
+  Foo foo1=new Foo();
+  Foo foo2=new Foo();
+  Baz baz=new Baz();
+  Foo[] arr=new Foo[10];
+  arr[0]=foo1;
+  arr[9]=foo2;
+  Session s=openSession();
+  s.save(foo1);
+  s.save(foo2);
+  baz.setFooArray(arr);
+  s.save(baz);
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  baz=(Baz)s.load(Baz.class,baz.getCode());
+  assertTrue(baz.getFooArray().length == 1);
+  assertTrue(s.find("from Baz baz join baz.fooArray foo").size() == 1);
+  assertTrue(s.find("from Foo foo").size() == 2);
+  assertTrue(s.filter(baz.getFooArray(),"").size() == 1);
+  s.delete("from Foo foo");
+  String bazid=baz.getCode();
+  s.delete(baz);
+  int rows=s.connection().createStatement().executeUpdate("delete from fooArray where id_='" + bazid + "' and i>=8");
+  assertTrue(rows == 1);
+  s.flush();
+  s.connection().commit();
+  s.close();
+}

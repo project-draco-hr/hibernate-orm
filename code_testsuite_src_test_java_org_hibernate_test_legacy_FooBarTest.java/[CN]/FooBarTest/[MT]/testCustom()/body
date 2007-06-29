@@ -1,0 +1,33 @@
+{
+  GlarchProxy g=new Glarch();
+  Multiplicity m=new Multiplicity();
+  m.count=12;
+  m.glarch=(Glarch)g;
+  g.setMultiple(m);
+  Session s=openSession();
+  Serializable gid=s.save(g);
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  g=(Glarch)s.find("from Glarch g where g.multiple.count=12").get(0);
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  g=(Glarch)s.find("from Glarch g where g.multiple.glarch=g and g.multiple.count=12").get(0);
+  assertTrue(g.getMultiple() != null);
+  assertEquals(g.getMultiple().count,12);
+  assertSame(g.getMultiple().glarch,g);
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  g=(GlarchProxy)s.load(Glarch.class,gid);
+  assertTrue(g.getMultiple() != null);
+  assertEquals(g.getMultiple().count,12);
+  assertSame(g.getMultiple().glarch,g);
+  s.delete(g);
+  s.flush();
+  s.connection().commit();
+  s.close();
+}

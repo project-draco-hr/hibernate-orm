@@ -1,0 +1,25 @@
+{
+  FromElement elem=createJoin(entityClass,tableAlias,joinSequence,type,false);
+  elem.setFetch(fetchFlag);
+  EntityPersister entityPersister=elem.getEntityPersister();
+  int numberOfTables=entityPersister.getQuerySpaces().length;
+  if (numberOfTables > 1 && implied && !elem.useFromFragment()) {
+    if (log.isDebugEnabled()) {
+      log.debug("createEntityJoin() : Implied multi-table entity join");
+    }
+    elem.setUseFromFragment(true);
+  }
+  if (implied && inFrom) {
+    joinSequence.setUseThetaStyle(false);
+    elem.setUseFromFragment(true);
+    elem.setImpliedInFromClause(true);
+  }
+  if (elem.getWalker().isSubQuery()) {
+    if (elem.getFromClause() != elem.getOrigin().getFromClause() || DotNode.useThetaStyleImplicitJoins) {
+      elem.setType(FROM_FRAGMENT);
+      joinSequence.setUseThetaStyle(true);
+      elem.setUseFromFragment(false);
+    }
+  }
+  return elem;
+}

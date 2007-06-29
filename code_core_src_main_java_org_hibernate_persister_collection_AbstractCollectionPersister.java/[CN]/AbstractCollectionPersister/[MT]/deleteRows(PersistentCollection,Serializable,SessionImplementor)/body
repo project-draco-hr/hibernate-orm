@@ -1,0 +1,84 @@
+{
+  if (!isInverse && isRowDeleteEnabled()) {
+    if (log.isDebugEnabled()) {
+      log.debug("Deleting rows of collection: " + MessageHelper.collectionInfoString(this,id,getFactory()));
+    }
+    boolean deleteByIndex=!isOneToMany() && hasIndex && !indexContainsFormula;
+    try {
+      Iterator deletes=collection.getDeletes(this,!deleteByIndex);
+      if (deletes.hasNext()) {
+        int offset=1;
+        int count=0;
+        while (deletes.hasNext()) {
+          PreparedStatement st=null;
+          Expectation expectation=Expectations.appropriateExpectation(getDeleteCheckStyle());
+          boolean callable=isDeleteCallable();
+          boolean useBatch=expectation.canBeBatched();
+          String sql=getSQLDeleteRowString();
+          if (useBatch) {
+            if (callable) {
+              st=session.getBatcher().prepareBatchCallableStatement(sql);
+            }
+ else {
+              st=session.getBatcher().prepareBatchStatement(sql);
+            }
+          }
+ else {
+            if (callable) {
+              st=session.getBatcher().prepareCallableStatement(sql);
+            }
+ else {
+              st=session.getBatcher().prepareStatement(sql);
+            }
+          }
+          try {
+            expectation.prepare(st);
+            Object entry=deletes.next();
+            int loc=offset;
+            if (hasIdentifier) {
+              writeIdentifier(st,entry,loc,session);
+            }
+ else {
+              loc=writeKey(st,id,loc,session);
+              if (deleteByIndex) {
+                writeIndexToWhere(st,entry,loc,session);
+              }
+ else {
+                writeElementToWhere(st,entry,loc,session);
+              }
+            }
+            if (useBatch) {
+              session.getBatcher().addToBatch(expectation);
+            }
+ else {
+              expectation.verifyOutcome(st.executeUpdate(),st,-1);
+            }
+            count++;
+          }
+ catch (          SQLException sqle) {
+            if (useBatch) {
+              session.getBatcher().abortBatch(sqle);
+            }
+            throw sqle;
+          }
+ finally {
+            if (!useBatch) {
+              session.getBatcher().closeStatement(st);
+            }
+          }
+          if (log.isDebugEnabled()) {
+            log.debug("done deleting collection rows: " + count + " deleted");
+          }
+        }
+      }
+ else {
+        if (log.isDebugEnabled()) {
+          log.debug("no rows to delete");
+        }
+      }
+    }
+ catch (    SQLException sqle) {
+      throw JDBCExceptionHelper.convert(sqlExceptionConverter,sqle,"could not delete collection rows: " + MessageHelper.collectionInfoString(this,id,getFactory()),getSQLDeleteRowString());
+    }
+  }
+}

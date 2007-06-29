@@ -1,0 +1,37 @@
+{
+  log.info("closing");
+  isClosed=true;
+  Iterator iter=entityPersisters.values().iterator();
+  while (iter.hasNext()) {
+    EntityPersister p=(EntityPersister)iter.next();
+    if (p.hasCache()) {
+      p.getCacheAccessStrategy().destroy();
+    }
+  }
+  iter=collectionPersisters.values().iterator();
+  while (iter.hasNext()) {
+    CollectionPersister p=(CollectionPersister)iter.next();
+    if (p.hasCache()) {
+      p.getCacheAccessStrategy().destroy();
+    }
+  }
+  if (settings.isQueryCacheEnabled()) {
+    queryCache.destroy();
+    iter=queryCaches.values().iterator();
+    while (iter.hasNext()) {
+      QueryCache cache=(QueryCache)iter.next();
+      cache.destroy();
+    }
+    updateTimestampsCache.destroy();
+  }
+  settings.getRegionFactory().stop();
+  try {
+    settings.getConnectionProvider().close();
+  }
+  finally {
+    SessionFactoryObjectFactory.removeInstance(uuid,name,properties);
+  }
+  if (settings.isAutoDropSchema()) {
+    schemaExport.drop(false,true);
+  }
+}

@@ -1,0 +1,22 @@
+{
+  if (this.entityMode == entityMode) {
+    return this;
+  }
+  if (rootSession != null) {
+    rootSession.getSession(entityMode);
+  }
+  errorIfClosed();
+  checkTransactionSynchStatus();
+  SessionImpl rtn=null;
+  if (childSessionsByEntityMode == null) {
+    childSessionsByEntityMode=new HashMap();
+  }
+ else {
+    rtn=(SessionImpl)childSessionsByEntityMode.get(entityMode);
+  }
+  if (rtn == null) {
+    rtn=new SessionImpl(this,entityMode);
+    childSessionsByEntityMode.put(entityMode,rtn);
+  }
+  return rtn;
+}

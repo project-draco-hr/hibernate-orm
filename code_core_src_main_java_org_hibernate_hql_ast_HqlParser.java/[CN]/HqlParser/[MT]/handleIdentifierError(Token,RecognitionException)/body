@@ -1,0 +1,18 @@
+{
+  if (token instanceof HqlToken) {
+    HqlToken hqlToken=(HqlToken)token;
+    if (hqlToken.isPossibleID() && (ex instanceof MismatchedTokenException)) {
+      MismatchedTokenException mte=(MismatchedTokenException)ex;
+      if (mte.expecting == HqlTokenTypes.IDENT) {
+        reportWarning("Keyword  '" + token.getText() + "' is being interpreted as an identifier due to: "+ mte.getMessage());
+        ASTPair currentAST=new ASTPair();
+        token.setType(HqlTokenTypes.WEIRD_IDENT);
+        astFactory.addASTChild(currentAST,astFactory.create(token));
+        consume();
+        AST identifierAST=currentAST.root;
+        return identifierAST;
+      }
+    }
+  }
+  return super.handleIdentifierError(token,ex);
+}

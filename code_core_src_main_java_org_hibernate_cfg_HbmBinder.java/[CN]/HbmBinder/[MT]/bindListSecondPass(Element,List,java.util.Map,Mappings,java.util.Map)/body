@@ -1,0 +1,24 @@
+{
+  bindCollectionSecondPass(node,list,classes,mappings,inheritedMetas);
+  Element subnode=node.element("list-index");
+  if (subnode == null)   subnode=node.element("index");
+  SimpleValue iv=new SimpleValue(list.getCollectionTable());
+  bindSimpleValue(subnode,iv,list.isOneToMany(),IndexedCollection.DEFAULT_INDEX_COLUMN_NAME,mappings);
+  iv.setTypeName("integer");
+  list.setIndex(iv);
+  String baseIndex=subnode.attributeValue("base");
+  if (baseIndex != null)   list.setBaseIndex(Integer.parseInt(baseIndex));
+  list.setIndexNodeName(subnode.attributeValue("node"));
+  if (list.isOneToMany() && !list.getKey().isNullable() && !list.isInverse()) {
+    String entityName=((OneToMany)list.getElement()).getReferencedEntityName();
+    PersistentClass referenced=mappings.getClass(entityName);
+    IndexBackref ib=new IndexBackref();
+    ib.setName('_' + node.attributeValue("name") + "IndexBackref");
+    ib.setUpdateable(false);
+    ib.setSelectable(false);
+    ib.setCollectionRole(list.getRole());
+    ib.setEntityName(list.getOwner().getEntityName());
+    ib.setValue(list.getIndex());
+    referenced.addProperty(ib);
+  }
+}

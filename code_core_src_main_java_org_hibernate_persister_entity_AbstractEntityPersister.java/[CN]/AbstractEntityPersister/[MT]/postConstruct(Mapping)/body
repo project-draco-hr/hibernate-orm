@@ -1,0 +1,37 @@
+{
+  initPropertyPaths(mapping);
+  final int joinSpan=getTableSpan();
+  sqlDeleteStrings=new String[joinSpan];
+  sqlInsertStrings=new String[joinSpan];
+  sqlUpdateStrings=new String[joinSpan];
+  sqlLazyUpdateStrings=new String[joinSpan];
+  sqlUpdateByRowIdString=rowIdName == null ? null : generateUpdateString(getPropertyUpdateability(),0,true);
+  sqlLazyUpdateByRowIdString=rowIdName == null ? null : generateUpdateString(getNonLazyPropertyUpdateability(),0,true);
+  for (int j=0; j < joinSpan; j++) {
+    sqlInsertStrings[j]=customSQLInsert[j] == null ? generateInsertString(getPropertyInsertability(),j) : customSQLInsert[j];
+    sqlUpdateStrings[j]=customSQLUpdate[j] == null ? generateUpdateString(getPropertyUpdateability(),j,false) : customSQLUpdate[j];
+    sqlLazyUpdateStrings[j]=customSQLUpdate[j] == null ? generateUpdateString(getNonLazyPropertyUpdateability(),j,false) : customSQLUpdate[j];
+    sqlDeleteStrings[j]=customSQLDelete[j] == null ? generateDeleteString(j) : customSQLDelete[j];
+  }
+  tableHasColumns=new boolean[joinSpan];
+  for (int j=0; j < joinSpan; j++) {
+    tableHasColumns[j]=sqlUpdateStrings[j] != null;
+  }
+  sqlSnapshotSelectString=generateSnapshotSelectString();
+  sqlLazySelectString=generateLazySelectString();
+  sqlVersionSelectString=generateSelectVersionString();
+  if (hasInsertGeneratedProperties()) {
+    sqlInsertGeneratedValuesSelectString=generateInsertGeneratedValuesSelectString();
+  }
+  if (hasUpdateGeneratedProperties()) {
+    sqlUpdateGeneratedValuesSelectString=generateUpdateGeneratedValuesSelectString();
+  }
+  if (isIdentifierAssignedByInsert()) {
+    identityDelegate=((PostInsertIdentifierGenerator)getIdentifierGenerator()).getInsertGeneratedIdentifierDelegate(this,getFactory().getDialect(),useGetGeneratedKeys());
+    sqlIdentityInsertString=customSQLInsert[0] == null ? generateIdentityInsertString(getPropertyInsertability()) : customSQLInsert[0];
+  }
+ else {
+    sqlIdentityInsertString=null;
+  }
+  logStaticSQL();
+}

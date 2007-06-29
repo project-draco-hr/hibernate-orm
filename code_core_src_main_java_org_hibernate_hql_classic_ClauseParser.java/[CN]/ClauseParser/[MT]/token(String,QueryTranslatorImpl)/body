@@ -1,0 +1,65 @@
+{
+  String lcToken=token.toLowerCase();
+  if ("(".equals(token)) {
+    parenCount++;
+  }
+ else   if (")".equals(token)) {
+    parenCount--;
+  }
+  if (byExpected && !lcToken.equals("by")) {
+    throw new QueryException("BY expected after GROUP or ORDER: " + token);
+  }
+  boolean isClauseStart=parenCount == 0;
+  if (isClauseStart) {
+    if (lcToken.equals("select")) {
+      selectTokens=new ArrayList();
+      cacheSelectTokens=true;
+    }
+ else     if (lcToken.equals("from")) {
+      child=new FromParser();
+      child.start(q);
+      cacheSelectTokens=false;
+    }
+ else     if (lcToken.equals("where")) {
+      endChild(q);
+      child=new WhereParser();
+      child.start(q);
+    }
+ else     if (lcToken.equals("order")) {
+      endChild(q);
+      child=new OrderByParser();
+      byExpected=true;
+    }
+ else     if (lcToken.equals("having")) {
+      endChild(q);
+      child=new HavingParser();
+      child.start(q);
+    }
+ else     if (lcToken.equals("group")) {
+      endChild(q);
+      child=new GroupByParser();
+      byExpected=true;
+    }
+ else     if (lcToken.equals("by")) {
+      if (!byExpected)       throw new QueryException("GROUP or ORDER expected before BY");
+      child.start(q);
+      byExpected=false;
+    }
+ else {
+      isClauseStart=false;
+    }
+  }
+  if (!isClauseStart) {
+    if (cacheSelectTokens) {
+      selectTokens.add(token);
+    }
+ else {
+      if (child == null) {
+        throw new QueryException("query must begin with SELECT or FROM: " + token);
+      }
+ else {
+        child.token(token,q);
+      }
+    }
+  }
+}

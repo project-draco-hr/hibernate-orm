@@ -1,0 +1,15 @@
+{
+  try {
+    if (resultSet.isAfterLast()) {
+      return null;
+    }
+    if (resultSet.isBeforeFirst()) {
+      resultSet.next();
+    }
+    final EntityKey currentKey=getKeyFromResultSet(0,getEntityPersisters()[0],null,resultSet,session);
+    return sequentialLoad(resultSet,session,queryParameters,returnProxies,currentKey);
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(factory.getSQLExceptionConverter(),sqle,"could not perform sequential read of results (forward)",getSQLString());
+  }
+}

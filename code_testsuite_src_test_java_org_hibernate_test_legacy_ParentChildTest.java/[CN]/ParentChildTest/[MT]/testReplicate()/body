@@ -1,0 +1,35 @@
+{
+  Session s=openSession();
+  Container baz=new Container();
+  Contained f=new Contained();
+  List list=new ArrayList();
+  list.add(baz);
+  f.setBag(list);
+  List list2=new ArrayList();
+  list2.add(f);
+  baz.setBag(list2);
+  s.save(f);
+  s.save(baz);
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  s.replicate(baz,ReplicationMode.OVERWRITE);
+  SessionImpl x=(SessionImpl)s;
+  EntityEntry entry=x.getPersistenceContext().getEntry(baz);
+  assertNull(entry.getVersion());
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  s.replicate(baz,ReplicationMode.IGNORE);
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  s.delete(baz);
+  s.delete(f);
+  s.flush();
+  s.connection().commit();
+  s.close();
+}

@@ -1,0 +1,15 @@
+{
+  prepare();
+  Session sessionUnderTest=getSessionUnderTest();
+  sessionUnderTest.disconnect();
+  byte[] bytes=SerializationHelper.serialize(sessionUnderTest);
+  checkSerializedState(sessionUnderTest);
+  Session s2=(Session)SerializationHelper.deserialize(bytes);
+  checkDeserializedState(s2);
+  reconnect(s2);
+  s2.disconnect();
+  reconnect(s2);
+  release(sessionUnderTest);
+  release(s2);
+  done();
+}

@@ -1,0 +1,31 @@
+{
+  EventSource source=event.getSession();
+  final Object object=event.getObject();
+  final PersistenceContext persistenceContext=source.getPersistenceContext();
+  if (object instanceof HibernateProxy) {
+    LazyInitializer li=((HibernateProxy)object).getHibernateLazyInitializer();
+    Serializable id=li.getIdentifier();
+    EntityPersister persister=source.getFactory().getEntityPersister(li.getEntityName());
+    if (id == null) {
+      throw new IllegalArgumentException("null identifier");
+    }
+    EntityKey key=new EntityKey(id,persister,source.getEntityMode());
+    persistenceContext.removeProxy(key);
+    if (!li.isUninitialized()) {
+      final Object entity=persistenceContext.removeEntity(key);
+      if (entity != null) {
+        EntityEntry e=event.getSession().getPersistenceContext().removeEntry(entity);
+        doEvict(entity,key,e.getPersister(),event.getSession());
+      }
+    }
+    li.setSession(null);
+  }
+ else {
+    EntityEntry e=persistenceContext.removeEntry(object);
+    if (e != null) {
+      EntityKey key=new EntityKey(e.getId(),e.getPersister(),source.getEntityMode());
+      persistenceContext.removeEntity(key);
+      doEvict(object,key,e.getPersister(),source);
+    }
+  }
+}

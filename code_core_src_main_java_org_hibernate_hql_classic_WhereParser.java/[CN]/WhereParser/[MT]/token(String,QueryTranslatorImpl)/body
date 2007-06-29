@@ -1,0 +1,59 @@
+{
+  String lcToken=token.toLowerCase();
+  if (token.equals("[") && !expectingPathContinuation) {
+    expectingPathContinuation=false;
+    if (expectingIndex == 0)     throw new QueryException("unexpected [");
+    return;
+  }
+ else   if (token.equals("]")) {
+    expectingIndex--;
+    expectingPathContinuation=true;
+    return;
+  }
+  if (expectingPathContinuation) {
+    boolean pathExpressionContinuesFurther=continuePathExpression(token,q);
+    if (pathExpressionContinuesFurther)     return;
+  }
+  if (!inSubselect && (lcToken.equals("select") || lcToken.equals("from"))) {
+    inSubselect=true;
+    subselect=new StringBuffer(20);
+  }
+  if (inSubselect && token.equals(")")) {
+    bracketsSinceSelect--;
+    if (bracketsSinceSelect == -1) {
+      QueryTranslatorImpl subq=new QueryTranslatorImpl(subselect.toString(),q.getEnabledFilters(),q.getFactory());
+      try {
+        subq.compile(q);
+      }
+ catch (      MappingException me) {
+        throw new QueryException("MappingException occurred compiling subquery",me);
+      }
+      appendToken(q,subq.getSQLString());
+      inSubselect=false;
+      bracketsSinceSelect=0;
+    }
+  }
+  if (inSubselect) {
+    if (token.equals("("))     bracketsSinceSelect++;
+    subselect.append(token).append(' ');
+    return;
+  }
+  specialCasesBefore(lcToken);
+  if (!betweenSpecialCase && EXPRESSION_TERMINATORS.contains(lcToken)) {
+    closeExpression(q,lcToken);
+  }
+  if (BOOLEAN_OPERATORS.contains(lcToken)) {
+    booleanTests.removeLast();
+    booleanTests.addLast(Boolean.TRUE);
+  }
+  if (lcToken.equals("not")) {
+    nots.addLast(new Boolean(!((Boolean)nots.removeLast()).booleanValue()));
+    negated=!negated;
+    return;
+  }
+  doToken(token,q);
+  if (!betweenSpecialCase && EXPRESSION_OPENERS.contains(lcToken)) {
+    openExpression(q,lcToken);
+  }
+  specialCasesAfter(lcToken);
+}

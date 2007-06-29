@@ -1,0 +1,7 @@
+{
+  String role=criteriaQuery.getEntityName(criteria,propertyName) + '.' + criteriaQuery.getPropertyName(propertyName);
+  QueryableCollection cp=(QueryableCollection)criteriaQuery.getFactory().getCollectionPersister(role);
+  String[] fk=cp.getKeyColumnNames();
+  String[] pk=((Loadable)cp.getOwnerEntityPersister()).getIdentifierColumnNames();
+  return "? " + op + " (select count(*) from "+ cp.getTableName()+ " where "+ new ConditionFragment().setTableAlias(criteriaQuery.getSQLAlias(criteria,propertyName)).setCondition(pk,fk).toFragmentString()+ ")";
+}

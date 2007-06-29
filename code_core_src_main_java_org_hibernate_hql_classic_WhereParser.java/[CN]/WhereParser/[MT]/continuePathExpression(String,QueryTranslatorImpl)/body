@@ -1,0 +1,17 @@
+{
+  expectingPathContinuation=false;
+  PathExpressionParser.CollectionElement element=pathExpressionParser.lastCollectionElement();
+  if (token.startsWith(".")) {
+    doPathExpression(getElementName(element,q) + token,q);
+    addToCurrentJoin(element);
+    return true;
+  }
+ else {
+    if (element.elementColumns.length != 1) {
+      throw new QueryException("path expression ended in composite collection element");
+    }
+    appendToken(q,element.elementColumns[0]);
+    addToCurrentJoin(element);
+    return false;
+  }
+}

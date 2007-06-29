@@ -1,0 +1,19 @@
+{
+  errorIfClosed();
+  checkTransactionSynchStatus();
+  if (query == null) {
+    throw new IllegalArgumentException("attempt to perform delete-by-query with null query");
+  }
+  if (log.isTraceEnabled()) {
+    log.trace("delete: " + query);
+    if (values.length != 0) {
+      log.trace("parameters: " + StringHelper.toString(values));
+    }
+  }
+  List list=find(query,values,types);
+  int deletionCount=list.size();
+  for (int i=0; i < deletionCount; i++) {
+    delete(list.get(i));
+  }
+  return deletionCount;
+}

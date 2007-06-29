@@ -1,0 +1,15 @@
+{
+  super(queryDef.getQueryString(),queryDef.getFlushMode(),session,parameterMetadata);
+  if (queryDef.getResultSetRef() != null) {
+    ResultSetMappingDefinition definition=session.getFactory().getResultSetMapping(queryDef.getResultSetRef());
+    if (definition == null) {
+      throw new MappingException("Unable to find resultset-ref definition: " + queryDef.getResultSetRef());
+    }
+    this.queryReturns=Arrays.asList(definition.getQueryReturns());
+  }
+ else {
+    this.queryReturns=Arrays.asList(queryDef.getQueryReturns());
+  }
+  this.querySpaces=queryDef.getQuerySpaces();
+  this.callable=queryDef.isCallable();
+}

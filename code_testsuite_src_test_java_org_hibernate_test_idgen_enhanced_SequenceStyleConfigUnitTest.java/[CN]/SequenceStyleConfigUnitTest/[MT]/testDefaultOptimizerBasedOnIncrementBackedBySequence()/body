@@ -1,0 +1,16 @@
+{
+  Properties props=new Properties();
+  props.setProperty(SequenceStyleGenerator.INCREMENT_PARAM,"10");
+  Dialect dialect=new SequenceDialect();
+  SequenceStyleGenerator generator=new SequenceStyleGenerator();
+  generator.configure(Hibernate.LONG,props,dialect);
+  assertClassAssignability(SequenceStructure.class,generator.getDatabaseStructure().getClass());
+  assertClassAssignability(OptimizerFactory.HiLoOptimizer.class,generator.getOptimizer().getClass());
+  assertEquals(SequenceStyleGenerator.DEF_SEQUENCE_NAME,generator.getDatabaseStructure().getName());
+  dialect=new PooledSequenceDialect();
+  generator=new SequenceStyleGenerator();
+  generator.configure(Hibernate.LONG,props,dialect);
+  assertClassAssignability(SequenceStructure.class,generator.getDatabaseStructure().getClass());
+  assertClassAssignability(OptimizerFactory.PooledOptimizer.class,generator.getOptimizer().getClass());
+  assertEquals(SequenceStyleGenerator.DEF_SEQUENCE_NAME,generator.getDatabaseStructure().getName());
+}

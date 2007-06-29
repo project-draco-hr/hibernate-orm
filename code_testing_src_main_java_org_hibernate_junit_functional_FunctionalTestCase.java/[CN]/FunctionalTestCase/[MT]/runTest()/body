@@ -1,0 +1,45 @@
+{
+  final boolean stats=sfi().getStatistics().isStatisticsEnabled();
+  try {
+    if (stats) {
+      sfi().getStatistics().clear();
+    }
+    super.runTest();
+    if (stats) {
+      sfi().getStatistics().logSummary();
+    }
+    if (session != null && session.isOpen()) {
+      if (session.isConnected()) {
+        session.connection().rollback();
+      }
+      session.close();
+      session=null;
+      fail("unclosed session");
+    }
+ else {
+      session=null;
+    }
+    assertAllDataRemoved();
+  }
+ catch (  Throwable e) {
+    log.trace("test run resulted in error; attempting to cleanup",e);
+    try {
+      if (session != null && session.isOpen()) {
+        if (session.isConnected()) {
+          session.connection().rollback();
+        }
+        session.close();
+      }
+    }
+ catch (    Exception ignore) {
+    }
+    try {
+      if (recreateSchemaAfterFailure() && environment != null) {
+        environment.rebuild();
+      }
+    }
+ catch (    Exception ignore) {
+    }
+    throw e;
+  }
+}

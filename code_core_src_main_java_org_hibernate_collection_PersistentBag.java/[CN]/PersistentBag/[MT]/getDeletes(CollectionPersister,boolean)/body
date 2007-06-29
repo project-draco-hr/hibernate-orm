@@ -1,0 +1,26 @@
+{
+  Type elementType=persister.getElementType();
+  EntityMode entityMode=getSession().getEntityMode();
+  ArrayList deletes=new ArrayList();
+  List sn=(List)getSnapshot();
+  Iterator olditer=sn.iterator();
+  int i=0;
+  while (olditer.hasNext()) {
+    Object old=olditer.next();
+    Iterator newiter=bag.iterator();
+    boolean found=false;
+    if (bag.size() > i && elementType.isSame(old,bag.get(i++),entityMode)) {
+      found=true;
+    }
+ else {
+      while (newiter.hasNext()) {
+        if (elementType.isSame(old,newiter.next(),entityMode)) {
+          found=true;
+          break;
+        }
+      }
+    }
+    if (!found)     deletes.add(old);
+  }
+  return deletes.iterator();
+}

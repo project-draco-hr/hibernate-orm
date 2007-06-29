@@ -1,0 +1,111 @@
+{
+  HashMap propertyresults=new HashMap();
+  Element discriminatorResult=returnElement.element("return-discriminator");
+  if (discriminatorResult != null) {
+    ArrayList resultColumns=getResultColumns(discriminatorResult);
+    propertyresults.put("class",ArrayHelper.toStringArray(resultColumns));
+  }
+  Iterator iterator=returnElement.elementIterator("return-property");
+  List properties=new ArrayList();
+  List propertyNames=new ArrayList();
+  while (iterator.hasNext()) {
+    Element propertyresult=(Element)iterator.next();
+    String name=propertyresult.attributeValue("name");
+    if (pc == null || name.indexOf('.') == -1) {
+      properties.add(propertyresult);
+      propertyNames.add(name);
+    }
+ else {
+      if (pc == null)       throw new MappingException("dotted notation in <return-join> or <load_collection> not yet supported");
+      int dotIndex=name.lastIndexOf('.');
+      String reducedName=name.substring(0,dotIndex);
+      Value value=pc.getRecursiveProperty(reducedName).getValue();
+      Iterator parentPropIter;
+      if (value instanceof Component) {
+        Component comp=(Component)value;
+        parentPropIter=comp.getPropertyIterator();
+      }
+ else       if (value instanceof ToOne) {
+        ToOne toOne=(ToOne)value;
+        PersistentClass referencedPc=mappings.getClass(toOne.getReferencedEntityName());
+        if (toOne.getReferencedPropertyName() != null) {
+          try {
+            parentPropIter=((Component)referencedPc.getRecursiveProperty(toOne.getReferencedPropertyName()).getValue()).getPropertyIterator();
+          }
+ catch (          ClassCastException e) {
+            throw new MappingException("dotted notation reference neither a component nor a many/one to one",e);
+          }
+        }
+ else {
+          try {
+            if (referencedPc.getIdentifierMapper() == null) {
+              parentPropIter=((Component)referencedPc.getIdentifierProperty().getValue()).getPropertyIterator();
+            }
+ else {
+              parentPropIter=referencedPc.getIdentifierMapper().getPropertyIterator();
+            }
+          }
+ catch (          ClassCastException e) {
+            throw new MappingException("dotted notation reference neither a component nor a many/one to one",e);
+          }
+        }
+      }
+ else {
+        throw new MappingException("dotted notation reference neither a component nor a many/one to one");
+      }
+      boolean hasFollowers=false;
+      List followers=new ArrayList();
+      while (parentPropIter.hasNext()) {
+        String currentPropertyName=((Property)parentPropIter.next()).getName();
+        String currentName=reducedName + '.' + currentPropertyName;
+        if (hasFollowers) {
+          followers.add(currentName);
+        }
+        if (name.equals(currentName))         hasFollowers=true;
+      }
+      int index=propertyNames.size();
+      int followersSize=followers.size();
+      for (int loop=0; loop < followersSize; loop++) {
+        String follower=(String)followers.get(loop);
+        int currentIndex=getIndexOfFirstMatchingProperty(propertyNames,follower);
+        index=currentIndex != -1 && currentIndex < index ? currentIndex : index;
+      }
+      propertyNames.add(index,name);
+      properties.add(index,propertyresult);
+    }
+  }
+  Set uniqueReturnProperty=new HashSet();
+  iterator=properties.iterator();
+  while (iterator.hasNext()) {
+    Element propertyresult=(Element)iterator.next();
+    String name=propertyresult.attributeValue("name");
+    if ("class".equals(name)) {
+      throw new MappingException("class is not a valid property name to use in a <return-property>, use <return-discriminator> instead");
+    }
+    ArrayList allResultColumns=getResultColumns(propertyresult);
+    if (allResultColumns.isEmpty()) {
+      throw new MappingException("return-property for alias " + alias + " must specify at least one column or return-column name");
+    }
+    if (uniqueReturnProperty.contains(name)) {
+      throw new MappingException("duplicate return-property for property " + name + " on alias "+ alias);
+    }
+    uniqueReturnProperty.add(name);
+    String key=name;
+    ArrayList intermediateResults=(ArrayList)propertyresults.get(key);
+    if (intermediateResults == null) {
+      propertyresults.put(key,allResultColumns);
+    }
+ else {
+      intermediateResults.addAll(allResultColumns);
+    }
+  }
+  Iterator entries=propertyresults.entrySet().iterator();
+  while (entries.hasNext()) {
+    Map.Entry entry=(Map.Entry)entries.next();
+    if (entry.getValue() instanceof ArrayList) {
+      ArrayList list=(ArrayList)entry.getValue();
+      entry.setValue(list.toArray(new String[list.size()]));
+    }
+  }
+  return propertyresults.isEmpty() ? CollectionHelper.EMPTY_MAP : propertyresults;
+}

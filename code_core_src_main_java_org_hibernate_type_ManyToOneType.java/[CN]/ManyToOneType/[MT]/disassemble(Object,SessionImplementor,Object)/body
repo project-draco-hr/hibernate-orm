@@ -1,0 +1,15 @@
+{
+  if (isNotEmbedded(session)) {
+    return getIdentifierType(session).disassemble(value,session,owner);
+  }
+  if (value == null) {
+    return null;
+  }
+ else {
+    Object id=ForeignKeys.getEntityIdentifierIfNotUnsaved(getAssociatedEntityName(),value,session);
+    if (id == null) {
+      throw new AssertionFailure("cannot cache a reference to an object with a null id: " + getAssociatedEntityName());
+    }
+    return getIdentifierType(session).disassemble(id,session,owner);
+  }
+}

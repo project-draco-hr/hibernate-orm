@@ -1,0 +1,57 @@
+{
+  if (getFactory().getDialect().dropTemporaryTableAfterUse()) {
+    IsolatedWork work=new IsolatedWork(){
+      public void doWork(      Connection connection) throws HibernateException {
+        Statement stmnt=null;
+        try {
+          stmnt=connection.createStatement();
+          stmnt.executeUpdate("drop table " + persister.getTemporaryIdTableName());
+        }
+ catch (        Throwable t) {
+          log.warn("unable to drop temporary id table after use [" + t.getMessage() + "]");
+        }
+ finally {
+          if (stmnt != null) {
+            try {
+              stmnt.close();
+            }
+ catch (            Throwable ignore) {
+            }
+          }
+        }
+      }
+    }
+;
+    if (shouldIsolateTemporaryTableDDL()) {
+      if (getFactory().getSettings().isDataDefinitionInTransactionSupported()) {
+        Isolater.doIsolatedWork(work,session);
+      }
+ else {
+        Isolater.doNonTransactedWork(work,session);
+      }
+    }
+ else {
+      work.doWork(session.getJDBCContext().getConnectionManager().getConnection());
+      session.getJDBCContext().getConnectionManager().afterStatement();
+    }
+  }
+ else {
+    PreparedStatement ps=null;
+    try {
+      ps=session.getBatcher().prepareStatement("delete from " + persister.getTemporaryIdTableName());
+      ps.executeUpdate();
+    }
+ catch (    Throwable t) {
+      log.warn("unable to cleanup temporary id table after use [" + t + "]");
+    }
+ finally {
+      if (ps != null) {
+        try {
+          session.getBatcher().closeStatement(ps);
+        }
+ catch (        Throwable ignore) {
+        }
+      }
+    }
+  }
+}

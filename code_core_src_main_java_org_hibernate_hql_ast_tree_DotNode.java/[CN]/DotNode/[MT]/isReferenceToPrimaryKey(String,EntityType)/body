@@ -1,0 +1,15 @@
+{
+  EntityPersister persister=getSessionFactoryHelper().getFactory().getEntityPersister(owningType.getAssociatedEntityName());
+  if (persister.getEntityMetamodel().hasNonIdentifierPropertyNamedId()) {
+    return propertyName.equals(persister.getIdentifierPropertyName()) && owningType.isReferenceToPrimaryKey();
+  }
+ else {
+    if (EntityPersister.ENTITY_ID.equals(propertyName)) {
+      return owningType.isReferenceToPrimaryKey();
+    }
+ else {
+      String keyPropertyName=getSessionFactoryHelper().getIdentifierOrUniqueKeyPropertyName(owningType);
+      return keyPropertyName != null && keyPropertyName.equals(propertyName) && owningType.isReferenceToPrimaryKey();
+    }
+  }
+}

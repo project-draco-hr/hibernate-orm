@@ -1,0 +1,26 @@
+{
+  final Object optionalObject=event.getInstanceToLoad();
+  final EventSource session=event.getSession();
+  final SessionFactoryImplementor factory=session.getFactory();
+  if (log.isTraceEnabled()) {
+    log.trace("assembling entity from second-level cache: " + MessageHelper.infoString(persister,id,factory));
+  }
+  EntityPersister subclassPersister=factory.getEntityPersister(entry.getSubclass());
+  Object result=optionalObject == null ? session.instantiate(subclassPersister,id) : optionalObject;
+  TwoPhaseLoad.addUninitializedCachedEntity(new EntityKey(id,subclassPersister,session.getEntityMode()),result,subclassPersister,LockMode.NONE,entry.areLazyPropertiesUnfetched(),entry.getVersion(),session);
+  Type[] types=subclassPersister.getPropertyTypes();
+  Object[] values=entry.assemble(result,id,subclassPersister,session.getInterceptor(),session);
+  TypeFactory.deepCopy(values,types,subclassPersister.getPropertyUpdateability(),values,session);
+  Object version=Versioning.getVersion(values,subclassPersister);
+  if (log.isTraceEnabled())   log.trace("Cached Version: " + version);
+  final PersistenceContext persistenceContext=session.getPersistenceContext();
+  persistenceContext.addEntry(result,Status.MANAGED,values,null,id,version,LockMode.NONE,true,subclassPersister,false,entry.areLazyPropertiesUnfetched());
+  subclassPersister.afterInitialize(result,entry.areLazyPropertiesUnfetched(),session);
+  persistenceContext.initializeNonLazyCollections();
+  PostLoadEvent postLoadEvent=new PostLoadEvent(session).setEntity(result).setId(id).setPersister(persister);
+  PostLoadEventListener[] listeners=session.getListeners().getPostLoadEventListeners();
+  for (int i=0; i < listeners.length; i++) {
+    listeners[i].onPostLoad(postLoadEvent);
+  }
+  return result;
+}

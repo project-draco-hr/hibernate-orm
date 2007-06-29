@@ -1,0 +1,20 @@
+{
+  errorIfClosed();
+  checkTransactionSynchStatus();
+  if (log.isTraceEnabled()) {
+    log.trace("SQL query: " + customQuery.getSQL());
+  }
+  CustomLoader loader=new CustomLoader(customQuery,getFactory());
+  autoFlushIfRequired(loader.getQuerySpaces());
+  dontFlushFromFind++;
+  boolean success=false;
+  try {
+    List results=loader.list(this,queryParameters);
+    success=true;
+    return results;
+  }
+  finally {
+    dontFlushFromFind--;
+    afterOperation(success);
+  }
+}

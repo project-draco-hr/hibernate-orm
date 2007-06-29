@@ -1,0 +1,18 @@
+{
+  super.configure(cfg);
+  cfg.setProperty(Environment.CACHE_REGION_PREFIX,"");
+  cfg.setProperty(Environment.USE_SECOND_LEVEL_CACHE,"true");
+  cfg.setProperty(Environment.GENERATE_STATISTICS,"true");
+  cfg.setProperty(Environment.USE_STRUCTURED_CACHE,"true");
+  cfg.setProperty(Environment.CACHE_PROVIDER,getCacheProvider().getName());
+  if (getConfigResourceKey() != null) {
+    cfg.setProperty(getConfigResourceKey(),getConfigResourceLocation());
+  }
+  if (useTransactionManager()) {
+    cfg.setProperty(Environment.CONNECTION_PROVIDER,DummyConnectionProvider.class.getName());
+    cfg.setProperty(Environment.TRANSACTION_MANAGER_STRATEGY,DummyTransactionManagerLookup.class.getName());
+  }
+ else {
+    cfg.setProperty(Environment.TRANSACTION_STRATEGY,JDBCTransactionFactory.class.getName());
+  }
+}

@@ -1,0 +1,61 @@
+{
+  int result;
+  int rows;
+  do {
+    sql=query;
+    SQL.debug(sql);
+    PreparedStatement queryPS=conn.prepareStatement(query);
+    try {
+      queryPS.setString(1,segmentValue);
+      ResultSet queryRS=queryPS.executeQuery();
+      if (!queryRS.next()) {
+        PreparedStatement insertPS=null;
+        try {
+          result=initialValue;
+          sql=insert;
+          SQL.debug(sql);
+          insertPS=conn.prepareStatement(insert);
+          insertPS.setString(1,segmentValue);
+          insertPS.setLong(2,result);
+          insertPS.execute();
+        }
+  finally {
+          if (insertPS != null) {
+            insertPS.close();
+          }
+        }
+      }
+ else {
+        result=queryRS.getInt(1);
+      }
+      queryRS.close();
+    }
+ catch (    SQLException sqle) {
+      log.error("could not read or init a hi value",sqle);
+      throw sqle;
+    }
+ finally {
+      queryPS.close();
+    }
+    sql=update;
+    SQL.debug(sql);
+    PreparedStatement updatePS=conn.prepareStatement(update);
+    try {
+      long newValue=optimizer.applyIncrementSizeToSourceValues() ? result + incrementSize : result + 1;
+      updatePS.setLong(1,newValue);
+      updatePS.setLong(2,result);
+      updatePS.setString(3,segmentValue);
+      rows=updatePS.executeUpdate();
+    }
+ catch (    SQLException sqle) {
+      log.error("could not update hi value in: " + tableName,sqle);
+      throw sqle;
+    }
+ finally {
+      updatePS.close();
+    }
+  }
+ while (rows == 0);
+  accessCount++;
+  return new Integer(result);
+}

@@ -1,0 +1,18 @@
+{
+  final Object[] loadedState=entry.getLoadedState();
+  final Status status=entry.getStatus();
+  final EntityPersister persister=entry.getPersister();
+  final Object[] values;
+  if (status == Status.DELETED) {
+    values=entry.getDeletedState();
+  }
+ else   if (!mightBeDirty && loadedState != null) {
+    values=loadedState;
+  }
+ else {
+    checkId(entity,persister,entry.getId(),entityMode);
+    values=persister.getPropertyValues(entity,entityMode);
+    checkNaturalId(persister,entry.getId(),values,loadedState,entityMode,session);
+  }
+  return values;
+}

@@ -1,0 +1,35 @@
+{
+  Property property=null;
+  StringTokenizer st=new StringTokenizer(propertyPath,".",false);
+  try {
+    while (st.hasMoreElements()) {
+      final String element=(String)st.nextElement();
+      if (property == null) {
+        Property identifierProperty=getIdentifierProperty();
+        if (identifierProperty != null && identifierProperty.getName().equals(element)) {
+          property=identifierProperty;
+        }
+ else         if (identifierProperty == null && getIdentifierMapper() != null) {
+          try {
+            identifierProperty=getProperty(element,getIdentifierMapper().getPropertyIterator());
+            if (identifierProperty != null) {
+              property=identifierProperty;
+            }
+          }
+ catch (          MappingException ignore) {
+          }
+        }
+        if (property == null) {
+          property=getProperty(element,iter);
+        }
+      }
+ else {
+        property=((Component)property.getValue()).getProperty(element);
+      }
+    }
+  }
+ catch (  MappingException e) {
+    throw new MappingException("property [" + propertyPath + "] not found on entity ["+ getEntityName()+ "]");
+  }
+  return property;
+}

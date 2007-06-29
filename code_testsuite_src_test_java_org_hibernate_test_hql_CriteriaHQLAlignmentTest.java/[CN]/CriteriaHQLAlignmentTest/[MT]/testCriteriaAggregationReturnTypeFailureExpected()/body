@@ -1,0 +1,36 @@
+{
+  Session s=openSession();
+  Human human=new Human();
+  human.setBigIntegerValue(new BigInteger("42"));
+  human.setBigDecimalValue(new BigDecimal(45));
+  s.save(human);
+  Long longValue=(Long)s.createCriteria(Human.class).setProjection(Projections.rowCount()).uniqueResult();
+  assertEquals(longValue,new Long(1));
+  longValue=(Long)s.createCriteria(Human.class).setProjection(Projections.count("height")).uniqueResult();
+  assertEquals(longValue,new Long(1));
+  Double dblValue=(Double)s.createCriteria(Human.class).setProjection(Projections.max("height")).uniqueResult();
+  assertNotNull(dblValue);
+  longValue=(Long)s.createCriteria(Human.class).setProjection(Projections.max("id")).uniqueResult();
+  assertNotNull(longValue);
+  dblValue=(Double)s.createCriteria(Human.class).setProjection(Projections.avg("height")).uniqueResult();
+  assertNotNull(dblValue);
+  dblValue=(Double)s.createCriteria(Human.class).setProjection(Projections.avg("id")).uniqueResult();
+  assertNotNull(dblValue);
+  dblValue=(Double)s.createCriteria(Human.class).setProjection(Projections.avg("bigIntegerValue")).uniqueResult();
+  assertNotNull(dblValue);
+  longValue=(Long)s.createCriteria(Human.class).setProjection(Projections.sum("id")).uniqueResult();
+  assertNotNull(longValue);
+  longValue=(Long)s.createCriteria(Human.class).setProjection(Projections.sum("intValue")).uniqueResult();
+  assertNotNull(longValue);
+  dblValue=(Double)s.createCriteria(Human.class).setProjection(Projections.sum("height")).uniqueResult();
+  assertNotNull(dblValue);
+  dblValue=(Double)s.createCriteria(Human.class).setProjection(Projections.sum("floatValue")).uniqueResult();
+  assertNotNull(dblValue);
+  BigInteger bigIValue=(BigInteger)s.createCriteria(Human.class).setProjection(Projections.sum("bigIntegerValue")).uniqueResult();
+  assertNotNull(bigIValue);
+  BigDecimal bigDValue=(BigDecimal)s.createCriteria(Human.class).setProjection(Projections.sum("bigDecimalValue")).uniqueResult();
+  assertNotNull(bigDValue);
+  s.delete(human);
+  s.flush();
+  s.close();
+}

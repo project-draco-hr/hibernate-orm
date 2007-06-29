@@ -1,0 +1,18 @@
+{
+  Session s=openSession();
+  Foo foo=new Foo();
+  s.save(foo);
+  s.flush();
+  s.connection().createStatement().executeUpdate("update " + getDialect().openQuote() + "foos"+ getDialect().closeQuote()+ " set long_ = -3");
+  s.refresh(foo);
+  assertTrue(foo.getLong().longValue() == -3l);
+  assertTrue(s.getCurrentLockMode(foo) == LockMode.READ);
+  s.refresh(foo,LockMode.UPGRADE);
+  if (getDialect().supportsOuterJoinForUpdate()) {
+    assertTrue(s.getCurrentLockMode(foo) == LockMode.UPGRADE);
+  }
+  s.delete(foo);
+  s.flush();
+  s.connection().commit();
+  s.close();
+}

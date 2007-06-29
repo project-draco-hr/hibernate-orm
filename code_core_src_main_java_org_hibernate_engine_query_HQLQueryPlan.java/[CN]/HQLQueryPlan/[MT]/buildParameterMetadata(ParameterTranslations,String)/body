@@ -1,0 +1,27 @@
+{
+  long start=System.currentTimeMillis();
+  ParamLocationRecognizer recognizer=ParamLocationRecognizer.parseLocations(hql);
+  long end=System.currentTimeMillis();
+  if (log.isTraceEnabled()) {
+    log.trace("HQL param location recognition took " + (end - start) + " mills ("+ hql+ ")");
+  }
+  int ordinalParamCount=parameterTranslations.getOrdinalParameterCount();
+  int[] locations=ArrayHelper.toIntArray(recognizer.getOrdinalParameterLocationList());
+  if (parameterTranslations.supportsOrdinalParameterMetadata() && locations.length != ordinalParamCount) {
+    throw new HibernateException("ordinal parameter mismatch");
+  }
+  ordinalParamCount=locations.length;
+  OrdinalParameterDescriptor[] ordinalParamDescriptors=new OrdinalParameterDescriptor[ordinalParamCount];
+  for (int i=1; i <= ordinalParamCount; i++) {
+    ordinalParamDescriptors[i - 1]=new OrdinalParameterDescriptor(i,parameterTranslations.supportsOrdinalParameterMetadata() ? parameterTranslations.getOrdinalParameterExpectedType(i) : null,locations[i - 1]);
+  }
+  Iterator itr=recognizer.getNamedParameterDescriptionMap().entrySet().iterator();
+  Map namedParamDescriptorMap=new HashMap();
+  while (itr.hasNext()) {
+    final Map.Entry entry=(Map.Entry)itr.next();
+    final String name=(String)entry.getKey();
+    final ParamLocationRecognizer.NamedParameterDescription description=(ParamLocationRecognizer.NamedParameterDescription)entry.getValue();
+    namedParamDescriptorMap.put(name,new NamedParameterDescriptor(name,parameterTranslations.getNamedParameterExpectedType(name),description.buildPositionsArray(),description.isJpaStyle()));
+  }
+  return new ParameterMetadata(ordinalParamDescriptors,namedParamDescriptorMap);
+}

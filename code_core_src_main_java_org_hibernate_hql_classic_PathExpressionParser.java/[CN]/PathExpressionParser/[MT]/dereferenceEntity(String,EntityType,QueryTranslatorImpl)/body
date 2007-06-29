@@ -1,0 +1,28 @@
+{
+  boolean isIdShortcut=EntityPersister.ENTITY_ID.equals(propertyName) && propertyType.isReferenceToPrimaryKey();
+  final String idPropertyName;
+  try {
+    idPropertyName=propertyType.getIdentifierOrUniqueKeyPropertyName(q.getFactory());
+  }
+ catch (  MappingException me) {
+    throw new QueryException(me);
+  }
+  boolean isNamedIdPropertyShortcut=idPropertyName != null && idPropertyName.equals(propertyName) && propertyType.isReferenceToPrimaryKey();
+  if (isIdShortcut || isNamedIdPropertyShortcut) {
+    if (componentPath.length() > 0)     componentPath.append('.');
+    componentPath.append(propertyName);
+  }
+ else {
+    String entityClass=propertyType.getAssociatedEntityName();
+    String name=q.createNameFor(entityClass);
+    q.addType(name,entityClass);
+    addJoin(name,propertyType);
+    if (propertyType.isOneToOne())     oneToOneOwnerName=currentName;
+    ownerAssociationType=propertyType;
+    currentName=name;
+    currentProperty=propertyName;
+    q.addPathAliasAndJoin(path.substring(0,path.toString().lastIndexOf('.')),name,joinSequence.copy());
+    componentPath.setLength(0);
+    currentPropertyMapping=q.getEntityPersister(entityClass);
+  }
+}

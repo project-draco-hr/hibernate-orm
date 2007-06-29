@@ -1,0 +1,22 @@
+{
+  org.dom4j.Document document=findPossibleExtends();
+  while (document != null) {
+    add(document);
+    document=findPossibleExtends();
+  }
+  if (extendsQueue.size() > 0) {
+    Iterator iterator=extendsQueue.keySet().iterator();
+    StringBuffer buf=new StringBuffer("Following superclasses referenced in extends not found: ");
+    while (iterator.hasNext()) {
+      final ExtendsQueueEntry entry=(ExtendsQueueEntry)iterator.next();
+      buf.append(entry.getExplicitName());
+      if (entry.getMappingPackage() != null) {
+        buf.append("[").append(entry.getMappingPackage()).append("]");
+      }
+      if (iterator.hasNext()) {
+        buf.append(",");
+      }
+    }
+    throw new MappingException(buf.toString());
+  }
+}

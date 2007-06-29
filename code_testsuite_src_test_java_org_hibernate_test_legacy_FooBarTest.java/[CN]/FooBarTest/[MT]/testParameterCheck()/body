@@ -1,0 +1,60 @@
+{
+  Session s=openSession();
+  try {
+    Query q=s.createQuery("select bar from Bar as bar where bar.x > :myX");
+    q.list();
+    fail("Should throw QueryException for missing myX");
+  }
+ catch (  QueryException iae) {
+  }
+ finally {
+    s.close();
+  }
+  s=openSession();
+  try {
+    Query q=s.createQuery("select bar from Bar as bar where bar.x > ?");
+    q.list();
+    fail("Should throw QueryException for missing ?");
+  }
+ catch (  QueryException iae) {
+  }
+ finally {
+    s.close();
+  }
+  s=openSession();
+  try {
+    Query q=s.createQuery("select bar from Bar as bar where bar.x > ? or bar.short = 1 or bar.string = 'ff ? bb'");
+    q.setInteger(0,1);
+    q.list();
+  }
+ catch (  QueryException iae) {
+    fail("Should not throw QueryException for missing ?");
+  }
+ finally {
+    s.close();
+  }
+  s=openSession();
+  try {
+    Query q=s.createQuery("select bar from Bar as bar where bar.string = ' ? ' or bar.string = '?'");
+    q.list();
+  }
+ catch (  QueryException iae) {
+    fail("Should not throw QueryException for ? in quotes");
+  }
+ finally {
+    s.close();
+  }
+  s=openSession();
+  try {
+    Query q=s.createQuery("select bar from Bar as bar where bar.string = ? or bar.string = ? or bar.string = ?");
+    q.setParameter(0,"bull");
+    q.setParameter(2,"shit");
+    q.list();
+    fail("should throw exception telling me i have not set parameter 1");
+  }
+ catch (  QueryException iae) {
+  }
+ finally {
+    s.close();
+  }
+}

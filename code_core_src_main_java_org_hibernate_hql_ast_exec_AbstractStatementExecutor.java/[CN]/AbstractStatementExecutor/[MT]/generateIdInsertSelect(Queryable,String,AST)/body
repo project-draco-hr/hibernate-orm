@@ -1,0 +1,40 @@
+{
+  Select select=new Select(getFactory().getDialect());
+  SelectFragment selectFragment=new SelectFragment().addColumns(tableAlias,persister.getIdentifierColumnNames(),persister.getIdentifierColumnNames());
+  select.setSelectClause(selectFragment.toFragmentString().substring(2));
+  String rootTableName=persister.getTableName();
+  String fromJoinFragment=persister.fromJoinFragment(tableAlias,true,false);
+  String whereJoinFragment=persister.whereJoinFragment(tableAlias,true,false);
+  select.setFromClause(rootTableName + ' ' + tableAlias+ fromJoinFragment);
+  if (whereJoinFragment == null) {
+    whereJoinFragment="";
+  }
+ else {
+    whereJoinFragment=whereJoinFragment.trim();
+    if (whereJoinFragment.startsWith("and")) {
+      whereJoinFragment=whereJoinFragment.substring(4);
+    }
+  }
+  String userWhereClause="";
+  if (whereClause.getNumberOfChildren() != 0) {
+    try {
+      SqlGenerator sqlGenerator=new SqlGenerator(getFactory());
+      sqlGenerator.whereClause(whereClause);
+      userWhereClause=sqlGenerator.getSQL().substring(7);
+    }
+ catch (    RecognitionException e) {
+      throw new HibernateException("Unable to generate id select for DML operation",e);
+    }
+    if (whereJoinFragment.length() > 0) {
+      whereJoinFragment+=" and ";
+    }
+  }
+  select.setWhereClause(whereJoinFragment + userWhereClause);
+  InsertSelect insert=new InsertSelect(getFactory().getDialect());
+  if (getFactory().getSettings().isCommentsEnabled()) {
+    insert.setComment("insert-select for " + persister.getEntityName() + " ids");
+  }
+  insert.setTableName(persister.getTemporaryIdTableName());
+  insert.setSelect(select);
+  return insert.toStatementString();
+}

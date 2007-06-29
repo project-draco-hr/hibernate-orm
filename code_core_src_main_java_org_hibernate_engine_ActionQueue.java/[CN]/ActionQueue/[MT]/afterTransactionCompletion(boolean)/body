@@ -1,0 +1,24 @@
+{
+  int size=executions.size();
+  final boolean invalidateQueryCache=session.getFactory().getSettings().isQueryCacheEnabled();
+  for (int i=0; i < size; i++) {
+    try {
+      Executable exec=(Executable)executions.get(i);
+      try {
+        exec.afterTransactionCompletion(success);
+      }
+  finally {
+        if (invalidateQueryCache) {
+          session.getFactory().getUpdateTimestampsCache().invalidate(exec.getPropertySpaces());
+        }
+      }
+    }
+ catch (    CacheException ce) {
+      log.error("could not release a cache lock",ce);
+    }
+catch (    Exception e) {
+      throw new AssertionFailure("Exception releasing cache locks",e);
+    }
+  }
+  executions.clear();
+}

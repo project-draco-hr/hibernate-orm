@@ -1,0 +1,14 @@
+{
+  int filterCount=filters.size();
+  filterNames=new String[filterCount];
+  filterConditions=new String[filterCount];
+  Iterator iter=filters.entrySet().iterator();
+  filterCount=0;
+  while (iter.hasNext()) {
+    final Map.Entry entry=(Map.Entry)iter.next();
+    filterNames[filterCount]=(String)entry.getKey();
+    filterConditions[filterCount]=Template.renderWhereStringTemplate((String)entry.getValue(),FilterImpl.MARKER,dialect,functionRegistry);
+    filterConditions[filterCount]=StringHelper.replace(filterConditions[filterCount],":",":" + filterNames[filterCount] + ".");
+    filterCount++;
+  }
+}

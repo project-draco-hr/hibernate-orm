@@ -1,0 +1,19 @@
+{
+  final SessionImplementor source=event.getSession();
+  final Object object=event.getObject();
+  final Serializable requestedId=event.getRequestedId();
+  if (requestedId != null) {
+    if (object instanceof HibernateProxy) {
+      ((HibernateProxy)object).getHibernateLazyInitializer().setIdentifier(requestedId);
+    }
+  }
+  if (reassociateIfUninitializedProxy(object,source)) {
+    log.trace("reassociated uninitialized proxy");
+  }
+ else {
+    final Object entity=source.getPersistenceContext().unproxyAndReassociate(object);
+    event.setEntity(entity);
+    event.setEntry(source.getPersistenceContext().getEntry(entity));
+    event.setResultId(performSaveOrUpdate(event));
+  }
+}

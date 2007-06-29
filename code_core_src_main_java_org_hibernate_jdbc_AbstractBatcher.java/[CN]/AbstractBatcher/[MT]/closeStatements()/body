@@ -1,0 +1,40 @@
+{
+  try {
+    releasing=true;
+    try {
+      if (batchUpdate != null)       batchUpdate.close();
+    }
+ catch (    SQLException sqle) {
+      log.warn("Could not close a JDBC prepared statement",sqle);
+    }
+    batchUpdate=null;
+    batchUpdateSQL=null;
+    Iterator iter=resultSetsToClose.iterator();
+    while (iter.hasNext()) {
+      try {
+        logCloseResults();
+        ((ResultSet)iter.next()).close();
+      }
+ catch (      SQLException e) {
+        log.warn("Could not close a JDBC result set",e);
+      }
+catch (      Throwable e) {
+        log.warn("Could not close a JDBC result set",e);
+      }
+    }
+    resultSetsToClose.clear();
+    iter=statementsToClose.iterator();
+    while (iter.hasNext()) {
+      try {
+        closeQueryStatement((PreparedStatement)iter.next());
+      }
+ catch (      SQLException e) {
+        log.warn("Could not close a JDBC statement",e);
+      }
+    }
+    statementsToClose.clear();
+  }
+  finally {
+    releasing=false;
+  }
+}

@@ -1,0 +1,14 @@
+{
+  FromClause parentFromClause=fromClause.getParentFromClause();
+  if (parentFromClause != null) {
+    String pathAlias=PathHelper.getAlias(path);
+    FromElement parentFromElement=parentFromClause.getFromElement(pathAlias);
+    if (parentFromElement != null) {
+      return createFromElementInSubselect(path,pathAlias,parentFromElement,classAlias);
+    }
+  }
+  EntityPersister entityPersister=fromClause.getSessionFactoryHelper().requireClassPersister(path);
+  FromElement elem=createAndAddFromElement(path,classAlias,entityPersister,(EntityType)((Queryable)entityPersister).getType(),null);
+  fromClause.getWalker().addQuerySpaces(entityPersister.getQuerySpaces());
+  return elem;
+}

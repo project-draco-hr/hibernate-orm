@@ -1,0 +1,48 @@
+{
+  Session s=openSession();
+  Foo foo=new Foo();
+  Serializable id=s.save(foo);
+  s.flush();
+  s.delete(foo);
+  boolean err=false;
+  try {
+    s.load(Foo.class,id);
+  }
+ catch (  ObjectNotFoundException ode) {
+    err=true;
+  }
+  assertTrue(err);
+  s.flush();
+  err=false;
+  try {
+    ((FooProxy)s.load(Foo.class,id)).getBool();
+  }
+ catch (  ObjectNotFoundException onfe) {
+    err=true;
+  }
+  assertTrue(err);
+  Fo fo=Fo.newFo();
+  id=new FumTest("").fumKey("abc");
+  s.save(fo,id);
+  s.flush();
+  s.delete(fo);
+  err=false;
+  try {
+    s.load(Fo.class,id);
+  }
+ catch (  ObjectNotFoundException ode) {
+    err=true;
+  }
+  assertTrue(err);
+  s.flush();
+  err=false;
+  try {
+    s.load(Fo.class,id);
+  }
+ catch (  ObjectNotFoundException onfe) {
+    err=true;
+  }
+  assertTrue(err);
+  s.connection().commit();
+  s.close();
+}

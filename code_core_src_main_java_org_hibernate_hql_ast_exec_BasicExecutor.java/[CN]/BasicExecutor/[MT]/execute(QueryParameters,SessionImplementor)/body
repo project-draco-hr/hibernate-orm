@@ -1,0 +1,30 @@
+{
+  coordinateSharedCacheCleanup(session);
+  PreparedStatement st=null;
+  RowSelection selection=parameters.getRowSelection();
+  try {
+    try {
+      st=session.getBatcher().prepareStatement(sql);
+      Iterator paramSpecifications=getWalker().getParameters().iterator();
+      int pos=1;
+      while (paramSpecifications.hasNext()) {
+        final ParameterSpecification paramSpec=(ParameterSpecification)paramSpecifications.next();
+        pos+=paramSpec.bind(st,parameters,session,pos);
+      }
+      if (selection != null) {
+        if (selection.getTimeout() != null) {
+          st.setQueryTimeout(selection.getTimeout().intValue());
+        }
+      }
+      return st.executeUpdate();
+    }
+  finally {
+      if (st != null) {
+        session.getBatcher().closeStatement(st);
+      }
+    }
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(getFactory().getSQLExceptionConverter(),sqle,"could not execute update query",sql);
+  }
+}

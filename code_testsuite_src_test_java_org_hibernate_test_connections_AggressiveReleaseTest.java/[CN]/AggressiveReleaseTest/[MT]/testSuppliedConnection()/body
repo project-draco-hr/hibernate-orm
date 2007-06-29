@@ -1,0 +1,13 @@
+{
+  prepare();
+  Connection originalConnection=DummyTransactionManager.INSTANCE.getCurrent().getConnection();
+  Session session=getSessions().openSession(originalConnection);
+  Silly silly=new Silly("silly");
+  session.save(silly);
+  session.flush();
+  assertTrue("Different connections",originalConnection == session.connection());
+  session.delete(silly);
+  session.flush();
+  release(session);
+  done();
+}

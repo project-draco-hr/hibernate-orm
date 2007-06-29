@@ -1,0 +1,11 @@
+{
+  DummyTransactionManager.INSTANCE.begin();
+  Session s=getSessions().getCurrentSession();
+  s.createQuery("from Item").list();
+  s.disconnect();
+  byte[] bytes=SerializationHelper.serialize(s);
+  s=(Session)SerializationHelper.deserialize(bytes);
+  s.reconnect();
+  s.createQuery("from Item").list();
+  DummyTransactionManager.INSTANCE.getTransaction().commit();
+}

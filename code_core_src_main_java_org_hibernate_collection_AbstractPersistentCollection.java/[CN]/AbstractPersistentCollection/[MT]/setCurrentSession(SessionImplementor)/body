@@ -1,0 +1,20 @@
+{
+  if (session == this.session) {
+    return false;
+  }
+ else {
+    if (isConnectedToSession()) {
+      CollectionEntry ce=session.getPersistenceContext().getCollectionEntry(this);
+      if (ce == null) {
+        throw new HibernateException("Illegal attempt to associate a collection with two open sessions");
+      }
+ else {
+        throw new HibernateException("Illegal attempt to associate a collection with two open sessions: " + MessageHelper.collectionInfoString(ce.getLoadedPersister(),ce.getLoadedKey(),session.getFactory()));
+      }
+    }
+ else {
+      this.session=session;
+      return true;
+    }
+  }
+}

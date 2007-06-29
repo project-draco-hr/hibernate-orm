@@ -1,0 +1,37 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  Parent p=new Parent();
+  Child c=new Child();
+  c.setParent(p);
+  p.setChild(c);
+  s.save(p);
+  s.save(c);
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  c=(Child)s.load(Child.class,new Long(c.getId()));
+  p=c.getParent();
+  assertTrue("1-1 parent",p != null);
+  c.setCount(32);
+  p.setCount(66);
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  c=(Child)s.load(Child.class,new Long(c.getId()));
+  p=c.getParent();
+  assertTrue("1-1 update",p.getCount() == 66);
+  assertTrue("1-1 update",c.getCount() == 32);
+  assertTrue("1-1 query",s.find("from Child c where c.parent.count=66").size() == 1);
+  assertTrue("1-1 query",((Object[])s.find("from Parent p join p.child c where p.count=66").get(0)).length == 2);
+  s.find("select c, c.parent from Child c order by c.parent.count");
+  s.find("select c, c.parent from Child c where c.parent.count=66 order by c.parent.count");
+  s.iterate("select c, c.parent, c.parent.count from Child c order by c.parent.count");
+  assertTrue("1-1 query",s.find("FROM Parent AS p WHERE p.count = ?",new Integer(66),Hibernate.INTEGER).size() == 1);
+  s.delete(c);
+  s.delete(p);
+  t.commit();
+  s.close();
+}

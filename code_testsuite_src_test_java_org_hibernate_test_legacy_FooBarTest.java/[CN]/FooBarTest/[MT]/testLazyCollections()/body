@@ -1,0 +1,36 @@
+{
+  Session s=openSession();
+  Qux q=new Qux();
+  s.save(q);
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  q=(Qux)s.load(Qux.class,q.getKey());
+  s.flush();
+  s.connection().commit();
+  s.close();
+  System.out.println("Two exceptions are supposed to occur:");
+  boolean ok=false;
+  try {
+    q.getMoreFums().isEmpty();
+  }
+ catch (  LazyInitializationException e) {
+    ok=true;
+  }
+  assertTrue("lazy collection with one-to-many",ok);
+  ok=false;
+  try {
+    q.getFums().isEmpty();
+  }
+ catch (  LazyInitializationException e) {
+    ok=true;
+  }
+  assertTrue("lazy collection with many-to-many",ok);
+  s=openSession();
+  q=(Qux)s.load(Qux.class,q.getKey());
+  s.delete(q);
+  s.flush();
+  s.connection().commit();
+  s.close();
+}

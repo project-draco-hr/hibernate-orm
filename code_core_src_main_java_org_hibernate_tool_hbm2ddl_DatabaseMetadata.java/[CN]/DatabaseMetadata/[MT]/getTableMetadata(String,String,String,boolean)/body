@@ -1,0 +1,42 @@
+{
+  Object identifier=identifier(catalog,schema,name);
+  TableMetadata table=(TableMetadata)tables.get(identifier);
+  if (table != null) {
+    return table;
+  }
+ else {
+    try {
+      ResultSet rs=null;
+      try {
+        if ((isQuoted && meta.storesMixedCaseQuotedIdentifiers())) {
+          rs=meta.getTables(catalog,schema,name,TYPES);
+        }
+ else         if ((isQuoted && meta.storesUpperCaseQuotedIdentifiers()) || (!isQuoted && meta.storesUpperCaseIdentifiers())) {
+          rs=meta.getTables(StringHelper.toUpperCase(catalog),StringHelper.toUpperCase(schema),StringHelper.toUpperCase(name),TYPES);
+        }
+ else         if ((isQuoted && meta.storesLowerCaseQuotedIdentifiers()) || (!isQuoted && meta.storesLowerCaseIdentifiers())) {
+          rs=meta.getTables(StringHelper.toLowerCase(catalog),StringHelper.toLowerCase(schema),StringHelper.toLowerCase(name),TYPES);
+        }
+ else {
+          rs=meta.getTables(catalog,schema,name,TYPES);
+        }
+        while (rs.next()) {
+          String tableName=rs.getString("TABLE_NAME");
+          if (name.equalsIgnoreCase(tableName)) {
+            table=new TableMetadata(rs,meta,extras);
+            tables.put(identifier,table);
+            return table;
+          }
+        }
+        log.info("table not found: " + name);
+        return null;
+      }
+  finally {
+        if (rs != null)         rs.close();
+      }
+    }
+ catch (    SQLException sqle) {
+      throw JDBCExceptionHelper.convert(sqlExceptionConverter,sqle,"could not get table metadata: " + name);
+    }
+  }
+}

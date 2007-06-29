@@ -1,0 +1,21 @@
+{
+  String text=queryableCollection.getTableName();
+  AST ast=createFromElement(text);
+  FromElement destination=(FromElement)ast;
+  Type elementType=queryableCollection.getElementType();
+  if (elementType.isCollectionType()) {
+    throw new SemanticException("Collections of collections are not supported!");
+  }
+  destination.initializeCollection(fromClause,classAlias,tableAlias);
+  destination.setType(JOIN_FRAGMENT);
+  destination.setIncludeSubclasses(false);
+  destination.setCollectionJoin(true);
+  destination.setJoinSequence(collectionJoinSequence);
+  destination.setOrigin(origin,false);
+  destination.setCollectionTableAlias(tableAlias);
+  origin.setText("");
+  origin.setCollectionJoin(true);
+  fromClause.addCollectionJoinFromElementByPath(path,destination);
+  fromClause.getWalker().addQuerySpaces(queryableCollection.getCollectionSpaces());
+  return destination;
+}

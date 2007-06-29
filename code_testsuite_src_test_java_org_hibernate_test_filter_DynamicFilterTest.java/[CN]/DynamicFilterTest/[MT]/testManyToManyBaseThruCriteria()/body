@@ -1,0 +1,24 @@
+{
+  TestData testData=new TestData();
+  testData.prepare();
+  Session session=openSession();
+  List result=session.createCriteria(Product.class).add(Expression.eq("id",testData.prod1Id)).list();
+  Product prod=(Product)result.get(0);
+  long initLoadCount=getSessions().getStatistics().getCollectionLoadCount();
+  long initFetchCount=getSessions().getStatistics().getCollectionFetchCount();
+  int size=prod.getCategories().size();
+  assertEquals("Incorrect non-filtered collection count",2,size);
+  long currLoadCount=getSessions().getStatistics().getCollectionLoadCount();
+  long currFetchCount=getSessions().getStatistics().getCollectionFetchCount();
+  assertTrue("load with join fetch of many-to-many did not trigger join fetch",(initLoadCount == currLoadCount) && (initFetchCount == currFetchCount));
+  long initEntityLoadCount=getSessions().getStatistics().getEntityLoadCount();
+  Iterator itr=prod.getCategories().iterator();
+  while (itr.hasNext()) {
+    Category cat=(Category)itr.next();
+    System.out.println(" ===> " + cat.getName());
+  }
+  long currEntityLoadCount=getSessions().getStatistics().getEntityLoadCount();
+  assertTrue("load with join fetch of many-to-many did not trigger *complete* join fetch",(initEntityLoadCount == currEntityLoadCount));
+  session.close();
+  testData.release();
+}

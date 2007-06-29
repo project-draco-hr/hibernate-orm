@@ -1,0 +1,24 @@
+{
+  Class clazz=bean.getClass();
+  String[] params=getNamedParameters();
+  for (int i=0; i < params.length; i++) {
+    String namedParam=params[i];
+    try {
+      Getter getter=ReflectHelper.getGetter(clazz,namedParam);
+      Class retType=getter.getReturnType();
+      final Object object=getter.get(bean);
+      if (Collection.class.isAssignableFrom(retType)) {
+        setParameterList(namedParam,(Collection)object);
+      }
+ else       if (retType.isArray()) {
+        setParameterList(namedParam,(Object[])object);
+      }
+ else {
+        setParameter(namedParam,object,determineType(namedParam,retType));
+      }
+    }
+ catch (    PropertyNotFoundException pnfe) {
+    }
+  }
+  return this;
+}

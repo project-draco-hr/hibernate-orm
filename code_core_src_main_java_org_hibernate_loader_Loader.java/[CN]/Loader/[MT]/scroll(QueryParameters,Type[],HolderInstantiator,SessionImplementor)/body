@@ -1,0 +1,22 @@
+{
+  checkScrollability();
+  final boolean stats=getQueryIdentifier() != null && getFactory().getStatistics().isStatisticsEnabled();
+  long startTime=0;
+  if (stats)   startTime=System.currentTimeMillis();
+  try {
+    PreparedStatement st=prepareQueryStatement(queryParameters,true,session);
+    ResultSet rs=getResultSet(st,queryParameters.hasAutoDiscoverScalarTypes(),queryParameters.isCallable(),queryParameters.getRowSelection(),session);
+    if (stats) {
+      getFactory().getStatisticsImplementor().queryExecuted(getQueryIdentifier(),0,System.currentTimeMillis() - startTime);
+    }
+    if (needsFetchingScroll()) {
+      return new FetchingScrollableResultsImpl(rs,st,session,this,queryParameters,returnTypes,holderInstantiator);
+    }
+ else {
+      return new ScrollableResultsImpl(rs,st,session,this,queryParameters,returnTypes,holderInstantiator);
+    }
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(factory.getSQLExceptionConverter(),sqle,"could not execute query using scroll",getSQLString());
+  }
+}

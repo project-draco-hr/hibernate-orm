@@ -1,0 +1,25 @@
+{
+  java.util.Map map=new HashMap();
+  map.putAll(inheritedMeta);
+  Iterator iter=node.elementIterator("meta");
+  while (iter.hasNext()) {
+    Element metaNode=(Element)iter.next();
+    boolean inheritable=Boolean.valueOf(metaNode.attributeValue("inherit")).booleanValue();
+    if (onlyInheritable & !inheritable) {
+      continue;
+    }
+    String name=metaNode.attributeValue("attribute");
+    MetaAttribute meta=(MetaAttribute)map.get(name);
+    MetaAttribute inheritedAttribute=(MetaAttribute)inheritedMeta.get(name);
+    if (meta == null) {
+      meta=new MetaAttribute(name);
+      map.put(name,meta);
+    }
+ else     if (meta == inheritedAttribute) {
+      meta=new MetaAttribute(name);
+      map.put(name,meta);
+    }
+    meta.addValue(metaNode.getText());
+  }
+  return map;
+}

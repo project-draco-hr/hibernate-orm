@@ -1,0 +1,27 @@
+{
+  Object result;
+  try {
+    if (setters == null) {
+      setters=new Setter[aliases.length];
+      for (int i=0; i < aliases.length; i++) {
+        String alias=aliases[i];
+        if (alias != null) {
+          setters[i]=propertyAccessor.getSetter(resultClass,alias);
+        }
+      }
+    }
+    result=resultClass.newInstance();
+    for (int i=0; i < aliases.length; i++) {
+      if (setters[i] != null) {
+        setters[i].set(result,tuple[i],null);
+      }
+    }
+  }
+ catch (  InstantiationException e) {
+    throw new HibernateException("Could not instantiate resultclass: " + resultClass.getName());
+  }
+catch (  IllegalAccessException e) {
+    throw new HibernateException("Could not instantiate resultclass: " + resultClass.getName());
+  }
+  return result;
+}

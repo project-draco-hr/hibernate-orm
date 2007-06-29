@@ -1,0 +1,26 @@
+{
+  if (getDialect() instanceof MySQLDialect)   return;
+  Session s=openSession();
+  s.delete("from Assignable");
+  s.delete("from Category");
+  Category c=new Category();
+  c.setName("NAME");
+  Assignable assn=new Assignable();
+  assn.setId("i.d.");
+  List l=new ArrayList();
+  l.add(c);
+  assn.setCategories(l);
+  c.setAssignable(assn);
+  s.save(assn);
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  Query query=s.getNamedQuery("nonaliasedsql");
+  assertNotNull(query);
+  List list=query.list();
+  assertNotNull(list);
+  assertTrue(list.get(0) instanceof Category);
+  s.connection().commit();
+  s.close();
+}

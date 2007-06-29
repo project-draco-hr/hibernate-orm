@@ -1,0 +1,24 @@
+{
+  if (!jdbcContext.getConnectionManager().isReadyForSerialization()) {
+    throw new IllegalStateException("Cannot serialize a session while connected");
+  }
+  log.trace("serializing session");
+  oos.writeBoolean(rootSession == null);
+  oos.writeObject(connectionReleaseMode.toString());
+  oos.writeObject(entityMode.toString());
+  oos.writeBoolean(autoClear);
+  oos.writeObject(flushMode.toString());
+  oos.writeObject(cacheMode.toString());
+  oos.writeBoolean(flushBeforeCompletionEnabled);
+  oos.writeBoolean(autoCloseSessionEnabled);
+  oos.writeObject(fetchProfile);
+  oos.writeObject(interceptor);
+  factory.serialize(oos);
+  if (rootSession == null) {
+    jdbcContext.serialize(oos);
+  }
+  persistenceContext.serialize(oos);
+  actionQueue.serialize(oos);
+  oos.writeObject(enabledFilters);
+  oos.writeObject(childSessionsByEntityMode);
+}

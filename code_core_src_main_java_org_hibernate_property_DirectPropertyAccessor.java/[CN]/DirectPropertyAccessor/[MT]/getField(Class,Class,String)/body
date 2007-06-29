@@ -1,0 +1,14 @@
+{
+  if (clazz == null || clazz == Object.class) {
+    throw new PropertyNotFoundException("field [" + name + "] not found on "+ root.getName());
+  }
+  Field field;
+  try {
+    field=clazz.getDeclaredField(name);
+  }
+ catch (  NoSuchFieldException nsfe) {
+    field=getField(root,clazz.getSuperclass(),name);
+  }
+  if (!ReflectHelper.isPublic(clazz,field))   field.setAccessible(true);
+  return field;
+}

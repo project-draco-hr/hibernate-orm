@@ -1,0 +1,24 @@
+{
+  super.afterSessionFactoryBuilt(sfi);
+  Session session=null;
+  try {
+    session=sfi.openSession();
+    Statement stat=session.connection().createStatement();
+    stat.execute("CREATE SCHEMA sb AUTHORIZATION DBA ");
+    stat.execute(" CREATE SCHEMA sa AUTHORIZATION DBA ");
+    stat.execute(" CREATE TABLE \"SA\".\"Team\" (test INTEGER) ");
+    stat.close();
+  }
+ catch (  SQLException e) {
+    throw new RuntimeException("could not prepare additional schemas");
+  }
+ finally {
+    if (session != null) {
+      try {
+        session.close();
+      }
+ catch (      Throwable ignore) {
+      }
+    }
+  }
+}

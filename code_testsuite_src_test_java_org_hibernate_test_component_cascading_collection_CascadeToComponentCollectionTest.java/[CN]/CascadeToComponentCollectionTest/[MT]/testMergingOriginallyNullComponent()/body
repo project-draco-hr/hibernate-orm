@@ -1,0 +1,33 @@
+{
+  Session session=openSession();
+  session.beginTransaction();
+  Definition definition=new Definition();
+  Value value1=new Value(definition);
+  session.persist(definition);
+  session.getTransaction().commit();
+  session.close();
+  session=openSession();
+  session.beginTransaction();
+  definition=(Definition)session.get(Definition.class,definition.getId());
+  assertEquals(1,definition.getValues().size());
+  session.getTransaction().commit();
+  session.close();
+  ((Value)definition.getValues().iterator().next()).getLocalizedStrings().addString(new Locale("en_US"),"hello");
+  Value value2=new Value(definition);
+  value2.getLocalizedStrings().addString(new Locale("es"),"hola");
+  session=openSession();
+  session.beginTransaction();
+  session.merge(definition);
+  session.getTransaction().commit();
+  session.close();
+  session=openSession();
+  session.beginTransaction();
+  definition=(Definition)session.get(Definition.class,definition.getId());
+  assertEquals(2,definition.getValues().size());
+  Iterator values=definition.getValues().iterator();
+  while (values.hasNext()) {
+    assertEquals(1,((Value)values.next()).getLocalizedStrings().getStringsCopy().size());
+  }
+  session.getTransaction().commit();
+  session.close();
+}

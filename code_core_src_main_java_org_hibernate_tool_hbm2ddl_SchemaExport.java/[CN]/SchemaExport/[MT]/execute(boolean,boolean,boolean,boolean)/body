@@ -1,0 +1,67 @@
+{
+  log.info("Running hbm2ddl schema export");
+  Connection connection=null;
+  Writer outputFileWriter=null;
+  Reader importFileReader=null;
+  Statement statement=null;
+  exceptions.clear();
+  try {
+    try {
+      InputStream stream=ConfigHelper.getResourceAsStream(importFile);
+      importFileReader=new InputStreamReader(stream);
+    }
+ catch (    HibernateException e) {
+      log.debug("import file not found: " + importFile);
+    }
+    if (outputFile != null) {
+      log.info("writing generated schema to file: " + outputFile);
+      outputFileWriter=new FileWriter(outputFile);
+    }
+    if (export) {
+      log.info("exporting generated schema to database");
+      connectionHelper.prepare(true);
+      connection=connectionHelper.getConnection();
+      statement=connection.createStatement();
+    }
+    if (!justCreate) {
+      drop(script,export,outputFileWriter,statement);
+    }
+    if (!justDrop) {
+      create(script,export,outputFileWriter,statement);
+      if (export && importFileReader != null) {
+        importScript(importFileReader,statement);
+      }
+    }
+    log.info("schema export complete");
+  }
+ catch (  Exception e) {
+    exceptions.add(e);
+    log.error("schema export unsuccessful",e);
+  }
+ finally {
+    try {
+      if (statement != null) {
+        statement.close();
+      }
+      if (connection != null) {
+        connectionHelper.release();
+      }
+    }
+ catch (    Exception e) {
+      exceptions.add(e);
+      log.error("Could not close connection",e);
+    }
+    try {
+      if (outputFileWriter != null) {
+        outputFileWriter.close();
+      }
+      if (importFileReader != null) {
+        importFileReader.close();
+      }
+    }
+ catch (    IOException ioe) {
+      exceptions.add(ioe);
+      log.error("Error closing output file: " + outputFile,ioe);
+    }
+  }
+}

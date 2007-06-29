@@ -1,0 +1,46 @@
+{
+  final EventSource source=event.getSession();
+  if (source.getPersistenceContext().reassociateIfUninitializedProxy(event.getObject())) {
+    log.trace("uninitialized proxy passed to replicate()");
+    return;
+  }
+  Object entity=source.getPersistenceContext().unproxyAndReassociate(event.getObject());
+  if (source.getPersistenceContext().isEntryFor(entity)) {
+    log.trace("ignoring persistent instance passed to replicate()");
+    return;
+  }
+  EntityPersister persister=source.getEntityPersister(event.getEntityName(),entity);
+  Serializable id=persister.getIdentifier(entity,source.getEntityMode());
+  if (id == null) {
+    throw new TransientObjectException("instance with null id passed to replicate()");
+  }
+  final ReplicationMode replicationMode=event.getReplicationMode();
+  final Object oldVersion;
+  if (replicationMode == ReplicationMode.EXCEPTION) {
+    oldVersion=null;
+  }
+ else {
+    oldVersion=persister.getCurrentVersion(id,source);
+  }
+  if (oldVersion != null) {
+    if (log.isTraceEnabled()) {
+      log.trace("found existing row for " + MessageHelper.infoString(persister,id,source.getFactory()));
+    }
+    final Object realOldVersion=persister.isVersioned() ? oldVersion : null;
+    boolean canReplicate=replicationMode.shouldOverwriteCurrentVersion(entity,realOldVersion,persister.getVersion(entity,source.getEntityMode()),persister.getVersionType());
+    if (canReplicate) {
+      performReplication(entity,id,realOldVersion,persister,replicationMode,source);
+    }
+ else {
+      log.trace("no need to replicate");
+    }
+  }
+ else {
+    if (log.isTraceEnabled()) {
+      log.trace("no existing row, replicating new instance " + MessageHelper.infoString(persister,id,source.getFactory()));
+    }
+    final boolean regenerate=persister.isIdentifierAssignedByInsert();
+    final EntityKey key=regenerate ? null : new EntityKey(id,persister,source.getEntityMode());
+    performSaveOrReplicate(entity,key,persister,regenerate,replicationMode,source,true);
+  }
+}

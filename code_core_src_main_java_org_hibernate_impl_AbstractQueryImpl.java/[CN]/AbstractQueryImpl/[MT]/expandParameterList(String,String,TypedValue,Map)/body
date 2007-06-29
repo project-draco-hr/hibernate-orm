@@ -1,0 +1,22 @@
+{
+  Collection vals=(Collection)typedList.getValue();
+  Type type=typedList.getType();
+  if (vals.size() == 1) {
+    namedParamsCopy.put(name,new TypedValue(type,vals.iterator().next(),session.getEntityMode()));
+    return query;
+  }
+  StringBuffer list=new StringBuffer(16);
+  Iterator iter=vals.iterator();
+  int i=0;
+  boolean isJpaPositionalParam=parameterMetadata.getNamedParameterDescriptor(name).isJpaStyle();
+  while (iter.hasNext()) {
+    String alias=(isJpaPositionalParam ? 'x' + name : name) + i++ + '_';
+    namedParamsCopy.put(alias,new TypedValue(type,iter.next(),session.getEntityMode()));
+    list.append(ParserHelper.HQL_VARIABLE_PREFIX).append(alias);
+    if (iter.hasNext()) {
+      list.append(", ");
+    }
+  }
+  String paramPrefix=isJpaPositionalParam ? "?" : ParserHelper.HQL_VARIABLE_PREFIX;
+  return StringHelper.replace(query,paramPrefix + name,list.toString(),true);
+}

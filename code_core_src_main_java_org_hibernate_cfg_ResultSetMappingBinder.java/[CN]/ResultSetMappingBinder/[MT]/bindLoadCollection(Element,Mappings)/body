@@ -1,0 +1,13 @@
+{
+  String alias=returnElem.attributeValue("alias");
+  String collectionAttribute=returnElem.attributeValue("role");
+  LockMode lockMode=getLockMode(returnElem.attributeValue("lock-mode"));
+  int dot=collectionAttribute.lastIndexOf('.');
+  if (dot == -1) {
+    throw new MappingException("Collection attribute for sql query return [alias=" + alias + "] not formatted correctly {OwnerClassName.propertyName}");
+  }
+  String ownerClassName=HbmBinder.getClassName(collectionAttribute.substring(0,dot),mappings);
+  String ownerPropertyName=collectionAttribute.substring(dot + 1);
+  java.util.Map propertyResults=bindPropertyResults(alias,returnElem,null,mappings);
+  return new NativeSQLQueryCollectionReturn(alias,ownerClassName,ownerPropertyName,propertyResults,lockMode);
+}

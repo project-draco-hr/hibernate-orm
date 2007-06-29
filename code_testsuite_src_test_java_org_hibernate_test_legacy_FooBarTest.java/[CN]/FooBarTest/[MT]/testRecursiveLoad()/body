@@ -1,0 +1,80 @@
+{
+  Session s=openSession();
+  Transaction txn=s.beginTransaction();
+  GlarchProxy last=new Glarch();
+  s.save(last);
+  last.setOrder((short)0);
+  for (int i=0; i < 5; i++) {
+    GlarchProxy next=new Glarch();
+    s.save(next);
+    last.setNext(next);
+    last=next;
+    last.setOrder((short)(i + 1));
+  }
+  Iterator iter=s.iterate("from Glarch g");
+  while (iter.hasNext()) {
+    iter.next();
+  }
+  List list=s.find("from Glarch g");
+  assertTrue("recursive find",list.size() == 6);
+  txn.commit();
+  s.close();
+  s=openSession();
+  txn=s.beginTransaction();
+  list=s.find("from Glarch g");
+  assertTrue("recursive iter",list.size() == 6);
+  list=s.find("from Glarch g where g.next is not null");
+  assertTrue("recursive iter",list.size() == 5);
+  txn.commit();
+  s.close();
+  s=openSession();
+  txn=s.beginTransaction();
+  iter=s.iterate("from Glarch g order by g.order asc");
+  while (iter.hasNext()) {
+    GlarchProxy g=(GlarchProxy)iter.next();
+    assertTrue("not null",g != null);
+    iter.remove();
+  }
+  txn.commit();
+  s.close();
+  s=openSession();
+  txn=s.beginTransaction();
+  FooProxy flast=new Bar();
+  s.save(flast);
+  flast.setString("foo0");
+  for (int i=0; i < 5; i++) {
+    FooProxy foo=new Bar();
+    s.save(foo);
+    flast.setFoo(foo);
+    flast=flast.getFoo();
+    flast.setString("foo" + (i + 1));
+  }
+  iter=s.iterate("from Foo foo");
+  while (iter.hasNext()) {
+    iter.next();
+  }
+  list=s.find("from Foo foo");
+  assertTrue("recursive find",list.size() == 6);
+  txn.commit();
+  s.close();
+  s=openSession();
+  txn=s.beginTransaction();
+  list=s.find("from Foo foo");
+  assertTrue("recursive iter",list.size() == 6);
+  iter=list.iterator();
+  while (iter.hasNext()) {
+    assertTrue("polymorphic recursive load",iter.next() instanceof BarProxy);
+  }
+  txn.commit();
+  s.close();
+  s=openSession();
+  txn=s.beginTransaction();
+  iter=s.iterate("from Foo foo order by foo.string asc");
+  while (iter.hasNext()) {
+    BarProxy bar=(BarProxy)iter.next();
+    assertTrue("not null",bar != null);
+    iter.remove();
+  }
+  txn.commit();
+  s.close();
+}

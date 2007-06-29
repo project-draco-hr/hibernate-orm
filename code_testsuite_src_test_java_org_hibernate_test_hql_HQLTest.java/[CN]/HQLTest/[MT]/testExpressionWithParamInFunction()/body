@@ -1,0 +1,16 @@
+{
+  assertTranslation("from Animal a where abs(a.bodyWeight-:param) < 2.0");
+  assertTranslation("from Animal a where abs(:param - a.bodyWeight) < 2.0");
+  assertTranslation("from Animal where abs(:x - :y) < 2.0");
+  assertTranslation("from Animal where lower(upper(:foo)) like 'f%'");
+  if (!(getDialect() instanceof SybaseDialect)) {
+    assertTranslation("from Animal a where abs(abs(a.bodyWeight - 1.0 + :param) * abs(length('ffobar')-3)) = 3.0");
+  }
+  if (!(getDialect() instanceof MySQLDialect || getDialect() instanceof SybaseDialect)) {
+    assertTranslation("from Animal where lower(upper('foo') || upper(:bar)) like 'f%'");
+  }
+  if (getDialect() instanceof PostgreSQLDialect) {
+    return;
+  }
+  assertTranslation("from Animal where abs(cast(1 as float) - cast(:param as float)) = 1.0");
+}

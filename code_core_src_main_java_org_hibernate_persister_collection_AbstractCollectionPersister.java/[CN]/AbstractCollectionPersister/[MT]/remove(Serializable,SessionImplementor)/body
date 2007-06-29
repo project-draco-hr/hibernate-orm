@@ -1,0 +1,58 @@
+{
+  if (!isInverse && isRowDeleteEnabled()) {
+    if (log.isDebugEnabled()) {
+      log.debug("Deleting collection: " + MessageHelper.collectionInfoString(this,id,getFactory()));
+    }
+    try {
+      int offset=1;
+      PreparedStatement st=null;
+      Expectation expectation=Expectations.appropriateExpectation(getDeleteAllCheckStyle());
+      boolean callable=isDeleteAllCallable();
+      boolean useBatch=expectation.canBeBatched();
+      String sql=getSQLDeleteString();
+      if (useBatch) {
+        if (callable) {
+          st=session.getBatcher().prepareBatchCallableStatement(sql);
+        }
+ else {
+          st=session.getBatcher().prepareBatchStatement(sql);
+        }
+      }
+ else {
+        if (callable) {
+          st=session.getBatcher().prepareCallableStatement(sql);
+        }
+ else {
+          st=session.getBatcher().prepareStatement(sql);
+        }
+      }
+      try {
+        offset+=expectation.prepare(st);
+        writeKey(st,id,offset,session);
+        if (useBatch) {
+          session.getBatcher().addToBatch(expectation);
+        }
+ else {
+          expectation.verifyOutcome(st.executeUpdate(),st,-1);
+        }
+      }
+ catch (      SQLException sqle) {
+        if (useBatch) {
+          session.getBatcher().abortBatch(sqle);
+        }
+        throw sqle;
+      }
+ finally {
+        if (!useBatch) {
+          session.getBatcher().closeStatement(st);
+        }
+      }
+      if (log.isDebugEnabled()) {
+        log.debug("done deleting collection");
+      }
+    }
+ catch (    SQLException sqle) {
+      throw JDBCExceptionHelper.convert(sqlExceptionConverter,sqle,"could not delete collection: " + MessageHelper.collectionInfoString(this,id,getFactory()),getSQLDeleteString());
+    }
+  }
+}

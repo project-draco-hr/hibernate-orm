@@ -1,0 +1,21 @@
+{
+  Object existing=persistenceContext.getEntity(keyToLoad);
+  if (existing != null) {
+    log.trace("entity found in session cache");
+    if (options.isCheckDeleted()) {
+      EntityEntry entry=persistenceContext.getEntry(existing);
+      Status status=entry.getStatus();
+      if (status == Status.DELETED || status == Status.GONE) {
+        return null;
+      }
+    }
+    return existing;
+  }
+ else {
+    log.trace("creating new proxy for entity");
+    Object proxy=persister.createProxy(event.getEntityId(),event.getSession());
+    persistenceContext.getBatchFetchQueue().addBatchLoadableEntityKey(keyToLoad);
+    persistenceContext.addProxy(keyToLoad,proxy);
+    return proxy;
+  }
+}

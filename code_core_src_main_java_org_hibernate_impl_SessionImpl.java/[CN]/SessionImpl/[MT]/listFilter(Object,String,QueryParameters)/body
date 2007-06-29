@@ -1,0 +1,17 @@
+{
+  errorIfClosed();
+  checkTransactionSynchStatus();
+  FilterQueryPlan plan=getFilterQueryPlan(collection,filter,queryParameters,false);
+  List results=CollectionHelper.EMPTY_LIST;
+  boolean success=false;
+  dontFlushFromFind++;
+  try {
+    results=plan.performList(queryParameters,this);
+    success=true;
+  }
+  finally {
+    dontFlushFromFind--;
+    afterOperation(success);
+  }
+  return results;
+}

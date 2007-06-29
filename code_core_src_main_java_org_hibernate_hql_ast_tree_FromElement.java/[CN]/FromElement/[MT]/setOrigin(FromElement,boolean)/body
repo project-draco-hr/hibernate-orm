@@ -1,0 +1,23 @@
+{
+  this.origin=origin;
+  this.manyToMany=manyToMany;
+  origin.addDestination(this);
+  if (origin.getFromClause() == this.getFromClause()) {
+    if (manyToMany) {
+      ASTUtil.appendSibling(origin,this);
+    }
+ else {
+      if (!getWalker().isInFrom() && !getWalker().isInSelect()) {
+        getFromClause().addChild(this);
+      }
+ else {
+        origin.addChild(this);
+      }
+    }
+  }
+ else   if (!getWalker().isInFrom()) {
+    getFromClause().addChild(this);
+  }
+ else {
+  }
+}

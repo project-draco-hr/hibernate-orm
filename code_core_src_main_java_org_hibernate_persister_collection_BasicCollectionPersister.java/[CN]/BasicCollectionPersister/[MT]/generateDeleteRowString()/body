@@ -1,0 +1,16 @@
+{
+  Delete delete=new Delete().setTableName(qualifiedTableName);
+  if (hasIdentifier) {
+    delete.setPrimaryKeyColumnNames(new String[]{identifierColumnName});
+  }
+ else   if (hasIndex && !indexContainsFormula) {
+    delete.setPrimaryKeyColumnNames(ArrayHelper.join(keyColumnNames,indexColumnNames));
+  }
+ else {
+    delete.setPrimaryKeyColumnNames(ArrayHelper.join(keyColumnNames,elementColumnNames,elementColumnIsInPrimaryKey));
+  }
+  if (getFactory().getSettings().isCommentsEnabled()) {
+    delete.setComment("delete collection row " + getRole());
+  }
+  return delete.toStatementString();
+}

@@ -1,0 +1,30 @@
+{
+  Session session=openSession();
+  Single s=new Single();
+  s.setId("my id");
+  s.setString("string 1");
+  session.save(s);
+  session.flush();
+  session.connection().commit();
+  session.clear();
+  Query query=session.createSQLQuery("select {sing.*} from Single {sing}","sing",Single.class);
+  List list=query.list();
+  assertTrue(list.size() == 1);
+  session.clear();
+  query=session.createSQLQuery("select {sing.*} from Single {sing} where sing.id = ?","sing",Single.class);
+  query.setString(0,"my id");
+  list=query.list();
+  assertTrue(list.size() == 1);
+  session.clear();
+  query=session.createSQLQuery("select s.id as {sing.id}, s.string_ as {sing.string}, s.prop as {sing.prop} from Single s where s.id = ?","sing",Single.class);
+  query.setString(0,"my id");
+  list=query.list();
+  assertTrue(list.size() == 1);
+  session.clear();
+  query=session.createSQLQuery("select s.id as {sing.id}, s.string_ as {sing.string}, s.prop as {sing.prop} from Single s where s.id = ?","sing",Single.class);
+  query.setString(0,"my id");
+  list=query.list();
+  assertTrue(list.size() == 1);
+  session.connection().commit();
+  session.close();
+}

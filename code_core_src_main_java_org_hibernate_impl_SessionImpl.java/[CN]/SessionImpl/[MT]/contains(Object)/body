@@ -1,0 +1,15 @@
+{
+  errorIfClosed();
+  checkTransactionSynchStatus();
+  if (object instanceof HibernateProxy) {
+    LazyInitializer li=((HibernateProxy)object).getHibernateLazyInitializer();
+    if (li.isUninitialized()) {
+      return li.getSession() == this;
+    }
+ else {
+      object=li.getImplementation();
+    }
+  }
+  EntityEntry entry=persistenceContext.getEntry(object);
+  return entry != null && entry.getStatus() != Status.DELETED && entry.getStatus() != Status.GONE;
+}

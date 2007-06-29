@@ -1,0 +1,40 @@
+{
+  TransactionManager transactionManager=factory.getTransactionManager();
+  if (transactionManager == null) {
+    throw new HibernateException("No TransactionManagerLookup specified");
+  }
+  Transaction txn=null;
+  try {
+    txn=transactionManager.getTransaction();
+    if (txn == null) {
+      throw new HibernateException("Unable to locate current JTA transaction");
+    }
+    if (!JTAHelper.isInProgress(txn.getStatus())) {
+      throw new HibernateException("Current transaction is not in progress");
+    }
+  }
+ catch (  HibernateException e) {
+    throw e;
+  }
+catch (  Throwable t) {
+    throw new HibernateException("Problem locating/validating JTA transaction",t);
+  }
+  Session currentSession=(Session)currentSessionMap.get(txn);
+  if (currentSession == null) {
+    currentSession=buildOrObtainSession();
+    try {
+      txn.registerSynchronization(buildCleanupSynch(txn));
+    }
+ catch (    Throwable t) {
+      try {
+        currentSession.close();
+      }
+ catch (      Throwable ignore) {
+        log.debug("Unable to release generated current-session on failed synch registration",ignore);
+      }
+      throw new HibernateException("Unable to register cleanup Synchronization with TransactionManager");
+    }
+    currentSessionMap.put(txn,currentSession);
+  }
+  return currentSession;
+}

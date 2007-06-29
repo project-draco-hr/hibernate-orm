@@ -1,0 +1,35 @@
+{
+  Session s=openSession();
+  Transaction txn=s.beginTransaction();
+  Fum fum=new Fum(fumKey("fum"));
+  fum.setFum("fee fi fo");
+  s.save(fum);
+  assertTrue("load by composite key",fum == s.load(Fum.class,fumKey("fum")));
+  txn.commit();
+  s.close();
+  s=openSession();
+  txn=s.beginTransaction();
+  fum=(Fum)s.load(Fum.class,fumKey("fum"),LockMode.UPGRADE);
+  assertTrue("load by composite key",fum != null);
+  Fum fum2=new Fum(fumKey("fi"));
+  fum2.setFum("fee fo fi");
+  fum.setFo(fum2);
+  s.save(fum2);
+  assertTrue("find composite keyed objects",s.find("from Fum fum where not fum.fum='FRIEND'").size() == 2);
+  assertTrue("find composite keyed object",s.find("select fum from Fum fum where fum.fum='fee fi fo'").get(0) == fum);
+  fum.setFo(null);
+  txn.commit();
+  s.close();
+  s=openSession();
+  txn=s.beginTransaction();
+  Iterator iter=s.iterate("from Fum fum where not fum.fum='FRIEND'");
+  int i=0;
+  while (iter.hasNext()) {
+    fum=(Fum)iter.next();
+    s.delete(fum);
+    i++;
+  }
+  assertTrue("iterate on composite key",i == 2);
+  txn.commit();
+  s.close();
+}

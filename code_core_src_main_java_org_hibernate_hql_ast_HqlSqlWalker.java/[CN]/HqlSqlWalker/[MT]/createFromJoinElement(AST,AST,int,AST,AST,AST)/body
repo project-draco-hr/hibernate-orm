@@ -1,0 +1,25 @@
+{
+  boolean fetch=fetchNode != null;
+  if (fetch && isSubQuery()) {
+    throw new QueryException("fetch not allowed in subquery from-elements");
+  }
+  if (path.getType() != SqlTokenTypes.DOT) {
+    throw new SemanticException("Path expected for join!");
+  }
+  DotNode dot=(DotNode)path;
+  int hibernateJoinType=JoinProcessor.toHibernateJoinType(joinType);
+  dot.setJoinType(hibernateJoinType);
+  dot.setFetch(fetch);
+  dot.resolve(true,false,alias == null ? null : alias.getText());
+  FromElement fromElement=dot.getImpliedJoin();
+  fromElement.setAllPropertyFetch(propertyFetch != null);
+  if (with != null) {
+    if (fetch) {
+      throw new SemanticException("with-clause not allowed on fetched associations; use filters");
+    }
+    handleWithFragment(fromElement,with);
+  }
+  if (log.isDebugEnabled()) {
+    log.debug("createFromJoinElement() : " + getASTPrinter().showAsString(fromElement,"-- join tree --"));
+  }
+}

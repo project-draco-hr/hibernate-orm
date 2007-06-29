@@ -1,0 +1,36 @@
+{
+  Session s=openSession();
+  Baz baz=new Baz();
+  baz.setDefaults();
+  s.save(baz);
+  Glarch g=new Glarch();
+  Serializable gid=s.save(g);
+  if (!(getDialect() instanceof MySQLDialect) && !(getDialect() instanceof HSQLDialect) && !(getDialect() instanceof SAPDBDialect)&& !(getDialect() instanceof PointbaseDialect)&& !(getDialect() instanceof TimesTenDialect)) {
+    s.filter(baz.getFooArray(),"where size(this.bytes) > 0");
+    s.filter(baz.getFooArray(),"where 0 in elements(this.bytes)");
+  }
+  s.flush();
+  s.connection().commit();
+  s.close();
+  s=openSession();
+  s.find("from Baz baz join baz.fooSet foo join foo.foo.foo foo2 where foo2.string = 'foo'");
+  s.find("from Baz baz join baz.fooArray foo join foo.foo.foo foo2 where foo2.string = 'foo'");
+  s.find("from Baz baz join baz.stringDateMap date where index(date) = 'foo'");
+  s.find("from Baz baz join baz.topGlarchez g where index(g) = 'A'");
+  s.find("select index(g) from Baz baz join baz.topGlarchez g");
+  assertTrue(s.find("from Baz baz left join baz.stringSet").size() == 3);
+  baz=(Baz)s.find("from Baz baz join baz.stringSet str where str='foo'").get(0);
+  assertTrue(!Hibernate.isInitialized(baz.getStringSet()));
+  baz=(Baz)s.find("from Baz baz left join fetch baz.stringSet").get(0);
+  assertTrue(Hibernate.isInitialized(baz.getStringSet()));
+  assertTrue(s.find("from Baz baz join baz.stringSet string where string='foo'").size() == 1);
+  assertTrue(s.find("from Baz baz inner join baz.components comp where comp.name='foo'").size() == 1);
+  s.find("from Glarch g inner join g.fooComponents comp where comp.fee is not null");
+  s.find("from Glarch g inner join g.fooComponents comp join comp.fee fee where fee.count > 0");
+  s.find("from Glarch g inner join g.fooComponents comp where comp.fee.count is not null");
+  s.delete(baz);
+  s.delete(s.get(Glarch.class,gid));
+  s.flush();
+  s.connection().commit();
+  s.close();
+}

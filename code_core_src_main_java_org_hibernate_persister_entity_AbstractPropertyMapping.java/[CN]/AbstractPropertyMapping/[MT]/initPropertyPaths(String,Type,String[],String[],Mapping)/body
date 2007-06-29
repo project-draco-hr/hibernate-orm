@@ -1,0 +1,29 @@
+{
+  if (columns.length != type.getColumnSpan(factory)) {
+    throw new MappingException("broken column mapping for: " + path + " of: "+ getEntityName());
+  }
+  if (type.isAssociationType()) {
+    AssociationType actype=(AssociationType)type;
+    if (actype.useLHSPrimaryKey()) {
+      columns=getIdentifierColumnNames();
+    }
+ else {
+      String foreignKeyProperty=actype.getLHSPropertyName();
+      if (foreignKeyProperty != null && !path.equals(foreignKeyProperty)) {
+        columns=(String[])columnsByPropertyPath.get(foreignKeyProperty);
+        if (columns == null)         return;
+      }
+    }
+  }
+  if (path != null)   addPropertyPath(path,type,columns,formulaTemplates);
+  if (type.isComponentType()) {
+    AbstractComponentType actype=(AbstractComponentType)type;
+    initComponentPropertyPaths(path,actype,columns,formulaTemplates,factory);
+    if (actype.isEmbedded()) {
+      initComponentPropertyPaths(path == null ? null : StringHelper.qualifier(path),actype,columns,formulaTemplates,factory);
+    }
+  }
+ else   if (type.isEntityType()) {
+    initIdentifierPropertyPaths(path,(EntityType)type,columns,factory);
+  }
+}

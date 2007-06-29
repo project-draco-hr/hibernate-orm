@@ -1,0 +1,29 @@
+{
+  if (!entityMetamodel.hasLazyProperties()) {
+    return null;
+  }
+  HashSet tableNumbers=new HashSet();
+  ArrayList columnNumbers=new ArrayList();
+  ArrayList formulaNumbers=new ArrayList();
+  for (int i=0; i < lazyPropertyNames.length; i++) {
+    int propertyNumber=getSubclassPropertyIndex(lazyPropertyNames[i]);
+    int tableNumber=getSubclassPropertyTableNumber(propertyNumber);
+    tableNumbers.add(new Integer(tableNumber));
+    int[] colNumbers=subclassPropertyColumnNumberClosure[propertyNumber];
+    for (int j=0; j < colNumbers.length; j++) {
+      if (colNumbers[j] != -1) {
+        columnNumbers.add(new Integer(colNumbers[j]));
+      }
+    }
+    int[] formNumbers=subclassPropertyFormulaNumberClosure[propertyNumber];
+    for (int j=0; j < formNumbers.length; j++) {
+      if (formNumbers[j] != -1) {
+        formulaNumbers.add(new Integer(formNumbers[j]));
+      }
+    }
+  }
+  if (columnNumbers.size() == 0 && formulaNumbers.size() == 0) {
+    return null;
+  }
+  return renderSelect(ArrayHelper.toIntArray(tableNumbers),ArrayHelper.toIntArray(columnNumbers),ArrayHelper.toIntArray(formulaNumbers));
+}

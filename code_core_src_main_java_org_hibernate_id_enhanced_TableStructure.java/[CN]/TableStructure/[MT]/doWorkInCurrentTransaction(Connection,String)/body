@@ -1,0 +1,45 @@
+{
+  long result;
+  int rows;
+  do {
+    sql=select;
+    SQL_LOG.debug(sql);
+    PreparedStatement qps=conn.prepareStatement(select);
+    try {
+      ResultSet rs=qps.executeQuery();
+      if (!rs.next()) {
+        String err="could not read a hi value - you need to populate the table: " + tableName;
+        log.error(err);
+        throw new IdentifierGenerationException(err);
+      }
+      result=rs.getLong(1);
+      rs.close();
+    }
+ catch (    SQLException sqle) {
+      log.error("could not read a hi value",sqle);
+      throw sqle;
+    }
+ finally {
+      qps.close();
+    }
+    sql=update;
+    SQL_LOG.debug(sql);
+    PreparedStatement ups=conn.prepareStatement(update);
+    try {
+      int increment=applyIncrementSizeToSourceValues ? incrementSize : 1;
+      ups.setLong(1,result + increment);
+      ups.setLong(2,result);
+      rows=ups.executeUpdate();
+    }
+ catch (    SQLException sqle) {
+      log.error("could not update hi value in: " + tableName,sqle);
+      throw sqle;
+    }
+ finally {
+      ups.close();
+    }
+  }
+ while (rows == 0);
+  accessCounter++;
+  return new Long(result);
+}

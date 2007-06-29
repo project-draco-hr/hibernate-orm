@@ -1,0 +1,24 @@
+{
+  final String result;
+  if (lockModes == null || lockModes.size() == 0) {
+    result=sql;
+  }
+ else {
+    Map aliasedLockModes=new HashMap();
+    Iterator iter=lockModes.entrySet().iterator();
+    while (iter.hasNext()) {
+      Map.Entry me=(Map.Entry)iter.next();
+      aliasedLockModes.put(getAliasName((String)me.getKey()),me.getValue());
+    }
+    Map keyColumnNames=null;
+    if (dialect.forUpdateOfColumns()) {
+      keyColumnNames=new HashMap();
+      for (int i=0; i < names.length; i++) {
+        keyColumnNames.put(names[i],persisters[i].getIdentifierColumnNames());
+      }
+    }
+    result=dialect.applyLocksToSql(sql,aliasedLockModes,keyColumnNames);
+  }
+  logQuery(queryString,result);
+  return result;
+}

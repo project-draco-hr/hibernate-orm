@@ -1,0 +1,23 @@
+{
+  boolean more=false;
+  if (maxPosition != null) {
+    for (int i=currentPosition; i < maxPosition.intValue(); i++) {
+      more=next();
+    }
+  }
+ else {
+    try {
+      if (getResultSet().isAfterLast()) {
+        return false;
+      }
+      while (!getResultSet().isAfterLast()) {
+        more=next();
+      }
+    }
+ catch (    SQLException e) {
+      throw JDBCExceptionHelper.convert(getSession().getFactory().getSQLExceptionConverter(),e,"exception calling isAfterLast()");
+    }
+  }
+  afterScrollOperation();
+  return more;
+}

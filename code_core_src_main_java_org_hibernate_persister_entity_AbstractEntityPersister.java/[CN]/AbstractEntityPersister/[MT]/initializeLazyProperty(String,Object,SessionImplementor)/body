@@ -1,0 +1,21 @@
+{
+  final Serializable id=session.getContextEntityIdentifier(entity);
+  final EntityEntry entry=session.getPersistenceContext().getEntry(entity);
+  if (entry == null) {
+    throw new HibernateException("entity is not associated with the session: " + id);
+  }
+  if (log.isTraceEnabled()) {
+    log.trace("initializing lazy properties of: " + MessageHelper.infoString(this,id,getFactory()) + ", field access: "+ fieldName);
+  }
+  if (hasCache()) {
+    CacheKey cacheKey=new CacheKey(id,getIdentifierType(),getEntityName(),session.getEntityMode(),getFactory());
+    Object ce=getCacheAccessStrategy().get(cacheKey,session.getTimestamp());
+    if (ce != null) {
+      CacheEntry cacheEntry=(CacheEntry)getCacheEntryStructure().destructure(ce,factory);
+      if (!cacheEntry.areLazyPropertiesUnfetched()) {
+        return initializeLazyPropertiesFromCache(fieldName,entity,session,entry,cacheEntry);
+      }
+    }
+  }
+  return initializeLazyPropertiesFromDatastore(fieldName,entity,session,id,entry);
+}

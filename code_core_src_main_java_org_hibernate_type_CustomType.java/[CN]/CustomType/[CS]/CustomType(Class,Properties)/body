@@ -1,0 +1,18 @@
+{
+  if (!UserType.class.isAssignableFrom(userTypeClass)) {
+    throw new MappingException("Custom type does not implement UserType: " + userTypeClass.getName());
+  }
+  name=userTypeClass.getName();
+  try {
+    userType=(UserType)userTypeClass.newInstance();
+  }
+ catch (  InstantiationException ie) {
+    throw new MappingException("Cannot instantiate custom type: " + userTypeClass.getName());
+  }
+catch (  IllegalAccessException iae) {
+    throw new MappingException("IllegalAccessException trying to instantiate custom type: " + userTypeClass.getName());
+  }
+  TypeFactory.injectParameters(userType,parameters);
+  types=userType.sqlTypes();
+  customLogging=LoggableUserType.class.isAssignableFrom(userTypeClass);
+}

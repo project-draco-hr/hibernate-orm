@@ -1,0 +1,46 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  Long lastContainerId=null;
+  int containerCount=10;
+  int nestedDataPointCount=5;
+  for (int c_indx=0; c_indx < containerCount; c_indx++) {
+    Owner owner=new Owner("Owner #" + c_indx);
+    Container container=new Container("Container #" + c_indx);
+    container.setOwner(owner);
+    for (int dp_indx=0; dp_indx < nestedDataPointCount; dp_indx++) {
+      DataPoint dp=new DataPoint();
+      dp.setDescription("data-point [" + c_indx + ", "+ dp_indx+ "]");
+      dp.setX(new BigDecimal(c_indx + dp_indx));
+      dp.setY(new BigDecimal(dp_indx));
+      container.getDataPoints().add(dp);
+    }
+    s.save(container);
+    lastContainerId=container.getId();
+  }
+  t.commit();
+  s.close();
+  s=openSession();
+  s.setFlushMode(FlushMode.NEVER);
+  t=s.beginTransaction();
+  Container proxy=(Container)s.load(Container.class,lastContainerId);
+  assertFalse(Hibernate.isInitialized(proxy));
+  List all=s.createQuery("from Container as c inner join fetch c.owner inner join fetch c.dataPoints where c.id <> :last").setLong("last",lastContainerId.longValue()).list();
+  Container container=(Container)all.get(0);
+  s.delete(container);
+  SessionImpl sImpl=(SessionImpl)s;
+  sImpl.getPersistenceContext().getDatabaseSnapshot(lastContainerId,sImpl.getFactory().getEntityPersister(Container.class.getName()));
+  assertFalse(Hibernate.isInitialized(proxy));
+  t.commit();
+  byte[] bytes=SerializationHelper.serialize(s);
+  SerializationHelper.deserialize(bytes);
+  t=s.beginTransaction();
+  int count=s.createQuery("delete DataPoint").executeUpdate();
+  assertEquals("unexpected DP delete count",(containerCount * nestedDataPointCount),count);
+  count=s.createQuery("delete Container").executeUpdate();
+  assertEquals("unexpected container delete count",containerCount,count);
+  count=s.createQuery("delete Owner").executeUpdate();
+  assertEquals("unexpected owner delete count",containerCount,count);
+  t.commit();
+  s.close();
+}

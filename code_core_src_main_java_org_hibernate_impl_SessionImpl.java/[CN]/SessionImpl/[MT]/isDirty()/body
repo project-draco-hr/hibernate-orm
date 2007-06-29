@@ -1,0 +1,17 @@
+{
+  errorIfClosed();
+  checkTransactionSynchStatus();
+  log.debug("checking session dirtiness");
+  if (actionQueue.areInsertionsOrDeletionsQueued()) {
+    log.debug("session dirty (scheduled updates and insertions)");
+    return true;
+  }
+ else {
+    DirtyCheckEvent event=new DirtyCheckEvent(this);
+    DirtyCheckEventListener[] dirtyCheckEventListener=listeners.getDirtyCheckEventListeners();
+    for (int i=0; i < dirtyCheckEventListener.length; i++) {
+      dirtyCheckEventListener[i].onDirtyCheck(event);
+    }
+    return event.isDirty();
+  }
+}

@@ -1,0 +1,11 @@
+{
+  if (!emptySnapshot)   getPersister().remove(getKey(),getSession());
+  final PersistentCollection collection=getCollection();
+  if (collection != null) {
+    getSession().getPersistenceContext().getCollectionEntry(collection).afterAction(collection);
+  }
+  evict();
+  if (getSession().getFactory().getStatistics().isStatisticsEnabled()) {
+    getSession().getFactory().getStatisticsImplementor().removeCollection(getPersister().getRole());
+  }
+}

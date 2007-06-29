@@ -1,0 +1,38 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  s.createQuery("from Animal a join a.offspring o where o.description = 'xyz'").list();
+  s.createQuery("from Animal a join a.offspring o where o.father.description = 'xyz'").list();
+  s.createQuery("from Animal a join a.offspring o order by o.description").list();
+  s.createQuery("from Animal a join a.offspring o order by o.father.description").list();
+  try {
+    s.createQuery("from Animal a where a.offspring.description = 'xyz'").list();
+    fail("illegal collection dereference semantic did not cause failure");
+  }
+ catch (  QueryException qe) {
+    log.trace("expected failure...",qe);
+  }
+  try {
+    s.createQuery("from Animal a where a.offspring.father.description = 'xyz'").list();
+    fail("illegal collection dereference semantic did not cause failure");
+  }
+ catch (  QueryException qe) {
+    log.trace("expected failure...",qe);
+  }
+  try {
+    s.createQuery("from Animal a order by a.offspring.description").list();
+    fail("illegal collection dereference semantic did not cause failure");
+  }
+ catch (  QueryException qe) {
+    log.trace("expected failure...",qe);
+  }
+  try {
+    s.createQuery("from Animal a order by a.offspring.father.description").list();
+    fail("illegal collection dereference semantic did not cause failure");
+  }
+ catch (  QueryException qe) {
+    log.trace("expected failure...",qe);
+  }
+  s.getTransaction().commit();
+  s.close();
+}

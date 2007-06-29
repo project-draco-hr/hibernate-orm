@@ -1,0 +1,12 @@
+{
+  errorIfClosed();
+  if (!isTransactionInProgress()) {
+    return false;
+  }
+  AutoFlushEvent event=new AutoFlushEvent(querySpaces,this);
+  AutoFlushEventListener[] autoFlushEventListener=listeners.getAutoFlushEventListeners();
+  for (int i=0; i < autoFlushEventListener.length; i++) {
+    autoFlushEventListener[i].onAutoFlush(event);
+  }
+  return event.isFlushRequired();
+}

@@ -1,0 +1,23 @@
+{
+  Serializable id;
+  String entityName;
+  if (value == null) {
+    id=null;
+    entityName=null;
+  }
+ else {
+    entityName=session.bestGuessEntityName(value);
+    id=ForeignKeys.getEntityIdentifierIfNotUnsaved(entityName,value,session);
+  }
+  if (settable == null || settable[0]) {
+    metaType.nullSafeSet(st,entityName,index,session);
+  }
+  if (settable == null) {
+    identifierType.nullSafeSet(st,id,index + 1,session);
+  }
+ else {
+    boolean[] idsettable=new boolean[settable.length - 1];
+    System.arraycopy(settable,1,idsettable,0,idsettable.length);
+    identifierType.nullSafeSet(st,id,index + 1,idsettable,session);
+  }
+}

@@ -1,0 +1,27 @@
+{
+  if (status == Status.STATUS_MARKED_ROLLBACK) {
+    rollback();
+  }
+ else {
+    status=Status.STATUS_PREPARING;
+    for (int i=0; i < synchronizations.size(); i++) {
+      Synchronization s=(Synchronization)synchronizations.get(i);
+      s.beforeCompletion();
+    }
+    status=Status.STATUS_COMMITTING;
+    try {
+      connection.commit();
+      connection.close();
+    }
+ catch (    SQLException sqle) {
+      status=Status.STATUS_UNKNOWN;
+      throw new SystemException();
+    }
+    status=Status.STATUS_COMMITTED;
+    for (int i=0; i < synchronizations.size(); i++) {
+      Synchronization s=(Synchronization)synchronizations.get(i);
+      s.afterCompletion(status);
+    }
+    transactionManager.endCurrent(this);
+  }
+}

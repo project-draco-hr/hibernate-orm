@@ -1,0 +1,27 @@
+{
+  SessionImplementor session=getSession();
+  CollectionPersister persister=session.getFactory().getCollectionPersister(type.getRole());
+  if (collection == null) {
+  }
+ else   if (collection instanceof PersistentCollection) {
+    PersistentCollection persistentCollection=(PersistentCollection)collection;
+    if (persistentCollection.setCurrentSession(session)) {
+      if (isOwnerUnchanged(persistentCollection,persister,extractCollectionKeyFromOwner(persister))) {
+        if (persistentCollection.isDirty()) {
+          throw new HibernateException("reassociated object has dirty collection");
+        }
+        reattachCollection(persistentCollection,type);
+      }
+ else {
+        throw new HibernateException("reassociated object has dirty collection reference");
+      }
+    }
+ else {
+      throw new HibernateException("reassociated object has dirty collection reference");
+    }
+  }
+ else {
+    throw new HibernateException("reassociated object has dirty collection reference (or an array)");
+  }
+  return null;
+}

@@ -1,0 +1,123 @@
+{
+  String lcToken=token.toLowerCase();
+  if (lcToken.equals(",")) {
+    if (!(expectingJoin | expectingAs))     throw new QueryException("unexpected token: ,");
+    expectingJoin=false;
+    expectingAs=false;
+  }
+ else   if (lcToken.equals("join")) {
+    if (!afterJoinType) {
+      if (!(expectingJoin | expectingAs))       throw new QueryException("unexpected token: join");
+      joinType=JoinFragment.INNER_JOIN;
+      expectingJoin=false;
+      expectingAs=false;
+    }
+ else {
+      afterJoinType=false;
+    }
+  }
+ else   if (lcToken.equals("fetch")) {
+    if (q.isShallowQuery())     throw new QueryException(QueryTranslator.ERROR_CANNOT_FETCH_WITH_ITERATE);
+    if (joinType == NONE)     throw new QueryException("unexpected token: fetch");
+    if (joinType == JoinFragment.FULL_JOIN || joinType == JoinFragment.RIGHT_OUTER_JOIN) {
+      throw new QueryException("fetch may only be used with inner join or left outer join");
+    }
+    afterFetch=true;
+  }
+ else   if (lcToken.equals("outer")) {
+    if (!afterJoinType || (joinType != JoinFragment.LEFT_OUTER_JOIN && joinType != JoinFragment.RIGHT_OUTER_JOIN)) {
+      throw new QueryException("unexpected token: outer");
+    }
+  }
+ else   if (JOIN_TYPES.containsKey(lcToken)) {
+    if (!(expectingJoin | expectingAs))     throw new QueryException("unexpected token: " + token);
+    joinType=((Integer)JOIN_TYPES.get(lcToken)).intValue();
+    afterJoinType=true;
+    expectingJoin=false;
+    expectingAs=false;
+  }
+ else   if (lcToken.equals("class")) {
+    if (!afterIn)     throw new QueryException("unexpected token: class");
+    if (joinType != NONE)     throw new QueryException("outer or full join must be followed by path expression");
+    afterClass=true;
+  }
+ else   if (lcToken.equals("in")) {
+    if (!expectingIn)     throw new QueryException("unexpected token: in");
+    afterIn=true;
+    expectingIn=false;
+  }
+ else   if (lcToken.equals("as")) {
+    if (!expectingAs)     throw new QueryException("unexpected token: as");
+    afterAs=true;
+    expectingAs=false;
+  }
+ else {
+    if (afterJoinType)     throw new QueryException("join expected: " + token);
+    if (expectingJoin)     throw new QueryException("unexpected token: " + token);
+    if (expectingIn)     throw new QueryException("in expected: " + token);
+    if (afterAs || expectingAs) {
+      if (entityName != null) {
+        q.setAliasName(token,entityName);
+      }
+ else {
+        throw new QueryException("unexpected: as " + token);
+      }
+      afterAs=false;
+      expectingJoin=true;
+      expectingAs=false;
+      entityName=null;
+    }
+ else     if (afterIn) {
+      if (alias == null)       throw new QueryException("alias not specified for: " + token);
+      if (joinType != NONE)       throw new QueryException("outer or full join must be followed by path expression");
+      if (afterClass) {
+        Queryable p=q.getEntityPersisterUsingImports(token);
+        if (p == null)         throw new QueryException("persister not found: " + token);
+        q.addFromClass(alias,p);
+      }
+ else {
+        peParser.setJoinType(JoinFragment.INNER_JOIN);
+        peParser.setUseThetaStyleJoin(true);
+        ParserHelper.parse(peParser,q.unalias(token),ParserHelper.PATH_SEPARATORS,q);
+        if (!peParser.isCollectionValued())         throw new QueryException("path expression did not resolve to collection: " + token);
+        String nm=peParser.addFromCollection(q);
+        q.setAliasName(alias,nm);
+      }
+      alias=null;
+      afterIn=false;
+      afterClass=false;
+      expectingJoin=true;
+    }
+ else {
+      Queryable p=q.getEntityPersisterUsingImports(token);
+      if (p != null) {
+        if (joinType != NONE)         throw new QueryException("outer or full join must be followed by path expression");
+        entityName=q.createNameFor(p.getEntityName());
+        q.addFromClass(entityName,p);
+        expectingAs=true;
+      }
+ else       if (token.indexOf('.') < 0) {
+        alias=token;
+        expectingIn=true;
+      }
+ else {
+        if (joinType != NONE) {
+          peParser.setJoinType(joinType);
+        }
+ else {
+          peParser.setJoinType(JoinFragment.INNER_JOIN);
+        }
+        peParser.setUseThetaStyleJoin(q.isSubquery());
+        ParserHelper.parse(peParser,q.unalias(token),ParserHelper.PATH_SEPARATORS,q);
+        entityName=peParser.addFromAssociation(q);
+        joinType=NONE;
+        peParser.setJoinType(JoinFragment.INNER_JOIN);
+        if (afterFetch) {
+          peParser.fetch(q,entityName);
+          afterFetch=false;
+        }
+        expectingAs=true;
+      }
+    }
+  }
+}
