@@ -1,0 +1,12 @@
+{
+  Session session=HibernateUtil.getSessionFactory().getCurrentSession();
+  session.beginTransaction();
+  Person aPerson=(Person)session.createQuery("select p from Person p left join fetch p.events where p.id = :pid").setParameter("pid",personId).uniqueResult();
+  Event anEvent=(Event)session.load(Event.class,eventId);
+  session.getTransaction().commit();
+  aPerson.addToEvent(anEvent);
+  Session session2=HibernateUtil.getSessionFactory().getCurrentSession();
+  session2.beginTransaction();
+  session2.update(aPerson);
+  session2.getTransaction().commit();
+}
