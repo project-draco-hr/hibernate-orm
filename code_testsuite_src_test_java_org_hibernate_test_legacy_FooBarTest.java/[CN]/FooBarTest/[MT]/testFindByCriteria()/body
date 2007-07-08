@@ -5,9 +5,9 @@
   Foo f=new Foo();
   s.save(f);
   s.flush();
-  List list=s.createCriteria(Foo.class).add(Expression.eq("integer",f.getInteger())).add(Expression.eqProperty("integer","integer")).add(Expression.like("string",f.getString().toUpperCase()).ignoreCase()).add(Expression.in("boolean",new Boolean[]{f.getBoolean(),f.getBoolean()})).setFetchMode("foo",FetchMode.JOIN).setFetchMode("baz",FetchMode.SELECT).setFetchMode("abstracts",FetchMode.JOIN).list();
+  List list=s.createCriteria(Foo.class).add(Restrictions.eq("integer",f.getInteger())).add(Restrictions.eqProperty("integer","integer")).add(Restrictions.like("string",f.getString().toUpperCase()).ignoreCase()).add(Restrictions.in("boolean",new Boolean[]{f.getBoolean(),f.getBoolean()})).setFetchMode("foo",FetchMode.JOIN).setFetchMode("baz",FetchMode.SELECT).setFetchMode("abstracts",FetchMode.JOIN).list();
   assertTrue(list.size() == 1 && list.get(0) == f);
-  list=s.createCriteria(Foo.class).add(Expression.disjunction().add(Expression.eq("integer",f.getInteger())).add(Expression.like("string",f.getString())).add(Expression.eq("boolean",f.getBoolean()))).add(Expression.isNotNull("boolean")).list();
+  list=s.createCriteria(Foo.class).add(Restrictions.disjunction().add(Restrictions.eq("integer",f.getInteger())).add(Restrictions.like("string",f.getString())).add(Restrictions.eq("boolean",f.getBoolean()))).add(Restrictions.isNotNull("boolean")).list();
   assertTrue(list.size() == 1 && list.get(0) == f);
   Foo example=new Foo();
   example.setString("a STRing");
@@ -16,7 +16,7 @@
   example.setString("rin");
   list=s.createCriteria(Foo.class).add(Example.create(example).excludeZeroes().enableLike(MatchMode.ANYWHERE).excludeProperty("bool").excludeProperty("char").excludeProperty("yesno")).list();
   assertTrue("Example API without like did not work correctly, size was " + list.size(),list.size() == 1 && list.get(0) == f);
-  list=s.createCriteria(Foo.class).add(Expression.or(Expression.and(Expression.eq("integer",f.getInteger()),Expression.like("string",f.getString())),Expression.eq("boolean",f.getBoolean()))).list();
+  list=s.createCriteria(Foo.class).add(Restrictions.or(Restrictions.and(Restrictions.eq("integer",f.getInteger()),Restrictions.like("string",f.getString())),Restrictions.eq("boolean",f.getBoolean()))).list();
   assertTrue(list.size() == 1 && list.get(0) == f);
   list=s.createCriteria(Foo.class).setMaxResults(5).addOrder(Order.asc("date")).list();
   assertTrue(list.size() == 1 && list.get(0) == f);
@@ -36,7 +36,7 @@
   s.close();
   s=openSession();
   txn=s.beginTransaction();
-  list=s.createCriteria(Foo.class).add(Expression.eq("integer",f.getInteger())).add(Expression.like("string",f.getString())).add(Expression.in("boolean",new Boolean[]{f.getBoolean(),f.getBoolean()})).add(Expression.isNotNull("foo")).setFetchMode("foo",FetchMode.EAGER).setFetchMode("baz",FetchMode.LAZY).setFetchMode("component.glarch",FetchMode.LAZY).setFetchMode("foo.baz",FetchMode.LAZY).setFetchMode("foo.component.glarch",FetchMode.LAZY).list();
+  list=s.createCriteria(Foo.class).add(Restrictions.eq("integer",f.getInteger())).add(Restrictions.like("string",f.getString())).add(Restrictions.in("boolean",new Boolean[]{f.getBoolean(),f.getBoolean()})).add(Restrictions.isNotNull("foo")).setFetchMode("foo",FetchMode.EAGER).setFetchMode("baz",FetchMode.LAZY).setFetchMode("component.glarch",FetchMode.LAZY).setFetchMode("foo.baz",FetchMode.LAZY).setFetchMode("foo.component.glarch",FetchMode.LAZY).list();
   f=(Foo)list.get(0);
   assertTrue(Hibernate.isInitialized(f.getFoo()));
   assertTrue(!Hibernate.isInitialized(f.getComponent().getGlarch()));
