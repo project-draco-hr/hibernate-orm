@@ -1,0 +1,31 @@
+{
+  try {
+    TransactionManager tm=settings.getTransactionManagerLookup() == null ? null : settings.getTransactionManagerLookup().getTransactionManager(properties);
+    if (settings.isSecondLevelCacheEnabled()) {
+      jbcEntityCache=buildEntityRegionCacheInstance(properties);
+      jbcCollectionCache=buildCollectionRegionCacheInstance(properties);
+      if (tm != null) {
+        jbcEntityCache.getConfiguration().getRuntimeConfig().setTransactionManager(tm);
+        jbcCollectionCache.getConfiguration().getRuntimeConfig().setTransactionManager(tm);
+      }
+    }
+ else {
+      jbcEntityCache=null;
+      jbcCollectionCache=null;
+    }
+    if (settings.isQueryCacheEnabled()) {
+      jbcTsCache=buildTsRegionCacheInstance(properties);
+      jbcQueryCache=buildQueryRegionCacheInstance(properties);
+    }
+ else {
+      jbcTsCache=null;
+      jbcQueryCache=null;
+    }
+  }
+ catch (  CacheException ce) {
+    throw ce;
+  }
+catch (  Throwable t) {
+    throw new CacheException("Unable to start region factory",t);
+  }
+}
