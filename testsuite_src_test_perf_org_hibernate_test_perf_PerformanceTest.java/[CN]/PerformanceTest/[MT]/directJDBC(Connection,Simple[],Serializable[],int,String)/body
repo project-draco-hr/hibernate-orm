@@ -1,0 +1,45 @@
+{
+  PreparedStatement insert=c.prepareStatement("insert into Simple ( name, address, count_, date_, other, id_ ) values ( ?, ?, ?, ?, ?, ? )");
+  PreparedStatement delete=c.prepareStatement("delete from Simple where id_ = ?");
+  PreparedStatement select=c.prepareStatement("SELECT s.id_, s.name, s.address, s.count_, s.date_, s.other FROM Simple s");
+  PreparedStatement update=c.prepareStatement("update Simple set name = ?, address = ?, count_ = ?, date_ = ?, other = ? where id_ = ?");
+  for (int i=0; i < N; i++) {
+    insert.setString(1,simples[i].getName());
+    insert.setString(2,simples[i].getAddress());
+    insert.setInt(3,simples[i].getCount());
+    insert.setDate(4,(java.sql.Date)simples[i].getDate());
+    insert.setNull(5,Types.BIGINT);
+    insert.setLong(6,((Long)ids[i]).longValue());
+    insert.executeUpdate();
+  }
+  insert.close();
+  for (int i=0; i < N; i++) {
+    update.setString(1,"A Different Name!" + i + N+ runname);
+    update.setString(2,simples[i].getAddress());
+    update.setInt(3,simples[i].getCount());
+    update.setDate(4,(java.sql.Date)simples[i].getDate());
+    update.setNull(5,Types.BIGINT);
+    update.setLong(6,((Long)ids[i]).longValue());
+    update.executeUpdate();
+  }
+  update.close();
+  java.sql.ResultSet rs=select.executeQuery();
+  Long[] keys=new Long[N];
+  int j=0;
+  while (rs.next()) {
+    keys[j++]=new Long(rs.getLong(1));
+    rs.getString(2);
+    rs.getString(3);
+    rs.getInt(4);
+    rs.getDate(5);
+    rs.getLong(6);
+  }
+  rs.close();
+  select.close();
+  for (int i=0; i < N; i++) {
+    delete.setLong(1,keys[i].longValue());
+    delete.executeUpdate();
+  }
+  delete.close();
+  c.commit();
+}

@@ -1,0 +1,31 @@
+{
+  ConnectionProvider cp=ConnectionProviderFactory.newConnectionProvider(Environment.getProperties());
+  for (int n=2; n < 4000; n*=2) {
+    Simple[] simples=new Simple[n];
+    Serializable[] ids=new Serializable[n];
+    for (int i=0; i < n; i++) {
+      simples[i]=new Simple();
+      simples[i].init();
+      simples[i].setCount(i);
+      ids[i]=new Long(i);
+    }
+    Connection c=cp.getConnection();
+    long time=System.currentTimeMillis();
+    directJDBC(c,simples,ids,n,"j1");
+    long jdbc=System.currentTimeMillis() - time;
+    cp.closeConnection(c);
+    c=cp.getConnection();
+    time=System.currentTimeMillis();
+    directJDBC(c,simples,ids,n,"j2");
+    jdbc+=System.currentTimeMillis() - time;
+    cp.closeConnection(c);
+    c=cp.getConnection();
+    time=System.currentTimeMillis();
+    directJDBC(c,simples,ids,n,"j2");
+    jdbc+=System.currentTimeMillis() - time;
+    cp.closeConnection(c);
+    System.out.println("Objects: " + n + " Direct JDBC: "+ jdbc);
+  }
+  cp.close();
+  System.gc();
+}

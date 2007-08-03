@@ -1,0 +1,80 @@
+{
+  ConnectionProvider cp=ConnectionProviderFactory.newConnectionProvider(Environment.getProperties());
+  long hiber=0;
+  long jdbc=0;
+  for (int n=0; n < 20; n++) {
+    Session s=openSession();
+    s.delete("from Simple");
+    s.flush();
+    Simple[] simples=new Simple[n];
+    Serializable[] ids=new Serializable[n];
+    for (int i=0; i < n; i++) {
+      simples[i]=new Simple();
+      simples[i].init();
+      simples[i].setCount(i);
+      ids[i]=new Long(i);
+      s.save(simples[i],ids[i]);
+    }
+    s.flush();
+    s.connection().commit();
+    s.close();
+    s=openSession();
+    hibernate(s,simples,ids,n,"h0");
+    s.close();
+    Connection c=cp.getConnection();
+    directJDBC(c,simples,ids,n,"j0");
+    cp.closeConnection(c);
+    s=openSession();
+    hibernate(s,simples,ids,n,"h0");
+    s.close();
+    c=cp.getConnection();
+    directJDBC(c,simples,ids,n,"j0");
+    cp.closeConnection(c);
+    int N=30;
+    long time=System.currentTimeMillis();
+    for (int i=0; i < N; i++) {
+      s=openSession();
+      hibernate(s,simples,ids,n,"h1");
+      s.close();
+    }
+    hiber+=System.currentTimeMillis() - time;
+    time=System.currentTimeMillis();
+    for (int i=0; i < N; i++) {
+      c=cp.getConnection();
+      directJDBC(c,simples,ids,n,"j1");
+      cp.closeConnection(c);
+    }
+    jdbc+=System.currentTimeMillis() - time;
+    time=System.currentTimeMillis();
+    for (int i=0; i < N; i++) {
+      s=openSession();
+      hibernate(s,simples,ids,n,"h2");
+      s.close();
+    }
+    hiber+=System.currentTimeMillis() - time;
+    time=System.currentTimeMillis();
+    for (int i=0; i < N; i++) {
+      c=cp.getConnection();
+      directJDBC(c,simples,ids,n,"j2");
+      cp.closeConnection(c);
+    }
+    jdbc+=System.currentTimeMillis() - time;
+    time=System.currentTimeMillis();
+    for (int i=0; i < N; i++) {
+      s=openSession();
+      hibernate(s,simples,ids,n,"h1");
+      s.close();
+    }
+    hiber+=System.currentTimeMillis() - time;
+    time=System.currentTimeMillis();
+    for (int i=0; i < N; i++) {
+      c=cp.getConnection();
+      directJDBC(c,simples,ids,n,"j1");
+      cp.closeConnection(c);
+    }
+    jdbc+=System.currentTimeMillis() - time;
+  }
+  System.out.println("Hibernate: " + hiber + "ms / Direct JDBC: "+ jdbc+ "ms = Ratio: "+ ((float)hiber) / jdbc);
+  cp.close();
+  System.gc();
+}
