@@ -1,7 +1,24 @@
 {
   if (!hasNext)   throw new NoSuchElementException("No more results");
   try {
-    currentResult=nextResult;
+    log.debug("retrieving next results");
+    rs.next();
+    boolean isHolder=holderInstantiator.isRequired();
+    if (single && !isHolder) {
+      currentResult=types[0].nullSafeGet(rs,names[0],session,null);
+    }
+ else {
+      Object[] currentResults=new Object[types.length];
+      for (int i=0; i < types.length; i++) {
+        currentResults[i]=types[i].nullSafeGet(rs,names[i],session,null);
+      }
+      if (isHolder) {
+        currentResult=holderInstantiator.instantiate(currentResults);
+      }
+ else {
+        currentResult=currentResults;
+      }
+    }
     postNext();
     log.debug("returning current results");
     return currentResult;
