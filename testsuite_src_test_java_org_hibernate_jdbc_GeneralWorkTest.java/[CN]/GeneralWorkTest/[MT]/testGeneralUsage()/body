@@ -1,0 +1,31 @@
+{
+  Session session=openSession();
+  session.beginTransaction();
+  session.doWork(new Work(){
+    public void execute(    Connection connection) throws SQLException {
+      Statement statement=null;
+      try {
+        statement=connection.createStatement();
+        ResultSet resultSet=null;
+        try {
+          resultSet=statement.executeQuery("select * from T_JDBC_PERSON");
+        }
+  finally {
+          releaseQuietly(resultSet);
+        }
+        try {
+          resultSet=statement.executeQuery("select * from T_JDBC_BOAT");
+        }
+  finally {
+          releaseQuietly(resultSet);
+        }
+      }
+  finally {
+        releaseQuietly(statement);
+      }
+    }
+  }
+);
+  session.getTransaction().commit();
+  session.close();
+}
