@@ -26,10 +26,14 @@
   t=s.beginTransaction();
   u=(User)s.createCriteria(User.class).add(Restrictions.naturalId().set("name","gavin").set("org","hb")).setCacheable(true).uniqueResult();
   assertNotNull(u);
+  assertEquals(getSessions().getStatistics().getQueryExecutionCount(),1);
+  assertEquals(getSessions().getStatistics().getQueryCacheHitCount(),0);
+  u=(User)s.createCriteria(User.class).add(Restrictions.naturalId().set("name","gavin").set("org","hb")).setCacheable(true).uniqueResult();
+  assertNotNull(u);
+  assertEquals(getSessions().getStatistics().getQueryExecutionCount(),1);
+  assertEquals(getSessions().getStatistics().getQueryCacheHitCount(),1);
   t.commit();
   s.close();
-  assertEquals(getSessions().getStatistics().getQueryExecutionCount(),0);
-  assertEquals(getSessions().getStatistics().getQueryCacheHitCount(),1);
   s=openSession();
   t=s.beginTransaction();
   s.createQuery("delete User").executeUpdate();

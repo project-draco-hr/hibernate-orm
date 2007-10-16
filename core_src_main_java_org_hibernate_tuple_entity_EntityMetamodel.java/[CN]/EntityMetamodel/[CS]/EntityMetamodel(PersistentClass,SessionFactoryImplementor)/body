@@ -31,6 +31,7 @@
   boolean foundNonIdentifierPropertyNamedId=false;
   boolean foundInsertGeneratedValue=false;
   boolean foundUpdateGeneratedValue=false;
+  boolean foundUpdateableNaturalIdProperty=false;
   while (iter.hasNext()) {
     Property prop=(Property)iter.next();
     if (prop == persistentClass.getVersion()) {
@@ -42,6 +43,9 @@
     }
     if (prop.isNaturalIdentifier()) {
       naturalIdNumbers.add(new Integer(i));
+      if (prop.isUpdateable()) {
+        foundUpdateableNaturalIdProperty=true;
+      }
     }
     if ("id".equals(prop.getName())) {
       foundNonIdentifierPropertyNamedId=true;
@@ -83,9 +87,11 @@
   }
   if (naturalIdNumbers.size() == 0) {
     naturalIdPropertyNumbers=null;
+    hasImmutableNaturalId=false;
   }
  else {
     naturalIdPropertyNumbers=ArrayHelper.toIntArray(naturalIdNumbers);
+    hasImmutableNaturalId=!foundUpdateableNaturalIdProperty;
   }
   hasInsertGeneratedValues=foundInsertGeneratedValue;
   hasUpdateGeneratedValues=foundUpdateGeneratedValue;
