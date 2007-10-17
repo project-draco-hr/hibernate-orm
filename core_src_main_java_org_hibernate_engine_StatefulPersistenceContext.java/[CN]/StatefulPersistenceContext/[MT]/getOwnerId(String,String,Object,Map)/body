@@ -1,22 +1,41 @@
 {
-  EntityPersister persister=session.getFactory().getEntityPersister(entity);
-  final CollectionPersister collectionPersister=session.getFactory().getCollectionPersister(entity + '.' + property);
+  final String collectionRole=entityName + '.' + propertyName;
+  final EntityPersister persister=session.getFactory().getEntityPersister(entityName);
+  final CollectionPersister collectionPersister=session.getFactory().getCollectionPersister(collectionRole);
   Iterator entities=entityEntries.entrySet().iterator();
   while (entities.hasNext()) {
-    Map.Entry me=(Map.Entry)entities.next();
-    EntityEntry ee=(EntityEntry)me.getValue();
-    if (persister.isSubclassEntityName(ee.getEntityName())) {
-      Object instance=me.getKey();
-      boolean found=isFoundInParent(property,childEntity,persister,collectionPersister,instance);
+    final Map.Entry me=(Map.Entry)entities.next();
+    final EntityEntry entityEntry=(EntityEntry)me.getValue();
+    if (persister.isSubclassEntityName(entityEntry.getEntityName())) {
+      final Object entityEntryInstance=me.getKey();
+      boolean found=isFoundInParent(propertyName,childEntity,persister,collectionPersister,entityEntryInstance);
       if (!found && mergeMap != null) {
-        Object unmergedInstance=mergeMap.get(instance);
+        Object unmergedInstance=mergeMap.get(entityEntryInstance);
         Object unmergedChild=mergeMap.get(childEntity);
         if (unmergedInstance != null && unmergedChild != null) {
-          found=isFoundInParent(property,unmergedChild,persister,collectionPersister,unmergedInstance);
+          found=isFoundInParent(propertyName,unmergedChild,persister,collectionPersister,unmergedInstance);
         }
       }
       if (found) {
-        return ee.getId();
+        return entityEntry.getId();
+      }
+    }
+  }
+  if (mergeMap != null) {
+    Iterator mergeMapItr=mergeMap.entrySet().iterator();
+    while (mergeMapItr.hasNext()) {
+      final Map.Entry mergeMapEntry=(Map.Entry)mergeMapItr.next();
+      if (mergeMapEntry.getKey() instanceof HibernateProxy) {
+        final HibernateProxy proxy=(HibernateProxy)mergeMapEntry.getKey();
+        if (persister.isSubclassEntityName(proxy.getHibernateLazyInitializer().getEntityName())) {
+          boolean found=isFoundInParent(propertyName,childEntity,persister,collectionPersister,mergeMap.get(proxy));
+          if (!found) {
+            found=isFoundInParent(propertyName,mergeMap.get(childEntity),persister,collectionPersister,mergeMap.get(proxy));
+          }
+          if (found) {
+            return proxy.getHibernateLazyInitializer().getIdentifier();
+          }
+        }
       }
     }
   }

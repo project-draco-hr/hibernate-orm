@@ -1,0 +1,24 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  Parent me=new Parent("Steve");
+  me.getChildren().add(new Child("Joe"));
+  s.persist(me);
+  s.getTransaction().commit();
+  s.close();
+  me.getChildren().add(new Child("Cece"));
+  me.getChildren().add(new Child("Austin"));
+  s=openSession();
+  s.beginTransaction();
+  Object meProxy=s.load(Parent.class,me.getName());
+  assertFalse(Hibernate.isInitialized(meProxy));
+  s.merge(me);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  s.createQuery("delete from Child").executeUpdate();
+  s.createQuery("delete from Parent").executeUpdate();
+  s.getTransaction().commit();
+  s.close();
+}
