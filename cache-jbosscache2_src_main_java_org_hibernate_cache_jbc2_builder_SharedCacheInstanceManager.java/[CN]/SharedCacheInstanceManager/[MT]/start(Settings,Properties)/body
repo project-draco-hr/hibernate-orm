@@ -1,0 +1,24 @@
+{
+  use2ndLevel=settings.isSecondLevelCacheEnabled();
+  useQuery=settings.isQueryCacheEnabled();
+  if (cache == null) {
+    if (channelFactory == null) {
+      String muxStacks=PropertiesHelper.getString(CHANNEL_FACTORY_RESOURCE_PROP,properties,DEF_MULTIPLEXER_RESOURCE);
+      if (muxStacks != null) {
+        channelFactory=new JChannelFactory();
+        try {
+          channelFactory.setMultiplexerConfig(muxStacks);
+        }
+ catch (        Exception e) {
+          throw new CacheException("Problem setting ChannelFactory config",e);
+        }
+      }
+    }
+    cache=createSharedCache(settings,properties);
+    configureTransactionManager(cache,settings,properties);
+    if (cache.getConfiguration().getMultiplexerStack() != null && cache.getConfiguration().getRuntimeConfig().getMuxChannelFactory() == null) {
+      cache.getConfiguration().getRuntimeConfig().setMuxChannelFactory(channelFactory);
+    }
+  }
+  cache.start();
+}

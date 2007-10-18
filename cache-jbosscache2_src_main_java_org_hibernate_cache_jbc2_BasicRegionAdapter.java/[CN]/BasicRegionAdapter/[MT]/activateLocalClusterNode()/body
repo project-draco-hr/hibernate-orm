@@ -1,12 +1,34 @@
 {
-  org.jboss.cache.Region jbcRegion=jbcCache.getRegion(regionFqn,true);
-  if (jbcRegion.isActive()) {
-    return;
+  try {
+    Configuration cfg=jbcCache.getConfiguration();
+    if (cfg.isUseRegionBasedMarshalling()) {
+      org.jboss.cache.Region jbcRegion=jbcCache.getRegion(regionFqn,true);
+      ClassLoader classLoader=Thread.currentThread().getContextClassLoader();
+      if (classLoader == null) {
+        classLoader=getClass().getClassLoader();
+      }
+      jbcRegion.registerContextClassLoader(classLoader);
+      if (jbcRegion.isActive() == false) {
+        jbcRegion.activate();
+      }
+    }
+    if (CacheHelper.isClusteredReplication(cfg.getCacheMode())) {
+      listener=new SetResidentListener();
+      jbcCache.addCacheListener(listener);
+    }
+    Node regionRoot=jbcCache.getRoot().getChild(regionFqn);
+    if (regionRoot == null) {
+      DataVersion version=optimistic ? NonLockingDataVersion.INSTANCE : null;
+      regionRoot=CacheHelper.addNode(jbcCache,regionFqn,true,true,version);
+    }
+ else     if (optimistic && regionRoot instanceof NodeSPI) {
+      if ((((NodeSPI)regionRoot).getVersion() instanceof NonLockingDataVersion) == false) {
+        ((NodeSPI)regionRoot).setVersion(NonLockingDataVersion.INSTANCE);
+      }
+    }
+    regionRoot.setResident(true);
   }
-  ClassLoader classLoader=Thread.currentThread().getContextClassLoader();
-  if (classLoader == null) {
-    classLoader=getClass().getClassLoader();
+ catch (  Exception e) {
+    throw new CacheException(e.getMessage(),e);
   }
-  jbcRegion.registerContextClassLoader(classLoader);
-  jbcRegion.activate();
 }

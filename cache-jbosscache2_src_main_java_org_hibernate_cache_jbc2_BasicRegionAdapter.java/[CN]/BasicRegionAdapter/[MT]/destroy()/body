@@ -3,11 +3,17 @@
     Option option=new Option();
     option.setCacheModeLocal(true);
     option.setFailSilently(true);
+    if (optimistic) {
+      option.setDataVersion(NonLockingDataVersion.INSTANCE);
+    }
     jbcCache.getInvocationContext().setOptionOverrides(option);
     jbcCache.removeNode(regionFqn);
     deactivateLocalNode();
   }
  catch (  Exception e) {
     throw new CacheException(e);
+  }
+ finally {
+    if (listener != null)     jbcCache.removeCacheListener(listener);
   }
 }

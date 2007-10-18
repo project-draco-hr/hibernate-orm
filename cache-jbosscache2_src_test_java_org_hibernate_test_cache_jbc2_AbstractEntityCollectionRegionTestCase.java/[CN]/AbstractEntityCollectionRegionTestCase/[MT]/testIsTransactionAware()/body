@@ -1,0 +1,15 @@
+{
+  Configuration cfg=CacheTestUtil.buildConfiguration("test",SharedJBossCacheRegionFactory.class,true,false);
+  cfg.setProperty(SharedCacheInstanceManager.CACHE_RESOURCE_PROP,CacheTestUtil.LOCAL_PESSIMISTIC_CACHE);
+  JBossCacheRegionFactory regionFactory=CacheTestUtil.startRegionFactory(cfg,getCacheTestSupport());
+  TransactionalDataRegion region=(TransactionalDataRegion)createRegion(regionFactory,"test/test",cfg.getProperties(),getCacheDataDescription());
+  assertTrue("Region is transaction-aware",region.isTransactionAware());
+  CacheTestUtil.stopRegionFactory(regionFactory,getCacheTestSupport());
+  cfg=CacheTestUtil.buildConfiguration("test",SharedJBossCacheRegionFactory.class,true,false);
+  cfg.setProperty(SharedCacheInstanceManager.CACHE_RESOURCE_PROP,CacheTestUtil.LOCAL_PESSIMISTIC_CACHE);
+  cfg.getProperties().remove(Environment.TRANSACTION_MANAGER_STRATEGY);
+  regionFactory=CacheTestUtil.startRegionFactory(cfg,getCacheTestSupport());
+  region=(TransactionalDataRegion)createRegion(regionFactory,"test/test",cfg.getProperties(),getCacheDataDescription());
+  assertFalse("Region is not transaction-aware",region.isTransactionAware());
+  CacheTestUtil.stopRegionFactory(regionFactory,getCacheTestSupport());
+}

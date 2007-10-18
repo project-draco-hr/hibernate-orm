@@ -1,0 +1,24 @@
+{
+  TestSuite allTests=new TestSuite(testClass);
+  Set failureExpected=new HashSet();
+  Enumeration tests=allTests.tests();
+  while (tests.hasMoreElements()) {
+    Test t=(Test)tests.nextElement();
+    if (t instanceof TestCase) {
+      String name=((TestCase)t).getName();
+      if (name.endsWith("FailureExpected"))       failureExpected.add(name);
+    }
+  }
+  TestSuite result=new TestSuite();
+  tests=allTests.tests();
+  while (tests.hasMoreElements()) {
+    Test t=(Test)tests.nextElement();
+    if (t instanceof TestCase) {
+      String name=((TestCase)t).getName();
+      if (!failureExpected.contains(name + "FailureExpected")) {
+        result.addTest(t);
+      }
+    }
+  }
+  return result;
+}

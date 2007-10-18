@@ -1,0 +1,49 @@
+{
+  Configuration cfg=CacheTestUtil.buildConfiguration("",MultiplexedJBossCacheRegionFactory.class,true,false);
+  cfg.setProperty(getConfigResourceKey(),getConfigResourceLocation());
+  Settings settings=cfg.buildSettings();
+  Fqn<String> fqn=Fqn.fromString("/whatever");
+  JBossCacheRegionFactory regionFactory=(JBossCacheRegionFactory)settings.getRegionFactory();
+  regionFactory.start(settings,cfg.getProperties());
+  testSupport.registerFactory(regionFactory);
+  Cache<Object,Object> treeCache=regionFactory.getCacheInstanceManager().getEntityCacheInstance();
+  assertEquals("Cache is OPTIMISTIC","OPTIMISTIC",treeCache.getConfiguration().getNodeLockingSchemeString());
+  Long long1=new Long(1);
+  Long long2=new Long(2);
+  try {
+    System.out.println("****************************************************************");
+    BatchModeTransactionManager.getInstance().begin();
+    CacheHelper.setInvocationOption(treeCache,ManualDataVersion.gen(1));
+    treeCache.put(fqn,"ITEM",long1);
+    BatchModeTransactionManager.getInstance().commit();
+    System.out.println("****************************************************************");
+    BatchModeTransactionManager.getInstance().begin();
+    CacheHelper.setInvocationOption(treeCache,ManualDataVersion.gen(2));
+    treeCache.put(fqn,"ITEM",long2);
+    BatchModeTransactionManager.getInstance().commit();
+    try {
+      System.out.println("****************************************************************");
+      BatchModeTransactionManager.getInstance().begin();
+      CacheHelper.setInvocationOption(treeCache,ManualDataVersion.gen(1));
+      treeCache.put(fqn,"ITEM",long1);
+      BatchModeTransactionManager.getInstance().commit();
+      fail("stale write allowed");
+    }
+ catch (    Throwable ignore) {
+      try {
+        BatchModeTransactionManager.getInstance().rollback();
+      }
+ catch (      IllegalStateException ignored) {
+      }
+    }
+    Long current=(Long)treeCache.get(fqn,"ITEM");
+    assertEquals("unexpected current value",2,current.longValue());
+  }
+  finally {
+    try {
+      treeCache.remove(fqn,"ITEM");
+    }
+ catch (    Throwable ignore) {
+    }
+  }
+}

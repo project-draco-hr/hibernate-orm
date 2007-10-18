@@ -1,0 +1,47 @@
+{
+  Fqn regionFqn=getRegionFqn(REGION_NAME,REGION_PREFIX);
+  Node regionRoot=localCache.getRoot().getChild(regionFqn);
+  assertFalse(regionRoot == null);
+  assertEquals(0,regionRoot.getChildrenNames().size());
+  assertTrue(regionRoot.isResident());
+  if (isUsingOptimisticLocking()) {
+    assertEquals(NonLockingDataVersion.class,((NodeSPI)regionRoot).getVersion().getClass());
+  }
+  regionRoot=remoteCache.getRoot().getChild(regionFqn);
+  assertFalse(regionRoot == null);
+  assertEquals(0,regionRoot.getChildrenNames().size());
+  assertTrue(regionRoot.isResident());
+  if (isUsingOptimisticLocking()) {
+    assertEquals(NonLockingDataVersion.class,((NodeSPI)regionRoot).getVersion().getClass());
+  }
+  assertNull("local is clean",localAccessStrategy.get(KEY,System.currentTimeMillis()));
+  assertNull("remote is clean",remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
+  localAccessStrategy.putFromLoad(KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
+  assertEquals(VALUE1,localAccessStrategy.get(KEY,System.currentTimeMillis()));
+  remoteAccessStrategy.putFromLoad(KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
+  assertEquals(VALUE1,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
+  sleep(250);
+  if (isUsingOptimisticLocking()) {
+    regionRoot=localCache.getRoot().getChild(regionFqn);
+    assertEquals(NonLockingDataVersion.class,((NodeSPI)regionRoot).getVersion().getClass());
+    regionRoot=remoteCache.getRoot().getChild(regionFqn);
+    assertEquals(NonLockingDataVersion.class,((NodeSPI)regionRoot).getVersion().getClass());
+  }
+  if (evict)   localAccessStrategy.evictAll();
+ else   localAccessStrategy.removeAll();
+  regionRoot=localCache.getRoot().getChild(regionFqn);
+  assertFalse(regionRoot == null);
+  assertEquals(0,regionRoot.getChildrenNames().size());
+  assertTrue(regionRoot.isResident());
+  regionRoot=remoteCache.getRoot().getChild(regionFqn);
+  assertFalse(regionRoot == null);
+  if (isUsingInvalidation()) {
+    checkNodeIsEmpty(regionRoot);
+  }
+ else {
+    assertEquals(0,regionRoot.getChildrenNames().size());
+  }
+  assertTrue(regionRoot.isResident());
+  assertNull("local is clean",localAccessStrategy.get(KEY,System.currentTimeMillis()));
+  assertNull("remote is clean",remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
+}

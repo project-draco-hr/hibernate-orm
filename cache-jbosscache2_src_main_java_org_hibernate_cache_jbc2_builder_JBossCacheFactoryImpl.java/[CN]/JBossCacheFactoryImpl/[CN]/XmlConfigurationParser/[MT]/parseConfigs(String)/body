@@ -1,0 +1,13 @@
+{
+  InputStream is=getAsInputStreamFromClassLoader(configs);
+  if (is == null) {
+    if (log.isDebugEnabled())     log.debug("Unable to find configuration file " + configs + " in classpath; searching for this file on the filesystem instead.");
+    try {
+      is=new FileInputStream(configs);
+    }
+ catch (    FileNotFoundException e) {
+      throw new ConfigurationException("Unable to find config file " + configs + " either in classpath or on the filesystem!",e);
+    }
+  }
+  return parseConfigs(is);
+}

@@ -1,0 +1,22 @@
+{
+  if (sharedFactory == null) {
+    ChannelFactory cf=new JChannelFactory();
+    try {
+      cf.setMultiplexerConfig(channelFactoryConfigResource);
+    }
+ catch (    Exception e) {
+      throw new CacheException("Problem setting ChannelFactory config",e);
+    }
+    sharedFactory=new JBossCacheFactoryImpl(cacheConfigResource,cf);
+    sharedChannelFactoryCfg=channelFactoryConfigResource;
+  }
+ else {
+    if (!sharedFactory.getConfigResource().equals(cacheConfigResource)) {
+      throw new CacheException("Provided cacheConfigResource does " + "not match the existing shared factory: provided = " + cacheConfigResource + "; existing = "+ sharedFactory.getConfigResource());
+    }
+ else     if (!sharedChannelFactoryCfg.equals(channelFactoryConfigResource)) {
+      throw new IllegalStateException("Provided channelFactoryConfigResource does " + "not match the existing shared factory: provided = " + channelFactoryConfigResource + "; existing = "+ sharedChannelFactoryCfg);
+    }
+  }
+  return sharedFactory;
+}

@@ -1,0 +1,18 @@
+{
+  boolean incremented=updateLocalCache(key,value);
+  if (incremented) {
+    Transaction tx=suspend();
+    try {
+      Option opt=getNonLockingDataVersionOption(false);
+      opt.setForceAsynchronous(true);
+      getCacheInstance().getInvocationContext().setOptionOverrides(opt);
+      getCacheInstance().put(new Fqn(regionFqn,key),ITEM,value);
+    }
+ catch (    Exception e) {
+      throw new CacheException(e);
+    }
+ finally {
+      resume(tx);
+    }
+  }
+}

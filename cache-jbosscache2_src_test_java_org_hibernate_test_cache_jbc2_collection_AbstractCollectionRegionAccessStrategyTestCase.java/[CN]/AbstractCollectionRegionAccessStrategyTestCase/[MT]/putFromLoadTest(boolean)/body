@@ -1,0 +1,101 @@
+{
+  final CountDownLatch writeLatch1=new CountDownLatch(1);
+  final CountDownLatch writeLatch2=new CountDownLatch(1);
+  final CountDownLatch completionLatch=new CountDownLatch(2);
+  Thread node1=new Thread(){
+    public void run(){
+      try {
+        long txTimestamp=System.currentTimeMillis();
+        BatchModeTransactionManager.getInstance().begin();
+        assertEquals("node1 starts clean",null,localAccessStrategy.get(KEY,txTimestamp));
+        writeLatch1.await();
+        if (useMinimalAPI) {
+          localAccessStrategy.putFromLoad(KEY,VALUE2,txTimestamp,new Integer(2),true);
+        }
+ else {
+          localAccessStrategy.putFromLoad(KEY,VALUE2,txTimestamp,new Integer(2));
+        }
+        BatchModeTransactionManager.getInstance().commit();
+      }
+ catch (      Exception e) {
+        log.error("node1 caught exception",e);
+        node1Exception=e;
+        rollback();
+      }
+catch (      AssertionFailedError e) {
+        node1Failure=e;
+        rollback();
+      }
+ finally {
+        writeLatch2.countDown();
+        completionLatch.countDown();
+      }
+    }
+  }
+;
+  Thread node2=new Thread(){
+    public void run(){
+      try {
+        long txTimestamp=System.currentTimeMillis();
+        BatchModeTransactionManager.getInstance().begin();
+        assertNull("node1 starts clean",remoteAccessStrategy.get(KEY,txTimestamp));
+        writeLatch1.countDown();
+        writeLatch2.await();
+        sleep(200);
+        if (useMinimalAPI) {
+          remoteAccessStrategy.putFromLoad(KEY,VALUE1,txTimestamp,new Integer(1),true);
+        }
+ else {
+          remoteAccessStrategy.putFromLoad(KEY,VALUE1,txTimestamp,new Integer(1));
+        }
+        BatchModeTransactionManager.getInstance().commit();
+      }
+ catch (      Exception e) {
+        log.error("node2 caught exception",e);
+        node2Exception=e;
+        rollback();
+      }
+catch (      AssertionFailedError e) {
+        node2Failure=e;
+        rollback();
+      }
+ finally {
+        completionLatch.countDown();
+      }
+    }
+  }
+;
+  node1.setDaemon(true);
+  node2.setDaemon(true);
+  node1.start();
+  node2.start();
+  assertTrue("Threads completed",completionLatch.await(2,TimeUnit.SECONDS));
+  if (node1Failure != null)   throw node1Failure;
+  if (node2Failure != null)   throw node2Failure;
+  assertEquals("node1 saw no exceptions",null,node1Exception);
+  assertEquals("node2 saw no exceptions",null,node2Exception);
+  sleep(100);
+  long txTimestamp=System.currentTimeMillis();
+  String msg1="Correct node1 value";
+  String msg2="Correct node2 value";
+  Object expected1=null;
+  Object expected2=null;
+  if (isUsingInvalidation()) {
+    if (isUsingOptimisticLocking()) {
+      expected1=null;
+      expected2=VALUE2;
+      msg1=msg2="Known issue JBCACHE-1203";
+    }
+ else {
+      expected1=VALUE1;
+      expected2=null;
+      msg1=msg2="Known issue JBCACHE-1203";
+    }
+  }
+ else {
+    expected1=VALUE2;
+    expected2=VALUE2;
+  }
+  assertEquals(msg1,expected1,localAccessStrategy.get(KEY,txTimestamp));
+  assertEquals(msg2,expected2,remoteAccessStrategy.get(KEY,txTimestamp));
+}

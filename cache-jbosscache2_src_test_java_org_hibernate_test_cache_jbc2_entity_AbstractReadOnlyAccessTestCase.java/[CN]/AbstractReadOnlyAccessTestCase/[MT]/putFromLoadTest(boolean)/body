@@ -1,0 +1,13 @@
+{
+  long txTimestamp=System.currentTimeMillis();
+  BatchModeTransactionManager.getInstance().begin();
+  assertNull(localAccessStrategy.get(KEY,System.currentTimeMillis()));
+  if (minimal)   localAccessStrategy.putFromLoad(KEY,VALUE1,txTimestamp,new Integer(1),true);
+ else   localAccessStrategy.putFromLoad(KEY,VALUE1,txTimestamp,new Integer(1));
+  sleep(250);
+  Object expected=isUsingInvalidation() ? null : VALUE1;
+  assertEquals(expected,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
+  BatchModeTransactionManager.getInstance().commit();
+  assertEquals(VALUE1,localAccessStrategy.get(KEY,System.currentTimeMillis()));
+  assertEquals(expected,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
+}
