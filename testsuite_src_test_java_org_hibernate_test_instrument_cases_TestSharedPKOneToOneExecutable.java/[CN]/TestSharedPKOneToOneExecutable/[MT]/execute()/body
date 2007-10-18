@@ -1,0 +1,36 @@
+{
+  Session s=getFactory().openSession();
+  Transaction t=s.beginTransaction();
+  EntityWithOneToOnes root=new EntityWithOneToOnes("root");
+  OneToOneProxy oneToOneProxy=new OneToOneProxy("oneToOneProxy");
+  root.setOneToOneProxy(oneToOneProxy);
+  oneToOneProxy.setEntity(root);
+  OneToOneNoProxy oneToOneNoProxy=new OneToOneNoProxy("oneToOneNoProxy");
+  root.setOneToOneNoProxy(oneToOneNoProxy);
+  oneToOneNoProxy.setEntity(root);
+  s.save(root);
+  t.commit();
+  s.close();
+  s=getFactory().openSession();
+  t=s.beginTransaction();
+  root=(EntityWithOneToOnes)s.load(EntityWithOneToOnes.class,root.getId());
+  Assert.assertFalse(Hibernate.isInitialized(root));
+  Assert.assertFalse(Hibernate.isPropertyInitialized(root,"name"));
+  Assert.assertFalse(Hibernate.isPropertyInitialized(root,"oneToOneProxy"));
+  Assert.assertFalse(Hibernate.isPropertyInitialized(root,"oneToOneNoProxy"));
+  root.getName();
+  Assert.assertTrue(Hibernate.isInitialized(root));
+  Assert.assertTrue(Hibernate.isPropertyInitialized(root,"name"));
+  Assert.assertTrue(Hibernate.isPropertyInitialized(root,"oneToOneProxy"));
+  Assert.assertFalse(Hibernate.isPropertyInitialized(root,"oneToOneNoProxy"));
+  root.getOneToOneProxy();
+  Assert.assertTrue(Hibernate.isInitialized(oneToOneProxy));
+  Assert.assertTrue(Hibernate.isPropertyInitialized(root.getOneToOneProxy(),"name"));
+  Assert.assertFalse(Hibernate.isPropertyInitialized(root,"oneToOneNoProxy"));
+  root.getOneToOneNoProxy();
+  Assert.assertTrue(Hibernate.isPropertyInitialized(root,"oneToOneNoProxy"));
+  Assert.assertTrue(Hibernate.isPropertyInitialized(root.getOneToOneNoProxy(),"name"));
+  s.delete(root);
+  t.commit();
+  s.close();
+}

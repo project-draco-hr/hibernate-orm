@@ -6,28 +6,32 @@
   try {
     Object result=null;
     PreparedStatement ps=null;
-    ResultSet rs=null;
     try {
       final String lazySelect=getSQLLazySelectString();
-      if (lazySelect != null) {
-        ps=session.getBatcher().prepareSelectStatement(lazySelect);
-        getIdentifierType().nullSafeSet(ps,id,1,session);
-        rs=session.getBatcher().getResultSet(ps);
-        rs.next();
+      ResultSet rs=null;
+      try {
+        if (lazySelect != null) {
+          ps=session.getBatcher().prepareSelectStatement(lazySelect);
+          getIdentifierType().nullSafeSet(ps,id,1,session);
+          rs=ps.executeQuery();
+          rs.next();
+        }
+        final Object[] snapshot=entry.getLoadedState();
+        for (int j=0; j < lazyPropertyNames.length; j++) {
+          Object propValue=lazyPropertyTypes[j].nullSafeGet(rs,lazyPropertyColumnAliases[j],session,entity);
+          if (initializeLazyProperty(fieldName,entity,session,snapshot,j,propValue)) {
+            result=propValue;
+          }
+        }
       }
-      final Object[] snapshot=entry.getLoadedState();
-      for (int j=0; j < lazyPropertyNames.length; j++) {
-        Object propValue=lazyPropertyTypes[j].nullSafeGet(rs,lazyPropertyColumnAliases[j],session,entity);
-        if (initializeLazyProperty(fieldName,entity,session,snapshot,j,propValue)) {
-          result=propValue;
+  finally {
+        if (rs != null) {
+          rs.close();
         }
       }
     }
   finally {
-      if (rs != null) {
-        session.getBatcher().closeQueryStatement(ps,rs);
-      }
- else       if (ps != null) {
+      if (ps != null) {
         session.getBatcher().closeStatement(ps);
       }
     }

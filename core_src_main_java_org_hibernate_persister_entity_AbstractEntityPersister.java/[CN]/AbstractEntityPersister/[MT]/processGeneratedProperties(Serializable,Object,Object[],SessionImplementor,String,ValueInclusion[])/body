@@ -2,23 +2,29 @@
   session.getBatcher().executeBatch();
   try {
     PreparedStatement ps=session.getBatcher().prepareSelectStatement(selectionSQL);
-    ResultSet rs=null;
     try {
       getIdentifierType().nullSafeSet(ps,id,1,session);
-      rs=session.getBatcher().getResultSet(ps);
-      if (!rs.next()) {
-        throw new HibernateException("Unable to locate row for retrieval of generated properties: " + MessageHelper.infoString(this,id,getFactory()));
+      ResultSet rs=ps.executeQuery();
+      try {
+        if (!rs.next()) {
+          throw new HibernateException("Unable to locate row for retrieval of generated properties: " + MessageHelper.infoString(this,id,getFactory()));
+        }
+        for (int i=0; i < getPropertySpan(); i++) {
+          if (includeds[i] != ValueInclusion.NONE) {
+            Object hydratedState=getPropertyTypes()[i].hydrate(rs,getPropertyAliases("",i),session,entity);
+            state[i]=getPropertyTypes()[i].resolve(hydratedState,session,entity);
+            setPropertyValue(entity,i,state[i],session.getEntityMode());
+          }
+        }
       }
-      for (int i=0; i < getPropertySpan(); i++) {
-        if (includeds[i] != ValueInclusion.NONE) {
-          Object hydratedState=getPropertyTypes()[i].hydrate(rs,getPropertyAliases("",i),session,entity);
-          state[i]=getPropertyTypes()[i].resolve(hydratedState,session,entity);
-          setPropertyValue(entity,i,state[i],session.getEntityMode());
+  finally {
+        if (rs != null) {
+          rs.close();
         }
       }
     }
   finally {
-      session.getBatcher().closeQueryStatement(ps,rs);
+      session.getBatcher().closeStatement(ps);
     }
   }
  catch (  SQLException sqle) {
