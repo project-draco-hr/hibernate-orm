@@ -1,17 +1,14 @@
 {
-  boolean incremented=updateLocalCache(key,value);
-  if (incremented) {
-    Transaction tx=suspend();
-    try {
-      Option opt=getNonLockingDataVersionOption(false);
-      opt.setForceAsynchronous(true);
-      CacheHelper.put(getCacheInstance(),getRegionFqn(),key,value,opt);
-    }
- catch (    Exception e) {
-      throw new CacheException(e);
-    }
+  Transaction tx=suspend();
+  try {
+    Option opt=getNonLockingDataVersionOption(false);
+    opt.setForceAsynchronous(true);
+    CacheHelper.put(getCacheInstance(),getRegionFqn(),key,value,opt);
+  }
+ catch (  Exception e) {
+    throw new CacheException(e);
+  }
  finally {
-      resume(tx);
-    }
+    resume(tx);
   }
 }
