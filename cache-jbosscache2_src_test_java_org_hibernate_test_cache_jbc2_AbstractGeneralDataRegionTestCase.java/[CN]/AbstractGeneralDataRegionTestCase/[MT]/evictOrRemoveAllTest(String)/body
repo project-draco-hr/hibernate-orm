@@ -1,0 +1,58 @@
+{
+  Configuration cfg=createConfiguration(configName);
+  JBossCacheRegionFactory regionFactory=CacheTestUtil.startRegionFactory(cfg,getCacheTestSupport());
+  Cache localCache=getJBossCache(regionFactory);
+  boolean optimistic="OPTIMISTIC".equals(localCache.getConfiguration().getNodeLockingSchemeString());
+  boolean invalidation=CacheHelper.isClusteredInvalidation(localCache);
+  GeneralDataRegion localRegion=(GeneralDataRegion)createRegion(regionFactory,getStandardRegionName(REGION_PREFIX),cfg.getProperties(),null);
+  cfg=createConfiguration(configName);
+  regionFactory=CacheTestUtil.startRegionFactory(cfg,getCacheTestSupport());
+  Cache remoteCache=getJBossCache(regionFactory);
+  GeneralDataRegion remoteRegion=(GeneralDataRegion)createRegion(regionFactory,getStandardRegionName(REGION_PREFIX),cfg.getProperties(),null);
+  Fqn regionFqn=getRegionFqn(getStandardRegionName(REGION_PREFIX),REGION_PREFIX);
+  Node regionRoot=localCache.getRoot().getChild(regionFqn);
+  assertFalse(regionRoot == null);
+  Set children=regionRoot.getChildrenNames();
+  assertEquals("No children in " + children,0,children.size());
+  assertTrue(regionRoot.isResident());
+  if (optimistic) {
+    assertEquals(NonLockingDataVersion.class,((NodeSPI)regionRoot).getVersion().getClass());
+  }
+  regionRoot=remoteCache.getRoot().getChild(regionFqn);
+  assertFalse(regionRoot == null);
+  assertEquals(0,regionRoot.getChildrenNames().size());
+  assertTrue(regionRoot.isResident());
+  if (optimistic) {
+    assertEquals(NonLockingDataVersion.class,((NodeSPI)regionRoot).getVersion().getClass());
+  }
+  assertNull("local is clean",localRegion.get(KEY));
+  assertNull("remote is clean",remoteRegion.get(KEY));
+  localRegion.put(KEY,VALUE1);
+  assertEquals(VALUE1,localRegion.get(KEY));
+  sleep(250);
+  remoteRegion.put(KEY,VALUE1);
+  assertEquals(VALUE1,remoteRegion.get(KEY));
+  sleep(250);
+  if (optimistic) {
+    regionRoot=localCache.getRoot().getChild(regionFqn);
+    assertEquals(NonLockingDataVersion.class,((NodeSPI)regionRoot).getVersion().getClass());
+    regionRoot=remoteCache.getRoot().getChild(regionFqn);
+    assertEquals(NonLockingDataVersion.class,((NodeSPI)regionRoot).getVersion().getClass());
+  }
+  localRegion.evictAll();
+  regionRoot=localCache.getRoot().getChild(regionFqn);
+  assertFalse(regionRoot == null);
+  assertEquals(0,regionRoot.getChildrenNames().size());
+  assertTrue(regionRoot.isResident());
+  regionRoot=remoteCache.getRoot().getChild(regionFqn);
+  assertFalse(regionRoot == null);
+  if (invalidation) {
+    checkNodeIsEmpty(regionRoot);
+  }
+ else {
+    assertEquals(0,regionRoot.getChildrenNames().size());
+  }
+  assertTrue(regionRoot.isResident());
+  assertEquals("local is clean",null,localRegion.get(KEY));
+  assertEquals("remote is clean",null,remoteRegion.get(KEY));
+}
