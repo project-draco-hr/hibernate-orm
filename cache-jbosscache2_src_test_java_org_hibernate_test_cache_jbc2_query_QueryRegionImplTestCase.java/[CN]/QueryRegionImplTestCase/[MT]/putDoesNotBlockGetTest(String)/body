@@ -1,9 +1,7 @@
 {
-  Configuration cfg=CacheTestUtil.buildConfiguration("test",MultiplexedJBossCacheRegionFactory.class,false,true);
-  cfg.setProperty(MultiplexingCacheInstanceManager.QUERY_CACHE_RESOURCE_PROP,configName);
-  cfg.setProperty(MultiplexingCacheInstanceManager.TIMESTAMP_CACHE_RESOURCE_PROP,configName);
+  Configuration cfg=createConfiguration(configName);
   JBossCacheRegionFactory regionFactory=CacheTestUtil.startRegionFactory(cfg,getCacheTestSupport());
-  final QueryResultsRegion region=regionFactory.buildQueryResultsRegion("test/com.foo.test",cfg.getProperties());
+  final QueryResultsRegion region=regionFactory.buildQueryResultsRegion(getStandardRegionName(REGION_PREFIX),cfg.getProperties());
   region.put(KEY,VALUE1);
   assertEquals(VALUE1,region.get(KEY));
   final CountDownLatch readerLatch=new CountDownLatch(1);
