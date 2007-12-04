@@ -1,5 +1,5 @@
 {
-  DummyTransactionManager.INSTANCE.begin();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
   Session s=openSession();
   Map item1=new HashMap();
   item1.put("name","Item - 1");
@@ -9,18 +9,18 @@
   item2.put("name","Item - 2");
   item2.put("description","The second item");
   s.save("Item",item2);
-  DummyTransactionManager.INSTANCE.getTransaction().commit();
+  SimpleJtaTransactionManagerImpl.getInstance().getTransaction().commit();
   try {
-    DummyTransactionManager.INSTANCE.begin();
+    SimpleJtaTransactionManagerImpl.getInstance().begin();
     s=getSessions().getCurrentSession();
     s.createQuery("from Item").scroll().next();
     s.connection();
-    DummyTransactionManager.INSTANCE.getTransaction().commit();
+    SimpleJtaTransactionManagerImpl.getInstance().getTransaction().commit();
   }
   finally {
-    DummyTransactionManager.INSTANCE.begin();
+    SimpleJtaTransactionManagerImpl.getInstance().begin();
     s=openSession();
     s.createQuery("delete from Item").executeUpdate();
-    DummyTransactionManager.INSTANCE.getTransaction().commit();
+    SimpleJtaTransactionManagerImpl.getInstance().getTransaction().commit();
   }
 }

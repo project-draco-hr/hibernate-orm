@@ -1,6 +1,6 @@
 {
   prepare();
-  Connection originalConnection=DummyTransactionManager.INSTANCE.getCurrent().getConnection();
+  Connection originalConnection=ConnectionProviderImpl.getActualConnectionProvider().getConnection();
   Session session=getSessions().openSession(originalConnection);
   Silly silly=new Silly("silly");
   session.save(silly);
@@ -10,4 +10,5 @@
   session.flush();
   release(session);
   done();
+  ConnectionProviderImpl.getActualConnectionProvider().closeConnection(originalConnection);
 }

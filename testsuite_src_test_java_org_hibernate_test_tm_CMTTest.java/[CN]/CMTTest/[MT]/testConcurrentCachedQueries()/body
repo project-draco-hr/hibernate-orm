@@ -1,5 +1,5 @@
 {
-  DummyTransactionManager.INSTANCE.begin();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
   Session s=openSession();
   Map foo=new HashMap();
   foo.put("name","Foo");
@@ -9,25 +9,25 @@
   bar.put("name","Bar");
   bar.put("description","a small bar");
   s.persist("Item",bar);
-  DummyTransactionManager.INSTANCE.commit();
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
 synchronized (this) {
     wait(1000);
   }
   getSessions().getStatistics().clear();
   getSessions().evictEntity("Item");
-  DummyTransactionManager.INSTANCE.begin();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
   Session s4=openSession();
-  Transaction tx4=DummyTransactionManager.INSTANCE.suspend();
-  DummyTransactionManager.INSTANCE.begin();
+  Transaction tx4=SimpleJtaTransactionManagerImpl.getInstance().suspend();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
   Session s1=openSession();
   List r1=s1.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
   assertEquals(r1.size(),2);
-  Transaction tx1=DummyTransactionManager.INSTANCE.suspend();
-  DummyTransactionManager.INSTANCE.begin();
+  Transaction tx1=SimpleJtaTransactionManagerImpl.getInstance().suspend();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
   Session s2=openSession();
   List r2=s2.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
   assertEquals(r2.size(),2);
-  DummyTransactionManager.INSTANCE.commit();
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
   assertEquals(getSessions().getStatistics().getSecondLevelCacheHitCount(),2);
   assertEquals(getSessions().getStatistics().getSecondLevelCacheMissCount(),0);
   assertEquals(getSessions().getStatistics().getEntityLoadCount(),2);
@@ -36,12 +36,12 @@ synchronized (this) {
   assertEquals(getSessions().getStatistics().getQueryCachePutCount(),1);
   assertEquals(getSessions().getStatistics().getQueryCacheHitCount(),1);
   assertEquals(getSessions().getStatistics().getQueryCacheMissCount(),1);
-  DummyTransactionManager.INSTANCE.resume(tx1);
+  SimpleJtaTransactionManagerImpl.getInstance().resume(tx1);
   tx1.commit();
-  DummyTransactionManager.INSTANCE.begin();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
   Session s3=openSession();
   s3.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
-  DummyTransactionManager.INSTANCE.commit();
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
   assertEquals(getSessions().getStatistics().getSecondLevelCacheHitCount(),4);
   assertEquals(getSessions().getStatistics().getSecondLevelCacheMissCount(),0);
   assertEquals(getSessions().getStatistics().getEntityLoadCount(),2);
@@ -50,7 +50,7 @@ synchronized (this) {
   assertEquals(getSessions().getStatistics().getQueryCachePutCount(),1);
   assertEquals(getSessions().getStatistics().getQueryCacheHitCount(),2);
   assertEquals(getSessions().getStatistics().getQueryCacheMissCount(),1);
-  DummyTransactionManager.INSTANCE.resume(tx4);
+  SimpleJtaTransactionManagerImpl.getInstance().resume(tx4);
   List r4=s4.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
   assertEquals(r4.size(),2);
   tx4.commit();
@@ -62,8 +62,8 @@ synchronized (this) {
   assertEquals(getSessions().getStatistics().getQueryCachePutCount(),1);
   assertEquals(getSessions().getStatistics().getQueryCacheHitCount(),3);
   assertEquals(getSessions().getStatistics().getQueryCacheMissCount(),1);
-  DummyTransactionManager.INSTANCE.begin();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
   s=openSession();
   s.createQuery("delete from Item").executeUpdate();
-  DummyTransactionManager.INSTANCE.commit();
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
 }
