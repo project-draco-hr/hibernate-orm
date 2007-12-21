@@ -1,0 +1,24 @@
+{
+  stopped=false;
+  while (!stopped) {
+    try {
+      Long pre=new Long(region.nextTimestamp() + region.getTimeout());
+      region.preInvalidate(KEY1,pre);
+      sleep(random.nextInt(1));
+      Long post=new Long(region.nextTimestamp());
+      region.invalidate(KEY1,post,pre);
+      Long ts=(Long)region.get(KEY1);
+      assertTrue(ts + " >= " + post,ts.longValue() >= post.longValue());
+      sleep(random.nextInt(1));
+    }
+ catch (    AssertionFailedError e) {
+      assertionFailure=e;
+    }
+catch (    Exception e) {
+      if (!stopped)       exception=e;
+    }
+ finally {
+      stopped=true;
+    }
+  }
+}

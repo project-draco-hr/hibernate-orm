@@ -1,0 +1,24 @@
+{
+  boolean locked=false;
+  try {
+    entry.acquireJBCWriteMutex();
+    locked=true;
+    Transaction tx=suspend();
+    try {
+      Option opt=getNonLockingDataVersionOption(false);
+      opt.setForceAsynchronous(true);
+      CacheHelper.put(getCacheInstance(),getRegionFqn(),key,entry.getJBCUpdateValues(),opt);
+    }
+  finally {
+      resume(tx);
+    }
+  }
+ catch (  InterruptedException e) {
+    throw new CacheException("Interrupted while acquiring right to update " + key,e);
+  }
+ finally {
+    if (locked) {
+      entry.releaseJBCWriteMutex();
+    }
+  }
+}
