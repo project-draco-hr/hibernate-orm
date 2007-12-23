@@ -34,6 +34,18 @@
   assertFalse(regionRoot == null);
   assertEquals(0,regionRoot.getChildrenNames().size());
   assertTrue(regionRoot.isResident());
+  if (isUsingInvalidation()) {
+    String msg="Known issue JBCACHE-1251 -- problem reestablishing invalidated region root";
+    try {
+      assertEquals(null,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
+    }
+ catch (    CacheException ce) {
+      log.error(msg,ce);
+      fail(msg + " -- cause: " + ce);
+    }
+    remoteAccessStrategy.putFromLoad(KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
+    assertEquals(msg,VALUE1,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
+  }
   regionRoot=remoteCache.getRoot().getChild(regionFqn);
   assertFalse(regionRoot == null);
   if (isUsingInvalidation()) {

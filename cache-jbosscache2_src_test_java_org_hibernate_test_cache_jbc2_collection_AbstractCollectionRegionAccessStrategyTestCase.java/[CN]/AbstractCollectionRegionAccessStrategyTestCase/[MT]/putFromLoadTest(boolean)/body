@@ -39,7 +39,7 @@ catch (      AssertionFailedError e) {
       try {
         long txTimestamp=System.currentTimeMillis();
         BatchModeTransactionManager.getInstance().begin();
-        assertNull("node1 starts clean",remoteAccessStrategy.get(KEY,txTimestamp));
+        assertNull("node2 starts clean",remoteAccessStrategy.get(KEY,txTimestamp));
         writeLatch1.countDown();
         writeLatch2.await();
         sleep(200);
@@ -82,16 +82,8 @@ catch (      AssertionFailedError e) {
   Object expected1=null;
   Object expected2=null;
   if (isUsingInvalidation()) {
-    if (isUsingOptimisticLocking()) {
-      expected1=null;
-      expected2=VALUE2;
-      msg1=msg2="Known issue JBCACHE-1203";
-    }
- else {
-      expected1=VALUE1;
-      expected2=null;
-      msg1=msg2="Known issue JBCACHE-1203";
-    }
+    expected1=VALUE2;
+    expected2=VALUE1;
   }
  else {
     expected1=VALUE2;
