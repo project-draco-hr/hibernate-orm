@@ -12,21 +12,11 @@
         jbcRegion.activate();
       }
     }
-    if (CacheHelper.isClusteredReplication(cfg.getCacheMode())) {
-      listener=new SetResidentListener();
+    if (CacheHelper.isClusteredReplication(cfg.getCacheMode()) || CacheHelper.isClusteredInvalidation(cfg.getCacheMode())) {
+      listener=new RegionRootListener();
       jbcCache.addCacheListener(listener);
     }
-    Node regionRoot=jbcCache.getRoot().getChild(regionFqn);
-    if (regionRoot == null) {
-      DataVersion version=optimistic ? NonLockingDataVersion.INSTANCE : null;
-      regionRoot=CacheHelper.addNode(jbcCache,regionFqn,true,true,version);
-    }
- else     if (optimistic && regionRoot instanceof NodeSPI) {
-      if (!(((NodeSPI)regionRoot).getVersion() instanceof NonLockingDataVersion)) {
-        ((NodeSPI)regionRoot).setVersion(NonLockingDataVersion.INSTANCE);
-      }
-    }
-    regionRoot.setResident(true);
+    establishRegionRootNode();
   }
  catch (  Exception e) {
     throw new CacheException(e.getMessage(),e);

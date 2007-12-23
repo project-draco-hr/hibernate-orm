@@ -1,0 +1,22 @@
+{
+synchronized (regionRootMutex) {
+    if (regionRoot != null && regionRoot.isValid())     return;
+    Transaction tx=suspend();
+    try {
+      regionRoot=jbcCache.getRoot().getChild(regionFqn);
+      if (regionRoot == null) {
+        DataVersion version=optimistic ? NonLockingDataVersion.INSTANCE : null;
+        regionRoot=CacheHelper.addNode(jbcCache,regionFqn,true,true,version);
+      }
+ else       if (optimistic && regionRoot instanceof NodeSPI) {
+        if (!(((NodeSPI)regionRoot).getVersion() instanceof NonLockingDataVersion)) {
+          ((NodeSPI)regionRoot).setVersion(NonLockingDataVersion.INSTANCE);
+        }
+      }
+      regionRoot.setResident(true);
+    }
+  finally {
+      resume(tx);
+    }
+  }
+}
