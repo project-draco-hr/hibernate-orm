@@ -3,14 +3,14 @@
   Fqn regionFqn=getRegionFqn(REGION_NAME,REGION_PREFIX);
   Node regionRoot=localCache.getRoot().getChild(regionFqn);
   assertFalse(regionRoot == null);
-  assertEquals(0,regionRoot.getChildrenNames().size());
+  assertEquals(0,getValidChildrenCount(regionRoot));
   assertTrue(regionRoot.isResident());
   if (isUsingOptimisticLocking()) {
     assertEquals(NonLockingDataVersion.class,((NodeSPI)regionRoot).getVersion().getClass());
   }
   regionRoot=remoteCache.getRoot().getChild(regionFqn);
   assertFalse(regionRoot == null);
-  assertEquals(0,regionRoot.getChildrenNames().size());
+  assertEquals(0,getValidChildrenCount(regionRoot));
   assertTrue(regionRoot.isResident());
   if (isUsingOptimisticLocking()) {
     assertEquals(NonLockingDataVersion.class,((NodeSPI)regionRoot).getVersion().getClass());
@@ -32,7 +32,7 @@
  else   localAccessStrategy.removeAll();
   regionRoot=localCache.getRoot().getChild(regionFqn);
   assertFalse(regionRoot == null);
-  assertEquals(0,regionRoot.getChildrenNames().size());
+  assertEquals(0,getValidChildrenCount(regionRoot));
   assertTrue(regionRoot.isResident());
   if (isUsingInvalidation()) {
     String msg="Known issue JBCACHE-1251 -- problem reestablishing invalidated region root";
@@ -49,12 +49,12 @@
   regionRoot=remoteCache.getRoot().getChild(regionFqn);
   assertFalse(regionRoot == null);
   if (isUsingInvalidation()) {
-    checkNodeIsEmpty(regionRoot);
+    assertEquals(1,getValidChildrenCount(regionRoot));
   }
  else {
-    assertEquals(0,regionRoot.getChildrenNames().size());
+    assertEquals(0,getValidChildrenCount(regionRoot));
   }
   assertTrue(regionRoot.isResident());
   assertNull("local is clean",localAccessStrategy.get(KEY,System.currentTimeMillis()));
-  assertNull("remote is clean",remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
+  assertEquals("remote is correct",(isUsingInvalidation() ? VALUE1 : null),remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
 }
