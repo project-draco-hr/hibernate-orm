@@ -1,0 +1,61 @@
+{
+  CollectionListeners listeners=new CollectionListeners(getSessions());
+  ParentWithCollection parent=createParentWithOneChild("parent","child");
+  ParentWithCollection otherParent=createParentWithOneChild("otherParent","otherChild");
+  ParentWithCollection otherOtherParent=createParentWithNoChildren("otherParent");
+  listeners.clear();
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  parent=(ParentWithCollection)s.get(parent.getClass(),parent.getId());
+  otherParent=(ParentWithCollection)s.get(otherParent.getClass(),otherParent.getId());
+  otherOtherParent=(ParentWithCollection)s.get(otherOtherParent.getClass(),otherOtherParent.getId());
+  Collection otherCollectionOrig=otherParent.getChildren();
+  Collection otherOtherCollectionOrig=otherOtherParent.getChildren();
+  otherParent.newChildren(parent.getChildren());
+  parent.newChildren(null);
+  s.flush();
+  otherOtherParent.newChildren(otherParent.getChildren());
+  otherParent.newChildren(null);
+  tx.commit();
+  s.close();
+  int index=0;
+  Child otherChildOrig=null;
+  if (((PersistentCollection)otherCollectionOrig).wasInitialized()) {
+    checkResult(listeners,listeners.getInitializeCollectionListener(),otherParent,otherCollectionOrig,index++);
+    otherChildOrig=(Child)otherCollectionOrig.iterator().next();
+    if (otherChildOrig.hasBidirectionalManyToMany()) {
+      checkResult(listeners,listeners.getInitializeCollectionListener(),otherChildOrig,index++);
+    }
+  }
+  checkResult(listeners,listeners.getInitializeCollectionListener(),parent,otherOtherParent.getChildren(),index++);
+  Child otherOtherChild=(Child)otherOtherParent.getChildren().iterator().next();
+  if (otherOtherChild.hasBidirectionalManyToMany()) {
+    checkResult(listeners,listeners.getInitializeCollectionListener(),otherOtherChild,index++);
+  }
+  checkResult(listeners,listeners.getPreCollectionRemoveListener(),parent,otherOtherParent.getChildren(),index++);
+  checkResult(listeners,listeners.getPostCollectionRemoveListener(),parent,otherOtherParent.getChildren(),index++);
+  checkResult(listeners,listeners.getPreCollectionRemoveListener(),otherParent,otherCollectionOrig,index++);
+  checkResult(listeners,listeners.getPostCollectionRemoveListener(),otherParent,otherCollectionOrig,index++);
+  if (otherOtherChild.hasBidirectionalManyToMany()) {
+    checkResult(listeners,listeners.getPreCollectionUpdateListener(),otherChildOrig,index++);
+    checkResult(listeners,listeners.getPostCollectionUpdateListener(),otherChildOrig,index++);
+    checkResult(listeners,listeners.getPreCollectionUpdateListener(),otherOtherChild,index++);
+    checkResult(listeners,listeners.getPostCollectionUpdateListener(),otherOtherChild,index++);
+  }
+  checkResult(listeners,listeners.getPreCollectionRecreateListener(),otherParent,otherOtherParent.getChildren(),index++);
+  checkResult(listeners,listeners.getPostCollectionRecreateListener(),otherParent,otherOtherParent.getChildren(),index++);
+  if (((PersistentCollection)otherOtherCollectionOrig).wasInitialized()) {
+    checkResult(listeners,listeners.getInitializeCollectionListener(),otherOtherParent,otherOtherCollectionOrig,index++);
+  }
+  checkResult(listeners,listeners.getPreCollectionRemoveListener(),otherParent,otherOtherParent.getChildren(),index++);
+  checkResult(listeners,listeners.getPostCollectionRemoveListener(),otherParent,otherOtherParent.getChildren(),index++);
+  checkResult(listeners,listeners.getPreCollectionRemoveListener(),otherOtherParent,otherOtherCollectionOrig,index++);
+  checkResult(listeners,listeners.getPostCollectionRemoveListener(),otherOtherParent,otherOtherCollectionOrig,index++);
+  if (otherOtherChild.hasBidirectionalManyToMany()) {
+    checkResult(listeners,listeners.getPreCollectionUpdateListener(),otherOtherChild,index++);
+    checkResult(listeners,listeners.getPostCollectionUpdateListener(),otherOtherChild,index++);
+  }
+  checkResult(listeners,listeners.getPreCollectionRecreateListener(),otherOtherParent,index++);
+  checkResult(listeners,listeners.getPostCollectionRecreateListener(),otherOtherParent,index++);
+  checkNumberOfResults(listeners,index);
+}

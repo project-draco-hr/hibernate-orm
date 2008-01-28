@@ -1,0 +1,34 @@
+{
+  CollectionListeners listeners=new CollectionListeners(getSessions());
+  ParentWithCollection parent=createParentWithOneChild("parent","child");
+  Child child=(Child)parent.getChildren().iterator().next();
+  listeners.clear();
+  assertEquals(1,parent.getChildren().size());
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  parent=(ParentWithCollection)s.get(parent.getClass(),parent.getId());
+  if (child instanceof ChildEntity) {
+    child=(ChildEntity)s.get(child.getClass(),((ChildEntity)child).getId());
+  }
+  Collection oldCollection=parent.getChildren();
+  parent.newChildren(createCollection());
+  parent.addChild(child);
+  tx.commit();
+  s.close();
+  int index=0;
+  if (((PersistentCollection)oldCollection).wasInitialized()) {
+    checkResult(listeners,listeners.getInitializeCollectionListener(),parent,oldCollection,index++);
+  }
+  if (child.hasBidirectionalManyToMany() && ((PersistentCollection)getParents(child)).wasInitialized()) {
+    checkResult(listeners,listeners.getInitializeCollectionListener(),child,index++);
+  }
+  checkResult(listeners,listeners.getPreCollectionRemoveListener(),parent,oldCollection,index++);
+  checkResult(listeners,listeners.getPostCollectionRemoveListener(),parent,oldCollection,index++);
+  if (child.hasBidirectionalManyToMany()) {
+    checkResult(listeners,listeners.getPreCollectionUpdateListener(),child,index++);
+    checkResult(listeners,listeners.getPostCollectionUpdateListener(),child,index++);
+  }
+  checkResult(listeners,listeners.getPreCollectionRecreateListener(),parent,index++);
+  checkResult(listeners,listeners.getPostCollectionRecreateListener(),parent,index++);
+  checkNumberOfResults(listeners,index);
+}

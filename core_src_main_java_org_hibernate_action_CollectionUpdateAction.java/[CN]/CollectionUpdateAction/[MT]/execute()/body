@@ -4,6 +4,7 @@
   final CollectionPersister persister=getPersister();
   final PersistentCollection collection=getCollection();
   boolean affectedByFilters=persister.isAffectedByEnabledFilters(session);
+  preUpdate();
   if (!collection.wasInitialized()) {
     if (!collection.hasQueuedOperations())     throw new AssertionFailure("no queued adds");
   }
@@ -24,6 +25,7 @@
   }
   getSession().getPersistenceContext().getCollectionEntry(collection).afterAction(collection);
   evict();
+  postUpdate();
   if (getSession().getFactory().getStatistics().isStatisticsEnabled()) {
     getSession().getFactory().getStatisticsImplementor().updateCollection(getPersister().getRole());
   }
