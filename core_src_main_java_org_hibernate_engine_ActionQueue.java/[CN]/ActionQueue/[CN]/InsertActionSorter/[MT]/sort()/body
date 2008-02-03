@@ -1,0 +1,25 @@
+{
+  for (Iterator actionItr=insertions.iterator(); actionItr.hasNext(); ) {
+    EntityInsertAction action=(EntityInsertAction)actionItr.next();
+    String entityName=action.getEntityName();
+    Object currentEntity=action.getInstance();
+    Integer batchNumber;
+    if (latestBatches.containsKey(entityName)) {
+      batchNumber=findBatchNumber(action,entityName);
+    }
+ else {
+      batchNumber=new Integer(actionBatches.size());
+      latestBatches.put(entityName,batchNumber);
+    }
+    entityBatchNumber.put(currentEntity,batchNumber);
+    addToBatch(batchNumber,action);
+  }
+  insertions.clear();
+  for (int i=0; i < actionBatches.size(); i++) {
+    List batch=(List)actionBatches.get(new Integer(i));
+    for (Iterator batchItr=batch.iterator(); batchItr.hasNext(); ) {
+      EntityInsertAction action=(EntityInsertAction)batchItr.next();
+      insertions.add(action);
+    }
+  }
+}
