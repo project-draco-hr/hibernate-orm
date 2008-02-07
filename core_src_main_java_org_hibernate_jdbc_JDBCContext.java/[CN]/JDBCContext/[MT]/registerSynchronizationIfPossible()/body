@@ -23,7 +23,10 @@
           return false;
         }
  else {
-          tx.registerSynchronization(new CacheSynchronization(owner,this,tx,null));
+          if (hibernateTransaction == null) {
+            hibernateTransaction=owner.getFactory().getSettings().getTransactionFactory().createTransaction(this,owner);
+          }
+          tx.registerSynchronization(new CacheSynchronization(owner,this,tx,hibernateTransaction));
           isTransactionCallbackRegistered=true;
           log.debug("successfully registered Synchronization");
           return true;
