@@ -1,0 +1,16 @@
+{
+  deleteMembership(getUser(),getGroup(),getMembership());
+  addMembership(getUser(),getGroup(),createMembership("membership"));
+  Session s=openSession();
+  s.beginTransaction();
+  try {
+    s.merge(getUser());
+    fail("should have failed because inserts are before deletes");
+  }
+ catch (  ConstraintViolationException ex) {
+    s.getTransaction().rollback();
+  }
+ finally {
+    s.close();
+  }
+}
