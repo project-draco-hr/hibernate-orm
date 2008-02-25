@@ -1,0 +1,25 @@
+{
+  System.out.println("FIND CUSTOMER");
+  tm.begin();
+  try {
+    Session session=sessionFactory.getCurrentSession();
+    Customer customer=(Customer)session.get(Customer.class,id);
+    for (Iterator it=customer.getContacts().iterator(); it.hasNext(); ) {
+      ((Contact)it.next()).getName();
+    }
+    tm.commit();
+    return customer;
+  }
+ catch (  Exception e) {
+    try {
+      tm.rollback();
+    }
+ catch (    Exception e1) {
+      log.error("Exception rolling back txn",e1);
+    }
+    throw e;
+  }
+ finally {
+    System.out.println("FIND CUSTOMER -  END");
+  }
+}

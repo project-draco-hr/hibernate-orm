@@ -1,0 +1,43 @@
+{
+  System.out.println("CREATE CUSTOMER");
+  tm.begin();
+  try {
+    Session session=sessionFactory.getCurrentSession();
+    Customer customer=new Customer();
+    customer.setName("JBoss");
+    Set<Contact> contacts=new HashSet<Contact>();
+    Contact kabir=new Contact();
+    kabir.setCustomer(customer);
+    kabir.setName("Kabir");
+    kabir.setTlf("1111");
+    contacts.add(kabir);
+    Contact bill=new Contact();
+    bill.setCustomer(customer);
+    bill.setName("Bill");
+    bill.setTlf("2222");
+    contacts.add(bill);
+    customer.setContacts(contacts);
+    session.save(customer);
+    tm.commit();
+    IdContainer ids=new IdContainer();
+    ids.customerId=customer.getId();
+    Set contactIds=new HashSet();
+    contactIds.add(kabir.getId());
+    contactIds.add(bill.getId());
+    ids.contactIds=contactIds;
+    return ids;
+  }
+ catch (  Exception e) {
+    log.error("Caught exception creating customer",e);
+    try {
+      tm.rollback();
+    }
+ catch (    Exception e1) {
+      log.error("Exception rolling back txn",e1);
+    }
+    throw e;
+  }
+ finally {
+    System.out.println("CREATE CUSTOMER -  END");
+  }
+}

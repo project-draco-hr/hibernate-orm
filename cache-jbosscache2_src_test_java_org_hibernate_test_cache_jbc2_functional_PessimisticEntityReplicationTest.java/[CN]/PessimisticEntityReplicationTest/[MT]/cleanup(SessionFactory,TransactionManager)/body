@@ -1,0 +1,23 @@
+{
+  tm.begin();
+  try {
+    Session session=sessionFactory.getCurrentSession();
+    Customer c=(Customer)session.get(Customer.class,CUSTOMER_ID);
+    if (c != null) {
+      Set contacts=c.getContacts();
+      for (Iterator it=contacts.iterator(); it.hasNext(); )       session.delete(it.next());
+      c.setContacts(null);
+      session.delete(c);
+    }
+    tm.commit();
+  }
+ catch (  Exception e) {
+    try {
+      tm.rollback();
+    }
+ catch (    Exception e1) {
+      log.error("Exception rolling back txn",e1);
+    }
+    log.error("Caught exception in cleanup",e);
+  }
+}
