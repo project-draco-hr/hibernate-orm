@@ -7,8 +7,8 @@
   Session s=openSession();
   Transaction tx=s.beginTransaction();
   parent=(ParentWithCollection)s.get(parent.getClass(),parent.getId());
-  if (child instanceof ChildEntity) {
-    child=(Child)s.get(child.getClass(),((ChildEntity)child).getId());
+  if (child instanceof Entity) {
+    child=(Child)s.get(child.getClass(),((Entity)child).getId());
   }
   parent.addChild(child);
   tx.commit();
@@ -17,16 +17,20 @@
   if (((PersistentCollection)parent.getChildren()).wasInitialized()) {
     checkResult(listeners,listeners.getInitializeCollectionListener(),parent,index++);
   }
-  if (child.hasBidirectionalManyToMany() && ((PersistentCollection)getParents(child)).wasInitialized()) {
-    checkResult(listeners,listeners.getInitializeCollectionListener(),child,index++);
+  ChildWithBidirectionalManyToMany childWithManyToMany=null;
+  if (child instanceof ChildWithBidirectionalManyToMany) {
+    childWithManyToMany=(ChildWithBidirectionalManyToMany)child;
+    if (((PersistentCollection)childWithManyToMany.getParents()).wasInitialized()) {
+      checkResult(listeners,listeners.getInitializeCollectionListener(),childWithManyToMany,index++);
+    }
   }
   if (!(parent.getChildren() instanceof PersistentSet)) {
     checkResult(listeners,listeners.getPreCollectionUpdateListener(),parent,index++);
     checkResult(listeners,listeners.getPostCollectionUpdateListener(),parent,index++);
   }
-  if (child.hasBidirectionalManyToMany() && !(getParents(child) instanceof PersistentSet)) {
-    checkResult(listeners,listeners.getPreCollectionUpdateListener(),child,index++);
-    checkResult(listeners,listeners.getPostCollectionUpdateListener(),child,index++);
+  if (childWithManyToMany != null && !(childWithManyToMany.getParents() instanceof PersistentSet)) {
+    checkResult(listeners,listeners.getPreCollectionUpdateListener(),childWithManyToMany,index++);
+    checkResult(listeners,listeners.getPostCollectionUpdateListener(),childWithManyToMany,index++);
   }
   checkNumberOfResults(listeners,index);
 }

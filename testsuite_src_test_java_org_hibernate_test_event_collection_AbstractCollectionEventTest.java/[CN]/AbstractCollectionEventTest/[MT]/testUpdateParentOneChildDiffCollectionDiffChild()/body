@@ -7,8 +7,8 @@
   Session s=openSession();
   Transaction tx=s.beginTransaction();
   parent=(ParentWithCollection)s.get(parent.getClass(),parent.getId());
-  if (oldChild instanceof ChildEntity) {
-    oldChild=(ChildEntity)s.get(oldChild.getClass(),((ChildEntity)oldChild).getId());
+  if (oldChild instanceof Entity) {
+    oldChild=(Child)s.get(oldChild.getClass(),((Entity)oldChild).getId());
   }
   Collection oldCollection=parent.getChildren();
   parent.newChildren(createCollection());
@@ -19,16 +19,19 @@
   if (((PersistentCollection)oldCollection).wasInitialized()) {
     checkResult(listeners,listeners.getInitializeCollectionListener(),parent,oldCollection,index++);
   }
-  if (oldChild.hasBidirectionalManyToMany() && ((PersistentCollection)getParents(oldChild)).wasInitialized()) {
-    checkResult(listeners,listeners.getInitializeCollectionListener(),oldChild,index++);
+  if (oldChild instanceof ChildWithBidirectionalManyToMany) {
+    ChildWithBidirectionalManyToMany oldChildWithManyToMany=(ChildWithBidirectionalManyToMany)oldChild;
+    if (((PersistentCollection)oldChildWithManyToMany.getParents()).wasInitialized()) {
+      checkResult(listeners,listeners.getInitializeCollectionListener(),oldChildWithManyToMany,index++);
+    }
   }
   checkResult(listeners,listeners.getPreCollectionRemoveListener(),parent,oldCollection,index++);
   checkResult(listeners,listeners.getPostCollectionRemoveListener(),parent,oldCollection,index++);
-  if (oldChild.hasBidirectionalManyToMany()) {
-    checkResult(listeners,listeners.getPreCollectionUpdateListener(),oldChild,index++);
-    checkResult(listeners,listeners.getPostCollectionUpdateListener(),oldChild,index++);
-    checkResult(listeners,listeners.getPreCollectionRecreateListener(),newChild,index++);
-    checkResult(listeners,listeners.getPostCollectionRecreateListener(),newChild,index++);
+  if (oldChild instanceof ChildWithBidirectionalManyToMany) {
+    checkResult(listeners,listeners.getPreCollectionUpdateListener(),(ChildWithBidirectionalManyToMany)oldChild,index++);
+    checkResult(listeners,listeners.getPostCollectionUpdateListener(),(ChildWithBidirectionalManyToMany)oldChild,index++);
+    checkResult(listeners,listeners.getPreCollectionRecreateListener(),(ChildWithBidirectionalManyToMany)newChild,index++);
+    checkResult(listeners,listeners.getPostCollectionRecreateListener(),(ChildWithBidirectionalManyToMany)newChild,index++);
   }
   checkResult(listeners,listeners.getPreCollectionRecreateListener(),parent,index++);
   checkResult(listeners,listeners.getPostCollectionRecreateListener(),parent,index++);

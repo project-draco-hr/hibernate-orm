@@ -6,11 +6,11 @@
   Session s=openSession();
   Transaction tx=s.beginTransaction();
   parent=(ParentWithCollection)s.get(parent.getClass(),parent.getId());
-  if (child instanceof ChildEntity) {
-    child=(Child)s.get(child.getClass(),((ChildEntity)child).getId());
+  if (child instanceof Entity) {
+    child=(Child)s.get(child.getClass(),((Entity)child).getId());
   }
   parent.removeChild(child);
-  if (child instanceof ChildEntity) {
+  if (child instanceof Entity) {
     s.delete(child);
   }
   s.delete(parent);
@@ -18,14 +18,14 @@
   s.close();
   int index=0;
   checkResult(listeners,listeners.getInitializeCollectionListener(),parent,index++);
-  if (child.hasBidirectionalManyToMany()) {
-    checkResult(listeners,listeners.getInitializeCollectionListener(),child,index++);
+  if (child instanceof ChildWithBidirectionalManyToMany) {
+    checkResult(listeners,listeners.getInitializeCollectionListener(),(ChildWithBidirectionalManyToMany)child,index++);
   }
   checkResult(listeners,listeners.getPreCollectionRemoveListener(),parent,index++);
   checkResult(listeners,listeners.getPostCollectionRemoveListener(),parent,index++);
-  if (child.hasBidirectionalManyToMany()) {
-    checkResult(listeners,listeners.getPreCollectionRemoveListener(),child,index++);
-    checkResult(listeners,listeners.getPostCollectionRemoveListener(),child,index++);
+  if (child instanceof ChildWithBidirectionalManyToMany) {
+    checkResult(listeners,listeners.getPreCollectionRemoveListener(),(ChildWithBidirectionalManyToMany)child,index++);
+    checkResult(listeners,listeners.getPostCollectionRemoveListener(),(ChildWithBidirectionalManyToMany)child,index++);
   }
   checkNumberOfResults(listeners,index);
 }

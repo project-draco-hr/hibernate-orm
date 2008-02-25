@@ -8,8 +8,8 @@
   Transaction tx=s.beginTransaction();
   parent=(ParentWithCollection)s.get(parent.getClass(),parent.getId());
   otherParent=(ParentWithCollection)s.get(otherParent.getClass(),otherParent.getId());
-  if (child instanceof ChildEntity) {
-    child=(ChildEntity)s.get(child.getClass(),((ChildEntity)child).getId());
+  if (child instanceof Entity) {
+    child=(Child)s.get(child.getClass(),((Entity)child).getId());
   }
   otherParent.addAllChildren(parent.getChildren());
   parent.clearChildren();
@@ -22,16 +22,16 @@
   if (((PersistentCollection)otherParent.getChildren()).wasInitialized()) {
     checkResult(listeners,listeners.getInitializeCollectionListener(),otherParent,index++);
   }
-  if (child.hasBidirectionalManyToMany()) {
-    checkResult(listeners,listeners.getInitializeCollectionListener(),child,index++);
+  if (child instanceof ChildWithBidirectionalManyToMany) {
+    checkResult(listeners,listeners.getInitializeCollectionListener(),(ChildWithBidirectionalManyToMany)child,index++);
   }
   checkResult(listeners,listeners.getPreCollectionUpdateListener(),parent,index++);
   checkResult(listeners,listeners.getPostCollectionUpdateListener(),parent,index++);
   checkResult(listeners,listeners.getPreCollectionUpdateListener(),otherParent,index++);
   checkResult(listeners,listeners.getPostCollectionUpdateListener(),otherParent,index++);
-  if (child.hasBidirectionalManyToMany()) {
-    checkResult(listeners,listeners.getPreCollectionUpdateListener(),child,index++);
-    checkResult(listeners,listeners.getPostCollectionUpdateListener(),child,index++);
+  if (child instanceof ChildWithBidirectionalManyToMany) {
+    checkResult(listeners,listeners.getPreCollectionUpdateListener(),(ChildWithBidirectionalManyToMany)child,index++);
+    checkResult(listeners,listeners.getPostCollectionUpdateListener(),(ChildWithBidirectionalManyToMany)child,index++);
   }
   checkNumberOfResults(listeners,index);
 }
