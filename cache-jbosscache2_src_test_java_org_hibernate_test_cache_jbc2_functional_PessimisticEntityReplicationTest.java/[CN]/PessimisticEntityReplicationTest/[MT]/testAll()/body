@@ -1,11 +1,11 @@
 {
   System.out.println("*** testAll()");
-  CacheManager localManager=TestCacheInstanceManager.getTestCacheManager(LOCAL);
+  CacheManager localManager=TestCacheInstanceManager.getTestCacheManager(DualNodeTestUtil.LOCAL);
   Cache localCache=localManager.getCache(getEntityCacheConfigName(),true);
   MyListener localListener=new MyListener();
   localCache.addCacheListener(localListener);
   TransactionManager localTM=localCache.getConfiguration().getRuntimeConfig().getTransactionManager();
-  CacheManager remoteManager=TestCacheInstanceManager.getTestCacheManager(REMOTE);
+  CacheManager remoteManager=TestCacheInstanceManager.getTestCacheManager(DualNodeTestUtil.REMOTE);
   Cache remoteCache=remoteManager.getCache(getEntityCacheConfigName(),true);
   MyListener remoteListener=new MyListener();
   remoteCache.addCacheListener(remoteListener);
@@ -18,12 +18,12 @@
     sleep(SLEEP_TIME);
     System.out.println("Find node 0");
     getCustomer(ids.customerId,localFactory,localTM);
+    sleep(SLEEP_TIME);
     System.out.println("Find(2) node 0");
     localListener.clear();
     getCustomer(ids.customerId,localFactory,localTM);
     System.out.println("Check cache 0");
     assertLoadedFromCache(localListener,ids.customerId,ids.contactIds);
-    sleep(SLEEP_TIME);
     System.out.println("Find node 1");
     getCustomer(ids.customerId,remoteFactory,remoteTM);
     System.out.println("Check cache 1");
