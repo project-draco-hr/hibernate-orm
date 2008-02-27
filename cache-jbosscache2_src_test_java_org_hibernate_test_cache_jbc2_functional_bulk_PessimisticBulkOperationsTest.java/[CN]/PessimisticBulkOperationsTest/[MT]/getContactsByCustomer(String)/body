@@ -1,0 +1,15 @@
+{
+  String selectHQL="select contact.id from Contact contact";
+  selectHQL+=" where contact.customer.name = :cName";
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  try {
+    Session session=getSessions().getCurrentSession();
+    List results=session.createQuery(selectHQL).setFlushMode(FlushMode.AUTO).setParameter("cName",customerName).list();
+    SimpleJtaTransactionManagerImpl.getInstance().commit();
+    return results;
+  }
+ catch (  Exception e) {
+    SimpleJtaTransactionManagerImpl.getInstance().rollback();
+    throw e;
+  }
+}
