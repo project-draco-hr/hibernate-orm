@@ -12,11 +12,19 @@
         jbcRegion.activate();
       }
     }
-    if (CacheHelper.isClusteredReplication(cfg.getCacheMode()) || CacheHelper.isClusteredInvalidation(cfg.getCacheMode())) {
-      listener=new RegionRootListener();
-      jbcCache.addCacheListener(listener);
+    regionRoot=jbcCache.getRoot().getChild(regionFqn);
+    if (regionRoot == null || !regionRoot.isValid()) {
+      DataVersion version=optimistic ? NonLockingDataVersion.INSTANCE : null;
+      regionRoot=CacheHelper.addNode(jbcCache,regionFqn,true,true,version);
     }
-    establishRegionRootNode();
+ else     if (optimistic && regionRoot instanceof NodeSPI) {
+      if (!(((NodeSPI)regionRoot).getVersion() instanceof NonLockingDataVersion)) {
+        ((NodeSPI)regionRoot).setVersion(NonLockingDataVersion.INSTANCE);
+      }
+    }
+    if (!regionRoot.isResident()) {
+      regionRoot.setResident(true);
+    }
   }
  catch (  Exception e) {
     throw new CacheException(e.getMessage(),e);

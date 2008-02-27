@@ -1,22 +1,30 @@
 {
 synchronized (regionRootMutex) {
-    if (regionRoot != null && regionRoot.isValid())     return;
-    Transaction tx=suspend();
-    try {
+    if (regionRoot != null && regionRoot.isValid()) {
+      return;
+    }
+    if (!optimistic) {
       regionRoot=jbcCache.getRoot().getChild(regionFqn);
-      if (regionRoot == null) {
+      return;
+    }
+    Transaction tx=suspend();
+    Node newRoot=null;
+    try {
+      newRoot=jbcCache.getRoot().getChild(regionFqn);
+      if (newRoot == null || !newRoot.isValid()) {
         DataVersion version=optimistic ? NonLockingDataVersion.INSTANCE : null;
-        regionRoot=CacheHelper.addNode(jbcCache,regionFqn,true,true,version);
+        newRoot=CacheHelper.addNode(jbcCache,regionFqn,true,true,version);
       }
- else       if (optimistic && regionRoot instanceof NodeSPI) {
-        if (!(((NodeSPI)regionRoot).getVersion() instanceof NonLockingDataVersion)) {
-          ((NodeSPI)regionRoot).setVersion(NonLockingDataVersion.INSTANCE);
+ else       if (newRoot instanceof NodeSPI) {
+        if (!(((NodeSPI)newRoot).getVersion() instanceof NonLockingDataVersion)) {
+          ((NodeSPI)newRoot).setVersion(NonLockingDataVersion.INSTANCE);
         }
       }
-      regionRoot.setResident(true);
+      newRoot.setResident(true);
     }
   finally {
       resume(tx);
+      regionRoot=newRoot;
     }
   }
 }
