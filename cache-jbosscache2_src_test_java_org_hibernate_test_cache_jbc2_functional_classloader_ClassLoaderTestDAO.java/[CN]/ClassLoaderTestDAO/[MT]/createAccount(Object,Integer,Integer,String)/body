@@ -1,0 +1,19 @@
+{
+  log.debug("Creating account " + id);
+  tm.begin();
+  try {
+    Object account=acctClass.newInstance();
+    setId.invoke(account,id);
+    setHolder.invoke(account,holder);
+    setBalance.invoke(account,openingBalance);
+    setBranch.invoke(account,branch);
+    sessionFactory.getCurrentSession().persist(account);
+    tm.commit();
+  }
+ catch (  Exception e) {
+    log.error("rolling back",e);
+    tm.rollback();
+    throw e;
+  }
+  log.debug("Created account " + id);
+}

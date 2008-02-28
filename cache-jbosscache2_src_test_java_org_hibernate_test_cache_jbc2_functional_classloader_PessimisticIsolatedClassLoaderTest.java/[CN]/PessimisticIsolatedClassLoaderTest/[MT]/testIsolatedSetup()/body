@@ -1,0 +1,28 @@
+{
+  org.jboss.cache.CacheManager localManager=TestCacheInstanceManager.getTestCacheManager(DualNodeTestUtil.LOCAL);
+  org.jboss.cache.Cache localCache=localManager.getCache(getEntityCacheConfigName(),true);
+  org.jboss.cache.CacheManager remoteManager=TestCacheInstanceManager.getTestCacheManager(DualNodeTestUtil.REMOTE);
+  org.jboss.cache.Cache remoteCache=remoteManager.getCache(getEntityCacheConfigName(),true);
+  ClassLoader cl=Thread.currentThread().getContextClassLoader();
+  log.info("TCCL is " + cl);
+  Thread.currentThread().setContextClassLoader(cl.getParent());
+  org.jboss.cache.Fqn fqn=org.jboss.cache.Fqn.fromString("/isolated1");
+  org.jboss.cache.Region r=localCache.getRegion(fqn,true);
+  r.activate();
+  r=remoteCache.getRegion(fqn,true);
+  r.activate();
+  Thread.currentThread().setContextClassLoader(cl);
+  Account acct=new Account();
+  acct.setAccountHolder(new AccountHolder());
+  try {
+    localCache.put(fqn,"key",acct);
+    fail("Should not have succeeded in putting acct -- classloader not isolated");
+  }
+ catch (  Exception e) {
+    log.info("Caught exception as desired",e);
+  }
+  localCache.getRegion(fqn,false).registerContextClassLoader(Thread.currentThread().getContextClassLoader());
+  remoteCache.getRegion(fqn,false).registerContextClassLoader(Thread.currentThread().getContextClassLoader());
+  localCache.put(fqn,"key",acct);
+  assertEquals(acct.getClass().getName(),remoteCache.get(fqn,"key").getClass().getName());
+}

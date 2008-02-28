@@ -1,0 +1,60 @@
+{
+  CacheManager localManager=TestCacheInstanceManager.getTestCacheManager(DualNodeTestUtil.LOCAL);
+  Cache localCache=localManager.getCache(getEntityCacheConfigName(),true);
+  CacheAccessListener localListener=new CacheAccessListener();
+  localCache.addCacheListener(localListener);
+  TransactionManager localTM=localCache.getConfiguration().getRuntimeConfig().getTransactionManager();
+  CacheManager remoteManager=TestCacheInstanceManager.getTestCacheManager(DualNodeTestUtil.REMOTE);
+  Cache remoteCache=remoteManager.getCache(getEntityCacheConfigName(),true);
+  CacheAccessListener remoteListener=new CacheAccessListener();
+  remoteCache.addCacheListener(remoteListener);
+  TransactionManager remoteTM=remoteCache.getConfiguration().getRuntimeConfig().getTransactionManager();
+  SessionFactory localFactory=getEnvironment().getSessionFactory();
+  SessionFactory remoteFactory=getSecondNodeEnvironment().getSessionFactory();
+  ClassLoaderTestDAO dao0=new ClassLoaderTestDAO(localFactory,localTM);
+  ClassLoaderTestDAO dao1=new ClassLoaderTestDAO(remoteFactory,remoteTM);
+  String regionName=createRegionName(useNamedRegion ? "AccountRegion" : StandardQueryCache.class.getName());
+  Region queryRegion=remoteCache.getRegion(Fqn.fromString(regionName),false);
+  boolean queryRegionExists=queryRegion != null && queryRegion.isActive();
+  setupEntities(dao0);
+  assertEquals("63088 has correct # of accounts",6,dao0.getCountForBranch("63088",useNamedRegion));
+  assertTrue("Query cache used " + regionName,localListener.getSawRegionModification(regionName));
+  localListener.getSawRegionAccess(regionName);
+  log.info("First query on node0 done");
+  sleep(SLEEP_TIME);
+  if (!queryRegionExists) {
+    assertFalse("Query cache remotely modified " + regionName,remoteListener.getSawRegionModification(regionName));
+    remoteListener.getSawRegionAccess(regionName);
+  }
+ else {
+    assertTrue("Query cache remotely modified " + regionName,remoteListener.getSawRegionModification(regionName));
+    remoteListener.getSawRegionAccess(regionName);
+  }
+  assertEquals("63088 has correct # of accounts",6,dao1.getCountForBranch("63088",useNamedRegion));
+  if (!queryRegionExists) {
+    assertTrue("Query cache modified " + regionName,remoteListener.getSawRegionModification(regionName));
+    remoteListener.getSawRegionAccess(regionName);
+  }
+  log.info("First query on node 1 done");
+  sleep(SLEEP_TIME);
+  assertEquals("Correct branch for Smith","94536",dao0.getBranch(dao0.getSmith(),useNamedRegion));
+  assertEquals("Correct high balances for Jones",40,dao0.getTotalBalance(dao0.getJones(),useNamedRegion));
+  assertTrue("Query cache used " + regionName,localListener.getSawRegionModification(regionName));
+  localListener.getSawRegionAccess(regionName);
+  log.info("Second set of queries on node0 done");
+  sleep(SLEEP_TIME);
+  assertTrue("Query cache remotely modified " + regionName,remoteListener.getSawRegionModification(regionName));
+  remoteListener.getSawRegionAccess(regionName);
+  assertEquals("Correct branch for Smith","94536",dao1.getBranch(dao1.getSmith(),useNamedRegion));
+  assertEquals("Correct high balances for Jones",40,dao1.getTotalBalance(dao1.getJones(),useNamedRegion));
+  assertFalse("Query cache modified " + regionName,remoteListener.getSawRegionModification(regionName));
+  assertTrue("Query cache accessed " + regionName,remoteListener.getSawRegionAccess(regionName));
+  log.info("Second set of queries on node1 done");
+  sleep(SLEEP_TIME);
+  modifyEntities(dao1);
+  sleep(SLEEP_TIME);
+  assertEquals("63088 has correct # of accounts",7,dao0.getCountForBranch("63088",useNamedRegion));
+  assertEquals("Correct branch for Smith","63088",dao0.getBranch(dao0.getSmith(),useNamedRegion));
+  assertEquals("Correct high balances for Jones",50,dao0.getTotalBalance(dao0.getJones(),useNamedRegion));
+  log.info("Third set of queries on node0 done");
+}

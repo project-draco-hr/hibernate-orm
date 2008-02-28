@@ -1,5 +1,10 @@
 {
-  super.start(settings,properties);
   cacheManagerName=properties.getProperty(DualNodeTestUtil.NODE_ID_PROP);
-  cacheManagers.put(cacheManagerName,getCacheFactory());
+  CacheManager existing=getTestCacheManager(cacheManagerName);
+  locallyAdded=(existing == null);
+  if (!locallyAdded) {
+    setCacheFactory(existing);
+  }
+  super.start(settings,properties);
+  if (locallyAdded)   cacheManagers.put(cacheManagerName,getCacheFactory());
 }
