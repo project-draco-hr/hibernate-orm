@@ -6,6 +6,13 @@
   this.settings=settings;
   this.sqlFunctionRegistry=new SQLFunctionRegistry(settings.getDialect(),cfg.getSqlFunctions());
   this.eventListeners=listeners;
+  this.observer=observer != null ? observer : new SessionFactoryObserver(){
+    public void sessionFactoryCreated(    SessionFactory factory){
+    }
+    public void sessionFactoryClosed(    SessionFactory factory){
+    }
+  }
+;
   this.filters=new HashMap();
   this.filters.putAll(cfg.getFilterDefinitions());
   if (log.isDebugEnabled()) {
@@ -178,4 +185,5 @@
 ;
   }
   this.entityNotFoundDelegate=entityNotFoundDelegate;
+  this.observer.sessionFactoryCreated(this);
 }

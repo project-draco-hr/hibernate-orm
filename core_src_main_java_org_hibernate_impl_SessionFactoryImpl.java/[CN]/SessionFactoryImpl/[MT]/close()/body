@@ -1,4 +1,8 @@
 {
+  if (isClosed) {
+    log.trace("already closed");
+    return;
+  }
   log.info("closing");
   isClosed=true;
   Iterator iter=entityPersisters.values().iterator();
@@ -34,4 +38,6 @@
   if (settings.isAutoDropSchema()) {
     schemaExport.drop(false,true);
   }
+  observer.sessionFactoryClosed(this);
+  eventListeners.destroyListeners();
 }
