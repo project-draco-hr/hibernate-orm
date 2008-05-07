@@ -1,18 +1,22 @@
 {
   Field[] fields=getClass().getDeclaredFields();
   for (int i=0; i < fields.length; i++) {
+    final Object[] listeners;
     try {
-      final Object field=fields[i].get(this);
-      if (field instanceof Object[]) {
-        final Object[] listeners=(Object[])field;
-        int length=listeners.length;
-        for (int index=0; index < length; index++) {
-          processer.processListener(listeners[index]);
-        }
+      Object fieldValue=fields[i].get(this);
+      if (fieldValue instanceof Object[]) {
+        listeners=(Object[])fieldValue;
+      }
+ else {
+        continue;
       }
     }
- catch (    Exception e) {
-      throw new HibernateException("could not process listeners",e);
+ catch (    Throwable t) {
+      throw new HibernateException("could not init listeners",t);
+    }
+    int length=listeners.length;
+    for (int index=0; index < length; index++) {
+      processer.processListener(listeners[index]);
     }
   }
 }
