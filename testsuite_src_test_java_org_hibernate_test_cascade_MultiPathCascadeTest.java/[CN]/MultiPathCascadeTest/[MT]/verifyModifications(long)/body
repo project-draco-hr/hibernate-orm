@@ -1,0 +1,24 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  A a=(A)s.get(A.class,new Long(aId));
+  assertEquals(aId,a.getId());
+  assertEquals("Anthony",a.getData());
+  assertNotNull(a.getG());
+  assertNotNull(a.getHs());
+  assertEquals(1,a.getHs().size());
+  G gFromA=a.getG();
+  H hFromA=(H)a.getHs().iterator().next();
+  assertEquals("Giovanni",gFromA.getData());
+  assertSame(a,gFromA.getA());
+  assertNotNull(gFromA.getHs());
+  assertEquals(a.getHs(),gFromA.getHs());
+  assertSame(hFromA,gFromA.getHs().iterator().next());
+  assertEquals("Hellen",hFromA.getData());
+  assertSame(a,hFromA.getA());
+  assertNotNull(hFromA.getGs());
+  assertEquals(1,hFromA.getGs().size());
+  assertSame(gFromA,hFromA.getGs().iterator().next());
+  s.getTransaction().commit();
+  s.close();
+}

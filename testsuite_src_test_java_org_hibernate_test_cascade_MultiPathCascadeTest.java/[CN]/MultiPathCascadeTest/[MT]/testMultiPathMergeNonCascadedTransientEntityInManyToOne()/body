@@ -1,0 +1,35 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  A a=new A();
+  a.setData("Anna");
+  s.save(a);
+  s.getTransaction().commit();
+  s.close();
+  modifyEntity(a);
+  s=openSession();
+  s.beginTransaction();
+  a=(A)s.merge(a);
+  s.getTransaction().commit();
+  s.close();
+  verifyModifications(a.getId());
+  assertEquals(1,a.getHs().size());
+  H h=(H)a.getHs().iterator().next();
+  a.getHs().remove(h);
+  A aNew=new A();
+  aNew.setData("Alice");
+  aNew.addH(h);
+  s=openSession();
+  s.beginTransaction();
+  try {
+    s.merge(a);
+    s.merge(h);
+    fail("should have thrown TransientObjectException");
+  }
+ catch (  TransientObjectException ex) {
+  }
+ finally {
+    s.getTransaction().rollback();
+  }
+  s.close();
+}

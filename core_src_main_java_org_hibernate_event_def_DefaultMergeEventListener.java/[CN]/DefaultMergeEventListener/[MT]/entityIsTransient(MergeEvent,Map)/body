@@ -5,8 +5,13 @@
   final EntityPersister persister=source.getEntityPersister(event.getEntityName(),entity);
   final String entityName=persister.getEntityName();
   final Serializable id=persister.hasIdentifierProperty() ? persister.getIdentifier(entity,source.getEntityMode()) : null;
-  final Object copy=persister.instantiate(id,source.getEntityMode());
-  copyCache.put(entity,copy);
+  if (copyCache.containsKey(entity)) {
+    persister.setIdentifier(copyCache.get(entity),id,source.getEntityMode());
+  }
+ else {
+    copyCache.put(entity,persister.instantiate(id,source.getEntityMode()));
+  }
+  final Object copy=copyCache.get(entity);
   super.cascadeBeforeSave(source,persister,entity,copyCache);
   copyValues(persister,entity,copy,source,copyCache,ForeignKeyDirection.FOREIGN_KEY_FROM_PARENT);
   final Serializable requestedId=event.getRequestedId();
