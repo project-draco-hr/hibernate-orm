@@ -1,7 +1,6 @@
 {
-  EntityPersister persister=sfi().getEntityPersister(PettingZoo.class.getName());
-  IdentifierGenerator generator=persister.getIdentifierGenerator();
-  if (!HqlSqlWalker.supportsIdGenWithBulkInsertion(generator)) {
+  if (!supportsBulkInsertIdGeneration(PettingZoo.class)) {
+    reportSkip("bulk id generation not supported","test bulk inserts with generated id and generated timestamp");
     return;
   }
   Zoo zoo=new Zoo();
@@ -23,7 +22,7 @@
   t.commit();
   s.close();
   assertEquals(zoo.getName(),pz.getName());
-  assertTrue(zoo.getId() != pz.getId());
+  assertTrue(!zoo.getId().equals(pz.getId()));
   s=openSession();
   t=s.beginTransaction();
   s.createQuery("delete Zoo").executeUpdate();

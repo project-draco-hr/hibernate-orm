@@ -1,7 +1,10 @@
 {
-  EntityPersister persister=sfi().getEntityPersister(TimestampVersioned.class.getName());
-  IdentifierGenerator generator=persister.getIdentifierGenerator();
-  if (!HqlSqlWalker.supportsIdGenWithBulkInsertion(generator)) {
+  if (!supportsBulkInsertIdGeneration(TimestampVersioned.class)) {
+    reportSkip("bulk id generation not supported","test bulk inserts with generated id and generated timestamp");
+    return;
+  }
+  if (!getDialect().supportsParametersInInsertSelect()) {
+    reportSkip("dialect does not support parameter in INSERT ... SELECT","test bulk inserts with generated id and generated timestamp");
     return;
   }
   Session s=openSession();
