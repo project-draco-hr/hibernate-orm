@@ -1,0 +1,18 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  PurchaseRecord record=new PurchaseRecord();
+  s.persist(record);
+  t.commit();
+  s.close();
+  PurchaseRecord.Id id=record.getId();
+  Date timestamp=record.getTimestamp();
+  PurchaseRecord toLoad=new PurchaseRecord();
+  s=openSession();
+  t=s.beginTransaction();
+  s.load(toLoad,id);
+  t.commit();
+  s.close();
+  assertEquals(id,toLoad.getId());
+  assertEquals(timestamp,toLoad.getTimestamp());
+}

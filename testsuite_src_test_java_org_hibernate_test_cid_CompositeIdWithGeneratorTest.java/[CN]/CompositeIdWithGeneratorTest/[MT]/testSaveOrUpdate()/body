@@ -1,0 +1,22 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  Date timestamp1=new Date();
+  Date timestamp2=new Date(timestamp1.getTime() + 1);
+  PurchaseRecord record=new PurchaseRecord();
+  record.setTimestamp(timestamp1);
+  s.saveOrUpdate(record);
+  t.commit();
+  s.close();
+  PurchaseRecord.Id generatedId=record.getId();
+  assertNotNull(generatedId);
+  assertNotNull(generatedId.getPurchaseSequence());
+  record.setTimestamp(timestamp2);
+  s=openSession();
+  t=s.beginTransaction();
+  s.saveOrUpdate(record);
+  t.commit();
+  s.close();
+  assertSame(generatedId,record.getId());
+  assertEquals(timestamp2,record.getTimestamp());
+}

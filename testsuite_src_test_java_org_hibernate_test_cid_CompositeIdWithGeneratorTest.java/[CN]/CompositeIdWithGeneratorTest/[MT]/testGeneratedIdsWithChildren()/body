@@ -1,0 +1,22 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  PurchaseRecord record=new PurchaseRecord();
+  Set details=record.getDetails();
+  details.add(new PurchaseDetail(record,"p@1",1));
+  details.add(new PurchaseDetail(record,"p@2",2));
+  s.persist(record);
+  t.commit();
+  s.close();
+  int foundPurchaseNumber=record.getId().getPurchaseNumber();
+  String foundPurchaseSequence=record.getId().getPurchaseSequence();
+  assertNotNull(record.getId());
+  assertTrue(foundPurchaseNumber > 0);
+  assertNotNull(foundPurchaseSequence);
+  s=openSession();
+  t=s.beginTransaction();
+  PurchaseRecord foundRecord=(PurchaseRecord)s.get(PurchaseRecord.class,new PurchaseRecord.Id(foundPurchaseNumber,foundPurchaseSequence));
+  t.commit();
+  s.close();
+  assertEquals(2,foundRecord.getDetails().size());
+}

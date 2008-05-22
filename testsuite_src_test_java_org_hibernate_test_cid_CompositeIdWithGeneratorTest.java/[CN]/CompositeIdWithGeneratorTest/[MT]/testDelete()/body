@@ -1,0 +1,22 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  PurchaseRecord record=new PurchaseRecord();
+  s.saveOrUpdate(record);
+  t.commit();
+  s.close();
+  PurchaseRecord.Id generatedId=record.getId();
+  s=openSession();
+  t=s.beginTransaction();
+  PurchaseRecord find=(PurchaseRecord)s.get(PurchaseRecord.class,generatedId);
+  s.delete(find);
+  assertFalse(s.contains(find));
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  find=(PurchaseRecord)s.get(PurchaseRecord.class,generatedId);
+  t.commit();
+  s.close();
+  assertNull(find);
+}

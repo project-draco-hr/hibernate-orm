@@ -1,0 +1,31 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  PurchaseRecord record=new PurchaseRecord();
+  s.persist(record);
+  t.commit();
+  s.close();
+  PurchaseRecord.Id generatedId=record.getId();
+  Date persistedTimestamp=record.getTimestamp();
+  Date newTimestamp=new Date(persistedTimestamp.getTime() + 1);
+  record.setTimestamp(newTimestamp);
+  s=openSession();
+  t=s.beginTransaction();
+  PurchaseRecord find=(PurchaseRecord)s.get(PurchaseRecord.class,generatedId);
+  t.commit();
+  s.close();
+  assertEquals(generatedId,find.getId());
+  assertEquals(persistedTimestamp,find.getTimestamp());
+  s=openSession();
+  t=s.beginTransaction();
+  s.update(record);
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  PurchaseRecord find2=(PurchaseRecord)s.get(PurchaseRecord.class,generatedId);
+  t.commit();
+  s.close();
+  assertEquals(generatedId,find2.getId());
+  assertEquals(newTimestamp,find2.getTimestamp());
+}
