@@ -3,8 +3,11 @@
   TransactionManager cacheTm=cacheConfig.getRuntimeConfig().getTransactionManager();
   if (!safeEquals(tm,cacheTm)) {
     if (cache.getCacheStatus() != CacheStatus.INSTANTIATED) {
-      if (!allowNull || cacheTm != null) {
-        throw new CacheException("JBoss Cache is already started " + "with a transaction manager (" + cacheTm + ") that doesn't match our own ("+ tm+ ")");
+      if (!allowNull && cacheTm == null) {
+        throw new CacheException("JBoss Cache is already started with no transaction manager configured");
+      }
+ else {
+        log.debug("JBoss Cache is already started with a transaction manager (" + cacheTm + ") that is not equal to our own ("+ tm+ ")");
       }
     }
  else {
