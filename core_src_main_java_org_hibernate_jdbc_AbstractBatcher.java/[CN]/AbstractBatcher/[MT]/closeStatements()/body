@@ -2,7 +2,9 @@
   try {
     releasing=true;
     try {
-      if (batchUpdate != null)       batchUpdate.close();
+      if (batchUpdate != null) {
+        batchUpdate.close();
+      }
     }
  catch (    SQLException sqle) {
       log.warn("Could not close a JDBC prepared statement",sqle);
@@ -18,6 +20,10 @@
  catch (      SQLException e) {
         log.warn("Could not close a JDBC result set",e);
       }
+catch (      ConcurrentModificationException e) {
+        log.info("encountered CME attempting to release batcher; assuming cause is tx-timeout scenario and ignoring");
+        break;
+      }
 catch (      Throwable e) {
         log.warn("Could not close a JDBC result set",e);
       }
@@ -28,7 +34,11 @@ catch (      Throwable e) {
       try {
         closeQueryStatement((PreparedStatement)iter.next());
       }
- catch (      SQLException e) {
+ catch (      ConcurrentModificationException e) {
+        log.info("encountered CME attempting to release batcher; assuming cause is tx-timeout scenario and ignoring");
+        break;
+      }
+catch (      SQLException e) {
         log.warn("Could not close a JDBC statement",e);
       }
     }
