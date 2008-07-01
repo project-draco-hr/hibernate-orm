@@ -1,0 +1,34 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  VersionedEntity parent=new VersionedEntity("parent","parent");
+  VersionedEntity child=new VersionedEntity("child","child");
+  parent.getChildren().add(child);
+  child.setParent(parent);
+  s.persist(parent);
+  s.getTransaction().commit();
+  s.close();
+  clearCounts();
+  s=openSession();
+  s.beginTransaction();
+  VersionedEntity persistentParent=(VersionedEntity)s.get(VersionedEntity.class,parent.getId());
+  VersionedEntity persistentChild=(VersionedEntity)persistentParent.getChildren().iterator().next();
+  VersionedEntity mergedParent=(VersionedEntity)s.merge(persistentParent);
+  s.getTransaction().commit();
+  s.close();
+  assertUpdateCount(0);
+  assertInsertCount(0);
+  assertEquals("unexpected parent version increment",parent.getVersion(),mergedParent.getVersion());
+  VersionedEntity mergedChild=(VersionedEntity)mergedParent.getChildren().iterator().next();
+  assertEquals("unexpected child version increment",child.getVersion(),mergedChild.getVersion());
+  s=openSession();
+  s.beginTransaction();
+  persistentParent=(VersionedEntity)s.get(VersionedEntity.class,parent.getId());
+  persistentParent.setName("new name");
+  persistentParent.getChildren().add(new VersionedEntity("child2","new child"));
+  persistentParent=(VersionedEntity)s.merge(persistentParent);
+  s.getTransaction().commit();
+  s.close();
+  assertUpdateCount(1);
+  assertInsertCount(1);
+}

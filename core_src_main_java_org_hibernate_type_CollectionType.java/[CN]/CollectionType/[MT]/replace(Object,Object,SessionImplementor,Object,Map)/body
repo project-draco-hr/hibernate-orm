@@ -8,7 +8,11 @@
   Object result=target == null || target == original ? instantiateResult(original) : target;
   result=replaceElements(original,result,owner,copyCache,session);
   if (original == target) {
+    boolean wasClean=PersistentCollection.class.isInstance(target) && !((PersistentCollection)target).isDirty();
     replaceElements(result,target,owner,copyCache,session);
+    if (wasClean) {
+      ((PersistentCollection)target).clearDirty();
+    }
     result=target;
   }
   return result;
