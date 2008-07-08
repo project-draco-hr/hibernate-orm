@@ -1,19 +1,5 @@
 {
-  try {
-    context=NamingHelper.getInitialContext(props);
-  }
- catch (  NamingException ne) {
-    log.error("Could not obtain initial context",ne);
-    throw new HibernateException("Could not obtain initial context",ne);
-  }
-  utName=props.getProperty(Environment.USER_TRANSACTION);
-  if (utName == null) {
-    TransactionManagerLookup lookup=TransactionManagerLookupFactory.getTransactionManagerLookup(props);
-    if (lookup != null) {
-      utName=lookup.getUserTransactionName();
-    }
-  }
-  if (utName == null) {
-    utName=DEFAULT_USER_TRANSACTION_NAME;
-  }
+  this.initialContext=resolveInitialContext(props);
+  this.userTransactionName=resolveUserTransactionName(props);
+  log.trace("Configured JTATransactionFactory to use [{}] for UserTransaction JDNI namespace",userTransactionName);
 }

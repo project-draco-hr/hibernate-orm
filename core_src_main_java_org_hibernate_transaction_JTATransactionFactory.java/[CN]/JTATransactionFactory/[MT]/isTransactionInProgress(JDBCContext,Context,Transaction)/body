@@ -10,13 +10,8 @@
       return JTAHelper.isInProgress(jdbcContext.getFactory().getTransactionManager().getStatus());
     }
  else {
-      try {
-        UserTransaction ut=(UserTransaction)context.lookup(utName);
-        return ut != null && JTAHelper.isInProgress(ut.getStatus());
-      }
- catch (      NamingException ne) {
-        throw new TransactionException("Unable to locate UserTransaction to check status",ne);
-      }
+      UserTransaction ut=getUserTransaction();
+      return ut != null && JTAHelper.isInProgress(ut.getStatus());
     }
   }
  catch (  SystemException se) {

@@ -1,0 +1,14 @@
+{
+  log.trace("Attempting to locate UserTransaction via JNDI [{}]",getUserTransactionName());
+  try {
+    UserTransaction ut=(UserTransaction)getInitialContext().lookup(getUserTransactionName());
+    if (ut == null) {
+      throw new TransactionException("Naming service lookup for UserTransaction returned null [" + getUserTransactionName() + "]");
+    }
+    log.trace("Obtained UserTransaction");
+    return ut;
+  }
+ catch (  NamingException ne) {
+    throw new TransactionException("Could not find UserTransaction in JNDI [" + getUserTransaction() + "]",ne);
+  }
+}
