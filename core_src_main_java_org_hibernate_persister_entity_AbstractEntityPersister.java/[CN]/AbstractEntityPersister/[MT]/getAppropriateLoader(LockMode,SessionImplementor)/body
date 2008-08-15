@@ -1,17 +1,17 @@
 {
-  final Map enabledFilters=session.getEnabledFilters();
   if (queryLoader != null) {
     return queryLoader;
   }
- else   if (enabledFilters == null || enabledFilters.isEmpty()) {
-    if (session.getFetchProfile() != null && LockMode.UPGRADE.greaterThan(lockMode)) {
-      return (UniqueEntityLoader)loaders.get(session.getFetchProfile());
-    }
- else {
-      return (UniqueEntityLoader)loaders.get(lockMode);
-    }
+ else   if (isAffectedByEnabledFilters(session)) {
+    return createEntityLoader(lockMode,session.getLoadQueryInfluencers());
+  }
+ else   if (session.getLoadQueryInfluencers().getInternalFetchProfile() != null && LockMode.UPGRADE.greaterThan(lockMode)) {
+    return (UniqueEntityLoader)loaders.get(session.getLoadQueryInfluencers().getInternalFetchProfile());
+  }
+ else   if (isAffectedByEnabledFetchProfiles(session)) {
+    return createEntityLoader(lockMode,session.getLoadQueryInfluencers());
   }
  else {
-    return createEntityLoader(lockMode,enabledFilters);
+    return (UniqueEntityLoader)loaders.get(lockMode);
   }
 }

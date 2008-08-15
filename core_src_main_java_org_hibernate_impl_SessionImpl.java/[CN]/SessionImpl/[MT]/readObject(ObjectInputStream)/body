@@ -8,7 +8,6 @@
   cacheMode=CacheMode.parse((String)ois.readObject());
   flushBeforeCompletionEnabled=ois.readBoolean();
   autoCloseSessionEnabled=ois.readBoolean();
-  fetchProfile=(String)ois.readObject();
   interceptor=(Interceptor)ois.readObject();
   factory=SessionFactoryImpl.deserialize(ois);
   listeners=factory.getEventListeners();
@@ -17,9 +16,9 @@
   }
   persistenceContext=StatefulPersistenceContext.deserialize(ois,this);
   actionQueue=ActionQueue.deserialize(ois,this);
-  enabledFilters=(Map)ois.readObject();
+  loadQueryInfluencers=(LoadQueryInfluencers)ois.readObject();
   childSessionsByEntityMode=(Map)ois.readObject();
-  Iterator iter=enabledFilters.values().iterator();
+  Iterator iter=loadQueryInfluencers.getEnabledFilters().values().iterator();
   while (iter.hasNext()) {
     ((FilterImpl)iter.next()).afterDeserialize(factory);
   }

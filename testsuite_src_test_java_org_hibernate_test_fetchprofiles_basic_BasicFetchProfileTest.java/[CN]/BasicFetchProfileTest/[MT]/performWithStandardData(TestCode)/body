@@ -1,0 +1,45 @@
+{
+  Session session=openSession();
+  session.beginTransaction();
+  final Department literatureDepartment=new Department("lit","Literature");
+  session.save(literatureDepartment);
+  final Course lit101=new Course(new Course.Code(literatureDepartment,101),"Introduction to Literature");
+  session.save(lit101);
+  final CourseOffering section=new CourseOffering(lit101,1,2008);
+  session.save(section);
+  final Student me=new Student("Steve");
+  session.save(me);
+  final Enrollment enrollment=new Enrollment(section,me);
+  section.getEnrollments().add(enrollment);
+  session.save(enrollment);
+  session.getTransaction().commit();
+  session.close();
+  sfi().getStatistics().clear();
+  testCode.perform(new TestData(){
+    public Long getStudentId(){
+      return me.getId();
+    }
+    public Long getDepartmentId(){
+      return literatureDepartment.getId();
+    }
+    public Long getCourseId(){
+      return lit101.getId();
+    }
+    public Long getSectionId(){
+      return section.getId();
+    }
+    public Long getEnrollmentId(){
+      return enrollment.getId();
+    }
+  }
+);
+  session=openSession();
+  session.beginTransaction();
+  session.delete(enrollment);
+  session.delete(me);
+  session.delete(enrollment.getOffering());
+  session.delete(enrollment.getOffering().getCourse());
+  session.delete(enrollment.getOffering().getCourse().getCode().getDepartment());
+  session.getTransaction().commit();
+  session.close();
+}

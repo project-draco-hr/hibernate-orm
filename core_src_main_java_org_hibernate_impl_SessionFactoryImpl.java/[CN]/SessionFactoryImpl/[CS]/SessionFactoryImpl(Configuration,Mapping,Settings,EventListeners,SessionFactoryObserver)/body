@@ -185,5 +185,28 @@
 ;
   }
   this.entityNotFoundDelegate=entityNotFoundDelegate;
+  this.fetchProfiles=new HashMap();
+  itr=cfg.getFetchProfiles().values().iterator();
+  while (itr.hasNext()) {
+    final org.hibernate.mapping.FetchProfile mappingProfile=(org.hibernate.mapping.FetchProfile)itr.next();
+    final FetchProfile fetchProfile=new FetchProfile(mappingProfile.getName());
+    Iterator fetches=mappingProfile.getFetches().iterator();
+    while (fetches.hasNext()) {
+      final org.hibernate.mapping.FetchProfile.Fetch mappingFetch=(org.hibernate.mapping.FetchProfile.Fetch)fetches.next();
+      final String entityName=getImportedClassName(mappingFetch.getEntity());
+      final EntityPersister owner=(EntityPersister)(entityName == null ? null : entityPersisters.get(entityName));
+      if (owner == null) {
+        throw new HibernateException("Unable to resolve entity reference [" + mappingFetch.getEntity() + "] in fetch profile ["+ fetchProfile.getName()+ "]");
+      }
+      Type associationType=owner.getPropertyType(mappingFetch.getAssociation());
+      if (associationType == null || !associationType.isAssociationType()) {
+        throw new HibernateException("Fetch profile [" + fetchProfile.getName() + "] specified an invalid association");
+      }
+      final Fetch.Style fetchStyle=Fetch.Style.parse(mappingFetch.getStyle());
+      fetchProfile.addFetch(new Association(owner,mappingFetch.getAssociation()),fetchStyle);
+      ((Loadable)owner).registerAffectingFetchProfile(fetchProfile.getName());
+    }
+    fetchProfiles.put(fetchProfile.getName(),fetchProfile);
+  }
   this.observer.sessionFactoryCreated(this);
 }

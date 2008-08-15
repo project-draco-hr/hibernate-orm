@@ -1,0 +1,19 @@
+{
+  if (!getLoadQueryInfluencers().hasEnabledFetchProfiles()) {
+    return false;
+  }
+  String rootPropertyName=persister.getSubclassPropertyName(propertyNumber);
+  int pos=path.lastIndexOf(rootPropertyName);
+  String relativePropertyPath=pos >= 0 ? path.substring(pos) : rootPropertyName;
+  String fetchRole=persister.getEntityName() + "." + relativePropertyPath;
+  Iterator profiles=getLoadQueryInfluencers().getEnabledFetchProfileNames().iterator();
+  while (profiles.hasNext()) {
+    final String profileName=(String)profiles.next();
+    final FetchProfile profile=getFactory().getFetchProfile(profileName);
+    final Fetch fetch=profile.getFetchByRole(fetchRole);
+    if (fetch != null && Fetch.Style.JOIN == fetch.getStyle()) {
+      return true;
+    }
+  }
+  return false;
+}

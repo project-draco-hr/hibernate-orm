@@ -1,0 +1,17 @@
+{
+  performWithStandardData(new TestCode(){
+    public void perform(    TestData data){
+      Session session=openSession();
+      session.beginTransaction();
+      session.enableFetchProfile("offering.details");
+      session.enableFetchProfile("enrollment.details");
+      CourseOffering section=(CourseOffering)session.get(CourseOffering.class,data.getSectionId());
+      assertEquals(4,sfi().getStatistics().getEntityLoadCount());
+      assertEquals(0,sfi().getStatistics().getEntityFetchCount());
+      assertTrue(Hibernate.isInitialized(section.getEnrollments()));
+      session.getTransaction().commit();
+      session.close();
+    }
+  }
+);
+}

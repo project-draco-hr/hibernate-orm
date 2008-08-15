@@ -5,14 +5,14 @@
   collectionSuffixes=BasicLoader.generateSuffixes(joins,collectionJoins);
   StringBuffer whereString=whereString(alias,collectionPersister.getKeyColumnNames(),subquery,batchSize);
   String manyToManyOrderBy="";
-  String filter=collectionPersister.filterFragment(alias,getEnabledFilters());
+  String filter=collectionPersister.filterFragment(alias,getLoadQueryInfluencers().getEnabledFilters());
   if (collectionPersister.isManyToMany()) {
     Iterator itr=associations.iterator();
     AssociationType associationType=(AssociationType)collectionPersister.getElementType();
     while (itr.hasNext()) {
       OuterJoinableAssociation oja=(OuterJoinableAssociation)itr.next();
       if (oja.getJoinableType() == associationType) {
-        filter+=collectionPersister.getManyToManyFilterFragment(oja.getRHSAlias(),getEnabledFilters());
+        filter+=collectionPersister.getManyToManyFilterFragment(oja.getRHSAlias(),getLoadQueryInfluencers().getEnabledFilters());
         manyToManyOrderBy+=collectionPersister.getManyToManyOrderByString(oja.getRHSAlias());
       }
     }

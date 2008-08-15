@@ -4,7 +4,7 @@
   final int collectionJoins=countCollectionPersisters(associations) + 1;
   collectionSuffixes=BasicLoader.generateSuffixes(joins + 1,collectionJoins);
   StringBuffer whereString=whereString(alias,oneToManyPersister.getKeyColumnNames(),subquery,batchSize);
-  String filter=oneToManyPersister.filterFragment(alias,getEnabledFilters());
+  String filter=oneToManyPersister.filterFragment(alias,getLoadQueryInfluencers().getEnabledFilters());
   whereString.insert(0,StringHelper.moveAndToBeginning(filter));
   JoinFragment ojf=mergeOuterJoins(associations);
   Select select=new Select(getDialect()).setSelectClause(oneToManyPersister.selectFragment(null,null,alias,suffixes[joins],collectionSuffixes[0],true) + selectString(associations)).setFromClause(elementPersister.fromTableFragment(alias) + elementPersister.fromJoinFragment(alias,true,true)).setWhereClause(whereString.toString()).setOuterJoins(ojf.toFromFragmentString(),ojf.toWhereFragmentString() + elementPersister.whereJoinFragment(alias,true,true));
