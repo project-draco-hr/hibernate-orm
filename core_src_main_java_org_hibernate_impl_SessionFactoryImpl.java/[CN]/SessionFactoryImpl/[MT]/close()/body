@@ -29,14 +29,14 @@
     updateTimestampsCache.destroy();
   }
   settings.getRegionFactory().stop();
+  if (settings.isAutoDropSchema()) {
+    schemaExport.drop(false,true);
+  }
   try {
     settings.getConnectionProvider().close();
   }
   finally {
     SessionFactoryObjectFactory.removeInstance(uuid,name,properties);
-  }
-  if (settings.isAutoDropSchema()) {
-    schemaExport.drop(false,true);
   }
   observer.sessionFactoryClosed(this);
   eventListeners.destroyListeners();
