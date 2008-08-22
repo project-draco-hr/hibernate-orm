@@ -2,6 +2,7 @@
   log.info("Running hbm2ddl schema update");
   Connection connection=null;
   Statement stmt=null;
+  Writer outputFileWriter=null;
   exceptions.clear();
   try {
     DatabaseMetadata meta;
@@ -18,19 +19,33 @@
       throw sqle;
     }
     log.info("updating schema");
+    if (outputFile != null) {
+      log.info("writing generated schema to file: " + outputFile);
+      outputFileWriter=new FileWriter(outputFile);
+    }
     String[] createSQL=configuration.generateSchemaUpdateScript(dialect,meta);
     for (int j=0; j < createSQL.length; j++) {
       final String sql=createSQL[j];
+      String formatted=formatter.format(sql);
       try {
+        if (delimiter != null) {
+          formatted+=delimiter;
+        }
         if (script) {
-          System.out.println(sql);
+          System.out.println(formatted);
+        }
+        if (outputFile != null) {
+          outputFileWriter.write(formatted + "\n");
         }
         if (doUpdate) {
           log.debug(sql);
-          stmt.executeUpdate(sql);
+          stmt.executeUpdate(formatted);
         }
       }
  catch (      SQLException e) {
+        if (haltOnError) {
+          throw new JDBCException("Error during DDL export",e);
+        }
         exceptions.add(e);
         log.error("Unsuccessful: " + sql);
         log.error(e.getMessage());
@@ -48,6 +63,15 @@
         stmt.close();
       }
       connectionHelper.release();
+    }
+ catch (    Exception e) {
+      exceptions.add(e);
+      log.error("Error closing connection",e);
+    }
+    try {
+      if (outputFileWriter != null) {
+        outputFileWriter.close();
+      }
     }
  catch (    Exception e) {
       exceptions.add(e);
