@@ -2,19 +2,17 @@
   int result;
   int rows;
   do {
-    sql=query;
-    SQL_STATEMENT_LOGGER.logStatement(sql,FormatStyle.BASIC);
-    PreparedStatement queryPS=conn.prepareStatement(query);
+    SQL_STATEMENT_LOGGER.logStatement(selectQuery,FormatStyle.BASIC);
+    PreparedStatement selectPS=conn.prepareStatement(selectQuery);
     try {
-      queryPS.setString(1,segmentValue);
-      ResultSet queryRS=queryPS.executeQuery();
-      if (!queryRS.next()) {
+      selectPS.setString(1,segmentValue);
+      ResultSet selectRS=selectPS.executeQuery();
+      if (!selectRS.next()) {
         PreparedStatement insertPS=null;
         try {
           result=initialValue;
-          sql=insert;
-          SQL_STATEMENT_LOGGER.logStatement(sql,FormatStyle.BASIC);
-          insertPS=conn.prepareStatement(insert);
+          SQL_STATEMENT_LOGGER.logStatement(insertQuery,FormatStyle.BASIC);
+          insertPS=conn.prepareStatement(insertQuery);
           insertPS.setString(1,segmentValue);
           insertPS.setLong(2,result);
           insertPS.execute();
@@ -26,20 +24,19 @@
         }
       }
  else {
-        result=queryRS.getInt(1);
+        result=selectRS.getInt(1);
       }
-      queryRS.close();
+      selectRS.close();
     }
  catch (    SQLException sqle) {
       log.error("could not read or init a hi value",sqle);
       throw sqle;
     }
  finally {
-      queryPS.close();
+      selectPS.close();
     }
-    sql=update;
-    SQL_STATEMENT_LOGGER.logStatement(sql,FormatStyle.BASIC);
-    PreparedStatement updatePS=conn.prepareStatement(update);
+    SQL_STATEMENT_LOGGER.logStatement(updateQuery,FormatStyle.BASIC);
+    PreparedStatement updatePS=conn.prepareStatement(updateQuery);
     try {
       long newValue=optimizer.applyIncrementSizeToSourceValues() ? result + incrementSize : result + 1;
       updatePS.setLong(1,newValue);
@@ -48,7 +45,7 @@
       rows=updatePS.executeUpdate();
     }
  catch (    SQLException sqle) {
-      log.error("could not update hi value in: " + tableName,sqle);
+      log.error("could not updateQuery hi value in: " + tableName,sqle);
       throw sqle;
     }
  finally {
