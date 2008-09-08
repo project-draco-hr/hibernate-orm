@@ -1,0 +1,49 @@
+{
+  boolean areAllArgsParams=true;
+  Iterator itr=args.iterator();
+  while (itr.hasNext()) {
+    final String arg=(String)itr.next();
+    if (!"?".equals(arg)) {
+      areAllArgsParams=false;
+      break;
+    }
+  }
+  if (areAllArgsParams) {
+    return join(args.iterator(),new StringTransformer(){
+      public String transform(      String string){
+        return "cast( ? as varchar(32672) )";
+      }
+    }
+,new StringJoinTemplate(){
+      public String getBeginning(){
+        return "varchar( ";
+      }
+      public String getSeparator(){
+        return " || ";
+      }
+      public String getEnding(){
+        return " )";
+      }
+    }
+);
+  }
+ else {
+    return join(args.iterator(),new StringTransformer(){
+      public String transform(      String string){
+        return string;
+      }
+    }
+,new StringJoinTemplate(){
+      public String getBeginning(){
+        return "(";
+      }
+      public String getSeparator(){
+        return "||";
+      }
+      public String getEnding(){
+        return ")";
+      }
+    }
+);
+  }
+}
