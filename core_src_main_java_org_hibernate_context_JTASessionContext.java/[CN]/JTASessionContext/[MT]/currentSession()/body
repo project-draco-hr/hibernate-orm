@@ -19,11 +19,12 @@
 catch (  Throwable t) {
     throw new HibernateException("Problem locating/validating JTA transaction",t);
   }
-  Session currentSession=(Session)currentSessionMap.get(txn);
+  final Object txnIdentifier=factory.getSettings().getTransactionManagerLookup() == null ? txn : factory.getSettings().getTransactionManagerLookup().getTransactionIdentifier(txn);
+  Session currentSession=(Session)currentSessionMap.get(txnIdentifier);
   if (currentSession == null) {
     currentSession=buildOrObtainSession();
     try {
-      txn.registerSynchronization(buildCleanupSynch(txn));
+      txn.registerSynchronization(buildCleanupSynch(txnIdentifier));
     }
  catch (    Throwable t) {
       try {
@@ -34,7 +35,6 @@ catch (  Throwable t) {
       }
       throw new HibernateException("Unable to register cleanup Synchronization with TransactionManager");
     }
-    Object txnIdentifier=factory.getSettings().getTransactionManagerLookup() == null ? txn : factory.getSettings().getTransactionManagerLookup().getTransactionIdentifier(txn);
     currentSessionMap.put(txnIdentifier,currentSession);
   }
   return currentSession;
