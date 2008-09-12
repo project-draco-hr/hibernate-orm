@@ -1,0 +1,15 @@
+{
+  try {
+    net.sf.ehcache.Ehcache cache=manager.getEhcache(name);
+    if (cache == null) {
+      SingletonEhCacheProvider.LOG.warning("Could not find a specific ehcache configuration for cache named [" + name + "]; using defaults.");
+      manager.addCache(name);
+      cache=manager.getEhcache(name);
+      SingletonEhCacheProvider.LOG.fine("started EHCache region: " + name);
+    }
+    return new EhCache(cache);
+  }
+ catch (  net.sf.ehcache.CacheException e) {
+    throw new CacheException(e);
+  }
+}

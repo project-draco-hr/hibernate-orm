@@ -1,0 +1,21 @@
+{
+  String configurationResourceName=null;
+  if (properties != null) {
+    configurationResourceName=(String)properties.get(NET_SF_EHCACHE_CONFIGURATION_RESOURCE_NAME);
+  }
+  if (configurationResourceName == null || configurationResourceName.length() == 0) {
+    manager=CacheManager.create();
+    referenceCount++;
+  }
+ else {
+    if (!configurationResourceName.startsWith("/")) {
+      configurationResourceName="/" + configurationResourceName;
+      if (LOG.isLoggable(Level.FINE)) {
+        LOG.fine("prepending / to " + configurationResourceName + ". It should be placed in the root"+ "of the classpath rather than in a package.");
+      }
+    }
+    URL url=loadResource(configurationResourceName);
+    manager=CacheManager.create(url);
+    referenceCount++;
+  }
+}

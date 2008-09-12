@@ -1,0 +1,19 @@
+{
+  ClassLoader standardClassloader=ClassLoaderUtil.getStandardClassLoader();
+  URL url=null;
+  if (standardClassloader != null) {
+    url=standardClassloader.getResource(configurationResourceName);
+  }
+  if (url == null) {
+    url=this.getClass().getResource(configurationResourceName);
+  }
+  if (LOG.isLoggable(Level.FINE)) {
+    LOG.fine("Creating EhCacheProvider from a specified resource: " + configurationResourceName + " Resolved to URL: "+ url);
+  }
+  if (url == null) {
+    if (LOG.isLoggable(Level.WARNING)) {
+      LOG.warning("A configurationResourceName was set to " + configurationResourceName + " but the resource could not be loaded from the classpath."+ "Ehcache will configure itself using defaults.");
+    }
+  }
+  return url;
+}
