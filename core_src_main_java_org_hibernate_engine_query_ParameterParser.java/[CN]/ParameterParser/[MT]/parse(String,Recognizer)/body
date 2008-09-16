@@ -1,5 +1,5 @@
 {
-  boolean hasMainOutputParameter=sqlString.indexOf("call") > 0 && sqlString.indexOf("?") < sqlString.indexOf("call") && sqlString.indexOf("=") < sqlString.indexOf("call");
+  boolean hasMainOutputParameter=startsWithEscapeCallTemplate(sqlString);
   boolean foundMainOutputParam=false;
   int stringLength=sqlString.length();
   boolean inQuote=false;
@@ -21,7 +21,7 @@
         int chopLocation=right < 0 ? sqlString.length() : right;
         String param=sqlString.substring(indx + 1,chopLocation);
         if (StringHelper.isEmpty(param)) {
-          throw new QueryException("Space is not allowed after parameter prefix ':' '" + sqlString + "'");
+          throw new QueryException("Space is not allowed after parameter prefix ':' [" + sqlString + "]");
         }
         recognizer.namedParameter(param,indx);
         indx=chopLocation - 1;
