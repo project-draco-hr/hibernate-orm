@@ -1,0 +1,11 @@
+{
+  final String logicalKey=logicalName.toLowerCase();
+  final String physicalName=physicalColumn.getQuotedName();
+  final String existingPhysicalName=(String)logicalToPhysical.put(logicalKey,physicalName);
+  if (existingPhysicalName != null) {
+    boolean areSamePhysicalColumn=physicalColumn.isQuoted() ? existingPhysicalName.equals(physicalName) : existingPhysicalName.equalsIgnoreCase(physicalName);
+    if (!areSamePhysicalColumn) {
+      throw new DuplicateMappingException(" Table [" + tableName + "] contains logical column name ["+ logicalName+ "] referenced by multiple physical column names: ["+ existingPhysicalName+ "], ["+ physicalName+ "]","column-binding",tableName + "." + logicalName);
+    }
+  }
+}

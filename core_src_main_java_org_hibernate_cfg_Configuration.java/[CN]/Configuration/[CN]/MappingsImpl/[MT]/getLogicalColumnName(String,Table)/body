@@ -1,0 +1,21 @@
+{
+  String logical=null;
+  Table currentTable=table;
+  TableDescription description=null;
+  do {
+    TableColumnNameBinding binding=(TableColumnNameBinding)columnNameBindingPerTable.get(currentTable);
+    if (binding != null) {
+      logical=(String)binding.physicalToLogical.get(physicalName);
+    }
+    String key=buildTableNameKey(currentTable.getSchema(),currentTable.getCatalog(),currentTable.getName());
+    description=(TableDescription)tableNameBinding.get(key);
+    if (description != null) {
+      currentTable=description.denormalizedSupertable;
+    }
+  }
+ while (logical == null && currentTable != null && description != null);
+  if (logical == null) {
+    throw new MappingException("Unable to find logical column name from physical name " + physicalName + " in table "+ table.getName());
+  }
+  return logical;
+}
