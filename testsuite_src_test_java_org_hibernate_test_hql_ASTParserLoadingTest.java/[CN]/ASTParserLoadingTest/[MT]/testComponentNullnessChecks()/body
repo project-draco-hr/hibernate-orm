@@ -21,7 +21,8 @@
   assertEquals(1,results.size());
   results=s.createQuery("from Human where name is not null").list();
   assertEquals(3,results.size());
-  s.createQuery("from Human where ? is null").setParameter(0,null).list();
+  String query=getDialect() instanceof DB2Dialect ? "from Human where cast(? as string) is null" : "from Human where ? is null";
+  s.createQuery(query).setParameter(0,null).list();
   s.getTransaction().commit();
   s.close();
   s=openSession();
