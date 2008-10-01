@@ -1,0 +1,34 @@
+{
+  final FromClause fromClause=query.getFromClause();
+  final List fromElements;
+  if (DotNode.useThetaStyleImplicitJoins) {
+    fromElements=new ArrayList();
+    ListIterator liter=fromClause.getFromElements().listIterator(fromClause.getFromElements().size());
+    while (liter.hasPrevious()) {
+      fromElements.add(liter.previous());
+    }
+  }
+ else {
+    fromElements=fromClause.getFromElements();
+  }
+  Iterator iter=fromElements.iterator();
+  while (iter.hasNext()) {
+    final FromElement fromElement=(FromElement)iter.next();
+    JoinSequence join=fromElement.getJoinSequence();
+    join.setSelector(new JoinSequence.Selector(){
+      public boolean includeSubclasses(      String alias){
+        boolean containsTableAlias=fromClause.containsTableAlias(alias);
+        if (fromElement.isDereferencedBySubclassProperty()) {
+          log.trace("forcing inclusion of extra joins [alias=" + alias + ", containsTableAlias="+ containsTableAlias+ "]");
+          return true;
+        }
+        boolean shallowQuery=walker.isShallowQuery();
+        boolean includeSubclasses=fromElement.isIncludeSubclasses();
+        boolean subQuery=fromClause.isSubQuery();
+        return includeSubclasses && containsTableAlias && !subQuery&& !shallowQuery;
+      }
+    }
+);
+    addJoinNodes(query,join,fromElement);
+  }
+}

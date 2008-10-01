@@ -1,0 +1,49 @@
+{
+  if (whereFragment == null) {
+    return;
+  }
+  if (!fromElement.useWhereFragment() && !joinFragment.hasThetaJoins()) {
+    return;
+  }
+  whereFragment=whereFragment.trim();
+  if (StringHelper.isEmpty(whereFragment)) {
+    return;
+  }
+  if (whereFragment.startsWith("and")) {
+    whereFragment=whereFragment.substring(4);
+  }
+  log.debug("Using unprocessed WHERE-fragment [{}]",whereFragment);
+  SqlFragment fragment=(SqlFragment)create(SQL_TOKEN,whereFragment);
+  fragment.setJoinFragment(joinFragment);
+  fragment.setFromElement(fromElement);
+  if (hqlSqlWalker.isFilter()) {
+    if (whereFragment.indexOf('?') >= 0) {
+      Type collectionFilterKeyType=hqlSqlWalker.getSessionFactoryHelper().requireQueryableCollection(hqlSqlWalker.getCollectionFilterRole()).getKeyType();
+      CollectionFilterKeyParameterSpecification paramSpec=new CollectionFilterKeyParameterSpecification(hqlSqlWalker.getCollectionFilterRole(),collectionFilterKeyType,0);
+      fragment.addEmbeddedParameter(paramSpec);
+    }
+  }
+  JoinProcessor.processDynamicFilterParameters(whereFragment,fragment,hqlSqlWalker);
+  log.debug("Using processed WHERE-fragment [{}]",fragment.getText());
+  if (fragment.getFromElement().isFilter() || fragment.hasFilterCondition()) {
+    if (filters == null) {
+      AST where=query.getWhereClause();
+      filters=create(FILTERS,"{filter conditions}");
+      ASTUtil.insertChild(where,filters);
+    }
+    filters.addChild(fragment);
+  }
+ else {
+    if (thetaJoins == null) {
+      AST where=query.getWhereClause();
+      thetaJoins=create(THETA_JOINS,"{theta joins}");
+      if (filters == null) {
+        ASTUtil.insertChild(where,thetaJoins);
+      }
+ else {
+        ASTUtil.insertSibling(thetaJoins,filters);
+      }
+    }
+    thetaJoins.addChild(fragment);
+  }
+}

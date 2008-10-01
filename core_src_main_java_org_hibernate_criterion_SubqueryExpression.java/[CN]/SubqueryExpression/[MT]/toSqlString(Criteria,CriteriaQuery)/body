@@ -2,10 +2,15 @@
   final SessionFactoryImplementor factory=criteriaQuery.getFactory();
   final OuterJoinLoadable persister=(OuterJoinLoadable)factory.getEntityPersister(criteriaImpl.getEntityOrClassName());
   createAndSetInnerQuery(criteriaQuery,factory);
-  CriteriaJoinWalker walker=new CriteriaJoinWalker(persister,innerQuery,factory,criteriaImpl,criteriaImpl.getEntityOrClassName(),LoadQueryInfluencers.NONE,innerQuery.getRootSQLALias());
+  criteriaImpl.setSession(deriveRootSession(criteria));
+  CriteriaJoinWalker walker=new CriteriaJoinWalker(persister,innerQuery,factory,criteriaImpl,criteriaImpl.getEntityOrClassName(),criteriaImpl.getSession().getLoadQueryInfluencers(),innerQuery.getRootSQLALias());
   String sql=walker.getSQLString();
-  final StringBuffer buf=new StringBuffer().append(toLeftSqlString(criteria,criteriaQuery));
-  if (op != null)   buf.append(' ').append(op).append(' ');
-  if (quantifier != null)   buf.append(quantifier).append(' ');
+  final StringBuffer buf=new StringBuffer(toLeftSqlString(criteria,criteriaQuery));
+  if (op != null) {
+    buf.append(' ').append(op).append(' ');
+  }
+  if (quantifier != null) {
+    buf.append(quantifier).append(' ');
+  }
   return buf.append('(').append(sql).append(')').toString();
 }

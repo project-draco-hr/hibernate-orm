@@ -7,12 +7,13 @@
     whereFragment=whereFragment.substring(4);
   }
   whereFragment=StringHelper.replace(whereFragment,persister.generateFilterConditionAlias(alias) + ".","");
-  AST discrimNode=astFactory.create(SQL_TOKEN,whereFragment);
+  SqlFragment discrimNode=(SqlFragment)create(SQL_TOKEN,whereFragment);
+  JoinProcessor.processDynamicFilterParameters(whereFragment,discrimNode,hqlSqlWalker);
   if (statement.getWhereClause().getNumberOfChildren() == 0) {
     statement.getWhereClause().setFirstChild(discrimNode);
   }
  else {
-    AST and=astFactory.create(AND,"{and}");
+    AST and=create(AND,"{and}");
     AST currentFirstChild=statement.getWhereClause().getFirstChild();
     and.setFirstChild(discrimNode);
     and.addChild(currentFirstChild);

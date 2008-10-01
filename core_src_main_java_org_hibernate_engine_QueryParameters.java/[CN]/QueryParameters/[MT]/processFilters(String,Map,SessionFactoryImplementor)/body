@@ -1,0 +1,54 @@
+{
+  if (filters.size() == 0 || sql.indexOf(ParserHelper.HQL_VARIABLE_PREFIX) < 0) {
+    processedPositionalParameterValues=getPositionalParameterValues();
+    processedPositionalParameterTypes=getPositionalParameterTypes();
+    processedSQL=sql;
+  }
+ else {
+    final Dialect dialect=factory.getDialect();
+    String symbols=new StringBuffer().append(ParserHelper.HQL_SEPARATORS).append(dialect.openQuote()).append(dialect.closeQuote()).toString();
+    StringTokenizer tokens=new StringTokenizer(sql,symbols,true);
+    StringBuffer result=new StringBuffer();
+    List parameters=new ArrayList();
+    List parameterTypes=new ArrayList();
+    int positionalIndex=0;
+    while (tokens.hasMoreTokens()) {
+      final String token=tokens.nextToken();
+      if (token.startsWith(ParserHelper.HQL_VARIABLE_PREFIX)) {
+        final String filterParameterName=token.substring(1);
+        final String[] parts=LoadQueryInfluencers.parseFilterParameterName(filterParameterName);
+        final FilterImpl filter=(FilterImpl)filters.get(parts[0]);
+        final Object value=filter.getParameter(parts[1]);
+        final Type type=filter.getFilterDefinition().getParameterType(parts[1]);
+        if (value != null && Collection.class.isAssignableFrom(value.getClass())) {
+          Iterator itr=((Collection)value).iterator();
+          while (itr.hasNext()) {
+            Object elementValue=itr.next();
+            result.append('?');
+            parameters.add(elementValue);
+            parameterTypes.add(type);
+            if (itr.hasNext()) {
+              result.append(", ");
+            }
+          }
+        }
+ else {
+          result.append('?');
+          parameters.add(value);
+          parameterTypes.add(type);
+        }
+      }
+ else {
+        if ("?".equals(token) && positionalIndex < getPositionalParameterValues().length) {
+          parameters.add(getPositionalParameterValues()[positionalIndex]);
+          parameterTypes.add(getPositionalParameterTypes()[positionalIndex]);
+          positionalIndex++;
+        }
+        result.append(token);
+      }
+    }
+    processedPositionalParameterValues=parameters.toArray();
+    processedPositionalParameterTypes=(Type[])parameterTypes.toArray(new Type[parameterTypes.size()]);
+    processedSQL=result.toString();
+  }
+}
