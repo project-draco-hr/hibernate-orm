@@ -3,18 +3,7 @@
     return this;
   }
  else {
-    Class clazz=instance.getClass();
-    if (clazz == getMappedClass(entityMode)) {
-      return this;
-    }
- else {
-      String subclassEntityName=getSubclassEntityName(clazz);
-      if (subclassEntityName == null) {
-        throw new HibernateException("instance not of expected entity type: " + clazz.getName() + " is not a: "+ getEntityName());
-      }
- else {
-        return factory.getEntityPersister(subclassEntityName);
-      }
-    }
+    final String concreteEntityName=getTuplizer(entityMode).determineConcreteSubclassEntityName(instance,factory);
+    return factory.getEntityPersister(concreteEntityName);
   }
 }
