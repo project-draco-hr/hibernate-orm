@@ -1,0 +1,25 @@
+{
+  DialectFactory.registerDialectResolver(TestingDialects.MyDialectResolver1.class.getName());
+  DialectFactory.registerDialectResolver(TestingDialects.MyDialectResolver2.class.getName());
+  DialectFactory.registerDialectResolver(TestingDialects.ErrorDialectResolver1.class.getName());
+  DialectFactory.registerDialectResolver(TestingDialects.ErrorDialectResolver2.class.getName());
+  DialectFactory.registerDialectResolver(TestingDialects.MyOverridingDialectResolver1.class.getName());
+  DialectFactory.registerDialectResolver("org.hibernate.dialect.NoSuchDialectResolver");
+  DialectFactory.registerDialectResolver("java.lang.Object");
+  testDetermination("MyDatabase1",TestingDialects.MyDialect1.class);
+  testDetermination("MyDatabase2",1,TestingDialects.MyDialect21.class);
+  testDetermination("MyTrickyDatabase1",TestingDialects.MyDialect1.class);
+  testDetermination("DB2/MySpecialPlatform",TestingDialects.MySpecialDB2Dialect.class);
+  try {
+    testDetermination("ErrorDatabase1",Void.TYPE);
+    fail();
+  }
+ catch (  HibernateException e) {
+  }
+  try {
+    testDetermination("ErrorDatabase2",Void.TYPE);
+    fail();
+  }
+ catch (  HibernateException e) {
+  }
+}

@@ -4,23 +4,21 @@
   settings.setSessionFactoryName(sessionFactoryName);
   ConnectionProvider connections=createConnectionProvider(props);
   settings.setConnectionProvider(connections);
-  String databaseName=null;
-  int databaseMajorVersion=0;
   boolean metaSupportsScrollable=false;
   boolean metaSupportsGetGeneratedKeys=false;
   boolean metaSupportsBatchUpdates=false;
   boolean metaReportsDDLCausesTxnCommit=false;
   boolean metaReportsDDLInTxnSupported=true;
+  Dialect dialect=null;
   boolean useJdbcMetadata=PropertiesHelper.getBoolean("hibernate.temp.use_jdbc_metadata_defaults",props,true);
   if (useJdbcMetadata) {
     try {
       Connection conn=connections.getConnection();
       try {
         DatabaseMetaData meta=conn.getMetaData();
-        databaseName=meta.getDatabaseProductName();
-        databaseMajorVersion=getDatabaseMajorVersion(meta);
-        log.info("RDBMS: " + databaseName + ", version: "+ meta.getDatabaseProductVersion());
+        log.info("RDBMS: " + meta.getDatabaseProductName() + ", version: "+ meta.getDatabaseProductVersion());
         log.info("JDBC driver: " + meta.getDriverName() + ", version: "+ meta.getDriverVersion());
+        dialect=DialectFactory.buildDialect(props,conn);
         metaSupportsScrollable=meta.supportsResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
         metaSupportsBatchUpdates=meta.supportsBatchUpdates();
         metaReportsDDLCausesTxnCommit=meta.dataDefinitionCausesTransactionCommit();
@@ -36,13 +34,17 @@
     }
  catch (    SQLException sqle) {
       log.warn("Could not obtain connection to query metadata",sqle);
+      dialect=DialectFactory.buildDialect(props);
     }
 catch (    UnsupportedOperationException uoe) {
+      dialect=DialectFactory.buildDialect(props);
     }
+  }
+ else {
+    dialect=DialectFactory.buildDialect(props);
   }
   settings.setDataDefinitionImplicitCommit(metaReportsDDLCausesTxnCommit);
   settings.setDataDefinitionInTransactionSupported(metaReportsDDLInTxnSupported);
-  Dialect dialect=determineDialect(props,databaseName,databaseMajorVersion);
   settings.setDialect(dialect);
   final Properties properties=new Properties();
   properties.putAll(dialect.getDefaultProperties());
