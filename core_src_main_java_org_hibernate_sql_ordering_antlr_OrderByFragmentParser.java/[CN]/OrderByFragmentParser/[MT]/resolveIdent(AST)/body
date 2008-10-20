@@ -1,0 +1,24 @@
+{
+  String text=ident.getText();
+  String[] replacements;
+  try {
+    replacements=context.getColumnMapper().map(text);
+  }
+ catch (  Throwable t) {
+    replacements=null;
+  }
+  if (replacements == null || replacements.length == 0) {
+    return getASTFactory().create(OrderByTemplateTokenTypes.IDENT,Template.TEMPLATE + "." + ident);
+  }
+ else   if (replacements.length == 1) {
+    return getASTFactory().create(OrderByTemplateTokenTypes.IDENT,Template.TEMPLATE + "." + replacements[0]);
+  }
+ else {
+    final AST root=getASTFactory().create(OrderByTemplateTokenTypes.IDENT_LIST,"{ident list}");
+    for (int i=0; i < replacements.length; i++) {
+      final String identText=Template.TEMPLATE + '.' + replacements[i];
+      root.addChild(getASTFactory().create(OrderByTemplateTokenTypes.IDENT,identText));
+    }
+    return root;
+  }
+}

@@ -30,9 +30,6 @@
   for (int i=1; i < spacesSize; i++) {
     spaces[i]=(String)iter.next();
   }
-  sqlOrderByString=collection.getOrderBy();
-  hasOrder=sqlOrderByString != null;
-  sqlOrderByStringTemplate=hasOrder ? Template.renderOrderByStringTemplate(sqlOrderByString,dialect,factory.getSqlFunctionRegistry()) : null;
   sqlWhereString=StringHelper.isNotEmpty(collection.getWhere()) ? "( " + collection.getWhere() + ") " : null;
   hasWhere=sqlWhereString != null;
   sqlWhereStringTemplate=hasWhere ? Template.renderWhereStringTemplate(sqlWhereString,dialect,factory.getSqlFunctionRegistry()) : null;
@@ -233,11 +230,35 @@
       elementPropertyMapping=new ElementPropertyMapping(elementColumnNames,elementType);
     }
   }
+  hasOrder=collection.getOrderBy() != null;
+  if (hasOrder) {
+    ColumnMapper mapper=new ColumnMapper(){
+      public String[] map(      String reference){
+        return elementPropertyMapping.toColumns(reference);
+      }
+    }
+;
+    sqlOrderByStringTemplate=Template.renderOrderByStringTemplate(collection.getOrderBy(),mapper,factory,dialect,factory.getSqlFunctionRegistry());
+  }
+ else {
+    sqlOrderByStringTemplate=null;
+  }
   filterHelper=new FilterHelper(collection.getFilterMap(),dialect,factory.getSqlFunctionRegistry());
   manyToManyFilterHelper=new FilterHelper(collection.getManyToManyFilterMap(),dialect,factory.getSqlFunctionRegistry());
   manyToManyWhereString=StringHelper.isNotEmpty(collection.getManyToManyWhere()) ? "( " + collection.getManyToManyWhere() + ")" : null;
   manyToManyWhereTemplate=manyToManyWhereString == null ? null : Template.renderWhereStringTemplate(manyToManyWhereString,factory.getDialect(),factory.getSqlFunctionRegistry());
-  manyToManyOrderByString=collection.getManyToManyOrdering();
-  manyToManyOrderByTemplate=manyToManyOrderByString == null ? null : Template.renderOrderByStringTemplate(manyToManyOrderByString,factory.getDialect(),factory.getSqlFunctionRegistry());
+  hasManyToManyOrder=collection.getManyToManyOrdering() != null;
+  if (hasManyToManyOrder) {
+    ColumnMapper mapper=new ColumnMapper(){
+      public String[] map(      String reference){
+        return elementPropertyMapping.toColumns(reference);
+      }
+    }
+;
+    manyToManyOrderByTemplate=Template.renderOrderByStringTemplate(collection.getManyToManyOrdering(),mapper,factory,dialect,factory.getSqlFunctionRegistry());
+  }
+ else {
+    manyToManyOrderByTemplate=null;
+  }
   initCollectionPropertyMap();
 }
