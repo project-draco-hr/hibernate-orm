@@ -2,7 +2,7 @@
   Session session=(Session)sessionImplementor;
   Object associatedObject=sessionImplementor.getFactory().getClassMetadata(entityName).getPropertyValue(object,propertyName,session.getEntityMode());
   if (associatedObject == null) {
-    throw new IdentifierGenerationException("attempted to assign id from null one-to-one property: " + propertyName);
+    throw new IdentifierGenerationException("attempted to assign id from null one-to-one property [" + getRole() + "]");
   }
   EntityType type=(EntityType)sessionImplementor.getFactory().getClassMetadata(entityName).getPropertyType(propertyName);
   Serializable id;
@@ -13,7 +13,7 @@
     id=session.save(type.getAssociatedEntityName(),associatedObject);
   }
   if (session.contains(object)) {
-    return IdentifierGeneratorFactory.SHORT_CIRCUIT_INDICATOR;
+    return IdentifierGeneratorHelper.SHORT_CIRCUIT_INDICATOR;
   }
   return id;
 }
