@@ -1,0 +1,17 @@
+{
+  String strategy=element.attributeValue("name");
+  if (StringHelper.isEmpty(strategy)) {
+    throw new MappingException("'name' attribute expected for identifier-generator elements");
+  }
+  String generatorClassName=element.attributeValue("class");
+  if (StringHelper.isEmpty(generatorClassName)) {
+    throw new MappingException("'class' attribute expected for identifier-generator [identifier-generator@name=" + strategy + "]");
+  }
+  try {
+    Class generatorClass=ReflectHelper.classForName(generatorClassName);
+    mappings.getIdentifierGeneratorFactory().register(strategy,generatorClass);
+  }
+ catch (  ClassNotFoundException e) {
+    throw new MappingException("Unable to locate identifier-generator class [name=" + strategy + ", class="+ generatorClassName+ "]");
+  }
+}
