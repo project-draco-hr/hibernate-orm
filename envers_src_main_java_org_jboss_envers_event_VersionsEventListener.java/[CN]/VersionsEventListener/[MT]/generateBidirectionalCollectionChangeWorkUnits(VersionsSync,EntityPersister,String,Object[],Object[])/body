@@ -1,0 +1,25 @@
+{
+  if (!verCfg.getGlobalCfg().isGenerateRevisionsForCollections()) {
+    return;
+  }
+  String[] propertyNames=entityPersister.getPropertyNames();
+  for (int i=0; i < propertyNames.length; i++) {
+    String propertyName=propertyNames[i];
+    RelationDescription relDesc=verCfg.getEntCfg().getRelationDescription(entityName,propertyName);
+    if (relDesc != null && relDesc.isBidirectional() && relDesc.getRelationType() == RelationType.TO_ONE) {
+      Object oldValue=oldState == null ? null : oldState[i];
+      Object newValue=newState == null ? null : newState[i];
+      if (!Tools.objectsEqual(oldValue,newValue)) {
+        IdMapper idMapper=verCfg.getEntCfg().get(relDesc.getToEntityName()).getIdMapper();
+        if (newValue != null) {
+          Serializable id=(Serializable)idMapper.mapToIdFromEntity(newValue);
+          verSync.addWorkUnit(new CollectionChangeWorkUnit(relDesc.getToEntityName(),verCfg,id,newValue));
+        }
+        if (oldValue != null) {
+          Serializable id=(Serializable)idMapper.mapToIdFromEntity(oldValue);
+          verSync.addWorkUnit(new CollectionChangeWorkUnit(relDesc.getToEntityName(),verCfg,id,oldValue));
+        }
+      }
+    }
+  }
+}

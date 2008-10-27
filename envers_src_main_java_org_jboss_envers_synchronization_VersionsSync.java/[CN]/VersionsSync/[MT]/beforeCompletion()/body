@@ -1,0 +1,22 @@
+{
+  if (workUnits.size() == 0 && undoQueue.size() == 0) {
+    return;
+  }
+  if (FlushMode.isManualFlushMode(session.getFlushMode()) || session.isClosed()) {
+    Session temporarySession=null;
+    try {
+      temporarySession=session.getFactory().openTemporarySession();
+      executeInSession(temporarySession);
+      temporarySession.flush();
+    }
+  finally {
+      if (temporarySession != null) {
+        temporarySession.close();
+      }
+    }
+  }
+ else {
+    executeInSession(session);
+    session.flush();
+  }
+}

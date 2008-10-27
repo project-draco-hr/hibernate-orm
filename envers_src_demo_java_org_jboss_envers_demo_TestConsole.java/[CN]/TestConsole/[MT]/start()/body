@@ -1,0 +1,107 @@
+{
+  Scanner scanner=new Scanner(System.in);
+  PrintStream out=System.out;
+  while (true) {
+    out.println("-----------------------------------------------");
+    out.println("1 - list persons             5 - list addresses");
+    out.println("2 - list person history      6 - list addresses history");
+    out.println("3 - new person               7 - new address");
+    out.println("4 - modify person            8 - modify address");
+    out.println("9 - get person at revision  10 - get address at revision");
+    out.println("                             0 - end");
+    try {
+      int choice=scanner.nextInt();
+      scanner.nextLine();
+      entityManager.getTransaction().begin();
+      StringBuilder sb;
+      int personId;
+      int addressId;
+      int revision;
+switch (choice) {
+case 1:
+        sb=new StringBuilder();
+      printPersons(sb);
+    out.println(sb.toString());
+  break;
+case 2:
+out.print("Person id: ");
+personId=scanner.nextInt();
+scanner.nextLine();
+sb=new StringBuilder();
+printPersonHistory(sb,personId);
+out.println(sb.toString());
+break;
+case 3:
+Person p=readNewPerson(out,scanner);
+entityManager.persist(p);
+break;
+case 4:
+out.print("Person id: ");
+personId=scanner.nextInt();
+scanner.nextLine();
+readModifyPerson(out,scanner,personId);
+break;
+case 5:
+sb=new StringBuilder();
+printAddresses(sb);
+out.println(sb.toString());
+break;
+case 6:
+out.print("Address id: ");
+addressId=scanner.nextInt();
+scanner.nextLine();
+sb=new StringBuilder();
+printAddressHistory(sb,addressId);
+out.println(sb.toString());
+break;
+case 7:
+Address a=readNewAddress(out,scanner);
+entityManager.persist(a);
+break;
+case 8:
+out.print("Address id: ");
+addressId=scanner.nextInt();
+scanner.nextLine();
+readModifyAddress(out,scanner,addressId);
+break;
+case 9:
+out.print("Person id: ");
+personId=scanner.nextInt();
+scanner.nextLine();
+out.print("Revision number: ");
+revision=scanner.nextInt();
+scanner.nextLine();
+if (revision <= 0) {
+System.out.println("Revision must be greater then 0!");
+continue;
+}
+sb=new StringBuilder();
+printPersonAtRevision(sb,personId,revision);
+out.println(sb.toString());
+break;
+case 10:
+out.print("Address id: ");
+addressId=scanner.nextInt();
+scanner.nextLine();
+out.print("Revision number: ");
+revision=scanner.nextInt();
+scanner.nextLine();
+if (revision <= 0) {
+System.out.println("Revision must be greater then 0!");
+continue;
+}
+sb=new StringBuilder();
+printAddressAtRevision(sb,addressId,revision);
+out.println(sb.toString());
+break;
+case 0:
+return;
+}
+}
+ catch (InputMismatchException e) {
+}
+ finally {
+entityManager.getTransaction().commit();
+}
+}
+}

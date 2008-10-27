@@ -1,0 +1,23 @@
+{
+  this.referencingIdData=referencingIdData;
+  String revisionPropertyPath=verEntCfg.getRevisionPropPath();
+  String originalIdPropertyName=verEntCfg.getOriginalIdPropName();
+  String eeOriginalIdPropertyPath="ee." + originalIdPropertyName;
+  QueryBuilder qb=new QueryBuilder(versionsMiddleEntityName,"ee");
+  qb.addFrom(referencedIdData.getVersionsEntityName(),"e");
+  qb.addFrom(indexIdData.getVersionsEntityName(),"f");
+  qb.addProjection("new list","ee, e, f",false,false);
+  Parameters rootParameters=qb.getRootParameters();
+  referencedIdData.getPrefixedMapper().addIdsEqualToQuery(rootParameters,eeOriginalIdPropertyPath,referencedIdData.getOriginalMapper(),"e." + originalIdPropertyName);
+  indexIdData.getPrefixedMapper().addIdsEqualToQuery(rootParameters,eeOriginalIdPropertyPath,indexIdData.getOriginalMapper(),"f." + originalIdPropertyName);
+  referencingIdData.getPrefixedMapper().addNamedIdEqualsToQuery(rootParameters,originalIdPropertyName,true);
+  QueryGeneratorTools.addEntityAtRevision(globalCfg,qb,rootParameters,referencedIdData,revisionPropertyPath,originalIdPropertyName,"e","e2");
+  QueryGeneratorTools.addEntityAtRevision(globalCfg,qb,rootParameters,indexIdData,revisionPropertyPath,originalIdPropertyName,"f","f2");
+  QueryGeneratorTools.addAssociationAtRevision(qb,rootParameters,referencingIdData,versionsMiddleEntityName,eeOriginalIdPropertyPath,revisionPropertyPath,originalIdPropertyName,componentDatas);
+  rootParameters.addWhereWithNamedParam(verEntCfg.getRevisionTypePropName(),"!=","delrevisiontype");
+  rootParameters.addWhereWithNamedParam("e." + verEntCfg.getRevisionTypePropName(),false,"!=","delrevisiontype");
+  rootParameters.addWhereWithNamedParam("f." + verEntCfg.getRevisionTypePropName(),false,"!=","delrevisiontype");
+  StringBuilder sb=new StringBuilder();
+  qb.build(sb,Collections.<String,Object>emptyMap());
+  queryString=sb.toString();
+}

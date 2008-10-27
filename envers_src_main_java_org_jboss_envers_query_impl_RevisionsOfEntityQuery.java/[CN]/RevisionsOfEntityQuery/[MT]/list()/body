@@ -1,0 +1,47 @@
+{
+  VersionsEntitiesConfiguration verEntCfg=verCfg.getVerEntCfg();
+  if (!selectDeletedEntities) {
+    qb.getRootParameters().addWhereWithParam(verEntCfg.getRevisionTypePropName(),"<>",RevisionType.DEL);
+  }
+  for (  VersionsCriterion criterion : criterions) {
+    criterion.addToQuery(verCfg,entityName,qb,qb.getRootParameters());
+  }
+  if (!hasProjection && !hasOrder) {
+    String revisionPropertyPath=verEntCfg.getRevisionPropPath();
+    qb.addOrder(revisionPropertyPath,true);
+  }
+  if (!selectEntitiesOnly) {
+    qb.addFrom(verCfg.getVerEntCfg().getRevisionInfoEntityName(),"r");
+    qb.getRootParameters().addWhere(verCfg.getVerEntCfg().getRevisionPropPath(),true,"=","r.id",false);
+  }
+  List<Object> queryResult=buildAndExecuteQuery();
+  if (hasProjection) {
+    return queryResult;
+  }
+ else {
+    List entities=new ArrayList();
+    String revisionTypePropertyName=verEntCfg.getRevisionTypePropName();
+    for (    Object resultRow : queryResult) {
+      Map versionsEntity;
+      Object revisionData;
+      if (selectEntitiesOnly) {
+        versionsEntity=(Map)resultRow;
+        revisionData=null;
+      }
+ else {
+        Object[] arrayResultRow=(Object[])resultRow;
+        versionsEntity=(Map)arrayResultRow[0];
+        revisionData=arrayResultRow[1];
+      }
+      Number revision=getRevisionNumber(versionsEntity);
+      Object entity=entityInstantiator.createInstanceFromVersionsEntity(entityName,versionsEntity,revision);
+      if (!selectEntitiesOnly) {
+        entities.add(new Object[]{entity,revisionData,versionsEntity.get(revisionTypePropertyName)});
+      }
+ else {
+        entities.add(entity);
+      }
+    }
+    return entities;
+  }
+}

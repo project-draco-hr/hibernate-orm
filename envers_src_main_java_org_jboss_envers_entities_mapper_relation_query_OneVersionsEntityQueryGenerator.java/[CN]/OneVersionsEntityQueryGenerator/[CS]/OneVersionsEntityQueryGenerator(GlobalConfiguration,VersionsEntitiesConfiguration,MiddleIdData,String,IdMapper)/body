@@ -1,0 +1,20 @@
+{
+  this.referencingIdData=referencingIdData;
+  String revisionPropertyPath=verEntCfg.getRevisionPropPath();
+  String originalIdPropertyName=verEntCfg.getOriginalIdPropName();
+  String versionsReferencedEntityName=verEntCfg.getVersionsEntityName(referencedEntityName);
+  QueryBuilder qb=new QueryBuilder(versionsReferencedEntityName,"e");
+  qb.addProjection("new list","e",false,false);
+  Parameters rootParameters=qb.getRootParameters();
+  referencingIdData.getPrefixedMapper().addNamedIdEqualsToQuery(rootParameters,null,true);
+  QueryBuilder maxERevQb=qb.newSubQueryBuilder(versionsReferencedEntityName,"e2");
+  maxERevQb.addProjection("max",revisionPropertyPath,false);
+  Parameters maxERevQbParameters=maxERevQb.getRootParameters();
+  maxERevQbParameters.addWhereWithNamedParam(revisionPropertyPath,"<=","revision");
+  referencedIdMapper.addIdsEqualToQuery(maxERevQbParameters,"e." + originalIdPropertyName,"e2." + originalIdPropertyName);
+  rootParameters.addWhere(revisionPropertyPath,false,globalCfg.getCorrelatedSubqueryOperator(),maxERevQb);
+  rootParameters.addWhereWithNamedParam(verEntCfg.getRevisionTypePropName(),false,"!=","delrevisiontype");
+  StringBuilder sb=new StringBuilder();
+  qb.build(sb,Collections.<String,Object>emptyMap());
+  queryString=sb.toString();
+}

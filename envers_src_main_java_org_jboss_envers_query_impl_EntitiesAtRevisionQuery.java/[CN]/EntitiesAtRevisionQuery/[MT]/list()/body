@@ -1,0 +1,23 @@
+{
+  QueryBuilder maxRevQb=qb.newSubQueryBuilder(versionsEntityName,"e2");
+  VersionsEntitiesConfiguration verEntCfg=verCfg.getVerEntCfg();
+  String revisionPropertyPath=verEntCfg.getRevisionPropPath();
+  String originalIdPropertyName=verEntCfg.getOriginalIdPropName();
+  maxRevQb.addProjection("max",revisionPropertyPath,false);
+  maxRevQb.getRootParameters().addWhereWithParam(revisionPropertyPath,"<=",revision);
+  verCfg.getEntCfg().get(entityName).getIdMapper().addIdsEqualToQuery(maxRevQb.getRootParameters(),"e." + originalIdPropertyName,"e2." + originalIdPropertyName);
+  qb.getRootParameters().addWhereWithParam(verEntCfg.getRevisionTypePropName(),"<>",RevisionType.DEL);
+  qb.getRootParameters().addWhere(revisionPropertyPath,verCfg.getGlobalCfg().getCorrelatedSubqueryOperator(),maxRevQb);
+  for (  VersionsCriterion criterion : criterions) {
+    criterion.addToQuery(verCfg,entityName,qb,qb.getRootParameters());
+  }
+  List queryResult=buildAndExecuteQuery();
+  if (hasProjection) {
+    return queryResult;
+  }
+ else {
+    List result=new ArrayList();
+    entityInstantiator.addInstancesFromVersionsEntities(entityName,result,queryResult,revision);
+    return result;
+  }
+}

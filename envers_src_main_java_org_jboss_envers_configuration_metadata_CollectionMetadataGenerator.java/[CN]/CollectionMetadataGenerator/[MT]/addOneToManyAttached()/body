@@ -1,0 +1,14 @@
+{
+  String mappedBy=getMappedBy(propertyValue);
+  EntityConfiguration referencedEntityConfiguration=mainGenerator.getEntitiesConfigurations().get(referencedEntityName);
+  IdMappingData referencedIdMapping=referencedEntityConfiguration.getIdMappingData();
+  IdMappingData referencingIdMapping=referencingEntityConfiguration.getIdMappingData();
+  MiddleIdData referencingIdData=new MiddleIdData(mainGenerator.getVerEntCfg(),referencingIdMapping,mappedBy + "_",referencingEntityName);
+  MiddleIdData referencedIdData=new MiddleIdData(mainGenerator.getVerEntCfg(),referencedIdMapping,null,referencedEntityName);
+  MiddleComponentData elementComponentData=new MiddleComponentData(new MiddleRelatedComponentMapper(referencedIdData),0);
+  MiddleComponentData indexComponentData=addIndex(null,null);
+  RelationQueryGenerator queryGenerator=new OneVersionsEntityQueryGenerator(mainGenerator.getGlobalCfg(),mainGenerator.getVerEntCfg(),referencingIdData,referencedEntityName,referencedIdMapping.getIdMapper());
+  CommonCollectionMapperData commonCollectionMapperData=new CommonCollectionMapperData(mainGenerator.getVerEntCfg(),referencedEntityName,propertyName,referencingIdData,queryGenerator);
+  addMapper(commonCollectionMapperData,elementComponentData,indexComponentData);
+  referencingEntityConfiguration.addToManyNotOwningRelation(propertyName,mappedBy,referencedEntityName,referencingIdData.getPrefixedMapper());
+}

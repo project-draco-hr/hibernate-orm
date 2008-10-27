@@ -1,0 +1,15 @@
+{
+  for (  String entityName : entitiesConfigurations.keySet()) {
+    EntityConfiguration entCfg=entitiesConfigurations.get(entityName);
+    for (    RelationDescription relDesc : entCfg.getRelationsIterator()) {
+      if (relDesc.getRelationType() == RelationType.TO_ONE || relDesc.getRelationType() == RelationType.TO_MANY_MIDDLE) {
+        for (        RelationDescription other : entitiesConfigurations.get(relDesc.getToEntityName()).getRelationsIterator()) {
+          if (relDesc.getFromPropertyName().equals(other.getMappedByPropertyName()) && (entityName.equals(other.getToEntityName()))) {
+            relDesc.setBidirectional(true);
+            other.setBidirectional(true);
+          }
+        }
+      }
+    }
+  }
+}

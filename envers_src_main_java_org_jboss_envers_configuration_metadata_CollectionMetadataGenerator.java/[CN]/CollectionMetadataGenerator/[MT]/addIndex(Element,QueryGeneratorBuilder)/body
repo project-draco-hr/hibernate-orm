@@ -1,0 +1,21 @@
+{
+  if (propertyValue instanceof IndexedCollection) {
+    IndexedCollection indexedValue=(IndexedCollection)propertyValue;
+    if (mapKey == null) {
+      return addValueToMiddleTable(indexedValue.getIndex(),middleEntityXml,queryGeneratorBuilder,"mapkey",null);
+    }
+ else {
+      IdMappingData referencedIdMapping=mainGenerator.getEntitiesConfigurations().get(referencedEntityName).getIdMappingData();
+      int currentIndex=queryGeneratorBuilder == null ? 0 : queryGeneratorBuilder.getCurrentIndex();
+      if ("".equals(mapKey)) {
+        return new MiddleComponentData(new MiddleMapKeyIdComponentMapper(mainGenerator.getVerEntCfg(),referencedIdMapping.getIdMapper()),currentIndex);
+      }
+ else {
+        return new MiddleComponentData(new MiddleMapKeyPropertyComponentMapper(mapKey),currentIndex);
+      }
+    }
+  }
+ else {
+    return new MiddleComponentData(new MiddleDummyComponentMapper(),0);
+  }
+}

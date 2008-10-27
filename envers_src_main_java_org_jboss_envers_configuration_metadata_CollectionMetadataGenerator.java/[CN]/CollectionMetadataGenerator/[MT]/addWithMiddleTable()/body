@@ -1,0 +1,45 @@
+{
+  String versionsMiddleTableName;
+  String versionsMiddleEntityName;
+  if (!StringTools.isEmpty(joinTable.name())) {
+    versionsMiddleTableName=joinTable.name();
+    versionsMiddleEntityName=joinTable.name();
+  }
+ else {
+    String middleTableName=getMiddleTableName(propertyValue,referencingEntityName);
+    versionsMiddleTableName=mainGenerator.getVerEntCfg().getVersionsTableName(null,middleTableName);
+    versionsMiddleEntityName=mainGenerator.getVerEntCfg().getVersionsEntityName(middleTableName);
+  }
+  Element middleEntityXml;
+  if (!propertyValue.isInverse()) {
+    middleEntityXml=createMiddleEntityXml(versionsMiddleTableName,versionsMiddleEntityName);
+  }
+ else {
+    middleEntityXml=null;
+  }
+  IdMappingData referencingIdMapping=referencingEntityConfiguration.getIdMappingData();
+  String mappedBy;
+  String referencingPrefixRelated;
+  String referencedPrefix;
+  if (propertyValue.isInverse()) {
+    mappedBy=getMappedBy(propertyValue.getCollectionTable(),mainGenerator.getCfg().getClassMapping(referencedEntityName));
+    referencingPrefixRelated=mappedBy + "_";
+    referencedPrefix=StringTools.getLastComponent(referencedEntityName);
+  }
+ else {
+    mappedBy=null;
+    referencingPrefixRelated=StringTools.getLastComponent(referencingEntityName) + "_";
+    referencedPrefix=referencedEntityName == null ? "element" : propertyName;
+  }
+  MiddleIdData referencingIdData=new MiddleIdData(mainGenerator.getVerEntCfg(),referencingIdMapping,referencingPrefixRelated,referencingEntityName);
+  QueryGeneratorBuilder queryGeneratorBuilder=new QueryGeneratorBuilder(mainGenerator.getGlobalCfg(),mainGenerator.getVerEntCfg(),referencingIdData,versionsMiddleEntityName);
+  if (middleEntityXml != null) {
+    addRelatedToXmlMapping(middleEntityXml,referencingPrefixRelated,MetadataTools.getColumnNameIterator(propertyValue.getKey().getColumnIterator()),referencingIdMapping);
+  }
+  MiddleComponentData elementComponentData=addValueToMiddleTable(propertyValue.getElement(),middleEntityXml,queryGeneratorBuilder,referencedPrefix,joinTable.inverseJoinColumns());
+  MiddleComponentData indexComponentData=addIndex(middleEntityXml,queryGeneratorBuilder);
+  RelationQueryGenerator queryGenerator=queryGeneratorBuilder.build(elementComponentData,indexComponentData);
+  CommonCollectionMapperData commonCollectionMapperData=new CommonCollectionMapperData(mainGenerator.getVerEntCfg(),versionsMiddleEntityName,propertyName,referencingIdData,queryGenerator);
+  addMapper(commonCollectionMapperData,elementComponentData,indexComponentData);
+  storeMiddleEntityRelationInformation(mappedBy);
+}

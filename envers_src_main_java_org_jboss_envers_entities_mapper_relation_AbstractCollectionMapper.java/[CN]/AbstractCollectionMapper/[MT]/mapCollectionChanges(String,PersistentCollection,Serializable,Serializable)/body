@@ -1,0 +1,25 @@
+{
+  if (!commonCollectionMapperData.getCollectionReferencingPropertyName().equals(referencingPropertyName)) {
+    return null;
+  }
+  List<PersistentCollectionChangeData> collectionChanges=new ArrayList<PersistentCollectionChangeData>();
+  Collection newCollection=getNewCollectionContent(newColl);
+  Collection oldCollection=getOldCollectionContent(oldColl);
+  Set<Object> added=new HashSet<Object>();
+  if (newColl != null) {
+    added.addAll(newCollection);
+  }
+  if (oldColl != null) {
+    added.removeAll(oldCollection);
+  }
+  addCollectionChanges(collectionChanges,added,RevisionType.ADD,id);
+  Set<Object> deleted=new HashSet<Object>();
+  if (oldColl != null) {
+    deleted.addAll(oldCollection);
+  }
+  if (newColl != null) {
+    deleted.removeAll(newCollection);
+  }
+  addCollectionChanges(collectionChanges,deleted,RevisionType.DEL,id);
+  return collectionChanges;
+}

@@ -1,0 +1,24 @@
+{
+  this.referencingIdData=referencingIdData;
+  String revisionPropertyPath=verEntCfg.getRevisionPropPath();
+  String originalIdPropertyName=verEntCfg.getOriginalIdPropName();
+  QueryBuilder qb=new QueryBuilder(versionsMiddleEntityName,"ee");
+  qb.addProjection("new list","ee",false,false);
+  Parameters rootParameters=qb.getRootParameters();
+  referencingIdData.getPrefixedMapper().addNamedIdEqualsToQuery(rootParameters,originalIdPropertyName,true);
+  QueryBuilder maxRevQb=qb.newSubQueryBuilder(versionsMiddleEntityName,"ee2");
+  maxRevQb.addProjection("max",revisionPropertyPath,false);
+  Parameters maxRevQbParameters=maxRevQb.getRootParameters();
+  maxRevQbParameters.addWhereWithNamedParam(revisionPropertyPath,"<=","revision");
+  String eeOriginalIdPropertyPath="ee." + originalIdPropertyName;
+  String ee2OriginalIdPropertyPath="ee2." + originalIdPropertyName;
+  referencingIdData.getPrefixedMapper().addIdsEqualToQuery(maxRevQbParameters,eeOriginalIdPropertyPath,ee2OriginalIdPropertyPath);
+  for (  MiddleComponentData componentData : componentDatas) {
+    componentData.getComponentMapper().addMiddleEqualToQuery(maxRevQbParameters,eeOriginalIdPropertyPath,ee2OriginalIdPropertyPath);
+  }
+  rootParameters.addWhere(revisionPropertyPath,"=",maxRevQb);
+  rootParameters.addWhereWithNamedParam(verEntCfg.getRevisionTypePropName(),"!=","delrevisiontype");
+  StringBuilder sb=new StringBuilder();
+  qb.build(sb,Collections.<String,Object>emptyMap());
+  queryString=sb.toString();
+}

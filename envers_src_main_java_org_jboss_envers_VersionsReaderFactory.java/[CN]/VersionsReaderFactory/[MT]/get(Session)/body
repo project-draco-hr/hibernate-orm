@@ -1,0 +1,12 @@
+{
+  SessionImplementor sessionImpl=(SessionImplementor)session;
+  EventListeners listeners=sessionImpl.getListeners();
+  for (  PostInsertEventListener listener : listeners.getPostInsertEventListeners()) {
+    if (listener instanceof VersionsEventListener) {
+      if (arrayIncludesInstanceOf(listeners.getPostUpdateEventListeners(),VersionsEventListener.class) && arrayIncludesInstanceOf(listeners.getPostDeleteEventListeners(),VersionsEventListener.class)) {
+        return new VersionsReaderImpl(((VersionsEventListener)listener).getVerCfg(),session,sessionImpl);
+      }
+    }
+  }
+  throw new VersionsException("You need install the org.jboss.envers.event.VersionsEventListener " + "class as post insert, update and delete event listener.");
+}

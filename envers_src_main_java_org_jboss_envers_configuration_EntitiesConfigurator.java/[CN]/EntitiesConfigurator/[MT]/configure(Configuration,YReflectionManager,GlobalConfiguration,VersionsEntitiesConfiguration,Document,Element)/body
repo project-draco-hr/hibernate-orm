@@ -1,0 +1,45 @@
+{
+  VersionsMetadataGenerator versionsMetaGen=new VersionsMetadataGenerator(cfg,globalCfg,verEntCfg,revisionInfoRelationMapping);
+  DOMWriter writer=new DOMWriter();
+  Iterator<PersistentClass> classes=GraphTopologicalSort.sort(new PersistentClassGraphDefiner(cfg)).iterator();
+  Map<PersistentClass,PersistentClassVersioningData> pcDatas=new HashMap<PersistentClass,PersistentClassVersioningData>();
+  Map<PersistentClass,EntityXmlMappingData> xmlMappings=new HashMap<PersistentClass,EntityXmlMappingData>();
+  while (classes.hasNext()) {
+    PersistentClass pc=classes.next();
+    AnnotationsMetadataReader annotationsMetadataReader=new AnnotationsMetadataReader(globalCfg,reflectionManager,pc);
+    PersistentClassVersioningData versioningData=annotationsMetadataReader.getVersioningData();
+    if (versioningData.isVersioned()) {
+      pcDatas.put(pc,versioningData);
+      if (!StringTools.isEmpty(versioningData.versionsTable.value())) {
+        verEntCfg.addCustomVersionsTableName(pc.getEntityName(),versioningData.versionsTable.value());
+      }
+      EntityXmlMappingData xmlMappingData=new EntityXmlMappingData();
+      versionsMetaGen.generateFirstPass(pc,versioningData,xmlMappingData);
+      xmlMappings.put(pc,xmlMappingData);
+    }
+  }
+  for (  Map.Entry<PersistentClass,PersistentClassVersioningData> pcDatasEntry : pcDatas.entrySet()) {
+    EntityXmlMappingData xmlMappingData=xmlMappings.get(pcDatasEntry.getKey());
+    versionsMetaGen.generateSecondPass(pcDatasEntry.getKey(),pcDatasEntry.getValue(),xmlMappingData);
+    try {
+      cfg.addDocument(writer.write(xmlMappingData.getMainXmlMapping()));
+      for (      Document additionalMapping : xmlMappingData.getAdditionalXmlMappings()) {
+        cfg.addDocument(writer.write(additionalMapping));
+      }
+    }
+ catch (    DocumentException e) {
+      throw new MappingException(e);
+    }
+  }
+  if (pcDatas.size() > 0) {
+    try {
+      if (revisionInfoXmlMapping != null) {
+        cfg.addDocument(writer.write(revisionInfoXmlMapping));
+      }
+    }
+ catch (    DocumentException e) {
+      throw new MappingException(e);
+    }
+  }
+  return new EntitiesConfigurations(versionsMetaGen.getEntitiesConfigurations());
+}

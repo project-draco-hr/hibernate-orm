@@ -1,0 +1,16 @@
+{
+  CriteriaTools.checkPropertyNotARelation(verCfg,entityName,propertyName);
+  QueryBuilder subQb=qb.newSubQueryBuilder();
+  for (  VersionsCriterion versionsCriteria : criterions) {
+    versionsCriteria.addToQuery(verCfg,entityName,qb,parameters);
+    versionsCriteria.addToQuery(verCfg,entityName,subQb,subQb.getRootParameters());
+  }
+switch (mode) {
+case MIN:
+    subQb.addProjection("min",propertyName,false);
+  break;
+case MAX:
+subQb.addProjection("max",propertyName,false);
+}
+parameters.addWhere(propertyName,"=",subQb);
+}

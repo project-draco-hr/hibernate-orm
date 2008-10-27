@@ -1,0 +1,31 @@
+{
+  if (vwu.containsWork()) {
+    Object entityId=vwu.getEntityId();
+    if (entityId == null) {
+      workUnits.offer(vwu);
+    }
+ else {
+      String entityName=vwu.getEntityName();
+      Pair<String,Object> usedIdsKey=Pair.make(entityName,entityId);
+      if (usedIds.containsKey(usedIdsKey)) {
+        VersionsWorkUnit other=usedIds.get(usedIdsKey);
+switch (vwu.dispatch(other)) {
+case FIRST:
+          break;
+case SECOND:
+        removeWorkUnit(other);
+      usedIds.put(usedIdsKey,vwu);
+    workUnits.offer(vwu);
+  break;
+case NONE:
+removeWorkUnit(other);
+break;
+}
+}
+ else {
+usedIds.put(usedIdsKey,vwu);
+workUnits.offer(vwu);
+}
+}
+}
+}

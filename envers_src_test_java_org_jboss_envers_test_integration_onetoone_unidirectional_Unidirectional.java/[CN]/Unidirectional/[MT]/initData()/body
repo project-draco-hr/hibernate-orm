@@ -1,0 +1,35 @@
+{
+  UniRefEdEntity ed1=new UniRefEdEntity(1,"data_ed_1");
+  UniRefEdEntity ed2=new UniRefEdEntity(2,"data_ed_2");
+  UniRefEdEntity ed3=new UniRefEdEntity(3,"data_ed_2");
+  UniRefEdEntity ed4=new UniRefEdEntity(4,"data_ed_2");
+  UniRefIngEntity ing1=new UniRefIngEntity(5,"data_ing_1",ed1);
+  UniRefIngEntity ing2=new UniRefIngEntity(6,"data_ing_2",ed3);
+  EntityManager em=getEntityManager();
+  em.getTransaction().begin();
+  em.persist(ed1);
+  em.persist(ed2);
+  em.persist(ed3);
+  em.persist(ed4);
+  em.persist(ing1);
+  em.persist(ing2);
+  em.getTransaction().commit();
+  em=getEntityManager();
+  em.getTransaction().begin();
+  ing1=em.find(UniRefIngEntity.class,ing1.getId());
+  ed2=em.find(UniRefEdEntity.class,ed2.getId());
+  ing1.setReference(ed2);
+  em.getTransaction().commit();
+  em=getEntityManager();
+  em.getTransaction().begin();
+  ing2=em.find(UniRefIngEntity.class,ing2.getId());
+  ed3=em.find(UniRefEdEntity.class,ed3.getId());
+  ing2.setReference(ed4);
+  em.getTransaction().commit();
+  ed1_id=ed1.getId();
+  ed2_id=ed2.getId();
+  ed3_id=ed3.getId();
+  ed4_id=ed4.getId();
+  ing1_id=ing1.getId();
+  ing2_id=ing2.getId();
+}

@@ -1,0 +1,26 @@
+{
+  Element rel_id_mapping=new DefaultElement("properties");
+  Element orig_id_mapping=new DefaultElement("composite-id");
+  Property id_prop=pc.getIdentifierProperty();
+  Component id_mapper=pc.getIdentifierMapper();
+  SimpleIdMapperBuilder mapper;
+  if (id_mapper != null) {
+    mapper=new MultipleIdMapper(((Component)pc.getIdentifier()).getComponentClassName());
+    addIdProperties(rel_id_mapping,(Iterator<Property>)id_mapper.getPropertyIterator(),mapper,false);
+    addIdProperties(orig_id_mapping,(Iterator<Property>)id_mapper.getPropertyIterator(),null,true);
+  }
+ else   if (id_prop.isComposite()) {
+    Component id_component=(Component)id_prop.getValue();
+    mapper=new EmbeddedIdMapper(id_prop.getName(),id_component.getComponentClassName());
+    addIdProperties(rel_id_mapping,(Iterator<Property>)id_component.getPropertyIterator(),mapper,false);
+    addIdProperties(orig_id_mapping,(Iterator<Property>)id_component.getPropertyIterator(),null,true);
+  }
+ else {
+    mapper=new SingleIdMapper();
+    mainGenerator.getBasicMetadataGenerator().addBasicNoComponent(rel_id_mapping,id_prop.getName(),id_prop.getValue(),mapper,ModificationStore.FULL,true,false);
+    mainGenerator.getBasicMetadataGenerator().addBasicNoComponent(orig_id_mapping,id_prop.getName(),id_prop.getValue(),null,ModificationStore.FULL,true,true);
+  }
+  orig_id_mapping.addAttribute("name",mainGenerator.getVerEntCfg().getOriginalIdPropName());
+  mainGenerator.addRevisionInfoRelation(orig_id_mapping);
+  return new IdMappingData(mapper,orig_id_mapping,rel_id_mapping);
+}

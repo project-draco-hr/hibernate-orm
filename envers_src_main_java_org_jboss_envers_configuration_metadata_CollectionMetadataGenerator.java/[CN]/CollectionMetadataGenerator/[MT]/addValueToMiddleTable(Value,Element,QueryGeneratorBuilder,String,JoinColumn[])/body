@@ -1,0 +1,24 @@
+{
+  Type type=value.getType();
+  if (type instanceof ManyToOneType) {
+    String prefixRelated=prefix + "_";
+    String referencedEntityName=getReferencedEntityName(value);
+    IdMappingData referencedIdMapping=mainGenerator.getEntitiesConfigurations().get(referencedEntityName).getIdMappingData();
+    if (xmlMapping != null) {
+      addRelatedToXmlMapping(xmlMapping,prefixRelated,joinColumns != null && joinColumns.length > 0 ? MetadataTools.getColumnNameIterator(joinColumns) : MetadataTools.getColumnNameIterator(value.getColumnIterator()),referencedIdMapping);
+    }
+    MiddleIdData referencedIdData=new MiddleIdData(mainGenerator.getVerEntCfg(),referencedIdMapping,prefixRelated,referencedEntityName);
+    queryGeneratorBuilder.addRelation(referencedIdData);
+    return new MiddleComponentData(new MiddleRelatedComponentMapper(referencedIdData),queryGeneratorBuilder.getCurrentIndex());
+  }
+ else {
+    boolean mapped=mainGenerator.getBasicMetadataGenerator().addBasicNoComponent(xmlMapping,prefix,value,null,ModificationStore.FULL,true,true);
+    if (mapped) {
+      return new MiddleComponentData(new MiddleSimpleComponentMapper(mainGenerator.getVerEntCfg(),prefix),0);
+    }
+ else {
+      mainGenerator.throwUnsupportedTypeException(type,referencingEntityName,propertyName);
+      throw new AssertionError();
+    }
+  }
+}

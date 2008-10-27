@@ -1,0 +1,27 @@
+{
+  if (versionsEntity == null) {
+    return null;
+  }
+  String type=verCfg.getEntCfg().getEntityNameForVersionsEntityName((String)versionsEntity.get("$type$"));
+  if (type != null) {
+    entityName=type;
+  }
+  IdMapper idMapper=verCfg.getEntCfg().get(entityName).getIdMapper();
+  Map originalId=(Map)versionsEntity.get(verCfg.getVerEntCfg().getOriginalIdPropName());
+  Object primaryKey=idMapper.mapToIdFromMap(originalId);
+  if (versionsReader.getFirstLevelCache().contains(entityName,revision,primaryKey)) {
+    return versionsReader.getFirstLevelCache().get(entityName,revision,primaryKey);
+  }
+  Object ret;
+  try {
+    Class<?> cls=ReflectionTools.loadClass(entityName);
+    ret=cls.newInstance();
+  }
+ catch (  Exception e) {
+    throw new VersionsException(e);
+  }
+  versionsReader.getFirstLevelCache().put(entityName,revision,primaryKey,ret);
+  verCfg.getEntCfg().get(entityName).getPropertyMapper().mapToEntityFromMap(verCfg,ret,versionsEntity,primaryKey,versionsReader,revision);
+  idMapper.mapToEntityFromMap(ret,originalId);
+  return ret;
+}

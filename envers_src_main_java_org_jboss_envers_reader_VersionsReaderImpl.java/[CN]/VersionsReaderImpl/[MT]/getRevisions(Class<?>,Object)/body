@@ -1,0 +1,10 @@
+{
+  checkNotNull(cls,"Entity class");
+  checkNotNull(primaryKey,"Primary key");
+  checkSession();
+  String entityName=cls.getName();
+  if (!verCfg.getEntCfg().isVersioned(entityName)) {
+    throw new NotVersionedException(entityName,entityName + " is not versioned!");
+  }
+  return createQuery().forRevisionsOfEntity(cls,false,true).addProjection(RevisionProperty.revisionNumber()).add(VersionsRestrictions.idEq(primaryKey)).getResultList();
+}

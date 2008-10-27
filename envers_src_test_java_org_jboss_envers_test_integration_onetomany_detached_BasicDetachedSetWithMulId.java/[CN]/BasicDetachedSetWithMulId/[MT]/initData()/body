@@ -1,0 +1,30 @@
+{
+  EntityManager em=getEntityManager();
+  str1_id=new MulId(1,2);
+  str2_id=new MulId(3,4);
+  coll1_id=new MulId(5,6);
+  MulIdTestEntity str1=new MulIdTestEntity(str1_id.getId1(),str1_id.getId2(),"str1");
+  MulIdTestEntity str2=new MulIdTestEntity(str2_id.getId1(),str2_id.getId2(),"str2");
+  SetRefCollEntityMulId coll1=new SetRefCollEntityMulId(coll1_id.getId1(),coll1_id.getId2(),"coll1");
+  em.getTransaction().begin();
+  em.persist(str1);
+  em.persist(str2);
+  coll1.setCollection(new HashSet<MulIdTestEntity>());
+  coll1.getCollection().add(str1);
+  em.persist(coll1);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  str2=em.find(MulIdTestEntity.class,str2_id);
+  coll1=em.find(SetRefCollEntityMulId.class,coll1_id);
+  coll1.getCollection().add(str2);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  str1=em.find(MulIdTestEntity.class,str1_id);
+  coll1=em.find(SetRefCollEntityMulId.class,coll1_id);
+  coll1.getCollection().remove(str1);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  coll1=em.find(SetRefCollEntityMulId.class,coll1_id);
+  coll1.getCollection().clear();
+  em.getTransaction().commit();
+}

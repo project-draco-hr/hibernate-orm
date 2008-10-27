@@ -1,0 +1,17 @@
+{
+  boolean ret=false;
+  for (  String propertyName : properties.keySet()) {
+    Getter getter;
+    if (newObj != null) {
+      getter=ReflectionTools.getGetter(newObj.getClass(),propertyName);
+    }
+ else     if (oldObj != null) {
+      getter=ReflectionTools.getGetter(oldObj.getClass(),propertyName);
+    }
+ else {
+      return false;
+    }
+    ret|=properties.get(propertyName).mapToMapFromEntity(data,newObj == null ? null : getter.get(newObj),oldObj == null ? null : getter.get(oldObj));
+  }
+  return ret;
+}
