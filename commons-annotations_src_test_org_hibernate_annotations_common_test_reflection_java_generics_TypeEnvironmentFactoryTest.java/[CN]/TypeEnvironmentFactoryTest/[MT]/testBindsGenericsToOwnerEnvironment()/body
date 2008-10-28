@@ -1,0 +1,9 @@
+{
+  TypeEnvironmentFactory env=new TypeEnvironmentFactory();
+  Type friendType=Dad.class.getMethod("getFriend",new Class[0]).getGenericReturnType();
+  ParameterizedType friendTypeAsSeenFromDad=(ParameterizedType)env.getEnvironment(Dad.class).bind(friendType);
+  Class friendClass=(Class)friendTypeAsSeenFromDad.getRawType();
+  Type returnType=friendClass.getMethod("embeddedProperty",new Class[0]).getGenericReturnType();
+  ParameterizedType boundType=(ParameterizedType)env.getEnvironment(friendTypeAsSeenFromDad).bind(returnType);
+  assertType_isCollectionOfClass_withElementsOfClass(boundType,Set.class,Integer.class);
+}

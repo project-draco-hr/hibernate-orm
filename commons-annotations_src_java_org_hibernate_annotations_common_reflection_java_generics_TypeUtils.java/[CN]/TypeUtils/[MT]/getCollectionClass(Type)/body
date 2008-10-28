@@ -1,0 +1,21 @@
+{
+  return new TypeSwitch<Class<? extends Collection>>(){
+    @Override public Class<? extends Collection> caseClass(    Class clazz){
+      return isCollectionClass(clazz) ? (Class<? extends Collection>)clazz : null;
+    }
+    @Override public Class<? extends Collection> caseParameterizedType(    ParameterizedType parameterizedType){
+      return getCollectionClass(parameterizedType.getRawType());
+    }
+    @Override public Class<? extends Collection> caseWildcardType(    WildcardType wildcardType){
+      Type[] upperBounds=wildcardType.getUpperBounds();
+      if (upperBounds.length == 0) {
+        return null;
+      }
+      return getCollectionClass(upperBounds[0]);
+    }
+    @Override public Class<? extends Collection> defaultCase(    Type t){
+      return null;
+    }
+  }
+.doSwitch(type);
+}

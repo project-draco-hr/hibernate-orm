@@ -1,0 +1,22 @@
+{
+  if (parameters.length != 0) {
+    throw new IllegalArgumentException("An XProperty cannot have invoke parameters");
+  }
+  try {
+    if (getMember() instanceof Method) {
+      return ((Method)getMember()).invoke(target);
+    }
+ else {
+      return ((Field)getMember()).get(target);
+    }
+  }
+ catch (  NullPointerException e) {
+    throw new IllegalArgumentException("Invoking " + getName() + " on a  null object",e);
+  }
+catch (  IllegalArgumentException e) {
+    throw new IllegalArgumentException("Invoking " + getName() + " with wrong parameters",e);
+  }
+catch (  Exception e) {
+    throw new IllegalStateException("Unable to invoke " + getName(),e);
+  }
+}
