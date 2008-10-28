@@ -1,0 +1,35 @@
+{
+  String columnName;
+  String logicalReferencedColumn=getMappings().getLogicalColumnName(referencedColumn.getQuotedName(),referencedEntity.getTable());
+  boolean mappedBySide=mappedByTableName != null || mappedByPropertyName != null;
+  boolean ownerSide=getPropertyName() != null;
+  Boolean isRefColumnQuoted=StringHelper.isQuoted(logicalReferencedColumn);
+  String unquotedLogicalReferenceColumn=isRefColumnQuoted ? StringHelper.unquote(logicalReferencedColumn) : logicalReferencedColumn;
+  if (mappedBySide) {
+    String unquotedMappedbyTable=StringHelper.unquote(mappedByTableName);
+    columnName=getMappings().getNamingStrategy().foreignKeyColumnName(mappedByPropertyName,mappedByEntityName,unquotedMappedbyTable,unquotedLogicalReferenceColumn);
+    if (isRefColumnQuoted || StringHelper.isQuoted(mappedByTableName)) {
+      columnName=StringHelper.quote(columnName);
+    }
+  }
+ else   if (ownerSide) {
+    String logicalTableName=getMappings().getLogicalTableName(referencedEntity.getTable());
+    String unquotedLogicalTableName=StringHelper.unquote(logicalTableName);
+    columnName=getMappings().getNamingStrategy().foreignKeyColumnName(getPropertyName(),referencedEntity.getEntityName(),unquotedLogicalTableName,unquotedLogicalReferenceColumn);
+    if (isRefColumnQuoted || StringHelper.isQuoted(logicalTableName)) {
+      columnName=StringHelper.quote(columnName);
+    }
+  }
+ else {
+    String logicalTableName=getMappings().getLogicalTableName(referencedEntity.getTable());
+    String unquotedLogicalTableName=StringHelper.unquote(logicalTableName);
+    columnName=getMappings().getNamingStrategy().joinKeyColumnName(unquotedLogicalReferenceColumn,unquotedLogicalTableName);
+    if (isRefColumnQuoted || StringHelper.isQuoted(logicalTableName)) {
+      columnName=StringHelper.quote(columnName);
+    }
+  }
+  setLogicalColumnName(columnName);
+  setReferencedColumn(logicalReferencedColumn);
+  initMappingColumn(columnName,null,referencedColumn.getLength(),referencedColumn.getPrecision(),referencedColumn.getScale(),getMappingColumn().isNullable(),referencedColumn.getSqlType(),getMappingColumn().isUnique(),false);
+  linkWithValue(value);
+}

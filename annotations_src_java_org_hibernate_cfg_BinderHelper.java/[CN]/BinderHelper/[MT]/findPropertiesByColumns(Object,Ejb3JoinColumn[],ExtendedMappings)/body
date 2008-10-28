@@ -1,0 +1,40 @@
+{
+  Map<Column,Set<Property>> columnsToProperty=new HashMap<Column,Set<Property>>();
+  List<Column> orderedColumns=new ArrayList<Column>(columns.length);
+  Table referencedTable=null;
+  if (columnOwner instanceof PersistentClass) {
+    referencedTable=((PersistentClass)columnOwner).getTable();
+  }
+ else   if (columnOwner instanceof Join) {
+    referencedTable=((Join)columnOwner).getTable();
+  }
+ else {
+    throw new AssertionFailure(columnOwner == null ? "columnOwner is null" : "columnOwner neither PersistentClass nor Join: " + columnOwner.getClass());
+  }
+  for (  Ejb3JoinColumn column1 : columns) {
+    Column column=new Column(mappings.getPhysicalColumnName(column1.getReferencedColumn(),referencedTable));
+    orderedColumns.add(column);
+    columnsToProperty.put(column,new HashSet<Property>());
+  }
+  boolean isPersistentClass=columnOwner instanceof PersistentClass;
+  Iterator it=isPersistentClass ? ((PersistentClass)columnOwner).getPropertyIterator() : ((Join)columnOwner).getPropertyIterator();
+  while (it.hasNext()) {
+    matchColumnsByProperty((Property)it.next(),columnsToProperty);
+  }
+  if (isPersistentClass) {
+    matchColumnsByProperty(((PersistentClass)columnOwner).getIdentifierProperty(),columnsToProperty);
+  }
+  List<Property> orderedProperties=new ArrayList<Property>();
+  for (  Column column : orderedColumns) {
+    boolean found=false;
+    for (    Property property : columnsToProperty.get(column)) {
+      if (property.getColumnSpan() == 1) {
+        orderedProperties.add(property);
+        found=true;
+        break;
+      }
+    }
+    if (!found)     return null;
+  }
+  return orderedProperties;
+}

@@ -1,0 +1,31 @@
+{
+  Class clazz;
+  try {
+    clazz=ReflectHelper.classForName(className,this.getClass());
+  }
+ catch (  ClassNotFoundException e) {
+    return;
+  }
+  Element element=tree != null ? tree.element("attributes") : null;
+  if (element != null) {
+    Set<String> properties=new HashSet<String>();
+    for (    Field field : clazz.getFields()) {
+      properties.add(field.getName());
+    }
+    for (    Method method : clazz.getMethods()) {
+      String name=method.getName();
+      if (name.startsWith("get")) {
+        properties.add(Introspector.decapitalize(name.substring("get".length())));
+      }
+ else       if (name.startsWith("is")) {
+        properties.add(Introspector.decapitalize(name.substring("is".length())));
+      }
+    }
+    for (    Element subelement : (List<Element>)element.elements()) {
+      String propertyName=subelement.attributeValue("name");
+      if (!properties.contains(propertyName)) {
+        log.warn("Property {} not found in class" + " but described in <mapping-file/> (possible typo error)",StringHelper.qualify(className,propertyName));
+      }
+    }
+  }
+}

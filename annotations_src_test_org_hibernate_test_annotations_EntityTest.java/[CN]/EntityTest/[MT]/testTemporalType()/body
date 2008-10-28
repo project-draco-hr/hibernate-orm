@@ -1,0 +1,27 @@
+{
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  Flight airFrance=new Flight();
+  airFrance.setId(new Long(747));
+  airFrance.setName("Paris-Amsterdam");
+  airFrance.setDuration(new Long(10));
+  airFrance.setDepartureDate(new Date(05,06,21,10,0,0));
+  airFrance.setAlternativeDepartureDate(new GregorianCalendar(2006,02,03,10,00));
+  airFrance.getAlternativeDepartureDate().setTimeZone(TimeZone.getTimeZone("GMT"));
+  airFrance.setBuyDate(new java.sql.Timestamp(122367443));
+  airFrance.setFactor(25);
+  s.persist(airFrance);
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  Query q=s.createQuery("from Flight f where f.departureDate = :departureDate");
+  q.setParameter("departureDate",airFrance.getDepartureDate(),Hibernate.DATE);
+  Flight copyAirFrance=(Flight)q.uniqueResult();
+  assertNotNull(copyAirFrance);
+  assertEquals(new Date(05,06,21),copyAirFrance.getDepartureDate());
+  assertEquals(copyAirFrance.getBuyDate().getTime() / 1000,airFrance.getBuyDate().getTime() / 1000);
+  s.delete(copyAirFrance);
+  tx.commit();
+  s.close();
+}

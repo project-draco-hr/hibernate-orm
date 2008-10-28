@@ -1,0 +1,62 @@
+{
+  Filter simpleFilter=property.getAnnotation(Filter.class);
+  if (simpleFilter != null) {
+    if (hasAssociationTable) {
+      collection.addManyToManyFilter(simpleFilter.name(),getCondition(simpleFilter));
+    }
+ else {
+      collection.addFilter(simpleFilter.name(),getCondition(simpleFilter));
+    }
+  }
+  Filters filters=property.getAnnotation(Filters.class);
+  if (filters != null) {
+    for (    Filter filter : filters.value()) {
+      if (hasAssociationTable) {
+        collection.addManyToManyFilter(filter.name(),getCondition(filter));
+      }
+ else {
+        collection.addFilter(filter.name(),getCondition(filter));
+      }
+    }
+  }
+  FilterJoinTable simpleFilterJoinTable=property.getAnnotation(FilterJoinTable.class);
+  if (simpleFilterJoinTable != null) {
+    if (hasAssociationTable) {
+      collection.addFilter(simpleFilterJoinTable.name(),getCondition(simpleFilterJoinTable));
+    }
+ else {
+      throw new AnnotationException("Illegal use of @FilterJoinTable on an association without join table:" + StringHelper.qualify(propertyHolder.getPath(),propertyName));
+    }
+  }
+  FilterJoinTables filterJoinTables=property.getAnnotation(FilterJoinTables.class);
+  if (filterJoinTables != null) {
+    for (    FilterJoinTable filter : filterJoinTables.value()) {
+      if (hasAssociationTable) {
+        collection.addFilter(filter.name(),getCondition(filter));
+      }
+ else {
+        throw new AnnotationException("Illegal use of @FilterJoinTable on an association without join table:" + StringHelper.qualify(propertyHolder.getPath(),propertyName));
+      }
+    }
+  }
+  Where where=property.getAnnotation(Where.class);
+  String whereClause=where == null ? null : where.clause();
+  if (StringHelper.isNotEmpty(whereClause)) {
+    if (hasAssociationTable) {
+      collection.setManyToManyWhere(whereClause);
+    }
+ else {
+      collection.setWhere(whereClause);
+    }
+  }
+  WhereJoinTable whereJoinTable=property.getAnnotation(WhereJoinTable.class);
+  String whereJoinTableClause=whereJoinTable == null ? null : whereJoinTable.clause();
+  if (StringHelper.isNotEmpty(whereJoinTableClause)) {
+    if (hasAssociationTable) {
+      collection.setWhere(whereJoinTableClause);
+    }
+ else {
+      throw new AnnotationException("Illegal use of @WhereJoinTable on an association without join table:" + StringHelper.qualify(propertyHolder.getPath(),propertyName));
+    }
+  }
+}

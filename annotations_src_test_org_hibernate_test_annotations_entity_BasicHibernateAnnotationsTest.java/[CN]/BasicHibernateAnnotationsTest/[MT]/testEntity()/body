@@ -1,0 +1,30 @@
+{
+  Forest forest=new Forest();
+  forest.setName("Fontainebleau");
+  Session s;
+  Transaction tx;
+  s=openSession();
+  tx=s.beginTransaction();
+  s.persist(forest);
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  forest=(Forest)s.get(Forest.class,forest.getId());
+  assertNotNull(forest);
+  forest.setName("Fontainebleau");
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  forest=(Forest)s.get(Forest.class,forest.getId());
+  assertNotNull(forest);
+  forest.setLength(23);
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  s.delete(s.get(Forest.class,forest.getId()));
+  tx.commit();
+  s.close();
+}

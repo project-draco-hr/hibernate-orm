@@ -1,0 +1,19 @@
+{
+  String type=BinderHelper.isDefault(explicitType) ? returnedClassName : explicitType;
+  org.hibernate.mapping.TypeDef typeDef=mappings.getTypeDef(type);
+  if (typeDef != null) {
+    type=typeDef.getTypeClass();
+    simpleValue.setTypeParameters(typeDef.getParameters());
+  }
+  if (typeParameters != null && typeParameters.size() != 0) {
+    simpleValue.setTypeParameters(typeParameters);
+  }
+  simpleValue.setTypeName(type);
+  if (persistentClassName != null) {
+    simpleValue.setTypeUsingReflection(persistentClassName,propertyName);
+  }
+  for (  Ejb3Column column : columns) {
+    column.linkWithValue(simpleValue);
+  }
+  return simpleValue;
+}

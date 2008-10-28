@@ -1,0 +1,68 @@
+{
+  if (columns[0].isImplicit() || StringHelper.isNotEmpty(columns[0].getMappedBy()))   return;
+  int fkEnum=Ejb3JoinColumn.checkReferencedColumnsType(columns,ownerEntity,mappings);
+  PersistentClass associatedClass=columns[0].getPropertyHolder() != null ? columns[0].getPropertyHolder().getPersistentClass() : null;
+  if (Ejb3JoinColumn.NON_PK_REFERENCE == fkEnum) {
+    StringBuilder propertyNameBuffer=new StringBuilder("_");
+    propertyNameBuffer.append(associatedClass.getEntityName().replace('.','_'));
+    propertyNameBuffer.append("_").append(columns[0].getPropertyName());
+    String syntheticPropertyName=propertyNameBuffer.toString();
+    Object columnOwner=findColumnOwner(ownerEntity,columns[0].getReferencedColumn(),mappings);
+    List<Property> properties=findPropertiesByColumns(columnOwner,columns,mappings);
+    Property synthProp=null;
+    if (properties != null) {
+      Component embeddedComp=columnOwner instanceof PersistentClass ? new Component((PersistentClass)columnOwner) : new Component((Join)columnOwner);
+      embeddedComp.setEmbedded(true);
+      embeddedComp.setNodeName(syntheticPropertyName);
+      embeddedComp.setComponentClassName(embeddedComp.getOwner().getClassName());
+      for (      Property property : properties) {
+        Property clone=BinderHelper.shallowCopy(property);
+        clone.setInsertable(false);
+        clone.setUpdateable(false);
+        clone.setNaturalIdentifier(false);
+        embeddedComp.addProperty(clone);
+      }
+      synthProp=new Property();
+      synthProp.setName(syntheticPropertyName);
+      synthProp.setNodeName(syntheticPropertyName);
+      synthProp.setPersistentClass(ownerEntity);
+      synthProp.setUpdateable(false);
+      synthProp.setInsertable(false);
+      synthProp.setValue(embeddedComp);
+      synthProp.setPropertyAccessorName("embedded");
+      ownerEntity.addProperty(synthProp);
+      TableBinder.createUniqueConstraint(embeddedComp);
+    }
+ else {
+      StringBuilder columnsList=new StringBuilder();
+      columnsList.append("referencedColumnNames(");
+      for (      Ejb3JoinColumn column : columns) {
+        columnsList.append(column.getReferencedColumn()).append(", ");
+      }
+      columnsList.setLength(columnsList.length() - 2);
+      columnsList.append(") ");
+      if (associatedEntity != null) {
+        columnsList.append("of ").append(associatedEntity.getEntityName()).append(".").append(columns[0].getPropertyName()).append(" ");
+      }
+ else {
+        if (columns[0].getPropertyHolder() != null) {
+          columnsList.append("of ").append(columns[0].getPropertyHolder().getEntityName()).append(".").append(columns[0].getPropertyName()).append(" ");
+        }
+      }
+      columnsList.append("referencing ").append(ownerEntity.getEntityName()).append(" not mapped to a single property");
+      throw new AnnotationException(columnsList.toString());
+    }
+    if (value instanceof ToOne) {
+      ((ToOne)value).setReferencedPropertyName(syntheticPropertyName);
+      mappings.addUniquePropertyReference(ownerEntity.getEntityName(),syntheticPropertyName);
+    }
+ else     if (value instanceof Collection) {
+      ((Collection)value).setReferencedPropertyName(syntheticPropertyName);
+      mappings.addPropertyReference(ownerEntity.getEntityName(),syntheticPropertyName);
+    }
+ else {
+      throw new AssertionFailure("Do a property ref on an unexpected Value type: " + value.getClass().getName());
+    }
+    mappings.addPropertyReferencedAssociation((inverse ? "inverse__" : "") + associatedClass.getEntityName(),columns[0].getPropertyName(),syntheticPropertyName);
+  }
+}

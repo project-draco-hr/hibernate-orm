@@ -1,0 +1,15 @@
+{
+  if (value == null) {
+    st.setNull(index,sqlTypes(null)[0]);
+  }
+ else {
+    byte[] toSet=unWrap(value);
+    final boolean useInputStream=session.getFactory().getDialect().useInputStreamToInsertBlob();
+    if (useInputStream) {
+      st.setBinaryStream(index,new ByteArrayInputStream(toSet),toSet.length);
+    }
+ else {
+      st.setBlob(index,new BlobImpl(toSet));
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  org.hibernate.mapping.OneToOne value=new org.hibernate.mapping.OneToOne(propertyHolder.getTable(),propertyHolder.getPersistentClass());
+  final String propertyName=inferredData.getPropertyName();
+  value.setPropertyName(propertyName);
+  String referencedEntityName;
+  if (AnnotationBinder.isDefault(targetEntity,mappings)) {
+    referencedEntityName=inferredData.getClassOrElementName();
+  }
+ else {
+    referencedEntityName=targetEntity.getName();
+  }
+  value.setReferencedEntityName(referencedEntityName);
+  AnnotationBinder.defineFetchingStrategy(value,inferredData.getProperty());
+  value.setCascadeDeleteEnabled(cascadeOnDelete);
+  if (!optional)   value.setConstrained(true);
+  value.setForeignKeyType(value.isConstrained() ? ForeignKeyDirection.FOREIGN_KEY_FROM_PARENT : ForeignKeyDirection.FOREIGN_KEY_TO_PARENT);
+  PropertyBinder binder=new PropertyBinder();
+  binder.setName(propertyName);
+  binder.setValue(value);
+  binder.setCascade(cascadeStrategy);
+  binder.setPropertyAccessorName(inferredData.getDefaultAccess());
+  Property prop=binder.make();
+  if (BinderHelper.isDefault(mappedBy)) {
+    boolean rightOrder=true;
+    if (rightOrder) {
+      String path=StringHelper.qualify(propertyHolder.getPath(),propertyName);
+      (new ToOneFkSecondPass(value,joinColumns,!optional,propertyHolder.getEntityOwnerClassName(),path,mappings)).doSecondPass(persistentClasses);
+      propertyHolder.addProperty(prop);
+    }
+ else {
+    }
+  }
+ else {
+    PersistentClass otherSide=(PersistentClass)persistentClasses.get(value.getReferencedEntityName());
+    Property otherSideProperty;
+    try {
+      if (otherSide == null) {
+        throw new MappingException("Unable to find entity: " + value.getReferencedEntityName());
+      }
+      otherSideProperty=BinderHelper.findPropertyByName(otherSide,mappedBy);
+    }
+ catch (    MappingException e) {
+      throw new AnnotationException("Unknown mappedBy in: " + StringHelper.qualify(ownerEntity,ownerProperty) + ", referenced property unknown: "+ StringHelper.qualify(value.getReferencedEntityName(),mappedBy));
+    }
+    if (otherSideProperty == null) {
+      throw new AnnotationException("Unknown mappedBy in: " + StringHelper.qualify(ownerEntity,ownerProperty) + ", referenced property unknown: "+ StringHelper.qualify(value.getReferencedEntityName(),mappedBy));
+    }
+    if (otherSideProperty.getValue() instanceof OneToOne) {
+      propertyHolder.addProperty(prop);
+    }
+ else     if (otherSideProperty.getValue() instanceof ManyToOne) {
+      Iterator it=otherSide.getJoinIterator();
+      Join otherSideJoin=null;
+      while (it.hasNext()) {
+        otherSideJoin=(Join)it.next();
+        if (otherSideJoin.containsProperty(otherSideProperty)) {
+          break;
+        }
+      }
+      if (otherSideJoin != null) {
+        Join mappedByJoin=buildJoinFromMappedBySide((PersistentClass)persistentClasses.get(ownerEntity),otherSideProperty,otherSideJoin);
+        ManyToOne manyToOne=new ManyToOne(mappedByJoin.getTable());
+        manyToOne.setIgnoreNotFound(ignoreNotFound);
+        manyToOne.setCascadeDeleteEnabled(value.isCascadeDeleteEnabled());
+        manyToOne.setEmbedded(value.isEmbedded());
+        manyToOne.setFetchMode(value.getFetchMode());
+        manyToOne.setLazy(value.isLazy());
+        manyToOne.setReferencedEntityName(value.getReferencedEntityName());
+        manyToOne.setUnwrapProxy(value.isUnwrapProxy());
+        prop.setValue(manyToOne);
+        Iterator otherSideJoinKeyColumns=otherSideJoin.getKey().getColumnIterator();
+        while (otherSideJoinKeyColumns.hasNext()) {
+          Column column=(Column)otherSideJoinKeyColumns.next();
+          Column copy=new Column();
+          copy.setLength(column.getLength());
+          copy.setScale(column.getScale());
+          copy.setValue(manyToOne);
+          copy.setName(column.getQuotedName());
+          copy.setNullable(column.isNullable());
+          copy.setPrecision(column.getPrecision());
+          copy.setUnique(column.isUnique());
+          copy.setSqlType(column.getSqlType());
+          copy.setCheckConstraint(column.getCheckConstraint());
+          copy.setComment(column.getComment());
+          copy.setDefaultValue(column.getDefaultValue());
+          manyToOne.addColumn(copy);
+        }
+        mappedByJoin.addProperty(prop);
+      }
+ else {
+        propertyHolder.addProperty(prop);
+      }
+      value.setReferencedPropertyName(mappedBy);
+      String propertyRef=value.getReferencedPropertyName();
+      if (propertyRef != null) {
+        mappings.addUniquePropertyReference(value.getReferencedEntityName(),propertyRef);
+      }
+    }
+ else {
+      throw new AnnotationException("Referenced property not a (One|Many)ToOne: " + StringHelper.qualify(otherSide.getEntityName(),mappedBy) + " in mappedBy of "+ StringHelper.qualify(ownerEntity,ownerProperty));
+    }
+  }
+  ForeignKey fk=inferredData.getProperty().getAnnotation(ForeignKey.class);
+  String fkName=fk != null ? fk.name() : "";
+  if (!BinderHelper.isDefault(fkName))   value.setForeignKeyName(fkName);
+}

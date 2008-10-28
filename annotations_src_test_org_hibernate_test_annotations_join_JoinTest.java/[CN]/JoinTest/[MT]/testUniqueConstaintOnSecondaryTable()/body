@@ -1,0 +1,20 @@
+{
+  Cat cat=new Cat();
+  cat.setStoryPart2("My long story");
+  Cat cat2=new Cat();
+  cat2.setStoryPart2("My long story");
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  try {
+    s.persist(cat);
+    s.persist(cat2);
+    tx.commit();
+    fail("unique constraints violation on secondary table");
+  }
+ catch (  HibernateException e) {
+  }
+ finally {
+    if (tx != null)     tx.rollback();
+    s.close();
+  }
+}

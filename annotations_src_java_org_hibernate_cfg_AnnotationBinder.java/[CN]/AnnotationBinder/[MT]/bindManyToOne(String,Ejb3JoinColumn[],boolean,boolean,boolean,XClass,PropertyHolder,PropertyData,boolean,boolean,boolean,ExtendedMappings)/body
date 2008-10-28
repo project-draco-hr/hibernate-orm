@@ -1,0 +1,48 @@
+{
+  org.hibernate.mapping.ManyToOne value=new org.hibernate.mapping.ManyToOne(columns[0].getTable());
+  if (isDefault(targetEntity,mappings)) {
+    value.setReferencedEntityName(inferredData.getClassOrElementName());
+  }
+ else {
+    value.setReferencedEntityName(targetEntity.getName());
+  }
+  defineFetchingStrategy(value,inferredData.getProperty());
+  value.setIgnoreNotFound(ignoreNotFound);
+  value.setCascadeDeleteEnabled(cascadeOnDelete);
+  if (!optional) {
+    for (    Ejb3JoinColumn column : columns) {
+      column.setNullable(false);
+    }
+  }
+  value.setTypeName(inferredData.getClassOrElementName());
+  final String propertyName=inferredData.getPropertyName();
+  value.setTypeUsingReflection(propertyHolder.getClassName(),propertyName);
+  ForeignKey fk=inferredData.getProperty().getAnnotation(ForeignKey.class);
+  String fkName=fk != null ? fk.name() : "";
+  if (!BinderHelper.isDefault(fkName))   value.setForeignKeyName(fkName);
+  String path=propertyHolder.getPath() + "." + propertyName;
+  FkSecondPass secondPass=new ToOneFkSecondPass(value,columns,!optional && unique,propertyHolder.getEntityOwnerClassName(),path,mappings);
+  if (inSecondPass) {
+    secondPass.doSecondPass(mappings.getClasses());
+  }
+ else {
+    mappings.addSecondPass(secondPass);
+  }
+  Ejb3Column.checkPropertyConsistency(columns,propertyHolder.getEntityName() + propertyName);
+  PropertyBinder binder=new PropertyBinder();
+  binder.setName(propertyName);
+  binder.setValue(value);
+  if (isIdentifierMapper) {
+    binder.setInsertable(false);
+    binder.setUpdatable(false);
+  }
+ else {
+    binder.setInsertable(columns[0].isInsertable());
+    binder.setUpdatable(columns[0].isUpdatable());
+  }
+  binder.setPropertyAccessorName(inferredData.getDefaultAccess());
+  binder.setCascade(cascadeStrategy);
+  binder.setProperty(inferredData.getProperty());
+  Property prop=binder.make();
+  propertyHolder.addProperty(prop,columns);
+}

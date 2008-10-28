@@ -1,0 +1,22 @@
+{
+  Map<String,Column[]> columnOverride=new HashMap<String,Column[]>();
+  if (element == null)   return columnOverride;
+  AttributeOverride singleOverride=element.getAnnotation(AttributeOverride.class);
+  AttributeOverrides multipleOverrides=element.getAnnotation(AttributeOverrides.class);
+  AttributeOverride[] overrides;
+  if (singleOverride != null) {
+    overrides=new AttributeOverride[]{singleOverride};
+  }
+ else   if (multipleOverrides != null) {
+    overrides=multipleOverrides.value();
+  }
+ else {
+    overrides=null;
+  }
+  if (overrides != null) {
+    for (    AttributeOverride depAttr : overrides) {
+      columnOverride.put(StringHelper.qualify(path,depAttr.name()),new Column[]{depAttr.column()});
+    }
+  }
+  return columnOverride;
+}

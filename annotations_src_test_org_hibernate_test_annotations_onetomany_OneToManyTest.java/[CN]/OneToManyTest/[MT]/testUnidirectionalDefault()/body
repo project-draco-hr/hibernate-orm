@@ -1,0 +1,43 @@
+{
+  Session s;
+  Transaction tx;
+  Trainer trainer=new Trainer();
+  trainer.setName("First trainer");
+  Tiger regularTiger=new Tiger();
+  regularTiger.setName("Regular Tiger");
+  Tiger whiteTiger=new Tiger();
+  whiteTiger.setName("White Tiger");
+  trainer.setTrainedTigers(new HashSet<Tiger>());
+  s=openSession();
+  tx=s.beginTransaction();
+  s.persist(trainer);
+  s.persist(regularTiger);
+  s.persist(whiteTiger);
+  trainer.getTrainedTigers().add(regularTiger);
+  trainer.getTrainedTigers().add(whiteTiger);
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  trainer=(Trainer)s.get(Trainer.class,trainer.getId());
+  assertNotNull(trainer);
+  assertNotNull(trainer.getTrainedTigers());
+  assertEquals(2,trainer.getTrainedTigers().size());
+  tx.rollback();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  trainer=new Trainer();
+  trainer.setName("new trainer");
+  trainer.setTrainedTigers(new HashSet<Tiger>());
+  trainer.getTrainedTigers().add(whiteTiger);
+  try {
+    s.persist(trainer);
+    tx.commit();
+    fail("A one to many should not allow several trainer per Tiger");
+  }
+ catch (  HibernateException ce) {
+    tx.rollback();
+  }
+  s.close();
+}

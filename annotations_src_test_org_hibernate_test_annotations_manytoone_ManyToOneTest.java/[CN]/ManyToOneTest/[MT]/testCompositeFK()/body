@@ -1,0 +1,27 @@
+{
+  Session s;
+  Transaction tx;
+  s=openSession();
+  tx=s.beginTransaction();
+  ParentPk ppk=new ParentPk();
+  ppk.firstName="John";
+  ppk.lastName="Doe";
+  Parent p=new Parent();
+  p.age=45;
+  p.id=ppk;
+  s.persist(p);
+  Child c=new Child();
+  c.parent=p;
+  s.persist(c);
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  Query q=s.createQuery("from " + Child.class.getName());
+  List result=q.list();
+  assertEquals(1,result.size());
+  Child c2=(Child)result.get(0);
+  assertEquals(c2.id,c.id);
+  tx.commit();
+  s.close();
+}

@@ -1,0 +1,40 @@
+{
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  Flight firstOne=new Flight();
+  firstOne.setId(new Long(2));
+  firstOne.setName("AF3202");
+  firstOne.setDuration(new Long(500));
+  s.save(firstOne);
+  s.flush();
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  firstOne=(Flight)s.get(Flight.class,new Long(2));
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  Flight concurrentOne=(Flight)s.get(Flight.class,new Long(2));
+  concurrentOne.setDuration(new Long(1000));
+  s.update(concurrentOne);
+  tx.commit();
+  s.close();
+  assertFalse(firstOne == concurrentOne);
+  assertFalse(firstOne.getVersion().equals(concurrentOne.getVersion()));
+  s=openSession();
+  tx=s.beginTransaction();
+  firstOne.setName("Second access");
+  s.update(firstOne);
+  try {
+    tx.commit();
+    fail("Optimistic locking should work");
+  }
+ catch (  StaleStateException e) {
+  }
+ finally {
+    if (tx != null)     tx.rollback();
+    s.close();
+  }
+}

@@ -1,0 +1,49 @@
+{
+  this.element=el;
+  this.xmlContext=xmlContext;
+  if (el instanceof Class) {
+    Class clazz=(Class)el;
+    className=clazz.getName();
+  }
+ else   if (el instanceof Field) {
+    Field field=(Field)el;
+    className=field.getDeclaringClass().getName();
+    propertyName=field.getName();
+    propertyType=PropertyType.FIELD;
+    String expectedGetter="get" + Character.toUpperCase(propertyName.charAt(0)) + propertyName.substring(1);
+    try {
+      mirroredAttribute=field.getDeclaringClass().getDeclaredMethod(expectedGetter);
+    }
+ catch (    NoSuchMethodException e) {
+    }
+  }
+ else   if (el instanceof Method) {
+    Method method=(Method)el;
+    className=method.getDeclaringClass().getName();
+    propertyName=method.getName();
+    if (ReflectionUtil.isProperty(method,null,FILTER)) {
+      if (propertyName.startsWith("get")) {
+        propertyName=Introspector.decapitalize(propertyName.substring("get".length()));
+      }
+ else       if (propertyName.startsWith("is")) {
+        propertyName=Introspector.decapitalize(propertyName.substring("is".length()));
+      }
+ else {
+        throw new RuntimeException("Method " + propertyName + " is not a property getter");
+      }
+      propertyType=PropertyType.PROPERTY;
+      try {
+        mirroredAttribute=method.getDeclaringClass().getDeclaredField(propertyName);
+      }
+ catch (      NoSuchFieldException e) {
+      }
+    }
+ else {
+      propertyType=PropertyType.METHOD;
+    }
+  }
+ else {
+    className=null;
+    propertyName=null;
+  }
+}

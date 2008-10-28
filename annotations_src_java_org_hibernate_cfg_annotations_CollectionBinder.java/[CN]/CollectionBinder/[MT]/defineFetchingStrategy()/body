@@ -1,0 +1,52 @@
+{
+  LazyCollection lazy=property.getAnnotation(LazyCollection.class);
+  Fetch fetch=property.getAnnotation(Fetch.class);
+  OneToMany oneToMany=property.getAnnotation(OneToMany.class);
+  ManyToMany manyToMany=property.getAnnotation(ManyToMany.class);
+  CollectionOfElements elements=property.getAnnotation(CollectionOfElements.class);
+  ManyToAny manyToAny=property.getAnnotation(ManyToAny.class);
+  FetchType fetchType;
+  if (oneToMany != null) {
+    fetchType=oneToMany.fetch();
+  }
+ else   if (manyToMany != null) {
+    fetchType=manyToMany.fetch();
+  }
+ else   if (elements != null) {
+    fetchType=elements.fetch();
+  }
+ else   if (manyToAny != null) {
+    fetchType=FetchType.LAZY;
+  }
+ else {
+    throw new AssertionFailure("Define fetch strategy on a property not annotated with @ManyToOne nor @OneToMany nor @CollectionOfElements");
+  }
+  if (lazy != null) {
+    collection.setLazy(!(lazy.value() == LazyCollectionOption.FALSE));
+    collection.setExtraLazy(lazy.value() == LazyCollectionOption.EXTRA);
+  }
+ else {
+    collection.setLazy(fetchType == FetchType.LAZY);
+    collection.setExtraLazy(false);
+  }
+  if (fetch != null) {
+    if (fetch.value() == org.hibernate.annotations.FetchMode.JOIN) {
+      collection.setFetchMode(FetchMode.JOIN);
+      collection.setLazy(false);
+    }
+ else     if (fetch.value() == org.hibernate.annotations.FetchMode.SELECT) {
+      collection.setFetchMode(FetchMode.SELECT);
+    }
+ else     if (fetch.value() == org.hibernate.annotations.FetchMode.SUBSELECT) {
+      collection.setFetchMode(FetchMode.SELECT);
+      collection.setSubselectLoadable(true);
+      collection.getOwner().setSubselectLoadableCollections(true);
+    }
+ else {
+      throw new AssertionFailure("Unknown FetchMode: " + fetch.value());
+    }
+  }
+ else {
+    collection.setFetchMode(AnnotationBinder.getFetchMode(fetchType));
+  }
+}

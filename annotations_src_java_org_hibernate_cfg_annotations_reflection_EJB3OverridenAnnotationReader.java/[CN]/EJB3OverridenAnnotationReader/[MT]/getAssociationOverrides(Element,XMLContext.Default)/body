@@ -1,0 +1,21 @@
+{
+  List<AssociationOverride> attributes=(List<AssociationOverride>)buildAssociationOverrides(tree);
+  if (defaults.canUseJavaAnnotations()) {
+    AssociationOverride annotation=getJavaAnnotation(AssociationOverride.class);
+    addAssociationOverrideIfNeeded(annotation,attributes);
+    AssociationOverrides annotations=getJavaAnnotation(AssociationOverrides.class);
+    if (annotations != null) {
+      for (      AssociationOverride current : annotations.value()) {
+        addAssociationOverrideIfNeeded(current,attributes);
+      }
+    }
+  }
+  if (attributes.size() > 0) {
+    AnnotationDescriptor ad=new AnnotationDescriptor(AssociationOverrides.class);
+    ad.setValue("value",attributes.toArray(new AssociationOverride[attributes.size()]));
+    return AnnotationFactory.create(ad);
+  }
+ else {
+    return null;
+  }
+}

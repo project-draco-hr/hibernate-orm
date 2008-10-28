@@ -1,0 +1,19 @@
+{
+  String unquotedOwnerTable=StringHelper.unquote(ownerEntityTable);
+  String unquotedAssocTable=StringHelper.unquote(associatedEntityTable);
+  String logicalName=mappings.getNamingStrategy().logicalCollectionTableName(name,unquotedOwnerTable,unquotedAssocTable,propertyName);
+  if (StringHelper.isQuoted(ownerEntityTable) || StringHelper.isQuoted(associatedEntityTable)) {
+    logicalName=StringHelper.quote(logicalName);
+  }
+  String extendedName;
+  if (name != null) {
+    extendedName=mappings.getNamingStrategy().tableName(name);
+  }
+ else {
+    extendedName=mappings.getNamingStrategy().collectionTableName(ownerEntity,unquotedOwnerTable,associatedEntity,unquotedAssocTable,propertyName);
+    if (StringHelper.isQuoted(ownerEntityTable) || StringHelper.isQuoted(associatedEntityTable)) {
+      extendedName=StringHelper.quote(extendedName);
+    }
+  }
+  return fillTable(schema,catalog,extendedName,logicalName,isAbstract,uniqueConstraints,constraints,denormalizedSuperTable,mappings);
+}

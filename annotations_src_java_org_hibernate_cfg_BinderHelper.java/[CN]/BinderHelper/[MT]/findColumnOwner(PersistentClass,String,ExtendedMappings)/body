@@ -1,0 +1,32 @@
+{
+  if (StringHelper.isEmpty(columnName)) {
+    return persistentClass;
+  }
+  PersistentClass current=persistentClass;
+  Object result=null;
+  boolean found=false;
+  do {
+    result=current;
+    Table currentTable=current.getTable();
+    try {
+      mappings.getPhysicalColumnName(columnName,currentTable);
+      found=true;
+    }
+ catch (    MappingException me) {
+    }
+    Iterator joins=current.getJoinIterator();
+    while (!found && joins.hasNext()) {
+      result=joins.next();
+      currentTable=((Join)result).getTable();
+      try {
+        mappings.getPhysicalColumnName(columnName,currentTable);
+        found=true;
+      }
+ catch (      MappingException me) {
+      }
+    }
+    current=current.getSuperclass();
+  }
+ while (!found && current != null);
+  return found ? result : null;
+}

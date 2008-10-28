@@ -1,0 +1,23 @@
+{
+  for (  Element element : elementsForProperty) {
+    if ("version".equals(element.getName())) {
+      Annotation annotation=buildColumns(element);
+      addIfNotNull(annotationList,annotation);
+      getTemporal(annotationList,element);
+      AnnotationDescriptor basic=new AnnotationDescriptor(Version.class);
+      annotationList.add(AnnotationFactory.create(basic));
+    }
+  }
+  if (elementsForProperty.size() == 0 && defaults.canUseJavaAnnotations()) {
+    Annotation annotation=getJavaAnnotation(Version.class);
+    if (annotation != null) {
+      annotationList.add(annotation);
+      annotation=getJavaAnnotation(Column.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(Columns.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(Temporal.class);
+      addIfNotNull(annotationList,annotation);
+    }
+  }
+}

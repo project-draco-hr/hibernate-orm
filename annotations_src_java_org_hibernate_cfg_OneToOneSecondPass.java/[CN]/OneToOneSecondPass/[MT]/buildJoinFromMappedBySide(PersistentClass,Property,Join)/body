@@ -1,0 +1,30 @@
+{
+  Join join=new Join();
+  join.setPersistentClass(persistentClass);
+  join.setTable(originalJoin.getTable());
+  join.setInverse(true);
+  SimpleValue key=new DependantValue(join.getTable(),persistentClass.getIdentifier());
+  join.setKey(key);
+  join.setSequentialSelect(false);
+  join.setOptional(true);
+  key.setCascadeDeleteEnabled(false);
+  Iterator mappedByColumns=otherSideProperty.getValue().getColumnIterator();
+  while (mappedByColumns.hasNext()) {
+    Column column=(Column)mappedByColumns.next();
+    Column copy=new Column();
+    copy.setLength(column.getLength());
+    copy.setScale(column.getScale());
+    copy.setValue(key);
+    copy.setName(column.getQuotedName());
+    copy.setNullable(column.isNullable());
+    copy.setPrecision(column.getPrecision());
+    copy.setUnique(column.isUnique());
+    copy.setSqlType(column.getSqlType());
+    copy.setCheckConstraint(column.getCheckConstraint());
+    copy.setComment(column.getComment());
+    copy.setDefaultValue(column.getDefaultValue());
+    key.addColumn(copy);
+  }
+  persistentClass.addJoin(join);
+  return join;
+}

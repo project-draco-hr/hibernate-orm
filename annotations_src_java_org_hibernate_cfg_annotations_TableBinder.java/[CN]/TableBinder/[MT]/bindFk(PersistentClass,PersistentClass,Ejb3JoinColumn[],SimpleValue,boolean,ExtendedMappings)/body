@@ -1,0 +1,115 @@
+{
+  PersistentClass associatedClass;
+  if (destinationEntity != null) {
+    associatedClass=destinationEntity;
+  }
+ else {
+    associatedClass=columns[0].getPropertyHolder() == null ? null : columns[0].getPropertyHolder().getPersistentClass();
+  }
+  final String mappedByProperty=columns[0].getMappedBy();
+  if (StringHelper.isNotEmpty(mappedByProperty)) {
+    log.debug("Retrieving property {}.{}",associatedClass.getEntityName(),mappedByProperty);
+    final Property property=associatedClass.getRecursiveProperty(columns[0].getMappedBy());
+    Iterator mappedByColumns;
+    if (property.getValue() instanceof Collection) {
+      Collection collection=((Collection)property.getValue());
+      Value element=collection.getElement();
+      if (element == null) {
+        throw new AnnotationException("Illegal use of mappedBy on both sides of the relationship: " + associatedClass.getEntityName() + "."+ mappedByProperty);
+      }
+      mappedByColumns=element.getColumnIterator();
+    }
+ else {
+      mappedByColumns=property.getValue().getColumnIterator();
+    }
+    while (mappedByColumns.hasNext()) {
+      Column column=(Column)mappedByColumns.next();
+      columns[0].overrideFromReferencedColumnIfNecessary(column);
+      columns[0].linkValueUsingAColumnCopy(column,value);
+    }
+  }
+ else   if (columns[0].isImplicit()) {
+    Iterator idColumns;
+    if (referencedEntity instanceof JoinedSubclass) {
+      idColumns=((JoinedSubclass)referencedEntity).getKey().getColumnIterator();
+    }
+ else {
+      idColumns=referencedEntity.getIdentifier().getColumnIterator();
+    }
+    while (idColumns.hasNext()) {
+      Column column=(Column)idColumns.next();
+      columns[0].overrideFromReferencedColumnIfNecessary(column);
+      columns[0].linkValueUsingDefaultColumnNaming(column,referencedEntity,value);
+    }
+  }
+ else {
+    int fkEnum=Ejb3JoinColumn.checkReferencedColumnsType(columns,referencedEntity,mappings);
+    if (Ejb3JoinColumn.NON_PK_REFERENCE == fkEnum) {
+      String referencedPropertyName;
+      if (value instanceof ToOne) {
+        referencedPropertyName=((ToOne)value).getReferencedPropertyName();
+      }
+ else       if (value instanceof DependantValue) {
+        String propertyName=columns[0].getPropertyName();
+        if (propertyName != null) {
+          Collection collection=(Collection)referencedEntity.getRecursiveProperty(propertyName).getValue();
+          referencedPropertyName=collection.getReferencedPropertyName();
+        }
+ else {
+          throw new AnnotationException("SecondaryTable JoinColumn cannot reference a non primary key");
+        }
+      }
+ else {
+        throw new AssertionFailure("Do a property ref on an unexpected Value type: " + value.getClass().getName());
+      }
+      if (referencedPropertyName == null) {
+        throw new AssertionFailure("No property ref found while expected");
+      }
+      Property synthProp=referencedEntity.getRecursiveProperty(referencedPropertyName);
+      if (synthProp == null) {
+        throw new AssertionFailure("Cannot find synthProp: " + referencedEntity.getEntityName() + "."+ referencedPropertyName);
+      }
+      linkJoinColumnWithValueOverridingNameIfImplicit(referencedEntity,synthProp.getColumnIterator(),columns,value);
+    }
+ else {
+      if (Ejb3JoinColumn.NO_REFERENCE == fkEnum) {
+        if (columns.length != referencedEntity.getIdentifier().getColumnSpan()) {
+          throw new AnnotationException("A Foreign key refering " + referencedEntity.getEntityName() + " from "+ associatedClass.getEntityName()+ " has the wrong number of column. should be "+ referencedEntity.getIdentifier().getColumnSpan());
+        }
+        linkJoinColumnWithValueOverridingNameIfImplicit(referencedEntity,referencedEntity.getIdentifier().getColumnIterator(),columns,value);
+      }
+ else {
+        Iterator idColItr=referencedEntity.getKey().getColumnIterator();
+        org.hibernate.mapping.Column col;
+        Table table=referencedEntity.getTable();
+        if (!idColItr.hasNext())         log.debug("No column in the identifier!");
+        while (idColItr.hasNext()) {
+          boolean match=false;
+          col=(org.hibernate.mapping.Column)idColItr.next();
+          for (          Ejb3JoinColumn joinCol : columns) {
+            String referencedColumn=joinCol.getReferencedColumn();
+            referencedColumn=mappings.getPhysicalColumnName(referencedColumn,table);
+            if (referencedColumn.equals(col.getName())) {
+              if (joinCol.isNameDeferred()) {
+                joinCol.linkValueUsingDefaultColumnNaming(col,referencedEntity,value);
+              }
+ else {
+                joinCol.linkWithValue(value);
+              }
+              joinCol.overrideFromReferencedColumnIfNecessary(col);
+              match=true;
+              break;
+            }
+          }
+          if (!match) {
+            throw new AnnotationException("Column name " + col.getName() + " of "+ referencedEntity.getEntityName()+ " not found in JoinColumns.referencedColumnName");
+          }
+        }
+      }
+    }
+  }
+  value.createForeignKey();
+  if (unique == true) {
+    createUniqueConstraint(value);
+  }
+}

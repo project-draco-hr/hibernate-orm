@@ -1,0 +1,21 @@
+{
+  PrimaryKeyJoinColumn[] columns=buildPrimaryKeyJoinColumns(element);
+  if (columns.length == 0 && defaults.canUseJavaAnnotations()) {
+    PrimaryKeyJoinColumn annotation=getJavaAnnotation(PrimaryKeyJoinColumn.class);
+    if (annotation != null) {
+      columns=new PrimaryKeyJoinColumn[]{annotation};
+    }
+ else {
+      PrimaryKeyJoinColumns annotations=getJavaAnnotation(PrimaryKeyJoinColumns.class);
+      columns=annotations != null ? annotations.value() : columns;
+    }
+  }
+  if (columns.length > 0) {
+    AnnotationDescriptor ad=new AnnotationDescriptor(PrimaryKeyJoinColumns.class);
+    ad.setValue("value",columns);
+    return AnnotationFactory.create(ad);
+  }
+ else {
+    return null;
+  }
+}

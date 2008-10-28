@@ -1,0 +1,40 @@
+{
+  for (  Element element : elementsForProperty) {
+    if ("embedded-id".equals(element.getName())) {
+      if (isProcessingId(defaults)) {
+        Annotation annotation=getAttributeOverrides(element,defaults);
+        addIfNotNull(annotationList,annotation);
+        annotation=getAssociationOverrides(element,defaults);
+        addIfNotNull(annotationList,annotation);
+        AnnotationDescriptor ad=new AnnotationDescriptor(EmbeddedId.class);
+        annotationList.add(AnnotationFactory.create(ad));
+      }
+    }
+  }
+  if (elementsForProperty.size() == 0 && defaults.canUseJavaAnnotations()) {
+    Annotation annotation=getJavaAnnotation(EmbeddedId.class);
+    if (annotation != null) {
+      annotationList.add(annotation);
+      annotation=getJavaAnnotation(Column.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(Columns.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(GeneratedValue.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(Temporal.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(TableGenerator.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(SequenceGenerator.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(AttributeOverride.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(AttributeOverrides.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(AssociationOverride.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(AssociationOverrides.class);
+      addIfNotNull(annotationList,annotation);
+    }
+  }
+}

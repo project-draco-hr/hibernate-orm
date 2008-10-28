@@ -1,0 +1,28 @@
+{
+  Table table=id.getTable();
+  table.setIdentifierValue(id);
+  id.setIdentifierGeneratorStrategy(generatorType);
+  Properties params=new Properties();
+  params.setProperty(PersistentIdentifierGenerator.TABLE,table.getName());
+  if (id.getColumnSpan() == 1) {
+    params.setProperty(PersistentIdentifierGenerator.PK,((org.hibernate.mapping.Column)id.getColumnIterator().next()).getName());
+  }
+  if (!isDefault(generatorName)) {
+    IdGenerator gen=mappings.getGenerator(generatorName,localGenerators);
+    if (gen == null) {
+      throw new AnnotationException("Unknown Id.generator: " + generatorName);
+    }
+    String identifierGeneratorStrategy=gen.getIdentifierGeneratorStrategy();
+    final boolean avoidOverriding=identifierGeneratorStrategy.equals("identity") || identifierGeneratorStrategy.equals("seqhilo") || identifierGeneratorStrategy.equals(MultipleHiLoPerTableGenerator.class.getName());
+    if (generatorType == null || !avoidOverriding) {
+      id.setIdentifierGeneratorStrategy(identifierGeneratorStrategy);
+    }
+    Iterator genParams=gen.getParams().entrySet().iterator();
+    while (genParams.hasNext()) {
+      Map.Entry elt=(Map.Entry)genParams.next();
+      params.setProperty((String)elt.getKey(),(String)elt.getValue());
+    }
+  }
+  if ("assigned".equals(generatorType))   id.setNullValue("undefined");
+  id.setIdentifierGeneratorProperties(params);
+}

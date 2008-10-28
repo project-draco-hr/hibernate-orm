@@ -1,0 +1,28 @@
+{
+  Session s;
+  Transaction tx;
+  Trainer trainer=new Trainer();
+  trainer.setName("First trainer");
+  Monkey regularMonkey=new Monkey();
+  regularMonkey.setName("Regular Monkey");
+  Monkey miniMonkey=new Monkey();
+  miniMonkey.setName("Mini Monkey");
+  trainer.setTrainedMonkeys(new HashSet<Monkey>());
+  s=openSession();
+  tx=s.beginTransaction();
+  s.persist(trainer);
+  s.persist(regularMonkey);
+  s.persist(miniMonkey);
+  trainer.getTrainedMonkeys().add(regularMonkey);
+  trainer.getTrainedMonkeys().add(miniMonkey);
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  trainer=(Trainer)s.get(Trainer.class,trainer.getId());
+  assertNotNull(trainer);
+  assertNotNull(trainer.getTrainedMonkeys());
+  assertEquals(2,trainer.getTrainedMonkeys().size());
+  tx.rollback();
+  s.close();
+}

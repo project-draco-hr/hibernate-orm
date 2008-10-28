@@ -1,0 +1,51 @@
+{
+  Set<Column> idColumns=new HashSet<Column>();
+  Iterator idColumnsIt=referencedEntity.getKey().getColumnIterator();
+  while (idColumnsIt.hasNext()) {
+    idColumns.add((Column)idColumnsIt.next());
+  }
+  boolean isFkReferencedColumnName=false;
+  boolean noReferencedColumn=true;
+  if (columns.length == 0)   return NO_REFERENCE;
+  Object columnOwner=BinderHelper.findColumnOwner(referencedEntity,columns[0].getReferencedColumn(),mappings);
+  if (columnOwner == null) {
+    try {
+      throw new MappingException("Unable to find column with logical name: " + columns[0].getReferencedColumn() + " in "+ referencedEntity.getTable()+ " and its related "+ "supertables and secondary tables");
+    }
+ catch (    MappingException e) {
+      throw new RecoverableException(e);
+    }
+  }
+  Table matchingTable=columnOwner instanceof PersistentClass ? ((PersistentClass)columnOwner).getTable() : ((Join)columnOwner).getTable();
+  for (  Ejb3JoinColumn ejb3Column : columns) {
+    String logicalReferencedColumnName=ejb3Column.getReferencedColumn();
+    if (StringHelper.isNotEmpty(logicalReferencedColumnName)) {
+      String referencedColumnName=null;
+      try {
+        referencedColumnName=mappings.getPhysicalColumnName(logicalReferencedColumnName,matchingTable);
+      }
+ catch (      MappingException me) {
+        throw new MappingException("Unable to find column with logical name: " + logicalReferencedColumnName + " in "+ matchingTable.getName());
+      }
+      noReferencedColumn=false;
+      Column refCol=new Column(referencedColumnName);
+      boolean contains=idColumns.contains(refCol);
+      if (!contains) {
+        isFkReferencedColumnName=true;
+        break;
+      }
+    }
+  }
+  if (isFkReferencedColumnName) {
+    return NON_PK_REFERENCE;
+  }
+ else   if (noReferencedColumn) {
+    return NO_REFERENCE;
+  }
+ else   if (idColumns.size() != columns.length) {
+    return NON_PK_REFERENCE;
+  }
+ else {
+    return PK_REFERENCE;
+  }
+}

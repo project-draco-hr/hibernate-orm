@@ -1,0 +1,55 @@
+{
+  Session s;
+  Transaction tx;
+  s=openSession();
+  tx=s.beginTransaction();
+  Employer er=new Employer();
+  Employee ee=new Employee();
+  Employee ee2=new Employee();
+  s.persist(ee);
+  s.persist(ee2);
+  Set erColl=new HashSet();
+  Collection eeColl=new ArrayList();
+  erColl.add(ee);
+  erColl.add(ee2);
+  eeColl.add(er);
+  er.setEmployees(erColl);
+  ee.setEmployers(eeColl);
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  er=(Employer)s.load(Employer.class,er.getId());
+  assertNotNull(er);
+  assertNotNull(er.getEmployees());
+  assertEquals(2,er.getEmployees().size());
+  Iterator iterator=er.getEmployees().iterator();
+  Employee eeFromDb=(Employee)iterator.next();
+  if (eeFromDb.getId().equals(ee.getId())) {
+    eeFromDb=(Employee)iterator.next();
+  }
+  assertEquals(ee2.getId(),eeFromDb.getId());
+  er.getEmployees().remove(eeFromDb);
+  eeFromDb.getEmployers().remove(er);
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  ee=(Employee)s.get(Employee.class,ee.getId());
+  assertNotNull(ee);
+  assertFalse("ManyToMany mappedBy lazyness",Hibernate.isInitialized(ee.getEmployers()));
+  tx.commit();
+  assertFalse("ManyToMany mappedBy lazyness",Hibernate.isInitialized(ee.getEmployers()));
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  ee=(Employee)s.get(Employee.class,ee.getId());
+  assertNotNull(ee);
+  er=ee.getEmployers().iterator().next();
+  assertTrue("second join non lazy",Hibernate.isInitialized(er));
+  assertEquals(1,er.getEmployees().size());
+  s.delete(er);
+  s.delete(ee);
+  tx.commit();
+  s.close();
+}

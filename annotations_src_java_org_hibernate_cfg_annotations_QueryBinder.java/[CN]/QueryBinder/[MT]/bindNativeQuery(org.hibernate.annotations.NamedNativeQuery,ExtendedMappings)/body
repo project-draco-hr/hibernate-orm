@@ -1,0 +1,20 @@
+{
+  if (queryAnn == null)   return;
+  if (BinderHelper.isDefault(queryAnn.name())) {
+    throw new AnnotationException("A named query must have a name when used in class or package level");
+  }
+  NamedSQLQueryDefinition query;
+  String resultSetMapping=queryAnn.resultSetMapping();
+  if (!BinderHelper.isDefault(resultSetMapping)) {
+    query=new NamedSQLQueryDefinition(queryAnn.query(),resultSetMapping,null,queryAnn.cacheable(),BinderHelper.isDefault(queryAnn.cacheRegion()) ? null : queryAnn.cacheRegion(),queryAnn.timeout() < 0 ? null : queryAnn.timeout(),queryAnn.fetchSize() < 0 ? null : queryAnn.fetchSize(),getFlushMode(queryAnn.flushMode()),getCacheMode(queryAnn.cacheMode()),queryAnn.readOnly(),BinderHelper.isDefault(queryAnn.comment()) ? null : queryAnn.comment(),null,queryAnn.callable());
+  }
+ else   if (!void.class.equals(queryAnn.resultClass())) {
+    final NativeSQLQueryRootReturn entityQueryReturn=new NativeSQLQueryRootReturn("alias1",queryAnn.resultClass().getName(),new HashMap(),LockMode.READ);
+    query=new NamedSQLQueryDefinition(queryAnn.query(),new NativeSQLQueryReturn[]{entityQueryReturn},null,queryAnn.cacheable(),BinderHelper.isDefault(queryAnn.cacheRegion()) ? null : queryAnn.cacheRegion(),queryAnn.timeout() < 0 ? null : queryAnn.timeout(),queryAnn.fetchSize() < 0 ? null : queryAnn.fetchSize(),getFlushMode(queryAnn.flushMode()),getCacheMode(queryAnn.cacheMode()),queryAnn.readOnly(),BinderHelper.isDefault(queryAnn.comment()) ? null : queryAnn.comment(),null,queryAnn.callable());
+  }
+ else {
+    throw new NotYetImplementedException("Pure native scalar queries are not yet supported");
+  }
+  mappings.addSQLQuery(queryAnn.name(),query);
+  log.info("Binding named native query: {} => {}",queryAnn.name(),queryAnn.query());
+}

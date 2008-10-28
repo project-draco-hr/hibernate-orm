@@ -1,0 +1,49 @@
+{
+  EnumSet<CascadeType> hibernateCascadeSet=convertToHibernateCascadeType(ejbCascades);
+  CascadeType[] hibernateCascades=hibernateCascadeAnnotation == null ? null : hibernateCascadeAnnotation.value();
+  if (hibernateCascades != null && hibernateCascades.length > 0) {
+    for (    CascadeType cascadeType : hibernateCascades) {
+      hibernateCascadeSet.add(cascadeType);
+    }
+  }
+  StringBuilder cascade=new StringBuilder();
+  Iterator<CascadeType> cascadeType=hibernateCascadeSet.iterator();
+  while (cascadeType.hasNext()) {
+switch (cascadeType.next()) {
+case ALL:
+      cascade.append(",").append("all");
+    break;
+case SAVE_UPDATE:
+  cascade.append(",").append("save-update");
+break;
+case PERSIST:
+cascade.append(",").append("persist");
+break;
+case MERGE:
+cascade.append(",").append("merge");
+break;
+case LOCK:
+cascade.append(",").append("lock");
+break;
+case REFRESH:
+cascade.append(",").append("refresh");
+break;
+case REPLICATE:
+cascade.append(",").append("replicate");
+break;
+case EVICT:
+cascade.append(",").append("evict");
+break;
+case DELETE:
+cascade.append(",").append("delete");
+break;
+case DELETE_ORPHAN:
+cascade.append(",").append("delete-orphan");
+break;
+case REMOVE:
+cascade.append(",").append("delete");
+break;
+}
+}
+return cascade.length() > 0 ? cascade.substring(1) : "none";
+}

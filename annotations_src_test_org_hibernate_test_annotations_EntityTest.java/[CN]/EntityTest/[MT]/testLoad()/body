@@ -1,0 +1,24 @@
+{
+  assertEquals("Flight",getCfg().getClassMapping(Flight.class.getName()).getTable().getName());
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  Flight firstOne=new Flight();
+  firstOne.setId(new Long(1));
+  firstOne.setName("AF3202");
+  firstOne.setDuration(new Long(1000000));
+  firstOne.setDurationInSec(2000);
+  s.save(firstOne);
+  s.flush();
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  firstOne=(Flight)s.get(Flight.class,new Long(1));
+  assertNotNull(firstOne);
+  assertEquals(new Long(1),firstOne.getId());
+  assertEquals("AF3202",firstOne.getName());
+  assertEquals(new Long(1000000),firstOne.getDuration());
+  assertFalse("Transient is not working",2000l == firstOne.getDurationInSec());
+  tx.commit();
+  s.close();
+}

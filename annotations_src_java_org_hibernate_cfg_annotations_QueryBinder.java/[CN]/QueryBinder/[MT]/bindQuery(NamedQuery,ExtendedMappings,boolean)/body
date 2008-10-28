@@ -1,0 +1,16 @@
+{
+  if (queryAnn == null)   return;
+  if (BinderHelper.isDefault(queryAnn.name())) {
+    throw new AnnotationException("A named query must have a name when used in class or package level");
+  }
+  QueryHint[] hints=queryAnn.hints();
+  String queryName=queryAnn.query();
+  NamedQueryDefinition query=new NamedQueryDefinition(queryName,getBoolean(queryName,"org.hibernate.cacheable",hints),getString(queryName,"org.hibernate.cacheRegion",hints),getInteger(queryName,"org.hibernate.timeout",hints),getInteger(queryName,"org.hibernate.fetchSize",hints),getFlushMode(queryName,hints),getCacheMode(queryName,hints),getBoolean(queryName,"org.hibernate.readOnly",hints),getString(queryName,"org.hibernate.comment",hints),null);
+  if (isDefault) {
+    mappings.addDefaultQuery(queryAnn.name(),query);
+  }
+ else {
+    mappings.addQuery(queryAnn.name(),query);
+  }
+  log.info("Binding Named query: {} => {}",queryAnn.name(),queryAnn.query());
+}

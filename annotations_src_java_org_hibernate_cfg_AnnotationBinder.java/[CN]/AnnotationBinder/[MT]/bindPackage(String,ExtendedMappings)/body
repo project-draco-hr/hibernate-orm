@@ -1,0 +1,26 @@
+{
+  XPackage pckg=null;
+  try {
+    pckg=mappings.getReflectionManager().packageForName(packageName);
+  }
+ catch (  ClassNotFoundException cnf) {
+    log.warn("Package not found or wo package-info.java: {}",packageName);
+    return;
+  }
+  if (pckg.isAnnotationPresent(SequenceGenerator.class)) {
+    SequenceGenerator ann=pckg.getAnnotation(SequenceGenerator.class);
+    IdGenerator idGen=buildIdGenerator(ann,mappings);
+    mappings.addGenerator(idGen);
+    log.debug("Add sequence generator with name: {}",idGen.getName());
+  }
+  if (pckg.isAnnotationPresent(TableGenerator.class)) {
+    TableGenerator ann=pckg.getAnnotation(TableGenerator.class);
+    IdGenerator idGen=buildIdGenerator(ann,mappings);
+    mappings.addGenerator(idGen);
+  }
+  bindGenericGenerators(pckg,mappings);
+  bindQueries(pckg,mappings);
+  bindFilterDefs(pckg,mappings);
+  bindTypeDefs(pckg,mappings);
+  BinderHelper.bindAnyMetaDefs(pckg,mappings);
+}

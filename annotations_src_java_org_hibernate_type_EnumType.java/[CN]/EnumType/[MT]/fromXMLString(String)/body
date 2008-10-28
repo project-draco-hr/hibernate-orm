@@ -1,0 +1,19 @@
+{
+  try {
+    int ordinal=Integer.parseInt(xmlValue);
+    Object[] values=enumValues.get(enumClass);
+    if (values == null)     throw new AssertionFailure("enumValues not preprocessed: " + enumClass);
+    if (ordinal < 0 || ordinal >= values.length) {
+      throw new IllegalArgumentException("Unknown ordinal value for enum " + enumClass + ": "+ ordinal);
+    }
+    return values[ordinal];
+  }
+ catch (  NumberFormatException e) {
+    try {
+      return Enum.valueOf(enumClass,xmlValue);
+    }
+ catch (    IllegalArgumentException iae) {
+      throw new IllegalArgumentException("Unknown name value for enum " + enumClass + ": "+ xmlValue,iae);
+    }
+  }
+}

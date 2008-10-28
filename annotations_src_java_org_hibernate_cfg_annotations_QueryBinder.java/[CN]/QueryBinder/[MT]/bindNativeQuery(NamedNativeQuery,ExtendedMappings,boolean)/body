@@ -1,0 +1,27 @@
+{
+  if (queryAnn == null)   return;
+  if (BinderHelper.isDefault(queryAnn.name())) {
+    throw new AnnotationException("A named query must have a name when used in class or package level");
+  }
+  NamedSQLQueryDefinition query;
+  String resultSetMapping=queryAnn.resultSetMapping();
+  QueryHint[] hints=queryAnn.hints();
+  String queryName=queryAnn.query();
+  if (!BinderHelper.isDefault(resultSetMapping)) {
+    query=new NamedSQLQueryDefinition(queryName,resultSetMapping,null,getBoolean(queryName,"org.hibernate.cacheable",hints),getString(queryName,"org.hibernate.cacheRegion",hints),getInteger(queryName,"org.hibernate.timeout",hints),getInteger(queryName,"org.hibernate.fetchSize",hints),getFlushMode(queryName,hints),getCacheMode(queryName,hints),getBoolean(queryName,"org.hibernate.readOnly",hints),getString(queryName,"org.hibernate.comment",hints),null,getBoolean(queryName,"org.hibernate.callable",hints));
+  }
+ else   if (!void.class.equals(queryAnn.resultClass())) {
+    final NativeSQLQueryRootReturn entityQueryReturn=new NativeSQLQueryRootReturn("alias1",queryAnn.resultClass().getName(),new HashMap(),LockMode.READ);
+    query=new NamedSQLQueryDefinition(queryName,new NativeSQLQueryReturn[]{entityQueryReturn},null,getBoolean(queryName,"org.hibernate.cacheable",hints),getString(queryName,"org.hibernate.cacheRegion",hints),getInteger(queryName,"org.hibernate.timeout",hints),getInteger(queryName,"org.hibernate.fetchSize",hints),getFlushMode(queryName,hints),getCacheMode(queryName,hints),getBoolean(queryName,"org.hibernate.readOnly",hints),getString(queryName,"org.hibernate.comment",hints),null,getBoolean(queryName,"org.hibernate.callable",hints));
+  }
+ else {
+    throw new NotYetImplementedException("Pure native scalar queries are not yet supported");
+  }
+  if (isDefault) {
+    mappings.addDefaultSQLQuery(queryAnn.name(),query);
+  }
+ else {
+    mappings.addSQLQuery(queryAnn.name(),query);
+  }
+  log.info("Binding named native query: {} => {}",queryAnn.name(),queryAnn.query());
+}

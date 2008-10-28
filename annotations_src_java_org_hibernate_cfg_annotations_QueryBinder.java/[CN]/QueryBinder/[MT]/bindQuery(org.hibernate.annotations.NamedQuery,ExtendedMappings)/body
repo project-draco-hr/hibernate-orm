@@ -1,0 +1,11 @@
+{
+  if (queryAnn == null)   return;
+  if (BinderHelper.isDefault(queryAnn.name())) {
+    throw new AnnotationException("A named query must have a name when used in class or package level");
+  }
+  FlushMode flushMode;
+  flushMode=getFlushMode(queryAnn.flushMode());
+  NamedQueryDefinition query=new NamedQueryDefinition(queryAnn.query(),queryAnn.cacheable(),BinderHelper.isDefault(queryAnn.cacheRegion()) ? null : queryAnn.cacheRegion(),queryAnn.timeout() < 0 ? null : queryAnn.timeout(),queryAnn.fetchSize() < 0 ? null : queryAnn.fetchSize(),flushMode,getCacheMode(queryAnn.cacheMode()),queryAnn.readOnly(),BinderHelper.isDefault(queryAnn.comment()) ? null : queryAnn.comment(),null);
+  mappings.addQuery(queryAnn.name(),query);
+  if (log.isInfoEnabled())   log.info("Binding named query: " + queryAnn.name() + " => "+ queryAnn.query());
+}

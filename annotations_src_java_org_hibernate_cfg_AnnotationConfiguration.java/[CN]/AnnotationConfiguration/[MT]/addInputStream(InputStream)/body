@@ -1,0 +1,30 @@
+{
+  try {
+    List errors=new ArrayList();
+    SAXReader saxReader=xmlHelper.createSAXReader("XML InputStream",errors,getEntityResolver());
+    try {
+      saxReader.setFeature("http://apache.org/xml/features/validation/schema",true);
+      saxReader.setProperty("http://apache.org/xml/properties/schema/external-schemaLocation","http://java.sun.com/xml/ns/persistence/orm orm_1_0.xsd");
+    }
+ catch (    SAXException e) {
+      saxReader.setValidation(false);
+    }
+    org.dom4j.Document doc=saxReader.read(new InputSource(xmlInputStream));
+    if (errors.size() != 0) {
+      throw new MappingException("invalid mapping",(Throwable)errors.get(0));
+    }
+    add(doc);
+    return this;
+  }
+ catch (  DocumentException e) {
+    throw new MappingException("Could not parse mapping document in input stream",e);
+  }
+ finally {
+    try {
+      xmlInputStream.close();
+    }
+ catch (    IOException ioe) {
+      log.warn("Could not close input stream",ioe);
+    }
+  }
+}

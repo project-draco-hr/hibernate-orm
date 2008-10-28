@@ -1,0 +1,28 @@
+{
+  Reader reader=rs.getCharacterStream(names[0]);
+  if (reader == null)   return null;
+  ArrayList result=new ArrayList();
+  try {
+    char[] charbuf=new char[BUFFER_SIZE];
+    for (int i=reader.read(charbuf); i > 0; i=reader.read(charbuf)) {
+      result.ensureCapacity(result.size() + BUFFER_SIZE);
+      for (int charIndex=0; charIndex < i; charIndex++) {
+        result.add(Character.valueOf(charbuf[charIndex]));
+      }
+    }
+  }
+ catch (  IOException e) {
+    throw new SQLException(e.getMessage());
+  }
+  if (returnedClass().equals(Character[].class)) {
+    return result.toArray(new Character[result.size()]);
+  }
+ else {
+    int length=result.size();
+    char[] chars=new char[length];
+    for (int index=0; index < length; index++) {
+      chars[index]=((Character)result.get(index)).charValue();
+    }
+    return chars;
+  }
+}

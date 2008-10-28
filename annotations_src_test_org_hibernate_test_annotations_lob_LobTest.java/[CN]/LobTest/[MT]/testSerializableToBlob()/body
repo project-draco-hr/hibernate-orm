@@ -1,0 +1,28 @@
+{
+  Book book=new Book();
+  Editor editor=new Editor();
+  editor.setName("O'Reilly");
+  book.setEditor(editor);
+  book.setCode2(new char[]{'r'});
+  Session s;
+  Transaction tx;
+  s=openSession();
+  tx=s.beginTransaction();
+  s.persist(book);
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  Book loadedBook=(Book)s.get(Book.class,book.getId());
+  assertNotNull(loadedBook.getEditor());
+  assertEquals(book.getEditor().getName(),loadedBook.getEditor().getName());
+  loadedBook.setEditor(null);
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  loadedBook=(Book)s.get(Book.class,book.getId());
+  assertNull(loadedBook.getEditor());
+  tx.commit();
+  s.close();
+}

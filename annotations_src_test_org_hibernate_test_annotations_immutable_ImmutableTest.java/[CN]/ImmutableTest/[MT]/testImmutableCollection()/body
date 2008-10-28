@@ -1,0 +1,60 @@
+{
+  Country country=new Country();
+  country.setName("Germany");
+  List states=new ArrayList<State>();
+  State bayern=new State();
+  bayern.setName("Bayern");
+  State hessen=new State();
+  hessen.setName("Hessen");
+  State sachsen=new State();
+  sachsen.setName("Sachsen");
+  states.add(bayern);
+  states.add(hessen);
+  states.add(sachsen);
+  country.setStates(states);
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  s.persist(country);
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  Country germany=(Country)s.get(Country.class,country.getId());
+  assertNotNull(germany);
+  assertEquals("Wrong number of states",3,germany.getStates().size());
+  State foobar=new State();
+  foobar.setName("foobar");
+  s.save(foobar);
+  germany.getStates().add(foobar);
+  try {
+    tx.commit();
+    fail();
+  }
+ catch (  HibernateException e) {
+    assertTrue(e.getMessage().contains("changed an immutable collection instance"));
+    log.debug("success");
+  }
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  germany=(Country)s.get(Country.class,country.getId());
+  assertNotNull(germany);
+  assertEquals("Wrong number of states",3,germany.getStates().size());
+  germany.getStates().remove(0);
+  try {
+    tx.commit();
+    fail();
+  }
+ catch (  HibernateException e) {
+    assertTrue(e.getMessage().contains("changed an immutable collection instance"));
+    log.debug("success");
+  }
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  germany=(Country)s.get(Country.class,country.getId());
+  assertNotNull(germany);
+  assertEquals("Wrong number of states",3,germany.getStates().size());
+  tx.commit();
+  s.close();
+}

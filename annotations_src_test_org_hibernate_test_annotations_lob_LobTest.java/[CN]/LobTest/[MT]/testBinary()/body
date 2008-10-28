@@ -1,0 +1,20 @@
+{
+  Session s;
+  Transaction tx;
+  s=openSession();
+  tx=s.beginTransaction();
+  CompiledCode cc=new CompiledCode();
+  byte[] metadata=new byte[2];
+  metadata[0]=(byte)3;
+  metadata[1]=(byte)0;
+  cc.setMetadata(metadata);
+  s.persist(cc);
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  CompiledCode recompiled=(CompiledCode)s.get(CompiledCode.class,cc.getId());
+  assertEquals(recompiled.getMetadata()[1],cc.getMetadata()[1]);
+  tx.commit();
+  s.close();
+}

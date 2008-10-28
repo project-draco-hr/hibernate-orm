@@ -1,0 +1,37 @@
+{
+  final String mappedBy=columns[0].getMappedBy();
+  if (StringHelper.isNotEmpty(mappedBy)) {
+    final Property property=referencedEntity.getRecursiveProperty(mappedBy);
+    Iterator mappedByColumns;
+    if (property.getValue() instanceof Collection) {
+      mappedByColumns=((Collection)property.getValue()).getKey().getColumnIterator();
+    }
+ else {
+      Iterator joinsIt=referencedEntity.getJoinIterator();
+      KeyValue key=null;
+      while (joinsIt.hasNext()) {
+        Join join=(Join)joinsIt.next();
+        if (join.containsProperty(property)) {
+          key=join.getKey();
+          break;
+        }
+      }
+      if (key == null)       key=property.getPersistentClass().getIdentifier();
+      mappedByColumns=key.getColumnIterator();
+    }
+    while (mappedByColumns.hasNext()) {
+      Column column=(Column)mappedByColumns.next();
+      columns[0].linkValueUsingAColumnCopy(column,value);
+    }
+    String referencedPropertyName=mappings.getPropertyReferencedAssociation("inverse__" + referencedEntity.getEntityName(),mappedBy);
+    if (referencedPropertyName != null) {
+      ((ManyToOne)value).setReferencedPropertyName(referencedPropertyName);
+      mappings.addUniquePropertyReference(referencedEntity.getEntityName(),referencedPropertyName);
+    }
+    value.createForeignKey();
+  }
+ else {
+    BinderHelper.createSyntheticPropertyReference(columns,referencedEntity,null,value,true,mappings);
+    TableBinder.bindFk(referencedEntity,null,columns,value,unique,mappings);
+  }
+}

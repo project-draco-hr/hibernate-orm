@@ -1,0 +1,23 @@
+{
+  Session s;
+  Transaction tx;
+  s=openSession();
+  tx=s.beginTransaction();
+  Chaos chaos=new Chaos();
+  chaos.setSize(123l);
+  chaos.setId(1l);
+  String lowerName="hello";
+  String upperName=lowerName.toUpperCase();
+  assertFalse(lowerName.equals(upperName));
+  chaos.setName("hello");
+  chaos.setNickname("NickName");
+  s.persist(chaos);
+  s.flush();
+  s.clear();
+  s.getSessionFactory().evict(Chaos.class);
+  Chaos resultChaos=(Chaos)s.load(Chaos.class,chaos.getId());
+  assertEquals(upperName,resultChaos.getName());
+  assertEquals("nickname",resultChaos.getNickname());
+  tx.rollback();
+  s.close();
+}

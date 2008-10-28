@@ -1,0 +1,35 @@
+{
+  Ejb3JoinColumn[] joinColumns;
+  if (annJoins == null) {
+    Ejb3JoinColumn currentJoinColumn=new Ejb3JoinColumn();
+    currentJoinColumn.setImplicit(true);
+    currentJoinColumn.setNullable(false);
+    currentJoinColumn.setPropertyHolder(propertyHolder);
+    currentJoinColumn.setJoins(secondaryTables);
+    currentJoinColumn.setMappings(mappings);
+    currentJoinColumn.setPropertyName(BinderHelper.getRelativePath(propertyHolder,propertyName));
+    currentJoinColumn.setMappedBy(mappedBy);
+    currentJoinColumn.bind();
+    joinColumns=new Ejb3JoinColumn[]{currentJoinColumn};
+  }
+ else {
+    joinColumns=new Ejb3JoinColumn[annJoins.length];
+    JoinColumn annJoin;
+    int length=annJoins.length;
+    for (int index=0; index < length; index++) {
+      annJoin=annJoins[index];
+      Ejb3JoinColumn currentJoinColumn=new Ejb3JoinColumn();
+      currentJoinColumn.setImplicit(true);
+      currentJoinColumn.setPropertyHolder(propertyHolder);
+      currentJoinColumn.setJoins(secondaryTables);
+      currentJoinColumn.setMappings(mappings);
+      currentJoinColumn.setPropertyName(BinderHelper.getRelativePath(propertyHolder,propertyName));
+      currentJoinColumn.setMappedBy(mappedBy);
+      currentJoinColumn.setJoinAnnotation(annJoin,propertyName);
+      currentJoinColumn.setNullable(false);
+      currentJoinColumn.bind();
+      joinColumns[index]=currentJoinColumn;
+    }
+  }
+  return joinColumns;
+}

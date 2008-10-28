@@ -1,0 +1,33 @@
+{
+  Object object=rs.getObject(names[0]);
+  if (rs.wasNull()) {
+    if (IS_VALUE_TRACING_ENABLED) {
+      log().debug("Returning null as column {}",names[0]);
+    }
+    return null;
+  }
+  if (object instanceof Number) {
+    Object[] values=enumValues.get(enumClass);
+    if (values == null)     throw new AssertionFailure("enumValues not preprocessed: " + enumClass);
+    int ordinal=((Number)object).intValue();
+    if (ordinal < 0 || ordinal >= values.length) {
+      throw new IllegalArgumentException("Unknown ordinal value for enum " + enumClass + ": "+ ordinal);
+    }
+    if (IS_VALUE_TRACING_ENABLED) {
+      log().debug("Returning '{}' as column {}",ordinal,names[0]);
+    }
+    return values[ordinal];
+  }
+ else {
+    String name=(String)object;
+    if (IS_VALUE_TRACING_ENABLED) {
+      log().debug("Returning '{}' as column {}",name,names[0]);
+    }
+    try {
+      return Enum.valueOf(enumClass,name);
+    }
+ catch (    IllegalArgumentException iae) {
+      throw new IllegalArgumentException("Unknown name value for enum " + enumClass + ": "+ name,iae);
+    }
+  }
+}

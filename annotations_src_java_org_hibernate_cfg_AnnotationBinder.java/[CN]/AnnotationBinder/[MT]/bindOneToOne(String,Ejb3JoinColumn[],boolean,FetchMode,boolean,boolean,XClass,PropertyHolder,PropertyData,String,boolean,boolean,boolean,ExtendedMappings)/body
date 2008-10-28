@@ -1,0 +1,38 @@
+{
+  final String propertyName=inferredData.getPropertyName();
+  log.debug("Fetching {} with {}",propertyName,fetchMode);
+  boolean mapToPK=true;
+  if (!trueOneToOne) {
+    KeyValue identifier=propertyHolder.getIdentifier();
+    if (identifier == null) {
+      mapToPK=false;
+    }
+ else {
+      Iterator idColumns=identifier.getColumnIterator();
+      List<String> idColumnNames=new ArrayList<String>();
+      org.hibernate.mapping.Column currentColumn;
+      while (idColumns.hasNext()) {
+        currentColumn=(org.hibernate.mapping.Column)idColumns.next();
+        idColumnNames.add(currentColumn.getName());
+      }
+      for (      Ejb3JoinColumn col : joinColumns) {
+        if (!idColumnNames.contains(col.getMappingColumn().getName())) {
+          mapToPK=false;
+          break;
+        }
+      }
+    }
+  }
+  if (trueOneToOne || mapToPK || !BinderHelper.isDefault(mappedBy)) {
+    OneToOneSecondPass secondPass=new OneToOneSecondPass(mappedBy,propertyHolder.getEntityName(),propertyName,propertyHolder,inferredData,targetEntity,ignoreNotFound,cascadeOnDelete,optional,cascadeStrategy,joinColumns,mappings);
+    if (inSecondPass) {
+      secondPass.doSecondPass(mappings.getClasses());
+    }
+ else {
+      mappings.addSecondPass(secondPass,BinderHelper.isDefault(mappedBy));
+    }
+  }
+ else {
+    bindManyToOne(cascadeStrategy,joinColumns,optional,ignoreNotFound,cascadeOnDelete,targetEntity,propertyHolder,inferredData,true,isIdentifierMapper,inSecondPass,mappings);
+  }
+}

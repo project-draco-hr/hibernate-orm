@@ -1,0 +1,32 @@
+{
+  Class searchStartupClass;
+  try {
+    searchStartupClass=ReflectHelper.classForName(SEARCH_STARTUP_CLASS,AnnotationConfiguration.class);
+  }
+ catch (  ClassNotFoundException e) {
+    try {
+      searchStartupClass=ReflectHelper.classForName("org.hibernate.cfg.search.HibernateSearchEventListenerRegister",AnnotationConfiguration.class);
+    }
+ catch (    ClassNotFoundException cnfe) {
+      log.debug("Search not present in classpath, ignoring event listener registration.");
+      return;
+    }
+  }
+  try {
+    Object searchStartupInstance=searchStartupClass.newInstance();
+    Method enableSearchMethod=searchStartupClass.getDeclaredMethod(SEARCH_STARTUP_METHOD,EventListeners.class,Properties.class);
+    enableSearchMethod.invoke(searchStartupInstance,getEventListeners(),getProperties());
+  }
+ catch (  InstantiationException e) {
+    log.debug("Unable to instantiate {}, ignoring event listener registration.",SEARCH_STARTUP_CLASS);
+  }
+catch (  IllegalAccessException e) {
+    log.debug("Unable to instantiate {}, ignoring event listener registration.",SEARCH_STARTUP_CLASS);
+  }
+catch (  NoSuchMethodException e) {
+    log.debug("Method enableHibernateSearch() not found in {}.",SEARCH_STARTUP_CLASS);
+  }
+catch (  InvocationTargetException e) {
+    log.debug("Unable to execute {}, ignoring event listener registration.",SEARCH_STARTUP_METHOD);
+  }
+}

@@ -1,0 +1,39 @@
+{
+  Ejb3JoinColumn[] ejb3JoinColumns;
+  PrimaryKeyJoinColumn[] pkColumnsAnn=null;
+  JoinColumn[] joinColumnsAnn=null;
+  if (uncastedColumn instanceof PrimaryKeyJoinColumn[]) {
+    pkColumnsAnn=(PrimaryKeyJoinColumn[])uncastedColumn;
+  }
+  if (uncastedColumn instanceof JoinColumn[]) {
+    joinColumnsAnn=(JoinColumn[])uncastedColumn;
+  }
+  if (pkColumnsAnn == null && joinColumnsAnn == null) {
+    ejb3JoinColumns=new Ejb3JoinColumn[1];
+    ejb3JoinColumns[0]=Ejb3JoinColumn.buildJoinColumn(null,null,persistentClass.getIdentifier(),secondaryTables,propertyHolder,mappings);
+  }
+ else {
+    int nbrOfJoinColumns=pkColumnsAnn != null ? pkColumnsAnn.length : joinColumnsAnn.length;
+    if (nbrOfJoinColumns == 0) {
+      ejb3JoinColumns=new Ejb3JoinColumn[1];
+      ejb3JoinColumns[0]=Ejb3JoinColumn.buildJoinColumn(null,null,persistentClass.getIdentifier(),secondaryTables,propertyHolder,mappings);
+    }
+ else {
+      ejb3JoinColumns=new Ejb3JoinColumn[nbrOfJoinColumns];
+      if (pkColumnsAnn != null) {
+        for (int colIndex=0; colIndex < nbrOfJoinColumns; colIndex++) {
+          ejb3JoinColumns[colIndex]=Ejb3JoinColumn.buildJoinColumn(pkColumnsAnn[colIndex],null,persistentClass.getIdentifier(),secondaryTables,propertyHolder,mappings);
+        }
+      }
+ else {
+        for (int colIndex=0; colIndex < nbrOfJoinColumns; colIndex++) {
+          ejb3JoinColumns[colIndex]=Ejb3JoinColumn.buildJoinColumn(null,joinColumnsAnn[colIndex],persistentClass.getIdentifier(),secondaryTables,propertyHolder,mappings);
+        }
+      }
+    }
+  }
+  for (  Ejb3JoinColumn joinColumn : ejb3JoinColumns) {
+    joinColumn.forceNotNull();
+  }
+  bindJoinToPersistentClass(join,ejb3JoinColumns);
+}

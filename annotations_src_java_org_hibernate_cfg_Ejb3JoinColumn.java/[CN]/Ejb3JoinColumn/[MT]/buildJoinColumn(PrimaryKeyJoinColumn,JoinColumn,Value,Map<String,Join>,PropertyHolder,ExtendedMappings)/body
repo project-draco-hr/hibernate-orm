@@ -1,0 +1,25 @@
+{
+  Column col=(Column)identifier.getColumnIterator().next();
+  String defaultName=mappings.getLogicalColumnName(col.getQuotedName(),identifier.getTable());
+  if (pkJoinAnn != null || joinAnn != null) {
+    String colName;
+    String columnDefinition;
+    String referencedColumnName;
+    if (pkJoinAnn != null) {
+      colName=pkJoinAnn.name();
+      columnDefinition=pkJoinAnn.columnDefinition();
+      referencedColumnName=pkJoinAnn.referencedColumnName();
+    }
+ else {
+      colName=joinAnn.name();
+      columnDefinition=joinAnn.columnDefinition();
+      referencedColumnName=joinAnn.referencedColumnName();
+    }
+    String sqlType="".equals(columnDefinition) ? null : columnDefinition;
+    String name="".equals(colName) ? defaultName : colName;
+    return new Ejb3JoinColumn(sqlType,name,false,false,true,true,referencedColumnName,null,joins,propertyHolder,null,null,false,mappings);
+  }
+ else {
+    return new Ejb3JoinColumn((String)null,defaultName,false,false,true,true,null,(String)null,joins,propertyHolder,null,null,true,mappings);
+  }
+}

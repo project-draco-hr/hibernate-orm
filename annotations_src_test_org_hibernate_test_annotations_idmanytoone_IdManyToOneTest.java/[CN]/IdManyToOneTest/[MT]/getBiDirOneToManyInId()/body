@@ -1,0 +1,23 @@
+{
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  CardKey key=new CardKey();
+  s.persist(key);
+  Project project=new Project();
+  s.persist(project);
+  Card card=new Card();
+  card.getPrimaryKey().setProject(project);
+  s.persist(card);
+  CardField field=new CardField();
+  field.getPrimaryKey().setKey(key);
+  field.getPrimaryKey().setCard(card);
+  s.persist(field);
+  card.setMainCardField(field);
+  s.flush();
+  s.clear();
+  card=(Card)s.createQuery("from Card c").list().get(0);
+  assertEquals(1,card.getFields().size());
+  assertEquals(card.getMainCardField(),card.getFields().iterator().next());
+  tx.rollback();
+  s.close();
+}

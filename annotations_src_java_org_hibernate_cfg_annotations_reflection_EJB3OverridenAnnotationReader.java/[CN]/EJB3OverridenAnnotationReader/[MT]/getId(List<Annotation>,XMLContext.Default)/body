@@ -1,0 +1,46 @@
+{
+  for (  Element element : elementsForProperty) {
+    if ("id".equals(element.getName())) {
+      boolean processId=isProcessingId(defaults);
+      if (processId) {
+        Annotation annotation=buildColumns(element);
+        addIfNotNull(annotationList,annotation);
+        annotation=buildGeneratedValue(element);
+        addIfNotNull(annotationList,annotation);
+        getTemporal(annotationList,element);
+        annotation=getTableGenerator(element,defaults);
+        addIfNotNull(annotationList,annotation);
+        annotation=getSequenceGenerator(element,defaults);
+        addIfNotNull(annotationList,annotation);
+        AnnotationDescriptor id=new AnnotationDescriptor(Id.class);
+        annotationList.add(AnnotationFactory.create(id));
+      }
+    }
+  }
+  if (elementsForProperty.size() == 0 && defaults.canUseJavaAnnotations()) {
+    Annotation annotation=getJavaAnnotation(Id.class);
+    if (annotation != null) {
+      annotationList.add(annotation);
+      annotation=getJavaAnnotation(Column.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(Columns.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(GeneratedValue.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(Temporal.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(TableGenerator.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(SequenceGenerator.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(AttributeOverride.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(AttributeOverrides.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(AssociationOverride.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(AssociationOverrides.class);
+      addIfNotNull(annotationList,annotation);
+    }
+  }
+}

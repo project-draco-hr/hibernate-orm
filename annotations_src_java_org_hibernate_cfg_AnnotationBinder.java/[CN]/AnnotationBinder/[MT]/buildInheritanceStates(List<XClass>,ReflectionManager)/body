@@ -1,0 +1,22 @@
+{
+  Map<XClass,InheritanceState> inheritanceStatePerClass=new HashMap<XClass,InheritanceState>(orderedClasses.size());
+  for (  XClass clazz : orderedClasses) {
+    InheritanceState superclassState=InheritanceState.getSuperclassInheritanceState(clazz,inheritanceStatePerClass,reflectionManager);
+    InheritanceState state=new InheritanceState(clazz);
+    if (superclassState != null) {
+      superclassState.hasSons=true;
+      InheritanceState superEntityState=InheritanceState.getSuperEntityInheritanceState(clazz,inheritanceStatePerClass,reflectionManager);
+      state.hasParents=superEntityState != null;
+      final boolean nonDefault=state.type != null && !InheritanceType.SINGLE_TABLE.equals(state.type);
+      if (superclassState.type != null) {
+        final boolean mixingStrategy=state.type != null && !state.type.equals(superclassState.type);
+        if (nonDefault && mixingStrategy) {
+          log.warn("Mixing inheritance strategy in a entity hierarchy is not allowed, ignoring sub strategy in: {}",clazz.getName());
+        }
+        state.type=superclassState.type;
+      }
+    }
+    inheritanceStatePerClass.put(clazz,state);
+  }
+  return inheritanceStatePerClass;
+}

@@ -1,0 +1,44 @@
+{
+  Element subelement=tree == null ? null : tree.element("table");
+  if (subelement == null) {
+    if (StringHelper.isNotEmpty(defaults.getCatalog()) || StringHelper.isNotEmpty(defaults.getSchema())) {
+      AnnotationDescriptor annotation=new AnnotationDescriptor(Table.class);
+      if (defaults.canUseJavaAnnotations()) {
+        Table table=getJavaAnnotation(Table.class);
+        if (table != null) {
+          annotation.setValue("name",table.name());
+          annotation.setValue("schema",table.schema());
+          annotation.setValue("catalog",table.catalog());
+          annotation.setValue("uniqueConstraints",table.uniqueConstraints());
+        }
+      }
+      if (StringHelper.isEmpty((String)annotation.valueOf("schema")) && StringHelper.isNotEmpty(defaults.getSchema())) {
+        annotation.setValue("schema",defaults.getSchema());
+      }
+      if (StringHelper.isEmpty((String)annotation.valueOf("catalog")) && StringHelper.isNotEmpty(defaults.getCatalog())) {
+        annotation.setValue("catalog",defaults.getCatalog());
+      }
+      return AnnotationFactory.create(annotation);
+    }
+ else     if (defaults.canUseJavaAnnotations()) {
+      return getJavaAnnotation(Table.class);
+    }
+ else {
+      return null;
+    }
+  }
+ else {
+    AnnotationDescriptor annotation=new AnnotationDescriptor(Table.class);
+    copyStringAttribute(annotation,subelement,"name",false);
+    copyStringAttribute(annotation,subelement,"catalog",false);
+    if (StringHelper.isNotEmpty(defaults.getCatalog()) && StringHelper.isEmpty((String)annotation.valueOf("catalog"))) {
+      annotation.setValue("catalog",defaults.getCatalog());
+    }
+    copyStringAttribute(annotation,subelement,"schema",false);
+    if (StringHelper.isNotEmpty(defaults.getSchema()) && StringHelper.isEmpty((String)annotation.valueOf("schema"))) {
+      annotation.setValue("schema",defaults.getSchema());
+    }
+    buildUniqueConstraints(annotation,subelement);
+    return AnnotationFactory.create(annotation);
+  }
+}

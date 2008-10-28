@@ -1,0 +1,22 @@
+{
+  Session s;
+  Transaction tx;
+  s=openSession();
+  tx=s.beginTransaction();
+  Sky sky=new Sky();
+  sky.id=new Long(1);
+  sky.color="black";
+  Sky.area="Paris";
+  s.save(sky);
+  tx.commit();
+  s.close();
+  Sky.area="London";
+  s=openSession();
+  tx=s.beginTransaction();
+  sky=(Sky)s.get(Sky.class,sky.id);
+  assertNotNull(sky);
+  assertEquals("black",sky.color);
+  assertFalse("Paris".equals(Sky.area));
+  tx.commit();
+  s.close();
+}

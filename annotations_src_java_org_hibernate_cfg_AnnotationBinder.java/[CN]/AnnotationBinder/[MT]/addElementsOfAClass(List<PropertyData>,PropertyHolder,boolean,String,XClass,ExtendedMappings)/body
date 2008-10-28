@@ -1,0 +1,36 @@
+{
+  boolean hasIdentifier=false;
+  AccessType access=annotatedClass.getAnnotation(AccessType.class);
+  String localPropertyAccessor=access != null ? access.value() : null;
+  String accessType=null;
+  if ("property".equals(localPropertyAccessor) || "field".equals(localPropertyAccessor)) {
+    accessType=localPropertyAccessor;
+  }
+ else {
+    if (localPropertyAccessor == null) {
+      localPropertyAccessor=propertyAccessor;
+    }
+    if (isPropertyAnnotated) {
+      accessType="property";
+    }
+ else {
+      accessType="field";
+    }
+  }
+  log.debug("Processing {} {} annotation",propertyHolder.getEntityName(),accessType);
+  List<XProperty> properties=annotatedClass.getDeclaredProperties(accessType);
+  Collections.sort(properties,new Comparator<XProperty>(){
+    public int compare(    XProperty property1,    XProperty property2){
+      return property1.getName().compareTo(property2.getName());
+    }
+  }
+);
+  for (  XProperty p : properties) {
+    if (!p.isTypeResolved() && !discoverTypeWithoutReflection(p) && !mustBeSkipped(p,mappings)) {
+      throw new AnnotationException("Property " + StringHelper.qualify(propertyHolder.getEntityName(),p.getName()) + " has an unbound type and no explicit target entity. Resolve this Generic usage issue"+ " or set an explicit target attribute (eg @OneToMany(target=) or use an explicit @Type");
+    }
+    final boolean currentHasIdentifier=addProperty(p,elements,localPropertyAccessor,mappings);
+    hasIdentifier=hasIdentifier || currentHasIdentifier;
+  }
+  return hasIdentifier;
+}

@@ -1,0 +1,28 @@
+{
+  XMLHelper xmlHelper=new XMLHelper();
+  ClassLoader cl=Thread.currentThread().getContextClassLoader();
+  InputStream is=cl.getResourceAsStream(ormfile);
+  assertNotNull("ORM.xml not found: " + ormfile,is);
+  XMLContext context=new XMLContext();
+  List errors=new ArrayList();
+  SAXReader saxReader=xmlHelper.createSAXReader("XML InputStream",errors,EJB3DTDEntityResolver.INSTANCE);
+  try {
+    saxReader.setFeature("http://apache.org/xml/features/validation/schema",true);
+  }
+ catch (  SAXNotSupportedException e) {
+    saxReader.setValidation(false);
+  }
+  org.dom4j.Document doc;
+  try {
+    doc=saxReader.read(new InputSource(new BufferedInputStream(is)));
+  }
+  finally {
+    is.close();
+  }
+  if (errors.size() > 0) {
+    System.out.println(errors.get(0));
+  }
+  assertEquals(0,errors.size());
+  context.addDocument(doc);
+  return context;
+}

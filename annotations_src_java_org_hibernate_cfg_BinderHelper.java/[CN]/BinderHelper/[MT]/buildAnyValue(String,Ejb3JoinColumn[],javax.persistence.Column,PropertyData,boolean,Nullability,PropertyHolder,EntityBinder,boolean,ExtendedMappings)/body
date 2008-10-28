@@ -1,0 +1,52 @@
+{
+  Any value=new Any(columns[0].getTable());
+  AnyMetaDef metaAnnDef=inferredData.getProperty().getAnnotation(AnyMetaDef.class);
+  if (metaAnnDef != null) {
+    bindAnyMetaDefs(inferredData.getProperty(),mappings);
+  }
+ else {
+    metaAnnDef=mappings.getAnyMetaDef(anyMetaDefName);
+  }
+  if (metaAnnDef != null) {
+    value.setIdentifierType(metaAnnDef.idType());
+    value.setMetaType(metaAnnDef.metaType());
+    HashMap values=new HashMap();
+    org.hibernate.type.Type metaType=TypeFactory.heuristicType(value.getMetaType());
+    for (    MetaValue metaValue : metaAnnDef.metaValues()) {
+      try {
+        Object discrim=((org.hibernate.type.DiscriminatorType)metaType).stringToObject(metaValue.value());
+        String entityName=metaValue.targetEntity().getName();
+        values.put(discrim,entityName);
+      }
+ catch (      ClassCastException cce) {
+        throw new MappingException("metaType was not a DiscriminatorType: " + metaType.getName());
+      }
+catch (      Exception e) {
+        throw new MappingException("could not interpret metaValue",e);
+      }
+    }
+    if (!values.isEmpty())     value.setMetaValues(values);
+  }
+ else {
+    throw new AnnotationException("Unable to find @AnyMetaDef for an @(ManyTo)Any mapping: " + StringHelper.qualify(propertyHolder.getPath(),inferredData.getPropertyName()));
+  }
+  value.setCascadeDeleteEnabled(cascadeOnDelete);
+  if (!optional) {
+    for (    Ejb3JoinColumn column : columns) {
+      column.setNullable(false);
+    }
+  }
+  Ejb3Column[] metaColumns=Ejb3Column.buildColumnFromAnnotation(new javax.persistence.Column[]{metaColumn},null,nullability,propertyHolder,inferredData,entityBinder.getSecondaryTables(),mappings);
+  for (  Ejb3Column column : metaColumns) {
+    column.setTable(value.getTable());
+  }
+  for (  Ejb3Column column : metaColumns) {
+    column.linkWithValue(value);
+  }
+  final String propertyName=inferredData.getPropertyName();
+  Ejb3Column.checkPropertyConsistency(columns,propertyHolder.getEntityName() + propertyName);
+  for (  Ejb3JoinColumn column : columns) {
+    column.linkWithValue(value);
+  }
+  return value;
+}

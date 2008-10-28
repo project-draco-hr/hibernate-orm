@@ -1,0 +1,27 @@
+{
+  Element element=tree == null ? null : tree.element("id-class");
+  if (element != null) {
+    Attribute attr=element.attribute("class");
+    if (attr != null) {
+      AnnotationDescriptor ad=new AnnotationDescriptor(IdClass.class);
+      Class clazz=null;
+      try {
+        clazz=ReflectHelper.classForName(XMLContext.buildSafeClassName(attr.getValue(),defaults),this.getClass());
+      }
+ catch (      ClassNotFoundException e) {
+        throw new AnnotationException("Unable to find id-class: " + attr.getValue(),e);
+      }
+      ad.setValue("value",clazz);
+      return AnnotationFactory.create(ad);
+    }
+ else {
+      throw new AnnotationException("id-class without class. " + SCHEMA_VALIDATION);
+    }
+  }
+ else   if (defaults.canUseJavaAnnotations()) {
+    return getJavaAnnotation(IdClass.class);
+  }
+ else {
+    return null;
+  }
+}

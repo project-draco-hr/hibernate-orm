@@ -1,0 +1,19 @@
+{
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  Flight airFrance=new Flight();
+  airFrance.setId(new Long(747));
+  airFrance.setName("Paris-Amsterdam");
+  airFrance.setDuration(null);
+  try {
+    s.persist(airFrance);
+    tx.commit();
+    fail("Basic(optional=false) fails");
+  }
+ catch (  Exception e) {
+    if (tx != null)     tx.rollback();
+  }
+ finally {
+    s.close();
+  }
+}

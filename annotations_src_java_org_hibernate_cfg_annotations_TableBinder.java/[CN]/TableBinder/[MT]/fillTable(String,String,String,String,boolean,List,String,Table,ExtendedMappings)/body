@@ -1,0 +1,19 @@
+{
+  schema=BinderHelper.isDefault(schema) ? mappings.getSchemaName() : schema;
+  catalog=BinderHelper.isDefault(catalog) ? mappings.getCatalogName() : catalog;
+  Table table;
+  if (denormalizedSuperTable != null) {
+    table=mappings.addDenormalizedTable(schema,catalog,realTableName,isAbstract,null,denormalizedSuperTable);
+  }
+ else {
+    table=mappings.addTable(schema,catalog,realTableName,null,isAbstract);
+  }
+  if (uniqueConstraints != null && uniqueConstraints.size() > 0) {
+    mappings.addUniqueConstraints(table,uniqueConstraints);
+  }
+  if (constraints != null)   table.addCheckConstraint(constraints);
+  if (logicalName != null) {
+    mappings.addTableBinding(schema,catalog,logicalName,realTableName,denormalizedSuperTable);
+  }
+  return table;
+}

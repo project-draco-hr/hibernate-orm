@@ -1,0 +1,72 @@
+{
+  String orderByString=null;
+  if (hqlOrderBy != null) {
+    List<String> properties=new ArrayList<String>();
+    List<String> ordering=new ArrayList<String>();
+    StringBuilder orderByBuffer=new StringBuilder();
+    if (hqlOrderBy.length() == 0) {
+      Iterator it=associatedClass.getIdentifier().getColumnIterator();
+      while (it.hasNext()) {
+        Selectable col=(Selectable)it.next();
+        orderByBuffer.append(col.getText()).append(" asc").append(", ");
+      }
+    }
+ else {
+      StringTokenizer st=new StringTokenizer(hqlOrderBy," ,",false);
+      String currentOrdering=null;
+      while (st.hasMoreTokens()) {
+        String token=st.nextToken();
+        if (isNonPropertyToken(token)) {
+          if (currentOrdering != null) {
+            throw new AnnotationException("Error while parsing HQL orderBy clause: " + hqlOrderBy + " ("+ role+ ")");
+          }
+          currentOrdering=token;
+        }
+ else {
+          if (currentOrdering == null) {
+            ordering.add("asc");
+          }
+ else {
+            ordering.add(currentOrdering);
+            currentOrdering=null;
+          }
+          properties.add(token);
+        }
+      }
+      ordering.remove(0);
+      if (currentOrdering == null) {
+        ordering.add("asc");
+      }
+ else {
+        ordering.add(currentOrdering);
+        currentOrdering=null;
+      }
+      int index=0;
+      for (      String property : properties) {
+        Property p=BinderHelper.findPropertyByName(associatedClass,property);
+        if (p == null) {
+          throw new AnnotationException("property from @OrderBy clause not found: " + associatedClass.getEntityName() + "."+ property);
+        }
+        PersistentClass pc=p.getPersistentClass();
+        String table;
+        if (pc == null) {
+          table="";
+        }
+ else         if (pc == associatedClass || (associatedClass instanceof SingleTableSubclass && pc.getMappedClass().isAssignableFrom(associatedClass.getMappedClass()))) {
+          table="";
+        }
+ else {
+          table=pc.getTable().getQuotedName() + ".";
+        }
+        Iterator propertyColumns=p.getColumnIterator();
+        while (propertyColumns.hasNext()) {
+          Selectable column=(Selectable)propertyColumns.next();
+          orderByBuffer.append(table).append(column.getText()).append(" ").append(ordering.get(index)).append(", ");
+        }
+        index++;
+      }
+    }
+    orderByString=orderByBuffer.substring(0,orderByBuffer.length() - 2);
+  }
+  return orderByString;
+}

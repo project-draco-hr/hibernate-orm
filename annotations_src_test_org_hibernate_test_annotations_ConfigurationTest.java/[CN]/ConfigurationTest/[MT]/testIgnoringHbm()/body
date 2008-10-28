@@ -1,0 +1,22 @@
+{
+  AnnotationConfiguration cfg=new AnnotationConfiguration();
+  cfg.configure("org/hibernate/test/annotations/hibernate.cfg.xml");
+  cfg.setProperty(Environment.HBM2DDL_AUTO,"create-drop");
+  cfg.setProperty(AnnotationConfiguration.ARTEFACT,"class, whatever");
+  SessionFactory sf=cfg.buildSessionFactory();
+  assertNotNull(sf);
+  Session s=sf.openSession();
+  Transaction tx=s.beginTransaction();
+  Query q;
+  try {
+    s.createQuery("from Boat").list();
+    fail("Boat should not be mapped");
+  }
+ catch (  HibernateException e) {
+  }
+  q=s.createQuery("from Plane");
+  assertEquals(0,q.list().size());
+  tx.commit();
+  s.close();
+  sf.close();
+}

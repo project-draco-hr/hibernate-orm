@@ -1,0 +1,21 @@
+{
+  List<NamedNativeQuery> queries=(List<NamedNativeQuery>)buildNamedQueries(tree,true,defaults);
+  if (defaults.canUseJavaAnnotations()) {
+    NamedNativeQuery annotation=getJavaAnnotation(NamedNativeQuery.class);
+    addNamedNativeQueryIfNeeded(annotation,queries);
+    NamedNativeQueries annotations=getJavaAnnotation(NamedNativeQueries.class);
+    if (annotations != null) {
+      for (      NamedNativeQuery current : annotations.value()) {
+        addNamedNativeQueryIfNeeded(current,queries);
+      }
+    }
+  }
+  if (queries.size() > 0) {
+    AnnotationDescriptor ad=new AnnotationDescriptor(NamedNativeQueries.class);
+    ad.setValue("value",queries.toArray(new NamedNativeQuery[queries.size()]));
+    return AnnotationFactory.create(ad);
+  }
+ else {
+    return null;
+  }
+}

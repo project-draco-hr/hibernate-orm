@@ -1,0 +1,90 @@
+{
+  this.collection=createCollection(propertyHolder.getPersistentClass());
+  log.debug("Collection role: {}",StringHelper.qualify(propertyHolder.getPath(),propertyName));
+  collection.setRole(StringHelper.qualify(propertyHolder.getPath(),propertyName));
+  collection.setNodeName(propertyName);
+  if (property.isAnnotationPresent(org.hibernate.annotations.MapKey.class) && mapKeyPropertyName != null) {
+    throw new AnnotationException("Cannot mix @javax.persistence.MapKey and @org.hibernate.annotations.MapKey " + "on the same collection: " + StringHelper.qualify(propertyHolder.getPath(),propertyName));
+  }
+  defineFetchingStrategy();
+  collection.setBatchSize(batchSize);
+  if (orderBy != null && hqlOrderBy != null) {
+    throw new AnnotationException("Cannot use sql order by clause in conjunction of EJB3 order by clause: " + safeCollectionRole());
+  }
+  collection.setMutable(!property.isAnnotationPresent(Immutable.class));
+  OptimisticLock lockAnn=property.getAnnotation(OptimisticLock.class);
+  if (lockAnn != null)   collection.setOptimisticLocked(!lockAnn.excluded());
+  Persister persisterAnn=property.getAnnotation(Persister.class);
+  if (persisterAnn != null)   collection.setCollectionPersisterClass(persisterAnn.impl());
+  if (orderBy != null)   collection.setOrderBy(orderBy);
+  if (isSorted) {
+    collection.setSorted(true);
+    if (comparator != null) {
+      try {
+        collection.setComparator((Comparator)comparator.newInstance());
+      }
+ catch (      ClassCastException e) {
+        throw new AnnotationException("Comparator not implementing java.util.Comparator class: " + comparator.getName() + "("+ safeCollectionRole()+ ")");
+      }
+catch (      Exception e) {
+        throw new AnnotationException("Could not instantiate comparator class: " + comparator.getName() + "("+ safeCollectionRole()+ ")");
+      }
+    }
+  }
+ else {
+    if (hasToBeSorted) {
+      throw new AnnotationException("A sorted collection has to define @Sort: " + safeCollectionRole());
+    }
+  }
+  if (StringHelper.isNotEmpty(cacheConcurrencyStrategy)) {
+    collection.setCacheConcurrencyStrategy(cacheConcurrencyStrategy);
+    collection.setCacheRegionName(cacheRegionName);
+  }
+  SQLInsert sqlInsert=property.getAnnotation(SQLInsert.class);
+  SQLUpdate sqlUpdate=property.getAnnotation(SQLUpdate.class);
+  SQLDelete sqlDelete=property.getAnnotation(SQLDelete.class);
+  SQLDeleteAll sqlDeleteAll=property.getAnnotation(SQLDeleteAll.class);
+  Loader loader=property.getAnnotation(Loader.class);
+  if (sqlInsert != null) {
+    collection.setCustomSQLInsert(sqlInsert.sql().trim(),sqlInsert.callable(),ExecuteUpdateResultCheckStyle.parse(sqlInsert.check().toString().toLowerCase()));
+  }
+  if (sqlUpdate != null) {
+    collection.setCustomSQLUpdate(sqlUpdate.sql(),sqlUpdate.callable(),ExecuteUpdateResultCheckStyle.parse(sqlUpdate.check().toString().toLowerCase()));
+  }
+  if (sqlDelete != null) {
+    collection.setCustomSQLDelete(sqlDelete.sql(),sqlDelete.callable(),ExecuteUpdateResultCheckStyle.parse(sqlDelete.check().toString().toLowerCase()));
+  }
+  if (sqlDeleteAll != null) {
+    collection.setCustomSQLDeleteAll(sqlDeleteAll.sql(),sqlDeleteAll.callable(),ExecuteUpdateResultCheckStyle.parse(sqlDeleteAll.check().toString().toLowerCase()));
+  }
+  if (loader != null) {
+    collection.setLoaderName(loader.namedQuery());
+  }
+  boolean isMappedBy=!BinderHelper.isDefault(mappedBy);
+  collection.setInverse(isMappedBy);
+  if (!oneToMany && isMappedBy) {
+    mappings.addMappedBy(getCollectionType().getName(),mappedBy,propertyName);
+  }
+  XClass collectionType=getCollectionType();
+  SecondPass sp=getSecondPass(fkJoinColumns,joinColumns,inverseJoinColumns,elementColumns,mapKeyColumns,mapKeyManyToManyColumns,isEmbedded,property,collectionType,ignoreNotFound,oneToMany,tableBinder,mappings);
+  if (collectionType.isAnnotationPresent(Embeddable.class) || property.isAnnotationPresent(CollectionOfElements.class)) {
+    mappings.addSecondPass(sp,!isMappedBy);
+  }
+ else {
+    mappings.addSecondPass(sp,!isMappedBy);
+  }
+  mappings.addCollection(collection);
+  PropertyBinder binder=new PropertyBinder();
+  binder.setName(propertyName);
+  binder.setValue(collection);
+  binder.setCascade(cascadeStrategy);
+  if (cascadeStrategy != null && cascadeStrategy.indexOf("delete-orphan") >= 0) {
+    collection.setOrphanDelete(true);
+  }
+  binder.setPropertyAccessorName(propertyAccessorName);
+  binder.setProperty(property);
+  binder.setInsertable(insertable);
+  binder.setUpdatable(updatable);
+  Property prop=binder.make();
+  propertyHolder.addProperty(prop);
+}

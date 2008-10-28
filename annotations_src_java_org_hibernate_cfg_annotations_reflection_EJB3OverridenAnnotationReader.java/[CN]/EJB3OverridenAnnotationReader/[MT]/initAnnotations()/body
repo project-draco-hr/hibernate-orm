@@ -1,0 +1,88 @@
+{
+  if (annotations == null) {
+    XMLContext.Default defaults=xmlContext.getDefault(className);
+    if (className != null && propertyName == null) {
+      Element tree=xmlContext.getXMLTree(className,null);
+      Annotation[] annotations=getJavaAnnotations();
+      List<Annotation> annotationList=new ArrayList<Annotation>(annotations.length + 5);
+      annotationsMap=new HashMap<Class,Annotation>(annotations.length + 5);
+      for (      Annotation annotation : annotations) {
+        if (!annotationToXml.containsKey(annotation.annotationType())) {
+          annotationList.add(annotation);
+        }
+      }
+      addIfNotNull(annotationList,getEntity(tree,defaults));
+      addIfNotNull(annotationList,getMappedSuperclass(tree,defaults));
+      addIfNotNull(annotationList,getEmbeddable(tree,defaults));
+      addIfNotNull(annotationList,getTable(tree,defaults));
+      addIfNotNull(annotationList,getSecondaryTables(tree,defaults));
+      addIfNotNull(annotationList,getPrimaryKeyJoinColumns(tree,defaults));
+      addIfNotNull(annotationList,getIdClass(tree,defaults));
+      addIfNotNull(annotationList,getInheritance(tree,defaults));
+      addIfNotNull(annotationList,getDiscriminatorValue(tree,defaults));
+      addIfNotNull(annotationList,getDiscriminatorColumn(tree,defaults));
+      addIfNotNull(annotationList,getSequenceGenerator(tree,defaults));
+      addIfNotNull(annotationList,getTableGenerator(tree,defaults));
+      addIfNotNull(annotationList,getNamedQueries(tree,defaults));
+      addIfNotNull(annotationList,getNamedNativeQueries(tree,defaults));
+      addIfNotNull(annotationList,getSqlResultSetMappings(tree,defaults));
+      addIfNotNull(annotationList,getExcludeDefaultListeners(tree,defaults));
+      addIfNotNull(annotationList,getExcludeSuperclassListeners(tree,defaults));
+      addIfNotNull(annotationList,getAccessType(tree,defaults));
+      addIfNotNull(annotationList,getAttributeOverrides(tree,defaults));
+      addIfNotNull(annotationList,getAssociationOverrides(tree,defaults));
+      addIfNotNull(annotationList,getEntityListeners(tree,defaults));
+      this.annotations=annotationList.toArray(new Annotation[annotationList.size()]);
+      for (      Annotation ann : this.annotations) {
+        annotationsMap.put(ann.annotationType(),ann);
+      }
+      checkForOrphanProperties(tree);
+    }
+ else     if (className != null) {
+      Element tree=xmlContext.getXMLTree(className,propertyName);
+      Annotation[] annotations=getJavaAnnotations();
+      List<Annotation> annotationList=new ArrayList<Annotation>(annotations.length + 5);
+      annotationsMap=new HashMap<Class,Annotation>(annotations.length + 5);
+      for (      Annotation annotation : annotations) {
+        if (!annotationToXml.containsKey(annotation.annotationType())) {
+          annotationList.add(annotation);
+        }
+      }
+      preCalculateElementsForProperty(tree);
+      Transient transientAnn=getTransient(defaults);
+      if (transientAnn != null) {
+        annotationList.add(transientAnn);
+      }
+ else {
+        if (defaults.canUseJavaAnnotations()) {
+          Annotation annotation=getJavaAnnotation(AccessType.class);
+          addIfNotNull(annotationList,annotation);
+        }
+        getId(annotationList,defaults);
+        getEmbeddedId(annotationList,defaults);
+        getEmbedded(annotationList,defaults);
+        getBasic(annotationList,defaults);
+        getVersion(annotationList,defaults);
+        getAssociation(ManyToOne.class,annotationList,defaults);
+        getAssociation(OneToOne.class,annotationList,defaults);
+        getAssociation(OneToMany.class,annotationList,defaults);
+        getAssociation(ManyToMany.class,annotationList,defaults);
+        addIfNotNull(annotationList,getSequenceGenerator(elementsForProperty,defaults));
+        addIfNotNull(annotationList,getTableGenerator(elementsForProperty,defaults));
+        addIfNotNull(annotationList,getAttributeOverrides(elementsForProperty,defaults));
+      }
+      processEventAnnotations(annotationList,defaults);
+      this.annotations=annotationList.toArray(new Annotation[annotationList.size()]);
+      for (      Annotation ann : this.annotations) {
+        annotationsMap.put(ann.annotationType(),ann);
+      }
+    }
+ else {
+      this.annotations=getJavaAnnotations();
+      annotationsMap=new HashMap<Class,Annotation>(annotations.length + 5);
+      for (      Annotation ann : this.annotations) {
+        annotationsMap.put(ann.annotationType(),ann);
+      }
+    }
+  }
+}

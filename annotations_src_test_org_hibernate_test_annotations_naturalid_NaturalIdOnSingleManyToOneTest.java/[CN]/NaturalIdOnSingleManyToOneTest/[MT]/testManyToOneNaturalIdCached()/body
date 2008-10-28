@@ -1,0 +1,36 @@
+{
+  NaturalIdOnManyToOne singleManyToOne=new NaturalIdOnManyToOne();
+  Citizen c1=new Citizen();
+  c1.setFirstname("Emmanuel");
+  c1.setLastname("Bernard");
+  c1.setSsn("1234");
+  State france=new State();
+  france.setName("Ile de France");
+  c1.setState(france);
+  singleManyToOne.setCitizen(c1);
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  s.persist(france);
+  s.persist(c1);
+  s.persist(singleManyToOne);
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  Criteria criteria=s.createCriteria(NaturalIdOnManyToOne.class);
+  criteria.add(Restrictions.naturalId().set("citizen",c1));
+  criteria.setCacheable(true);
+  Statistics stats=getSessions().getStatistics();
+  stats.setStatisticsEnabled(true);
+  stats.clear();
+  assertEquals("Cache hits should be empty",0,stats.getQueryCacheHitCount());
+  List results=criteria.list();
+  assertEquals(1,results.size());
+  assertEquals("Cache hits should be empty",0,stats.getQueryCacheHitCount());
+  assertEquals("First query should be a miss",1,stats.getQueryCacheMissCount());
+  assertEquals("Query result should be added to cache",1,stats.getQueryCachePutCount());
+  results=criteria.list();
+  assertEquals("Cache hits should be empty",1,stats.getQueryCacheHitCount());
+  tx.rollback();
+  s.close();
+}

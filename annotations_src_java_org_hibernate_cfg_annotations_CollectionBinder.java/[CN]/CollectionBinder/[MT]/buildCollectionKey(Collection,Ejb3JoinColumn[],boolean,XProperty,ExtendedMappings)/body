@@ -1,0 +1,29 @@
+{
+  KeyValue keyVal;
+  if (joinColumns.length > 0 && StringHelper.isNotEmpty(joinColumns[0].getMappedBy())) {
+    String entityName=joinColumns[0].getManyToManyOwnerSideEntityName() != null ? "inverse__" + joinColumns[0].getManyToManyOwnerSideEntityName() : joinColumns[0].getPropertyHolder().getEntityName();
+    String propRef=mappings.getPropertyReferencedAssociation(entityName,joinColumns[0].getMappedBy());
+    if (propRef != null) {
+      collValue.setReferencedPropertyName(propRef);
+      mappings.addPropertyReference(collValue.getOwnerEntityName(),propRef);
+    }
+  }
+  String propRef=collValue.getReferencedPropertyName();
+  if (propRef == null) {
+    keyVal=collValue.getOwner().getIdentifier();
+  }
+ else {
+    keyVal=(KeyValue)collValue.getOwner().getRecursiveProperty(propRef).getValue();
+  }
+  DependantValue key=new DependantValue(collValue.getCollectionTable(),keyVal);
+  key.setTypeName(null);
+  Ejb3Column.checkPropertyConsistency(joinColumns,collValue.getOwnerEntityName());
+  key.setNullable(joinColumns.length == 0 || joinColumns[0].isNullable());
+  key.setUpdateable(joinColumns.length == 0 || joinColumns[0].isUpdatable());
+  key.setCascadeDeleteEnabled(cascadeDeleteEnabled);
+  collValue.setKey(key);
+  ForeignKey fk=property != null ? property.getAnnotation(ForeignKey.class) : null;
+  String fkName=fk != null ? fk.name() : "";
+  if (!BinderHelper.isDefault(fkName))   key.setForeignKeyName(fkName);
+  return key;
+}

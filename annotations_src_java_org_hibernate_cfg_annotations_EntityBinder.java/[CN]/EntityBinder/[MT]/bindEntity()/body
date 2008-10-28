@@ -1,0 +1,126 @@
+{
+  persistentClass.setAbstract(annotatedClass.isAbstract());
+  persistentClass.setClassName(annotatedClass.getName());
+  persistentClass.setNodeName(name);
+  persistentClass.setEntityName(annotatedClass.getName());
+  bindDiscriminatorValue();
+  persistentClass.setLazy(lazy);
+  if (proxyClass != null) {
+    persistentClass.setProxyInterfaceName(proxyClass.getName());
+  }
+  persistentClass.setDynamicInsert(dynamicInsert);
+  persistentClass.setDynamicUpdate(dynamicUpdate);
+  if (persistentClass instanceof RootClass) {
+    RootClass rootClass=(RootClass)persistentClass;
+    boolean mutable=true;
+    if (annotatedClass.isAnnotationPresent(Immutable.class)) {
+      mutable=false;
+    }
+ else {
+      org.hibernate.annotations.Entity entityAnn=annotatedClass.getAnnotation(org.hibernate.annotations.Entity.class);
+      if (entityAnn != null) {
+        mutable=entityAnn.mutable();
+      }
+    }
+    rootClass.setMutable(mutable);
+    rootClass.setExplicitPolymorphism(isExplicitPolymorphism(polymorphismType));
+    if (StringHelper.isNotEmpty(where))     rootClass.setWhere(where);
+    if (cacheConcurrentStrategy != null) {
+      rootClass.setCacheConcurrencyStrategy(cacheConcurrentStrategy);
+      rootClass.setCacheRegionName(cacheRegion);
+      rootClass.setLazyPropertiesCacheable(cacheLazyProperty);
+    }
+    rootClass.setForceDiscriminator(annotatedClass.isAnnotationPresent(ForceDiscriminator.class));
+  }
+ else {
+    if (explicitHibernateEntityAnnotation) {
+      log.warn("@org.hibernate.annotations.Entity used on a non root entity: ignored for {}",annotatedClass.getName());
+    }
+    if (annotatedClass.isAnnotationPresent(Immutable.class)) {
+      log.warn("@Immutable used on a non root entity: ignored for {}",annotatedClass.getName());
+    }
+  }
+  persistentClass.setOptimisticLockMode(getVersioning(optimisticLockType));
+  persistentClass.setSelectBeforeUpdate(selectBeforeUpdate);
+  Persister persisterAnn=annotatedClass.getAnnotation(Persister.class);
+  Class persister=null;
+  if (persisterAnn != null) {
+    persister=persisterAnn.impl();
+  }
+ else {
+    org.hibernate.annotations.Entity entityAnn=annotatedClass.getAnnotation(org.hibernate.annotations.Entity.class);
+    if (entityAnn != null && !BinderHelper.isDefault(entityAnn.persister())) {
+      try {
+        persister=ReflectHelper.classForName(entityAnn.persister());
+      }
+ catch (      ClassNotFoundException cnfe) {
+        throw new AnnotationException("Could not find persister class: " + persister);
+      }
+    }
+  }
+  if (persister != null)   persistentClass.setEntityPersisterClass(persister);
+  persistentClass.setBatchSize(batchSize);
+  SQLInsert sqlInsert=annotatedClass.getAnnotation(SQLInsert.class);
+  SQLUpdate sqlUpdate=annotatedClass.getAnnotation(SQLUpdate.class);
+  SQLDelete sqlDelete=annotatedClass.getAnnotation(SQLDelete.class);
+  SQLDeleteAll sqlDeleteAll=annotatedClass.getAnnotation(SQLDeleteAll.class);
+  Loader loader=annotatedClass.getAnnotation(Loader.class);
+  if (sqlInsert != null) {
+    persistentClass.setCustomSQLInsert(sqlInsert.sql().trim(),sqlInsert.callable(),ExecuteUpdateResultCheckStyle.parse(sqlInsert.check().toString().toLowerCase()));
+  }
+  if (sqlUpdate != null) {
+    persistentClass.setCustomSQLUpdate(sqlUpdate.sql(),sqlUpdate.callable(),ExecuteUpdateResultCheckStyle.parse(sqlUpdate.check().toString().toLowerCase()));
+  }
+  if (sqlDelete != null) {
+    persistentClass.setCustomSQLDelete(sqlDelete.sql(),sqlDelete.callable(),ExecuteUpdateResultCheckStyle.parse(sqlDelete.check().toString().toLowerCase()));
+  }
+  if (sqlDeleteAll != null) {
+    persistentClass.setCustomSQLDelete(sqlDeleteAll.sql(),sqlDeleteAll.callable(),ExecuteUpdateResultCheckStyle.parse(sqlDeleteAll.check().toString().toLowerCase()));
+  }
+  if (loader != null) {
+    persistentClass.setLoaderName(loader.namedQuery());
+  }
+  if (annotatedClass.isAnnotationPresent(Tuplizers.class)) {
+    for (    Tuplizer tuplizer : annotatedClass.getAnnotation(Tuplizers.class).value()) {
+      EntityMode mode=EntityMode.parse(tuplizer.entityMode());
+      persistentClass.addTuplizer(mode,tuplizer.impl().getName());
+    }
+  }
+  if (annotatedClass.isAnnotationPresent(Tuplizer.class)) {
+    Tuplizer tuplizer=annotatedClass.getAnnotation(Tuplizer.class);
+    EntityMode mode=EntityMode.parse(tuplizer.entityMode());
+    persistentClass.addTuplizer(mode,tuplizer.impl().getName());
+  }
+  if (!inheritanceState.hasParents) {
+    Iterator<Map.Entry<String,String>> iter=filters.entrySet().iterator();
+    while (iter.hasNext()) {
+      Map.Entry<String,String> filter=iter.next();
+      String filterName=filter.getKey();
+      String cond=filter.getValue();
+      if (BinderHelper.isDefault(cond)) {
+        FilterDefinition definition=mappings.getFilterDefinition(filterName);
+        cond=definition == null ? null : definition.getDefaultFilterCondition();
+        if (StringHelper.isEmpty(cond)) {
+          throw new AnnotationException("no filter condition found for filter " + filterName + " in "+ this.name);
+        }
+      }
+      persistentClass.addFilter(filterName,cond);
+    }
+  }
+ else {
+    if (filters.size() > 0) {
+      log.warn("@Filter not allowed on subclasses (ignored): {}",persistentClass.getEntityName());
+    }
+  }
+  log.debug("Import with entity name {}",name);
+  try {
+    mappings.addImport(persistentClass.getEntityName(),name);
+    String entityName=persistentClass.getEntityName();
+    if (!entityName.equals(name)) {
+      mappings.addImport(entityName,entityName);
+    }
+  }
+ catch (  MappingException me) {
+    throw new AnnotationException("Use of the same entity name twice: " + name,me);
+  }
+}

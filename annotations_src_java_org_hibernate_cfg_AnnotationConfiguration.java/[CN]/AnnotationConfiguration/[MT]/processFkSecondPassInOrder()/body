@@ -1,0 +1,31 @@
+{
+  log.debug("processing fk mappings (*ToOne and JoinedSubclass)");
+  List<FkSecondPass> fkSecondPasses=getFKSecondPassesOnly();
+  if (fkSecondPasses.size() == 0) {
+    return;
+  }
+  Map<String,Set<FkSecondPass>> isADependencyOf=new HashMap<String,Set<FkSecondPass>>();
+  List endOfQueueFkSecondPasses=new ArrayList(fkSecondPasses.size());
+  for (  FkSecondPass sp : fkSecondPasses) {
+    if (sp.isInPrimaryKey()) {
+      String referenceEntityName=sp.getReferencedEntityName();
+      PersistentClass classMapping=getClassMapping(referenceEntityName);
+      String dependentTable=classMapping.getTable().getQuotedName();
+      if (!isADependencyOf.containsKey(dependentTable)) {
+        isADependencyOf.put(dependentTable,new HashSet<FkSecondPass>());
+      }
+      isADependencyOf.get(dependentTable).add(sp);
+    }
+ else {
+      endOfQueueFkSecondPasses.add(sp);
+    }
+  }
+  List<FkSecondPass> orderedFkSecondPasses=new ArrayList(fkSecondPasses.size());
+  for (  String tableName : isADependencyOf.keySet()) {
+    buildRecursiveOrderedFkSecondPasses(orderedFkSecondPasses,isADependencyOf,tableName,tableName);
+  }
+  for (  FkSecondPass sp : orderedFkSecondPasses) {
+    sp.doSecondPass(classes);
+  }
+  processEndOfQueue(endOfQueueFkSecondPasses);
+}

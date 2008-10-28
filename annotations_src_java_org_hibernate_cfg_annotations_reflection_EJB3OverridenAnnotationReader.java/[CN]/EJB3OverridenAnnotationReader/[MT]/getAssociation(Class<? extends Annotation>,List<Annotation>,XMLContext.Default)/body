@@ -1,0 +1,102 @@
+{
+  String xmlName=annotationToXml.get(annotationType);
+  for (  Element element : elementsForProperty) {
+    if (xmlName.equals(element.getName())) {
+      AnnotationDescriptor ad=new AnnotationDescriptor(annotationType);
+      String className=element.attributeValue("target-entity");
+      if (className != null) {
+        Class clazz;
+        try {
+          clazz=ReflectHelper.classForName(XMLContext.buildSafeClassName(className,defaults),this.getClass());
+        }
+ catch (        ClassNotFoundException e) {
+          throw new AnnotationException("Unable to find " + element.getPath() + "target-entity: "+ className,e);
+        }
+        ad.setValue("targetEntity",clazz);
+      }
+      getFetchType(ad,element);
+      getCascades(ad,element,defaults);
+      getJoinTable(annotationList,element,defaults);
+      buildJoinColumns(annotationList,element,defaults);
+      Annotation annotation=getPrimaryKeyJoinColumns(element,defaults);
+      addIfNotNull(annotationList,annotation);
+      copyBooleanAttribute(ad,element,"optional");
+      copyStringAttribute(ad,element,"mapped-by",false);
+      getOrderBy(annotationList,element,defaults);
+      getMapKey(annotationList,element,defaults);
+      annotationList.add(AnnotationFactory.create(ad));
+    }
+  }
+  if (elementsForProperty.size() == 0 && defaults.canUseJavaAnnotations()) {
+    Annotation annotation=getJavaAnnotation(annotationType);
+    if (annotation != null) {
+      annotationList.add(annotation);
+      annotation=overridesDefaultsInJoinTable(annotation,defaults);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(JoinColumn.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(JoinColumns.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(PrimaryKeyJoinColumn.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(PrimaryKeyJoinColumns.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(MapKey.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(OrderBy.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(AttributeOverride.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(AttributeOverrides.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(AssociationOverride.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(AssociationOverrides.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(Lob.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(Enumerated.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(Temporal.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(Column.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(Columns.class);
+      addIfNotNull(annotationList,annotation);
+    }
+ else     if (isJavaAnnotationPresent(CollectionOfElements.class)) {
+      annotation=overridesDefaultsInJoinTable(getJavaAnnotation(CollectionOfElements.class),defaults);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(JoinColumn.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(JoinColumns.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(PrimaryKeyJoinColumn.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(PrimaryKeyJoinColumns.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(MapKey.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(OrderBy.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(AttributeOverride.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(AttributeOverrides.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(AssociationOverride.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(AssociationOverrides.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(Lob.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(Enumerated.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(Temporal.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(Column.class);
+      addIfNotNull(annotationList,annotation);
+      annotation=getJavaAnnotation(Columns.class);
+      addIfNotNull(annotationList,annotation);
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  String logicalName=StringHelper.isNotEmpty(tableName) ? tableName : StringHelper.unqualify(name);
+  Table table=TableBinder.fillTable(schema,catalog,getClassTableName(tableName),logicalName,persistentClass.isAbstract(),uniqueConstraints,constraints,denormalizedSuperclassTable,mappings);
+  if (persistentClass instanceof TableOwner) {
+    log.info("Bind entity {} on table {}",persistentClass.getEntityName(),table.getName());
+    ((TableOwner)persistentClass).setTable(table);
+  }
+ else {
+    throw new AssertionFailure("binding a table for a subclass");
+  }
+}

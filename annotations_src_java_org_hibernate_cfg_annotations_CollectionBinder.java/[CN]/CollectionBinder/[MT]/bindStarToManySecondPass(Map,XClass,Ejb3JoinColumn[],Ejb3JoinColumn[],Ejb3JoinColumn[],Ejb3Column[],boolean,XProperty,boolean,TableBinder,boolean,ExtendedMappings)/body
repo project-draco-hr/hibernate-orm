@@ -1,0 +1,22 @@
+{
+  PersistentClass persistentClass=(PersistentClass)persistentClasses.get(collType.getName());
+  boolean reversePropertyInJoin=false;
+  if (persistentClass != null && StringHelper.isNotEmpty(this.mappedBy)) {
+    try {
+      reversePropertyInJoin=0 != persistentClass.getJoinNumber(persistentClass.getRecursiveProperty(this.mappedBy));
+    }
+ catch (    MappingException e) {
+      StringBuilder error=new StringBuilder(80);
+      error.append("mappedBy reference an unknown target entity property: ").append(collType).append(".").append(this.mappedBy).append(" in ").append(collection.getOwnerEntityName()).append(".").append(property.getName());
+      throw new AnnotationException(error.toString());
+    }
+  }
+  if (persistentClass != null && !reversePropertyInJoin && oneToMany && !this.isExplicitAssociationTable && (joinColumns[0].isImplicit() && !BinderHelper.isDefault(this.mappedBy) || !fkJoinColumns[0].isImplicit())) {
+    bindOneToManySecondPass(getCollection(),persistentClasses,fkJoinColumns,collType,cascadeDeleteEnabled,ignoreNotFound,hqlOrderBy,mappings);
+    return true;
+  }
+ else {
+    bindManyToManySecondPass(this.collection,persistentClasses,keyColumns,inverseColumns,elementColumns,isEmbedded,collType,ignoreNotFound,unique,cascadeDeleteEnabled,associationTableBinder,property,propertyHolder,hqlOrderBy,mappings);
+    return false;
+  }
+}

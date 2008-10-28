@@ -1,0 +1,45 @@
+{
+  hasContext=true;
+  List<String> addedClasses=new ArrayList<String>();
+  Element root=doc.getRootElement();
+  Element metadata=root.element("persistence-unit-metadata");
+  if (metadata != null) {
+    if (globalDefaults == null) {
+      globalDefaults=new Default();
+      globalDefaults.setMetadataComplete(metadata.element("xml-mapping-metadata-complete") != null ? Boolean.TRUE : null);
+      Element defaultElement=metadata.element("persistence-unit-defaults");
+      if (defaultElement != null) {
+        Element unitElement=defaultElement.element("schema");
+        globalDefaults.setSchema(unitElement != null ? unitElement.getTextTrim() : null);
+        unitElement=defaultElement.element("catalog");
+        globalDefaults.setCatalog(unitElement != null ? unitElement.getTextTrim() : null);
+        unitElement=defaultElement.element("access");
+        globalDefaults.setAccess(unitElement != null ? unitElement.getTextTrim() : null);
+        unitElement=defaultElement.element("cascade-persist");
+        globalDefaults.setCascadePersist(unitElement != null ? Boolean.TRUE : null);
+        defaultEntityListeners.addAll(addEntityListenerClasses(defaultElement,null,addedClasses));
+      }
+    }
+ else {
+      log.warn("Found more than one <persistence-unit-metadata>, subsequent ignored");
+    }
+  }
+  Default entityMappingDefault=new Default();
+  Element unitElement=root.element("package");
+  String packageName=unitElement != null ? unitElement.getTextTrim() : null;
+  entityMappingDefault.setPackageName(packageName);
+  unitElement=root.element("schema");
+  entityMappingDefault.setSchema(unitElement != null ? unitElement.getTextTrim() : null);
+  unitElement=root.element("catalog");
+  entityMappingDefault.setCatalog(unitElement != null ? unitElement.getTextTrim() : null);
+  unitElement=root.element("access");
+  entityMappingDefault.setAccess(unitElement != null ? unitElement.getTextTrim() : null);
+  defaultElements.add(root);
+  List<Element> entities=(List<Element>)root.elements("entity");
+  addClass(entities,packageName,entityMappingDefault,addedClasses);
+  entities=(List<Element>)root.elements("mapped-superclass");
+  addClass(entities,packageName,entityMappingDefault,addedClasses);
+  entities=(List<Element>)root.elements("embeddable");
+  addClass(entities,packageName,entityMappingDefault,addedClasses);
+  return addedClasses;
+}

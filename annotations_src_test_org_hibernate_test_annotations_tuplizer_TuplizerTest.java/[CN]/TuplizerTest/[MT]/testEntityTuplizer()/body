@@ -1,0 +1,18 @@
+{
+  Cuisine cuisine=ProxyHelper.newCuisineProxy(null);
+  cuisine.setName("Fran?aise");
+  Country country=ProxyHelper.newCountryProxy(null);
+  country.setName("France");
+  cuisine.setCountry(country);
+  Session s=openSession(new EntityNameInterceptor());
+  s.getTransaction().begin();
+  s.persist(cuisine);
+  s.flush();
+  s.clear();
+  cuisine=(Cuisine)s.get(Cuisine.class,cuisine.getId());
+  assertNotNull(cuisine);
+  assertEquals("Fran?aise",cuisine.getName());
+  assertEquals("France",country.getName());
+  s.getTransaction().rollback();
+  s.close();
+}

@@ -1,0 +1,24 @@
+{
+  if ("hbm".equalsIgnoreCase(artifact)) {
+    log.debug("Process hbm files");
+    for (    Document document : hbmDocuments) {
+      super.add(document);
+    }
+    hbmDocuments.clear();
+    hbmEntities.clear();
+  }
+ else   if ("class".equalsIgnoreCase(artifact)) {
+    log.debug("Process annotated classes");
+    List<XClass> orderedClasses=orderAndFillHierarchy(annotatedClasses);
+    Map<XClass,InheritanceState> inheritanceStatePerClass=AnnotationBinder.buildInheritanceStates(orderedClasses,reflectionManager);
+    ExtendedMappings mappings=createExtendedMappings();
+    for (    XClass clazz : orderedClasses) {
+      AnnotationBinder.bindClass(clazz,inheritanceStatePerClass,mappings);
+    }
+    annotatedClasses.clear();
+    annotatedClassEntities.clear();
+  }
+ else {
+    log.warn("Unknown artifact: {}",artifact);
+  }
+}

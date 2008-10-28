@@ -1,0 +1,106 @@
+{
+  if (returnedClass == null)   return;
+  XClass returnedClassOrElement=returnedClass;
+  boolean isArray=false;
+  if (property.isArray()) {
+    returnedClassOrElement=property.getElementClass();
+    isArray=true;
+  }
+  Properties typeParameters=this.typeParameters;
+  typeParameters.clear();
+  String type=BinderHelper.ANNOTATION_STRING_DEFAULT;
+  if (property.isAnnotationPresent(Temporal.class)) {
+    Temporal ann=property.getAnnotation(Temporal.class);
+    boolean isDate;
+    if (mappings.getReflectionManager().equals(returnedClassOrElement,Date.class)) {
+      isDate=true;
+    }
+ else     if (mappings.getReflectionManager().equals(returnedClassOrElement,Calendar.class)) {
+      isDate=false;
+    }
+ else {
+      throw new AnnotationException("@Temporal should only be set on a java.util.Date or java.util.Calendar property: " + StringHelper.qualify(persistentClassName,propertyName));
+    }
+switch (ann.value()) {
+case DATE:
+      type=isDate ? "date" : "calendar_date";
+    break;
+case TIME:
+  type="time";
+if (!isDate) {
+  throw new NotYetImplementedException("Calendar cannot persist TIME only" + StringHelper.qualify(persistentClassName,propertyName));
+}
+break;
+case TIMESTAMP:
+type=isDate ? "timestamp" : "calendar";
+break;
+default :
+throw new AssertionFailure("Unknown temporal type: " + ann.value());
+}
+}
+ else if (property.isAnnotationPresent(Lob.class)) {
+if (mappings.getReflectionManager().equals(returnedClassOrElement,java.sql.Clob.class)) {
+type="clob";
+}
+ else if (mappings.getReflectionManager().equals(returnedClassOrElement,java.sql.Blob.class)) {
+type="blob";
+}
+ else if (mappings.getReflectionManager().equals(returnedClassOrElement,String.class)) {
+type=StringClobType.class.getName();
+}
+ else if (mappings.getReflectionManager().equals(returnedClassOrElement,Character.class) && isArray) {
+type=CharacterArrayClobType.class.getName();
+}
+ else if (mappings.getReflectionManager().equals(returnedClassOrElement,char.class) && isArray) {
+type=PrimitiveCharacterArrayClobType.class.getName();
+}
+ else if (mappings.getReflectionManager().equals(returnedClassOrElement,Byte.class) && isArray) {
+type=ByteArrayBlobType.class.getName();
+}
+ else if (mappings.getReflectionManager().equals(returnedClassOrElement,byte.class) && isArray) {
+type=PrimitiveByteArrayBlobType.class.getName();
+}
+ else if (mappings.getReflectionManager().toXClass(Serializable.class).isAssignableFrom(returnedClassOrElement)) {
+type=SerializableToBlobType.class.getName();
+typeParameters.setProperty(SerializableToBlobType.CLASS_NAME,returnedClassOrElement.getName());
+}
+ else {
+type="blob";
+}
+}
+if (columns == null) {
+throw new AssertionFailure("SimpleValueBinder.setColumns should be set before SimpleValueBinder.setType");
+}
+if (BinderHelper.ANNOTATION_STRING_DEFAULT.equals(type)) {
+if (returnedClassOrElement.isEnum()) {
+type=EnumType.class.getName();
+typeParameters=new Properties();
+typeParameters.setProperty(EnumType.ENUM,returnedClassOrElement.getName());
+String schema=columns[0].getTable().getSchema();
+schema=schema == null ? "" : schema;
+String catalog=columns[0].getTable().getCatalog();
+catalog=catalog == null ? "" : catalog;
+typeParameters.setProperty(EnumType.SCHEMA,schema);
+typeParameters.setProperty(EnumType.CATALOG,catalog);
+typeParameters.setProperty(EnumType.TABLE,columns[0].getTable().getName());
+typeParameters.setProperty(EnumType.COLUMN,columns[0].getName());
+Enumerated enumAnn=property.getAnnotation(Enumerated.class);
+if (enumAnn != null) {
+javax.persistence.EnumType enumType=enumAnn.value();
+if (javax.persistence.EnumType.ORDINAL.equals(enumType)) {
+typeParameters.setProperty(EnumType.TYPE,String.valueOf(Types.INTEGER));
+}
+ else if (javax.persistence.EnumType.STRING.equals(enumType)) {
+typeParameters.setProperty(EnumType.TYPE,String.valueOf(Types.VARCHAR));
+}
+ else {
+throw new AssertionFailure("Unknown EnumType: " + enumType);
+}
+}
+}
+}
+explicitType=type;
+this.typeParameters=typeParameters;
+Type annType=(Type)property.getAnnotation(Type.class);
+setExplicitType(annType);
+}

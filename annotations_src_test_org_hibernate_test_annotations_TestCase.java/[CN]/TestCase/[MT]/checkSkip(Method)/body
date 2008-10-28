@@ -1,0 +1,20 @@
+{
+  Set<Class<? extends Dialect>> dialectList=new HashSet<Class<? extends Dialect>>();
+  RequiresDialect requiresDialectMethodAnn=runMethod.getAnnotation(RequiresDialect.class);
+  if (requiresDialectMethodAnn != null) {
+    Class<? extends Dialect>[] requiredDialects=requiresDialectMethodAnn.value();
+    dialectList.addAll(Arrays.asList(requiredDialects));
+  }
+  RequiresDialect requiresDialectClassAnn=getClass().getAnnotation(RequiresDialect.class);
+  if (requiresDialectClassAnn != null) {
+    Class<? extends Dialect>[] requiredDialects=requiresDialectClassAnn.value();
+    dialectList.addAll(Arrays.asList(requiredDialects));
+  }
+  if (dialectList.isEmpty() || dialectList.contains(Dialect.getDialect().getClass())) {
+    skip=false;
+  }
+ else {
+    log.warn("Skipping test {}, because test does not apply for dialect {}",runMethod.getName(),Dialect.getDialect().getClass());
+    skip=true;
+  }
+}

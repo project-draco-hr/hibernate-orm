@@ -1,0 +1,114 @@
+{
+  log.debug("Execute first pass mapping processing");
+{
+    List<XClass> tempAnnotatedClasses=new ArrayList<XClass>(annotatedClasses.size());
+    for (    XClass clazz : annotatedClasses) {
+      if (clazz.isAnnotationPresent(Entity.class)) {
+        annotatedClassEntities.put(clazz.getName(),clazz);
+        tempAnnotatedClasses.add(clazz);
+      }
+ else       if (clazz.isAnnotationPresent(MappedSuperclass.class)) {
+        tempAnnotatedClasses.add(clazz);
+      }
+    }
+    annotatedClasses=tempAnnotatedClasses;
+  }
+  if (!isDefaultProcessed) {
+    AnnotationBinder.bindDefaults(createExtendedMappings());
+    isDefaultProcessed=true;
+  }
+  if (precedence == null)   precedence=getProperties().getProperty(ARTEFACT);
+  if (precedence == null)   precedence=DEFAULT_PRECEDENCE;
+  StringTokenizer precedences=new StringTokenizer(precedence,",; ",false);
+  if (!precedences.hasMoreElements()) {
+    throw new MappingException(ARTEFACT + " cannot be empty: " + precedence);
+  }
+  while (precedences.hasMoreElements()) {
+    String artifact=(String)precedences.nextElement();
+    removeConflictedArtifact(artifact);
+    processArtifactsOfType(artifact);
+  }
+  int cacheNbr=caches.size();
+  for (int index=0; index < cacheNbr; index++) {
+    CacheHolder cacheHolder=caches.get(index);
+    if (cacheHolder.isClass) {
+      super.setCacheConcurrencyStrategy(cacheHolder.role,cacheHolder.usage,cacheHolder.region,cacheHolder.cacheLazy);
+    }
+ else {
+      super.setCollectionCacheConcurrencyStrategy(cacheHolder.role,cacheHolder.usage,cacheHolder.region);
+    }
+  }
+  caches.clear();
+  try {
+    inSecondPass=true;
+    processFkSecondPassInOrder();
+    Iterator iter=secondPasses.iterator();
+    while (iter.hasNext()) {
+      SecondPass sp=(SecondPass)iter.next();
+      if (sp instanceof CreateKeySecondPass) {
+        sp.doSecondPass(classes);
+        iter.remove();
+      }
+    }
+    iter=secondPasses.iterator();
+    while (iter.hasNext()) {
+      SecondPass sp=(SecondPass)iter.next();
+      if (sp instanceof SecondaryTableSecondPass) {
+        sp.doSecondPass(classes);
+        iter.remove();
+      }
+    }
+    super.secondPassCompile();
+    inSecondPass=false;
+  }
+ catch (  RecoverableException e) {
+    throw (RuntimeException)e.getCause();
+  }
+  Iterator tables=tableUniqueConstraints.entrySet().iterator();
+  Table table;
+  Map.Entry entry;
+  String keyName;
+  int uniqueIndexPerTable;
+  while (tables.hasNext()) {
+    entry=(Map.Entry)tables.next();
+    table=(Table)entry.getKey();
+    List<String[]> uniqueConstraints=(List<String[]>)entry.getValue();
+    uniqueIndexPerTable=0;
+    for (    String[] columnNames : uniqueConstraints) {
+      keyName="key" + uniqueIndexPerTable++;
+      buildUniqueKeyFromColumnNames(columnNames,table,keyName);
+    }
+  }
+  boolean applyOnDdl=getProperties().getProperty("hibernate.validator.apply_to_ddl","true").equalsIgnoreCase("true");
+  Constructor validatorCtr=null;
+  Method applyMethod=null;
+  try {
+    Class classValidator=ReflectHelper.classForName("org.hibernate.validator.ClassValidator",this.getClass());
+    Class messageInterpolator=ReflectHelper.classForName("org.hibernate.validator.MessageInterpolator",this.getClass());
+    validatorCtr=classValidator.getDeclaredConstructor(Class.class,ResourceBundle.class,messageInterpolator,Map.class,ReflectionManager.class);
+    applyMethod=classValidator.getMethod("apply",PersistentClass.class);
+  }
+ catch (  ClassNotFoundException e) {
+    if (!isValidatorNotPresentLogged) {
+      log.info("Hibernate Validator not found: ignoring");
+    }
+    isValidatorNotPresentLogged=true;
+  }
+catch (  NoSuchMethodException e) {
+    throw new AnnotationException(e);
+  }
+  if (applyMethod != null && applyOnDdl) {
+    for (    PersistentClass persistentClazz : (Collection<PersistentClass>)classes.values()) {
+      String className=persistentClazz.getClassName();
+      if (StringHelper.isNotEmpty(className)) {
+        try {
+          Object validator=validatorCtr.newInstance(ReflectHelper.classForName(className),null,null,null,reflectionManager);
+          applyMethod.invoke(validator,persistentClazz);
+        }
+ catch (        Exception e) {
+          log.warn("Unable to apply constraints on DDL for " + className,e);
+        }
+      }
+    }
+  }
+}

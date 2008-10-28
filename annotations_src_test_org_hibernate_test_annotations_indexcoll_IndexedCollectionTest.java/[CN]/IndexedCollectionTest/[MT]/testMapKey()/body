@@ -1,0 +1,47 @@
+{
+  Session s;
+  Transaction tx;
+  s=openSession();
+  tx=s.beginTransaction();
+  Software hibernate=new Software();
+  hibernate.setName("Hibernate");
+  Version v1=new Version();
+  v1.setCodeName("HumbaHumba");
+  v1.setNumber("1.0");
+  v1.setSoftware(hibernate);
+  Version v2=new Version();
+  v2.setCodeName("Copacabana");
+  v2.setNumber("2.0");
+  v2.setSoftware(hibernate);
+  Version v4=new Version();
+  v4.setCodeName("Dreamland");
+  v4.setNumber("4.0");
+  v4.setSoftware(hibernate);
+  Map<String,Version> link=new HashMap<String,Version>();
+  link.put(v1.getCodeName(),v1);
+  link.put(v2.getCodeName(),v2);
+  link.put(v4.getCodeName(),v4);
+  hibernate.setVersions(link);
+  s.persist(hibernate);
+  s.persist(v1);
+  s.persist(v2);
+  s.persist(v4);
+  s.flush();
+  s.clear();
+  hibernate=(Software)s.get(Software.class,"Hibernate");
+  assertEquals(3,hibernate.getVersions().size());
+  assertEquals("1.0",hibernate.getVersions().get("HumbaHumba").getNumber());
+  assertEquals("2.0",hibernate.getVersions().get("Copacabana").getNumber());
+  hibernate.getVersions().remove(v4.getCodeName());
+  s.flush();
+  s.clear();
+  hibernate=(Software)s.get(Software.class,"Hibernate");
+  assertEquals("So effect on collection changes",3,hibernate.getVersions().size());
+  for (  Version v : hibernate.getVersions().values()) {
+    s.delete(v);
+  }
+  s.delete(hibernate);
+  s.flush();
+  tx.rollback();
+  s.close();
+}

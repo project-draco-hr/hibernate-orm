@@ -1,0 +1,116 @@
+{
+  if (mapKeyPropertyName != null) {
+    PersistentClass associatedClass=(PersistentClass)persistentClasses.get(collType.getName());
+    if (associatedClass == null)     throw new AnnotationException("Associated class not found: " + collType);
+    Property mapProperty=BinderHelper.findPropertyByName(associatedClass,mapKeyPropertyName);
+    if (mapProperty == null) {
+      throw new AnnotationException("Map key property not found: " + collType + "."+ mapKeyPropertyName);
+    }
+    org.hibernate.mapping.Map map=(org.hibernate.mapping.Map)this.collection;
+    Value indexValue=createFormulatedValue(mapProperty.getValue(),map,targetPropertyName,associatedClass);
+    map.setIndex(indexValue);
+  }
+ else {
+    String mapKeyType;
+    Class target=void.class;
+    if (property.isAnnotationPresent(org.hibernate.annotations.MapKey.class)) {
+      target=property.getAnnotation(org.hibernate.annotations.MapKey.class).targetElement();
+    }
+ else     if (property.isAnnotationPresent(MapKeyManyToMany.class)) {
+      target=property.getAnnotation(MapKeyManyToMany.class).targetEntity();
+    }
+    if (!void.class.equals(target)) {
+      mapKeyType=target.getName();
+    }
+ else {
+      mapKeyType=property.getMapKey().getName();
+    }
+    PersistentClass collectionEntity=(PersistentClass)persistentClasses.get(mapKeyType);
+    boolean isIndexOfEntities=collectionEntity != null;
+    ManyToOne element=null;
+    org.hibernate.mapping.Map mapValue=(org.hibernate.mapping.Map)this.collection;
+    if (isIndexOfEntities) {
+      element=new ManyToOne(mapValue.getCollectionTable());
+      mapValue.setIndex(element);
+      element.setReferencedEntityName(mapKeyType);
+      element.setFetchMode(FetchMode.JOIN);
+      element.setLazy(false);
+    }
+ else {
+      XClass elementClass;
+      AnnotatedClassType classType;
+      PropertyHolder holder=null;
+      if (BinderHelper.PRIMITIVE_NAMES.contains(mapKeyType)) {
+        classType=AnnotatedClassType.NONE;
+        elementClass=null;
+      }
+ else {
+        try {
+          elementClass=mappings.getReflectionManager().classForName(mapKeyType,MapBinder.class);
+        }
+ catch (        ClassNotFoundException e) {
+          throw new AnnotationException("Unable to find class: " + mapKeyType,e);
+        }
+        classType=mappings.getClassType(elementClass);
+        holder=PropertyHolderBuilder.buildPropertyHolder(mapValue,StringHelper.qualify(mapValue.getRole(),"mapkey"),elementClass,property,propertyHolder,mappings);
+        boolean attributeOverride=property.isAnnotationPresent(AttributeOverride.class) || property.isAnnotationPresent(AttributeOverrides.class);
+        if (isEmbedded || attributeOverride) {
+          classType=AnnotatedClassType.EMBEDDABLE;
+        }
+      }
+      if (AnnotatedClassType.EMBEDDABLE.equals(classType)) {
+        EntityBinder entityBinder=new EntityBinder();
+        PersistentClass owner=mapValue.getOwner();
+        boolean isPropertyAnnotated;
+        if (owner.getIdentifierProperty() != null) {
+          isPropertyAnnotated=owner.getIdentifierProperty().getPropertyAccessorName().equals("property");
+        }
+ else         if (owner.getIdentifierMapper() != null && owner.getIdentifierMapper().getPropertySpan() > 0) {
+          Property prop=(Property)owner.getIdentifierMapper().getPropertyIterator().next();
+          isPropertyAnnotated=prop.getPropertyAccessorName().equals("property");
+        }
+ else {
+          throw new AssertionFailure("Unable to guess collection property accessor name");
+        }
+        PropertyData inferredData=new PropertyPreloadedData("property","index",elementClass);
+        Component component=AnnotationBinder.fillComponent(holder,inferredData,isPropertyAnnotated,isPropertyAnnotated ? "property" : "field",true,entityBinder,false,false,true,mappings);
+        mapValue.setIndex(component);
+      }
+ else {
+        SimpleValueBinder elementBinder=new SimpleValueBinder();
+        elementBinder.setMappings(mappings);
+        elementBinder.setReturnedClassName(mapKeyType);
+        Ejb3Column[] elementColumns=mapKeyColumns;
+        if (elementColumns == null || elementColumns.length == 0) {
+          elementColumns=new Ejb3Column[1];
+          Ejb3Column column=new Ejb3Column();
+          column.setImplicit(false);
+          column.setNullable(true);
+          column.setLength(Ejb3Column.DEFAULT_COLUMN_LENGTH);
+          column.setLogicalColumnName(Collection.DEFAULT_KEY_COLUMN_NAME);
+          column.setJoins(new HashMap<String,Join>());
+          column.setMappings(mappings);
+          column.bind();
+          elementColumns[0]=column;
+        }
+        for (        Ejb3Column column : elementColumns) {
+          column.setTable(mapValue.getCollectionTable());
+        }
+        elementBinder.setColumns(elementColumns);
+        MapKey mapKeyAnn=property.getAnnotation(org.hibernate.annotations.MapKey.class);
+        if (mapKeyAnn != null && !BinderHelper.isDefault(mapKeyAnn.type().type())) {
+          elementBinder.setExplicitType(mapKeyAnn.type());
+        }
+        mapValue.setIndex(elementBinder.make());
+      }
+    }
+    if (!collection.isOneToMany()) {
+      for (      Ejb3JoinColumn col : mapKeyManyToManyColumns) {
+        col.forceNotNull();
+      }
+    }
+    if (isIndexOfEntities) {
+      bindManytoManyInverseFk(collectionEntity,mapKeyManyToManyColumns,element,false,mappings);
+    }
+  }
+}
