@@ -1,0 +1,26 @@
+{
+  super(pcType,transactionType,properties);
+  this.sessionFactory=sessionFactory;
+  this.open=true;
+  this.discardOnClose=discardOnClose;
+  Object localSic=null;
+  if (properties != null)   localSic=properties.get(HibernatePersistence.SESSION_INTERCEPTOR);
+  if (localSic != null) {
+    if (localSic instanceof Class) {
+      sessionInterceptorClass=(Class)localSic;
+    }
+ else     if (localSic instanceof String) {
+      try {
+        sessionInterceptorClass=ReflectHelper.classForName((String)localSic,EntityManagerImpl.class);
+      }
+ catch (      ClassNotFoundException e) {
+        throw new PersistenceException("Unable to instanciate interceptor: " + localSic,e);
+      }
+    }
+ else {
+      throw new PersistenceException("Unable to instanciate interceptor: " + localSic);
+    }
+  }
+  this.sessionInterceptorClass=sessionInterceptorClass;
+  postInit();
+}

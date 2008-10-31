@@ -1,0 +1,25 @@
+{
+  if (!open)   throw new IllegalStateException("EntityManager is closed");
+  if (!discardOnClose && isTransactionInProgress()) {
+    getSession().getTransaction().registerSynchronization(new Synchronization(){
+      public void beforeCompletion(){
+      }
+      public void afterCompletion(      int i){
+        if (session != null) {
+          if (session.isOpen()) {
+            log.debug("Closing entity manager after transaction completion");
+            session.close();
+          }
+ else {
+            log.warn("Entity Manager closed by someone else ({} must not be used)",Environment.AUTO_CLOSE_SESSION);
+          }
+        }
+      }
+    }
+);
+  }
+ else {
+    if (session != null)     session.close();
+  }
+  open=false;
+}

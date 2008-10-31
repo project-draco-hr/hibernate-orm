@@ -1,0 +1,18 @@
+{
+  Item item=new Item("Mouse","Micro$oft mouse");
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  em.persist(item);
+  try {
+    em.createNamedQuery("wrong name");
+    fail("Wrong named query should raise an exception");
+  }
+ catch (  IllegalArgumentException e) {
+  }
+  em.getTransaction().commit();
+  em.clear();
+  em.getTransaction().begin();
+  em.remove(em.find(Item.class,item.getName()));
+  em.getTransaction().commit();
+  em.close();
+}

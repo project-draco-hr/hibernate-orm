@@ -1,0 +1,28 @@
+{
+  boolean accepted=false;
+  for (  JavaElementFilter filter : filters) {
+    if (filter.accept(name)) {
+      boolean match=checkAnnotationMatching(is,filter);
+      if (match) {
+        accepted=true;
+        InputStream localIs;
+        if (filter.getStream()) {
+          localIs=secondIs;
+        }
+ else {
+          localIs=null;
+          secondIs.close();
+        }
+        log.debug("Java element filter matched for {}",name);
+        Entry entry=new Entry(name,localIs);
+        int index=this.filters.indexOf(filter);
+        this.entries[index].add(entry);
+        break;
+      }
+    }
+  }
+  if (!accepted) {
+    is.close();
+    secondIs.close();
+  }
+}

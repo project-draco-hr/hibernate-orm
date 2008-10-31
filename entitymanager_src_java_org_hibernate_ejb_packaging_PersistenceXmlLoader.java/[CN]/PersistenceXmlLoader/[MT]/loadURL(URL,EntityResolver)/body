@@ -1,0 +1,32 @@
+{
+  InputStream is=null;
+  if (configURL != null) {
+    URLConnection conn=configURL.openConnection();
+    conn.setUseCaches(false);
+    is=conn.getInputStream();
+  }
+  if (is == null) {
+    throw new IOException("Failed to obtain InputStream from url: " + configURL);
+  }
+  List errors=new ArrayList();
+  DocumentBuilderFactory docBuilderFactory=null;
+  docBuilderFactory=DocumentBuilderFactory.newInstance();
+  docBuilderFactory.setValidating(true);
+  docBuilderFactory.setNamespaceAware(true);
+  try {
+    docBuilderFactory.setAttribute("http://apache.org/xml/features/validation/schema",true);
+  }
+ catch (  IllegalArgumentException e) {
+    docBuilderFactory.setValidating(false);
+    docBuilderFactory.setNamespaceAware(false);
+  }
+  InputSource source=new InputSource(is);
+  DocumentBuilder docBuilder=docBuilderFactory.newDocumentBuilder();
+  docBuilder.setEntityResolver(resolver);
+  docBuilder.setErrorHandler(new ErrorLogger("XML InputStream",errors,resolver));
+  Document doc=docBuilder.parse(source);
+  if (errors.size() != 0) {
+    throw new PersistenceException("invalid persistence.xml",(Throwable)errors.get(0));
+  }
+  return doc;
+}

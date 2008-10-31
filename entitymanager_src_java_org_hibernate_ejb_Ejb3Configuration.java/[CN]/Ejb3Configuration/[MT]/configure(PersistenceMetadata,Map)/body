@@ -1,0 +1,35 @@
+{
+  log.debug("Creating Factory: {}",metadata.getName());
+  Map workingVars=new HashMap();
+  workingVars.put(HibernatePersistence.PERSISTENCE_UNIT_NAME,metadata.getName());
+  this.persistenceUnitName=metadata.getName();
+  if (StringHelper.isNotEmpty(metadata.getJtaDatasource())) {
+    this.setProperty(Environment.DATASOURCE,metadata.getJtaDatasource());
+  }
+ else   if (StringHelper.isNotEmpty(metadata.getNonJtaDatasource())) {
+    this.setProperty(Environment.DATASOURCE,metadata.getNonJtaDatasource());
+  }
+  defineTransactionType(metadata.getTransactionType(),workingVars);
+  if (metadata.getClasses().size() > 0) {
+    workingVars.put(HibernatePersistence.CLASS_NAMES,metadata.getClasses());
+  }
+  if (metadata.getPackages().size() > 0) {
+    workingVars.put(HibernatePersistence.PACKAGE_NAMES,metadata.getPackages());
+  }
+  if (metadata.getMappingFiles().size() > 0) {
+    workingVars.put(HibernatePersistence.XML_FILE_NAMES,metadata.getMappingFiles());
+  }
+  if (metadata.getHbmfiles().size() > 0) {
+    workingVars.put(HibernatePersistence.HBXML_FILES,metadata.getHbmfiles());
+  }
+  Properties props=new Properties();
+  props.putAll(metadata.getProps());
+  if (overrides != null) {
+    for (    Map.Entry entry : (Set<Map.Entry>)overrides.entrySet()) {
+      Object value=entry.getValue();
+      props.put(entry.getKey(),value == null ? "" : value);
+    }
+  }
+  configure(props,workingVars);
+  return this;
+}

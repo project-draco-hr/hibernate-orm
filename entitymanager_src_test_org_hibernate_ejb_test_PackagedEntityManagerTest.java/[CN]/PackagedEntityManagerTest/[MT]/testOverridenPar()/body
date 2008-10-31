@@ -1,0 +1,20 @@
+{
+  HashMap properties=new HashMap();
+  properties.put(HibernatePersistence.JTA_DATASOURCE,null);
+  properties.put("hibernate.connection.driver_class","org.hsqldb.jdbcDriver");
+  properties.put("hibernate.connection.username","sa");
+  properties.put("hibernate.connection.password","");
+  properties.put("hibernate.connection.url","jdbc:hsqldb:.");
+  EntityManagerFactory emf=Persistence.createEntityManagerFactory("overridenpar",properties);
+  EntityManager em=emf.createEntityManager();
+  org.hibernate.ejb.test.pack.overridenpar.Bug bug=new org.hibernate.ejb.test.pack.overridenpar.Bug();
+  bug.setSubject("Allow DS overriding");
+  em.getTransaction().begin();
+  em.persist(bug);
+  em.flush();
+  em.remove(bug);
+  assertNotNull(bug.getId());
+  em.getTransaction().rollback();
+  em.close();
+  emf.close();
+}

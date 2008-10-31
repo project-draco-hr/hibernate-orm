@@ -1,0 +1,22 @@
+{
+  String sessionInterceptorClassname=(String)properties.get(HibernatePersistence.SESSION_INTERCEPTOR);
+  if (StringHelper.isNotEmpty(sessionInterceptorClassname)) {
+    try {
+      Class interceptorClass=ReflectHelper.classForName(sessionInterceptorClassname,Ejb3Configuration.class);
+      interceptorClass.newInstance();
+      return interceptorClass;
+    }
+ catch (    ClassNotFoundException e) {
+      throw new PersistenceException(getExceptionHeader() + "Unable to load " + HibernatePersistence.SESSION_INTERCEPTOR+ ": "+ sessionInterceptorClassname,e);
+    }
+catch (    IllegalAccessException e) {
+      throw new PersistenceException(getExceptionHeader() + "Unable to instanciate " + HibernatePersistence.SESSION_INTERCEPTOR+ ": "+ sessionInterceptorClassname,e);
+    }
+catch (    InstantiationException e) {
+      throw new PersistenceException(getExceptionHeader() + "Unable to instanciate " + HibernatePersistence.SESSION_INTERCEPTOR+ ": "+ sessionInterceptorClassname,e);
+    }
+  }
+ else {
+    return null;
+  }
+}

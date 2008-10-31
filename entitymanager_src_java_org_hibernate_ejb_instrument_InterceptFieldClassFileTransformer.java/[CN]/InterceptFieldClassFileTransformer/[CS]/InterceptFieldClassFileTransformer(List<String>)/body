@@ -1,0 +1,18 @@
+{
+  final List<String> copyEntities=new ArrayList<String>(entities.size());
+  copyEntities.addAll(entities);
+  classTransformer=Environment.getBytecodeProvider().getTransformer(new ClassFilter(){
+    public boolean shouldInstrumentClass(    String className){
+      return copyEntities.contains(className);
+    }
+  }
+,new FieldFilter(){
+    public boolean shouldInstrumentField(    String className,    String fieldName){
+      return true;
+    }
+    public boolean shouldTransformFieldAccess(    String transformingClassName,    String fieldOwnerClassName,    String fieldName){
+      return true;
+    }
+  }
+);
+}

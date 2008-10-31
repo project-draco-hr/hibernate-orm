@@ -1,0 +1,37 @@
+{
+  File jarFile;
+  try {
+    String filePart=jarUrl.getFile();
+    if (filePart != null && filePart.indexOf(' ') != -1) {
+      jarFile=new File(jarUrl.getFile());
+    }
+ else {
+      jarFile=new File(jarUrl.toURI().getSchemeSpecificPart());
+    }
+  }
+ catch (  URISyntaxException e) {
+    log.warn("Malformed url: " + jarUrl,e);
+    return;
+  }
+  if (!jarFile.exists()) {
+    log.warn("Exploded jar does not exists (ignored): {}",jarUrl);
+    return;
+  }
+  if (!jarFile.isDirectory()) {
+    log.warn("Exploded jar file not a directory (ignored): {}",jarUrl);
+    return;
+  }
+  File rootFile;
+  if (entry != null && entry.length() > 0 && !"/".equals(entry)) {
+    rootFile=new File(jarFile,entry);
+  }
+ else {
+    rootFile=jarFile;
+  }
+  if (rootFile.isDirectory()) {
+    getClassNamesInTree(rootFile,null);
+  }
+ else {
+    processZippedRoot(rootFile);
+  }
+}

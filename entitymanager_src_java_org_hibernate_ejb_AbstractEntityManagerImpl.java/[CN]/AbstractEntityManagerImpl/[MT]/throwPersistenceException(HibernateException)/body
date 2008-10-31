@@ -1,0 +1,30 @@
+{
+  if (e instanceof StaleStateException) {
+    PersistenceException pe=wrapStaleStateException((StaleStateException)e);
+    throwPersistenceException(pe);
+  }
+ else   if (e instanceof ObjectNotFoundException) {
+    throwPersistenceException(new EntityNotFoundException(e.getMessage()));
+  }
+ else   if (e instanceof org.hibernate.NonUniqueResultException) {
+    throwPersistenceException(new NonUniqueResultException(e.getMessage()));
+  }
+ else   if (e instanceof UnresolvableObjectException) {
+    throwPersistenceException(new EntityNotFoundException(e.getMessage()));
+  }
+ else   if (e instanceof QueryException) {
+    throw new IllegalArgumentException(e);
+  }
+ else   if (e instanceof TransientObjectException) {
+    try {
+      markAsRollback();
+    }
+ catch (    Exception ne) {
+      log.error("Unable to mark for rollback on TransientObjectException: ",ne);
+    }
+    throw new IllegalStateException(e);
+  }
+ else {
+    throwPersistenceException(new PersistenceException(e));
+  }
+}

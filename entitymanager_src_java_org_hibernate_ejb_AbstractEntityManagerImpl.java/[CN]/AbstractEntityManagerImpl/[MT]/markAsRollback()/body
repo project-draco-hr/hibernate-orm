@@ -1,0 +1,20 @@
+{
+  log.debug("mark transaction for rollback");
+  if (tx.isActive()) {
+    tx.setRollbackOnly();
+  }
+ else {
+    if (PersistenceUnitTransactionType.JTA == transactionType) {
+      TransactionManager transactionManager=((SessionFactoryImplementor)getRawSession().getSessionFactory()).getTransactionManager();
+      if (transactionManager == null) {
+        throw new PersistenceException("Using a JTA persistence context wo setting hibernate.transaction.manager_lookup_class");
+      }
+      try {
+        transactionManager.setRollbackOnly();
+      }
+ catch (      SystemException e) {
+        throw new PersistenceException("Unable to set the JTA transaction as RollbackOnly",e);
+      }
+    }
+  }
+}

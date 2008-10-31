@@ -1,0 +1,27 @@
+{
+  try {
+    if (isPositionalParameter()) {
+      String name=Integer.toString(position);
+      this.setParameter(name,value,temporalType);
+    }
+ else {
+      if (temporalType == DATE) {
+        query.setDate(position - 1,value);
+      }
+ else       if (temporalType == TIME) {
+        query.setTime(position - 1,value);
+      }
+ else       if (temporalType == TIMESTAMP) {
+        query.setTimestamp(position - 1,value);
+      }
+    }
+    return this;
+  }
+ catch (  QueryParameterException e) {
+    throw new IllegalArgumentException(e);
+  }
+catch (  HibernateException he) {
+    em.throwPersistenceException(he);
+    return null;
+  }
+}

@@ -1,0 +1,22 @@
+{
+  if (tx == null || !tx.isActive()) {
+    throw new IllegalStateException("Transaction not active");
+  }
+  try {
+    tx.rollback();
+  }
+ catch (  Exception e) {
+    throw new PersistenceException("unexpected error when rollbacking",e);
+  }
+ finally {
+    try {
+      if (entityManager != null) {
+        Session session=getSession();
+        if (session != null && session.isOpen())         session.clear();
+      }
+    }
+ catch (    Throwable t) {
+    }
+    rollbackOnly=false;
+  }
+}

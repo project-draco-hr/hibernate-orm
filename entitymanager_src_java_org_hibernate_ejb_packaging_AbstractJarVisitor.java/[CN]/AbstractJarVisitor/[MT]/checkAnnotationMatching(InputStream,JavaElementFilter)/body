@@ -1,0 +1,24 @@
+{
+  if (filter.getAnnotations().length == 0) {
+    is.close();
+    return true;
+  }
+  DataInputStream dstream=new DataInputStream(is);
+  ClassFile cf=null;
+  try {
+    cf=new ClassFile(dstream);
+  }
+  finally {
+    dstream.close();
+    is.close();
+  }
+  boolean match=false;
+  AnnotationsAttribute visible=(AnnotationsAttribute)cf.getAttribute(AnnotationsAttribute.visibleTag);
+  if (visible != null) {
+    for (    Class annotation : filter.getAnnotations()) {
+      match=visible.getAnnotation(annotation.getName()) != null;
+      if (match)       break;
+    }
+  }
+  return match;
+}

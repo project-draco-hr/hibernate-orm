@@ -1,0 +1,21 @@
+{
+  boolean[] result=new boolean[2];
+  result[0]=false;
+  result[1]=false;
+  String detect=overridenProperties != null ? (String)overridenProperties.get(HibernatePersistence.AUTODETECTION) : null;
+  detect=detect == null ? properties.getProperty(HibernatePersistence.AUTODETECTION) : detect;
+  if (detect == null && excludeIfNotOverriden) {
+    return result;
+  }
+ else   if (detect == null) {
+    detect="class,hbm";
+  }
+  StringTokenizer st=new StringTokenizer(detect,", ",false);
+  while (st.hasMoreElements()) {
+    String element=(String)st.nextElement();
+    if ("class".equalsIgnoreCase(element))     result[0]=true;
+    if ("hbm".equalsIgnoreCase(element))     result[1]=true;
+  }
+  log.debug("Detect class: {}; detect hbm: {}",result[0],result[1]);
+  return result;
+}

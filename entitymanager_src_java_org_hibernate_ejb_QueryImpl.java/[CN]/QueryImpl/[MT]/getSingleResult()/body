@@ -1,0 +1,45 @@
+{
+  try {
+    List result;
+    if (query instanceof AbstractQueryImpl) {
+      if (maxResults != 1)       query.setMaxResults(2);
+      result=query.list();
+      if (maxResults != -1) {
+        query.setMaxResults(maxResults);
+      }
+ else {
+        AbstractQueryImpl queryImpl=AbstractQueryImpl.class.cast(query);
+        queryImpl.getSelection().setMaxRows(null);
+      }
+    }
+ else {
+      result=query.list();
+    }
+    if (result.size() == 0) {
+      em.throwPersistenceException(new NoResultException("No entity found for query"));
+    }
+ else     if (result.size() > 1) {
+      Set uniqueResult=new HashSet(result);
+      if (uniqueResult.size() > 1) {
+        em.throwPersistenceException(new NonUniqueResultException("result returns more than one elements"));
+      }
+ else {
+        return uniqueResult.iterator().next();
+      }
+    }
+ else {
+      return result.get(0);
+    }
+    return null;
+  }
+ catch (  QueryExecutionRequestException he) {
+    throw new IllegalStateException(he);
+  }
+catch (  TypeMismatchException e) {
+    throw new IllegalArgumentException(e);
+  }
+catch (  HibernateException he) {
+    em.throwPersistenceException(he);
+    return null;
+  }
+}

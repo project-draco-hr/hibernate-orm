@@ -1,0 +1,14 @@
+{
+  Book book=new Book();
+  book.name="Stolen keys";
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  em.persist(book);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  book.name="Recovered keys";
+  em.merge(book);
+  em.getTransaction().rollback();
+  assertEquals("Stolen keys",em.find(Book.class,book.id).name);
+  em.close();
+}

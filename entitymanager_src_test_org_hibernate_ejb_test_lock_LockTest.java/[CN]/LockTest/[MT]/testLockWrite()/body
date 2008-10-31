@@ -1,0 +1,23 @@
+{
+  Lock lock=new Lock();
+  lock.setName("second");
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  em.persist(lock);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  lock=em.getReference(Lock.class,lock.getId());
+  Integer version=lock.getVersion();
+  em.lock(lock,LockModeType.WRITE);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  lock=em.getReference(Lock.class,lock.getId());
+  try {
+    assertEquals("should increase the version number EJB-106",1,lock.getVersion() - version);
+  }
+  finally {
+    em.remove(lock);
+    em.getTransaction().commit();
+  }
+  em.close();
+}

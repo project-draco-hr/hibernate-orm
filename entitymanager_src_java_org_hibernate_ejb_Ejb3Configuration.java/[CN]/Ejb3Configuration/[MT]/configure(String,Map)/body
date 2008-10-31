@@ -1,0 +1,47 @@
+{
+  try {
+    log.debug("Look up for persistence unit: {}",persistenceUnitName);
+    integration=integration == null ? CollectionHelper.EMPTY_MAP : Collections.unmodifiableMap(integration);
+    Enumeration<URL> xmls=Thread.currentThread().getContextClassLoader().getResources("META-INF/persistence.xml");
+    if (!xmls.hasMoreElements()) {
+      log.info("Could not find any META-INF/persistence.xml file in the classpath");
+    }
+    while (xmls.hasMoreElements()) {
+      URL url=xmls.nextElement();
+      log.trace("Analysing persistence.xml: {}",url);
+      List<PersistenceMetadata> metadataFiles=PersistenceXmlLoader.deploy(url,integration,cfg.getEntityResolver(),PersistenceUnitTransactionType.RESOURCE_LOCAL);
+      for (      PersistenceMetadata metadata : metadataFiles) {
+        log.trace("{}",metadata);
+        if (metadata.getProvider() == null || IMPLEMENTATION_NAME.equalsIgnoreCase(metadata.getProvider())) {
+          JarVisitor visitor=null;
+          if (metadata.getName() == null) {
+            visitor=getMainJarVisitor(url,metadata,integration);
+            metadata.setName(visitor.getUnqualifiedJarName());
+          }
+          if (persistenceUnitName == null && xmls.hasMoreElements()) {
+            throw new PersistenceException("No name provided and several persistence units found");
+          }
+ else           if (persistenceUnitName == null || metadata.getName().equals(persistenceUnitName)) {
+            if (visitor == null)             visitor=getMainJarVisitor(url,metadata,integration);
+            addMetadataFromVisitor(visitor,metadata);
+            Filter[] otherXmlFilter=getFilters(metadata,integration,false);
+            for (            String jarFile : metadata.getJarFiles()) {
+              visitor=JarVisitorFactory.getVisitor(jarFile,otherXmlFilter);
+              addMetadataFromVisitor(visitor,metadata);
+            }
+            return configure(metadata,integration);
+          }
+        }
+      }
+    }
+    return null;
+  }
+ catch (  Exception e) {
+    if (e instanceof PersistenceException) {
+      throw (PersistenceException)e;
+    }
+ else {
+      throw new PersistenceException(getExceptionHeader() + "Unable to configure EntityManagerFactory",e);
+    }
+  }
+}

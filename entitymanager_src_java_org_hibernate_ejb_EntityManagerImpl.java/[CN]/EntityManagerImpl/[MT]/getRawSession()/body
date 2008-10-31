@@ -1,0 +1,24 @@
+{
+  if (session == null) {
+    Interceptor interceptor=null;
+    if (sessionInterceptorClass != null) {
+      try {
+        interceptor=(Interceptor)sessionInterceptorClass.newInstance();
+      }
+ catch (      InstantiationException e) {
+        throw new PersistenceException("Unable to instanciate session interceptor: " + sessionInterceptorClass,e);
+      }
+catch (      IllegalAccessException e) {
+        throw new PersistenceException("Unable to instanciate session interceptor: " + sessionInterceptorClass,e);
+      }
+catch (      ClassCastException e) {
+        throw new PersistenceException("Session interceptor does not implement Interceptor: " + sessionInterceptorClass,e);
+      }
+    }
+    session=sessionFactory.openSession(interceptor);
+    if (persistenceContextType == PersistenceContextType.TRANSACTION) {
+      ((SessionImplementor)session).setAutoClear(true);
+    }
+  }
+  return session;
+}

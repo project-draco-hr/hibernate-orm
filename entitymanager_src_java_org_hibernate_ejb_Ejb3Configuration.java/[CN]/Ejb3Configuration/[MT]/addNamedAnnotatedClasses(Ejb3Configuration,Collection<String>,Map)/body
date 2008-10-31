@@ -1,0 +1,23 @@
+{
+  for (  String name : classNames) {
+    try {
+      Class clazz=classForName(name);
+      cfg.addAnnotatedClass(clazz);
+    }
+ catch (    ClassNotFoundException cnfe) {
+      Package pkg;
+      try {
+        pkg=classForName(name + ".package-info").getPackage();
+      }
+ catch (      ClassNotFoundException e) {
+        pkg=null;
+      }
+      if (pkg == null) {
+        throw new PersistenceException(getExceptionHeader() + "class or package not found",cnfe);
+      }
+ else {
+        cfg.addPackage(name);
+      }
+    }
+  }
+}

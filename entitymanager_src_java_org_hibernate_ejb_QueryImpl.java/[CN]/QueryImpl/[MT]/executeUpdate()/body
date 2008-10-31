@@ -1,0 +1,19 @@
+{
+  try {
+    if (!em.isTransactionInProgress()) {
+      em.throwPersistenceException(new TransactionRequiredException("Executing an update/delete query"));
+      return 0;
+    }
+    return query.executeUpdate();
+  }
+ catch (  QueryExecutionRequestException he) {
+    throw new IllegalStateException(he);
+  }
+catch (  TypeMismatchException e) {
+    throw new IllegalArgumentException(e);
+  }
+catch (  HibernateException he) {
+    em.throwPersistenceException(he);
+    return 0;
+  }
+}

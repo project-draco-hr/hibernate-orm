@@ -1,0 +1,23 @@
+{
+  PersistenceException pe;
+  if (e instanceof StaleObjectStateException) {
+    StaleObjectStateException sose=(StaleObjectStateException)e;
+    Serializable identifier=sose.getIdentifier();
+    if (identifier != null) {
+      Object entity=getRawSession().load(sose.getEntityName(),identifier);
+      if (entity instanceof Serializable) {
+        pe=new OptimisticLockException(null,e,entity);
+      }
+ else {
+        pe=new OptimisticLockException(e);
+      }
+    }
+ else {
+      pe=new OptimisticLockException(e);
+    }
+  }
+ else {
+    pe=new OptimisticLockException(e);
+  }
+  return pe;
+}

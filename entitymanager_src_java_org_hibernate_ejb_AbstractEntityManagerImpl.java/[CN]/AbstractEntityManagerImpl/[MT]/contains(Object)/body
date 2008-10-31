@@ -1,0 +1,15 @@
+{
+  try {
+    if (entity != null && !(entity instanceof HibernateProxy) && getSession().getSessionFactory().getClassMetadata(entity.getClass()) == null) {
+      throw new IllegalArgumentException("Not an entity:" + entity.getClass());
+    }
+    return getSession().contains(entity);
+  }
+ catch (  MappingException e) {
+    throw new IllegalArgumentException(e.getMessage(),e);
+  }
+catch (  HibernateException he) {
+    throwPersistenceException(he);
+    return false;
+  }
+}

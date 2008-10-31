@@ -1,0 +1,25 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  Book book=new Book();
+  book.name="Java for Dummies";
+  em.persist(book);
+  em.close();
+  book.name="C# for Dummies";
+  assertFalse(em.isOpen());
+  try {
+    em.flush();
+    fail("direct action on a closed em should fail");
+  }
+ catch (  IllegalStateException e) {
+  }
+  em.getTransaction().commit();
+  assertFalse(em.isOpen());
+  em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  book=em.find(Book.class,book.id);
+  assertEquals("C# for Dummies",book.name);
+  em.remove(book);
+  em.getTransaction().commit();
+  em.close();
+}

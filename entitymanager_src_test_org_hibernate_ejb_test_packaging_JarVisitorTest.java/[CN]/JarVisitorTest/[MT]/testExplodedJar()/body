@@ -1,0 +1,16 @@
+{
+  String jarFileName="./build/testresources/explodedpar.par";
+  Filter[] filters=getFilters();
+  JarVisitor jarVisitor=new ExplodedJarVisitor(jarFileName,filters);
+  assertEquals("explodedpar",jarVisitor.getUnqualifiedJarName());
+  Set[] entries=jarVisitor.getMatchingEntries();
+  assertEquals(1,entries[1].size());
+  assertEquals(1,entries[0].size());
+  assertEquals(1,entries[2].size());
+  Entry entry=new Entry(Carpet.class.getName(),null);
+  assertTrue(entries[1].contains(entry));
+  for (  Entry localEntry : (Set<Entry>)jarVisitor.getMatchingEntries()[2]) {
+    assertNotNull(localEntry.getInputStream());
+    localEntry.getInputStream().close();
+  }
+}

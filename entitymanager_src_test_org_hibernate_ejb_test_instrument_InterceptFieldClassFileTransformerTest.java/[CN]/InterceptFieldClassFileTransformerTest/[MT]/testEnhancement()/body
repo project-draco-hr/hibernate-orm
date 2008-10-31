@@ -1,0 +1,15 @@
+{
+  List<String> entities=new ArrayList<String>();
+  entities.add("org.hibernate.ejb.test.instrument.Simple");
+  try {
+    org.hibernate.ejb.test.instrument.Simple.class.getDeclaredMethod("getFieldHandler");
+    fail();
+  }
+ catch (  NoSuchMethodException nsme) {
+  }
+  InstrumentedClassLoader cl=new InstrumentedClassLoader(Thread.currentThread().getContextClassLoader());
+  cl.setEntities(entities);
+  Class clazz=cl.loadClass(entities.get(0));
+  Method method=clazz.getDeclaredMethod("getFieldHandler");
+  assertNotNull(method);
+}

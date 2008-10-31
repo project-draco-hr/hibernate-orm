@@ -1,0 +1,18 @@
+{
+  Lock lock=new Lock();
+  lock.setName("name");
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  em.persist(lock);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  lock=em.getReference(Lock.class,lock.getId());
+  em.lock(lock,LockModeType.READ);
+  lock.setName("surname");
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  lock=em.find(Lock.class,lock.getId());
+  assertEquals("surname",lock.getName());
+  em.remove(lock);
+  em.getTransaction().commit();
+}

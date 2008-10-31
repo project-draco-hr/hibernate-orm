@@ -1,0 +1,95 @@
+{
+  getSession().isOpen();
+  if (transactionType == PersistenceUnitTransactionType.JTA) {
+    try {
+      log.debug("Looking for a JTA transaction to join");
+      final Session session=getSession();
+      final Transaction transaction=session.getTransaction();
+      if (transaction != null && transaction instanceof JoinableCMTTransaction) {
+        final JoinableCMTTransaction joinableCMTTransaction=(JoinableCMTTransaction)transaction;
+        if (joinableCMTTransaction.getStatus() == JoinableCMTTransaction.JoinStatus.JOINED) {
+          log.debug("Transaction already joined");
+          return;
+        }
+        joinableCMTTransaction.markForJoined();
+        session.isOpen();
+        if (joinableCMTTransaction.getStatus() == JoinableCMTTransaction.JoinStatus.NOT_JOINED) {
+          if (ignoreNotJoining) {
+            log.debug("No JTA transaction found");
+            return;
+          }
+ else {
+            throw new TransactionRequiredException("No active JTA transaction on joinTransaction call");
+          }
+        }
+ else         if (joinableCMTTransaction.getStatus() == JoinableCMTTransaction.JoinStatus.MARKED_FOR_JOINED) {
+          throw new AssertionFailure("Transaction MARKED_FOR_JOINED after isOpen() call");
+        }
+        log.trace("Adding flush() and close() synchronization");
+        joinableCMTTransaction.registerSynchronization(new Synchronization(){
+          public void beforeCompletion(){
+            boolean flush=false;
+            TransactionFactory.Context ctx=null;
+            try {
+              ctx=(TransactionFactory.Context)session;
+              JoinableCMTTransaction joinable=(JoinableCMTTransaction)session.getTransaction();
+              javax.transaction.Transaction transaction=joinable.getTransaction();
+              if (transaction == null)               log.warn("Transaction not available on beforeCompletionPhase: assuming valid");
+              flush=!ctx.isFlushModeNever() && (transaction == null || !JTAHelper.isRollback(transaction.getStatus()));
+            }
+ catch (            SystemException se) {
+              log.error("could not determine transaction status",se);
+              throwPersistenceException(new PersistenceException("could not determine transaction status in beforeCompletion()",se));
+            }
+catch (            HibernateException he) {
+              throwPersistenceException(he);
+            }
+            try {
+              if (flush) {
+                log.trace("automatically flushing session");
+                ctx.managedFlush();
+              }
+ else {
+                log.trace("skipping managed flushing");
+              }
+            }
+ catch (            RuntimeException re) {
+              if (re instanceof HibernateException) {
+                throwPersistenceException((HibernateException)re);
+              }
+ else {
+                throwPersistenceException(new PersistenceException(re));
+              }
+            }
+          }
+          public void afterCompletion(          int status){
+            try {
+              if (Status.STATUS_ROLLEDBACK == status && transactionType == PersistenceUnitTransactionType.JTA) {
+                if (session.isOpen()) {
+                  session.clear();
+                }
+              }
+              if (session.isOpen()) {
+                JoinableCMTTransaction joinable=(JoinableCMTTransaction)session.getTransaction();
+                joinable.resetStatus();
+              }
+            }
+ catch (            HibernateException e) {
+              throwPersistenceException(e);
+            }
+          }
+        }
+);
+      }
+ else {
+        log.warn("Cannot join transaction: do not override {}",Environment.TRANSACTION_STRATEGY);
+      }
+    }
+ catch (    HibernateException he) {
+      throwPersistenceException(he);
+    }
+  }
+ else {
+    if (!ignoreNotJoining)     log.warn("Calling joinTransaction() on a non JTA EntityManager");
+  }
+}

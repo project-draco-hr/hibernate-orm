@@ -1,0 +1,34 @@
+{
+  URL jarUrl;
+  String file=url.getFile();
+  if (!entry.startsWith("/"))   entry="/" + entry;
+  file=file.substring(0,file.length() - entry.length());
+  if (file.endsWith("!"))   file=file.substring(0,file.length() - 1);
+  try {
+    String protocol=url.getProtocol();
+    if ("jar".equals(protocol) || "wsjar".equals(protocol)) {
+      jarUrl=new URL(file);
+      if ("file".equals(jarUrl.getProtocol())) {
+        if (file.indexOf(' ') != -1) {
+          jarUrl=new File(jarUrl.getFile()).toURI().toURL();
+        }
+      }
+    }
+ else     if ("zip".equals(protocol) || "code-source".equals(url.getProtocol()) || "file".equals(protocol)) {
+      if (file.indexOf(' ') != -1) {
+        jarUrl=new File(file).toURI().toURL();
+      }
+ else {
+        jarUrl=new File(file).toURL();
+      }
+    }
+ else {
+      jarUrl=new URL(protocol,url.getHost(),url.getPort(),file);
+    }
+  }
+ catch (  MalformedURLException e) {
+    throw new IllegalArgumentException("Unable to determine JAR Url from " + url + ". Cause: "+ e.getMessage());
+  }
+  log.trace("JAR URL from URL Entry: {} >> {}",url,jarUrl);
+  return jarUrl;
+}

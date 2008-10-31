@@ -1,0 +1,15 @@
+{
+  Item item=new Item("Mouse","Micro$oft mouse");
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  em.persist(item);
+  assertTrue(em.contains(item));
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  item=(Item)em.createNativeQuery("select * from Item",Item.class).getSingleResult();
+  assertNotNull(item);
+  assertEquals("Micro$oft mouse",item.getDescr());
+  em.remove(item);
+  em.getTransaction().commit();
+  em.close();
+}

@@ -1,0 +1,20 @@
+{
+  Filter[] filters=visitor.getFilters();
+  Set[] entries=visitor.getMatchingEntries();
+  int size=filters.length;
+  for (int index=0; index < size; index++) {
+    for (    Object o : entries[index]) {
+      Entry entry=(Entry)o;
+      if (filters[index] instanceof ClassFilter) {
+        classes.add(entry.getName());
+      }
+ else       if (filters[index] instanceof PackageFilter) {
+        packages.add(entry.getName());
+      }
+ else       if (filters[index] instanceof FileFilter) {
+        hbmFiles.add(new NamedInputStream(entry.getName(),entry.getInputStream()));
+        if (mappingFiles != null)         mappingFiles.remove(entry.getName());
+      }
+    }
+  }
+}

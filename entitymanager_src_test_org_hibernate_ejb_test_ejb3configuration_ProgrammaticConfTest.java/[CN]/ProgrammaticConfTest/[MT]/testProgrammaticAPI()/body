@@ -1,0 +1,18 @@
+{
+  Ejb3Configuration conf=new Ejb3Configuration();
+  conf.addAnnotatedClass(Cat.class);
+  conf.addAnnotatedClass(Kitten.class);
+  EntityManagerFactory emf=conf.buildEntityManagerFactory();
+  EntityManager em=emf.createEntityManager();
+  Cat cat=new Cat();
+  cat.setAge(23);
+  cat.setDateOfBirth(new Date());
+  cat.setLength(32);
+  cat.setName("Tomy");
+  em.getTransaction().begin();
+  em.persist(cat);
+  em.flush();
+  assertNotNull(em.find(Cat.class,cat.getId()));
+  em.getTransaction().rollback();
+  emf.close();
+}

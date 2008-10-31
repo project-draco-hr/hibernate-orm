@@ -1,0 +1,26 @@
+{
+  Book book=new Book();
+  book.name="Stolen keys";
+  book.id=null;
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  em.persist(book);
+  em.flush();
+  em.clear();
+  book.setName("kitty kid");
+  em.merge(book);
+  em.flush();
+  em.clear();
+  book.setName("kitty kid2");
+  ((Session)em.getDelegate()).update(book);
+  try {
+    em.getTransaction().commit();
+    fail("Commit should be rollbacked");
+  }
+ catch (  RollbackException e) {
+    assertTrue("During flush a StateStateException is wrapped into a OptimisticLockException",e.getCause() instanceof OptimisticLockException);
+  }
+ finally {
+    em.close();
+  }
+}

@@ -1,0 +1,30 @@
+{
+  if (tx == null || !tx.isActive()) {
+    throw new IllegalStateException("Transaction not active");
+  }
+  if (rollbackOnly) {
+    tx.rollback();
+    throw new RollbackException("Transaction marked as rollbackOnly");
+  }
+  try {
+    tx.commit();
+  }
+ catch (  Exception e) {
+    Exception wrappedException;
+    if (e instanceof StaleStateException) {
+      wrappedException=entityManager.wrapStaleStateException((StaleStateException)e);
+    }
+ else {
+      wrappedException=e;
+    }
+    try {
+      tx.rollback();
+    }
+ catch (    Exception re) {
+    }
+    throw new RollbackException("Error while commiting the transaction",wrappedException);
+  }
+ finally {
+    rollbackOnly=false;
+  }
+}

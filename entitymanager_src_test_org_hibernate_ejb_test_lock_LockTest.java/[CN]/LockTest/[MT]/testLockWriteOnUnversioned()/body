@@ -1,0 +1,17 @@
+{
+  UnversionedLock lock=new UnversionedLock();
+  lock.setName("second");
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  em.persist(lock);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  lock=em.getReference(UnversionedLock.class,lock.getId());
+  em.lock(lock,LockModeType.READ);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  lock=em.getReference(UnversionedLock.class,lock.getId());
+  em.remove(lock);
+  em.getTransaction().commit();
+  em.close();
+}

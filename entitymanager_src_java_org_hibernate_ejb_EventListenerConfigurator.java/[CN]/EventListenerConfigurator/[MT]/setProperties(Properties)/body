@@ -1,0 +1,18 @@
+{
+  if (properties.containsKey(HibernatePersistence.JACC_ENABLED)) {
+    isSecurity=true;
+  }
+  Enumeration<?> enumeration=properties.propertyNames();
+  while (enumeration.hasMoreElements()) {
+    String name=(String)enumeration.nextElement();
+    if (name.startsWith(HibernatePersistence.EVENT_LISTENER_PREFIX)) {
+      String type=name.substring(HibernatePersistence.EVENT_LISTENER_PREFIX.length() + 1);
+      StringTokenizer st=new StringTokenizer(properties.getProperty(name)," ,",false);
+      List<String> listeners=new ArrayList<String>();
+      while (st.hasMoreElements()) {
+        listeners.add((String)st.nextElement());
+      }
+      configuration.setListeners(type,listeners.toArray(new String[listeners.size()]));
+    }
+  }
+}
