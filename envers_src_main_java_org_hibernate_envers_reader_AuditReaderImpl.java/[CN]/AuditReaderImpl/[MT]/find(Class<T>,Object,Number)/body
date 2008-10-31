@@ -1,0 +1,25 @@
+{
+  checkNotNull(cls,"Entity class");
+  checkNotNull(primaryKey,"Primary key");
+  checkNotNull(revision,"Entity revision");
+  checkPositive(revision,"Entity revision");
+  checkSession();
+  String entityName=cls.getName();
+  if (!verCfg.getEntCfg().isVersioned(entityName)) {
+    throw new NotVersionedException(entityName,entityName + " is not versioned!");
+  }
+  if (firstLevelCache.contains(entityName,revision,primaryKey)) {
+    return (T)firstLevelCache.get(entityName,revision,primaryKey);
+  }
+  Object result;
+  try {
+    result=createQuery().forEntitiesAtRevision(cls,revision).add(AuditRestrictions.idEq(primaryKey)).getSingleResult();
+  }
+ catch (  NoResultException e) {
+    result=null;
+  }
+catch (  NonUniqueResultException e) {
+    throw new AuditException(e);
+  }
+  return (T)result;
+}

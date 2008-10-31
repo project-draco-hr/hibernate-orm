@@ -1,0 +1,15 @@
+{
+  checkNotNull(date,"Date of revision");
+  checkSession();
+  Query query=verCfg.getRevisionInfoQueryCreator().getRevisionNumberForDateQuery(session,date);
+  try {
+    Number res=(Number)query.uniqueResult();
+    if (res == null) {
+      throw new RevisionDoesNotExistException(date);
+    }
+    return res;
+  }
+ catch (  NonUniqueResultException e) {
+    throw new AuditException(e);
+  }
+}

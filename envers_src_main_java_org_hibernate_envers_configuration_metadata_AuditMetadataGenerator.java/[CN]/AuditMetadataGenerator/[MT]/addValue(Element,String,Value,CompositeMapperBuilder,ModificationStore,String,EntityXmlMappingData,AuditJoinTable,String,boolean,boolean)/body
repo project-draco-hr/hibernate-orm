@@ -1,0 +1,29 @@
+{
+  Type type=value.getType();
+  if (firstPass) {
+    if (basicMetadataGenerator.addBasic(parent,name,value,currentMapper,store,entityName,insertable,false)) {
+      return;
+    }
+  }
+  if (type instanceof ManyToOneType) {
+    if (!firstPass) {
+      toOneRelationMetadataGenerator.addToOne(parent,name,value,currentMapper,entityName);
+    }
+  }
+ else   if (type instanceof OneToOneType) {
+    if (!firstPass) {
+      toOneRelationMetadataGenerator.addOneToOneNotOwning(name,value,currentMapper,entityName);
+    }
+  }
+ else   if (type instanceof CollectionType) {
+    if (!firstPass) {
+      CollectionMetadataGenerator collectionMetadataGenerator=new CollectionMetadataGenerator(this,name,(Collection)value,currentMapper,entityName,xmlMappingData,joinTable,mapKey);
+      collectionMetadataGenerator.addCollection();
+    }
+  }
+ else {
+    if (firstPass) {
+      throwUnsupportedTypeException(type,entityName,name);
+    }
+  }
+}

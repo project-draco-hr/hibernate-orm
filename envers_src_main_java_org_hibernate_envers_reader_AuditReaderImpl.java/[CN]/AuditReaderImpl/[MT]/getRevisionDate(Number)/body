@@ -1,0 +1,16 @@
+{
+  checkNotNull(revision,"Entity revision");
+  checkPositive(revision,"Entity revision");
+  checkSession();
+  Query query=verCfg.getRevisionInfoQueryCreator().getRevisionDateQuery(session,revision);
+  try {
+    Long timestamp=(Long)query.uniqueResult();
+    if (timestamp == null) {
+      throw new RevisionDoesNotExistException(revision);
+    }
+    return new Date(timestamp);
+  }
+ catch (  NonUniqueResultException e) {
+    throw new AuditException(e);
+  }
+}

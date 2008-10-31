@@ -1,0 +1,12 @@
+{
+  if (revisionData == null) {
+    revisionData=revisionInfoGenerator.generate(session);
+  }
+  AuditWorkUnit vwu;
+  while ((vwu=undoQueue.poll()) != null) {
+    vwu.undo(session);
+  }
+  while ((vwu=workUnits.poll()) != null) {
+    vwu.perform(session,revisionData);
+  }
+}
