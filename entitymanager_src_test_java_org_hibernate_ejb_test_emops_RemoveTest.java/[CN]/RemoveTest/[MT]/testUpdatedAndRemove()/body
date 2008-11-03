@@ -6,8 +6,6 @@
   em.persist(music);
   em.getTransaction().commit();
   em.clear();
-  em=getOrCreateEntityManager();
-  em.getTransaction().begin();
   EntityManager em2=factory.createEntityManager();
   try {
     em2.getTransaction().begin();
@@ -18,6 +16,8 @@
     em2.close();
     throw e;
   }
+  em=getOrCreateEntityManager();
+  em.getTransaction().begin();
   em.find(Music.class,music.getId()).setName("Rap");
   em.getTransaction().commit();
   try {
@@ -25,12 +25,15 @@
     em2.flush();
     fail("should have an optimistic lock exception");
   }
- catch (  OptimisticLockException e) {
+ catch (  Exception e) {
+    log.debug("success");
   }
  finally {
     em2.getTransaction().rollback();
     em2.close();
   }
+  em.getTransaction().begin();
   em.remove(em.find(Music.class,music.getId()));
+  em.getTransaction().commit();
   em.close();
 }
