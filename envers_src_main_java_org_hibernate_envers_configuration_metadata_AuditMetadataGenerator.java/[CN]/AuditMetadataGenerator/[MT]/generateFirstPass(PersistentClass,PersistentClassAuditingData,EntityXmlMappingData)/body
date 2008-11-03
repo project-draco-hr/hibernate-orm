@@ -1,0 +1,49 @@
+{
+  String schema=versioningData.getAuditTable().schema();
+  if (StringTools.isEmpty(schema)) {
+    schema=pc.getTable().getSchema();
+  }
+  String catalog=versioningData.getAuditTable().catalog();
+  if (StringTools.isEmpty(catalog)) {
+    catalog=pc.getTable().getCatalog();
+  }
+  String entityName=pc.getEntityName();
+  String versionsEntityName=verEntCfg.getVersionsEntityName(entityName);
+  String versionsTableName=verEntCfg.getVersionsTableName(entityName,pc.getTable().getName());
+  IdMappingData idMapper=idMetadataGenerator.addId(pc);
+  Element class_mapping;
+  ExtendedPropertyMapper propertyMapper;
+  InheritanceType inheritanceType=InheritanceType.get(pc);
+  String parentEntityName=null;
+switch (inheritanceType) {
+case NONE:
+    class_mapping=MetadataTools.createEntity(xmlMappingData.getMainXmlMapping(),versionsEntityName,versionsTableName,schema,catalog,pc.getDiscriminatorValue());
+  propertyMapper=new MultiPropertyMapper();
+if (pc.getDiscriminator() != null) {
+  Element discriminator_element=class_mapping.addElement("discriminator");
+  MetadataTools.addColumns(discriminator_element,pc.getDiscriminator().getColumnIterator());
+  discriminator_element.addAttribute("type",pc.getDiscriminator().getType().getName());
+}
+class_mapping.add((Element)idMapper.getXmlMapping().clone());
+addRevisionType(class_mapping);
+break;
+case SINGLE:
+String extendsEntityName=verEntCfg.getVersionsEntityName(pc.getSuperclass().getEntityName());
+class_mapping=MetadataTools.createSubclassEntity(xmlMappingData.getMainXmlMapping(),versionsEntityName,versionsTableName,schema,catalog,extendsEntityName,pc.getDiscriminatorValue());
+parentEntityName=pc.getSuperclass().getEntityName();
+ExtendedPropertyMapper parentPropertyMapper=entitiesConfigurations.get(parentEntityName).getPropertyMapper();
+propertyMapper=new SubclassPropertyMapper(new MultiPropertyMapper(),parentPropertyMapper);
+break;
+case JOINED:
+throw new MappingException("Joined inheritance strategy not supported for versioning!");
+case TABLE_PER_CLASS:
+throw new MappingException("Table-per-class inheritance strategy not supported for versioning!");
+default :
+throw new AssertionError("Impossible enum value.");
+}
+addProperties(class_mapping,(Iterator<Property>)pc.getUnjoinedPropertyIterator(),propertyMapper,versioningData,pc.getEntityName(),xmlMappingData,true);
+createJoins(pc,class_mapping,versioningData);
+addJoins(pc,propertyMapper,versioningData,pc.getEntityName(),xmlMappingData,true);
+EntityConfiguration entityCfg=new EntityConfiguration(versionsEntityName,idMapper,propertyMapper,parentEntityName);
+entitiesConfigurations.put(pc.getEntityName(),entityCfg);
+}

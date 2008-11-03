@@ -1,9 +1,9 @@
 {
   String versionsMiddleTableName;
   String versionsMiddleEntityName;
-  if (!StringTools.isEmpty(joinTable.name())) {
-    versionsMiddleTableName=joinTable.name();
-    versionsMiddleEntityName=joinTable.name();
+  if (!StringTools.isEmpty(persistentPropertyAuditingData.getJoinTable().name())) {
+    versionsMiddleTableName=persistentPropertyAuditingData.getJoinTable().name();
+    versionsMiddleEntityName=persistentPropertyAuditingData.getJoinTable().name();
   }
  else {
     String middleTableName=getMiddleTableName(propertyValue,referencingEntityName);
@@ -36,10 +36,10 @@
   if (middleEntityXml != null) {
     addRelatedToXmlMapping(middleEntityXml,referencingPrefixRelated,MetadataTools.getColumnNameIterator(propertyValue.getKey().getColumnIterator()),referencingIdMapping);
   }
-  MiddleComponentData elementComponentData=addValueToMiddleTable(propertyValue.getElement(),middleEntityXml,queryGeneratorBuilder,referencedPrefix,joinTable.inverseJoinColumns());
+  MiddleComponentData elementComponentData=addValueToMiddleTable(propertyValue.getElement(),middleEntityXml,queryGeneratorBuilder,referencedPrefix,persistentPropertyAuditingData.getJoinTable().inverseJoinColumns());
   MiddleComponentData indexComponentData=addIndex(middleEntityXml,queryGeneratorBuilder);
   RelationQueryGenerator queryGenerator=queryGeneratorBuilder.build(elementComponentData,indexComponentData);
-  CommonCollectionMapperData commonCollectionMapperData=new CommonCollectionMapperData(mainGenerator.getVerEntCfg(),versionsMiddleEntityName,propertyName,referencingIdData,queryGenerator);
+  CommonCollectionMapperData commonCollectionMapperData=new CommonCollectionMapperData(mainGenerator.getVerEntCfg(),versionsMiddleEntityName,persistentPropertyAuditingData.getPropertyData(),referencingIdData,queryGenerator);
   addMapper(commonCollectionMapperData,elementComponentData,indexComponentData);
   storeMiddleEntityRelationInformation(mappedBy);
 }

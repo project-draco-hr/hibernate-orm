@@ -1,0 +1,26 @@
+{
+  Iterator<Join> joins=pc.getJoinIterator();
+  Map<Join,Element> joinElements=new HashMap<Join,Element>();
+  entitiesJoins.put(pc.getEntityName(),joinElements);
+  while (joins.hasNext()) {
+    Join join=joins.next();
+    String originalTableName=join.getTable().getName();
+    String versionedTableName=versioningData.getSecondaryTableDictionary().get(originalTableName);
+    if (versionedTableName == null) {
+      versionedTableName=verEntCfg.getVersionsEntityName(originalTableName);
+    }
+    String schema=versioningData.getAuditTable().schema();
+    if (StringTools.isEmpty(schema)) {
+      schema=join.getTable().getSchema();
+    }
+    String catalog=versioningData.getAuditTable().catalog();
+    if (StringTools.isEmpty(catalog)) {
+      catalog=join.getTable().getCatalog();
+    }
+    Element joinElement=MetadataTools.createJoin(parent,versionedTableName,schema,catalog);
+    joinElements.put(join,joinElement);
+    Element joinKey=joinElement.addElement("key");
+    MetadataTools.addColumns(joinKey,join.getKey().getColumnIterator());
+    MetadataTools.addColumn(joinKey,verEntCfg.getRevisionPropName(),null);
+  }
+}

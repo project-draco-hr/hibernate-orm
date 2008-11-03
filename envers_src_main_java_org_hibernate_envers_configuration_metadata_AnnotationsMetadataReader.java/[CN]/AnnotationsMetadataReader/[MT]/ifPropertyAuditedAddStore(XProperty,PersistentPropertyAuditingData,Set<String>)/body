@@ -1,0 +1,31 @@
+{
+  if (!persistentProperties.contains(property.getName())) {
+    return false;
+  }
+  NotAudited unVer=property.getAnnotation(NotAudited.class);
+  if (unVer != null) {
+    return false;
+  }
+ else {
+    if (globalCfg.isUnversionedOptimisticLockingField()) {
+      Version jpaVer=property.getAnnotation(Version.class);
+      if (jpaVer != null) {
+        return false;
+      }
+    }
+  }
+  Audited ver=property.getAnnotation(Audited.class);
+  if (ver != null) {
+    propertyData.setStore(ver.modStore());
+    return true;
+  }
+ else {
+    if (defaultStore != null) {
+      propertyData.setStore(defaultStore);
+      return true;
+    }
+ else {
+      return false;
+    }
+  }
+}

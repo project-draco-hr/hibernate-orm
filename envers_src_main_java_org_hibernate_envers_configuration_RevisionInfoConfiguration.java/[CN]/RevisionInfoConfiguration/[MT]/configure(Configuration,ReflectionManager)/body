@@ -18,7 +18,7 @@
         throw new MappingException("Only one entity may be annotated with @RevisionEntity!");
       }
       if (clazz.getAnnotation(Audited.class) != null) {
-        throw new MappingException("An entity annotated with @RevisionEntity cannot be versioned!");
+        throw new MappingException("An entity annotated with @RevisionEntity cannot be audited!");
       }
       revisionEntityFound=true;
       MutableBoolean revisionNumberFound=new MutableBoolean();
@@ -32,14 +32,14 @@
       }
       revisionInfoEntityName=pc.getEntityName();
       revisionInfoClass=pc.getMappedClass();
-      revisionInfoGenerator=new DefaultRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,revisionEntity.value(),revisionInfoTimestampName);
+      revisionInfoGenerator=new DefaultRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,revisionEntity.value(),revisionInfoTimestampData);
     }
   }
   Document revisionInfoXmlMapping=null;
   if (revisionInfoGenerator == null) {
     revisionInfoClass=DefaultRevisionEntity.class;
-    revisionInfoGenerator=new DefaultRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,RevisionListener.class,revisionInfoTimestampName);
+    revisionInfoGenerator=new DefaultRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,RevisionListener.class,revisionInfoTimestampData);
     revisionInfoXmlMapping=generateDefaultRevisionInfoXmlMapping();
   }
-  return new RevisionInfoConfigurationResult(revisionInfoGenerator,revisionInfoXmlMapping,new RevisionInfoQueryCreator(revisionInfoEntityName,revisionInfoIdName,revisionInfoTimestampName),generateRevisionInfoRelationMapping(),new RevisionInfoNumberReader(revisionInfoClass,revisionInfoIdName),revisionInfoEntityName);
+  return new RevisionInfoConfigurationResult(revisionInfoGenerator,revisionInfoXmlMapping,new RevisionInfoQueryCreator(revisionInfoEntityName,revisionInfoIdData.getName(),revisionInfoTimestampData.getName()),generateRevisionInfoRelationMapping(),new RevisionInfoNumberReader(revisionInfoClass,revisionInfoIdData),revisionInfoEntityName);
 }
