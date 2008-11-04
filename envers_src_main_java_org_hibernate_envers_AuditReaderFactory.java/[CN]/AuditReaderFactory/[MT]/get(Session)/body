@@ -2,11 +2,11 @@
   SessionImplementor sessionImpl=(SessionImplementor)session;
   EventListeners listeners=sessionImpl.getListeners();
   for (  PostInsertEventListener listener : listeners.getPostInsertEventListeners()) {
-    if (listener instanceof VersionsEventListener) {
-      if (arrayIncludesInstanceOf(listeners.getPostUpdateEventListeners(),VersionsEventListener.class) && arrayIncludesInstanceOf(listeners.getPostDeleteEventListeners(),VersionsEventListener.class)) {
-        return new AuditReaderImpl(((VersionsEventListener)listener).getVerCfg(),session,sessionImpl);
+    if (listener instanceof AuditEventListener) {
+      if (arrayIncludesInstanceOf(listeners.getPostUpdateEventListeners(),AuditEventListener.class) && arrayIncludesInstanceOf(listeners.getPostDeleteEventListeners(),AuditEventListener.class)) {
+        return new AuditReaderImpl(((AuditEventListener)listener).getVerCfg(),session,sessionImpl);
       }
     }
   }
-  throw new AuditException("You need install the org.hibernate.envers.event.VersionsEventListener " + "class as post insert, update and delete event listener.");
+  throw new AuditException("You need to install the org.hibernate.envers.event.AuditEventListener " + "class as post insert, update and delete event listener.");
 }
