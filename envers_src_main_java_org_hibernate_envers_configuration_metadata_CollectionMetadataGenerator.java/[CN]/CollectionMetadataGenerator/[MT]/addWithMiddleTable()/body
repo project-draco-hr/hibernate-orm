@@ -1,18 +1,18 @@
 {
-  String versionsMiddleTableName;
-  String versionsMiddleEntityName;
+  String auditMiddleTableName;
+  String auditMiddleEntityName;
   if (!StringTools.isEmpty(persistentPropertyAuditingData.getJoinTable().name())) {
-    versionsMiddleTableName=persistentPropertyAuditingData.getJoinTable().name();
-    versionsMiddleEntityName=persistentPropertyAuditingData.getJoinTable().name();
+    auditMiddleTableName=persistentPropertyAuditingData.getJoinTable().name();
+    auditMiddleEntityName=persistentPropertyAuditingData.getJoinTable().name();
   }
  else {
     String middleTableName=getMiddleTableName(propertyValue,referencingEntityName);
-    versionsMiddleTableName=mainGenerator.getVerEntCfg().getVersionsTableName(null,middleTableName);
-    versionsMiddleEntityName=mainGenerator.getVerEntCfg().getVersionsEntityName(middleTableName);
+    auditMiddleTableName=mainGenerator.getVerEntCfg().getAuditTableName(null,middleTableName);
+    auditMiddleEntityName=mainGenerator.getVerEntCfg().getAuditEntityName(middleTableName);
   }
   Element middleEntityXml;
   if (!propertyValue.isInverse()) {
-    middleEntityXml=createMiddleEntityXml(versionsMiddleTableName,versionsMiddleEntityName);
+    middleEntityXml=createMiddleEntityXml(auditMiddleTableName,auditMiddleEntityName);
   }
  else {
     middleEntityXml=null;
@@ -32,14 +32,14 @@
     referencedPrefix=referencedEntityName == null ? "element" : propertyName;
   }
   MiddleIdData referencingIdData=new MiddleIdData(mainGenerator.getVerEntCfg(),referencingIdMapping,referencingPrefixRelated,referencingEntityName);
-  QueryGeneratorBuilder queryGeneratorBuilder=new QueryGeneratorBuilder(mainGenerator.getGlobalCfg(),mainGenerator.getVerEntCfg(),referencingIdData,versionsMiddleEntityName);
+  QueryGeneratorBuilder queryGeneratorBuilder=new QueryGeneratorBuilder(mainGenerator.getGlobalCfg(),mainGenerator.getVerEntCfg(),referencingIdData,auditMiddleEntityName);
   if (middleEntityXml != null) {
     addRelatedToXmlMapping(middleEntityXml,referencingPrefixRelated,MetadataTools.getColumnNameIterator(propertyValue.getKey().getColumnIterator()),referencingIdMapping);
   }
   MiddleComponentData elementComponentData=addValueToMiddleTable(propertyValue.getElement(),middleEntityXml,queryGeneratorBuilder,referencedPrefix,persistentPropertyAuditingData.getJoinTable().inverseJoinColumns());
   MiddleComponentData indexComponentData=addIndex(middleEntityXml,queryGeneratorBuilder);
   RelationQueryGenerator queryGenerator=queryGeneratorBuilder.build(elementComponentData,indexComponentData);
-  CommonCollectionMapperData commonCollectionMapperData=new CommonCollectionMapperData(mainGenerator.getVerEntCfg(),versionsMiddleEntityName,persistentPropertyAuditingData.getPropertyData(),referencingIdData,queryGenerator);
+  CommonCollectionMapperData commonCollectionMapperData=new CommonCollectionMapperData(mainGenerator.getVerEntCfg(),auditMiddleEntityName,persistentPropertyAuditingData.getPropertyData(),referencingIdData,queryGenerator);
   addMapper(commonCollectionMapperData,elementComponentData,indexComponentData);
   storeMiddleEntityRelationInformation(mappedBy);
 }

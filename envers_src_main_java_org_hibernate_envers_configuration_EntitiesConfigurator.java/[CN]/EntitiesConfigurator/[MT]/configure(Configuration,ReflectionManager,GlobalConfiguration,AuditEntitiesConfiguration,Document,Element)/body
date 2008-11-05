@@ -1,5 +1,5 @@
 {
-  AuditMetadataGenerator versionsMetaGen=new AuditMetadataGenerator(cfg,globalCfg,verEntCfg,revisionInfoRelationMapping);
+  AuditMetadataGenerator auditMetaGen=new AuditMetadataGenerator(cfg,globalCfg,verEntCfg,revisionInfoRelationMapping);
   DOMWriter writer=new DOMWriter();
   Iterator<PersistentClass> classes=GraphTopologicalSort.sort(new PersistentClassGraphDefiner(cfg)).iterator();
   Map<PersistentClass,PersistentClassAuditingData> pcDatas=new HashMap<PersistentClass,PersistentClassAuditingData>();
@@ -11,16 +11,16 @@
     if (auditData.isAudited()) {
       pcDatas.put(pc,auditData);
       if (!StringTools.isEmpty(auditData.getAuditTable().value())) {
-        verEntCfg.addCustomVersionsTableName(pc.getEntityName(),auditData.getAuditTable().value());
+        verEntCfg.addCustomAuditTableName(pc.getEntityName(),auditData.getAuditTable().value());
       }
       EntityXmlMappingData xmlMappingData=new EntityXmlMappingData();
-      versionsMetaGen.generateFirstPass(pc,auditData,xmlMappingData);
+      auditMetaGen.generateFirstPass(pc,auditData,xmlMappingData);
       xmlMappings.put(pc,xmlMappingData);
     }
   }
   for (  Map.Entry<PersistentClass,PersistentClassAuditingData> pcDatasEntry : pcDatas.entrySet()) {
     EntityXmlMappingData xmlMappingData=xmlMappings.get(pcDatasEntry.getKey());
-    versionsMetaGen.generateSecondPass(pcDatasEntry.getKey(),pcDatasEntry.getValue(),xmlMappingData);
+    auditMetaGen.generateSecondPass(pcDatasEntry.getKey(),pcDatasEntry.getValue(),xmlMappingData);
     try {
       cfg.addDocument(writer.write(xmlMappingData.getMainXmlMapping()));
       for (      Document additionalMapping : xmlMappingData.getAdditionalXmlMappings()) {
@@ -41,5 +41,5 @@
       throw new MappingException(e);
     }
   }
-  return new EntitiesConfigurations(versionsMetaGen.getEntitiesConfigurations());
+  return new EntitiesConfigurations(auditMetaGen.getEntitiesConfigurations());
 }
