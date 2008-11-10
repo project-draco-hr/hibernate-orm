@@ -5,6 +5,8 @@
   setText("AND");
   String[] lhsElementTexts=extractMutationTexts(getLeftHandOperand(),valueElements);
   String[] rhsElementTexts=extractMutationTexts(getRightHandOperand(),valueElements);
+  ParameterSpecification lhsEmbeddedCompositeParameterSpecification=getLeftHandOperand() == null || (!ParameterNode.class.isInstance(getLeftHandOperand())) ? null : ((ParameterNode)getLeftHandOperand()).getHqlParameterSpecification();
+  ParameterSpecification rhsEmbeddedCompositeParameterSpecification=getRightHandOperand() == null || (!ParameterNode.class.isInstance(getRightHandOperand())) ? null : ((ParameterNode)getRightHandOperand()).getHqlParameterSpecification();
   AST container=this;
   for (int i=valueElements - 1; i > 0; i--) {
     if (i == 1) {
@@ -20,6 +22,13 @@
       op2.setFirstChild(lhs2);
       lhs2.setNextSibling(rhs2);
       op1.setNextSibling(op2);
+      SqlFragment fragment=(SqlFragment)lhs1;
+      if (lhsEmbeddedCompositeParameterSpecification != null) {
+        fragment.addEmbeddedParameter(lhsEmbeddedCompositeParameterSpecification);
+      }
+      if (rhsEmbeddedCompositeParameterSpecification != null) {
+        fragment.addEmbeddedParameter(rhsEmbeddedCompositeParameterSpecification);
+      }
     }
  else {
       AST op=getASTFactory().create(comparisonType,comparisonText);
