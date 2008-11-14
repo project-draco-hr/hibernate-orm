@@ -10,14 +10,17 @@
       Object oldValue=oldState == null ? null : oldState[i];
       Object newValue=newState == null ? null : newState[i];
       if (!Tools.objectsEqual(oldValue,newValue)) {
-        IdMapper idMapper=verCfg.getEntCfg().get(relDesc.getToEntityName()).getIdMapper();
         if (newValue != null) {
+          String toEntityName=session.guessEntityName(newValue);
+          IdMapper idMapper=verCfg.getEntCfg().get(toEntityName).getIdMapper();
           Serializable id=(Serializable)idMapper.mapToIdFromEntity(newValue);
-          verSync.addWorkUnit(new CollectionChangeWorkUnit(relDesc.getToEntityName(),verCfg,id,newValue));
+          verSync.addWorkUnit(new CollectionChangeWorkUnit(toEntityName,verCfg,id,newValue));
         }
         if (oldValue != null) {
+          String toEntityName=session.guessEntityName(oldValue);
+          IdMapper idMapper=verCfg.getEntCfg().get(toEntityName).getIdMapper();
           Serializable id=(Serializable)idMapper.mapToIdFromEntity(oldValue);
-          verSync.addWorkUnit(new CollectionChangeWorkUnit(relDesc.getToEntityName(),verCfg,id,oldValue));
+          verSync.addWorkUnit(new CollectionChangeWorkUnit(toEntityName,verCfg,id,oldValue));
         }
       }
     }
