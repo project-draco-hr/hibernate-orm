@@ -25,7 +25,11 @@ case SINGLE:
 mappingData=generateInheritanceMappingData(pc,xmlMappingData,auditTableData,"subclass");
 break;
 case JOINED:
-throw new MappingException("Joined inheritance strategy not supported for auditing!");
+mappingData=generateInheritanceMappingData(pc,xmlMappingData,auditTableData,"joined-subclass");
+Element keyMapping=mappingData.getFirst().addElement("key");
+MetadataTools.addColumns(keyMapping,pc.getIdentifierProperty().getColumnIterator());
+MetadataTools.addColumn(keyMapping,verEntCfg.getRevisionPropName(),null);
+break;
 case TABLE_PER_CLASS:
 mappingData=generateInheritanceMappingData(pc,xmlMappingData,auditTableData,"union-subclass");
 break;
