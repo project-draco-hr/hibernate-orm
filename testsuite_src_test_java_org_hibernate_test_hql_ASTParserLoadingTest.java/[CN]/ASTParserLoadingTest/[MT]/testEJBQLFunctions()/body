@@ -24,7 +24,7 @@
   session.createQuery(hql).list();
   hql="select locate('cat', a.description, 2) from Animal a";
   session.createQuery(hql).list();
-  if (!(getDialect() instanceof DB2Dialect)) {
+  if (!(getDialect() instanceof DB2Dialect || getDialect() instanceof SybaseDialect)) {
     hql="from Animal a where trim(trailing '_' from a.description) = 'cat'";
     session.createQuery(hql).list();
     hql="select trim(trailing '_' from a.description) from Animal a";
@@ -40,12 +40,14 @@
   }
   hql="from Animal a where abs(a.bodyWeight) = sqrt(a.bodyWeight)";
   session.createQuery(hql).list();
-  hql="from Animal a where mod(16, 4) = 4";
-  session.createQuery(hql).list();
-  hql="from Animal a where bit_length(a.bodyWeight) = 24";
-  session.createQuery(hql).list();
-  hql="select bit_length(a.bodyWeight) from Animal a";
-  session.createQuery(hql).list();
+  if (!(getDialect() instanceof SybaseDialect)) {
+    hql="from Animal a where mod(16, 4) = 4";
+    session.createQuery(hql).list();
+    hql="select bit_length(a.bodyWeight) from Animal a";
+    session.createQuery(hql).list();
+    hql="from Animal a where bit_length(a.bodyWeight) = 24";
+    session.createQuery(hql).list();
+  }
   hql="from Animal a where a.description like '%a%'";
   session.createQuery(hql).list();
   hql="from Animal a where a.description not like '%a%'";
