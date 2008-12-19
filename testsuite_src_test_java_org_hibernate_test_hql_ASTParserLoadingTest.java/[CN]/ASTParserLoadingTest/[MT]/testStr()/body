@@ -4,11 +4,16 @@
   Animal an=new Animal();
   an.setBodyWeight(123.45f);
   session.persist(an);
-  String str=(String)session.createQuery("select str(an.bodyWeight) from Animal an where str(an.bodyWeight) like '123%' or str(an.bodyWeight) like '1.23%'").uniqueResult();
+  String str=(String)session.createQuery("select str(an.bodyWeight) from Animal an where str(an.bodyWeight) like '%1%'").uniqueResult();
   if (getDialect() instanceof DB2Dialect) {
     assertTrue(str.startsWith("1.234"));
   }
- else   if (getDialect() instanceof SQLServerDialect) {
+ else   if (getDialect() instanceof SybaseDialect) {
+    assertEquals(str.length(),10);
+    assertTrue(str.endsWith("123"));
+    str=(String)session.createQuery("select str(an.bodyWeight, 8, 3) from Animal an where str(an.bodyWeight, 8, 3) like '%1%'").uniqueResult();
+    assertEquals(str.length(),8);
+    assertTrue(str.endsWith("123.450"));
   }
  else {
     assertTrue(str.startsWith("123.4"));
