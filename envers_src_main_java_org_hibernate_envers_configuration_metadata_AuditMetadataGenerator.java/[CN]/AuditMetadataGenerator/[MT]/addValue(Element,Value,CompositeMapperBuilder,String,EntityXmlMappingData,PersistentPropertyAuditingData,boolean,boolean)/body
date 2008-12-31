@@ -1,11 +1,14 @@
 {
   Type type=value.getType();
   if (firstPass) {
-    if (basicMetadataGenerator.addBasic(parent,persistentPropertyAuditingData,value,currentMapper,entityName,insertable,false)) {
+    if (basicMetadataGenerator.addBasic(parent,persistentPropertyAuditingData,value,currentMapper,insertable,false)) {
       return;
     }
   }
-  if (type instanceof ManyToOneType) {
+  if (type instanceof ComponentType) {
+    componentMetadataGenerator.addComponent(parent,persistentPropertyAuditingData,value,currentMapper,entityName,xmlMappingData,firstPass);
+  }
+ else   if (type instanceof ManyToOneType) {
     if (!firstPass) {
       toOneRelationMetadataGenerator.addToOne(parent,persistentPropertyAuditingData,value,currentMapper,entityName,insertable);
     }
