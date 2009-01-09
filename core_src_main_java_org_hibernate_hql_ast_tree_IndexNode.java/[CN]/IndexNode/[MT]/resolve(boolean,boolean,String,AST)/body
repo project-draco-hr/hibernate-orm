@@ -31,11 +31,11 @@
       log.debug("FROM element found for collection join path " + path);
     }
   }
-  AST index=collectionNode.getNextSibling();
-  if (index == null) {
+  setFromElement(fromElement);
+  AST selector=collectionNode.getNextSibling();
+  if (selector == null) {
     throw new QueryException("No index value!");
   }
-  setFromElement(fromElement);
   String collectionTableAlias=elementTable;
   if (elem.getCollectionTableAlias() != null) {
     collectionTableAlias=elem.getCollectionTableAlias();
@@ -47,13 +47,13 @@
   }
   SqlGenerator gen=new SqlGenerator(getSessionFactoryHelper().getFactory());
   try {
-    gen.simpleExpr(index);
+    gen.simpleExpr(selector);
   }
  catch (  RecognitionException e) {
     throw new QueryException(e.getMessage(),e);
   }
-  String expression=gen.getSQL();
-  joinSequence.addCondition(collectionTableAlias + '.' + indexCols[0]+ " = "+ expression);
+  String selectorExpression=gen.getSQL();
+  joinSequence.addCondition(collectionTableAlias + '.' + indexCols[0]+ " = "+ selectorExpression);
   String[] elementColumns=queryableCollection.getElementColumnNames(elementTable);
   setText(elementColumns[0]);
   setResolved();
