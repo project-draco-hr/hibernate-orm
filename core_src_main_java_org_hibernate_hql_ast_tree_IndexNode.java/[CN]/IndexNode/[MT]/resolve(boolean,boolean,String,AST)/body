@@ -54,7 +54,22 @@
   }
   String selectorExpression=gen.getSQL();
   joinSequence.addCondition(collectionTableAlias + '.' + indexCols[0]+ " = "+ selectorExpression);
-  String[] elementColumns=queryableCollection.getElementColumnNames(elementTable);
-  setText(elementColumns[0]);
-  setResolved();
+  List paramSpecs=gen.getCollectedParameters();
+  if (paramSpecs != null) {
+switch (paramSpecs.size()) {
+case 0:
+      break;
+case 1:
+    ParameterSpecification paramSpec=(ParameterSpecification)paramSpecs.get(0);
+  paramSpec.setExpectedType(queryableCollection.getIndexType());
+fromElement.setIndexCollectionSelectorParamSpec(paramSpec);
+break;
+default :
+fromElement.setIndexCollectionSelectorParamSpec(new AggregatedIndexCollectionSelectorParameterSpecifications(paramSpecs));
+break;
+}
+}
+String[] elementColumns=queryableCollection.getElementColumnNames(elementTable);
+setText(elementColumns[0]);
+setResolved();
 }
