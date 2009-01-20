@@ -1,7 +1,18 @@
 {
+  String delegatePropertyName;
+  int dotIndex=referencingPropertyName.indexOf('.');
+  if (dotIndex != -1) {
+    String componentName=referencingPropertyName.substring(0,dotIndex);
+    String propertyInComponentName=MappingTools.createComponentPrefix(componentName) + referencingPropertyName.substring(dotIndex + 1);
+    referencingPropertyName=componentName;
+    delegatePropertyName=propertyInComponentName;
+  }
+ else {
+    delegatePropertyName=referencingPropertyName;
+  }
   PropertyMapper mapper=properties.get(propertyDatas.get(referencingPropertyName));
   if (mapper != null) {
-    return mapper.mapCollectionChanges(referencingPropertyName,newColl,oldColl,id);
+    return mapper.mapCollectionChanges(delegatePropertyName,newColl,oldColl,id);
   }
  else {
     return null;

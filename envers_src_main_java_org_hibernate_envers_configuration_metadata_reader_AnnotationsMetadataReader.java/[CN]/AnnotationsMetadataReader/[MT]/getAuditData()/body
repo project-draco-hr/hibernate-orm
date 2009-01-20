@@ -1,0 +1,19 @@
+{
+  if (pc.getClassName() == null) {
+    return auditData;
+  }
+  try {
+    XClass xclass=reflectionManager.classForName(pc.getClassName(),this.getClass());
+    ModificationStore defaultStore=getDefaultAudited(xclass);
+    if (defaultStore != null) {
+      auditData.setDefaultAudited(true);
+    }
+    new AuditedPropertiesReader(defaultStore,new PersistentClassPropertiesSource(xclass),auditData,globalCfg,"").read();
+    addAuditTable(xclass);
+    addAuditSecondaryTables(xclass);
+  }
+ catch (  ClassNotFoundException e) {
+    throw new MappingException(e);
+  }
+  return auditData;
+}
