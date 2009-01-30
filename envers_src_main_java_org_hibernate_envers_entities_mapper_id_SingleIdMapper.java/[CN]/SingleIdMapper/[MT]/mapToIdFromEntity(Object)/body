@@ -2,6 +2,12 @@
   if (data == null) {
     return null;
   }
-  Getter getter=ReflectionTools.getGetter(data.getClass(),propertyData);
-  return getter.get(data);
+  if (data instanceof HibernateProxy) {
+    HibernateProxy hibernateProxy=(HibernateProxy)data;
+    return hibernateProxy.getHibernateLazyInitializer().getIdentifier();
+  }
+ else {
+    Getter getter=ReflectionTools.getGetter(data.getClass(),propertyData);
+    return getter.get(data);
+  }
 }

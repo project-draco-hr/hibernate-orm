@@ -11,13 +11,29 @@
       Object newValue=newState == null ? null : newState[i];
       if (!Tools.objectsEqual(oldValue,newValue)) {
         if (newValue != null) {
-          String toEntityName=session.guessEntityName(newValue);
+          String toEntityName;
+          if (newValue instanceof HibernateProxy) {
+            HibernateProxy hibernateProxy=(HibernateProxy)newValue;
+            toEntityName=session.bestGuessEntityName(newValue);
+            newValue=hibernateProxy.getHibernateLazyInitializer().getImplementation();
+          }
+ else {
+            toEntityName=session.guessEntityName(newValue);
+          }
           IdMapper idMapper=verCfg.getEntCfg().get(toEntityName).getIdMapper();
           Serializable id=(Serializable)idMapper.mapToIdFromEntity(newValue);
           verSync.addWorkUnit(new CollectionChangeWorkUnit(toEntityName,verCfg,id,newValue));
         }
         if (oldValue != null) {
-          String toEntityName=session.guessEntityName(oldValue);
+          String toEntityName;
+          if (oldValue instanceof HibernateProxy) {
+            HibernateProxy hibernateProxy=(HibernateProxy)oldValue;
+            toEntityName=session.bestGuessEntityName(oldValue);
+            oldValue=hibernateProxy.getHibernateLazyInitializer().getImplementation();
+          }
+ else {
+            toEntityName=session.guessEntityName(oldValue);
+          }
           IdMapper idMapper=verCfg.getEntCfg().get(toEntityName).getIdMapper();
           Serializable id=(Serializable)idMapper.mapToIdFromEntity(oldValue);
           verSync.addWorkUnit(new CollectionChangeWorkUnit(toEntityName,verCfg,id,oldValue));
