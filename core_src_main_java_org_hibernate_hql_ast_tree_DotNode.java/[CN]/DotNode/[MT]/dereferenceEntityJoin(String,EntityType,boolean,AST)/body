@@ -12,7 +12,9 @@
   }
   FromClause currentFromClause=getWalker().getCurrentFromClause();
   FromElement elem=currentFromClause.findJoinByPath(joinPath);
-  if (elem == null) {
+  boolean found=elem != null;
+  boolean useFoundFromElement=found && (elem.isImplied() || areSame(classAlias,elem.getClassAlias()));
+  if (!useFoundFromElement) {
     JoinSequence joinSequence=getSessionFactoryHelper().createJoinSequence(impliedJoin,propertyType,tableAlias,joinType,joinColumns);
     FromElementFactory factory=new FromElementFactory(currentFromClause,getLhs().getFromElement(),joinPath,classAlias,joinColumns,impliedJoin);
     elem=factory.createEntityJoin(associatedEntityName,tableAlias,joinSequence,fetch,getWalker().isInFrom(),propertyType);
