@@ -18,7 +18,10 @@
   Long d2id=(Long)s.save(d2);
   t.commit();
   s.close();
-  if (getDialect() instanceof PostgreSQLDialect)   return;
+  if (!getDialect().supportsExpectedLobUsagePattern()) {
+    reportSkip("database/driver does not support expected LOB usage pattern","LOB support");
+    return;
+  }
   s=openSession(new DocumentInterceptor());
   t=s.beginTransaction();
   Item id=(Item)s.load(Item.class,did);
