@@ -1,9 +1,12 @@
 {
   errorIfClosed();
   EntityPersister persister=getFactory().getEntityPersister(entityName);
+  Object loaded=temporaryPersistenceContext.getEntity(new EntityKey(id,persister,getEntityMode()));
+  if (loaded != null) {
+    return loaded;
+  }
   if (!eager && persister.hasProxy()) {
     return persister.createProxy(id,this);
   }
-  Object loaded=temporaryPersistenceContext.getEntity(new EntityKey(id,persister,EntityMode.POJO));
-  return loaded == null ? get(entityName,id) : loaded;
+  return get(entityName,id);
 }
