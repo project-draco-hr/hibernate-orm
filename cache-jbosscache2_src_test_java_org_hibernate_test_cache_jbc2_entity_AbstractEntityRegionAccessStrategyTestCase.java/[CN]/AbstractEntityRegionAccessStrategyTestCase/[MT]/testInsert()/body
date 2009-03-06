@@ -35,7 +35,7 @@ catch (      AssertionFailedError e) {
         long txTimestamp=System.currentTimeMillis();
         BatchModeTransactionManager.getInstance().begin();
         readLatch.await();
-        Object expected=isUsingOptimisticLocking() ? null : VALUE1;
+        Object expected=!isBlockingReads() ? null : VALUE1;
         assertEquals("Correct initial value",expected,localAccessStrategy.get(KEY,txTimestamp));
         BatchModeTransactionManager.getInstance().commit();
       }
@@ -59,7 +59,7 @@ catch (      AssertionFailedError e) {
   reader.setDaemon(true);
   inserter.start();
   reader.start();
-  if (isUsingOptimisticLocking())   assertTrue("Threads completed",completionLatch.await(1,TimeUnit.SECONDS));
+  if (!isBlockingReads())   assertTrue("Threads completed",completionLatch.await(1,TimeUnit.SECONDS));
  else {
     assertFalse("Threads completed",completionLatch.await(250,TimeUnit.MILLISECONDS));
     commitLatch.countDown();
