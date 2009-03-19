@@ -1,0 +1,21 @@
+{
+  Customer customer=createCustomer(0);
+  final Integer customerId=customer.getId();
+  getCustomerIDs().add(customerId);
+  assertNull("contact exists despite not being added",getFirstContact(customerId));
+  SecondLevelCacheStatistics customerSlcs=getEnvironment().getSessionFactory().getStatistics().getSecondLevelCacheStatistics(getPrefixedRegionName(Customer.class.getName()));
+  assertEquals(customerSlcs.getPutCount(),1);
+  assertEquals(customerSlcs.getElementCountInMemory(),1);
+  assertEquals(customerSlcs.getEntries().size(),1);
+  SecondLevelCacheStatistics contactsCollectionSlcs=getEnvironment().getSessionFactory().getStatistics().getSecondLevelCacheStatistics(getPrefixedRegionName(Customer.class.getName() + ".contacts"));
+  assertEquals(1,contactsCollectionSlcs.getPutCount());
+  assertEquals(1,contactsCollectionSlcs.getElementCountInMemory());
+  assertEquals(1,contactsCollectionSlcs.getEntries().size());
+  final Contact contact=addContact(customerId);
+  assertNotNull("contact returned by addContact is null",contact);
+  assertEquals("Customer.contacts cache was not invalidated after addContact",0,contactsCollectionSlcs.getElementCountInMemory());
+  assertNotNull("Contact missing after successful add call",getFirstContact(customerId));
+  readEveryonesFirstContact();
+  removeContact(customerId);
+  assertNull("contact still exists after successful remove call",getFirstContact(customerId));
+}

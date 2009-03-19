@@ -1,0 +1,17 @@
+{
+  String queryHQL="from Contact c where c.name = :cName";
+  String updateHQL="update Contact set tlf = :cNewTLF where name = :cName";
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  try {
+    Session session=getSessions().getCurrentSession();
+    @SuppressWarnings("unchecked") List<Contact> list=session.createQuery(queryHQL).setParameter("cName",name).list();
+    list.get(0).setTlf(newTLF);
+    int rowsAffected=session.createQuery(updateHQL).setFlushMode(FlushMode.AUTO).setParameter("cNewTLF",newTLF).setParameter("cName",name).executeUpdate();
+    SimpleJtaTransactionManagerImpl.getInstance().commit();
+    return rowsAffected;
+  }
+ catch (  Exception e) {
+    SimpleJtaTransactionManagerImpl.getInstance().rollback();
+    throw e;
+  }
+}

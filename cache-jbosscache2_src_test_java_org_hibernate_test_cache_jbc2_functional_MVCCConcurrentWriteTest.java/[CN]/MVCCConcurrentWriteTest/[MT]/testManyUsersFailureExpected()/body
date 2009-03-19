@@ -1,0 +1,34 @@
+{
+  for (int i=0; i < USER_COUNT; i++) {
+    Customer customer=createCustomer(0);
+    getCustomerIDs().add(customer.getId());
+  }
+  assertEquals("failed to create enough Customers",USER_COUNT,getCustomerIDs().size());
+  final ExecutorService pool=Executors.newFixedThreadPool(USER_COUNT);
+  CountDownLatch completionLatch=new CountDownLatch(USER_COUNT);
+  Set<UserRunner> runners=new HashSet<UserRunner>();
+  for (  Integer customerId : getCustomerIDs()) {
+    UserRunner r=new UserRunner(customerId,completionLatch);
+    runners.add(r);
+    pool.execute(r);
+    LOG.info("launched " + r);
+    Thread.sleep(LAUNCH_INTERVAL_MILLIS);
+  }
+  assertEquals("not all user threads launched",USER_COUNT,runners.size());
+  boolean finishedInTime=completionLatch.await(10,TimeUnit.SECONDS);
+  TERMINATE_ALL_USERS=true;
+  if (!finishedInTime) {
+    pool.shutdown();
+    fail("Timed out waiting for user threads to finish. Their state at the time of forced shutdown: " + statusOfRunnersToString(runners));
+  }
+ else {
+    boolean success=true;
+    for (    UserRunner r : runners) {
+      if (!r.isSuccess()) {
+        success=false;
+        break;
+      }
+    }
+    assertTrue("at least one UserRunner failed: " + statusOfRunnersToString(runners),success);
+  }
+}

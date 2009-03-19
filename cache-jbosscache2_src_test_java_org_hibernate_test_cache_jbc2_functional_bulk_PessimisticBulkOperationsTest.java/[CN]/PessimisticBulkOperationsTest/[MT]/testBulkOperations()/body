@@ -5,7 +5,10 @@
     List<Integer> rhContacts=getContactsByCustomer("Red Hat");
     assertNotNull("Red Hat contacts exist",rhContacts);
     assertEquals("Created expected number of Red Hat contacts",10,rhContacts.size());
+    SecondLevelCacheStatistics contactSlcs=getEnvironment().getSessionFactory().getStatistics().getSecondLevelCacheStatistics(getPrefixedRegionName(Contact.class.getName()));
+    assertEquals(contactSlcs.getElementCountInMemory(),20);
     assertEquals("Deleted all Red Hat contacts",10,deleteContacts());
+    assertEquals(0,contactSlcs.getElementCountInMemory());
     List<Integer> jbContacts=getContactsByCustomer("JBoss");
     assertNotNull("JBoss contacts exist",jbContacts);
     assertEquals("JBoss contacts remain",10,jbContacts.size());
@@ -17,6 +20,7 @@
       assertEquals("No Red Hat contacts remain",0,rhContacts.size());
     }
     updateContacts("Kabir","Updated");
+    assertEquals(contactSlcs.getElementCountInMemory(),0);
     for (    Integer id : jbContacts) {
       Contact contact=getContact(id);
       assertNotNull("JBoss contact " + id + " exists",contact);
@@ -24,6 +28,17 @@
       assertEquals("JBoss contact " + id + " has correct TLF",expected,contact.getTlf());
     }
     List<Integer> updated=getContactsByTLF("Updated");
+    assertNotNull("Got updated contacts",updated);
+    assertEquals("Updated contacts",5,updated.size());
+    updateContactsWithOneManual("Kabir","UpdatedAgain");
+    assertEquals(contactSlcs.getElementCountInMemory(),0);
+    for (    Integer id : jbContacts) {
+      Contact contact=getContact(id);
+      assertNotNull("JBoss contact " + id + " exists",contact);
+      String expected=("Kabir".equals(contact.getName())) ? "UpdatedAgain" : "2222";
+      assertEquals("JBoss contact " + id + " has correct TLF",expected,contact.getTlf());
+    }
+    updated=getContactsByTLF("UpdatedAgain");
     assertNotNull("Got updated contacts",updated);
     assertEquals("Updated contacts",5,updated.size());
   }

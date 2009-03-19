@@ -1,0 +1,23 @@
+{
+  beginTx();
+  try {
+    for (    Integer customerId : getCustomerIDs()) {
+      if (TERMINATE_ALL_USERS) {
+        setRollbackOnly();
+        return;
+      }
+      final Customer customer=(Customer)getEnvironment().getSessionFactory().getCurrentSession().load(Customer.class,customerId);
+      Set<Contact> contacts=customer.getContacts();
+      if (!contacts.isEmpty()) {
+        contacts.iterator().next();
+      }
+    }
+  }
+ catch (  Exception e) {
+    setRollbackOnly();
+    throw e;
+  }
+ finally {
+    commitTx();
+  }
+}

@@ -32,26 +32,16 @@
  else   localAccessStrategy.removeAll();
   assertNull(localAccessStrategy.get(KEY,System.currentTimeMillis()));
   regionRoot=localCache.getRoot().getChild(regionFqn);
-  if (isUsingOptimisticLocking()) {
-    assertFalse(regionRoot == null);
-    assertEquals(0,getValidChildrenCount(regionRoot));
-    assertTrue(regionRoot.isValid());
-    assertTrue(regionRoot.isResident());
-  }
- else {
-    assertTrue("region root is removed",regionRoot == null || !regionRoot.isValid());
-  }
+  assertFalse(regionRoot == null);
+  assertEquals(0,getValidChildrenCount(regionRoot));
+  assertTrue(regionRoot.isValid());
+  assertTrue(regionRoot.isResident());
   assertEquals(null,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
   regionRoot=remoteCache.getRoot().getChild(regionFqn);
-  if (isUsingOptimisticLocking()) {
-    assertFalse(regionRoot == null);
-    assertTrue(regionRoot.isValid());
-    assertTrue(regionRoot.isResident());
-    assertEquals(0,getValidChildrenCount(regionRoot));
-  }
- else {
-    assertTrue("region root is removed",regionRoot == null || !regionRoot.isValid());
-  }
+  assertFalse(regionRoot == null);
+  assertTrue(regionRoot.isValid());
+  assertTrue(regionRoot.isResident());
+  assertEquals(0,getValidChildrenCount(regionRoot));
   remoteAccessStrategy.putFromLoad(KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
   assertEquals(VALUE1,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
   regionRoot=remoteCache.getRoot().getChild(regionFqn);
