@@ -1,9 +1,18 @@
 {
-  try {
-    Set childrenNames=CacheHelper.getChildrenNames(jbcCache,regionFqn);
-    return childrenNames.size();
+  if (checkValid()) {
+    try {
+      Set childrenNames=CacheHelper.getChildrenNames(jbcCache,regionFqn);
+      int size=childrenNames.size();
+      if (childrenNames.contains(CacheHelper.Internal.NODE)) {
+        size--;
+      }
+      return size;
+    }
+ catch (    Exception e) {
+      throw new CacheException(e);
+    }
   }
- catch (  Exception e) {
-    throw new CacheException(e);
+ else {
+    return 0;
   }
 }

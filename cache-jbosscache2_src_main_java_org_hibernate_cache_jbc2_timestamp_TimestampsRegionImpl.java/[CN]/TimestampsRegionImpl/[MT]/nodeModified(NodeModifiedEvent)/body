@@ -1,9 +1,10 @@
 {
-  if (event.isPre())   return;
-  Fqn fqn=event.getFqn();
-  Fqn regFqn=getRegionFqn();
-  if (fqn.size() == regFqn.size() + 1 && fqn.isChildOf(regFqn)) {
-    Object key=fqn.get(regFqn.size());
-    localCache.put(key,event.getData().get(ITEM));
+  if (!handleEvictAllModification(event) && !event.isPre()) {
+    Fqn fqn=event.getFqn();
+    Fqn regFqn=getRegionFqn();
+    if (fqn.size() == regFqn.size() + 1 && fqn.isChildOf(regFqn)) {
+      Object key=fqn.get(regFqn.size());
+      localCache.put(key,event.getData().get(ITEM));
+    }
   }
 }

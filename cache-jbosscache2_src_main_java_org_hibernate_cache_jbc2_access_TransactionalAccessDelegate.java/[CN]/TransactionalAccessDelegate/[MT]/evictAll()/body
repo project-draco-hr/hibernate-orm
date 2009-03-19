@@ -1,3 +1,11 @@
 {
-  evictOrRemoveAll();
+  pendingPuts.clear();
+  Transaction tx=region.suspend();
+  try {
+    region.ensureRegionRootExists();
+    CacheHelper.sendEvictAllNotification(cache,regionFqn,region.getMemberId(),null);
+  }
+  finally {
+    region.resume(tx);
+  }
 }

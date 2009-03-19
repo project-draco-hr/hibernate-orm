@@ -1,4 +1,11 @@
 {
-  Option opt=getNonLockingDataVersionOption(true);
-  CacheHelper.removeAll(getCacheInstance(),getRegionFqn(),opt);
+  Transaction tx=suspend();
+  try {
+    ensureRegionRootExists();
+    Option opt=getNonLockingDataVersionOption(true);
+    CacheHelper.sendEvictAllNotification(jbcCache,regionFqn,getMemberId(),opt);
+  }
+  finally {
+    resume(tx);
+  }
 }

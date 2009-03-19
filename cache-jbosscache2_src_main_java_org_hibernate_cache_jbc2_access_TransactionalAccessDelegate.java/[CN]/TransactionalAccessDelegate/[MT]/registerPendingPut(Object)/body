@@ -1,0 +1,14 @@
+{
+  Set<Object> pending=pendingPuts.get(key);
+  if (pending == null) {
+    pending=new HashSet<Object>();
+  }
+synchronized (pending) {
+    Object owner=region.getOwnerForPut();
+    pending.add(owner);
+    Set<Object> existing=pendingPuts.putIfAbsent(key,pending);
+    if (existing != pending) {
+      registerPendingPut(key);
+    }
+  }
+}

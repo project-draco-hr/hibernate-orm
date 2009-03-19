@@ -1,4 +1,9 @@
 {
+  if (!region.checkValid())   return null;
   region.ensureRegionRootExists();
-  return CacheHelper.get(cache,regionFqn,key);
+  Object val=CacheHelper.get(cache,regionFqn,key);
+  if (val == null) {
+    registerPendingPut(key);
+  }
+  return val;
 }
