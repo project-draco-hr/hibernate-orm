@@ -1,5 +1,11 @@
 {
-  SessionImplementor sessionImpl=(SessionImplementor)session;
+  SessionImplementor sessionImpl;
+  if (!(session instanceof SessionImplementor)) {
+    sessionImpl=(SessionImplementor)session.getSessionFactory().getCurrentSession();
+  }
+ else {
+    sessionImpl=(SessionImplementor)session;
+  }
   EventListeners listeners=sessionImpl.getListeners();
   for (  PostInsertEventListener listener : listeners.getPostInsertEventListeners()) {
     if (listener instanceof AuditEventListener) {
