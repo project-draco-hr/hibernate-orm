@@ -1,0 +1,61 @@
+{
+  if (element == null)   return new ArrayList<SqlResultSetMapping>();
+  List resultsetElementList=element.elements("sql-result-set-mapping");
+  List<SqlResultSetMapping> resultsets=new ArrayList<SqlResultSetMapping>();
+  Iterator it=resultsetElementList.listIterator();
+  while (it.hasNext()) {
+    Element subelement=(Element)it.next();
+    AnnotationDescriptor ann=new AnnotationDescriptor(SqlResultSetMapping.class);
+    copyStringAttribute(ann,subelement,"name",true);
+    List<Element> elements=subelement.elements("entity-result");
+    List<EntityResult> entityResults=new ArrayList<EntityResult>(elements.size());
+    for (    Element entityResult : elements) {
+      AnnotationDescriptor entityResultDescriptor=new AnnotationDescriptor(EntityResult.class);
+      String clazzName=entityResult.attributeValue("entity-class");
+      if (clazzName == null) {
+        throw new AnnotationException("<entity-result> without entity-class. " + SCHEMA_VALIDATION);
+      }
+      Class clazz=null;
+      try {
+        clazz=ReflectHelper.classForName(XMLContext.buildSafeClassName(clazzName,defaults),JPAOverridenAnnotationReader.class);
+      }
+ catch (      ClassNotFoundException e) {
+        throw new AnnotationException("Unable to find entity-class: " + clazzName,e);
+      }
+      entityResultDescriptor.setValue("entityClass",clazz);
+      copyStringAttribute(entityResultDescriptor,entityResult,"discriminator-column",false);
+      List<FieldResult> fieldResults=new ArrayList<FieldResult>();
+      for (      Element fieldResult : (List<Element>)entityResult.elements("field-result")) {
+        AnnotationDescriptor fieldResultDescriptor=new AnnotationDescriptor(FieldResult.class);
+        copyStringAttribute(fieldResultDescriptor,fieldResult,"name",true);
+        copyStringAttribute(fieldResultDescriptor,fieldResult,"column",true);
+        fieldResults.add((FieldResult)AnnotationFactory.create(fieldResultDescriptor));
+      }
+      entityResultDescriptor.setValue("fields",fieldResults.toArray(new FieldResult[fieldResults.size()]));
+      entityResults.add((EntityResult)AnnotationFactory.create(entityResultDescriptor));
+    }
+    ann.setValue("entities",entityResults.toArray(new EntityResult[entityResults.size()]));
+    elements=subelement.elements("column-result");
+    List<ColumnResult> columnResults=new ArrayList<ColumnResult>(elements.size());
+    for (    Element columnResult : elements) {
+      AnnotationDescriptor columnResultDescriptor=new AnnotationDescriptor(ColumnResult.class);
+      copyStringAttribute(columnResultDescriptor,columnResult,"name",true);
+      columnResults.add((ColumnResult)AnnotationFactory.create(columnResultDescriptor));
+    }
+    ann.setValue("columns",columnResults.toArray(new ColumnResult[columnResults.size()]));
+    String clazzName=subelement.attributeValue("result-class");
+    if (StringHelper.isNotEmpty(clazzName)) {
+      Class clazz=null;
+      try {
+        clazz=ReflectHelper.classForName(XMLContext.buildSafeClassName(clazzName,defaults),JPAOverridenAnnotationReader.class);
+      }
+ catch (      ClassNotFoundException e) {
+        throw new AnnotationException("Unable to find entity-class: " + clazzName,e);
+      }
+      ann.setValue("resultClass",clazz);
+    }
+    copyStringAttribute(ann,subelement,"result-set-mapping",false);
+    resultsets.add((SqlResultSetMapping)AnnotationFactory.create(ann));
+  }
+  return resultsets;
+}
