@@ -8,7 +8,7 @@
     throw new HibernateException("Unable to read class: " + e.getMessage());
   }
   String[] names=ClassNameReader.getClassInfo(reader);
-  ClassWriter w=new DebuggingClassWriter(true);
+  ClassWriter w=new DebuggingClassWriter(ClassWriter.COMPUTE_MAXS);
   ClassTransformer t=getClassTransformer(names);
   if (t != null) {
     if (log.isDebugEnabled()) {
@@ -18,7 +18,7 @@
     byte[] result;
     try {
       reader=new ClassReader(new ByteArrayInputStream(classfileBuffer));
-      new TransformingClassGenerator(new ClassReaderGenerator(reader,attributes(),skipDebug()),t).generateClass(w);
+      new TransformingClassGenerator(new ClassReaderGenerator(reader,skipDebug()),t).generateClass(w);
       out=new ByteArrayOutputStream();
       out.write(w.toByteArray());
       result=out.toByteArray();
