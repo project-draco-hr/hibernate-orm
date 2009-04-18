@@ -1,0 +1,63 @@
+{
+  StringBuilder sb=new StringBuilder("URL: ").append(jarToScan).append("\n");
+  for (  String pattern : filePatterns) {
+    sb.append("  ").append(pattern).append("\n");
+  }
+  System.err.println(sb.toString());
+  JarVisitor jarVisitor=getVisitor(jarToScan);
+  final StateJarVisitor stateVisitor=visitors.get(jarToScan);
+  if (stateVisitor.hasReadFiles) {
+    throw new AssertionFailure("Cannot read files twice on NativeScanner");
+  }
+  stateVisitor.hasReadFiles=true;
+  Set<String> endWiths=new HashSet<String>();
+  Set<String> exacts=new HashSet<String>();
+  for (  String pattern : filePatterns) {
+    if (pattern.startsWith("**/*")) {
+      final String patternTail=pattern.substring(4,pattern.length());
+      if (!patternTail.equals(".hbm.xml")) {
+        throw new AssertionFailure("Improper use of NativeScanner: " + "must not filter files via pattern other than .hbm.xml");
+      }
+      endWiths.add(patternTail);
+    }
+ else {
+      exacts.add(pattern);
+    }
+  }
+  final Set<Entry> fileEntries;
+  try {
+    fileEntries=(Set<Entry>)jarVisitor.getMatchingEntries()[FILE_FILTER_INDEX];
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("Error while reading " + jarToScan.toString(),e);
+  }
+  Set<NamedInputStream> files=new HashSet<NamedInputStream>(fileEntries.size());
+  Set<Entry> leftOver=new HashSet<Entry>(fileEntries);
+  for (  Entry entry : fileEntries) {
+    boolean done=false;
+    for (    String exact : exacts) {
+      if (entry.getName().equals(exact)) {
+        files.add(new NamedInputStream(entry.getName(),entry.getInputStream()));
+        leftOver.remove(entry);
+        done=true;
+        continue;
+      }
+    }
+    if (done)     continue;
+    for (    String endWithPattern : endWiths) {
+      if (entry.getName().endsWith(endWithPattern)) {
+        files.add(new NamedInputStream(entry.getName(),entry.getInputStream()));
+        leftOver.remove(entry);
+        continue;
+      }
+    }
+  }
+  for (  Entry entry : leftOver) {
+    try {
+      entry.getInputStream().close();
+    }
+ catch (    IOException e) {
+    }
+  }
+  return files;
+}

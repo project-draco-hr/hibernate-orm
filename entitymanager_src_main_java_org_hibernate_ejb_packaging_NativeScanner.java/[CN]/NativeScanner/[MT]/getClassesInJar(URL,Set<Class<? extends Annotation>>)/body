@@ -1,0 +1,22 @@
+{
+  if (isValidForClasses(annotationsToLookFor)) {
+    throw new AssertionFailure("Improper use of NativeScanner: " + "must not filter classes by other annotations than Entity, MappedSuperclass, embeddable");
+  }
+  JarVisitor jarVisitor=getVisitor(jarToScan);
+  final Set<Entry> classesEntry;
+  try {
+    classesEntry=(Set<Entry>)jarVisitor.getMatchingEntries()[CLASS_FILTER_INDEX];
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("Error while reading " + jarToScan.toString(),e);
+  }
+  Set<Class<?>> classes=new HashSet<Class<?>>(classesEntry.size());
+  for (  Entry entry : classesEntry) {
+    try {
+      classes.add(ReflectHelper.classForName(entry.getName()));
+    }
+ catch (    ClassNotFoundException e) {
+    }
+  }
+  return classes;
+}

@@ -36,12 +36,16 @@
     List<String> xmlFiles=new ArrayList<String>(50);
     if (info.getMappingFileNames() != null)     xmlFiles.addAll(info.getMappingFileNames());
     boolean searchForORMFiles=!xmlFiles.contains(META_INF_ORM_XML);
-    boolean[] detectArtifactForOtherJars=getDetectedArtifacts(info.getProperties(),null,false);
-    boolean[] detectArtifactForMainJar=getDetectedArtifacts(info.getProperties(),null,info.excludeUnlistedClasses());
+    ScanningContext context=new ScanningContext();
+    context.scanner(buildScanner()).searchOrm(searchForORMFiles).explicitMappingFiles(null);
+    setDetectedArtifactsOnScanningContext(context,info.getProperties(),null,false);
     for (    URL jar : info.getJarFileUrls()) {
-      scanForClasses(jar,packages,entities,hbmFiles,detectArtifactForOtherJars,searchForORMFiles);
+      context.url(jar);
+      scanForClasses(context,packages,entities,hbmFiles);
     }
-    scanForClasses(info.getPersistenceUnitRootUrl(),packages,entities,hbmFiles,detectArtifactForMainJar,searchForORMFiles);
+    context.url(info.getPersistenceUnitRootUrl());
+    setDetectedArtifactsOnScanningContext(context,info.getProperties(),null,info.excludeUnlistedClasses());
+    scanForClasses(context,packages,entities,hbmFiles);
     Properties properties=info.getProperties() != null ? info.getProperties() : new Properties();
     ConfigurationHelper.overrideProperties(properties,integration);
     addXMLEntities(xmlFiles,info,entities);

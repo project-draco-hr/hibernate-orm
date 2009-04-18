@@ -13,21 +13,29 @@
       for (      PersistenceMetadata metadata : metadataFiles) {
         log.trace("{}",metadata);
         if (metadata.getProvider() == null || IMPLEMENTATION_NAME.equalsIgnoreCase(metadata.getProvider())) {
-          JarVisitor visitor=null;
+          Scanner scanner=null;
+          URL jarURL=null;
           if (metadata.getName() == null) {
-            visitor=getMainJarVisitor(url,metadata,integration);
-            metadata.setName(visitor.getUnqualifiedJarName());
+            scanner=buildScanner();
+            jarURL=JarVisitorFactory.getJarURLFromURLEntry(url,"/META-INF/persistence.xml");
+            metadata.setName(scanner.getUnqualifiedJarName(jarURL));
           }
           if (persistenceUnitName == null && xmls.hasMoreElements()) {
             throw new PersistenceException("No name provided and several persistence units found");
           }
  else           if (persistenceUnitName == null || metadata.getName().equals(persistenceUnitName)) {
-            if (visitor == null)             visitor=getMainJarVisitor(url,metadata,integration);
-            addMetadataFromVisitor(visitor,metadata);
-            Filter[] otherXmlFilter=getFilters(metadata,integration,false);
+            if (scanner == null) {
+              scanner=buildScanner();
+              jarURL=JarVisitorFactory.getJarURLFromURLEntry(url,"/META-INF/persistence.xml");
+            }
+            ScanningContext mainJarScanCtx=new ScanningContext().scanner(scanner).url(jarURL).explicitMappingFiles(metadata.getMappingFiles()).searchOrm(true);
+            setDetectedArtifactsOnScanningContext(mainJarScanCtx,metadata.getProps(),integration,metadata.getExcludeUnlistedClasses());
+            addMetadataFromScan(mainJarScanCtx,metadata);
+            ScanningContext otherJarScanCtx=new ScanningContext().scanner(scanner).explicitMappingFiles(metadata.getMappingFiles()).searchOrm(true);
+            setDetectedArtifactsOnScanningContext(otherJarScanCtx,metadata.getProps(),integration,false);
             for (            String jarFile : metadata.getJarFiles()) {
-              visitor=JarVisitorFactory.getVisitor(jarFile,otherXmlFilter);
-              addMetadataFromVisitor(visitor,metadata);
+              otherJarScanCtx.url(JarVisitorFactory.getURLFromPath(jarFile));
+              addMetadataFromScan(otherJarScanCtx,metadata);
             }
             return configure(metadata,integration);
           }
