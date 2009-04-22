@@ -1,0 +1,14 @@
+{
+  if (!proxy.getHibernateLazyInitializer().isUninitialized()) {
+    return proxy.getHibernateLazyInitializer().getImplementation();
+  }
+  Session tempSession=proxy.getHibernateLazyInitializer().getSession().getFactory().openTemporarySession();
+  try {
+    proxy.getHibernateLazyInitializer().setSession((SessionImplementor)tempSession);
+    proxy.getHibernateLazyInitializer().initialize();
+    return proxy.getHibernateLazyInitializer().getImplementation();
+  }
+  finally {
+    tempSession.close();
+  }
+}
