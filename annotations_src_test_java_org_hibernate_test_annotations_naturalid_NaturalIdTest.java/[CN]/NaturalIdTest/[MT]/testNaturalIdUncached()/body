@@ -2,7 +2,7 @@
   saveSomeCitizens();
   Session s=openSession();
   Transaction tx=s.beginTransaction();
-  State france=(State)s.load(State.class,new Integer(2));
+  State france=(State)s.load(State.class,2);
   Criteria criteria=s.createCriteria(Citizen.class);
   criteria.add(Restrictions.naturalId().set("ssn","1234").set("state",france));
   criteria.setCacheable(false);
@@ -14,7 +14,7 @@
   assertEquals(1,results.size());
   assertEquals("Cache hits should be empty",0,stats.getQueryCacheHitCount());
   assertEquals("Query result should be added to cache",0,stats.getQueryCachePutCount());
-  results=criteria.list();
+  criteria.list();
   assertEquals("Cache hits should be empty",0,stats.getQueryCacheHitCount());
   tx.rollback();
   s.close();
