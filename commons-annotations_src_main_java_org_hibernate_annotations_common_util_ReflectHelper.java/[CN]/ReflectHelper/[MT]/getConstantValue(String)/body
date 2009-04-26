@@ -1,3 +1,15 @@
 {
-  return org.hibernate.util.ReflectHelper.getConstantValue(name);
+  Class clazz;
+  try {
+    clazz=classForName(org.hibernate.util.StringHelper.qualifier(name));
+  }
+ catch (  Throwable t) {
+    return null;
+  }
+  try {
+    return clazz.getField(StringHelper.unqualify(name)).get(null);
+  }
+ catch (  Throwable t) {
+    return null;
+  }
 }

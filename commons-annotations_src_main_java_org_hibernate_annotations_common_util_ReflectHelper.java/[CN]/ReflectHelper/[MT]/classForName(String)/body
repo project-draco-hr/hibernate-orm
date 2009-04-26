@@ -1,3 +1,11 @@
 {
-  return ReflectHelper.classForName(name);
+  try {
+    ClassLoader contextClassLoader=Thread.currentThread().getContextClassLoader();
+    if (contextClassLoader != null) {
+      return contextClassLoader.loadClass(name);
+    }
+  }
+ catch (  Throwable ignore) {
+  }
+  return Class.forName(name);
 }
