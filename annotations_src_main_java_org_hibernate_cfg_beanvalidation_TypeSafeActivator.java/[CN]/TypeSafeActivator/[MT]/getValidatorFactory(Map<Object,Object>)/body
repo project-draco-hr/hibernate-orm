@@ -1,0 +1,23 @@
+{
+  ValidatorFactory factory=null;
+  if (properties != null) {
+    Object unsafeProperty=properties.get(FACTORY_PROPERTY);
+    if (unsafeProperty != null) {
+      try {
+        factory=ValidatorFactory.class.cast(unsafeProperty);
+      }
+ catch (      ClassCastException e) {
+        throw new HibernateException("Property " + FACTORY_PROPERTY + " should containt an object of type "+ ValidatorFactory.class.getName());
+      }
+    }
+  }
+  if (factory == null) {
+    try {
+      factory=Validation.buildDefaultValidatorFactory();
+    }
+ catch (    Exception e) {
+      throw new HibernateException("Unable to build the default ValidatorFactory",e);
+    }
+  }
+  return factory;
+}

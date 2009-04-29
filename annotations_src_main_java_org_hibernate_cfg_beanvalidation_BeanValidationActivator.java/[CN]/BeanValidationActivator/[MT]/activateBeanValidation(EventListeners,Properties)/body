@@ -1,0 +1,35 @@
+{
+  ValidationMode mode=ValidationMode.getMode(properties.get(MODE_PROPERTY));
+  if (mode == ValidationMode.NONE)   return;
+  try {
+    ReflectHelper.classForName(BV_DISCOVERY_CLASS,BeanValidationActivator.class);
+  }
+ catch (  ClassNotFoundException e) {
+    if (mode == ValidationMode.CALLBACK) {
+      throw new HibernateException("Bean Validation not available in the class path but required in " + MODE_PROPERTY);
+    }
+ else     if (mode == ValidationMode.AUTO) {
+      return;
+    }
+ else {
+      throw new AssertionFailure("Unexpected ValidationMode: " + mode);
+    }
+  }
+  try {
+    Class<?> activator=ReflectHelper.classForName(TYPE_SAFE_ACTIVATOR_CLASS,BeanValidationActivator.class);
+    Method buildDefaultValidatorFactory=activator.getMethod(TYPE_SAFE_ACTIVATOR_METHOD,EventListeners.class,Properties.class);
+    buildDefaultValidatorFactory.invoke(null,eventListeners,properties);
+  }
+ catch (  NoSuchMethodException e) {
+    throw new HibernateException("Unable to get the default Bean Validation factory",e);
+  }
+catch (  IllegalAccessException e) {
+    throw new HibernateException("Unable to get the default Bean Validation factory",e);
+  }
+catch (  InvocationTargetException e) {
+    throw new HibernateException("Unable to get the default Bean Validation factory",e);
+  }
+catch (  ClassNotFoundException e) {
+    throw new HibernateException("Unable to get the default Bean Validation factory",e);
+  }
+}

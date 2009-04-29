@@ -1,0 +1,31 @@
+{
+  CupHolder ch=new CupHolder();
+  ch.setRadius(new BigDecimal("12"));
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  try {
+    s.persist(ch);
+    s.flush();
+  }
+ catch (  ConstraintViolationException e) {
+    fail("invalid object should not be validated");
+  }
+  try {
+    ch.setRadius(null);
+    s.flush();
+  }
+ catch (  ConstraintViolationException e) {
+    fail("invalid object should not be validated");
+  }
+  try {
+    s.delete(ch);
+    s.flush();
+    fail("invalid object should not be persisted");
+  }
+ catch (  ConstraintViolationException e) {
+    assertEquals(1,e.getConstraintViolations().size());
+    assertEquals(NotNull.class,e.getConstraintViolations().iterator().next().getConstraintDescriptor().getAnnotation().annotationType());
+  }
+  tx.rollback();
+  s.close();
+}
