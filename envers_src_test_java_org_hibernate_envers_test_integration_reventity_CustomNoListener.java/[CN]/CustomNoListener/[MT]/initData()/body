@@ -1,0 +1,32 @@
+{
+  EntityManager em=getEntityManager();
+  em.getTransaction().begin();
+  StrTestEntity te=new StrTestEntity("x");
+  em.persist(te);
+  id=te.getId();
+  CustomDataRevEntity custom=getAuditReader().getCurrentRevision(CustomDataRevEntity.class,false);
+  custom.setData("data1");
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  te=em.find(StrTestEntity.class,id);
+  te.setStr("y");
+  custom=getAuditReader().getCurrentRevision(CustomDataRevEntity.class,false);
+  custom.setData("data2");
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  custom=getAuditReader().getCurrentRevision(CustomDataRevEntity.class,true);
+  custom.setData("data3");
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  custom=getAuditReader().getCurrentRevision(CustomDataRevEntity.class,false);
+  custom.setData("data4");
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  te=em.find(StrTestEntity.class,id);
+  te.setStr("z");
+  custom=getAuditReader().getCurrentRevision(CustomDataRevEntity.class,false);
+  custom.setData("data5");
+  custom=getAuditReader().getCurrentRevision(CustomDataRevEntity.class,false);
+  custom.setData("data5bis");
+  em.getTransaction().commit();
+}
