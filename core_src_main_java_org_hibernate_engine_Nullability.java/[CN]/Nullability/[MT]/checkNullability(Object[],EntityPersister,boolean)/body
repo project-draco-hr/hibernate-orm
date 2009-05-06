@@ -1,17 +1,19 @@
 {
-  final boolean[] nullability=persister.getPropertyNullability();
-  final boolean[] checkability=isUpdate ? persister.getPropertyUpdateability() : persister.getPropertyInsertability();
-  final Type[] propertyTypes=persister.getPropertyTypes();
-  for (int i=0; i < values.length; i++) {
-    if (checkability[i] && values[i] != LazyPropertyInitializer.UNFETCHED_PROPERTY) {
-      final Object value=values[i];
-      if (!nullability[i] && value == null) {
-        throw new PropertyValueException("not-null property references a null or transient value",persister.getEntityName(),persister.getPropertyNames()[i]);
-      }
- else       if (value != null) {
-        String breakProperties=checkSubElementsNullability(propertyTypes[i],value);
-        if (breakProperties != null) {
-          throw new PropertyValueException("not-null property references a null or transient value",persister.getEntityName(),buildPropertyPath(persister.getPropertyNames()[i],breakProperties));
+  if (checkNullability) {
+    final boolean[] nullability=persister.getPropertyNullability();
+    final boolean[] checkability=isUpdate ? persister.getPropertyUpdateability() : persister.getPropertyInsertability();
+    final Type[] propertyTypes=persister.getPropertyTypes();
+    for (int i=0; i < values.length; i++) {
+      if (checkability[i] && values[i] != LazyPropertyInitializer.UNFETCHED_PROPERTY) {
+        final Object value=values[i];
+        if (!nullability[i] && value == null) {
+          throw new PropertyValueException("not-null property references a null or transient value",persister.getEntityName(),persister.getPropertyNames()[i]);
+        }
+ else         if (value != null) {
+          String breakProperties=checkSubElementsNullability(propertyTypes[i],value);
+          if (breakProperties != null) {
+            throw new PropertyValueException("not-null property references a null or transient value",persister.getEntityName(),buildPropertyPath(persister.getPropertyNames()[i],breakProperties));
+          }
         }
       }
     }
