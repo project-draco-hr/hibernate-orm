@@ -11,13 +11,17 @@
   s.close();
   s=openSession();
   t=s.beginTransaction();
-  c=(Contract)s.createCriteria(Contract.class).uniqueResult();
-  c.setCustomerName("foo bar");
   c.getVariations().add(new ContractVariation(3,c));
-  cv1=(ContractVariation)c.getVariations().iterator().next();
-  cv1.setText("blah blah");
-  t.commit();
-  s.close();
+  try {
+    s.update(c);
+    fail("should have failed because reassociated object has a dirty collection");
+  }
+ catch (  HibernateException ex) {
+  }
+ finally {
+    t.rollback();
+    s.close();
+  }
   s=openSession();
   t=s.beginTransaction();
   c=(Contract)s.createCriteria(Contract.class).uniqueResult();

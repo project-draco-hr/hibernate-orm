@@ -11,13 +11,18 @@
   s.close();
   s=openSession();
   t=s.beginTransaction();
-  c=(Contract)s.createCriteria(Contract.class).uniqueResult();
-  c.setCustomerName("foo bar");
   c.getVariations().add(new ContractVariation(3,c));
-  cv1=(ContractVariation)c.getVariations().iterator().next();
-  cv1.setText("blah blah");
-  t.commit();
-  s.close();
+  s.merge(c);
+  try {
+    t.commit();
+    fail("should have failed because an immutable collection was changed");
+  }
+ catch (  HibernateException ex) {
+    t.rollback();
+  }
+ finally {
+    s.close();
+  }
   s=openSession();
   t=s.beginTransaction();
   c=(Contract)s.createCriteria(Contract.class).uniqueResult();
