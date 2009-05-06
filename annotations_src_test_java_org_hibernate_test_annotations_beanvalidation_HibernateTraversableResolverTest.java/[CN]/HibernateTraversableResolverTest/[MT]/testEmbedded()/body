@@ -1,0 +1,24 @@
+{
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  Screen screen=new Screen();
+  PowerSupply ps=new PowerSupply();
+  screen.setPowerSupply(ps);
+  Button button=new Button();
+  button.setName(null);
+  button.setSize(3);
+  screen.setStopButton(button);
+  try {
+    s.persist(screen);
+    s.flush();
+    fail("@NotNull on empedded property is not evaluated");
+  }
+ catch (  ConstraintViolationException e) {
+    assertEquals(1,e.getConstraintViolations().size());
+    ConstraintViolation<?> cv=e.getConstraintViolations().iterator().next();
+    assertEquals(Screen.class,cv.getRootBeanClass());
+    assertEquals("stopButton.name",cv.getPropertyPath());
+  }
+  tx.rollback();
+  s.close();
+}

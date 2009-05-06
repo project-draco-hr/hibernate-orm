@@ -1,0 +1,22 @@
+{
+  ValidatorFactory factory=getValidatorFactory(properties);
+  Class<?>[] groupsArray=new GroupsPerOperation(properties).get(GroupsPerOperation.Operation.DDL);
+  Set<Class<?>> groups=new HashSet<Class<?>>(Arrays.asList(groupsArray));
+  for (  PersistentClass persistentClass : persistentClasses) {
+    final String className=persistentClass.getClassName();
+    if (className == null || className.length() == 0)     continue;
+    Class<?> clazz;
+    try {
+      clazz=ReflectHelper.classForName(className,TypeSafeActivator.class);
+    }
+ catch (    ClassNotFoundException e) {
+      throw new AssertionFailure("Entity class not found",e);
+    }
+    try {
+      applyDDL("",persistentClass,clazz,factory,groups,true);
+    }
+ catch (    Exception e) {
+      logger.warn("Unable to apply constraints on DDL for " + className,e);
+    }
+  }
+}

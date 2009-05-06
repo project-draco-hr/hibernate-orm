@@ -1,0 +1,47 @@
+{
+  Property property=null;
+  Property idProperty=associatedClass.getIdentifierProperty();
+  String idName=idProperty != null ? idProperty.getName() : null;
+  try {
+    if (propertyName == null || propertyName.length() == 0 || propertyName.equals(idName)) {
+      property=idProperty;
+    }
+ else {
+      if (propertyName.indexOf(idName + ".") == 0) {
+        property=idProperty;
+        propertyName=propertyName.substring(idName.length() + 1);
+      }
+      StringTokenizer st=new StringTokenizer(propertyName,".",false);
+      while (st.hasMoreElements()) {
+        String element=(String)st.nextElement();
+        if (property == null) {
+          property=associatedClass.getProperty(element);
+        }
+ else {
+          if (!property.isComposite())           return null;
+          property=((Component)property.getValue()).getProperty(element);
+        }
+      }
+    }
+  }
+ catch (  MappingException e) {
+    try {
+      if (associatedClass.getIdentifierMapper() == null)       return null;
+      StringTokenizer st=new StringTokenizer(propertyName,".",false);
+      while (st.hasMoreElements()) {
+        String element=(String)st.nextElement();
+        if (property == null) {
+          property=associatedClass.getIdentifierMapper().getProperty(element);
+        }
+ else {
+          if (!property.isComposite())           return null;
+          property=((Component)property.getValue()).getProperty(element);
+        }
+      }
+    }
+ catch (    MappingException ee) {
+      return null;
+    }
+  }
+  return property;
+}

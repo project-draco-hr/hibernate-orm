@@ -1,0 +1,13 @@
+{
+  if (object == null || mode != EntityMode.POJO)   return;
+  TraversableResolver tr=new HibernateTraversableResolver(persister,associationsPerEntityPersister,sessionFactory);
+  Validator validator=factory.usingContext().traversableResolver(tr).getValidator();
+  final Class<?>[] groups=groupsPerOperation.get(operation);
+  if (groups.length > 0) {
+    final Set<ConstraintViolation<T>> constraintViolations=validator.validate(object,groups);
+    Object unsafeViolations=constraintViolations;
+    if (constraintViolations.size() > 0) {
+      throw new ConstraintViolationException("Invalid object at " + operation.getName() + " time for groups "+ toString(groups),(Set<ConstraintViolation<?>>)unsafeViolations);
+    }
+  }
+}

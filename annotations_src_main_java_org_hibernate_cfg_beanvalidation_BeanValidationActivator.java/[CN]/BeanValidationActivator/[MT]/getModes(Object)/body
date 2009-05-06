@@ -1,0 +1,20 @@
+{
+  Set<ValidationMode> modes=new HashSet<ValidationMode>(3);
+  if (modeProperty == null) {
+    modes.add(ValidationMode.AUTO);
+  }
+ else {
+    final String[] modesInString=modeProperty.toString().split(",");
+    for (    String modeInString : modesInString) {
+      modes.add(getMode(modeInString));
+    }
+  }
+  if (modes.size() > 1 && (modes.contains(ValidationMode.AUTO) || modes.contains(ValidationMode.NONE))) {
+    StringBuilder message=new StringBuilder("Incompatible validation modes mixed: ");
+    for (    ValidationMode mode : modes) {
+      message.append(mode).append(", ");
+    }
+    throw new HibernateException(message.substring(0,message.length() - 2));
+  }
+  return modes;
+}
