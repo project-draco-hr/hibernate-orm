@@ -1,0 +1,26 @@
+{
+  final Class<?> clazz=proxy.getClass();
+  try {
+    try {
+      final Field field=clazz.getField(property);
+      setAccessibility(field);
+      return field.get(proxy);
+    }
+ catch (    NoSuchFieldException e) {
+      final Method method=getMethod(clazz,property);
+      if (method != null) {
+        setAccessibility(method);
+        return method.invoke(proxy);
+      }
+ else {
+        throw new PersistenceException("Unable to find field or method: " + clazz + "#"+ property);
+      }
+    }
+  }
+ catch (  IllegalAccessException e) {
+    throw new PersistenceException("Unable to access field or method: " + clazz + "#"+ property,e);
+  }
+catch (  InvocationTargetException e) {
+    throw new PersistenceException("Unable to access field or method: " + clazz + "#"+ property,e);
+  }
+}

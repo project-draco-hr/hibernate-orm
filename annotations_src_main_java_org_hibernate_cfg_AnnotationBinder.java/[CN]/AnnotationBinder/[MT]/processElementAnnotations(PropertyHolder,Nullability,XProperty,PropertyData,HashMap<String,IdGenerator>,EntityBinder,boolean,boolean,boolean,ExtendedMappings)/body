@@ -51,7 +51,7 @@
       joinColumns=Ejb3JoinColumn.buildJoinColumns((JoinColumn[])null,mappedBy,entityBinder.getSecondaryTables(),propertyHolder,inferredData.getPropertyName(),mappings);
     }
   }
- else   if (joinColumns == null && (property.isAnnotationPresent(OneToMany.class) || property.isAnnotationPresent(CollectionOfElements.class))) {
+ else   if (joinColumns == null && (property.isAnnotationPresent(OneToMany.class) || property.isAnnotationPresent(CollectionOfElements.class) || property.isAnnotationPresent(ElementCollection.class))) {
     OneToMany oneToMany=property.getAnnotation(OneToMany.class);
     String mappedBy=oneToMany != null ? oneToMany.mappedBy() : "";
     joinColumns=Ejb3JoinColumn.buildJoinColumns((JoinColumn[])null,mappedBy,entityBinder.getSecondaryTables(),propertyHolder,inferredData.getPropertyName(),mappings);
@@ -172,9 +172,10 @@
     }
     bindAny(getCascadeStrategy(null,hibernateCascade),joinColumns,onDeleteCascade,nullability,propertyHolder,inferredData,entityBinder,isIdentifierMapper,mappings);
   }
- else   if (property.isAnnotationPresent(OneToMany.class) || property.isAnnotationPresent(ManyToMany.class) || property.isAnnotationPresent(CollectionOfElements.class)|| property.isAnnotationPresent(ManyToAny.class)) {
+ else   if (property.isAnnotationPresent(OneToMany.class) || property.isAnnotationPresent(ManyToMany.class) || property.isAnnotationPresent(CollectionOfElements.class)|| property.isAnnotationPresent(ElementCollection.class)|| property.isAnnotationPresent(ManyToAny.class)) {
     OneToMany oneToManyAnn=property.getAnnotation(OneToMany.class);
     ManyToMany manyToManyAnn=property.getAnnotation(ManyToMany.class);
+    ElementCollection elementCollectionAnn=property.getAnnotation(ElementCollection.class);
     CollectionOfElements collectionOfElementsAnn=property.getAnnotation(CollectionOfElements.class);
     org.hibernate.annotations.IndexColumn indexAnn=property.getAnnotation(org.hibernate.annotations.IndexColumn.class);
     JoinTable assocTable=property.getAnnotation(JoinTable.class);
@@ -242,7 +243,7 @@
       collectionBinder.setCascadeStrategy(getCascadeStrategy(oneToManyAnn.cascade(),hibernateCascade));
       collectionBinder.setOneToMany(true);
     }
- else     if (collectionOfElementsAnn != null) {
+ else     if (elementCollectionAnn != null || collectionOfElementsAnn != null) {
       for (      Ejb3JoinColumn column : joinColumns) {
         if (column.isSecondary()) {
           throw new NotYetImplementedException("Collections having FK in secondary table");
@@ -250,7 +251,8 @@
       }
       collectionBinder.setFkJoinColumns(joinColumns);
       mappedBy="";
-      collectionBinder.setTargetEntity(mappings.getReflectionManager().toXClass(collectionOfElementsAnn.targetElement()));
+      final Class<?> targetElement=elementCollectionAnn != null ? elementCollectionAnn.targetClass() : collectionOfElementsAnn.targetElement();
+      collectionBinder.setTargetEntity(mappings.getReflectionManager().toXClass(targetElement));
       collectionBinder.setOneToMany(true);
     }
  else     if (manyToManyAnn != null) {

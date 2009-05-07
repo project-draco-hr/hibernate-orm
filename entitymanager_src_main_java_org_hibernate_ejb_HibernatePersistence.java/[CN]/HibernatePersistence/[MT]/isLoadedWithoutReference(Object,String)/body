@@ -1,0 +1,38 @@
+{
+  Object entity;
+  boolean sureFromUs=false;
+  if (proxy instanceof HibernateProxy) {
+    LazyInitializer li=((HibernateProxy)proxy).getHibernateLazyInitializer();
+    if (li.isUninitialized()) {
+      return LoadState.NOT_LOADED;
+    }
+ else {
+      entity=li.getImplementation();
+    }
+    sureFromUs=true;
+  }
+ else {
+    entity=proxy;
+  }
+  if (FieldInterceptionHelper.isInstrumented(entity)) {
+    FieldInterceptor interceptor=FieldInterceptionHelper.extractFieldInterceptor(entity);
+    final boolean isInitialized=interceptor == null || interceptor.isInitialized(property);
+    LoadState state;
+    if (isInitialized && interceptor != null) {
+      state=LoadState.LOADED;
+    }
+ else     if (interceptor != null && (!isInitialized)) {
+      state=LoadState.NOT_LOADED;
+    }
+ else     if (sureFromUs) {
+      state=LoadState.LOADED;
+    }
+ else {
+      state=LoadState.UNKNOWN;
+    }
+    return state;
+  }
+ else {
+    return LoadState.UNKNOWN;
+  }
+}
