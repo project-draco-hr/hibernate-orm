@@ -33,25 +33,25 @@
   sx.setCount(5);
   sx.setName("s");
   s.save(sx,new Long(5));
-  assertTrue(s.find("select c from ContainerX c, Simple s where c.oneToMany[2] = s").size() == 1);
-  assertTrue(s.find("select c from ContainerX c, Simple s where c.manyToMany[2] = s").size() == 1);
-  assertTrue(s.find("select c from ContainerX c, Simple s where s = c.oneToMany[2]").size() == 1);
-  assertTrue(s.find("select c from ContainerX c, Simple s where s = c.manyToMany[2]").size() == 1);
-  assertTrue(s.find("select c from ContainerX c where c.oneToMany[0].name = 's'").size() == 1);
-  assertTrue(s.find("select c from ContainerX c where c.manyToMany[0].name = 's'").size() == 1);
-  assertTrue(s.find("select c from ContainerX c where 's' = c.oneToMany[2 - 2].name").size() == 1);
-  assertTrue(s.find("select c from ContainerX c where 's' = c.manyToMany[(3+1)/4-1].name").size() == 1);
-  assertTrue(s.find("select c from ContainerX c where c.oneToMany[ c.manyToMany[0].count ].name = 's'").size() == 1);
-  assertTrue(s.find("select c from ContainerX c where c.manyToMany[ c.oneToMany[0].count ].name = 's'").size() == 1);
+  assertTrue(s.createQuery("select c from ContainerX c, Simple s where c.oneToMany[2] = s").list().size() == 1);
+  assertTrue(s.createQuery("select c from ContainerX c, Simple s where c.manyToMany[2] = s").list().size() == 1);
+  assertTrue(s.createQuery("select c from ContainerX c, Simple s where s = c.oneToMany[2]").list().size() == 1);
+  assertTrue(s.createQuery("select c from ContainerX c, Simple s where s = c.manyToMany[2]").list().size() == 1);
+  assertTrue(s.createQuery("select c from ContainerX c where c.oneToMany[0].name = 's'").list().size() == 1);
+  assertTrue(s.createQuery("select c from ContainerX c where c.manyToMany[0].name = 's'").list().size() == 1);
+  assertTrue(s.createQuery("select c from ContainerX c where 's' = c.oneToMany[2 - 2].name").list().size() == 1);
+  assertTrue(s.createQuery("select c from ContainerX c where 's' = c.manyToMany[(3+1)/4-1].name").list().size() == 1);
+  assertTrue(s.createQuery("select c from ContainerX c where c.oneToMany[ c.manyToMany[0].count ].name = 's'").list().size() == 1);
+  assertTrue(s.createQuery("select c from ContainerX c where c.manyToMany[ c.oneToMany[0].count ].name = 's'").list().size() == 1);
   if (!(getDialect() instanceof MySQLDialect) && !(getDialect() instanceof org.hibernate.dialect.TimesTenDialect)) {
-    assertTrue(s.find("select c from ContainerX c where c.manyToMany[ maxindex(c.manyToMany) ].count = 2").size() == 1);
+    assertTrue(s.createQuery("select c from ContainerX c where c.manyToMany[ maxindex(c.manyToMany) ].count = 2").list().size() == 1);
   }
   assertTrue(s.contains(cd));
   if (!(getDialect() instanceof MySQLDialect) && !(getDialect() instanceof HSQLDialect)) {
-    s.filter(c.getBag(),"where 0 in elements(this.bag)");
-    s.filter(c.getBag(),"where 0 in elements(this.lazyBag)");
+    s.createFilter(c.getBag(),"where 0 in elements(this.bag)").list();
+    s.createFilter(c.getBag(),"where 0 in elements(this.lazyBag)").list();
   }
-  s.find("select count(comp.name) from ContainerX c join c.components comp");
+  s.createQuery("select count(comp.name) from ContainerX c join c.components comp").list();
   s.delete(cd);
   s.delete(c);
   s.delete(s1);

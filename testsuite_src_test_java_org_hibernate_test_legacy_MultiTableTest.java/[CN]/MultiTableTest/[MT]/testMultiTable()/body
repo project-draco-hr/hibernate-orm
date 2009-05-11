@@ -48,7 +48,7 @@
   s.close();
   s=openSession();
   t=s.beginTransaction();
-  Iterator iter=s.iterate("select\n\nt from Top t where t.count>0");
+  Iterator iter=s.createQuery("select\n\nt from Top t where t.count>0").iterate();
   boolean foundSimp=false;
   boolean foundMulti=false;
   boolean foundSubMulti=false;
@@ -59,20 +59,20 @@
     if (o instanceof SubMulti)     foundSubMulti=true;
   }
   assertTrue(foundSimp && foundMulti && foundSubMulti);
-  s.find("from Multi m where m.count>0 and m.extraProp is not null");
-  s.find("from Top m where m.count>0 and m.name is not null");
-  s.find("from Lower m where m.other is not null");
-  s.find("from Multi m where m.other.id = 1");
-  s.find("from SubMulti m where m.amount > 0.0");
-  assertTrue(s.find("from Multi").size() == 2);
-  assertTrue(s.find("from Multi m where m.class = SubMulti").size() == 1);
-  assertTrue(s.find("from Top m where m.class = Multi").size() == 1);
-  assertTrue(s.find("from Top").size() == 3);
-  assertTrue(s.find("from Lower").size() == 0);
-  assertTrue(s.find("from SubMulti").size() == 1);
-  s.find("from Lower ls join ls.bag s where s.id is not null");
-  s.find("from Lower ls join ls.set s where s.id is not null");
-  if (!(getDialect() instanceof MySQLDialect))   s.find("from SubMulti sm where exists elements(sm.children)");
+  s.createQuery("from Multi m where m.count>0 and m.extraProp is not null").list();
+  s.createQuery("from Top m where m.count>0 and m.name is not null").list();
+  s.createQuery("from Lower m where m.other is not null").list();
+  s.createQuery("from Multi m where m.other.id = 1").list();
+  s.createQuery("from SubMulti m where m.amount > 0.0").list();
+  assertTrue(s.createQuery("from Multi").list().size() == 2);
+  assertTrue(s.createQuery("from Multi m where m.class = SubMulti").list().size() == 1);
+  assertTrue(s.createQuery("from Top m where m.class = Multi").list().size() == 1);
+  assertTrue(s.createQuery("from Top").list().size() == 3);
+  assertTrue(s.createQuery("from Lower").list().size() == 0);
+  assertTrue(s.createQuery("from SubMulti").list().size() == 1);
+  s.createQuery("from Lower ls join ls.bag s where s.id is not null").list();
+  s.createQuery("from Lower ls join ls.set s where s.id is not null").list();
+  if (!(getDialect() instanceof MySQLDialect))   s.createQuery("from SubMulti sm where exists elements(sm.children)").list();
   List l=s.createCriteria(Top.class).list();
   assertTrue(l.size() == 3);
   assertTrue(s.createCriteria(SubMulti.class).list().size() == 1);
@@ -91,7 +91,7 @@
   t=s.beginTransaction();
   s.update(multi,mid);
   s.delete(multi);
-  assertTrue(s.delete("from Top") == 2);
+  assertEquals(2,doDelete(s,"from Top"));
   t.commit();
   s.close();
 }

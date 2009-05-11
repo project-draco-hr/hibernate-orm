@@ -1,5 +1,7 @@
 {
-  if (getDialect() instanceof DB2Dialect)   return;
+  if (getDialect() instanceof DB2Dialect) {
+    return;
+  }
   Session s=openSession();
   Transaction txn=s.beginTransaction();
   Foo f=new Foo();
@@ -26,9 +28,9 @@
   }
   list=s.createCriteria(Foo.class).setFirstResult(1).addOrder(Order.asc("date")).addOrder(Order.desc("string")).list();
   assertTrue(list.size() == 0);
-  list=s.createCriteria(Foo.class).setFetchMode("component.importantDates",FetchMode.EAGER).list();
+  list=s.createCriteria(Foo.class).setFetchMode("component.importantDates",FetchMode.JOIN).list();
   assertTrue(list.size() == 3);
-  list=s.createCriteria(Foo.class).setFetchMode("component.importantDates",FetchMode.EAGER).setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY).list();
+  list=s.createCriteria(Foo.class).setFetchMode("component.importantDates",FetchMode.JOIN).setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY).list();
   assertTrue(list.size() == 1);
   f.setFoo(new Foo());
   s.save(f.getFoo());
@@ -36,7 +38,7 @@
   s.close();
   s=openSession();
   txn=s.beginTransaction();
-  list=s.createCriteria(Foo.class).add(Restrictions.eq("integer",f.getInteger())).add(Restrictions.like("string",f.getString())).add(Restrictions.in("boolean",new Boolean[]{f.getBoolean(),f.getBoolean()})).add(Restrictions.isNotNull("foo")).setFetchMode("foo",FetchMode.EAGER).setFetchMode("baz",FetchMode.LAZY).setFetchMode("component.glarch",FetchMode.LAZY).setFetchMode("foo.baz",FetchMode.LAZY).setFetchMode("foo.component.glarch",FetchMode.LAZY).list();
+  list=s.createCriteria(Foo.class).add(Restrictions.eq("integer",f.getInteger())).add(Restrictions.like("string",f.getString())).add(Restrictions.in("boolean",new Boolean[]{f.getBoolean(),f.getBoolean()})).add(Restrictions.isNotNull("foo")).setFetchMode("foo",FetchMode.JOIN).setFetchMode("baz",FetchMode.SELECT).setFetchMode("component.glarch",FetchMode.SELECT).setFetchMode("foo.baz",FetchMode.SELECT).setFetchMode("foo.component.glarch",FetchMode.SELECT).list();
   f=(Foo)list.get(0);
   assertTrue(Hibernate.isInitialized(f.getFoo()));
   assertTrue(!Hibernate.isInitialized(f.getComponent().getGlarch()));

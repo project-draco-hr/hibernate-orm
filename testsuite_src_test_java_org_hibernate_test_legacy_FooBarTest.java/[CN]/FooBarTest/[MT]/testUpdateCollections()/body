@@ -1,5 +1,6 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Holder baz=new Holder();
   baz.setName("123");
   Foo f1=new Foo();
@@ -17,8 +18,7 @@
   s.save(f3);
   s.save(o);
   s.save(baz);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   baz.getOnes().set(0,null);
   baz.getOnes().add(o);
@@ -26,11 +26,12 @@
   foos[0]=f3;
   foos[1]=f1;
   s=openSession();
+  s.beginTransaction();
   s.saveOrUpdate(baz);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   Holder h=(Holder)s.load(Holder.class,baz.getId());
   assertTrue(h.getOnes().get(0) == null);
   assertTrue(h.getOnes().get(1) != null);
@@ -38,7 +39,7 @@
   assertTrue(h.getFooArray()[1] != null);
   assertTrue(h.getFooArray()[2] != null);
   assertTrue(h.getFoos().size() == 2);
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   baz.getFoos().remove(f1);
   baz.getFoos().remove(f2);
@@ -46,12 +47,12 @@
   baz.getFooArray()[0]=null;
   baz.getFooArray()[0]=null;
   s=openSession();
+  s.beginTransaction();
   s.saveOrUpdate(baz);
-  s.delete("from Foo");
+  doDelete(s,"from Foo");
   baz.getOnes().remove(o);
-  s.delete("from One");
+  doDelete(s,"from One");
   s.delete(baz);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

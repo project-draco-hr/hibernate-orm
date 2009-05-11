@@ -1,5 +1,6 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Baz b=new Baz();
   List stringList=new ArrayList();
   List feeList=new ArrayList();
@@ -24,8 +25,7 @@
   stringList=b.getStringList();
   assertTrue(stringList.size() == 3 && "baz".equals(stringList.get(1)) && "foo".equals(stringList.get(0)));
   s.delete(b);
-  s.delete("from Fee");
-  s.flush();
-  s.connection().commit();
+  doDelete(s,"from Fee");
+  s.getTransaction().commit();
   s.close();
 }

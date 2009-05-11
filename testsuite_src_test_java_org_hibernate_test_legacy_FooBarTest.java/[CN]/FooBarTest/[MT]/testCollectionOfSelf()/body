@@ -1,5 +1,6 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Bar bar=new Bar();
   s.save(bar);
   bar.setAbstracts(new HashSet());
@@ -8,11 +9,11 @@
   bar.getAbstracts().add(bar2);
   bar.setFoo(bar);
   s.save(bar2);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   bar.setAbstracts(null);
   s=openSession();
+  s.beginTransaction();
   s.load(bar,bar.getKey());
   assertTrue("collection contains self",bar.getAbstracts().size() == 2 && bar.getAbstracts().contains(bar));
   assertTrue("association to self",bar.getFoo() == bar);
@@ -20,7 +21,6 @@
   while (iter.hasNext()) {
     s.delete(iter.next());
   }
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

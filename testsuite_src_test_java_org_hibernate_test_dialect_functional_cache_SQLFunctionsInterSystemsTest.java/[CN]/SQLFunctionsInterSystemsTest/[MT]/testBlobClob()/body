@@ -1,5 +1,6 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Blobber b=new Blobber();
   b.setBlob(Hibernate.createBlob("foo/bar/baz".getBytes()));
   b.setClob(Hibernate.createClob("foo/bar/baz"));
@@ -9,9 +10,10 @@
   log.debug("levinson: just bfore b.getClob()");
   b.getClob().getSubString(2,3);
   s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   b=(Blobber)s.load(Blobber.class,new Integer(b.getId()));
   Blobber b2=new Blobber();
   s.save(b2);
@@ -19,18 +21,20 @@
   b.setBlob(null);
   b.getClob().getSubString(1,6);
   s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   b=(Blobber)s.load(Blobber.class,new Integer(b.getId()));
   b.setClob(Hibernate.createClob("xcvfxvc xcvbx cvbx cvbx cvbxcvbxcvbxcvb"));
   s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   b=(Blobber)s.load(Blobber.class,new Integer(b.getId()));
   assertTrue(b.getClob().getSubString(1,7).equals("xcvfxvc"));
   s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

@@ -19,10 +19,12 @@
   s.close();
   s=openSession();
   t=s.beginTransaction();
-  assertTrue(s.find("from Stuff as s where s.foo.id = ? and s.id.id = ? and s.moreStuff.id.intId = ? and s.moreStuff.id.stringId = ?",new Object[]{bar,new Long(1234),new Integer(12),"id"},new Type[]{Hibernate.entity(Foo.class),Hibernate.LONG,Hibernate.INTEGER,Hibernate.STRING}).size() == 1);
-  assertTrue(s.find("from Stuff as s where s.foo.id = ? and s.id.id = ? and s.moreStuff.name = ?",new Object[]{bar,new Long(1234),"More Stuff"},new Type[]{Hibernate.entity(Foo.class),Hibernate.LONG,Hibernate.STRING}).size() == 1);
-  s.find("from Stuff as s where s.foo.string is not null");
-  assertTrue(s.find("from Stuff as s where s.foo > '0' order by s.foo").size() == 1);
+  List results=s.createQuery("from Stuff as s where s.foo.id = ? and s.id.id = ? and s.moreStuff.id.intId = ? and s.moreStuff.id.stringId = ?").setParameter(0,bar,Hibernate.entity(Foo.class)).setParameter(1,new Long(1234),Hibernate.LONG).setParameter(2,new Integer(12),Hibernate.INTEGER).setParameter(3,"id",Hibernate.STRING).list();
+  assertEquals(1,results.size());
+  results=s.createQuery("from Stuff as s where s.foo.id = ? and s.id.id = ? and s.moreStuff.name = ?").setParameter(0,bar,Hibernate.entity(Foo.class)).setParameter(1,new Long(1234),Hibernate.LONG).setParameter(2,"More Stuff",Hibernate.STRING).list();
+  assertEquals(1,results.size());
+  s.createQuery("from Stuff as s where s.foo.string is not null").list();
+  assertTrue(s.createQuery("from Stuff as s where s.foo > '0' order by s.foo").list().size() == 1);
   t.commit();
   s.close();
   s=openSession();
@@ -40,8 +42,8 @@
   s.load(stuff,stuff);
   assertTrue(stuff.getProperty().equals(TimeZone.getDefault()));
   assertTrue(stuff.getMoreStuff().getName().equals("More Stuff"));
-  s.delete("from MoreStuff");
-  s.delete("from Foo foo");
+  doDelete(s,"from MoreStuff");
+  doDelete(s,"from Foo foo");
   t.commit();
   s.close();
 }

@@ -1,5 +1,6 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Fum fee=new Fum(fumKey("fee",true));
   fee.setFum("fee");
   s.save(fee);
@@ -13,25 +14,26 @@
   Fum fum=new Fum(fumKey("fum",true));
   fum.setFum("fum");
   s.save(fum);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
-  List vList=s.find("from Fum fum where fum.id.string='fo'");
+  s.beginTransaction();
+  List vList=s.createQuery("from Fum fum where fum.id.string='fo'").list();
   assertTrue("find by composite key query (find fo object)",vList.size() == 1);
   fum=(Fum)vList.get(0);
   assertTrue("find by composite key query (check fo object)",fum.getId().getString().equals("fo"));
-  vList=s.find("from Fum fum where fum.id.short = ?",new Short(fiShort),Hibernate.SHORT);
-  assertTrue("find by composite key query (find fi object)",vList.size() == 1);
+  vList=s.createQuery("from Fum fum where fum.id.short = ?").setParameter(0,new Short(fiShort),Hibernate.SHORT).list();
+  assertEquals("find by composite key query (find fi object)",1,vList.size());
   fi=(Fum)vList.get(0);
-  assertTrue("find by composite key query (check fi object)",fi.getId().getString().equals("fi"));
-  assertTrue("find by composite key query with arguments",s.find("from Fum fum where fum.id.date <= ? and not fum.fum='FRIEND'",new Date(),Hibernate.DATE).size() == 4);
-  s.flush();
-  s.connection().commit();
+  assertEquals("find by composite key query (check fi object)","fi",fi.getId().getString());
+  vList=s.createQuery("from Fum fum where fum.id.date <= ? and not fum.fum='FRIEND'").setParameter(0,new Date(),Hibernate.DATE).list();
+  assertEquals("find by composite key query with arguments",4,vList.size());
+  s.getTransaction().commit();
   s.close();
   s=openSession();
-  assertTrue(s.iterate("select fum.id.short, fum.id.date, fum.id.string from Fum fum").hasNext());
-  assertTrue(s.iterate("select fum.id from Fum fum").hasNext());
+  s.beginTransaction();
+  assertTrue(s.createQuery("select fum.id.short, fum.id.date, fum.id.string from Fum fum").iterate().hasNext());
+  assertTrue(s.createQuery("select fum.id from Fum fum").iterate().hasNext());
   Query qu=s.createQuery("select fum.fum, fum , fum.fum, fum.id.date from Fum fum");
   Type[] types=qu.getReturnTypes();
   assertTrue(types.length == 4);
@@ -50,12 +52,12 @@
   }
   assertTrue("iterate on composite key",j == 8);
   fum=(Fum)s.load(Fum.class,fum.getId());
-  s.filter(fum.getQuxArray(),"where this.foo is null");
-  s.filter(fum.getQuxArray(),"where this.foo.id = ?","fooid",Hibernate.STRING);
+  s.createFilter(fum.getQuxArray(),"where this.foo is null").list();
+  s.createFilter(fum.getQuxArray(),"where this.foo.id = ?").setParameter(0,"fooid",Hibernate.STRING).list();
   Query f=s.createFilter(fum.getQuxArray(),"where this.foo.id = :fooId");
   f.setString("fooId","abc");
   assertFalse(f.iterate().hasNext());
-  iter=s.iterate("from Fum fum where not fum.fum='FRIEND'");
+  iter=s.createQuery("from Fum fum where not fum.fum='FRIEND'").iterate();
   int i=0;
   while (iter.hasNext()) {
     fum=(Fum)iter.next();
@@ -64,8 +66,8 @@
   }
   assertTrue("iterate on composite key",i == 4);
   s.flush();
-  s.iterate("from Fum fu, Fum fo where fu.fo.id.string = fo.id.string and fo.fum is not null");
-  s.find("from Fumm f1 inner join f1.fum f2");
-  s.connection().commit();
+  s.createQuery("from Fum fu, Fum fo where fu.fo.id.string = fo.id.string and fo.fum is not null").iterate();
+  s.createQuery("from Fumm f1 inner join f1.fum f2").list();
+  s.getTransaction().commit();
   s.close();
 }

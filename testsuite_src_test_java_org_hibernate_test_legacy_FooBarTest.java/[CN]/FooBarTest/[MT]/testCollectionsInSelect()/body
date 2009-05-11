@@ -13,69 +13,70 @@
   Bar bar=new Bar();
   bar.setBaz(baz);
   s.save(bar);
-  List list=s.find("select new Result(foo.string, foo.long, foo.integer) from Foo foo");
+  List list=s.createQuery("select new Result(foo.string, foo.long, foo.integer) from Foo foo").list();
   assertTrue(list.size() == 2 && (list.get(0) instanceof Result) && (list.get(1) instanceof Result));
-  list=s.find("select new Result( baz.name, max(foo.long), count(foo) ) from Baz baz join baz.fooArray foo group by baz.name");
+  list=s.createQuery("select new Result( baz.name, max(foo.long), count(foo) ) from Baz baz join baz.fooArray foo group by baz.name").list();
   assertTrue(list.size() == 1 && (list.get(0) instanceof Result));
   Result r=((Result)list.get(0));
   assertEquals(r.getName(),baz.getName());
   assertEquals(r.getCount(),1);
   assertTrue(r.getAmount() > 696969696969696000l);
   if (!(getDialect() instanceof MySQLDialect) && !(getDialect() instanceof HSQLDialect) && !(getDialect() instanceof SAPDBDialect)&& !(getDialect() instanceof PointbaseDialect)) {
-    s.find("select count(*) from Baz as baz where 1 in indices(baz.fooArray)");
-    s.find("select count(*) from Bar as bar where 'abc' in elements(bar.baz.fooArray)");
-    s.find("select count(*) from Bar as bar where 1 in indices(bar.baz.fooArray)");
+    s.createQuery("select count(*) from Baz as baz where 1 in indices(baz.fooArray)").list();
+    s.createQuery("select count(*) from Bar as bar where 'abc' in elements(bar.baz.fooArray)").list();
+    s.createQuery("select count(*) from Bar as bar where 1 in indices(bar.baz.fooArray)").list();
     if (!(getDialect() instanceof DB2Dialect) && !(getDialect() instanceof Oracle8iDialect) && !(getDialect() instanceof SybaseDialect)&& !(getDialect() instanceof Sybase11Dialect)&& !(getDialect() instanceof SybaseASE15Dialect)) {
-      s.find("select count(*) from Bar as bar, bar.component.glarch.proxyArray as g where g.id in indices(bar.baz.fooArray)");
-      s.find("select max( elements(bar.baz.fooArray) ) from Bar as bar, bar.component.glarch.proxyArray as g where g.id in indices(bar.baz.fooArray)");
+      s.createQuery("select count(*) from Bar as bar, bar.component.glarch.proxyArray as g where g.id in indices(bar.baz.fooArray)").list();
+      s.createQuery("select max( elements(bar.baz.fooArray) ) from Bar as bar, bar.component.glarch.proxyArray as g where g.id in indices(bar.baz.fooArray)").list();
     }
-    s.find("select count(*) from Bar as bar where '1' in (from bar.component.glarch.proxyArray g where g.name='foo')");
-    s.find("select count(*) from Bar as bar where '1' in (from bar.component.glarch.proxyArray g where g.name='foo')");
-    s.find("select count(*) from Bar as bar left outer join bar.component.glarch.proxyArray as pg where '1' in (from bar.component.glarch.proxyArray)");
+    s.createQuery("select count(*) from Bar as bar where '1' in (from bar.component.glarch.proxyArray g where g.name='foo')").list();
+    s.createQuery("select count(*) from Bar as bar where '1' in (from bar.component.glarch.proxyArray g where g.name='foo')").list();
+    s.createQuery("select count(*) from Bar as bar left outer join bar.component.glarch.proxyArray as pg where '1' in (from bar.component.glarch.proxyArray)").list();
   }
-  list=s.find("from Baz baz left join baz.fooToGlarch join fetch baz.fooArray foo left join fetch foo.foo");
+  list=s.createQuery("from Baz baz left join baz.fooToGlarch join fetch baz.fooArray foo left join fetch foo.foo").list();
   assertTrue(list.size() == 1 && ((Object[])list.get(0)).length == 2);
-  s.find("select baz.name from Bar bar inner join bar.baz baz inner join baz.fooSet foo where baz.name = bar.string");
-  s.find("SELECT baz.name FROM Bar AS bar INNER JOIN bar.baz AS baz INNER JOIN baz.fooSet AS foo WHERE baz.name = bar.string");
-  if (!(getDialect() instanceof HSQLDialect))   s.find("select baz.name from Bar bar join bar.baz baz left outer join baz.fooSet foo where baz.name = bar.string");
-  s.find("select baz.name from Bar bar join bar.baz baz join baz.fooSet foo where baz.name = bar.string");
-  s.find("SELECT baz.name FROM Bar AS bar JOIN bar.baz AS baz JOIN baz.fooSet AS foo WHERE baz.name = bar.string");
+  s.createQuery("select baz.name from Bar bar inner join bar.baz baz inner join baz.fooSet foo where baz.name = bar.string").list();
+  s.createQuery("SELECT baz.name FROM Bar AS bar INNER JOIN bar.baz AS baz INNER JOIN baz.fooSet AS foo WHERE baz.name = bar.string").list();
+  if (!(getDialect() instanceof HSQLDialect))   s.createQuery("select baz.name from Bar bar join bar.baz baz left outer join baz.fooSet foo where baz.name = bar.string").list();
+  s.createQuery("select baz.name from Bar bar join bar.baz baz join baz.fooSet foo where baz.name = bar.string").list();
+  s.createQuery("SELECT baz.name FROM Bar AS bar JOIN bar.baz AS baz JOIN baz.fooSet AS foo WHERE baz.name = bar.string").list();
   if (!(getDialect() instanceof HSQLDialect)) {
-    s.find("select baz.name from Bar bar left join bar.baz baz left join baz.fooSet foo where baz.name = bar.string");
-    s.find("select foo.string from Bar bar left join bar.baz.fooSet foo where bar.string = foo.string");
+    s.createQuery("select baz.name from Bar bar left join bar.baz baz left join baz.fooSet foo where baz.name = bar.string").list();
+    s.createQuery("select foo.string from Bar bar left join bar.baz.fooSet foo where bar.string = foo.string").list();
   }
-  s.find("select baz.name from Bar bar left join bar.baz baz left join baz.fooArray foo where baz.name = bar.string");
-  s.find("select foo.string from Bar bar left join bar.baz.fooArray foo where bar.string = foo.string");
-  s.find("select bar.string, foo.string from Bar bar inner join bar.baz as baz inner join baz.fooSet as foo where baz.name = 'name'");
-  s.find("select foo from Bar bar inner join bar.baz as baz inner join baz.fooSet as foo");
-  s.find("select foo from Bar bar inner join bar.baz.fooSet as foo");
-  s.find("select bar.string, foo.string from Bar bar join bar.baz as baz join baz.fooSet as foo where baz.name = 'name'");
-  s.find("select foo from Bar bar join bar.baz as baz join baz.fooSet as foo");
-  s.find("select foo from Bar bar join bar.baz.fooSet as foo");
-  assertTrue(s.find("from Bar bar join bar.baz.fooArray foo").size() == 1);
-  assertTrue(s.find("from Bar bar join bar.baz.fooSet foo").size() == 0);
-  assertTrue(s.find("from Bar bar join bar.baz.fooArray foo").size() == 1);
+  s.createQuery("select baz.name from Bar bar left join bar.baz baz left join baz.fooArray foo where baz.name = bar.string").list();
+  s.createQuery("select foo.string from Bar bar left join bar.baz.fooArray foo where bar.string = foo.string").list();
+  s.createQuery("select bar.string, foo.string from Bar bar inner join bar.baz as baz inner join baz.fooSet as foo where baz.name = 'name'").list();
+  s.createQuery("select foo from Bar bar inner join bar.baz as baz inner join baz.fooSet as foo").list();
+  s.createQuery("select foo from Bar bar inner join bar.baz.fooSet as foo").list();
+  s.createQuery("select bar.string, foo.string from Bar bar join bar.baz as baz join baz.fooSet as foo where baz.name = 'name'").list();
+  s.createQuery("select foo from Bar bar join bar.baz as baz join baz.fooSet as foo").list();
+  s.createQuery("select foo from Bar bar join bar.baz.fooSet as foo").list();
+  assertTrue(s.createQuery("from Bar bar join bar.baz.fooArray foo").list().size() == 1);
+  assertTrue(s.createQuery("from Bar bar join bar.baz.fooSet foo").list().size() == 0);
+  assertTrue(s.createQuery("from Bar bar join bar.baz.fooArray foo").list().size() == 1);
   s.delete(bar);
   if (getDialect() instanceof DB2Dialect || getDialect() instanceof PostgreSQLDialect) {
-    s.iterate("select one from One one join one.manies many group by one order by count(many)");
-    s.iterate("select one from One one join one.manies many group by one having count(many) < 5");
+    s.createQuery("select one from One one join one.manies many group by one order by count(many)").iterate();
+    s.createQuery("select one from One one join one.manies many group by one having count(many) < 5").iterate();
   }
-  s.find("from One one join one.manies many where one.id = 1 and many.id = 1");
-  s.iterate("select one.id, elements(one.manies) from One one");
-  s.iterate("select max( elements(one.manies) ) from One one");
-  s.find("select one, elements(one.manies) from One one");
-  Iterator iter=s.iterate("select elements(baz.fooArray) from Baz baz where baz.id=?",baz.getCode(),Hibernate.STRING);
+  s.createQuery("from One one join one.manies many where one.id = 1 and many.id = 1").list();
+  s.createQuery("select one.id, elements(one.manies) from One one").iterate();
+  s.createQuery("select max( elements(one.manies) ) from One one").iterate();
+  s.createQuery("select one, elements(one.manies) from One one").list();
+  Iterator iter=s.createQuery("select elements(baz.fooArray) from Baz baz where baz.id=?").setParameter(0,baz.getCode(),Hibernate.STRING).iterate();
   assertTrue(iter.next() == foos[1] && !iter.hasNext());
-  list=s.find("select elements(baz.fooArray) from Baz baz where baz.id=?",baz.getCode(),Hibernate.STRING);
-  assertTrue(list.size() == 1);
-  iter=s.iterate("select indices(baz.fooArray) from Baz baz where baz.id=?",baz.getCode(),Hibernate.STRING);
+  list=s.createQuery("select elements(baz.fooArray) from Baz baz where baz.id=?").setParameter(0,baz.getCode(),Hibernate.STRING).list();
+  assertEquals(1,list.size());
+  iter=s.createQuery("select indices(baz.fooArray) from Baz baz where baz.id=?").setParameter(0,baz.getCode(),Hibernate.STRING).iterate();
   assertTrue(iter.next().equals(new Integer(1)) && !iter.hasNext());
-  assertTrue(s.iterate("select size(baz.stringSet) from Baz baz where baz.id=?",baz.getCode(),Hibernate.STRING).next().equals(new Integer(3)));
-  s.find("from Foo foo where foo.component.glarch.id is not null");
-  iter=s.iterate("select baz, size(baz.stringSet), count( distinct elements(baz.stringSet) ), max( elements(baz.stringSet) ) from Baz baz group by baz");
+  iter=s.createQuery("select size(baz.stringSet) from Baz baz where baz.id=?").setParameter(0,baz.getCode(),Hibernate.STRING).iterate();
+  assertEquals(new Integer(3),iter.next());
+  s.createQuery("from Foo foo where foo.component.glarch.id is not null").list();
+  iter=s.createQuery("select baz, size(baz.stringSet), count( distinct elements(baz.stringSet) ), max( elements(baz.stringSet) ) from Baz baz group by baz").iterate();
   while (iter.hasNext()) {
     Object[] arr=(Object[])iter.next();
-    System.out.println(arr[0] + " " + arr[1]+ " "+ arr[2]+ " "+ arr[3]);
+    log.info(arr[0] + " " + arr[1]+ " "+ arr[2]+ " "+ arr[3]);
   }
   s.delete(baz);
   s.delete(baz2);

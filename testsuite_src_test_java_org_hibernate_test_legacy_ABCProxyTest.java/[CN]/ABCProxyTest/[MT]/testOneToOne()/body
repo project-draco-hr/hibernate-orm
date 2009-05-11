@@ -17,13 +17,13 @@
   t=s.beginTransaction();
   List l=s.find("from E e, A a where e.reverse = a.forward and a = ?",a,Hibernate.entity(A.class));
   assertTrue(l.size() == 1);
-  l=s.find("from E e join fetch e.reverse");
+  l=s.createQuery("from E e join fetch e.reverse").list();
   assertTrue(l.size() == 2);
   t.commit();
   s.close();
   s=openSession();
   t=s.beginTransaction();
-  l=s.find("from E e");
+  l=s.createQuery("from E e").list();
   assertTrue(l.size() == 2);
   E e=(E)l.get(0);
   assertTrue(e == e.getReverse().getForward());
@@ -44,7 +44,7 @@
   t.commit();
   s=openSession();
   t=s.beginTransaction();
-  l=s.find("from E e");
+  l=s.createQuery("from E e").list();
   assertTrue(l.size() == 0);
   t.commit();
   s.close();

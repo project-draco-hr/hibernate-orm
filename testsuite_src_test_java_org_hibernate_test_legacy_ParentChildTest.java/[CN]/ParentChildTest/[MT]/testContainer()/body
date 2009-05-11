@@ -49,7 +49,7 @@
   t=s.beginTransaction();
   Long count=(Long)s.createQuery("select count(*) from ContainerX as c join c.components as ce join ce.simple as s where ce.name='foo'").uniqueResult();
   assertTrue(count.intValue() == 1);
-  List res=s.find("select c, s from ContainerX as c join c.components as ce join ce.simple as s where ce.name='foo'");
+  List res=s.createQuery("select c, s from ContainerX as c join c.components as ce join ce.simple as s where ce.name='foo'").list();
   assertTrue(res.size() == 1);
   t.commit();
   s.close();
@@ -123,9 +123,9 @@
   c.getManyToMany().clear();
   c.getComposites().clear();
   c.getComponents().clear();
-  s.delete("from Simple");
-  s.delete("from Many");
-  s.delete("from One");
+  doDelete(s,"from Simple");
+  doDelete(s,"from Many");
+  doDelete(s,"from One");
   t.commit();
   s.close();
   s=openSession();

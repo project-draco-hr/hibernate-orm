@@ -1,14 +1,14 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Qux q=new Qux();
   s.save(q);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   q=(Qux)s.load(Qux.class,q.getKey());
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   System.out.println("Two exceptions are supposed to occur:");
   boolean ok=false;
@@ -28,9 +28,9 @@
   }
   assertTrue("lazy collection with many-to-many",ok);
   s=openSession();
+  s.beginTransaction();
   q=(Qux)s.load(Qux.class,q.getKey());
   s.delete(q);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

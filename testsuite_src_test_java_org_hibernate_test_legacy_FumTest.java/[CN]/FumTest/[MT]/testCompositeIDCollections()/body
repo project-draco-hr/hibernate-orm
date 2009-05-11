@@ -1,5 +1,6 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Fum fum1=new Fum(fumKey("fum1"));
   Fum fum2=new Fum(fumKey("fum2"));
   fum1.setFum("fee fo fi");
@@ -16,10 +17,10 @@
   q.setFums(set);
   q.setMoreFums(list);
   fum1.setQuxArray(new Qux[]{q});
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   q=(Qux)s.load(Qux.class,q.getKey());
   assertTrue("collection of fums",q.getFums().size() == 2);
   assertTrue("collection of fums",q.getMoreFums().size() == 1);
@@ -32,7 +33,6 @@
   f=(Fum)iter.next();
   s.delete(f);
   s.delete(q);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

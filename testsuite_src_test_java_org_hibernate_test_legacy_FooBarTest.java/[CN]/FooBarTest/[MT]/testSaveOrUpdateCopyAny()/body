@@ -1,5 +1,6 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Bar bar=new Bar();
   One one=new One();
   bar.setObject(one);
@@ -9,13 +10,14 @@
   s.delete(g);
   s.flush();
   assertTrue(s.contains(one));
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   Bar bar2=(Bar)s.saveOrUpdateCopy(bar);
   s.flush();
   s.delete(bar2);
   s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

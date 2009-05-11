@@ -1,5 +1,6 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Foo foo=new Foo();
   foo.setJoinedProp("foo");
   s.save(foo);
@@ -8,17 +9,16 @@
   s.flush();
   String fid=foo.getKey();
   s.delete(foo);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   Foo foo2=new Foo();
   foo2.setJoinedProp("foo");
   s.save(foo2);
-  s.find("select foo.id from Foo foo where foo.joinedProp = 'foo'");
+  s.createQuery("select foo.id from Foo foo where foo.joinedProp = 'foo'").list();
   assertNull(s.get(Foo.class,fid));
   s.delete(foo2);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

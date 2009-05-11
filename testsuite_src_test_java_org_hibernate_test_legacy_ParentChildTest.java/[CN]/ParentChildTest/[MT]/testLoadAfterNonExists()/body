@@ -10,6 +10,7 @@
  catch (  ObjectNotFoundException onfe) {
   }
   Session anotherSession=getSessions().openSession();
+  anotherSession.beginTransaction();
   Simple myNewSimple=new Simple();
   myNewSimple.setName("My under the radar Simple entity");
   myNewSimple.setAddress("SessionCacheTest.testLoadAfterNonExists");
@@ -17,18 +18,16 @@
   myNewSimple.setDate(new Date());
   myNewSimple.setPay(new Float(100000000));
   anotherSession.save(myNewSimple,new Long(-1));
-  anotherSession.flush();
-  anotherSession.connection().commit();
+  anotherSession.getTransaction().commit();
   anotherSession.close();
-  session.load(Simple.class,new Long(-1));
   session.clear();
   try {
-    Simple dummy=(Simple)session.load(Simple.class,new Long(-1));
+    Simple dummy=(Simple)session.get(Simple.class,new Long(-1));
     assertNotNull("Unable to locate entity Simple with id = -1",dummy);
   }
  catch (  ObjectNotFoundException onfe) {
     fail("Unable to locate entity Simple with id = -1");
   }
-  session.connection().commit();
+  session.getTransaction().commit();
   session.close();
 }

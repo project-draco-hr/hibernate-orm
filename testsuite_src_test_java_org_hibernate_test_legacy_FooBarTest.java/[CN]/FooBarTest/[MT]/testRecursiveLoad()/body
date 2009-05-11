@@ -11,25 +11,25 @@
     last=next;
     last.setOrder((short)(i + 1));
   }
-  Iterator iter=s.iterate("from Glarch g");
+  Iterator iter=s.createQuery("from Glarch g").iterate();
   while (iter.hasNext()) {
     iter.next();
   }
-  List list=s.find("from Glarch g");
+  List list=s.createQuery("from Glarch g").list();
   assertTrue("recursive find",list.size() == 6);
   txn.commit();
   s.close();
   s=openSession();
   txn=s.beginTransaction();
-  list=s.find("from Glarch g");
+  list=s.createQuery("from Glarch g").list();
   assertTrue("recursive iter",list.size() == 6);
-  list=s.find("from Glarch g where g.next is not null");
+  list=s.createQuery("from Glarch g where g.next is not null").list();
   assertTrue("recursive iter",list.size() == 5);
   txn.commit();
   s.close();
   s=openSession();
   txn=s.beginTransaction();
-  iter=s.iterate("from Glarch g order by g.order asc");
+  iter=s.createQuery("from Glarch g order by g.order asc").iterate();
   while (iter.hasNext()) {
     GlarchProxy g=(GlarchProxy)iter.next();
     assertTrue("not null",g != null);
@@ -49,17 +49,17 @@
     flast=flast.getFoo();
     flast.setString("foo" + (i + 1));
   }
-  iter=s.iterate("from Foo foo");
+  iter=s.createQuery("from Foo foo").iterate();
   while (iter.hasNext()) {
     iter.next();
   }
-  list=s.find("from Foo foo");
+  list=s.createQuery("from Foo foo").list();
   assertTrue("recursive find",list.size() == 6);
   txn.commit();
   s.close();
   s=openSession();
   txn=s.beginTransaction();
-  list=s.find("from Foo foo");
+  list=s.createQuery("from Foo foo").list();
   assertTrue("recursive iter",list.size() == 6);
   iter=list.iterator();
   while (iter.hasNext()) {
@@ -69,7 +69,7 @@
   s.close();
   s=openSession();
   txn=s.beginTransaction();
-  iter=s.iterate("from Foo foo order by foo.string asc");
+  iter=s.createQuery("from Foo foo order by foo.string asc").iterate();
   while (iter.hasNext()) {
     BarProxy bar=(BarProxy)iter.next();
     assertTrue("not null",bar != null);

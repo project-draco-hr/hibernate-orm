@@ -15,14 +15,14 @@
   fum2.setFum("fee fo fi");
   fum.setFo(fum2);
   s.save(fum2);
-  assertTrue("find composite keyed objects",s.find("from Fum fum where not fum.fum='FRIEND'").size() == 2);
-  assertTrue("find composite keyed object",s.find("select fum from Fum fum where fum.fum='fee fi fo'").get(0) == fum);
+  assertTrue("find composite keyed objects",s.createQuery("from Fum fum where not fum.fum='FRIEND'").list().size() == 2);
+  assertTrue("find composite keyed object",s.createQuery("select fum from Fum fum where fum.fum='fee fi fo'").list().get(0) == fum);
   fum.setFo(null);
   txn.commit();
   s.close();
   s=openSession();
   txn=s.beginTransaction();
-  Iterator iter=s.iterate("from Fum fum where not fum.fum='FRIEND'");
+  Iterator iter=s.createQuery("from Fum fum where not fum.fum='FRIEND'").iterate();
   int i=0;
   while (iter.hasNext()) {
     fum=(Fum)iter.next();

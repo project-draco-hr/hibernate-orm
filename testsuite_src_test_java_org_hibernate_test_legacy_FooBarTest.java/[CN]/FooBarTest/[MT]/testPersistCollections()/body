@@ -1,9 +1,9 @@
 {
   Session s=openSession();
   Transaction txn=s.beginTransaction();
-  assertTrue(((Long)s.iterate("select count(*) from Bar").next()).longValue() == 0);
-  assertTrue(s.iterate("select count(*) from Bar b").next().equals(new Long(0)));
-  assertFalse(s.iterate("from Glarch g").hasNext());
+  assertEquals(0,((Long)s.createQuery("select count(*) from Bar").iterate().next()).longValue());
+  assertTrue(s.createQuery("select count(*) from Bar b").iterate().next().equals(new Long(0)));
+  assertFalse(s.createQuery("from Glarch g").iterate().hasNext());
   Baz baz=new Baz();
   s.save(baz);
   baz.setDefaults();
@@ -19,8 +19,8 @@
   s.close();
   s=openSession();
   txn=s.beginTransaction();
-  assertTrue(((Long)s.iterate("select count(*) from Bar").next()).longValue() == 1);
-  baz=(Baz)((Object[])s.find("select baz, baz from Baz baz").get(0))[1];
+  assertTrue(((Long)s.createQuery("select count(*) from Bar").iterate().next()).longValue() == 1);
+  baz=(Baz)((Object[])s.createQuery("select baz, baz from Baz baz").list().get(0))[1];
   assertTrue(baz.getCascadingBars().size() == 1);
   Foo foo=new Foo();
   s.save(foo);
@@ -36,21 +36,21 @@
   baz.getTimeArray()[2]=time;
   assertTrue(baz.getStringGlarchMap().size() == 1);
   if (!(getDialect() instanceof MySQLDialect) && !(getDialect() instanceof HSQLDialect) && !(getDialect() instanceof PointbaseDialect)) {
-    List list=s.find("select foo from Foo foo, Baz baz where foo in elements(baz.fooArray) and 3 = some elements(baz.intArray) and 4 > all indices(baz.intArray)");
+    List list=s.createQuery("select foo from Foo foo, Baz baz where foo in elements(baz.fooArray) and 3 = some elements(baz.intArray) and 4 > all indices(baz.intArray)").list();
     assertTrue("collection.elements find",list.size() == 2);
   }
   if (!(getDialect() instanceof SAPDBDialect)) {
-    List list=s.find("select distinct foo from Baz baz join baz.fooArray foo");
+    List list=s.createQuery("select distinct foo from Baz baz join baz.fooArray foo").list();
     assertTrue("collection.elements find",list.size() == 2);
   }
-  List list=s.find("select foo from Baz baz join baz.fooSet foo");
+  List list=s.createQuery("select foo from Baz baz join baz.fooSet foo").list();
   assertTrue("association.elements find",list.size() == 1);
   txn.commit();
   s.close();
   s=openSession();
   txn=s.beginTransaction();
-  assertTrue(((Long)s.iterate("select count(*) from Bar").next()).longValue() == 1);
-  baz=(Baz)s.find("select baz from Baz baz order by baz").get(0);
+  assertTrue(((Long)s.createQuery("select count(*) from Bar").iterate().next()).longValue() == 1);
+  baz=(Baz)s.createQuery("select baz from Baz baz order by baz").list().get(0);
   assertTrue("collection of custom types - added element",baz.getCustoms().size() == 4 && baz.getCustoms().get(0) != null);
   assertTrue("component of component in collection",baz.getComponents()[1].getSubcomponent() != null);
   assertTrue(baz.getComponents()[1].getBaz() == baz);
@@ -67,7 +67,7 @@
   s.close();
   s=openSession();
   txn=s.beginTransaction();
-  baz=(Baz)s.find("select baz from Baz baz order by baz").get(0);
+  baz=(Baz)s.createQuery("select baz from Baz baz order by baz").list().get(0);
   assertTrue(baz.getStringSet().size() == 2);
   assertTrue(baz.getStringSet().first().equals("one"));
   assertTrue(baz.getStringSet().last().equals("two"));
@@ -78,7 +78,7 @@
   s.close();
   s=openSession();
   txn=s.beginTransaction();
-  assertTrue(((Long)s.iterate("select count(*) from Bar").next()).longValue() == 1);
+  assertTrue(((Long)s.createQuery("select count(*) from Bar").iterate().next()).longValue() == 1);
   baz=(Baz)s.load(Baz.class,baz.getCode());
   assertTrue(baz.getCascadingBars().size() == 1);
   Bar bar=new Bar();
@@ -108,12 +108,12 @@
   s.close();
   s=openSession();
   txn=s.beginTransaction();
-  baz=(Baz)s.find("select baz from Baz baz order by baz").get(0);
+  baz=(Baz)s.createQuery("select baz from Baz baz order by baz").list().get(0);
   assertTrue(baz.getCascadingBars().size() == 1);
   Session s2=openSession();
   Transaction txn2=s2.beginTransaction();
-  assertTrue(((Long)s2.iterate("select count(*) from Bar").next()).longValue() == 3);
-  Baz baz2=(Baz)s2.find("select baz from Baz baz order by baz").get(0);
+  assertTrue(((Long)s2.createQuery("select count(*) from Bar").iterate().next()).longValue() == 3);
+  Baz baz2=(Baz)s2.createQuery("select baz from Baz baz order by baz").list().get(0);
   Object o=baz2.getFooComponentToFoo().get(new FooComponent("name",123,null,null));
   assertTrue(o == baz2.getFooComponentToFoo().get(new FooComponent("nameName",12,null,null)) && o != null);
   txn2.commit();
@@ -147,8 +147,8 @@
   s.close();
   s=openSession();
   txn=s.beginTransaction();
-  assertTrue(((Long)s.iterate("select count(*) from Bar").next()).longValue() == 3);
-  baz=(Baz)s.find("select baz from Baz baz order by baz").get(0);
+  assertTrue(((Long)s.createQuery("select count(*) from Bar").iterate().next()).longValue() == 3);
+  baz=(Baz)s.createQuery("select baz from Baz baz order by baz").list().get(0);
   assertTrue(baz.getTopGlarchez().size() == 2);
   assertTrue(baz.getCascadingBars().size() == 1);
   txn.commit();
@@ -158,20 +158,20 @@
   s2.reconnect();
   txn2=s2.beginTransaction();
   baz=(Baz)s2.load(Baz.class,baz.getCode());
-  assertTrue(((Long)s2.iterate("select count(*) from Bar").next()).longValue() == 3);
+  assertTrue(((Long)s2.createQuery("select count(*) from Bar").iterate().next()).longValue() == 3);
   s2.delete(baz);
   s2.delete(baz.getTopGlarchez().get(new Character('G')));
   s2.delete(baz.getTopGlarchez().get(new Character('H')));
   int rows=s2.connection().createStatement().executeUpdate("update " + getDialect().openQuote() + "glarchez"+ getDialect().closeQuote()+ " set baz_map_id=null where baz_map_index='a'");
   assertTrue(rows == 1);
-  assertTrue(s2.delete("from Bar bar") == 2);
+  assertEquals(2,doDelete(s2,"from Bar bar"));
   FooProxy[] arr=baz.getFooArray();
   assertTrue("new array of objects",arr.length == 4 && arr[1].getKey().equals(foo.getKey()));
   for (int i=1; i < arr.length; i++) {
     if (arr[i] != null)     s2.delete(arr[i]);
   }
   s2.load(Qux.class,new Long(666));
-  assertTrue(s2.delete("from Glarch g") == 1);
+  assertEquals(1,doDelete(s2,"from Glarch g"));
   txn2.commit();
   s2.disconnect();
   Session s3=(Session)SerializationHelper.deserialize(SerializationHelper.serialize(s2));

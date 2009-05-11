@@ -1,10 +1,11 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Serializable id=s.save(new Baz());
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   Baz baz=(Baz)s.load(Baz.class,id);
   Set foos=baz.getFooSet();
   assertTrue(foos.size() == 0);
@@ -14,7 +15,6 @@
   s.flush();
   s.delete(foo);
   s.delete(baz);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

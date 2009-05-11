@@ -1,42 +1,43 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Serializable fid=null;
   try {
     Foo f=new Foo();
     s.save(f);
     fid=s.getIdentifier(f);
-    s.flush();
-    s.connection().commit();
+    s.getTransaction().commit();
   }
  catch (  Exception e) {
-    s.connection().rollback();
+    s.getTransaction().rollback();
     throw e;
   }
  finally {
     s.close();
   }
   s=openSession();
+  s.beginTransaction();
   try {
     Foo f=new Foo();
     s.delete(f);
-    s.flush();
-    s.connection().commit();
+    s.getTransaction().commit();
   }
  catch (  Exception e) {
-    s.connection().rollback();
+    s.getTransaction().rollback();
   }
  finally {
     s.close();
   }
   s=openSession();
+  s.beginTransaction();
   try {
     Foo f=(Foo)s.load(Foo.class,fid,LockMode.UPGRADE);
     s.delete(f);
     s.flush();
-    s.connection().commit();
+    s.getTransaction().commit();
   }
  catch (  Exception e) {
-    s.connection().rollback();
+    s.getTransaction().rollback();
     throw e;
   }
  finally {

@@ -1,7 +1,7 @@
 {
   Session s=openSession();
   Transaction t=s.beginTransaction();
-  Iterator iter=s.iterate("select max(s.count) from Simple s");
+  Iterator iter=s.createQuery("select max(s.count) from Simple s").iterate();
   if (getDialect() instanceof MySQLDialect)   assertTrue(iter.hasNext() && iter.next() == null);
   Simple simple=new Simple();
   simple.setName("Simple Dialect Function Test");
@@ -9,27 +9,27 @@
   simple.setPay(new Float(45.8));
   simple.setCount(2);
   s.save(simple,new Long(10));
-  assertTrue(s.find("select new org.hibernate.test.legacy.S(s.count, s.address) from Simple s").size() == 1);
-  assertTrue(s.find("select max(s.count) from Simple s").size() == 1);
-  assertTrue(s.find("select count(*) from Simple s").size() == 1);
+  assertTrue(s.createQuery("select new org.hibernate.test.legacy.S(s.count, s.address) from Simple s").list().size() == 1);
+  assertTrue(s.createQuery("select max(s.count) from Simple s").list().size() == 1);
+  assertTrue(s.createQuery("select count(*) from Simple s").list().size() == 1);
   if (getDialect() instanceof Cache71Dialect) {
-    java.util.List rset=s.find("select s.name, sysdate, floor(s.pay), round(s.pay,0) from Simple s");
+    List rset=s.createQuery("select s.name, sysdate, floor(s.pay), round(s.pay,0) from Simple s").list();
     assertNotNull("Name string should have been returned",(((Object[])rset.get(0))[0]));
     assertNotNull("Todays Date should have been returned",(((Object[])rset.get(0))[1]));
     assertEquals("floor(45.8) result was incorrect ",new Integer(45),((Object[])rset.get(0))[2]);
     assertEquals("round(45.8) result was incorrect ",new Float(46),((Object[])rset.get(0))[3]);
     simple.setPay(new Float(-45.8));
     s.update(simple);
-    rset=s.find("select abs(round(s.pay,0)) from Simple s");
+    rset=s.createQuery("select abs(round(s.pay,0)) from Simple s").list();
     assertEquals("abs(round(-45.8)) result was incorrect ",new Float(46),rset.get(0));
-    assertTrue(s.find("select floor(round(sysdate,1)) from Simple s").size() == 1);
+    assertTrue(s.createQuery("select floor(round(sysdate,1)) from Simple s").list().size() == 1);
     simple.setPay(null);
     s.update(simple);
     Double value=(Double)s.createQuery("select mod( nvl(s.pay, 5000), 2 ) from Simple as s where s.id = 10").list().get(0);
     assertTrue(0 == value.intValue());
   }
   if ((getDialect() instanceof Cache71Dialect)) {
-    Double value=(Double)s.find("select MOD(s.count, 2) from Simple as s where s.id = 10").get(0);
+    Double value=(Double)s.createQuery("select MOD(s.count, 2) from Simple as s where s.id = 10").list().get(0);
     assertTrue(0 == value.intValue());
   }
   s.delete(simple);

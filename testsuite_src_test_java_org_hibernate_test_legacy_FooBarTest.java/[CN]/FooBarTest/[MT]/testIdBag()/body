@@ -1,5 +1,6 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Baz baz=new Baz();
   s.save(baz);
   List l=new ArrayList();
@@ -18,10 +19,10 @@
   s.flush();
   s.delete(l.remove(3));
   bytes[1]='o';
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   baz=(Baz)s.load(Baz.class,baz.getCode());
   assertTrue(baz.getIdFooBag().size() == 3);
   assertTrue(baz.getByteBag().size() == 3);
@@ -32,10 +33,10 @@
   baz.getByteBag().add(bytes);
   baz.getByteBag().add(bytes);
   assertTrue(baz.getByteBag().size() == 5);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   baz=(Baz)s.load(Baz.class,baz.getCode());
   assertTrue(baz.getIdFooBag().size() == 0);
   assertTrue(baz.getByteBag().size() == 5);
@@ -43,15 +44,14 @@
   iter=baz.getByteBag().iterator();
   iter.next();
   iter.remove();
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   baz=(Baz)s.load(Baz.class,baz.getCode());
   assertTrue(baz.getIdFooBag().size() == 1);
   assertTrue(baz.getByteBag().size() == 4);
   s.delete(baz);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

@@ -1,5 +1,6 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Fo fo=Fo.newFo();
   Properties props=new Properties();
   props.setProperty("foo","bar");
@@ -9,23 +10,23 @@
   s.save(fo,fumKey("an instance of fo"));
   s.flush();
   props.setProperty("x","y");
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   fo=(Fo)s.load(Fo.class,fumKey("an instance of fo"));
   props=(Properties)fo.getSerial();
   assertTrue(props.getProperty("foo").equals("bar"));
   assertTrue(props.getProperty("x").equals("y"));
   assertTrue(fo.getBuf()[0] == 'a');
   fo.getBuf()[1]=(byte)126;
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   fo=(Fo)s.load(Fo.class,fumKey("an instance of fo"));
   assertTrue(fo.getBuf()[1] == 126);
-  assertTrue(s.iterate("from Fo fo where fo.id.string like 'an instance of fo'").next() == fo);
+  assertTrue(s.createQuery("from Fo fo where fo.id.string like 'an instance of fo'").iterate().next() == fo);
   s.delete(fo);
   s.flush();
   try {
@@ -34,6 +35,6 @@
   }
  catch (  Exception e) {
   }
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

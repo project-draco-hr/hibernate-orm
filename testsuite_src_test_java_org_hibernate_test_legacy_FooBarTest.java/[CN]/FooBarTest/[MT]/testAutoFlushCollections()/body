@@ -10,40 +10,40 @@
   tx=s.beginTransaction();
   baz=(Baz)s.load(Baz.class,baz.getCode());
   baz.getStringArray()[0]="bark";
-  Iterator i=s.iterate("select elements(baz.stringArray) from Baz baz");
+  Iterator i=s.createQuery("select elements(baz.stringArray) from Baz baz").iterate();
   boolean found=false;
   while (i.hasNext()) {
     if ("bark".equals(i.next()))     found=true;
   }
   assertTrue(found);
   baz.setStringArray(null);
-  i=s.iterate("select distinct elements(baz.stringArray) from Baz baz");
+  i=s.createQuery("select distinct elements(baz.stringArray) from Baz baz").iterate();
   assertTrue(!i.hasNext());
   baz.setStringArray(new String[]{"foo","bar"});
-  i=s.iterate("select elements(baz.stringArray) from Baz baz");
+  i=s.createQuery("select elements(baz.stringArray) from Baz baz").iterate();
   assertTrue(i.hasNext());
   Foo foo=new Foo();
   s.save(foo);
   s.flush();
   baz.setFooArray(new Foo[]{foo});
-  i=s.iterate("select foo from Baz baz join baz.fooArray foo");
+  i=s.createQuery("select foo from Baz baz join baz.fooArray foo").iterate();
   found=false;
   while (i.hasNext()) {
     if (foo == i.next())     found=true;
   }
   assertTrue(found);
   baz.getFooArray()[0]=null;
-  i=s.iterate("select foo from Baz baz join baz.fooArray foo");
+  i=s.createQuery("select foo from Baz baz join baz.fooArray foo").iterate();
   assertTrue(!i.hasNext());
   baz.getFooArray()[0]=foo;
-  i=s.iterate("select elements(baz.fooArray) from Baz baz");
+  i=s.createQuery("select elements(baz.fooArray) from Baz baz").iterate();
   assertTrue(i.hasNext());
   if (!(getDialect() instanceof MySQLDialect) && !(getDialect() instanceof HSQLDialect) && !(getDialect() instanceof InterbaseDialect)&& !(getDialect() instanceof PointbaseDialect)&& !(getDialect() instanceof SAPDBDialect)) {
     baz.getFooArray()[0]=null;
-    i=s.iterate("from Baz baz where ? in elements(baz.fooArray)",foo,Hibernate.entity(Foo.class));
+    i=s.createQuery("from Baz baz where ? in elements(baz.fooArray)").setParameter(0,foo,Hibernate.entity(Foo.class)).iterate();
     assertTrue(!i.hasNext());
     baz.getFooArray()[0]=foo;
-    i=s.iterate("select foo from Foo foo where foo in " + "(select elt from Baz baz join baz.fooArray elt)");
+    i=s.createQuery("select foo from Foo foo where foo in (select elt from Baz baz join baz.fooArray elt)").iterate();
     assertTrue(i.hasNext());
   }
   s.delete(foo);

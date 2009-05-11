@@ -1,5 +1,6 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Baz baz=new Baz();
   s.save(baz);
   Foo foo=new Foo();
@@ -13,12 +14,11 @@
     list.add(fee);
   }
   baz.setFees(list);
-  list=s.find("from Foo foo, Baz baz left join fetch baz.fees");
+  list=s.createQuery("from Foo foo, Baz baz left join fetch baz.fees").list();
   assertTrue(Hibernate.isInitialized(((Baz)((Object[])list.get(0))[1]).getFees()));
   s.delete(foo);
   s.delete(foo2);
   s.delete(baz);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

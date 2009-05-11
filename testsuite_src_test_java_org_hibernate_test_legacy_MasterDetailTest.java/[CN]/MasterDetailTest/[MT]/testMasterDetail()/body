@@ -15,7 +15,7 @@
   master.addDetail(d1);
   master.addDetail(d2);
   if (!(getDialect() instanceof MySQLDialect) && !(getDialect() instanceof SAPDBDialect) && !(getDialect() instanceof MckoiDialect)&& !(getDialect() instanceof org.hibernate.dialect.TimesTenDialect)) {
-    assertTrue("query",s.find("from Detail d, Master m where m = d.master and size(m.outgoing) = 0 and size(m.incoming) = 0").size() == 2);
+    assertTrue("query",s.createQuery("from Detail d, Master m where m = d.master and size(m.outgoing) = 0 and size(m.incoming) = 0").list().size() == 2);
   }
   t.commit();
   s.close();
@@ -41,16 +41,16 @@
   s.close();
   s=openSession();
   t=s.beginTransaction();
-  assertTrue(s.find("select elements(master.details) from Master master").size() == 2);
+  assertTrue(s.createQuery("select elements(master.details) from Master master").list().size() == 2);
   t.commit();
   s.close();
   s=openSession();
   t=s.beginTransaction();
-  List list=s.find("from Master m left join fetch m.details");
+  List list=s.createQuery("from Master m left join fetch m.details").list();
   Master m=(Master)list.get(0);
   assertTrue(Hibernate.isInitialized(m.getDetails()));
   assertTrue(m.getDetails().size() == 2);
-  list=s.find("from Detail d inner join fetch d.master");
+  list=s.createQuery("from Detail d inner join fetch d.master").list();
   Detail dt=(Detail)list.get(0);
   Serializable dtid=s.getIdentifier(dt);
   assertTrue(dt.getMaster() == m);
@@ -58,7 +58,7 @@
   s.close();
   s=openSession();
   t=s.beginTransaction();
-  list=s.find("select m from Master m1, Master m left join fetch m.details where m.name=m1.name");
+  list=s.createQuery("select m from Master m1, Master m left join fetch m.details where m.name=m1.name").list();
   assertTrue(Hibernate.isInitialized(((Master)list.get(0)).getDetails()));
   dt=(Detail)s.load(Detail.class,dtid);
   assertTrue(((Master)list.get(0)).getDetails().contains(dt));
@@ -66,7 +66,7 @@
   s.close();
   s=openSession();
   t=s.beginTransaction();
-  list=s.find("select m, m1.name from Master m1, Master m left join fetch m.details where m.name=m1.name");
+  list=s.createQuery("select m, m1.name from Master m1, Master m left join fetch m.details where m.name=m1.name").list();
   assertTrue(Hibernate.isInitialized(((Master)((Object[])list.get(0))[0]).getDetails()));
   dt=(Detail)s.load(Detail.class,dtid);
   assertTrue(((Master)((Object[])list.get(0))[0]).getDetails().contains(dt));
@@ -77,8 +77,8 @@
   Detail dd=(Detail)s.load(Detail.class,did);
   master=dd.getMaster();
   assertTrue("detail-master",master.getDetails().contains(dd));
-  assertTrue(s.filter(master.getDetails(),"order by this.i desc").size() == 2);
-  assertTrue(s.filter(master.getDetails(),"select this where this.id > -1").size() == 2);
+  assertTrue(s.createFilter(master.getDetails(),"order by this.i desc").list().size() == 2);
+  assertTrue(s.createFilter(master.getDetails(),"select this where this.id > -1").list().size() == 2);
   Query q=s.createFilter(master.getDetails(),"where this.id > :id");
   q.setInteger("id",-1);
   assertTrue(q.list().size() == 2);
@@ -95,16 +95,16 @@
   q.setParameterList("ids",list);
   assertTrue(q.list().size() == 1);
   assertTrue(q.iterate().hasNext());
-  assertTrue(s.filter(master.getDetails(),"where this.id > -1").size() == 2);
-  assertTrue(s.filter(master.getDetails(),"select this.master where this.id > -1").size() == 2);
-  assertTrue(s.filter(master.getDetails(),"select m from Master m where this.id > -1 and this.master=m").size() == 2);
-  assertTrue(s.filter(master.getIncoming(),"where this.id > -1 and this.name is not null").size() == 0);
+  assertTrue(s.createFilter(master.getDetails(),"where this.id > -1").list().size() == 2);
+  assertTrue(s.createFilter(master.getDetails(),"select this.master where this.id > -1").list().size() == 2);
+  assertTrue(s.createFilter(master.getDetails(),"select m from Master m where this.id > -1 and this.master=m").list().size() == 2);
+  assertTrue(s.createFilter(master.getIncoming(),"where this.id > -1 and this.name is not null").list().size() == 0);
   assertTrue(s.createFilter(master.getDetails(),"select max(this.i)").iterate().next() instanceof Integer);
   assertTrue(s.createFilter(master.getDetails(),"select max(this.i) group by this.id").iterate().next() instanceof Integer);
   assertTrue(s.createFilter(master.getDetails(),"select count(*)").iterate().next() instanceof Long);
   assertTrue(s.createFilter(master.getDetails(),"select this.master").list().size() == 2);
-  assertTrue(s.filter(master.getMoreDetails(),"").size() == 0);
-  assertTrue(s.filter(master.getIncoming(),"").size() == 0);
+  assertTrue(s.createFilter(master.getMoreDetails(),"").list().size() == 0);
+  assertTrue(s.createFilter(master.getIncoming(),"").list().size() == 0);
   Query f=s.createFilter(master.getDetails(),"select max(this.i) where this.i < :top and this.i>=:bottom");
   f.setInteger("top",100);
   f.setInteger("bottom",0);

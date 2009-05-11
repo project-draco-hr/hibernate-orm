@@ -6,102 +6,102 @@
   Foo foo2=new Foo();
   s.save(foo2);
   foo.setFoo(foo2);
-  List list=s.find("from Foo foo inner join fetch foo.foo");
+  List list=s.createQuery("from Foo foo inner join fetch foo.foo").list();
   Foo foof=(Foo)list.get(0);
   assertTrue(Hibernate.isInitialized(foof.getFoo()));
-  list=s.find("from Baz baz left outer join fetch baz.fooToGlarch");
-  list=s.find("select foo, bar from Foo foo left outer join foo.foo bar where foo = ?",foo,Hibernate.entity(Foo.class));
+  s.createQuery("from Baz baz left outer join fetch baz.fooToGlarch").list();
+  list=s.createQuery("select foo, bar from Foo foo left outer join foo.foo bar where foo = ?").setParameter(0,foo,Hibernate.entity(Foo.class)).list();
   Object[] row1=(Object[])list.get(0);
   assertTrue(row1[0] == foo && row1[1] == foo2);
-  s.find("select foo.foo.foo.string from Foo foo where foo.foo = 'bar'");
-  s.find("select foo.foo.foo.foo.string from Foo foo where foo.foo = 'bar'");
-  s.find("select foo from Foo foo where foo.foo.foo = 'bar'");
-  s.find("select foo.foo.foo.foo.string from Foo foo where foo.foo.foo = 'bar'");
-  s.find("select foo.foo.foo.string from Foo foo where foo.foo.foo.foo.string = 'bar'");
-  if (!(getDialect() instanceof HSQLDialect))   s.find("select foo.string from Foo foo where foo.foo.foo.foo = foo.foo.foo");
-  s.find("select foo.string from Foo foo where foo.foo.foo = 'bar' and foo.foo.foo.foo = 'baz'");
-  s.find("select foo.string from Foo foo where foo.foo.foo.foo.string = 'a' and foo.foo.string = 'b'");
-  s.find("from Bar bar, foo in elements(bar.baz.fooArray)");
+  s.createQuery("select foo.foo.foo.string from Foo foo where foo.foo = 'bar'").list();
+  s.createQuery("select foo.foo.foo.foo.string from Foo foo where foo.foo = 'bar'").list();
+  s.createQuery("select foo from Foo foo where foo.foo.foo = 'bar'").list();
+  s.createQuery("select foo.foo.foo.foo.string from Foo foo where foo.foo.foo = 'bar'").list();
+  s.createQuery("select foo.foo.foo.string from Foo foo where foo.foo.foo.foo.string = 'bar'").list();
+  if (!(getDialect() instanceof HSQLDialect))   s.createQuery("select foo.string from Foo foo where foo.foo.foo.foo = foo.foo.foo").list();
+  s.createQuery("select foo.string from Foo foo where foo.foo.foo = 'bar' and foo.foo.foo.foo = 'baz'").list();
+  s.createQuery("select foo.string from Foo foo where foo.foo.foo.foo.string = 'a' and foo.foo.string = 'b'").list();
+  s.createQuery("from Bar bar, foo in elements(bar.baz.fooArray)").list();
   if ((getDialect() instanceof DB2Dialect) && !(getDialect() instanceof DerbyDialect)) {
-    s.find("from Foo foo where lower( foo.foo.string ) = 'foo'");
-    s.find("from Foo foo where lower( (foo.foo.string || 'foo') || 'bar' ) = 'foo'");
-    s.find("from Foo foo where repeat( (foo.foo.string || 'foo') || 'bar', 2 ) = 'foo'");
-    s.find("from Bar foo where foo.foo.integer is not null and repeat( (foo.foo.string || 'foo') || 'bar', (5+5)/2 ) = 'foo'");
-    s.find("from Bar foo where foo.foo.integer is not null or repeat( (foo.foo.string || 'foo') || 'bar', (5+5)/2 ) = 'foo'");
+    s.createQuery("from Foo foo where lower( foo.foo.string ) = 'foo'").list();
+    s.createQuery("from Foo foo where lower( (foo.foo.string || 'foo') || 'bar' ) = 'foo'").list();
+    s.createQuery("from Foo foo where repeat( (foo.foo.string || 'foo') || 'bar', 2 ) = 'foo'").list();
+    s.createQuery("from Bar foo where foo.foo.integer is not null and repeat( (foo.foo.string || 'foo') || 'bar', (5+5)/2 ) = 'foo'").list();
+    s.createQuery("from Bar foo where foo.foo.integer is not null or repeat( (foo.foo.string || 'foo') || 'bar', (5+5)/2 ) = 'foo'").list();
   }
   if (getDialect() instanceof SybaseDialect) {
-    s.iterate("select baz from Baz as baz join baz.fooArray foo group by baz order by sum(foo.float)");
+    s.createQuery("select baz from Baz as baz join baz.fooArray foo group by baz order by sum(foo.float)").iterate();
   }
-  s.find("from Foo as foo where foo.component.glarch.name is not null");
-  s.find("from Foo as foo left outer join foo.component.glarch as glarch where glarch.name = 'foo'");
-  list=s.find("from Foo");
+  s.createQuery("from Foo as foo where foo.component.glarch.name is not null").list();
+  s.createQuery("from Foo as foo left outer join foo.component.glarch as glarch where glarch.name = 'foo'").list();
+  list=s.createQuery("from Foo").list();
   assertTrue(list.size() == 2 && list.get(0) instanceof FooProxy);
-  list=s.find("from Foo foo left outer join foo.foo");
+  list=s.createQuery("from Foo foo left outer join foo.foo").list();
   assertTrue(list.size() == 2 && ((Object[])list.get(0))[0] instanceof FooProxy);
   s.createQuery("from Bar, Bar").list();
   s.createQuery("from Foo, Bar").list();
-  s.find("from Baz baz left join baz.fooToGlarch, Bar bar join bar.foo");
-  s.find("from Baz baz left join baz.fooToGlarch join baz.fooSet");
-  s.find("from Baz baz left join baz.fooToGlarch join fetch baz.fooSet foo left join fetch foo.foo");
-  list=s.find("from Foo foo where foo.string='osama bin laden' and foo.boolean = true order by foo.string asc, foo.component.count desc");
+  s.createQuery("from Baz baz left join baz.fooToGlarch, Bar bar join bar.foo").list();
+  s.createQuery("from Baz baz left join baz.fooToGlarch join baz.fooSet").list();
+  s.createQuery("from Baz baz left join baz.fooToGlarch join fetch baz.fooSet foo left join fetch foo.foo").list();
+  list=s.createQuery("from Foo foo where foo.string='osama bin laden' and foo.boolean = true order by foo.string asc, foo.component.count desc").list();
   assertTrue("empty query",list.size() == 0);
-  Iterator iter=s.iterate("from Foo foo where foo.string='osama bin laden' order by foo.string asc, foo.component.count desc");
+  Iterator iter=s.createQuery("from Foo foo where foo.string='osama bin laden' order by foo.string asc, foo.component.count desc").iterate();
   assertTrue("empty iterator",!iter.hasNext());
-  list=s.find("select foo.foo from Foo foo");
+  list=s.createQuery("select foo.foo from Foo foo").list();
   assertTrue("query",list.size() == 1);
   assertTrue("returned object",list.get(0) == foo.getFoo());
   foo.getFoo().setFoo(foo);
   foo.setString("fizard");
   if (!(getDialect() instanceof MySQLDialect) && !(getDialect() instanceof HSQLDialect) && !(getDialect() instanceof MckoiDialect)&& !(getDialect() instanceof SAPDBDialect)&& !(getDialect() instanceof PointbaseDialect)&& !(getDialect() instanceof DerbyDialect)) {
     if (!(getDialect() instanceof InterbaseDialect)) {
-      list=s.find("from Foo foo where ? = some elements(foo.component.importantDates)",new Date(),Hibernate.DATE);
+      list=s.createQuery("from Foo foo where ? = some elements(foo.component.importantDates)").setParameter(0,new Date(),Hibernate.DATE).list();
       assertTrue("component query",list.size() == 2);
     }
     if (!(getDialect() instanceof TimesTenDialect)) {
-      list=s.find("from Foo foo where size(foo.component.importantDates) = 3");
+      list=s.createQuery("from Foo foo where size(foo.component.importantDates) = 3").list();
       assertTrue("component query",list.size() == 2);
-      list=s.find("from Foo foo where 0 = size(foo.component.importantDates)");
+      list=s.createQuery("from Foo foo where 0 = size(foo.component.importantDates)").list();
       assertTrue("component query",list.size() == 0);
     }
-    list=s.find("from Foo foo where exists elements(foo.component.importantDates)");
+    list=s.createQuery("from Foo foo where exists elements(foo.component.importantDates)").list();
     assertTrue("component query",list.size() == 2);
-    s.find("from Foo foo where not exists (from Bar bar where bar.id = foo.id)");
-    s.find("select foo.foo from Foo foo where foo = some(select x from Foo x where x.long > foo.foo.long)");
-    s.find("select foo.foo from Foo foo where foo = some(from Foo x where (x.long > foo.foo.long))");
+    s.createQuery("from Foo foo where not exists (from Bar bar where bar.id = foo.id)").list();
+    s.createQuery("select foo.foo from Foo foo where foo = some(select x from Foo x where x.long > foo.foo.long)").list();
+    s.createQuery("select foo.foo from Foo foo where foo = some(from Foo x where (x.long > foo.foo.long))").list();
     if (!(getDialect() instanceof TimesTenDialect)) {
-      s.find("select foo.foo from Foo foo where foo.long = some( select max(x.long) from Foo x where (x.long > foo.foo.long) group by x.foo )");
+      s.createQuery("select foo.foo from Foo foo where foo.long = some( select max(x.long) from Foo x where (x.long > foo.foo.long) group by x.foo )").list();
     }
-    s.find("from Foo foo where foo = some(select x from Foo x where x.long > foo.foo.long) and foo.foo.string='baz'");
-    s.find("from Foo foo where foo.foo.string='baz' and foo = some(select x from Foo x where x.long > foo.foo.long)");
-    s.find("from Foo foo where foo = some(select x from Foo x where x.long > foo.foo.long)");
-    s.iterate("select foo.string, foo.date, foo.foo.string, foo.id from Foo foo, Baz baz where foo in elements(baz.fooArray) and foo.string like 'foo'");
+    s.createQuery("from Foo foo where foo = some(select x from Foo x where x.long > foo.foo.long) and foo.foo.string='baz'").list();
+    s.createQuery("from Foo foo where foo.foo.string='baz' and foo = some(select x from Foo x where x.long > foo.foo.long)").list();
+    s.createQuery("from Foo foo where foo = some(select x from Foo x where x.long > foo.foo.long)").list();
+    s.createQuery("select foo.string, foo.date, foo.foo.string, foo.id from Foo foo, Baz baz where foo in elements(baz.fooArray) and foo.string like 'foo'").iterate();
   }
-  list=s.find("from Foo foo where foo.component.count is null order by foo.component.count");
+  list=s.createQuery("from Foo foo where foo.component.count is null order by foo.component.count").list();
   assertTrue("component query",list.size() == 0);
-  list=s.find("from Foo foo where foo.component.name='foo'");
+  list=s.createQuery("from Foo foo where foo.component.name='foo'").list();
   assertTrue("component query",list.size() == 2);
-  list=s.find("select distinct foo.component.name, foo.component.name from Foo foo where foo.component.name='foo'");
+  list=s.createQuery("select distinct foo.component.name, foo.component.name from Foo foo where foo.component.name='foo'").list();
   assertTrue("component query",list.size() == 1);
-  list=s.find("select distinct foo.component.name, foo.id from Foo foo where foo.component.name='foo'");
+  list=s.createQuery("select distinct foo.component.name, foo.id from Foo foo where foo.component.name='foo'").list();
   assertTrue("component query",list.size() == 2);
-  list=s.find("select foo.foo from Foo foo");
+  list=s.createQuery("select foo.foo from Foo foo").list();
   assertTrue("query",list.size() == 2);
-  list=s.find("from Foo foo where foo.id=?",foo.getKey(),Hibernate.STRING);
+  list=s.createQuery("from Foo foo where foo.id=?").setParameter(0,foo.getKey(),Hibernate.STRING).list();
   assertTrue("id query",list.size() == 1);
-  list=s.find("from Foo foo where foo.key=?",foo.getKey(),Hibernate.STRING);
+  list=s.createQuery("from Foo foo where foo.key=?").setParameter(0,foo.getKey(),Hibernate.STRING).list();
   assertTrue("named id query",list.size() == 1);
   assertTrue("id query",list.get(0) == foo);
-  list=s.find("select foo.foo from Foo foo where foo.string='fizard'");
+  list=s.createQuery("select foo.foo from Foo foo where foo.string='fizard'").list();
   assertTrue("query",list.size() == 1);
   assertTrue("returned object",list.get(0) == foo.getFoo());
-  list=s.find("from Foo foo where foo.component.subcomponent.name='bar'");
+  list=s.createQuery("from Foo foo where foo.component.subcomponent.name='bar'").list();
   assertTrue("components of components",list.size() == 2);
-  list=s.find("select foo.foo from Foo foo where foo.foo.id=?",foo.getFoo().getKey(),Hibernate.STRING);
+  list=s.createQuery("select foo.foo from Foo foo where foo.foo.id=?").setParameter(0,foo.getFoo().getKey(),Hibernate.STRING).list();
   assertTrue("by id query",list.size() == 1);
   assertTrue("by id returned object",list.get(0) == foo.getFoo());
-  s.find("from Foo foo where foo.foo = ?",foo.getFoo(),Hibernate.entity(Foo.class));
-  assertTrue(!s.iterate("from Bar bar where bar.string='a string' or bar.string='a string'").hasNext());
-  iter=s.iterate("select foo.component.name, elements(foo.component.importantDates) from Foo foo where foo.foo.id=?",foo.getFoo().getKey(),Hibernate.STRING);
+  s.createQuery("from Foo foo where foo.foo = ?").setParameter(0,foo.getFoo(),Hibernate.entity(Foo.class)).list();
+  assertTrue(!s.createQuery("from Bar bar where bar.string='a string' or bar.string='a string'").iterate().hasNext());
+  iter=s.createQuery("select foo.component.name, elements(foo.component.importantDates) from Foo foo where foo.foo.id=?").setParameter(0,foo.getFoo().getKey(),Hibernate.STRING).iterate();
   int i=0;
   while (iter.hasNext()) {
     i++;
@@ -109,17 +109,17 @@
     assertTrue(row[0] instanceof String && (row[1] == null || row[1] instanceof Date));
   }
   assertTrue(i == 3);
-  iter=s.iterate("select max( elements(foo.component.importantDates) ) from Foo foo group by foo.id");
+  iter=s.createQuery("select max( elements(foo.component.importantDates) ) from Foo foo group by foo.id").iterate();
   assertTrue(iter.next() instanceof Date);
-  list=s.find("select foo.foo.foo.foo from Foo foo, Foo foo2 where" + " foo = foo2.foo and not not ( not foo.string='fizard' )" + " and foo2.string between 'a' and (foo.foo.string)"+ ((getDialect() instanceof HSQLDialect || getDialect() instanceof InterbaseDialect || getDialect() instanceof TimesTenDialect) ? " and ( foo2.string in ( 'fiz', 'blah') or 1=1 )" : " and ( foo2.string in ( 'fiz', 'blah', foo.foo.string, foo.string, foo2.string ) )"));
+  list=s.createQuery("select foo.foo.foo.foo from Foo foo, Foo foo2 where" + " foo = foo2.foo and not not ( not foo.string='fizard' )" + " and foo2.string between 'a' and (foo.foo.string)"+ ((getDialect() instanceof HSQLDialect || getDialect() instanceof InterbaseDialect || getDialect() instanceof TimesTenDialect) ? " and ( foo2.string in ( 'fiz', 'blah') or 1=1 )" : " and ( foo2.string in ( 'fiz', 'blah', foo.foo.string, foo.string, foo2.string ) )")).list();
   assertTrue("complex query",list.size() == 1);
   assertTrue("returned object",list.get(0) == foo);
   foo.setString("from BoogieDown  -tinsel town  =!@#$^&*())");
-  list=s.find("from Foo foo where foo.string='from BoogieDown  -tinsel town  =!@#$^&*())'");
+  list=s.createQuery("from Foo foo where foo.string='from BoogieDown  -tinsel town  =!@#$^&*())'").list();
   assertTrue("single quotes",list.size() == 1);
-  list=s.find("from Foo foo where not foo.string='foo''bar'");
+  list=s.createQuery("from Foo foo where not foo.string='foo''bar'").list();
   assertTrue("single quotes",list.size() == 2);
-  list=s.find("from Foo foo where foo.component.glarch.next is null");
+  list=s.createQuery("from Foo foo where foo.component.glarch.next is null").list();
   assertTrue("query association in component",list.size() == 2);
   Bar bar=new Bar();
   Baz baz=new Baz();
@@ -130,39 +130,39 @@
   baz.getManyToAny().add(foo);
   s.save(bar);
   s.save(baz);
-  list=s.find(" from Bar bar where bar.baz.count=667 and bar.baz.count!=123 and not bar.baz.name='1-E-1'");
+  list=s.createQuery(" from Bar bar where bar.baz.count=667 and bar.baz.count!=123 and not bar.baz.name='1-E-1'").list();
   assertTrue("query many-to-one",list.size() == 1);
-  list=s.find(" from Bar i where i.baz.name='Bazza'");
+  list=s.createQuery(" from Bar i where i.baz.name='Bazza'").list();
   assertTrue("query many-to-one",list.size() == 1);
-  Iterator rs=s.iterate("select count(distinct foo.foo) from Foo foo");
+  Iterator rs=s.createQuery("select count(distinct foo.foo) from Foo foo").iterate();
   assertTrue("count",((Long)rs.next()).longValue() == 2);
   assertTrue(!rs.hasNext());
-  rs=s.iterate("select count(foo.foo.boolean) from Foo foo");
+  rs=s.createQuery("select count(foo.foo.boolean) from Foo foo").iterate();
   assertTrue("count",((Long)rs.next()).longValue() == 2);
   assertTrue(!rs.hasNext());
-  rs=s.iterate("select count(*), foo.int from Foo foo group by foo.int");
+  rs=s.createQuery("select count(*), foo.int from Foo foo group by foo.int").iterate();
   assertTrue("count(*) group by",((Object[])rs.next())[0].equals(new Long(3)));
   assertTrue(!rs.hasNext());
-  rs=s.iterate("select sum(foo.foo.int) from Foo foo");
+  rs=s.createQuery("select sum(foo.foo.int) from Foo foo").iterate();
   assertTrue("sum",((Long)rs.next()).longValue() == 4);
   assertTrue(!rs.hasNext());
-  rs=s.iterate("select count(foo) from Foo foo where foo.id=?",foo.getKey(),Hibernate.STRING);
+  rs=s.createQuery("select count(foo) from Foo foo where foo.id=?").setParameter(0,foo.getKey(),Hibernate.STRING).iterate();
   assertTrue("id query count",((Long)rs.next()).longValue() == 1);
   assertTrue(!rs.hasNext());
-  list=s.find("from Foo foo where foo.boolean = ?",new Boolean(true),Hibernate.BOOLEAN);
-  list=s.find("select new Foo(fo.x) from Fo fo");
-  list=s.find("select new Foo(fo.integer) from Foo fo");
+  s.createQuery("from Foo foo where foo.boolean = ?").setParameter(0,new Boolean(true),Hibernate.BOOLEAN).list();
+  s.createQuery("select new Foo(fo.x) from Fo fo").list();
+  s.createQuery("select new Foo(fo.integer) from Foo fo").list();
   list=s.createQuery("select new Foo(fo.x) from Foo fo").setCacheable(true).list();
   assertTrue(list.size() == 3);
   list=s.createQuery("select new Foo(fo.x) from Foo fo").setCacheable(true).list();
   assertTrue(list.size() == 3);
-  rs=s.iterate("select new Foo(fo.x) from Foo fo");
+  rs=s.createQuery("select new Foo(fo.x) from Foo fo").iterate();
   assertTrue("projection iterate (results)",rs.hasNext());
   assertTrue("projection iterate (return check)",Foo.class.isAssignableFrom(rs.next().getClass()));
   ScrollableResults sr=s.createQuery("select new Foo(fo.x) from Foo fo").scroll();
   assertTrue("projection scroll (results)",sr.next());
   assertTrue("projection scroll (return check)",Foo.class.isAssignableFrom(sr.get(0).getClass()));
-  list=s.find("select foo.long, foo.component.name, foo, foo.foo from Foo foo");
+  list=s.createQuery("select foo.long, foo.component.name, foo, foo.foo from Foo foo").list();
   rs=list.iterator();
   int count=0;
   while (rs.hasNext()) {
@@ -174,7 +174,7 @@
     assertTrue(row[3] instanceof Foo);
   }
   assertTrue(count != 0);
-  list=s.find("select avg(foo.float), max(foo.component.name), count(distinct foo.id) from Foo foo");
+  list=s.createQuery("select avg(foo.float), max(foo.component.name), count(distinct foo.id) from Foo foo").list();
   rs=list.iterator();
   count=0;
   while (rs.hasNext()) {
@@ -185,7 +185,7 @@
     assertTrue(row[2] instanceof Long);
   }
   assertTrue(count != 0);
-  list=s.find("select foo.long, foo.component, foo, foo.foo from Foo foo");
+  list=s.createQuery("select foo.long, foo.component, foo, foo.foo from Foo foo").list();
   rs=list.iterator();
   count=0;
   while (rs.hasNext()) {
@@ -199,15 +199,15 @@
   assertTrue(count != 0);
   s.save(new Holder("ice T"));
   s.save(new Holder("ice cube"));
-  assertTrue(s.find("from java.lang.Object as o").size() == 15);
-  assertTrue(s.find("from Named").size() == 7);
-  assertTrue(s.find("from Named n where n.name is not null").size() == 4);
-  iter=s.iterate("from Named n");
+  assertTrue(s.createQuery("from java.lang.Object as o").list().size() == 15);
+  assertTrue(s.createQuery("from Named").list().size() == 7);
+  assertTrue(s.createQuery("from Named n where n.name is not null").list().size() == 4);
+  iter=s.createQuery("from Named n").iterate();
   while (iter.hasNext()) {
     assertTrue(iter.next() instanceof Named);
   }
   s.save(new Holder("bar"));
-  iter=s.iterate("from Named n0, Named n1 where n0.name = n1.name");
+  iter=s.createQuery("from Named n0, Named n1 where n0.name = n1.name").iterate();
   int cnt=0;
   while (iter.hasNext()) {
     Object[] row=(Object[])iter.next();
@@ -215,48 +215,48 @@
   }
   if (!(getDialect() instanceof HSQLDialect)) {
     assertTrue(cnt == 2);
-    assertTrue(s.find("from Named n0, Named n1 where n0.name = n1.name").size() == 7);
+    assertTrue(s.createQuery("from Named n0, Named n1 where n0.name = n1.name").list().size() == 7);
   }
   Query qu=s.createQuery("from Named n where n.name = :name");
   qu.getReturnTypes();
   qu.getNamedParameters();
-  iter=s.iterate("from java.lang.Object");
+  iter=s.createQuery("from java.lang.Object").iterate();
   int c=0;
   while (iter.hasNext()) {
     iter.next();
     c++;
   }
   assertTrue(c == 16);
-  s.iterate("select baz.code, min(baz.count) from Baz baz group by baz.code");
-  iter=s.iterate("selecT baz from Baz baz where baz.stringDateMap['foo'] is not null or baz.stringDateMap['bar'] = ?",new Date(),Hibernate.DATE);
+  s.createQuery("select baz.code, min(baz.count) from Baz baz group by baz.code").iterate();
+  iter=s.createQuery("selecT baz from Baz baz where baz.stringDateMap['foo'] is not null or baz.stringDateMap['bar'] = ?").setParameter(0,new Date(),Hibernate.DATE).iterate();
   assertFalse(iter.hasNext());
-  list=s.find("select baz from Baz baz where baz.stringDateMap['now'] is not null");
+  list=s.createQuery("select baz from Baz baz where baz.stringDateMap['now'] is not null").list();
   assertTrue(list.size() == 1);
-  list=s.find("select baz from Baz baz where baz.stringDateMap['now'] is not null and baz.stringDateMap['big bang'] < baz.stringDateMap['now']");
+  list=s.createQuery("select baz from Baz baz where baz.stringDateMap['now'] is not null and baz.stringDateMap['big bang'] < baz.stringDateMap['now']").list();
   assertTrue(list.size() == 1);
-  list=s.find("select index(date) from Baz baz join baz.stringDateMap date");
+  list=s.createQuery("select index(date) from Baz baz join baz.stringDateMap date").list();
   System.out.println(list);
   assertTrue(list.size() == 2);
-  s.find("from Foo foo where foo.integer not between 1 and 5 and foo.string not in ('cde', 'abc') and foo.string is not null and foo.integer<=3");
-  s.find("from Baz baz inner join baz.collectionComponent.nested.foos foo where foo.string is null");
+  s.createQuery("from Foo foo where foo.integer not between 1 and 5 and foo.string not in ('cde', 'abc') and foo.string is not null and foo.integer<=3").list();
+  s.createQuery("from Baz baz inner join baz.collectionComponent.nested.foos foo where foo.string is null").list();
   if (!(getDialect() instanceof MySQLDialect) && !(getDialect() instanceof MckoiDialect) && !(getDialect() instanceof SAPDBDialect)&& !(getDialect() instanceof PointbaseDialect)) {
-    s.find("from Baz baz inner join baz.fooSet where '1' in (from baz.fooSet foo where foo.string is not null)");
-    s.find("from Baz baz where 'a' in elements(baz.collectionComponent.nested.foos) and 1.0 in elements(baz.collectionComponent.nested.floats)");
-    s.find("from Baz baz where 'b' in elements(baz.collectionComponent.nested.foos) and 1.0 in elements(baz.collectionComponent.nested.floats)");
+    s.createQuery("from Baz baz inner join baz.fooSet where '1' in (from baz.fooSet foo where foo.string is not null)").list();
+    s.createQuery("from Baz baz where 'a' in elements(baz.collectionComponent.nested.foos) and 1.0 in elements(baz.collectionComponent.nested.floats)").list();
+    s.createQuery("from Baz baz where 'b' in elements(baz.collectionComponent.nested.foos) and 1.0 in elements(baz.collectionComponent.nested.floats)").list();
   }
-  s.find("from Foo foo join foo.foo where foo.foo in ('1','2','3')");
-  if (!(getDialect() instanceof HSQLDialect))   s.find("from Foo foo left join foo.foo where foo.foo in ('1','2','3')");
-  s.find("select foo.foo from Foo foo where foo.foo in ('1','2','3')");
-  s.find("select foo.foo.string from Foo foo where foo.foo in ('1','2','3')");
-  s.find("select foo.foo.string from Foo foo where foo.foo.string in ('1','2','3')");
-  s.find("select foo.foo.long from Foo foo where foo.foo.string in ('1','2','3')");
-  s.find("select count(*) from Foo foo where foo.foo.string in ('1','2','3') or foo.foo.long in (1,2,3)");
-  s.find("select count(*) from Foo foo where foo.foo.string in ('1','2','3') group by foo.foo.long");
-  s.find("from Foo foo1 left join foo1.foo foo2 left join foo2.foo where foo1.string is not null");
-  s.find("from Foo foo1 left join foo1.foo.foo where foo1.string is not null");
-  s.find("from Foo foo1 left join foo1.foo foo2 left join foo1.foo.foo foo3 where foo1.string is not null");
-  s.find("select foo.formula from Foo foo where foo.formula > 0");
-  int len=s.find("from Foo as foo join foo.foo as foo2 where foo2.id >'a' or foo2.id <'a'").size();
+  s.createQuery("from Foo foo join foo.foo where foo.foo in ('1','2','3')").list();
+  if (!(getDialect() instanceof HSQLDialect))   s.createQuery("from Foo foo left join foo.foo where foo.foo in ('1','2','3')").list();
+  s.createQuery("select foo.foo from Foo foo where foo.foo in ('1','2','3')").list();
+  s.createQuery("select foo.foo.string from Foo foo where foo.foo in ('1','2','3')").list();
+  s.createQuery("select foo.foo.string from Foo foo where foo.foo.string in ('1','2','3')").list();
+  s.createQuery("select foo.foo.long from Foo foo where foo.foo.string in ('1','2','3')").list();
+  s.createQuery("select count(*) from Foo foo where foo.foo.string in ('1','2','3') or foo.foo.long in (1,2,3)").list();
+  s.createQuery("select count(*) from Foo foo where foo.foo.string in ('1','2','3') group by foo.foo.long").list();
+  s.createQuery("from Foo foo1 left join foo1.foo foo2 left join foo2.foo where foo1.string is not null").list();
+  s.createQuery("from Foo foo1 left join foo1.foo.foo where foo1.string is not null").list();
+  s.createQuery("from Foo foo1 left join foo1.foo foo2 left join foo1.foo.foo foo3 where foo1.string is not null").list();
+  s.createQuery("select foo.formula from Foo foo where foo.formula > 0").list();
+  int len=s.createQuery("from Foo as foo join foo.foo as foo2 where foo2.id >'a' or foo2.id <'a'").list().size();
   assertTrue(len == 2);
   s.delete("from Holder");
   txn.commit();
@@ -267,19 +267,19 @@
   assertTrue(Hibernate.isInitialized(baz.getManyToAny()));
   assertTrue(baz.getManyToAny().size() == 2);
   BarProxy barp=(BarProxy)baz.getManyToAny().get(0);
-  s.find("from Baz baz join baz.manyToAny");
-  assertTrue(s.find("select baz from Baz baz join baz.manyToAny a where index(a) = 0").size() == 1);
+  s.createQuery("from Baz baz join baz.manyToAny").list();
+  assertTrue(s.createQuery("select baz from Baz baz join baz.manyToAny a where index(a) = 0").list().size() == 1);
   FooProxy foop=(FooProxy)s.get(Foo.class,foo.getKey());
   assertTrue(foop == baz.getManyToAny().get(1));
   barp.setBaz(baz);
-  assertTrue(s.find("select bar from Bar bar where bar.baz.stringDateMap['now'] is not null").size() == 1);
-  assertTrue(s.find("select bar from Bar bar join bar.baz b where b.stringDateMap['big bang'] < b.stringDateMap['now'] and b.stringDateMap['now'] is not null").size() == 1);
-  assertTrue(s.find("select bar from Bar bar where bar.baz.stringDateMap['big bang'] < bar.baz.stringDateMap['now'] and bar.baz.stringDateMap['now'] is not null").size() == 1);
-  list=s.find("select foo.string, foo.component, foo.id from Bar foo");
+  assertTrue(s.createQuery("select bar from Bar bar where bar.baz.stringDateMap['now'] is not null").list().size() == 1);
+  assertTrue(s.createQuery("select bar from Bar bar join bar.baz b where b.stringDateMap['big bang'] < b.stringDateMap['now'] and b.stringDateMap['now'] is not null").list().size() == 1);
+  assertTrue(s.createQuery("select bar from Bar bar where bar.baz.stringDateMap['big bang'] < bar.baz.stringDateMap['now'] and bar.baz.stringDateMap['now'] is not null").list().size() == 1);
+  list=s.createQuery("select foo.string, foo.component, foo.id from Bar foo").list();
   assertTrue(((FooComponent)((Object[])list.get(0))[1]).getName().equals("foo"));
-  list=s.find("select elements(baz.components) from Baz baz");
+  list=s.createQuery("select elements(baz.components) from Baz baz").list();
   assertTrue(list.size() == 2);
-  list=s.find("select bc.name from Baz baz join baz.components bc");
+  list=s.createQuery("select bc.name from Baz baz join baz.components bc").list();
   assertTrue(list.size() == 2);
   s.createQuery("from Foo foo where foo.integer < 10 order by foo.string").setMaxResults(12).list();
   s.delete(barp);

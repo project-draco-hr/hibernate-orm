@@ -1,5 +1,6 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Qux q=new Qux("0");
   s.save(q);
   q.setChild(new Qux("1"));
@@ -13,18 +14,17 @@
   q4.setChild(q3);
   s.save(q4);
   s.save(q2);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
-  List l=s.find("from Qux");
+  s.beginTransaction();
+  List l=s.createQuery("from Qux").list();
   assertTrue("",l.size() == 5);
   s.delete(l.get(0));
   s.delete(l.get(1));
   s.delete(l.get(2));
   s.delete(l.get(3));
   s.delete(l.get(4));
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

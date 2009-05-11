@@ -1,5 +1,6 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Baz baz=new Baz();
   Bar bar=new Bar();
   Bar bar2=new Bar();
@@ -20,10 +21,10 @@
   baz.setFooBag(list);
   Serializable id=s.save(baz);
   Serializable bid=((Bar)baz.getCascadingBars().iterator().next()).getKey();
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   BarProxy barprox=(BarProxy)s.load(Bar.class,bid);
   BarProxy bar2prox=(BarProxy)s.load(Bar.class,bar2id);
   assertTrue(bar2prox instanceof HibernateProxy);
@@ -37,9 +38,8 @@
   assertTrue(baz.getFooArray()[1] == bar2prox);
   if (!isOuterJoinFetchingDisabled())   assertTrue(!(baz.getFooBag().iterator().next() instanceof HibernateProxy));
   assertTrue(!(baz.getFooSet().iterator().next() instanceof HibernateProxy));
-  s.delete("from Baz");
-  s.delete("from Foo");
-  s.flush();
-  s.connection().commit();
+  doDelete(s,"from Baz");
+  doDelete(s,"from Foo");
+  s.getTransaction().commit();
   s.close();
 }

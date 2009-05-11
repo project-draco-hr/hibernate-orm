@@ -1,5 +1,6 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   X x=new X();
   Y y=new Y();
   x.setY(y);
@@ -10,10 +11,11 @@
   assertEquals(id,s.save(x));
   s.flush();
   assertTrue(s.contains(y) && s.contains(x));
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   assertEquals(new Long(x.getId()),y.getId());
   s=openSession();
+  s.beginTransaction();
   x=new X();
   y=new Y();
   x.setY(y);
@@ -22,10 +24,11 @@
   s.save(y);
   s.flush();
   assertTrue(s.contains(y) && s.contains(x));
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   assertEquals(new Long(x.getId()),y.getId());
   s=openSession();
+  s.beginTransaction();
   x=new X();
   y=new Y();
   x.setY(y);
@@ -37,8 +40,7 @@
   assertEquals(id,new Long(x.getId()));
   s.flush();
   assertTrue(s.contains(y) && s.contains(x));
-  s.delete("from X x");
-  s.flush();
-  s.connection().commit();
+  doDelete(s,"from X x");
+  s.getTransaction().commit();
   s.close();
 }

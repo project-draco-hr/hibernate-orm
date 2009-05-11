@@ -6,30 +6,30 @@
   s.save(baz);
   s.flush();
   baz.getStringArray()[0]="a new value";
-  Iterator iter=s.iterate("from Baz baz");
+  Iterator iter=s.createQuery("from Baz baz").iterate();
   assertTrue(iter.next() == baz);
-  iter=s.iterate("select elements(baz.stringArray) from Baz baz");
+  iter=s.createQuery("select elements(baz.stringArray) from Baz baz").iterate();
   boolean found=false;
   while (iter.hasNext()) {
     if (iter.next().equals("a new value"))     found=true;
   }
   assertTrue(found);
   baz.setStringArray(null);
-  s.iterate("from Baz baz");
-  iter=s.iterate("select elements(baz.stringArray) from Baz baz");
+  s.createQuery("from Baz baz").iterate();
+  iter=s.createQuery("select elements(baz.stringArray) from Baz baz").iterate();
   assertTrue(!iter.hasNext());
   baz.getStringList().add("1E1");
-  iter=s.iterate("from Foo foo");
+  iter=s.createQuery("from Foo foo").iterate();
   assertTrue(!iter.hasNext());
-  iter=s.iterate("select elements(baz.stringList) from Baz baz");
+  iter=s.createQuery("select elements(baz.stringList) from Baz baz").iterate();
   found=false;
   while (iter.hasNext()) {
     if (iter.next().equals("1E1"))     found=true;
   }
   assertTrue(found);
   baz.getStringList().remove("1E1");
-  iter=s.iterate("select elements(baz.stringArray) from Baz baz");
-  iter=s.iterate("select elements(baz.stringList) from Baz baz");
+  iter=s.createQuery("select elements(baz.stringArray) from Baz baz").iterate();
+  iter=s.createQuery("select elements(baz.stringList) from Baz baz").iterate();
   found=false;
   while (iter.hasNext()) {
     if (iter.next().equals("1E1"))     found=true;
@@ -38,13 +38,13 @@
   List newList=new ArrayList();
   newList.add("value");
   baz.setStringList(newList);
-  iter=s.iterate("from Foo foo");
+  iter=s.createQuery("from Foo foo").iterate();
   baz.setStringList(null);
-  iter=s.iterate("select elements(baz.stringList) from Baz baz");
+  iter=s.createQuery("select elements(baz.stringList) from Baz baz").iterate();
   assertTrue(!iter.hasNext());
   baz.setStringList(newList);
-  iter=s.iterate("from Foo foo");
-  iter=s.iterate("select elements(baz.stringList) from Baz baz");
+  iter=s.createQuery("from Foo foo").iterate();
+  iter=s.createQuery("select elements(baz.stringList) from Baz baz").iterate();
   assertTrue(iter.hasNext());
   s.delete(baz);
   txn.commit();

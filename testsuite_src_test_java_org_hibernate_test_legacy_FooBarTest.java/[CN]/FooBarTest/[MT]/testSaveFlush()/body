@@ -1,17 +1,17 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Fee fee=new Fee();
   s.save(fee,"key");
   fee.setFi("blah");
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   fee=(Fee)s.load(Fee.class,fee.getKey());
   assertTrue("blah".equals(fee.getFi()));
   assertTrue("key".equals(fee.getKey()));
   s.delete(fee);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

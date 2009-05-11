@@ -26,7 +26,7 @@
   base.createCriteria("friends","fum").add(Restrictions.like("fum","g",MatchMode.START));
   Map map=(Map)base.uniqueResult();
   assertTrue(map.get("this") == fum && map.get("fo") == fum.getFo() && fum.getFriends().contains(map.get("fum")) && map.size() == 3);
-  base=s.createCriteria(Fum.class).add(Restrictions.like("fum","f%")).setResultTransformer(Criteria.ALIAS_TO_ENTITY_MAP).setFetchMode("friends",FetchMode.EAGER);
+  base=s.createCriteria(Fum.class).add(Restrictions.like("fum","f%")).setResultTransformer(Criteria.ALIAS_TO_ENTITY_MAP).setFetchMode("friends",FetchMode.JOIN);
   base.createCriteria("fo","fo").add(Restrictions.eq("fum",fum.getFo().getFum()));
   map=(Map)base.list().get(0);
   assertTrue(map.get("this") == fum && map.get("fo") == fum.getFo() && map.size() == 2);
@@ -44,7 +44,9 @@
   s.delete(fum);
   s.delete(fum.getFo());
   Iterator iter=fum.getFriends().iterator();
-  while (iter.hasNext())   s.delete(iter.next());
+  while (iter.hasNext()) {
+    s.delete(iter.next());
+  }
   txn.commit();
   s.close();
 }

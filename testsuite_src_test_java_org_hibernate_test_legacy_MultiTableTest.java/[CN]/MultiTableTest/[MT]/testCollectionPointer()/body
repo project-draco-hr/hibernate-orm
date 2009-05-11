@@ -1,5 +1,6 @@
 {
   Session sess=openSession();
+  sess.beginTransaction();
   Lower ls=new Lower();
   List list=new ArrayList();
   ls.setBag(list);
@@ -8,14 +9,13 @@
   sess.save(s);
   sess.flush();
   list.add(s);
-  sess.flush();
-  sess.connection().commit();
+  sess.getTransaction().commit();
   sess.close();
   sess=openSession();
+  sess.beginTransaction();
   ls=(Lower)sess.load(Lower.class,id);
   assertTrue(ls.getBag().size() == 1);
-  sess.delete("from java.lang.Object");
-  sess.flush();
-  sess.connection().commit();
+  doDelete(sess,"from java.lang.Object");
+  sess.getTransaction().commit();
   sess.close();
 }

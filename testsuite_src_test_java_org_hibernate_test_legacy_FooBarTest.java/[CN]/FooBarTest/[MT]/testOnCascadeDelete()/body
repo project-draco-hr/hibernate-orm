@@ -3,6 +3,7 @@
     return;
   }
   Session s=openSession();
+  s.beginTransaction();
   Baz baz=new Baz();
   baz.subs=new ArrayList();
   Baz sub=new Baz();
@@ -11,11 +12,12 @@
   s.save(baz);
   s.flush();
   assertTrue(s.createQuery("from Baz").list().size() == 2);
-  s.connection().commit();
+  s.getTransaction().commit();
+  s.beginTransaction();
   s.delete(baz);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
+  s.beginTransaction();
   assertTrue(s.createQuery("from Baz").list().size() == 0);
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }
