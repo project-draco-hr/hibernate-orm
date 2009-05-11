@@ -1,0 +1,36 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  Person gavin=new Person("Gavin");
+  Person max=new Person("Max");
+  Person pete=new Person("Pete");
+  Group hibernate=new Group("Hibernate");
+  Group seam=new Group("Seam");
+  s.persist(gavin);
+  s.persist(max);
+  s.persist(pete);
+  s.persist(seam);
+  s.persist(hibernate);
+  hibernate.getPersons().add(gavin);
+  hibernate.getPersons().add(max);
+  seam.getPersons().add(gavin);
+  seam.getPersons().add(pete);
+  s.flush();
+  s.clear();
+  List l=s.getNamedQuery("manyToManyFetch").list();
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  seam.getPersons().remove(gavin);
+  seam.getPersons().remove(pete);
+  hibernate.getPersons().remove(gavin);
+  hibernate.getPersons().remove(max);
+  s.delete(seam);
+  s.delete(hibernate);
+  s.delete(gavin);
+  s.delete(max);
+  s.delete(pete);
+  t.commit();
+  s.close();
+}
