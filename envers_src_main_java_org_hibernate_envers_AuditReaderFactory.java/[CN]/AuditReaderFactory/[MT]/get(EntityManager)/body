@@ -1,8 +1,12 @@
 {
-  try {
-    return get(entityManager.unwrap(Session.class));
+  if (entityManager.getDelegate() instanceof Session) {
+    return get((Session)entityManager.getDelegate());
   }
- catch (  PersistenceException e) {
-    throw new AuditException("Hibernate EntityManager not present!");
+  if (entityManager.getDelegate() instanceof EntityManager) {
+    entityManager=(EntityManager)entityManager.getDelegate();
+    if (entityManager.getDelegate() instanceof Session) {
+      return get((Session)entityManager.getDelegate());
+    }
   }
+  throw new AuditException("Hibernate EntityManager not present!");
 }
