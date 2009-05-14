@@ -1,0 +1,23 @@
+{
+  CopyCache transientCopyCache=new CopyCache();
+  for (Iterator it=copyCache.entrySet().iterator(); it.hasNext(); ) {
+    Map.Entry mapEntry=(Map.Entry)it.next();
+    Object entity=mapEntry.getKey();
+    Object copy=mapEntry.getValue();
+    if (copy instanceof HibernateProxy) {
+      copy=((HibernateProxy)copy).getHibernateLazyInitializer().getImplementation();
+    }
+    EntityEntry copyEntry=event.getSession().getPersistenceContext().getEntry(copy);
+    if (copyEntry == null) {
+      log.trace("transient instance could not be processed by merge: " + event.getSession().guessEntityName(copy) + "["+ entity+ "]");
+      throw new TransientObjectException("object is an unsaved transient instance - save the transient instance before merging: " + event.getSession().guessEntityName(copy));
+    }
+ else     if (copyEntry.getStatus() == Status.SAVING) {
+      transientCopyCache.put(entity,copy,copyCache.isIncludedInMerge(entity));
+    }
+ else     if (copyEntry.getStatus() != Status.MANAGED && copyEntry.getStatus() != Status.READ_ONLY) {
+      throw new AssertionFailure("Merged entity does not have status set to MANAGED or READ_ONLY; " + copy + " status="+ copyEntry.getStatus());
+    }
+  }
+  return transientCopyCache;
+}

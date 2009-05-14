@@ -1,0 +1,28 @@
+{
+  Route route=getUpdatedDetachedEntity();
+  clearCounts();
+  Session s=openSession();
+  s.beginTransaction();
+  Iterator it=route.getNodes().iterator();
+  Node node=(Node)it.next();
+  Node pickupNode;
+  if (node.getName().equals("pickupNodeB")) {
+    pickupNode=node;
+  }
+ else {
+    node=(Node)it.next();
+    assertEquals("pickupNodeB",node.getName());
+    pickupNode=node;
+  }
+  pickupNode=(Node)s.merge(pickupNode);
+  s.getTransaction().commit();
+  s.close();
+  assertInsertCount(4);
+  assertUpdateCount(0);
+  s=openSession();
+  s.beginTransaction();
+  route=(Route)s.get(Route.class,route.getRouteID());
+  checkResults(route,false);
+  s.getTransaction().commit();
+  s.close();
+}

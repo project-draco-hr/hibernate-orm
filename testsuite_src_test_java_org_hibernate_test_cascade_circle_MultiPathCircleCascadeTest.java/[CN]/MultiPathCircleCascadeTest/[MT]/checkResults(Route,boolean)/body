@@ -1,0 +1,45 @@
+{
+  if (isRouteUpdated) {
+    assertEquals("new routeA",route.getName());
+  }
+  assertEquals(2,route.getNodes().size());
+  Node deliveryNode=null;
+  Node pickupNode=null;
+  for (Iterator it=route.getNodes().iterator(); it.hasNext(); ) {
+    Node node=(Node)it.next();
+    if ("deliveryNodeB".equals(node.getName())) {
+      deliveryNode=node;
+    }
+ else     if ("pickupNodeB".equals(node.getName())) {
+      pickupNode=node;
+    }
+ else {
+      fail("unknown node");
+    }
+  }
+  assertNotNull(deliveryNode);
+  assertSame(route,deliveryNode.getRoute());
+  assertEquals(1,deliveryNode.getDeliveryTransports().size());
+  assertEquals(0,deliveryNode.getPickupTransports().size());
+  assertNotNull(deliveryNode.getTour());
+  assertEquals("node original value",deliveryNode.getTransientField());
+  assertNotNull(pickupNode);
+  assertSame(route,pickupNode.getRoute());
+  assertEquals(0,pickupNode.getDeliveryTransports().size());
+  assertEquals(1,pickupNode.getPickupTransports().size());
+  assertNotNull(pickupNode.getTour());
+  assertEquals("node original value",pickupNode.getTransientField());
+  assertTrue(!deliveryNode.getNodeID().equals(pickupNode.getNodeID()));
+  assertSame(deliveryNode.getTour(),pickupNode.getTour());
+  assertSame(deliveryNode.getDeliveryTransports().iterator().next(),pickupNode.getPickupTransports().iterator().next());
+  Tour tour=deliveryNode.getTour();
+  Transport transport=(Transport)deliveryNode.getDeliveryTransports().iterator().next();
+  assertEquals("tourB",tour.getName());
+  assertEquals(2,tour.getNodes().size());
+  assertTrue(tour.getNodes().contains(deliveryNode));
+  assertTrue(tour.getNodes().contains(pickupNode));
+  assertEquals("transportB",transport.getName());
+  assertSame(deliveryNode,transport.getDeliveryNode());
+  assertSame(pickupNode,transport.getPickupNode());
+  assertEquals("transport original value",transport.getTransientField());
+}

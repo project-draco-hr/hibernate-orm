@@ -1,4 +1,5 @@
 {
+  final CopyCache copyCache=(CopyCache)copiedAlready;
   final EventSource source=event.getSession();
   final Object original=event.getOriginal();
   if (original != null) {
@@ -17,11 +18,15 @@
  else {
       entity=original;
     }
-    if (copyCache.containsKey(entity) && source.getContextEntityIdentifier(copyCache.get(entity)) != null) {
-      log.trace("already merged");
+    if (copyCache.containsKey(entity) && (copyCache.isIncludedInMerge(entity))) {
+      log.trace("already in merge process");
       event.setResult(entity);
     }
  else {
+      if (copyCache.containsKey(entity)) {
+        log.trace("already in copyCache; setting in merge process");
+        copyCache.setIncludedInMerge(entity,true);
+      }
       event.setEntity(entity);
       int entityState=-1;
       EntityEntry entry=source.getPersistenceContext().getEntry(entity);

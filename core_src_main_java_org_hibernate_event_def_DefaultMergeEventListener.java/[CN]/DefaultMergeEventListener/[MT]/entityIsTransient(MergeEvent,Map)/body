@@ -4,24 +4,5 @@
   final EventSource source=event.getSession();
   final EntityPersister persister=source.getEntityPersister(event.getEntityName(),entity);
   final String entityName=persister.getEntityName();
-  final Serializable id=persister.hasIdentifierProperty() ? persister.getIdentifier(entity,source.getEntityMode()) : null;
-  if (copyCache.containsKey(entity)) {
-    persister.setIdentifier(copyCache.get(entity),id,source.getEntityMode());
-  }
- else {
-    copyCache.put(entity,persister.instantiate(id,source.getEntityMode()));
-  }
-  final Object copy=copyCache.get(entity);
-  super.cascadeBeforeSave(source,persister,entity,copyCache);
-  copyValues(persister,entity,copy,source,copyCache,ForeignKeyDirection.FOREIGN_KEY_FROM_PARENT);
-  final Serializable requestedId=event.getRequestedId();
-  if (requestedId == null) {
-    saveWithGeneratedId(copy,entityName,copyCache,source,false);
-  }
- else {
-    saveWithRequestedId(copy,requestedId,entityName,copyCache,source);
-  }
-  super.cascadeAfterSave(source,persister,entity,copyCache);
-  copyValues(persister,entity,copy,source,copyCache,ForeignKeyDirection.FOREIGN_KEY_TO_PARENT);
-  event.setResult(copy);
+  event.setResult(mergeTransientEntity(entity,entityName,event.getRequestedId(),source,copyCache));
 }

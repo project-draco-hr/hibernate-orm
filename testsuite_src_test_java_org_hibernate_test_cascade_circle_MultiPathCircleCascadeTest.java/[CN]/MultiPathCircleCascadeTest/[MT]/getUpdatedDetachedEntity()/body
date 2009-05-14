@@ -1,0 +1,35 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  Route route=new Route();
+  route.setName("routeA");
+  s.save(route);
+  s.getTransaction().commit();
+  s.close();
+  route.setName("new routeA");
+  route.setTransientField(new String("sfnaouisrbn"));
+  Tour tour=new Tour();
+  tour.setName("tourB");
+  Transport transport=new Transport();
+  transport.setName("transportB");
+  Node pickupNode=new Node();
+  pickupNode.setName("pickupNodeB");
+  Node deliveryNode=new Node();
+  deliveryNode.setName("deliveryNodeB");
+  pickupNode.setRoute(route);
+  pickupNode.setTour(tour);
+  pickupNode.getPickupTransports().add(transport);
+  pickupNode.setTransientField("pickup node aaaaaaaaaaa");
+  deliveryNode.setRoute(route);
+  deliveryNode.setTour(tour);
+  deliveryNode.getDeliveryTransports().add(transport);
+  deliveryNode.setTransientField("delivery node aaaaaaaaa");
+  tour.getNodes().add(pickupNode);
+  tour.getNodes().add(deliveryNode);
+  route.getNodes().add(pickupNode);
+  route.getNodes().add(deliveryNode);
+  transport.setPickupNode(pickupNode);
+  transport.setDeliveryNode(deliveryNode);
+  transport.setTransientField("aaaaaaaaaaaaaa");
+  return route;
+}
