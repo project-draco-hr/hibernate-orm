@@ -9,7 +9,9 @@
   s.save(emp);
   s.createQuery("from Employee e where e.person = :p and 1 = 1 and 2=2").setParameter("p",emp.getPerson()).list();
   s.createQuery("from Employee e where :p = e.person").setParameter("p",emp.getPerson()).list();
-  s.createQuery("from Employee e where e.person = ('steve', current_timestamp)").list();
+  if (!(getDialect() instanceof SybaseASE15Dialect)) {
+    s.createQuery("from Employee e where e.person = ('steve', current_timestamp)").list();
+  }
   s.delete(emp);
   t.commit();
   s.close();
