@@ -34,7 +34,9 @@
               ctx=(TransactionFactory.Context)session;
               JoinableCMTTransaction joinable=(JoinableCMTTransaction)session.getTransaction();
               javax.transaction.Transaction transaction=joinable.getTransaction();
-              if (transaction == null)               log.warn("Transaction not available on beforeCompletionPhase: assuming valid");
+              if (transaction == null) {
+                log.warn("Transaction not available on beforeCompletionPhase: assuming valid");
+              }
               flush=!ctx.isFlushModeNever() && (transaction == null || !JTAHelper.isRollback(transaction.getStatus()));
             }
  catch (            SystemException se) {
@@ -90,6 +92,8 @@ catch (            HibernateException he) {
     }
   }
  else {
-    if (!ignoreNotJoining)     log.warn("Calling joinTransaction() on a non JTA EntityManager");
+    if (!ignoreNotJoining) {
+      log.warn("Calling joinTransaction() on a non JTA EntityManager");
+    }
   }
 }
