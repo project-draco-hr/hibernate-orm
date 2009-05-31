@@ -1,10 +1,13 @@
 {
+  if (cls == null) {
+    throw new HibernateException("No field found for property: " + propertyData.getName());
+  }
   if (setter instanceof DirectPropertyAccessor.DirectSetter) {
     try {
       return cls.getDeclaredField(propertyData.getBeanName()).getType().isPrimitive();
     }
  catch (    NoSuchFieldException e) {
-      throw new HibernateException(e);
+      return isPrimitive(setter,propertyData,cls.getSuperclass());
     }
   }
  else {
