@@ -6,7 +6,7 @@
     persister.setIdentifier(copyCache.get(entity),id,source.getEntityMode());
   }
  else {
-    ((CopyCache)copyCache).put(entity,persister.instantiate(id,source.getEntityMode()),true);
+    ((EventCache)copyCache).put(entity,persister.instantiate(id,source.getEntityMode()),true);
   }
   final Object copy=copyCache.get(entity);
   super.cascadeBeforeSave(source,persister,entity,copyCache);
@@ -33,7 +33,7 @@
       log.trace("property '" + copyEntry.getEntityName() + "."+ propertyName+ "' from original entity is not in copyCache; "+ propertyName+ " =["+ propertyFromEntity+ "]");
       throw ex;
     }
-    if (((CopyCache)copyCache).isIncludedInMerge(propertyFromEntity)) {
+    if (((EventCache)copyCache).isOperatedOn(propertyFromEntity)) {
       log.trace("property '" + copyEntry.getEntityName() + "."+ propertyName+ "' from original entity is in copyCache and is in the process of being merged; "+ propertyName+ " =["+ propertyFromEntity+ "]");
     }
  else {
