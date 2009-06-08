@@ -6,13 +6,16 @@
     descriptors[i]=new DefaultEntityAliases(persisters[i],suffixes[i]);
   }
   CollectionPersister[] collectionPersisters=getCollectionPersisters();
-  int bagCount=0;
+  Set bagRoles=null;
   if (collectionPersisters != null) {
     String[] collectionSuffixes=getCollectionSuffixes();
     collectionDescriptors=new CollectionAliases[collectionPersisters.length];
     for (int i=0; i < collectionPersisters.length; i++) {
       if (isBag(collectionPersisters[i])) {
-        bagCount++;
+        if (bagRoles == null) {
+          bagRoles=new HashSet();
+        }
+        bagRoles.add(collectionPersisters[i].getRole());
       }
       collectionDescriptors[i]=new GeneratedCollectionAliases(collectionPersisters[i],collectionSuffixes[i]);
     }
@@ -20,7 +23,7 @@
  else {
     collectionDescriptors=null;
   }
-  if (bagCount > 1) {
-    throw new HibernateException("cannot simultaneously fetch multiple bags");
+  if (bagRoles != null && bagRoles.size() > 1) {
+    throw new MultipleBagFetchException(bagRoles);
   }
 }
