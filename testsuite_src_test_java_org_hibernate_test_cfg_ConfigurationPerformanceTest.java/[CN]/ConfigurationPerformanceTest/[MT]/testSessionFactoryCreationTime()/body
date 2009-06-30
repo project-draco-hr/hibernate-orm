@@ -4,13 +4,31 @@
     System.err.println(workPackageDir.getAbsoluteFile() + " not found");
     return;
   }
-  SessionFactory factory=saveAndLoad(workPackageDir.getAbsolutePath() + '/',workPackageDir.list(new FilenameFilter(){
+  long start=System.currentTimeMillis();
+  Configuration configuration=buildConfigurationFromCacheableFiles(workPackageDir,workPackageDir.list(new FilenameFilter(){
     public boolean accept(    File dir,    String name){
       return name.endsWith(".hbm.xml");
     }
   }
-),"hibernateperftest.cfg.bin");
-  Session session=factory.openSession();
-  session.createQuery("from Test1").list();
+));
+  SessionFactory factory=configuration.buildSessionFactory();
+  long initial=System.currentTimeMillis() - start;
   factory.close();
+  start=System.currentTimeMillis();
+  configuration=buildConfigurationFromCacheableFiles(workPackageDir,workPackageDir.list(new FilenameFilter(){
+    public boolean accept(    File dir,    String name){
+      return name.endsWith(".hbm.xml");
+    }
+  }
+));
+  factory=configuration.buildSessionFactory();
+  long subsequent=System.currentTimeMillis() - start;
+  Session session=factory.openSession();
+  session.beginTransaction();
+  session.createQuery("from Test1").list();
+  session.getTransaction().commit();
+  session.close();
+  factory.close();
+  System.err.println("Initial SessionFactory load time : " + initial);
+  System.err.println("Subsequent SessionFactory load time : " + subsequent);
 }

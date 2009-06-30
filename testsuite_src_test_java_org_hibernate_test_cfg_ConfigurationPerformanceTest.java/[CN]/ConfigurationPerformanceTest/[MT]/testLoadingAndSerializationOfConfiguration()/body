@@ -1,31 +1,22 @@
 {
-  String prefix=mappingBaseDir.getAbsolutePath() + '/';
+  final File cachedCfgFile=new File(workPackageDir,"hibernate.cfg.bin");
   try {
-    System.err.println("###FIRST SAVELOAD###");
-    SessionFactory factory=saveAndLoad(prefix,FILES,"hibernate.cfg.bin");
-    factory.close();
-    System.err.println("###SECOND SAVELOAD###");
-    factory=saveAndLoad(prefix,FILES,"hibernate.cfg.bin");
-    factory.close();
+    System.err.println("#### Preparing serialized configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    prepareSerializedConfiguration(mappingBaseDir,FILES,cachedCfgFile);
+    System.err.println("#### Preparing serialized configuration complete ~~~~~~~~~~~~~~~~~~~~~~~~");
+    System.err.println("#### Reading serialized configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    readSerializedConfiguration(cachedCfgFile);
+    System.err.println("#### Reading serialized configuration complete ~~~~~~~~~~~~~~~~~~~~~~~~~~");
   }
   finally {
     System.err.println("###CLEANING UP###");
-    File file=null;
-    try {
-      file=new File("hibernate.cfg.bin");
-      file.delete();
-    }
- catch (    Throwable t) {
-      System.err.println("Unable to cleanup [" + file + "] : "+ t);
+    if (!cachedCfgFile.delete()) {
+      System.err.println("Unable to cleanup file " + cachedCfgFile.getAbsolutePath());
     }
     for (int i=0; i < FILES.length; i++) {
-      try {
-        String fileName=FILES[i];
-        file=new File(prefix,fileName + ".bin");
-        file.delete();
-      }
- catch (      Throwable t) {
-        System.err.println("Unable to cleanup [" + file + "] : "+ t);
+      File file=new File(mappingBaseDir,FILES[i] + ".bin");
+      if (!file.delete()) {
+        System.err.println("Unable to cleanup file " + file.getAbsolutePath());
       }
     }
   }
