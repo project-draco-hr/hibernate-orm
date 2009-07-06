@@ -1,0 +1,27 @@
+{
+  prepareTestData();
+  sfi().getStatistics().clear();
+  CollectionStatistics userGroupStats=sfi().getStatistics().getCollectionStatistics(User.class.getName() + ".groups");
+  CollectionStatistics groupUserStats=sfi().getStatistics().getCollectionStatistics(Group.class.getName() + ".users");
+  Interceptor testingInterceptor=new EmptyInterceptor(){
+    public String onPrepareStatement(    String sql){
+      Assert.assertFalse("batch load of many-to-many should use inner join",sql.toLowerCase().contains("left outer join"));
+      return super.onPrepareStatement(sql);
+    }
+  }
+;
+  Session s=openSession(testingInterceptor);
+  s.beginTransaction();
+  List users=s.createQuery("from User u").list();
+  User user=(User)users.get(0);
+  assertTrue(Hibernate.isInitialized(user));
+  assertTrue(Hibernate.isInitialized(user.getGroups()));
+  user=(User)users.get(1);
+  assertTrue(Hibernate.isInitialized(user));
+  assertTrue(Hibernate.isInitialized(user.getGroups()));
+  assertEquals(1,userGroupStats.getFetchCount());
+  assertEquals(1,groupUserStats.getFetchCount());
+  s.getTransaction().commit();
+  s.close();
+  cleanupTestData();
+}
