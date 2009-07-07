@@ -1,0 +1,21 @@
+{
+  if (roundEnvironment.processingOver()) {
+    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,"Last processing round.");
+    createMetaModelClasses();
+    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,"Finished processing");
+    return ALLOW_OTHER_PROCESSORS_TO_CLAIM_ANNOTATIONS;
+  }
+  if (!xmlProcessed) {
+    parsePersistenceXml();
+  }
+  if (!hostJPAAnnotations(annotations)) {
+    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,"Current processing round does not contain entities");
+    return ALLOW_OTHER_PROCESSORS_TO_CLAIM_ANNOTATIONS;
+  }
+  Set<? extends Element> elements=roundEnvironment.getRootElements();
+  for (  Element element : elements) {
+    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,"Processing " + element.toString());
+    handleRootElementAnnotationMirrors(element);
+  }
+  return ALLOW_OTHER_PROCESSORS_TO_CLAIM_ANNOTATIONS;
+}

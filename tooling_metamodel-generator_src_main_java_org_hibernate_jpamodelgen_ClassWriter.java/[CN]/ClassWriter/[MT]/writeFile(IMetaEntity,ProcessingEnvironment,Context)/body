@@ -1,0 +1,21 @@
+{
+  try {
+    String metaModelPackage=entity.getPackageName();
+    StringBuffer body=generateBody(entity,context);
+    FileObject fo=processingEnv.getFiler().createSourceFile(metaModelPackage + "." + entity.getSimpleName()+ "_");
+    OutputStream os=fo.openOutputStream();
+    PrintWriter pw=new PrintWriter(os);
+    pw.println("package " + metaModelPackage + ";");
+    pw.println();
+    pw.println(entity.generateImports());
+    pw.println(body);
+    pw.flush();
+    pw.close();
+  }
+ catch (  FilerException filerEx) {
+    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,"Problem with Processing Environment Filer: " + filerEx.getMessage());
+  }
+catch (  IOException ioEx) {
+    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,"Problem opening file to write MetaModel for " + entity.getSimpleName() + ioEx.getMessage());
+  }
+}

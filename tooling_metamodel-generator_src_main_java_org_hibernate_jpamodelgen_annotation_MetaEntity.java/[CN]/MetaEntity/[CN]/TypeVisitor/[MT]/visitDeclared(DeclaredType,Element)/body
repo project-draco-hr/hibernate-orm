@@ -1,0 +1,28 @@
+{
+  if (isPersistent(element)) {
+    TypeElement returnedElement=(TypeElement)pe.getTypeUtils().asElement(t);
+    String collection=COLLECTIONS.get(returnedElement.getQualifiedName().toString());
+    if (collection != null) {
+      if (element.getAnnotation(ElementCollection.class) != null) {
+        final TypeMirror collectionType=t.getTypeArguments().get(0);
+        final TypeElement collectionElement=(TypeElement)pe.getTypeUtils().asElement(collectionType);
+        this.parent.context.processElement(collectionElement,this.parent.defaultAccessTypeForElement);
+      }
+      if (collection.equals("javax.persistence.metamodel.MapAttribute")) {
+        return new MetaMap(parent,element,collection,getKeyType(t),getElementType(t));
+      }
+ else {
+        return new MetaCollection(parent,element,collection,getElementType(t));
+      }
+    }
+ else {
+      if (element.getAnnotation(Embedded.class) != null || returnedElement.getAnnotation(Embeddable.class) != null) {
+        this.parent.context.processElement(returnedElement,this.parent.defaultAccessTypeForElement);
+      }
+      return new MetaSingleAttribute(parent,element,returnedElement.getQualifiedName().toString());
+    }
+  }
+ else {
+    return null;
+  }
+}

@@ -1,0 +1,18 @@
+{
+  AccessType accessType=DEFAULT_XML_ACCESS_TYPE;
+  if (mappings.getAccess() != null) {
+    accessType=mapXmlAccessTypeToJpaAccessType(mappings.getAccess());
+    return accessType;
+  }
+  PersistenceUnitMetadata meta=mappings.getPersistenceUnitMetadata();
+  if (meta != null) {
+    PersistenceUnitDefaults persistenceUnitDefaults=meta.getPersistenceUnitDefaults();
+    if (persistenceUnitDefaults != null) {
+      org.hibernate.jpamodelgen.xml.jaxb.AccessType xmlAccessType=persistenceUnitDefaults.getAccess();
+      if (xmlAccessType != null) {
+        accessType=mapXmlAccessTypeToJpaAccessType(xmlAccessType);
+      }
+    }
+  }
+  return accessType;
+}

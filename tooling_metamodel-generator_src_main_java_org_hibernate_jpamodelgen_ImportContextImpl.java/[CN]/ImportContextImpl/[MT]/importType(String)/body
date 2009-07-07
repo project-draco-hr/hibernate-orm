@@ -1,0 +1,42 @@
+{
+  String result=fqcn;
+  String additionalTypePart=null;
+  if (fqcn.indexOf('<') >= 0) {
+    additionalTypePart=result.substring(fqcn.indexOf('<'));
+    result=result.substring(0,fqcn.indexOf('<'));
+    fqcn=result;
+  }
+ else   if (fqcn.indexOf('[') >= 0) {
+    additionalTypePart=result.substring(fqcn.indexOf('['));
+    result=result.substring(0,fqcn.indexOf('['));
+    fqcn=result;
+  }
+  String pureFqcn=fqcn.replace('$','.');
+  boolean canBeSimple=true;
+  String simpleName=unqualify(fqcn);
+  if (simpleNames.containsKey(simpleName)) {
+    String existingFqcn=simpleNames.get(simpleName);
+    if (existingFqcn.equals(pureFqcn)) {
+      canBeSimple=true;
+    }
+ else {
+      canBeSimple=false;
+    }
+  }
+ else {
+    canBeSimple=true;
+    simpleNames.put(simpleName,pureFqcn);
+    imports.add(pureFqcn);
+  }
+  if (inSamePackage(fqcn) || (imports.contains(pureFqcn) && canBeSimple)) {
+    result=unqualify(result);
+  }
+ else   if (inJavaLang(fqcn)) {
+    result=result.substring("java.lang.".length());
+  }
+  if (additionalTypePart != null) {
+    result=result + additionalTypePart;
+  }
+  result=result.replace('$','.');
+  return result;
+}

@@ -1,0 +1,31 @@
+{
+  XmlMetaSingleAttribute attribute;
+  if (!attributes.getId().isEmpty()) {
+    Id id=attributes.getId().get(0);
+    attribute=new XmlMetaSingleAttribute(this,id.getName(),getType(id.getName()));
+    members.add(attribute);
+  }
+  for (  Basic basic : attributes.getBasic()) {
+    attribute=new XmlMetaSingleAttribute(this,basic.getName(),getType(basic.getName()));
+    members.add(attribute);
+  }
+  for (  ManyToOne manyToOne : attributes.getManyToOne()) {
+    attribute=new XmlMetaSingleAttribute(this,manyToOne.getName(),getType(manyToOne.getName()));
+    members.add(attribute);
+  }
+  for (  OneToOne oneToOne : attributes.getOneToOne()) {
+    attribute=new XmlMetaSingleAttribute(this,oneToOne.getName(),getType(oneToOne.getName()));
+    members.add(attribute);
+  }
+  XmlMetaCollection metaCollection;
+  for (  OneToMany oneToMany : attributes.getOneToMany()) {
+    String[] types=getCollectionType(oneToMany.getName());
+    metaCollection=new XmlMetaCollection(this,oneToMany.getName(),types[0],types[1]);
+    members.add(metaCollection);
+  }
+  for (  ElementCollection collection : attributes.getElementCollection()) {
+    String[] types=getCollectionType(collection.getName());
+    metaCollection=new XmlMetaCollection(this,collection.getName(),types[0],types[1]);
+    members.add(metaCollection);
+  }
+}

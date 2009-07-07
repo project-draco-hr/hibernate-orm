@@ -1,0 +1,15 @@
+{
+  String pkg=getPackage(resource);
+  String name=getRelativeName(resource);
+  processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,"Reading resource " + resource);
+  InputStream ormStream;
+  try {
+    FileObject fileObject=processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT,pkg,name);
+    ormStream=fileObject.openInputStream();
+  }
+ catch (  IOException e1) {
+    processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING,"Could not load " + resource + " using processingEnv.getFiler().getResource(). Using classpath...");
+    ormStream=this.getClass().getResourceAsStream(resource);
+  }
+  return ormStream;
+}

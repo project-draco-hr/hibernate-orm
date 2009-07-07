@@ -1,0 +1,17 @@
+{
+  List<IMetaAttribute> membersFound=new ArrayList<IMetaAttribute>();
+  final AccessType elementAccessType=getAccessTypeForElement();
+  List<? extends Element> fieldsOfClass=ElementFilter.fieldsIn(element.getEnclosedElements());
+  addPersistentMembers(membersFound,elementAccessType,fieldsOfClass,AccessType.FIELD);
+  List<? extends Element> methodsOfClass=ElementFilter.methodsIn(element.getEnclosedElements());
+  addPersistentMembers(membersFound,elementAccessType,methodsOfClass,AccessType.PROPERTY);
+  for (TypeElement superclass=TypeUtils.getSuperclass(element); superclass != null; superclass=TypeUtils.getSuperclass(superclass)) {
+    if (superclass.getAnnotation(Entity.class) != null) {
+      break;
+    }
+ else     if (superclass.getAnnotation(MappedSuperclass.class) != null) {
+      context.processElement(superclass,defaultAccessTypeForHierarchy);
+    }
+  }
+  return membersFound;
+}

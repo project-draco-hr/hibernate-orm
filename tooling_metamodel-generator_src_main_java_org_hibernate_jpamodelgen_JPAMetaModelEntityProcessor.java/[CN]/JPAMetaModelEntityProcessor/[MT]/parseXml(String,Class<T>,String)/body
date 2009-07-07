@@ -1,0 +1,25 @@
+{
+  InputStream stream=getInputStreamForResource(resource);
+  if (stream == null) {
+    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,resource + " not found.");
+    return null;
+  }
+  try {
+    JAXBContext jc=JAXBContext.newInstance(ObjectFactory.class);
+    Unmarshaller unmarshaller=jc.createUnmarshaller();
+    if (schemaName != null) {
+      unmarshaller.setSchema(getSchema(schemaName));
+    }
+    return clazz.cast(unmarshaller.unmarshal(stream));
+  }
+ catch (  JAXBException e) {
+    String message="Error unmarshalling " + resource + " with exception :\n "+ e;
+    processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING,message);
+    return null;
+  }
+catch (  Exception e) {
+    String message="Error reading " + resource + " with exception :\n "+ e;
+    processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING,message);
+    return null;
+  }
+}

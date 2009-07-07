@@ -1,0 +1,9 @@
+{
+  CriteriaQuery<Tuple> q=qb.createTupleQuery();
+  Root<Order> order=q.from(Order.class);
+  Join<Item,Product> product=order.join(Order_.items).join(Item_.product);
+  Path<BigDecimal> price=product.get(Product_.price);
+  Path<Boolean> filled=order.get(Order_.filled);
+  Path<Date> date=order.get(Order_.date);
+  q.select(qb.tuple(order,product)).where(qb.and(qb.gt(price,100.00),qb.not(filled))).orderBy(qb.asc(price),qb.desc(date));
+}

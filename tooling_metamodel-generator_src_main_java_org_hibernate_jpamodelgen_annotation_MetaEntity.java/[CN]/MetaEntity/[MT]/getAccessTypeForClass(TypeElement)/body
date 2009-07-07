@@ -1,0 +1,50 @@
+{
+  pe.getMessager().printMessage(Diagnostic.Kind.NOTE,"check class" + searchedElement);
+  AccessType accessType=context.getAccessType(searchedElement);
+  if (defaultAccessTypeForHierarchy == null) {
+    this.defaultAccessTypeForHierarchy=context.getDefaultAccessTypeForHerarchy(searchedElement);
+  }
+  if (accessType != null) {
+    pe.getMessager().printMessage(Diagnostic.Kind.NOTE,"Found in cache" + searchedElement + ":"+ accessType);
+    return accessType;
+  }
+  final Access accessAnn=searchedElement.getAnnotation(Access.class);
+  AccessType forcedAccessType=accessAnn != null ? accessAnn.value() : null;
+  if (forcedAccessType != null) {
+    pe.getMessager().printMessage(Diagnostic.Kind.NOTE,"access type " + searchedElement + ":"+ forcedAccessType);
+    context.addAccessType(searchedElement,forcedAccessType);
+  }
+  if (forcedAccessType == null || defaultAccessTypeForHierarchy == null) {
+    List<? extends Element> myMembers=searchedElement.getEnclosedElements();
+    for (    Element subElement : myMembers) {
+      List<? extends AnnotationMirror> entityAnnotations=pe.getElementUtils().getAllAnnotationMirrors(subElement);
+      for (      Object entityAnnotation : entityAnnotations) {
+        AnnotationMirror annotationMirror=(AnnotationMirror)entityAnnotation;
+        final String annotationType=annotationMirror.getAnnotationType().toString();
+        if (annotationType.equals(Id.class.getName()) || annotationType.equals(EmbeddedId.class.getName())) {
+          pe.getMessager().printMessage(Diagnostic.Kind.NOTE,"Found id on" + searchedElement);
+          final ElementKind kind=subElement.getKind();
+          if (kind == ElementKind.FIELD || kind == ElementKind.METHOD) {
+            accessType=kind == ElementKind.FIELD ? AccessType.FIELD : AccessType.PROPERTY;
+            if (defaultAccessTypeForHierarchy == null) {
+              this.defaultAccessTypeForHierarchy=context.getDefaultAccessTypeForHerarchy(searchedElement);
+              if (defaultAccessTypeForHierarchy == null) {
+                this.defaultAccessTypeForHierarchy=accessType;
+                context.addAccessTypeForHierarchy(searchedElement,defaultAccessTypeForHierarchy);
+              }
+            }
+            if (forcedAccessType == null) {
+              context.addAccessType(searchedElement,accessType);
+              pe.getMessager().printMessage(Diagnostic.Kind.NOTE,"access type " + searchedElement + ":"+ accessType);
+              return accessType;
+            }
+ else {
+              return forcedAccessType;
+            }
+          }
+        }
+      }
+    }
+  }
+  return forcedAccessType;
+}
