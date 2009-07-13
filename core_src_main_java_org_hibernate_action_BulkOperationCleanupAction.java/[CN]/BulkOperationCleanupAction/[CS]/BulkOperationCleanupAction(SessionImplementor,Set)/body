@@ -1,6 +1,5 @@
 {
-  this.session=session;
-  Set tmpSpaces=new HashSet(querySpaces);
+  Set tmpSpaces=new HashSet(tableSpaces);
   SessionFactoryImplementor factory=session.getFactory();
   Iterator iterator=factory.getAllClassMetadata().entrySet().iterator();
   while (iterator.hasNext()) {
@@ -8,18 +7,23 @@
     String entityName=(String)entry.getKey();
     EntityPersister persister=factory.getEntityPersister(entityName);
     Serializable[] entitySpaces=persister.getQuerySpaces();
-    if (affectedEntity(querySpaces,entitySpaces)) {
+    if (affectedEntity(tableSpaces,entitySpaces)) {
+      tmpSpaces.addAll(Arrays.asList(entitySpaces));
       if (persister.hasCache()) {
-        affectedEntityNames.add(persister.getEntityName());
+        entityCleanups.add(new EntityCleanup(persister.getCacheAccessStrategy()));
       }
       Set roles=session.getFactory().getCollectionRolesByEntityParticipant(persister.getEntityName());
       if (roles != null) {
-        affectedCollectionRoles.addAll(roles);
-      }
-      for (int y=0; y < entitySpaces.length; y++) {
-        tmpSpaces.add(entitySpaces[y]);
+        Iterator itr=roles.iterator();
+        while (itr.hasNext()) {
+          String role=(String)itr.next();
+          CollectionPersister collectionPersister=factory.getCollectionPersister(role);
+          if (collectionPersister.hasCache()) {
+            collectionCleanups.add(new CollectionCleanup(collectionPersister.getCacheAccessStrategy()));
+          }
+        }
       }
     }
   }
-  this.spaces=(Serializable[])tmpSpaces.toArray(new Serializable[tmpSpaces.size()]);
+  this.affectedTableSpaces=(Serializable[])tmpSpaces.toArray(new Serializable[tmpSpaces.size()]);
 }
