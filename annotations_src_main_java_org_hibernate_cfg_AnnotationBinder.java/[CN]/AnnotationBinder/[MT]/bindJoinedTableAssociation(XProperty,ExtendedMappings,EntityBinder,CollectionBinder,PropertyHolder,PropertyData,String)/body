@@ -1,0 +1,48 @@
+{
+  TableBinder associationTableBinder=new TableBinder();
+  JoinColumn[] annJoins;
+  JoinColumn[] annInverseJoins;
+  JoinTable assocTable=property.getAnnotation(JoinTable.class);
+  CollectionTable collectionTable=property.getAnnotation(CollectionTable.class);
+  if (assocTable != null || collectionTable != null) {
+    final String catalog;
+    final String schema;
+    final String tableName;
+    final UniqueConstraint[] uniqueConstraints;
+    final JoinColumn[] joins;
+    final JoinColumn[] inverseJoins;
+    if (collectionTable != null) {
+      catalog=collectionTable.catalog();
+      schema=collectionTable.schema();
+      tableName=collectionTable.name();
+      uniqueConstraints=collectionTable.uniqueConstraints();
+      joins=collectionTable.joinColumns();
+      inverseJoins=null;
+    }
+ else {
+      catalog=assocTable.catalog();
+      schema=assocTable.schema();
+      tableName=assocTable.name();
+      uniqueConstraints=assocTable.uniqueConstraints();
+      joins=assocTable.joinColumns();
+      inverseJoins=assocTable.inverseJoinColumns();
+    }
+    collectionBinder.setExplicitAssociationTable(true);
+    if (!BinderHelper.isDefault(schema))     associationTableBinder.setSchema(schema);
+    if (!BinderHelper.isDefault(catalog))     associationTableBinder.setCatalog(catalog);
+    if (!BinderHelper.isDefault(tableName))     associationTableBinder.setName(tableName);
+    associationTableBinder.setUniqueConstraints(uniqueConstraints);
+    annJoins=joins.length == 0 ? null : joins;
+    annInverseJoins=inverseJoins == null || inverseJoins.length == 0 ? null : inverseJoins;
+  }
+ else {
+    annJoins=null;
+    annInverseJoins=null;
+  }
+  Ejb3JoinColumn[] joinColumns=Ejb3JoinColumn.buildJoinTableJoinColumns(annJoins,entityBinder.getSecondaryTables(),propertyHolder,inferredData.getPropertyName(),mappedBy,mappings);
+  Ejb3JoinColumn[] inverseJoinColumns=Ejb3JoinColumn.buildJoinTableJoinColumns(annInverseJoins,entityBinder.getSecondaryTables(),propertyHolder,inferredData.getPropertyName(),mappedBy,mappings);
+  associationTableBinder.setMappings(mappings);
+  collectionBinder.setTableBinder(associationTableBinder);
+  collectionBinder.setJoinColumns(joinColumns);
+  collectionBinder.setInverseJoinColumns(inverseJoinColumns);
+}
