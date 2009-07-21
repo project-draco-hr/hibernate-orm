@@ -3,8 +3,8 @@
   log.debug("Collection role: {}",StringHelper.qualify(propertyHolder.getPath(),propertyName));
   collection.setRole(StringHelper.qualify(propertyHolder.getPath(),propertyName));
   collection.setNodeName(propertyName);
-  if (property.isAnnotationPresent(org.hibernate.annotations.MapKey.class) && mapKeyPropertyName != null) {
-    throw new AnnotationException("Cannot mix @javax.persistence.MapKey and @org.hibernate.annotations.MapKey " + "on the same collection: " + StringHelper.qualify(propertyHolder.getPath(),propertyName));
+  if ((property.isAnnotationPresent(org.hibernate.annotations.MapKey.class) || property.isAnnotationPresent(MapKeyColumn.class)) && mapKeyPropertyName != null) {
+    throw new AnnotationException("Cannot mix @javax.persistence.MapKey and @MapKeyColumn or @org.hibernate.annotations.MapKey " + "on the same collection: " + StringHelper.qualify(propertyHolder.getPath(),propertyName));
   }
   defineFetchingStrategy();
   collection.setBatchSize(batchSize);
