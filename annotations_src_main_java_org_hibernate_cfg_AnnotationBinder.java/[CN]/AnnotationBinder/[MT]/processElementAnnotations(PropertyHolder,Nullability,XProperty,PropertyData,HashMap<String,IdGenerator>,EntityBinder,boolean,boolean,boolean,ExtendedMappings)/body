@@ -177,8 +177,13 @@
     ManyToMany manyToManyAnn=property.getAnnotation(ManyToMany.class);
     ElementCollection elementCollectionAnn=property.getAnnotation(ElementCollection.class);
     CollectionOfElements collectionOfElementsAnn=property.getAnnotation(CollectionOfElements.class);
-    org.hibernate.annotations.IndexColumn indexAnn=property.getAnnotation(org.hibernate.annotations.IndexColumn.class);
-    IndexColumn indexColumn=IndexColumn.buildColumnFromAnnotation(indexAnn,propertyHolder,inferredData,mappings);
+    final IndexColumn indexColumn;
+    if (property.isAnnotationPresent(OrderColumn.class)) {
+      indexColumn=IndexColumn.buildColumnFromAnnotation(property.getAnnotation(OrderColumn.class),propertyHolder,inferredData,entityBinder.getSecondaryTables(),mappings);
+    }
+ else {
+      indexColumn=IndexColumn.buildColumnFromAnnotation(property.getAnnotation(org.hibernate.annotations.IndexColumn.class),propertyHolder,inferredData,mappings);
+    }
     CollectionBinder collectionBinder=CollectionBinder.getCollectionBinder(propertyHolder.getEntityName(),property,!indexColumn.isImplicit());
     collectionBinder.setIndexColumn(indexColumn);
     MapKey mapKeyAnn=property.getAnnotation(MapKey.class);
