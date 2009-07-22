@@ -216,20 +216,60 @@
  else {
       elementColumns=Ejb3Column.buildColumnFromAnnotation(null,null,nullability,propertyHolder,virtualProperty,entityBinder.getSecondaryTables(),mappings);
     }
-    Column[] keyColumns=null;
-    if (property.isAnnotationPresent(MapKeyColumn.class)) {
-      keyColumns=new Column[]{new MapKeyColumnDelegator(property.getAnnotation(MapKeyColumn.class))};
+{
+      Column[] keyColumns=null;
+      Boolean isJPA2=null;
+      if (property.isAnnotationPresent(MapKeyColumn.class)) {
+        isJPA2=Boolean.TRUE;
+        keyColumns=new Column[]{new MapKeyColumnDelegator(property.getAnnotation(MapKeyColumn.class))};
+      }
+ else       if (property.isAnnotationPresent(org.hibernate.annotations.MapKey.class)) {
+        if (isJPA2 == null) {
+          isJPA2=Boolean.FALSE;
+        }
+        keyColumns=property.getAnnotation(org.hibernate.annotations.MapKey.class).columns();
+      }
+      if (isJPA2 == null) {
+        isJPA2=Boolean.TRUE;
+      }
+      keyColumns=keyColumns != null && keyColumns.length > 0 ? keyColumns : null;
+      PropertyData mapKeyVirtualProperty=new WrappedInferredData(inferredData,"mapkey");
+      Ejb3Column[] mapColumns=Ejb3Column.buildColumnFromAnnotation(keyColumns,null,Nullability.FORCED_NOT_NULL,propertyHolder,isJPA2 ? inferredData : mapKeyVirtualProperty,isJPA2 ? "_KEY" : null,entityBinder.getSecondaryTables(),mappings);
+      collectionBinder.setMapKeyColumns(mapColumns);
     }
- else     if (property.isAnnotationPresent(org.hibernate.annotations.MapKey.class)) {
-      keyColumns=property.getAnnotation(org.hibernate.annotations.MapKey.class).columns();
+{
+      JoinColumn[] joinKeyColumns=null;
+      Boolean isJPA2=null;
+      if (property.isAnnotationPresent(MapKeyJoinColumns.class)) {
+        isJPA2=Boolean.TRUE;
+        final MapKeyJoinColumn[] mapKeyJoinColumns=property.getAnnotation(MapKeyJoinColumns.class).value();
+        joinKeyColumns=new JoinColumn[mapKeyJoinColumns.length];
+        int index=0;
+        for (        MapKeyJoinColumn joinColumn : mapKeyJoinColumns) {
+          joinKeyColumns[index]=new MapKeyJoinColumnDelegator(joinColumn);
+          index++;
+        }
+        if (joinKeyColumns != null) {
+          throw new AnnotationException("@MapKeyJoinColumn and @MapKeyJoinColumns used on the same property: " + StringHelper.qualify(propertyHolder.getClassName(),property.getName()));
+        }
+      }
+ else       if (property.isAnnotationPresent(MapKeyJoinColumn.class)) {
+        isJPA2=Boolean.TRUE;
+        joinKeyColumns=new JoinColumn[]{new MapKeyJoinColumnDelegator(property.getAnnotation(MapKeyJoinColumn.class))};
+      }
+ else       if (property.isAnnotationPresent(org.hibernate.annotations.MapKeyManyToMany.class)) {
+        if (isJPA2 == null) {
+          isJPA2=Boolean.FALSE;
+        }
+        joinKeyColumns=property.getAnnotation(org.hibernate.annotations.MapKeyManyToMany.class).joinColumns();
+      }
+      if (isJPA2 == null) {
+        isJPA2=Boolean.TRUE;
+      }
+      PropertyData mapKeyVirtualProperty=new WrappedInferredData(inferredData,"mapkey");
+      Ejb3JoinColumn[] mapJoinColumns=Ejb3JoinColumn.buildJoinColumnsWithDefaultColumnSuffix(joinKeyColumns,null,entityBinder.getSecondaryTables(),propertyHolder,isJPA2 ? inferredData.getPropertyName() : mapKeyVirtualProperty.getPropertyName(),isJPA2 ? "_KEY" : null,mappings);
+      collectionBinder.setMapKeyManyToManyColumns(mapJoinColumns);
     }
-    keyColumns=keyColumns != null && keyColumns.length > 0 ? keyColumns : null;
-    PropertyData mapKeyVirtualProperty=new WrappedInferredData(inferredData,"mapkey");
-    Ejb3Column[] mapColumns=Ejb3Column.buildColumnFromAnnotation(keyColumns,null,Nullability.FORCED_NOT_NULL,propertyHolder,mapKeyVirtualProperty,entityBinder.getSecondaryTables(),mappings);
-    collectionBinder.setMapKeyColumns(mapColumns);
-    MapKeyManyToMany mapKeyManyToMany=property.getAnnotation(MapKeyManyToMany.class);
-    Ejb3JoinColumn[] mapJoinColumns=Ejb3JoinColumn.buildJoinColumns(mapKeyManyToMany != null ? mapKeyManyToMany.joinColumns() : null,null,entityBinder.getSecondaryTables(),propertyHolder,mapKeyVirtualProperty.getPropertyName(),mappings);
-    collectionBinder.setMapKeyManyToManyColumns(mapJoinColumns);
     collectionBinder.setEmbedded(property.isAnnotationPresent(Embedded.class));
     collectionBinder.setElementColumns(elementColumns);
     collectionBinder.setProperty(property);

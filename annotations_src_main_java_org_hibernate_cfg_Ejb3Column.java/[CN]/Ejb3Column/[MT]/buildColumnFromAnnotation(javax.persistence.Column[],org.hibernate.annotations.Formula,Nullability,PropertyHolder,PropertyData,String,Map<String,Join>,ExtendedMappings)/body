@@ -1,0 +1,56 @@
+{
+  Ejb3Column[] columns;
+  if (formulaAnn != null) {
+    Ejb3Column formulaColumn=new Ejb3Column();
+    formulaColumn.setFormula(formulaAnn.value());
+    formulaColumn.setImplicit(false);
+    formulaColumn.setMappings(mappings);
+    formulaColumn.setPropertyHolder(propertyHolder);
+    formulaColumn.bind();
+    columns=new Ejb3Column[]{formulaColumn};
+  }
+ else {
+    javax.persistence.Column[] actualCols=anns;
+    javax.persistence.Column[] overriddenCols=propertyHolder.getOverriddenColumn(StringHelper.qualify(propertyHolder.getPath(),inferredData.getPropertyName()));
+    if (overriddenCols != null) {
+      if (anns != null && overriddenCols.length != anns.length) {
+        throw new AnnotationException("AttributeOverride.column() should override all columns for now");
+      }
+      actualCols=overriddenCols.length == 0 ? null : overriddenCols;
+      log.debug("Column(s) overridden for property {}",inferredData.getPropertyName());
+    }
+    if (actualCols == null) {
+      columns=buildImplicitColumn(inferredData,suffixForDefaultColumnName,secondaryTables,propertyHolder,nullability,mappings);
+    }
+ else {
+      final int length=actualCols.length;
+      columns=new Ejb3Column[length];
+      for (int index=0; index < length; index++) {
+        javax.persistence.Column col=actualCols[index];
+        String sqlType=col.columnDefinition().equals("") ? null : col.columnDefinition();
+        Ejb3Column column=new Ejb3Column();
+        column.setImplicit(false);
+        column.setSqlType(sqlType);
+        column.setLength(col.length());
+        column.setPrecision(col.precision());
+        column.setScale(col.scale());
+        column.setLogicalColumnName(col.name());
+        if (StringHelper.isEmpty(column.getLogicalColumnName()) && !StringHelper.isEmpty(suffixForDefaultColumnName)) {
+          column.setLogicalColumnName(inferredData.getPropertyName() + suffixForDefaultColumnName);
+        }
+        column.setPropertyName(BinderHelper.getRelativePath(propertyHolder,inferredData.getPropertyName()));
+        column.setNullable(col.nullable());
+        column.setUnique(col.unique());
+        column.setInsertable(col.insertable());
+        column.setUpdatable(col.updatable());
+        column.setSecondaryTableName(col.table());
+        column.setPropertyHolder(propertyHolder);
+        column.setJoins(secondaryTables);
+        column.setMappings(mappings);
+        column.bind();
+        columns[index]=column;
+      }
+    }
+  }
+  return columns;
+}

@@ -7,10 +7,18 @@
     column.setNullable(false);
   }
   column.setLength(DEFAULT_COLUMN_LENGTH);
-  column.setPropertyName(BinderHelper.getRelativePath(propertyHolder,inferredData.getPropertyName()));
+  final String propertyName=inferredData.getPropertyName();
+  column.setPropertyName(BinderHelper.getRelativePath(propertyHolder,propertyName));
   column.setPropertyHolder(propertyHolder);
   column.setJoins(secondaryTables);
   column.setMappings(mappings);
+  if (!StringHelper.isEmpty(suffixForDefaultColumnName)) {
+    column.setLogicalColumnName(propertyName + suffixForDefaultColumnName);
+    column.setImplicit(false);
+  }
+ else {
+    column.setImplicit(true);
+  }
   column.bind();
   columns[0]=column;
   return columns;
