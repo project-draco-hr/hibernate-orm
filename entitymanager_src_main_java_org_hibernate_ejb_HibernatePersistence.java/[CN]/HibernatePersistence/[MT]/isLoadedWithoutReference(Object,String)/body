@@ -19,13 +19,15 @@
     final boolean isInitialized=interceptor == null || interceptor.isInitialized(property);
     LoadState state;
     if (isInitialized && interceptor != null) {
-      state=LoadState.LOADED;
+      state=isLoaded(get(entity,property));
+      if (state == LoadState.UNKNOWN)       state=LoadState.LOADED;
     }
  else     if (interceptor != null && (!isInitialized)) {
       state=LoadState.NOT_LOADED;
     }
  else     if (sureFromUs) {
-      state=LoadState.LOADED;
+      state=isLoaded(get(entity,property));
+      if (state == LoadState.UNKNOWN)       state=LoadState.LOADED;
     }
  else {
       state=LoadState.UNKNOWN;
