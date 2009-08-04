@@ -1,3 +1,24 @@
 {
-  throw new UnsupportedOperationException("Not yet implemented!");
+  if (jt.equals(JoinType.RIGHT)) {
+    throw new UnsupportedOperationException("RIGHT JOIN not supported");
+  }
+  final Attribute<X,?> attribute=(Attribute<X,?>)getAttribute(attributeName);
+  if (attribute.isCollection()) {
+    final PluralAttribute pluralAttribute=(PluralAttribute)attribute;
+    if (CollectionType.COLLECTION.equals(pluralAttribute.getCollectionType())) {
+      return join((CollectionAttribute<X,Y>)attribute,jt);
+    }
+ else     if (CollectionType.LIST.equals(pluralAttribute.getCollectionType())) {
+      return join((ListAttribute<X,Y>)attribute,jt);
+    }
+ else     if (CollectionType.SET.equals(pluralAttribute.getCollectionType())) {
+      return join((SetAttribute<X,Y>)attribute,jt);
+    }
+ else {
+      return join((MapAttribute<X,?,Y>)attribute,jt);
+    }
+  }
+ else {
+    return join((SingularAttribute)attribute,jt);
+  }
 }

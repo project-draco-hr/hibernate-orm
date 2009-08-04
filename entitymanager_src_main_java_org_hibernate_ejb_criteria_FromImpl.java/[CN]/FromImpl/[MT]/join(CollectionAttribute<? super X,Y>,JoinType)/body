@@ -1,3 +1,15 @@
 {
-  throw new UnsupportedOperationException("Not yet implemented!");
+  if (jt.equals(JoinType.RIGHT)) {
+    throw new UnsupportedOperationException("RIGHT JOIN not supported");
+  }
+  final Class<Y> attributeType=collection.getBindableJavaType();
+  final CollectionJoin<X,Y> join;
+  if (isBasicCollection(collection)) {
+    join=new BasicCollectionJoinImpl<X,Y>(queryBuilder(),attributeType,this,collection,jt);
+  }
+ else {
+    join=new CollectionJoinImpl<X,Y>(queryBuilder(),attributeType,this,collection,jt);
+  }
+  joins.add(join);
+  return join;
 }
