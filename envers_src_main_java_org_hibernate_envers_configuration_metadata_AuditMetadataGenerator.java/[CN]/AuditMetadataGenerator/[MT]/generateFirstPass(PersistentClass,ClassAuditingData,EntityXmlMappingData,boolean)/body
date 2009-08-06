@@ -1,0 +1,57 @@
+{
+  String schema=auditingData.getAuditTable().schema();
+  if (StringTools.isEmpty(schema)) {
+    schema=pc.getTable().getSchema();
+  }
+  String catalog=auditingData.getAuditTable().catalog();
+  if (StringTools.isEmpty(catalog)) {
+    catalog=pc.getTable().getCatalog();
+  }
+  if (!isAudited) {
+    String entityName=pc.getEntityName();
+    IdMappingData idMapper=idMetadataGenerator.addId(pc);
+    ExtendedPropertyMapper propertyMapper=null;
+    String parentEntityName=null;
+    EntityConfiguration entityCfg=new EntityConfiguration(entityName,idMapper,propertyMapper,parentEntityName);
+    notAuditedEntitiesConfigurations.put(pc.getEntityName(),entityCfg);
+    return;
+  }
+  String entityName=pc.getEntityName();
+  String auditEntityName=verEntCfg.getAuditEntityName(entityName);
+  String auditTableName=verEntCfg.getAuditTableName(entityName,pc.getTable().getName());
+  AuditTableData auditTableData=new AuditTableData(auditEntityName,auditTableName,schema,catalog);
+  IdMappingData idMapper=idMetadataGenerator.addId(pc);
+  InheritanceType inheritanceType=InheritanceType.get(pc);
+  final Element class_mapping;
+  final ExtendedPropertyMapper propertyMapper;
+  final String parentEntityName;
+  final Triple<Element,ExtendedPropertyMapper,String> mappingData;
+switch (inheritanceType) {
+case NONE:
+    mappingData=generateMappingData(pc,xmlMappingData,auditTableData,idMapper);
+  break;
+case SINGLE:
+mappingData=generateInheritanceMappingData(pc,xmlMappingData,auditTableData,"subclass");
+break;
+case JOINED:
+mappingData=generateInheritanceMappingData(pc,xmlMappingData,auditTableData,"joined-subclass");
+Element keyMapping=mappingData.getFirst().addElement("key");
+MetadataTools.addColumns(keyMapping,pc.getIdentifierProperty().getColumnIterator());
+MetadataTools.addColumn(keyMapping,verEntCfg.getRevisionFieldName(),null,0,0,null);
+break;
+case TABLE_PER_CLASS:
+mappingData=generateInheritanceMappingData(pc,xmlMappingData,auditTableData,"union-subclass");
+break;
+default :
+throw new AssertionError("Impossible enum value.");
+}
+class_mapping=mappingData.getFirst();
+propertyMapper=mappingData.getSecond();
+parentEntityName=mappingData.getThird();
+xmlMappingData.setClassMapping(class_mapping);
+addProperties(class_mapping,(Iterator<Property>)pc.getUnjoinedPropertyIterator(),propertyMapper,auditingData,pc.getEntityName(),xmlMappingData,true);
+createJoins(pc,class_mapping,auditingData);
+addJoins(pc,propertyMapper,auditingData,pc.getEntityName(),xmlMappingData,true);
+EntityConfiguration entityCfg=new EntityConfiguration(auditEntityName,idMapper,propertyMapper,parentEntityName);
+entitiesConfigurations.put(pc.getEntityName(),entityCfg);
+}

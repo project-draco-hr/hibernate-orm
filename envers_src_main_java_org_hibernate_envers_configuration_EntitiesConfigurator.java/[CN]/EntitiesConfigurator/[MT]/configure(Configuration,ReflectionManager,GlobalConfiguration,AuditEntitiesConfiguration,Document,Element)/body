@@ -14,7 +14,12 @@
         verEntCfg.addCustomAuditTableName(pc.getEntityName(),auditData.getAuditTable().value());
       }
       EntityXmlMappingData xmlMappingData=new EntityXmlMappingData();
-      auditMetaGen.generateFirstPass(pc,auditData,xmlMappingData);
+      auditMetaGen.generateFirstPass(pc,auditData,xmlMappingData,true);
+      xmlMappings.put(pc,xmlMappingData);
+    }
+ else {
+      EntityXmlMappingData xmlMappingData=new EntityXmlMappingData();
+      auditMetaGen.generateFirstPass(pc,auditData,xmlMappingData,false);
       xmlMappings.put(pc,xmlMappingData);
     }
   }
@@ -41,5 +46,5 @@
       throw new MappingException(e);
     }
   }
-  return new EntitiesConfigurations(auditMetaGen.getEntitiesConfigurations());
+  return new EntitiesConfigurations(auditMetaGen.getEntitiesConfigurations(),auditMetaGen.getNotAuditedEntitiesConfigurations());
 }
