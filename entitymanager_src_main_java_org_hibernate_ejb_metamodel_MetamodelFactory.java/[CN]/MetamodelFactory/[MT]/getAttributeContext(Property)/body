@@ -1,0 +1,71 @@
+{
+  final Value value=property.getValue();
+  org.hibernate.type.Type type=value.getType();
+  if (type.isAnyType()) {
+    throw new UnsupportedOperationException("any not supported yet");
+  }
+ else   if (type.isAssociationType()) {
+    if (type.isCollectionType()) {
+      if (value instanceof Collection) {
+        final Collection collValue=(Collection)value;
+        final Value elementValue=collValue.getElement();
+        final org.hibernate.type.Type elementType=elementValue.getType();
+        final AttributeContext.TypeStatus elementTypeStatus;
+        final Attribute.PersistentAttributeType elementPAT;
+        final Class<?> collectionClass=collValue.getCollectionType().getReturnedClass();
+        final Value keyValue;
+        final org.hibernate.type.Type keyType;
+        final AttributeContext.TypeStatus keyTypeStatus;
+        if (value instanceof Map) {
+          keyValue=((Map)value).getIndex();
+          keyType=keyValue.getType();
+          if (keyValue instanceof Component) {
+            keyTypeStatus=AttributeContext.TypeStatus.EMBEDDABLE;
+          }
+ else           if (keyType.isAnyType()) {
+            throw new UnsupportedOperationException("collection of any not supported yet");
+          }
+ else           if (keyType.isAssociationType()) {
+            keyTypeStatus=AttributeContext.TypeStatus.ENTITY;
+          }
+ else {
+            keyTypeStatus=AttributeContext.TypeStatus.BASIC;
+          }
+        }
+ else {
+          keyValue=null;
+          keyTypeStatus=null;
+        }
+        if (elementValue instanceof Component) {
+          elementTypeStatus=AttributeContext.TypeStatus.EMBEDDABLE;
+          elementPAT=Attribute.PersistentAttributeType.ELEMENT_COLLECTION;
+        }
+ else         if (elementType.isAnyType()) {
+          throw new UnsupportedOperationException("collection of any not supported yet");
+        }
+ else         if (elementType.isAssociationType()) {
+          elementTypeStatus=AttributeContext.TypeStatus.ENTITY;
+          elementPAT=Attribute.PersistentAttributeType.MANY_TO_MANY;
+        }
+ else {
+          elementTypeStatus=AttributeContext.TypeStatus.BASIC;
+          elementPAT=Attribute.PersistentAttributeType.ELEMENT_COLLECTION;
+        }
+        return new AttributeContext(elementValue,elementTypeStatus,elementPAT,collectionClass,keyValue,keyTypeStatus);
+      }
+ else       if (value instanceof OneToMany) {
+        return new AttributeContext(value,AttributeContext.TypeStatus.ENTITY,Attribute.PersistentAttributeType.ONE_TO_MANY,null,null,null);
+      }
+    }
+ else {
+      return new AttributeContext(value,AttributeContext.TypeStatus.ENTITY,Attribute.PersistentAttributeType.MANY_TO_MANY,null,null,null);
+    }
+  }
+ else   if (property.isComposite()) {
+    return new AttributeContext(value,AttributeContext.TypeStatus.EMBEDDABLE,Attribute.PersistentAttributeType.EMBEDDED,null,null,null);
+  }
+ else {
+    return new AttributeContext(value,AttributeContext.TypeStatus.BASIC,Attribute.PersistentAttributeType.BASIC,null,null,null);
+  }
+  throw new UnsupportedOperationException("oops, we are missing something: " + property.toString());
+}

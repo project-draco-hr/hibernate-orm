@@ -1,0 +1,20 @@
+{
+  super(clazz,(Iterator<Property>)persistentClass.getPropertyIterator(),context);
+  this.className=persistentClass.getClassName();
+  this.hasIdentifierProperty=persistentClass.hasIdentifierProperty();
+  this.isVersioned=persistentClass.isVersioned();
+  id=buildIdAttribute(persistentClass);
+  version=buildVersionAttribute(persistentClass);
+  final Set<SingularAttribute<? super X,?>> attributes=buildIdClassAttributes(persistentClass,context);
+  this.idClassAttributes=attributes != null ? Collections.unmodifiableSet(attributes) : null;
+  PersistentClass superPersistentClass=persistentClass.getSuperclass();
+  if (superPersistentClass == null) {
+    supertype=null;
+  }
+ else {
+    final Class<?> superclass=superPersistentClass.getMappedClass();
+    final EntityTypeDelegator<X> entityTypeDelegator=new EntityTypeDelegator<X>();
+    context.addDelegator(entityTypeDelegator,superclass);
+    supertype=entityTypeDelegator;
+  }
+}
