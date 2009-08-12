@@ -3,12 +3,21 @@
     return;
   }
   Setter setter=ReflectionTools.getSetter(obj.getClass(),propertyData);
-  try {
-    Object subObj=ReflectHelper.getDefaultConstructor(Thread.currentThread().getContextClassLoader().loadClass(componentClassName)).newInstance();
-    setter.set(obj,subObj,null);
-    delegate.mapToEntityFromMap(verCfg,subObj,data,primaryKey,versionsReader,revision);
+  boolean allNullAndSingle=true;
+  for (  Map.Entry<PropertyData,PropertyMapper> property : delegate.getProperties().entrySet()) {
+    if (data.get(property.getKey().getName()) != null || !(property.getValue() instanceof SinglePropertyMapper)) {
+      allNullAndSingle=false;
+      break;
+    }
   }
- catch (  Exception e) {
-    throw new AuditException(e);
+  if (!allNullAndSingle) {
+    try {
+      Object subObj=ReflectHelper.getDefaultConstructor(Thread.currentThread().getContextClassLoader().loadClass(componentClassName)).newInstance();
+      setter.set(obj,subObj,null);
+      delegate.mapToEntityFromMap(verCfg,subObj,data,primaryKey,versionsReader,revision);
+    }
+ catch (    Exception e) {
+      throw new AuditException(e);
+    }
   }
 }
