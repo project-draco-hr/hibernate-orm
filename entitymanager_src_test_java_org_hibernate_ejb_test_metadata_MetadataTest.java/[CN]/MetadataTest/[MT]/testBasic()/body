@@ -3,4 +3,23 @@
   final SingularAttribute<? super Fridge,Integer> singularAttribute=entityType.getDeclaredSingularAttribute("temperature",Integer.class);
   assertEquals(Integer.class,singularAttribute.getBindableJavaType());
   assertEquals(Bindable.BindableType.SINGULAR_ATTRIBUTE,singularAttribute.getBindableType());
+  assertFalse(singularAttribute.isId());
+  assertFalse(singularAttribute.isOptional());
+  assertEquals(Integer.class,singularAttribute.getType().getJavaType());
+  final Attribute<? super Fridge,?> attribute=entityType.getDeclaredAttribute("temperature");
+  assertNotNull(attribute);
+  assertEquals("temperature",attribute.getName());
+  assertEquals(Fridge.class,attribute.getDeclaringType().getJavaType());
+  assertEquals(Attribute.PersistentAttributeType.BASIC,attribute.getPersistentAttributeType());
+  assertEquals(Integer.class,attribute.getJavaType());
+  assertFalse(attribute.isAssociation());
+  assertFalse(attribute.isCollection());
+  boolean found=false;
+  for (  Attribute<Fridge,?> attr : entityType.getDeclaredAttributes()) {
+    if ("temperature".equals(attr.getName())) {
+      found=true;
+      break;
+    }
+  }
+  assertTrue(found);
 }
