@@ -4,6 +4,11 @@
   this.discardOnClose=discardOnClose;
   this.sessionInterceptorClass=sessionInterceptorClass;
   @SuppressWarnings("unchecked") final Iterator<PersistentClass> classes=cfg.getClassMappings();
-  this.metamodel=new MetamodelImpl(classes);
+  if (!"disabled".equalsIgnoreCase(cfg.getProperty("hibernate.ejb.metamodel.generation"))) {
+    this.metamodel=new MetamodelImpl(classes);
+  }
+ else {
+    this.metamodel=null;
+  }
   this.criteriaQueryBuilder=new QueryBuilderImpl(this);
 }
