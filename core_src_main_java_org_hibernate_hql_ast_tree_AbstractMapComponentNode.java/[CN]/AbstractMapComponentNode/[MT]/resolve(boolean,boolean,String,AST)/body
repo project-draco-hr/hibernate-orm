@@ -1,0 +1,20 @@
+{
+  if (parent != null) {
+    throw attemptedDereference();
+  }
+  FromReferenceNode mapReference=getMapReference();
+  mapReference.resolve(true,true);
+  if (mapReference.getDataType().isCollectionType()) {
+    CollectionType collectionType=(CollectionType)mapReference.getDataType();
+    if (Map.class.isAssignableFrom(collectionType.getReturnedClass())) {
+      FromElement sourceFromElement=mapReference.getFromElement();
+      setFromElement(sourceFromElement);
+      setDataType(resolveType(sourceFromElement.getQueryableCollection()));
+      this.columns=resolveColumns(sourceFromElement.getQueryableCollection());
+      initText(this.columns);
+      setFirstChild(null);
+      return;
+    }
+  }
+  throw nonMap();
+}

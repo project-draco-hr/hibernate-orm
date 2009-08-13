@@ -5,23 +5,22 @@
   ArrayList queryReturnTypeList=new ArrayList();
   SelectExpression[] selectExpressions=collectSelectExpressions();
   for (int i=0; i < selectExpressions.length; i++) {
-    SelectExpression expr=selectExpressions[i];
-    if (expr.isConstructor()) {
-      constructorNode=(ConstructorNode)expr;
-      List constructorArgumentTypeList=constructorNode.getConstructorArgumentTypeList();
-      queryReturnTypeList.addAll(constructorArgumentTypeList);
+    SelectExpression selectExpression=selectExpressions[i];
+    if (AggregatedSelectExpression.class.isInstance(selectExpression)) {
+      aggregatedSelectExpression=(AggregatedSelectExpression)selectExpression;
+      queryReturnTypeList.addAll(aggregatedSelectExpression.getAggregatedSelectionTypeList());
       scalarSelect=true;
     }
  else {
-      Type type=expr.getDataType();
+      Type type=selectExpression.getDataType();
       if (type == null) {
-        throw new IllegalStateException("No data type for node: " + expr.getClass().getName() + " "+ new ASTPrinter(SqlTokenTypes.class).showAsString((AST)expr,""));
+        throw new IllegalStateException("No data type for node: " + selectExpression.getClass().getName() + " "+ new ASTPrinter(SqlTokenTypes.class).showAsString((AST)selectExpression,""));
       }
-      if (expr.isScalar()) {
+      if (selectExpression.isScalar()) {
         scalarSelect=true;
       }
-      if (isReturnableEntity(expr)) {
-        fromElementsForLoad.add(expr.getFromElement());
+      if (isReturnableEntity(selectExpression)) {
+        fromElementsForLoad.add(selectExpression.getFromElement());
       }
       queryReturnTypeList.add(type);
     }

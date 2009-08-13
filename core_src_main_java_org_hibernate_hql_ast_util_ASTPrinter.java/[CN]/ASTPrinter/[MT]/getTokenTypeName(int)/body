@@ -1,22 +1,11 @@
 {
-  if (tokenTypeConstants == null) {
-    return Integer.toString(type);
+  final Integer typeInteger=new Integer(type);
+  String value=null;
+  if (tokenTypeNameCache != null) {
+    value=(String)tokenTypeNameCache.get(typeInteger);
   }
-  if (tokenTypeNamesByTokenType == null) {
-    Field[] fields=tokenTypeConstants.getFields();
-    tokenTypeNamesByTokenType=new HashMap();
-    String tokenTypeName=null;
-    for (int i=0; i < fields.length; i++) {
-      Field field=fields[i];
-      tokenTypeName=getTokenTypeName(field,type,false);
-      if (tokenTypeName != null) {
-        try {
-          tokenTypeNamesByTokenType.put(field.get(null),field.getName());
-        }
- catch (        IllegalAccessException ignore) {
-        }
-      }
-    }
+  if (value == null) {
+    value=typeInteger.toString();
   }
-  return (String)tokenTypeNamesByTokenType.get(new Integer(type));
+  return value;
 }
