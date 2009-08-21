@@ -1,0 +1,17 @@
+{
+  Item item=new Item("chris","Chris's Item");
+  Session s=openSession();
+  Statistics stats=s.getSessionFactory().getStatistics();
+  s.getTransaction().begin();
+  s.persist(item);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  Item found=(Item)s.load(Item.class,item.getId());
+  System.out.println(stats);
+  assertEquals(item.getDescription(),found.getDescription());
+  assertEquals(0,stats.getSecondLevelCacheMissCount());
+  assertEquals(1,stats.getSecondLevelCacheHitCount());
+  s.delete(found);
+  s.close();
+}

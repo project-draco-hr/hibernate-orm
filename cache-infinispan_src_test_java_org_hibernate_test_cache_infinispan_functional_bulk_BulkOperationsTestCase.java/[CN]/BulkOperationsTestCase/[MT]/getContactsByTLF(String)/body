@@ -1,0 +1,15 @@
+{
+  String selectHQL="select contact.id from Contact contact";
+  selectHQL+=" where contact.tlf = :cTLF";
+  tm.begin();
+  try {
+    Session session=getSessions().getCurrentSession();
+    List results=session.createQuery(selectHQL).setFlushMode(FlushMode.AUTO).setParameter("cTLF",tlf).list();
+    tm.commit();
+    return results;
+  }
+ catch (  Exception e) {
+    tm.rollback();
+    throw e;
+  }
+}

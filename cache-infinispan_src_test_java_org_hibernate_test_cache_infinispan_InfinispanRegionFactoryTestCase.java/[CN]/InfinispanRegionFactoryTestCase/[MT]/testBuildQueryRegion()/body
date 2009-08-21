@@ -1,0 +1,18 @@
+{
+  final String query="org.hibernate.cache.StandardQueryCache";
+  Properties p=new Properties();
+  InfinispanRegionFactory factory=new InfinispanRegionFactory();
+  factory.start(null,p);
+  CacheManager manager=factory.getCacheManager();
+  manager.getGlobalConfiguration().setTransportClass(null);
+  try {
+    assertTrue(factory.getDefinedConfigurations().contains("local-query"));
+    QueryResultsRegionImpl region=(QueryResultsRegionImpl)factory.buildQueryResultsRegion(query,p);
+    Cache cache=region.getCache();
+    Configuration cacheCfg=cache.getConfiguration();
+    assertEquals(CacheMode.LOCAL,cacheCfg.getCacheMode());
+  }
+  finally {
+    factory.stop();
+  }
+}

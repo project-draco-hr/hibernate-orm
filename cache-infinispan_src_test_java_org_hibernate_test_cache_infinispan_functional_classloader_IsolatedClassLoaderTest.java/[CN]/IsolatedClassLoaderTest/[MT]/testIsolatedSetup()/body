@@ -1,0 +1,23 @@
+{
+  CacheManager localManager=ClusterAwareRegionFactory.getCacheManager(AbstractDualNodeTestCase.LOCAL);
+  Cache localAccountCache=localManager.getCache(Account.class.getName());
+  Cache localAccountHolderCache=localManager.getCache(AccountHolder.class.getName());
+  CacheManager remoteManager=ClusterAwareRegionFactory.getCacheManager(AbstractDualNodeTestCase.REMOTE);
+  Cache remoteAccountCache=remoteManager.getCache(Account.class.getName());
+  Cache remoteAccountHolderCache=remoteManager.getCache(AccountHolder.class.getName());
+  ClassLoader cl=Thread.currentThread().getContextClassLoader();
+  log.info("TCCL is " + cl);
+  Thread.currentThread().setContextClassLoader(cl.getParent());
+  Account acct=new Account();
+  acct.setAccountHolder(new AccountHolder());
+  try {
+    localAccountCache.put("isolated1",acct);
+    fail("Should not have succeeded in putting acct -- classloader not isolated");
+  }
+ catch (  Exception e) {
+    log.info("Caught exception as desired",e);
+  }
+  Thread.currentThread().setContextClassLoader(cl);
+  localAccountCache.put("isolated1",acct);
+  assertEquals(acct.getClass().getName(),remoteAccountCache.get("isolated1").getClass().getName());
+}

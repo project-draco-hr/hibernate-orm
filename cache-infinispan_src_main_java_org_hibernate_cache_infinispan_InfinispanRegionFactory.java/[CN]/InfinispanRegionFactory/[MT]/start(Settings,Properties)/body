@@ -1,0 +1,25 @@
+{
+  log.debug("Starting Infinispan CacheManager");
+  try {
+    transactionManagerlookup=new HibernateTransactionManagerLookup(settings,properties);
+    transactionManager=transactionManagerlookup.getTransactionManager();
+    String configLoc=PropertiesHelper.getString(INFINISPAN_CONFIG_RESOURCE_PROP,properties,DEF_INFINISPAN_CONFIG_RESOURCE);
+    manager=createCacheManager(configLoc);
+    initGenericDataTypeOverrides();
+    Enumeration keys=properties.propertyNames();
+    while (keys.hasMoreElements()) {
+      String key=(String)keys.nextElement();
+      int prefixLoc=-1;
+      if ((prefixLoc=key.indexOf(PREFIX)) != -1) {
+        dissectProperty(prefixLoc,key,properties);
+      }
+    }
+    defineGenericDataTypeCacheConfigurations(settings,properties);
+  }
+ catch (  CacheException ce) {
+    throw ce;
+  }
+catch (  Throwable t) {
+    throw new CacheException("Unable to start region factory",t);
+  }
+}

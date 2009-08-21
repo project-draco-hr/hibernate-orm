@@ -1,0 +1,16 @@
+{
+  String selectHQL="select contact.id from Contact contact";
+  selectHQL+=" where contact.customer.name = :cName";
+  log.debug("Get contacts for customer " + customerName);
+  tm.begin();
+  try {
+    Session session=getSessions().getCurrentSession();
+    List results=session.createQuery(selectHQL).setFlushMode(FlushMode.AUTO).setParameter("cName",customerName).list();
+    tm.commit();
+    return results;
+  }
+ catch (  Exception e) {
+    tm.rollback();
+    throw e;
+  }
+}

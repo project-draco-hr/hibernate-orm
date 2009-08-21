@@ -1,0 +1,20 @@
+{
+  String deleteHQL="delete Contact where customer in ";
+  deleteHQL+=" (select customer FROM Customer as customer ";
+  deleteHQL+=" where customer.name = :cName)";
+  tm.begin();
+  try {
+    Session session=getSessions().getCurrentSession();
+    int rowsAffected=session.createQuery(deleteHQL).setFlushMode(FlushMode.AUTO).setParameter("cName","Red Hat").executeUpdate();
+    tm.commit();
+    return rowsAffected;
+  }
+ catch (  Exception e) {
+    try {
+      tm.rollback();
+    }
+ catch (    Exception ee) {
+    }
+    throw e;
+  }
+}

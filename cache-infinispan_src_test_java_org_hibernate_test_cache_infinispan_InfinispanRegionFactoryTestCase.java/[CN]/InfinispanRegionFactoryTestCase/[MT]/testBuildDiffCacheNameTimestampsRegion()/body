@@ -1,0 +1,27 @@
+{
+  final String timestamps="org.hibernate.cache.UpdateTimestampsCache";
+  Properties p=new Properties();
+  p.setProperty("hibernate.cache.infinispan.timestamps.cfg","unrecommended-timestamps");
+  InfinispanRegionFactory factory=new InfinispanRegionFactory();
+  factory.start(null,p);
+  CacheManager manager=factory.getCacheManager();
+  manager.getGlobalConfiguration().setTransportClass(null);
+  try {
+    assertFalse(factory.getDefinedConfigurations().contains("timestamp"));
+    assertTrue(factory.getDefinedConfigurations().contains("unrecommended-timestamps"));
+    assertTrue(factory.getTypeOverrides().get("timestamps").getCacheName().equals("unrecommended-timestamps"));
+    Configuration config=new Configuration();
+    config.setFetchInMemoryState(false);
+    config.setCacheMode(CacheMode.REPL_SYNC);
+    manager.defineConfiguration("unrecommended-timestamps",config);
+    TimestampsRegionImpl region=(TimestampsRegionImpl)factory.buildTimestampsRegion(timestamps,p);
+    Cache cache=region.getCache();
+    Configuration cacheCfg=cache.getConfiguration();
+    assertEquals(EvictionStrategy.NONE,cacheCfg.getEvictionStrategy());
+    assertEquals(CacheMode.REPL_SYNC,cacheCfg.getCacheMode());
+    assertFalse(cacheCfg.isUseLazyDeserialization());
+  }
+  finally {
+    factory.stop();
+  }
+}

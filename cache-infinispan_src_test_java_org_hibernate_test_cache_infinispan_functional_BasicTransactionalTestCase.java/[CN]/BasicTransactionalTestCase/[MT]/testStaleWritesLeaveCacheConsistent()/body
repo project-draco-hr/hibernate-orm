@@ -1,0 +1,49 @@
+{
+  Session s=openSession();
+  Transaction txn=s.beginTransaction();
+  VersionedItem item=new VersionedItem();
+  item.setName("steve");
+  item.setDescription("steve's item");
+  s.save(item);
+  txn.commit();
+  s.close();
+  Long initialVersion=item.getVersion();
+  item.setVersion(new Long(item.getVersion().longValue() - 1));
+  try {
+    s=openSession();
+    txn=s.beginTransaction();
+    s.update(item);
+    txn.commit();
+    s.close();
+    fail("expected stale write to fail");
+  }
+ catch (  Throwable expected) {
+    if (txn != null) {
+      try {
+        txn.rollback();
+      }
+ catch (      Throwable ignore) {
+      }
+    }
+  }
+ finally {
+    if (s != null && s.isOpen()) {
+      try {
+        s.close();
+      }
+ catch (      Throwable ignore) {
+      }
+    }
+  }
+  SecondLevelCacheStatistics slcs=sfi().getStatistics().getSecondLevelCacheStatistics(VersionedItem.class.getName());
+  Object entry=slcs.getEntries().get(item.getId());
+  Long cachedVersionValue;
+  cachedVersionValue=(Long)((CacheEntry)entry).getVersion();
+  assertEquals(initialVersion.longValue(),cachedVersionValue.longValue());
+  s=openSession();
+  txn=s.beginTransaction();
+  item=(VersionedItem)s.load(VersionedItem.class,item.getId());
+  s.delete(item);
+  txn.commit();
+  s.close();
+}

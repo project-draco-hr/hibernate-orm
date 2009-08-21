@@ -1,0 +1,19 @@
+{
+  Properties p=new Properties();
+  final DefaultCacheManager manager=new DefaultCacheManager();
+  InfinispanRegionFactory factory=new InfinispanRegionFactory(){
+    @Override protected CacheManager createCacheManager(    String configLoc) throws CacheException {
+      return manager;
+    }
+  }
+;
+  Configuration config=new Configuration();
+  config.setCacheMode(CacheMode.INVALIDATION_SYNC);
+  manager.defineConfiguration("timestamps",config);
+  try {
+    factory.start(null,p);
+    fail("Should have failed saying that invalidation is not allowed for timestamp caches.");
+  }
+ catch (  CacheException ce) {
+  }
+}

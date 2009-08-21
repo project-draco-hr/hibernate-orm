@@ -1,0 +1,61 @@
+{
+  log.info("*** testAll()");
+  CacheManager localManager=ClusterAwareRegionFactory.getCacheManager(AbstractDualNodeTestCase.LOCAL);
+  Cache localCustomerCache=localManager.getCache(Customer.class.getName());
+  Cache localContactCache=localManager.getCache(Contact.class.getName());
+  Cache localCollectionCache=localManager.getCache(Customer.class.getName() + ".contacts");
+  MyListener localListener=new MyListener("local");
+  localCustomerCache.addListener(localListener);
+  localContactCache.addListener(localListener);
+  localCollectionCache.addListener(localListener);
+  TransactionManager localTM=DualNodeJtaTransactionManagerImpl.getInstance(AbstractDualNodeTestCase.LOCAL);
+  CacheManager remoteManager=ClusterAwareRegionFactory.getCacheManager(AbstractDualNodeTestCase.REMOTE);
+  Cache remoteCustomerCache=remoteManager.getCache(Customer.class.getName());
+  Cache remoteContactCache=remoteManager.getCache(Contact.class.getName());
+  Cache remoteCollectionCache=remoteManager.getCache(Customer.class.getName() + ".contacts");
+  MyListener remoteListener=new MyListener("remote");
+  remoteCustomerCache.addListener(remoteListener);
+  remoteContactCache.addListener(remoteListener);
+  remoteCollectionCache.addListener(remoteListener);
+  TransactionManager remoteTM=DualNodeJtaTransactionManagerImpl.getInstance(AbstractDualNodeTestCase.REMOTE);
+  SessionFactory localFactory=getEnvironment().getSessionFactory();
+  SessionFactory remoteFactory=getSecondNodeEnvironment().getSessionFactory();
+  try {
+    assertTrue(remoteListener.isEmpty());
+    assertTrue(localListener.isEmpty());
+    log.debug("Create node 0");
+    IdContainer ids=createCustomer(localFactory,localTM);
+    assertTrue(remoteListener.isEmpty());
+    assertTrue(localListener.isEmpty());
+    sleep(SLEEP_TIME);
+    log.debug("Find node 0");
+    getCustomer(ids.customerId,localFactory,localTM);
+    sleep(SLEEP_TIME);
+    log.debug("Find(2) node 0");
+    localListener.clear();
+    getCustomer(ids.customerId,localFactory,localTM);
+    log.debug("Check cache 0");
+    assertLoadedFromCache(localListener,ids.customerId,ids.contactIds);
+    log.debug("Find node 1");
+    getCustomer(ids.customerId,remoteFactory,remoteTM);
+    log.debug("Find(2) node 1");
+    remoteListener.clear();
+    getCustomer(ids.customerId,remoteFactory,remoteTM);
+    log.debug("Check cache 1");
+    assertLoadedFromCache(remoteListener,ids.customerId,ids.contactIds);
+    remoteListener.clear();
+    ids=modifyCustomer(ids.customerId,remoteFactory,remoteTM);
+    sleep(250);
+    assertLoadedFromCache(remoteListener,ids.customerId,ids.contactIds);
+    assertTrue(localCollectionCache.isEmpty());
+    assertTrue(localCustomerCache.isEmpty());
+  }
+ catch (  Exception e) {
+    log.error("Error",e);
+    throw e;
+  }
+ finally {
+    log.debug("Cleaning up");
+    cleanup(localFactory,localTM);
+  }
+}

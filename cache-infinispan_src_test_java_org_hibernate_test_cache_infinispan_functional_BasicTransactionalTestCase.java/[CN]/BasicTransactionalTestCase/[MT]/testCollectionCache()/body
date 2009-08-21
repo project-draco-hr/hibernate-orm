@@ -1,0 +1,24 @@
+{
+  Item item=new Item("chris","Chris's Item");
+  Item another=new Item("another","Owned Item");
+  item.addItem(another);
+  Session s=openSession();
+  s.getTransaction().begin();
+  s.persist(item);
+  s.persist(another);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  Statistics stats=s.getSessionFactory().getStatistics();
+  Item loaded=(Item)s.load(Item.class,item.getId());
+  assertEquals(1,loaded.getItems().size());
+  s.close();
+  s=openSession();
+  SecondLevelCacheStatistics cStats=stats.getSecondLevelCacheStatistics(Item.class.getName() + ".items");
+  Item loadedWithCachedCollection=(Item)s.load(Item.class,item.getId());
+  stats.logSummary();
+  assertEquals(item.getName(),loadedWithCachedCollection.getName());
+  assertEquals(item.getItems().size(),loadedWithCachedCollection.getItems().size());
+  assertEquals(1,cStats.getHitCount());
+  s.close();
+}

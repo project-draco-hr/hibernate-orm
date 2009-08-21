@@ -1,0 +1,24 @@
+{
+  final String timestamps="org.hibernate.cache.UpdateTimestampsCache";
+  Properties p=new Properties();
+  InfinispanRegionFactory factory=new InfinispanRegionFactory();
+  factory.start(null,p);
+  CacheManager manager=factory.getCacheManager();
+  manager.getGlobalConfiguration().setTransportClass(null);
+  try {
+    assertTrue(factory.getDefinedConfigurations().contains("timestamps"));
+    assertTrue(factory.getTypeOverrides().get("timestamps").getCacheName().equals("timestamps"));
+    Configuration config=new Configuration();
+    config.setFetchInMemoryState(false);
+    manager.defineConfiguration("timestamps",config);
+    TimestampsRegionImpl region=(TimestampsRegionImpl)factory.buildTimestampsRegion(timestamps,p);
+    Cache cache=region.getCache();
+    Configuration cacheCfg=cache.getConfiguration();
+    assertEquals(EvictionStrategy.NONE,cacheCfg.getEvictionStrategy());
+    assertEquals(CacheMode.REPL_ASYNC,cacheCfg.getCacheMode());
+    assertTrue(cacheCfg.isUseLazyDeserialization());
+  }
+  finally {
+    factory.stop();
+  }
+}

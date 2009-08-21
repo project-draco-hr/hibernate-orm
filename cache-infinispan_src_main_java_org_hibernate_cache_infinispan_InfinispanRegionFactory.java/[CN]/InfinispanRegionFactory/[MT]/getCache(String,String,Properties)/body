@@ -1,0 +1,22 @@
+{
+  TypeOverrides regionOverride=typeOverrides.get(regionName);
+  if (!definedConfigurations.contains(regionName)) {
+    String templateCacheName=null;
+    Configuration regionCacheCfg=null;
+    if (regionOverride != null) {
+      if (log.isDebugEnabled())       log.debug("Entity cache region specific configuration exists: " + regionOverride);
+      regionCacheCfg=regionOverride.createInfinispanConfiguration();
+      String cacheName=regionOverride.getCacheName();
+      if (cacheName != null)       templateCacheName=cacheName;
+ else       templateCacheName=typeOverrides.get(typeKey).getCacheName();
+    }
+ else {
+      templateCacheName=typeOverrides.get(typeKey).getCacheName();
+      regionCacheCfg=typeOverrides.get(typeKey).createInfinispanConfiguration();
+    }
+    regionCacheCfg=configureTransactionManager(regionCacheCfg,templateCacheName,properties);
+    manager.defineConfiguration(regionName,templateCacheName,regionCacheCfg);
+    definedConfigurations.add(regionName);
+  }
+  return manager.getCache(regionName);
+}

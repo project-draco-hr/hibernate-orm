@@ -1,0 +1,68 @@
+{
+  final String KEY=KEY_BASE + testCount++;
+  final CountDownLatch readLatch=new CountDownLatch(1);
+  final CountDownLatch commitLatch=new CountDownLatch(1);
+  final CountDownLatch completionLatch=new CountDownLatch(2);
+  Thread inserter=new Thread(){
+    public void run(){
+      try {
+        long txTimestamp=System.currentTimeMillis();
+        BatchModeTransactionManager.getInstance().begin();
+        assertNull("Correct initial value",localAccessStrategy.get(KEY,txTimestamp));
+        localAccessStrategy.insert(KEY,VALUE1,new Integer(1));
+        readLatch.countDown();
+        commitLatch.await();
+        BatchModeTransactionManager.getInstance().commit();
+      }
+ catch (      Exception e) {
+        log.error("node1 caught exception",e);
+        node1Exception=e;
+        rollback();
+      }
+catch (      AssertionFailedError e) {
+        node1Failure=e;
+        rollback();
+      }
+ finally {
+        completionLatch.countDown();
+      }
+    }
+  }
+;
+  Thread reader=new Thread(){
+    public void run(){
+      try {
+        long txTimestamp=System.currentTimeMillis();
+        BatchModeTransactionManager.getInstance().begin();
+        readLatch.await();
+        Object expected=null;
+        assertEquals("Correct initial value",expected,localAccessStrategy.get(KEY,txTimestamp));
+        BatchModeTransactionManager.getInstance().commit();
+      }
+ catch (      Exception e) {
+        log.error("node1 caught exception",e);
+        node1Exception=e;
+        rollback();
+      }
+catch (      AssertionFailedError e) {
+        node1Failure=e;
+        rollback();
+      }
+ finally {
+        commitLatch.countDown();
+        completionLatch.countDown();
+      }
+    }
+  }
+;
+  inserter.setDaemon(true);
+  reader.setDaemon(true);
+  inserter.start();
+  reader.start();
+  assertTrue("Threads completed",completionLatch.await(1,TimeUnit.SECONDS));
+  assertThreadsRanCleanly();
+  long txTimestamp=System.currentTimeMillis();
+  assertEquals("Correct node1 value",VALUE1,localAccessStrategy.get(KEY,txTimestamp));
+  Object expected=isUsingInvalidation() ? null : VALUE1;
+  assertEquals("Correct node2 value",expected,remoteAccessStrategy.get(KEY,txTimestamp));
+}

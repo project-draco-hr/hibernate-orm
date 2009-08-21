@@ -1,0 +1,84 @@
+{
+  final String KEY=KEY_BASE + testCount++;
+  localAccessStrategy.get(KEY,System.currentTimeMillis());
+  localAccessStrategy.putFromLoad(KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
+  remoteAccessStrategy.get(KEY,System.currentTimeMillis());
+  remoteAccessStrategy.putFromLoad(KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
+  sleep(250);
+  final CountDownLatch readLatch=new CountDownLatch(1);
+  final CountDownLatch commitLatch=new CountDownLatch(1);
+  final CountDownLatch completionLatch=new CountDownLatch(2);
+  Thread updater=new Thread("testUpdate-updater"){
+    public void run(){
+      boolean readerUnlocked=false;
+      try {
+        long txTimestamp=System.currentTimeMillis();
+        BatchModeTransactionManager.getInstance().begin();
+        log.debug("Transaction began, get initial value");
+        assertEquals("Correct initial value",VALUE1,localAccessStrategy.get(KEY,txTimestamp));
+        log.debug("Now update value");
+        localAccessStrategy.update(KEY,VALUE2,new Integer(2),new Integer(1));
+        log.debug("Notify the read latch");
+        readLatch.countDown();
+        readerUnlocked=true;
+        log.debug("Await commit");
+        commitLatch.await();
+        BatchModeTransactionManager.getInstance().commit();
+      }
+ catch (      Exception e) {
+        log.error("node1 caught exception",e);
+        node1Exception=e;
+        rollback();
+      }
+catch (      AssertionFailedError e) {
+        node1Failure=e;
+        rollback();
+      }
+ finally {
+        if (!readerUnlocked)         readLatch.countDown();
+        log.debug("Completion latch countdown");
+        completionLatch.countDown();
+      }
+    }
+  }
+;
+  Thread reader=new Thread("testUpdate-reader"){
+    public void run(){
+      try {
+        long txTimestamp=System.currentTimeMillis();
+        BatchModeTransactionManager.getInstance().begin();
+        log.debug("Transaction began, await read latch");
+        readLatch.await();
+        log.debug("Read latch acquired, verify local access strategy");
+        Object expected=VALUE1;
+        assertEquals("Correct value",expected,localAccessStrategy.get(KEY,txTimestamp));
+        BatchModeTransactionManager.getInstance().commit();
+      }
+ catch (      Exception e) {
+        log.error("node1 caught exception",e);
+        node1Exception=e;
+        rollback();
+      }
+catch (      AssertionFailedError e) {
+        node1Failure=e;
+        rollback();
+      }
+ finally {
+        commitLatch.countDown();
+        log.debug("Completion latch countdown");
+        completionLatch.countDown();
+      }
+    }
+  }
+;
+  updater.setDaemon(true);
+  reader.setDaemon(true);
+  updater.start();
+  reader.start();
+  assertTrue(completionLatch.await(2,TimeUnit.SECONDS));
+  assertThreadsRanCleanly();
+  long txTimestamp=System.currentTimeMillis();
+  assertEquals("Correct node1 value",VALUE2,localAccessStrategy.get(KEY,txTimestamp));
+  Object expected=isUsingInvalidation() ? null : VALUE2;
+  assertEquals("Correct node2 value",expected,remoteAccessStrategy.get(KEY,txTimestamp));
+}

@@ -1,0 +1,44 @@
+{
+  System.out.println("*** testBulkOperations()");
+  boolean cleanedUp=false;
+  try {
+    tm=getTransactionManagerLookupClass().newInstance().getTransactionManager(null);
+    createContacts();
+    List<Integer> rhContacts=getContactsByCustomer("Red Hat");
+    assertNotNull("Red Hat contacts exist",rhContacts);
+    assertEquals("Created expected number of Red Hat contacts",10,rhContacts.size());
+    assertEquals("Deleted all Red Hat contacts",10,deleteContacts());
+    List<Integer> jbContacts=getContactsByCustomer("JBoss");
+    assertNotNull("JBoss contacts exist",jbContacts);
+    assertEquals("JBoss contacts remain",10,jbContacts.size());
+    for (    Integer id : rhContacts) {
+      assertNull("Red Hat contact " + id + " cannot be retrieved",getContact(id));
+    }
+    rhContacts=getContactsByCustomer("Red Hat");
+    if (rhContacts != null) {
+      assertEquals("No Red Hat contacts remain",0,rhContacts.size());
+    }
+    updateContacts("Kabir","Updated");
+    for (    Integer id : jbContacts) {
+      Contact contact=getContact(id);
+      assertNotNull("JBoss contact " + id + " exists",contact);
+      String expected=("Kabir".equals(contact.getName())) ? "Updated" : "2222";
+      assertEquals("JBoss contact " + id + " has correct TLF",expected,contact.getTlf());
+    }
+    List<Integer> updated=getContactsByTLF("Updated");
+    assertNotNull("Got updated contacts",updated);
+    assertEquals("Updated contacts",5,updated.size());
+  }
+ catch (  Throwable t) {
+    cleanedUp=true;
+    log.debug("Exceptional cleanup");
+    cleanup(true);
+    throw t;
+  }
+ finally {
+    if (!cleanedUp) {
+      log.debug("Non exceptional cleanup");
+      cleanup(false);
+    }
+  }
+}

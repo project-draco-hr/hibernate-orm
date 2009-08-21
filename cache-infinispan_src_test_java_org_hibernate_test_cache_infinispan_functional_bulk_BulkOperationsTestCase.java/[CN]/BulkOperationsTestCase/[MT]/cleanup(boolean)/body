@@ -1,0 +1,21 @@
+{
+  String deleteContactHQL="delete from Contact";
+  String deleteCustomerHQL="delete from Customer";
+  tm.begin();
+  try {
+    Session session=getSessions().getCurrentSession();
+    session.createQuery(deleteContactHQL).setFlushMode(FlushMode.AUTO).executeUpdate();
+    session.createQuery(deleteCustomerHQL).setFlushMode(FlushMode.AUTO).executeUpdate();
+    tm.commit();
+  }
+ catch (  Exception e) {
+    if (!ignore) {
+      try {
+        tm.rollback();
+      }
+ catch (      Exception ee) {
+      }
+      throw e;
+    }
+  }
+}

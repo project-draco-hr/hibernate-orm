@@ -1,0 +1,18 @@
+{
+  log.debug(event.toString());
+  if (!event.isPre()) {
+    MarshalledValue mv=(MarshalledValue)event.getKey();
+    CacheKey cacheKey=(CacheKey)mv.get();
+    Integer primKey=(Integer)cacheKey.getKey();
+    String key=(String)cacheKey.getEntityOrRoleName() + '#' + primKey;
+    log.debug("MyListener[" + name + "] - Visiting key "+ key);
+    String token=".functional.";
+    int index=key.indexOf(token);
+    if (index > -1) {
+      index+=token.length();
+      key=key.substring(index);
+      log.debug("MyListener[" + name + "] - recording visit to "+ key);
+      visited.add(key);
+    }
+  }
+}

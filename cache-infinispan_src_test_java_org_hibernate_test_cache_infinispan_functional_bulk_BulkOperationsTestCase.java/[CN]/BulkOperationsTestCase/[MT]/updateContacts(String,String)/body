@@ -1,0 +1,14 @@
+{
+  String updateHQL="update Contact set tlf = :cNewTLF where name = :cName";
+  tm.begin();
+  try {
+    Session session=getSessions().getCurrentSession();
+    int rowsAffected=session.createQuery(updateHQL).setFlushMode(FlushMode.AUTO).setParameter("cNewTLF",newTLF).setParameter("cName",name).executeUpdate();
+    tm.commit();
+    return rowsAffected;
+  }
+ catch (  Exception e) {
+    tm.rollback();
+    throw e;
+  }
+}

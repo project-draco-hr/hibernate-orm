@@ -1,0 +1,16 @@
+{
+  final String timestamps="org.hibernate.cache.UpdateTimestampsCache";
+  Properties p=new Properties();
+  InfinispanRegionFactory factory=new InfinispanRegionFactory();
+  p.setProperty("hibernate.cache.infinispan.timestamps.cfg","mytimestamps-cache");
+  factory.start(null,p);
+  CacheManager manager=factory.getCacheManager();
+  manager.getGlobalConfiguration().setTransportClass(null);
+  try {
+    factory.buildTimestampsRegion(timestamps,p);
+    assertTrue(factory.getDefinedConfigurations().contains("mytimestamps-cache"));
+  }
+  finally {
+    factory.stop();
+  }
+}
