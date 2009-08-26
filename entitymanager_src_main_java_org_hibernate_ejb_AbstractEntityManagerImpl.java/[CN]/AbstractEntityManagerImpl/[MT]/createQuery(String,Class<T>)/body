@@ -1,3 +1,15 @@
 {
-  throw new UnsupportedOperationException("Not yet implemented");
+  try {
+    org.hibernate.Query hqlQuery=getSession().createQuery(jpaqlString);
+    if (hqlQuery.getReturnTypes().length != 1) {
+      throw new IllegalArgumentException("Cannot create TypedQuery for query with more than one return");
+    }
+    if (!resultClass.isAssignableFrom(hqlQuery.getReturnTypes()[0].getReturnedClass())) {
+      throw new IllegalArgumentException("Type specified for TypedQuery [" + resultClass.getName() + "] is incompatible with query return type ["+ hqlQuery.getReturnTypes()[0].getReturnedClass()+ "]");
+    }
+    return new QueryImpl<T>(hqlQuery,this);
+  }
+ catch (  HibernateException he) {
+    throw convert(he);
+  }
 }

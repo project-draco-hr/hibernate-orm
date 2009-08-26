@@ -1,0 +1,19 @@
+{
+  try {
+    if (!entityManager.isTransactionInProgress()) {
+      entityManager.throwPersistenceException(new TransactionRequiredException("Executing an update/delete query"));
+      return 0;
+    }
+    return internalExecuteUpdate();
+  }
+ catch (  QueryExecutionRequestException he) {
+    throw new IllegalStateException(he);
+  }
+catch (  TypeMismatchException e) {
+    throw new IllegalArgumentException(e);
+  }
+catch (  HibernateException he) {
+    entityManager.throwPersistenceException(he);
+    return 0;
+  }
+}

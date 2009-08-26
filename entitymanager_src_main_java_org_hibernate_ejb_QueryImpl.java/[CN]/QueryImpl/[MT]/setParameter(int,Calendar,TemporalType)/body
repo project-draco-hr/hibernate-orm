@@ -1,6 +1,6 @@
 {
   try {
-    if (isPositionalParameter()) {
+    if (isJpaPositionalParameter(position)) {
       String name=Integer.toString(position);
       this.setParameter(name,value,temporalType);
     }
@@ -14,6 +14,7 @@
  else       if (temporalType == TIMESTAMP) {
         query.setCalendar(position - 1,value);
       }
+      registerParameterBinding(getParameter(position),value);
     }
     return this;
   }
@@ -21,7 +22,6 @@
     throw new IllegalArgumentException(e);
   }
 catch (  HibernateException he) {
-    em.throwPersistenceException(he);
-    return null;
+    throw getEntityManager().convert(he);
   }
 }

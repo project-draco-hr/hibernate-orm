@@ -1,16 +1,14 @@
 {
-  org.hibernate.Query namedQuery;
   try {
-    namedQuery=getSession().getNamedQuery(name);
+    org.hibernate.Query namedQuery=getSession().getNamedQuery(name);
+    try {
+      return new QueryImpl(namedQuery,this);
+    }
+ catch (    HibernateException he) {
+      throw convert(he);
+    }
   }
  catch (  MappingException e) {
     throw new IllegalArgumentException("Named query not found: " + name);
-  }
-  try {
-    return new QueryImpl(namedQuery,this);
-  }
- catch (  HibernateException he) {
-    throwPersistenceException(he);
-    return null;
   }
 }

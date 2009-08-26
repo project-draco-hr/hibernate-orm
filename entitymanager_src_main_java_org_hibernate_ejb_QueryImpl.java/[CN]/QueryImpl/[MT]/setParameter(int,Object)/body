@@ -1,10 +1,11 @@
 {
   try {
-    if (isPositionalParameter()) {
+    if (isJpaPositionalParameter(position)) {
       this.setParameter(Integer.toString(position),value);
     }
  else {
       query.setParameter(position - 1,value);
+      registerParameterBinding(getParameter(position),value);
     }
     return this;
   }
@@ -12,7 +13,6 @@
     throw new IllegalArgumentException(e);
   }
 catch (  HibernateException he) {
-    em.throwPersistenceException(he);
-    return null;
+    throw getEntityManager().convert(he);
   }
 }

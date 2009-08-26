@@ -1,0 +1,28 @@
+{
+  if (!AbstractQueryImpl.class.isInstance(query)) {
+    throw new IllegalStateException("Unknown query type for parameter extraction");
+  }
+  HashSet<Parameter<?>> parameters=new HashSet<Parameter<?>>();
+  AbstractQueryImpl queryImpl=AbstractQueryImpl.class.cast(query);
+  for (  String name : (Set<String>)queryImpl.getParameterMetadata().getNamedParameterNames()) {
+    final NamedParameterDescriptor descriptor=queryImpl.getParameterMetadata().getNamedParameterDescriptor(name);
+    final ParameterImpl parameter=new ParameterImpl(name,descriptor.getExpectedType() == null ? null : descriptor.getExpectedType().getReturnedClass());
+    parameters.add(parameter);
+    if (descriptor.isJpaStyle()) {
+      if (jpaPositionalIndices == null) {
+        jpaPositionalIndices=new HashSet<Integer>();
+      }
+      jpaPositionalIndices.add(Integer.valueOf(name));
+    }
+  }
+  for (int i=0, max=queryImpl.getParameterMetadata().getOrdinalParameterCount(); i < max; i++) {
+    final OrdinalParameterDescriptor descriptor=queryImpl.getParameterMetadata().getOrdinalParameterDescriptor(i + 1);
+    ParameterImpl parameter=new ParameterImpl(descriptor.getOrdinalPosition() + 1,descriptor.getExpectedType() == null ? null : descriptor.getExpectedType().getReturnedClass());
+    parameters.add(parameter);
+    Integer position=descriptor.getOrdinalPosition();
+    if (jpaPositionalIndices != null && jpaPositionalIndices.contains(position)) {
+      log.warn("Parameter position [" + position + "] occurred as both JPA and Hibernate positional parameter");
+    }
+  }
+  this.parameters=java.util.Collections.unmodifiableSet(parameters);
+}

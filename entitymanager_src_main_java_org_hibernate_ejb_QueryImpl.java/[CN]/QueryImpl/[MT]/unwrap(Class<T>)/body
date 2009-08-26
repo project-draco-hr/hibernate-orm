@@ -1,3 +1,15 @@
 {
-  return null;
+  if (org.hibernate.Query.class.isAssignableFrom(tClass)) {
+    return (T)query;
+  }
+ else {
+    try {
+      return (T)this;
+    }
+ catch (    ClassCastException cce) {
+      PersistenceException pe=new PersistenceException("Unsupported unwrap target type [" + tClass.getName() + "]");
+      getEntityManager().handlePersistenceException(pe);
+      throw pe;
+    }
+  }
 }

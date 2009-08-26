@@ -1,6 +1,6 @@
 {
   try {
-    return query.list();
+    return (List<X>)query.list();
   }
  catch (  QueryExecutionRequestException he) {
     throw new IllegalStateException(he);
@@ -9,7 +9,6 @@ catch (  TypeMismatchException e) {
     throw new IllegalArgumentException(e);
   }
 catch (  HibernateException he) {
-    em.throwPersistenceException(he);
-    return null;
+    throw getEntityManager().convert(he);
   }
 }

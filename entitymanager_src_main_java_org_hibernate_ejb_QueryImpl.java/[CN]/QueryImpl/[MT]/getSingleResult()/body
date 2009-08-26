@@ -1,27 +1,25 @@
 {
   try {
-    List result;
-    if (query instanceof AbstractQueryImpl) {
-      if (maxResults != 1)       query.setMaxResults(2);
-      result=query.list();
-      if (maxResults != -1) {
-        query.setMaxResults(maxResults);
-      }
- else {
-        AbstractQueryImpl queryImpl=AbstractQueryImpl.class.cast(query);
-        queryImpl.getSelection().setMaxRows(null);
-      }
+    boolean mucked=false;
+    if (getSpecifiedMaxResults() != 1) {
+      mucked=true;
+      query.setMaxResults(2);
     }
- else {
-      result=query.list();
+    List<X> result=(List<X>)query.list();
+    if (mucked) {
+      query.setMaxResults(getSpecifiedMaxResults());
     }
     if (result.size() == 0) {
-      em.throwPersistenceException(new NoResultException("No entity found for query"));
+      NoResultException nre=new NoResultException("No entity found for query");
+      getEntityManager().handlePersistenceException(nre);
+      throw nre;
     }
  else     if (result.size() > 1) {
-      Set uniqueResult=new HashSet(result);
+      Set<X> uniqueResult=new HashSet<X>(result);
       if (uniqueResult.size() > 1) {
-        em.throwPersistenceException(new NonUniqueResultException("result returns more than one elements"));
+        NonUniqueResultException nure=new NonUniqueResultException("result returns more than one elements");
+        getEntityManager().handlePersistenceException(nure);
+        throw nure;
       }
  else {
         return uniqueResult.iterator().next();
@@ -30,7 +28,6 @@
  else {
       return result.get(0);
     }
-    return null;
   }
  catch (  QueryExecutionRequestException he) {
     throw new IllegalStateException(he);
@@ -39,7 +36,6 @@ catch (  TypeMismatchException e) {
     throw new IllegalArgumentException(e);
   }
 catch (  HibernateException he) {
-    em.throwPersistenceException(he);
-    return null;
+    throw getEntityManager().convert(he);
   }
 }

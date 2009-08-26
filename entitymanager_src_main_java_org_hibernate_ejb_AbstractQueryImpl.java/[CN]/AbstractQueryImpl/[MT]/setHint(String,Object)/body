@@ -1,0 +1,43 @@
+{
+  boolean skipped=false;
+  try {
+    if (HINT_TIMEOUT.equals(hintName)) {
+      applyTimeout(ConfigurationHelper.getInteger(value));
+    }
+ else     if (HINT_COMMENT.equals(hintName)) {
+      applyComment((String)value);
+    }
+ else     if (HINT_FETCH_SIZE.equals(hintName)) {
+      applyFetchSize(ConfigurationHelper.getInteger(value));
+    }
+ else     if (HINT_CACHEABLE.equals(hintName)) {
+      applyCacheable(ConfigurationHelper.getBoolean(value));
+    }
+ else     if (HINT_CACHE_REGION.equals(hintName)) {
+      applyCacheRegion((String)value);
+    }
+ else     if (HINT_READONLY.equals(hintName)) {
+      applyReadOnly(ConfigurationHelper.getBoolean(value));
+    }
+ else     if (HINT_CACHE_MODE.equals(hintName)) {
+      applyCacheMode(ConfigurationHelper.getCacheMode(value));
+    }
+ else     if (HINT_FLUSH_MODE.equals(hintName)) {
+      applyFlushMode(ConfigurationHelper.getFlushMode(value));
+    }
+ else {
+      skipped=true;
+      log.info("Ignoring unrecognized query hint [" + hintName + "]");
+    }
+  }
+ catch (  ClassCastException e) {
+    throw new IllegalArgumentException("Value for hint");
+  }
+  if (!skipped) {
+    if (hints == null) {
+      hints=new HashMap<String,Object>();
+    }
+    hints.put(hintName,value);
+  }
+  return this;
+}

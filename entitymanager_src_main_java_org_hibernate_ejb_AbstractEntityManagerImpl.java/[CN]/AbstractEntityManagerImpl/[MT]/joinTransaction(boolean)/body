@@ -55,13 +55,17 @@ catch (            HibernateException he) {
                 log.trace("skipping managed flushing");
               }
             }
- catch (            RuntimeException re) {
-              if (re instanceof HibernateException) {
-                throwPersistenceException((HibernateException)re);
-              }
- else {
-                throwPersistenceException(new PersistenceException(re));
-              }
+ catch (            HibernateException he) {
+              throw convert(he);
+            }
+catch (            PersistenceException pe) {
+              handlePersistenceException(pe);
+              throw pe;
+            }
+catch (            RuntimeException re) {
+              PersistenceException wrapped=new PersistenceException(re);
+              handlePersistenceException(wrapped);
+              throw wrapped;
             }
           }
           public void afterCompletion(          int status){
@@ -77,7 +81,7 @@ catch (            HibernateException he) {
               }
             }
  catch (            HibernateException e) {
-              throwPersistenceException(e);
+              throw convert(e);
             }
           }
         }
@@ -88,7 +92,7 @@ catch (            HibernateException he) {
       }
     }
  catch (    HibernateException he) {
-      throwPersistenceException(he);
+      throw convert(he);
     }
   }
  else {
