@@ -1,0 +1,22 @@
+{
+  Context ctx=null;
+  try {
+    ctx=new InitialContext(jndiProperties);
+    return (CacheManager)ctx.lookup(jndiNamespace);
+  }
+ catch (  NamingException ne) {
+    String msg="Unable to retrieve CacheManager from JNDI [" + jndiNamespace + "]";
+    log.info(msg,ne);
+    throw new CacheException(msg);
+  }
+ finally {
+    if (ctx != null) {
+      try {
+        ctx.close();
+      }
+ catch (      NamingException ne) {
+        log.info("Unable to release initial context",ne);
+      }
+    }
+  }
+}
