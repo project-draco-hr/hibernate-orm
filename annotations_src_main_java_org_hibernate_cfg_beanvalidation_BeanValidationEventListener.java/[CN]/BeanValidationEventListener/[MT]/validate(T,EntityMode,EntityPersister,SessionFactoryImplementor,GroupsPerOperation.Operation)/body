@@ -5,9 +5,12 @@
   final Class<?>[] groups=groupsPerOperation.get(operation);
   if (groups.length > 0) {
     final Set<ConstraintViolation<T>> constraintViolations=validator.validate(object,groups);
-    Object unsafeViolations=constraintViolations;
     if (constraintViolations.size() > 0) {
-      throw new ConstraintViolationException("Invalid object at " + operation.getName() + " time for groups "+ toString(groups),(Set<ConstraintViolation<?>>)unsafeViolations);
+      Set<ConstraintViolation<?>> propagatedViolations=new HashSet<ConstraintViolation<?>>(constraintViolations.size());
+      for (      ConstraintViolation<?> violation : constraintViolations) {
+        propagatedViolations.add(violation);
+      }
+      throw new ConstraintViolationException("Invalid object at " + operation.getName() + " time for groups "+ toString(groups),propagatedViolations);
     }
   }
 }
