@@ -1,5 +1,7 @@
 {
-  if (object == null || mode != EntityMode.POJO)   return;
+  if (object == null || mode != EntityMode.POJO) {
+    return;
+  }
   TraversableResolver tr=new HibernateTraversableResolver(persister,associationsPerEntityPersister,sessionFactory);
   Validator validator=factory.usingContext().traversableResolver(tr).getValidator();
   final Class<?>[] groups=groupsPerOperation.get(operation);
@@ -7,10 +9,22 @@
     final Set<ConstraintViolation<T>> constraintViolations=validator.validate(object,groups);
     if (constraintViolations.size() > 0) {
       Set<ConstraintViolation<?>> propagatedViolations=new HashSet<ConstraintViolation<?>>(constraintViolations.size());
+      Set<String> classNames=new HashSet<String>();
       for (      ConstraintViolation<?> violation : constraintViolations) {
+        if (log.isTraceEnabled()) {
+          log.trace(violation.toString());
+        }
         propagatedViolations.add(violation);
+        classNames.add(violation.getLeafBean().getClass().getName());
       }
-      throw new ConstraintViolationException("Invalid object at " + operation.getName() + " time for groups "+ toString(groups),propagatedViolations);
+      StringBuilder builder=new StringBuilder();
+      builder.append("validation failed for classes ");
+      builder.append(classNames);
+      builder.append(" during");
+      builder.append(operation.getName());
+      builder.append(" time for groups ");
+      builder.append(toString(groups));
+      throw new ConstraintViolationException(builder.toString(),propagatedViolations);
     }
   }
 }
