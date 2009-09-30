@@ -2,7 +2,8 @@
   if (!proxy.getHibernateLazyInitializer().isUninitialized()) {
     return proxy.getHibernateLazyInitializer().getImplementation();
   }
-  Session tempSession=proxy.getHibernateLazyInitializer().getSession().getFactory().openTemporarySession();
+  SessionImplementor sessionImplementor=proxy.getHibernateLazyInitializer().getSession();
+  Session tempSession=sessionImplementor == null ? sessionFactoryImplementor.openTemporarySession() : sessionImplementor.getFactory().openTemporarySession();
   try {
     proxy.getHibernateLazyInitializer().setSession((SessionImplementor)tempSession);
     proxy.getHibernateLazyInitializer().initialize();
