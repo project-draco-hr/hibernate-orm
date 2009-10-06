@@ -3,6 +3,18 @@
   for (  Parameter param : defAnn.parameters()) {
     params.setProperty(param.name(),param.value());
   }
-  log.info("Binding type definition: {}",defAnn.name());
-  mappings.addTypeDef(defAnn.name(),defAnn.typeClass().getName(),params);
+  if (BinderHelper.isDefault(defAnn.name()) && defAnn.defaultForType().equals(void.class)) {
+    throw new AnnotationException("Both name and defaultForType attributes cannot be set in a TypeDef");
+  }
+  if (!BinderHelper.isDefault(defAnn.name())) {
+    log.info("Binding type definition: {}",defAnn.name());
+    mappings.addTypeDef(defAnn.name(),defAnn.typeClass().getName(),params);
+  }
+ else   if (!defAnn.defaultForType().equals(void.class)) {
+    log.info("Binding type definition: {}",defAnn.defaultForType().getName());
+    mappings.addTypeDef(defAnn.defaultForType().getName(),defAnn.typeClass().getName(),params);
+  }
+ else {
+    throw new AnnotationException("Either name or defaultForType attribute should be set in a TypeDef");
+  }
 }

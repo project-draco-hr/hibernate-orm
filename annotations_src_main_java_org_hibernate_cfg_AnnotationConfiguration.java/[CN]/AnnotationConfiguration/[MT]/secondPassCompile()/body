@@ -41,8 +41,16 @@
   caches.clear();
   try {
     inSecondPass=true;
-    processFkSecondPassInOrder();
     Iterator iter=secondPasses.iterator();
+    while (iter.hasNext()) {
+      SecondPass sp=(SecondPass)iter.next();
+      if (sp instanceof SetSimpleValueTypeSecondPass) {
+        sp.doSecondPass(classes);
+        iter.remove();
+      }
+    }
+    processFkSecondPassInOrder();
+    iter=secondPasses.iterator();
     while (iter.hasNext()) {
       SecondPass sp=(SecondPass)iter.next();
       if (sp instanceof CreateKeySecondPass) {

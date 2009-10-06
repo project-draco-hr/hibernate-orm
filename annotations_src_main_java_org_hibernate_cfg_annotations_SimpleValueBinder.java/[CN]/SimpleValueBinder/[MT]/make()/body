@@ -4,6 +4,17 @@
   if (table == null) {
     table=columns[0].getTable();
   }
-  SimpleValue simpleValue=new SimpleValue(table);
-  return fillSimpleValue(simpleValue);
+  simpleValue=new SimpleValue(table);
+  for (  Ejb3Column column : columns) {
+    column.linkWithValue(simpleValue);
+  }
+  boolean isInSecondPass=mappings.isInSecondPass();
+  if (!isInSecondPass) {
+    SetSimpleValueTypeSecondPass secondPass=new SetSimpleValueTypeSecondPass(this);
+    mappings.addSecondPass(secondPass);
+  }
+ else {
+    fillSimpleValue();
+  }
+  return simpleValue;
 }

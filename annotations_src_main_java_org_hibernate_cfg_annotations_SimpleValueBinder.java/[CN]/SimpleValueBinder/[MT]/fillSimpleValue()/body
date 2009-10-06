@@ -1,4 +1,5 @@
 {
+  log.debug("setting SimpleValue typeName for {}",propertyName);
   String type=BinderHelper.isDefault(explicitType) ? returnedClassName : explicitType;
   org.hibernate.mapping.TypeDef typeDef=mappings.getTypeDef(type);
   if (typeDef != null) {
@@ -12,8 +13,7 @@
   if (persistentClassName != null) {
     simpleValue.setTypeUsingReflection(persistentClassName,propertyName);
   }
-  for (  Ejb3Column column : columns) {
-    column.linkWithValue(simpleValue);
+  if (!simpleValue.isTypeSpecified() && isVersion()) {
+    simpleValue.setTypeName("integer");
   }
-  return simpleValue;
 }
