@@ -1,0 +1,23 @@
+{
+  PendingPut pendingPut=new PendingPut(key,getOwnerForPut());
+  PendingPutMap pendingForKey=new PendingPutMap();
+synchronized (pendingForKey) {
+    for (; ; ) {
+      PendingPutMap existing=pendingPuts.putIfAbsent(key,pendingForKey);
+      if (existing != null && existing != pendingForKey) {
+synchronized (existing) {
+          existing.put(pendingPut);
+          PendingPutMap doublecheck=pendingPuts.putIfAbsent(key,existing);
+          if (doublecheck == null || doublecheck == existing) {
+            break;
+          }
+        }
+      }
+ else {
+        pendingForKey.put(pendingPut);
+        break;
+      }
+    }
+  }
+  preventOutdatedPendingPuts(pendingPut);
+}

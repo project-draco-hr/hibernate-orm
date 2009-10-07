@@ -1,0 +1,29 @@
+{
+  pendingPuts.remove(key);
+  RecentRemoval removal=new RecentRemoval(key,this.nakedPutInvalidationPeriod);
+  recentRemovals.put(key,removal.timestamp);
+  RecentRemoval toClean=null;
+  boolean attemptClean=removal.timestamp.longValue() > earliestRemovalTimestamp;
+  removalsLock.lock();
+  try {
+    removalsQueue.add(removal);
+    if (attemptClean) {
+      if (removalsQueue.size() > 1) {
+        toClean=removalsQueue.remove(0);
+      }
+      earliestRemovalTimestamp=removalsQueue.get(0).timestamp.longValue();
+    }
+  }
+  finally {
+    removalsLock.unlock();
+  }
+  if (toClean != null) {
+    Long cleaned=recentRemovals.get(toClean.key);
+    if (cleaned != null && cleaned.equals(toClean.timestamp)) {
+      cleaned=recentRemovals.remove(toClean.key);
+      if (cleaned != null && cleaned.equals(toClean.timestamp) == false) {
+        recentRemovals.putIfAbsent(toClean.key,cleaned);
+      }
+    }
+  }
+}
