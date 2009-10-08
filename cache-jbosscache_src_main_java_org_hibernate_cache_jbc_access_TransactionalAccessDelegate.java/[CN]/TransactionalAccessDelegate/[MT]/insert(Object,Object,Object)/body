@@ -1,6 +1,13 @@
 {
   if (!region.checkValid())   return false;
   region.ensureRegionRootExists();
-  CacheHelper.put(cache,regionFqn,key,value);
+  if (invalidation) {
+    Option opt=new Option();
+    opt.setCacheModeLocal(true);
+    CacheHelper.put(cache,regionFqn,key,value,opt);
+  }
+ else {
+    CacheHelper.put(cache,regionFqn,key,value);
+  }
   return true;
 }
