@@ -2,6 +2,13 @@
   super(jbcCache,regionName,regionPrefix,null);
   localOnly=CacheHelper.isClusteredInvalidation(jbcCache);
   if (!localOnly) {
-    localOnly=CacheHelper.isClusteredReplication(jbcCache) && PropertiesHelper.getBoolean(QUERY_CACHE_LOCAL_ONLY_PROP,properties,false);
+    if (CacheHelper.isClusteredReplication(jbcCache)) {
+      if (properties.containsKey(QUERY_CACHE_LOCAL_ONLY_PROP)) {
+        localOnly=PropertiesHelper.getBoolean(QUERY_CACHE_LOCAL_ONLY_PROP,properties,false);
+      }
+ else {
+        localOnly=PropertiesHelper.getBoolean(LEGACY_QUERY_CACHE_LOCAL_ONLY_PROP,properties,false);
+      }
+    }
   }
 }
