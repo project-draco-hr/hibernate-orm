@@ -1,0 +1,15 @@
+{
+  JoinColumnOrFormula[] ann=anns.value();
+  Ejb3JoinColumn[] joinColumns=new Ejb3JoinColumn[ann.length];
+  for (int i=0; i < ann.length; i++) {
+    JoinColumnOrFormula join=(JoinColumnOrFormula)ann[i];
+    JoinFormula formula=join.formula();
+    if (formula.value() != null && !formula.value().equals("")) {
+      joinColumns[i]=buildJoinFormula(formula,mappedBy,joins,propertyHolder,propertyName,mappings);
+    }
+ else {
+      joinColumns[i]=buildJoinColumns(new JoinColumn[]{join.column()},mappedBy,joins,propertyHolder,propertyName,mappings)[0];
+    }
+  }
+  return joinColumns;
+}
