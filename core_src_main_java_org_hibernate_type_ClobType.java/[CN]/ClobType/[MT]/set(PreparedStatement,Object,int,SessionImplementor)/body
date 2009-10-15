@@ -1,18 +1,17 @@
 {
   if (value == null) {
     st.setNull(index,Types.CLOB);
+    return;
+  }
+  Clob clob=(Clob)value;
+  if (WrappedClob.class.isInstance(clob)) {
+    clob=((WrappedClob)value).getWrappedClob();
+  }
+  final boolean useInputStream=session.getFactory().getDialect().useInputStreamToInsertBlob() && ClobImplementer.class.isInstance(clob);
+  if (useInputStream) {
+    st.setCharacterStream(index,clob.getCharacterStream(),(int)clob.length());
   }
  else {
-    if (value instanceof SerializableClob) {
-      value=((SerializableClob)value).getWrappedClob();
-    }
-    final boolean useReader=session.getFactory().getDialect().useInputStreamToInsertBlob() && (value instanceof ClobImpl);
-    if (useReader) {
-      ClobImpl clob=(ClobImpl)value;
-      st.setCharacterStream(index,clob.getCharacterStream(),(int)clob.length());
-    }
- else {
-      st.setClob(index,(Clob)value);
-    }
+    st.setClob(index,clob);
   }
 }

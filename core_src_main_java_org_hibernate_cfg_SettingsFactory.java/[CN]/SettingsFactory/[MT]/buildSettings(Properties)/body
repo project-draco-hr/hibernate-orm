@@ -10,6 +10,7 @@
   boolean metaReportsDDLCausesTxnCommit=false;
   boolean metaReportsDDLInTxnSupported=true;
   Dialect dialect=null;
+  JdbcSupport jdbcSupport=null;
   boolean useJdbcMetadata=PropertiesHelper.getBoolean("hibernate.temp.use_jdbc_metadata_defaults",props,true);
   if (useJdbcMetadata) {
     try {
@@ -19,6 +20,7 @@
         log.info("RDBMS: " + meta.getDatabaseProductName() + ", version: "+ meta.getDatabaseProductVersion());
         log.info("JDBC driver: " + meta.getDriverName() + ", version: "+ meta.getDriverVersion());
         dialect=DialectFactory.buildDialect(props,conn);
+        jdbcSupport=JdbcSupportLoader.loadJdbcSupport(conn);
         metaSupportsScrollable=meta.supportsResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
         metaSupportsBatchUpdates=meta.supportsBatchUpdates();
         metaReportsDDLCausesTxnCommit=meta.dataDefinitionCausesTransactionCommit();
@@ -46,6 +48,10 @@ catch (    UnsupportedOperationException uoe) {
   settings.setDataDefinitionImplicitCommit(metaReportsDDLCausesTxnCommit);
   settings.setDataDefinitionInTransactionSupported(metaReportsDDLInTxnSupported);
   settings.setDialect(dialect);
+  if (jdbcSupport == null) {
+    jdbcSupport=JdbcSupportLoader.loadJdbcSupport(null);
+  }
+  settings.setJdbcSupport(jdbcSupport);
   final Properties properties=new Properties();
   properties.putAll(dialect.getDefaultProperties());
   properties.putAll(props);

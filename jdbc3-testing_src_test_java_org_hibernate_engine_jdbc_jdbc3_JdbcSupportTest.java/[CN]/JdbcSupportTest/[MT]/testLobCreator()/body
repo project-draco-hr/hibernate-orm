@@ -1,0 +1,22 @@
+{
+  final LobCreationContext lobCreationContext=new LobCreationContext(){
+    public Object execute(    Callback callback){
+      fail("Unexpeted call to getConnection");
+      return null;
+    }
+  }
+;
+  LobCreator lobCreator=JdbcSupportLoader.loadJdbcSupport(null).getLobCreator(lobCreationContext);
+  Blob blob=lobCreator.createBlob(new byte[]{});
+  assertTrue(blob instanceof BlobImplementer);
+  blob=lobCreator.wrap(blob);
+  assertTrue(blob instanceof WrappedBlob);
+  Clob clob=lobCreator.createClob("Hi");
+  assertTrue(clob instanceof ClobImplementer);
+  clob=lobCreator.wrap(clob);
+  assertTrue(clob instanceof WrappedClob);
+  Clob nclob=lobCreator.createNClob("Hi");
+  assertTrue(nclob instanceof NClobImplementer);
+  nclob=lobCreator.wrap(nclob);
+  assertTrue(nclob instanceof WrappedClob);
+}

@@ -1,0 +1,28 @@
+{
+  if (jdbcConnection == null) {
+    return false;
+  }
+  try {
+    Class connectionClass=Connection.class;
+    Method createClobMethod=connectionClass.getMethod("createClob",NO_ARG_SIG);
+    if (createClobMethod.getDeclaringClass().equals(Connection.class)) {
+      try {
+        Object clob=createClobMethod.invoke(jdbcConnection,NO_ARGS);
+        try {
+          Method freeMethod=clob.getClass().getMethod("free",NO_ARG_SIG);
+          freeMethod.invoke(clob,NO_ARGS);
+        }
+ catch (        Throwable ignore) {
+          log.trace("Unable to free CLOB created to test createClob() implementation : " + ignore);
+        }
+        return true;
+      }
+ catch (      Throwable t) {
+        log.info("createClob() method threw error : " + t);
+      }
+    }
+  }
+ catch (  NoSuchMethodException ignore) {
+  }
+  return false;
+}

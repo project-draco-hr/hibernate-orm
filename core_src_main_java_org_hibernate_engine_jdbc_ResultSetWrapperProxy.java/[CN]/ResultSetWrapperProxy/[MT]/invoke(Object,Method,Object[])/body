@@ -1,0 +1,22 @@
+{
+  if ("findColumn".equals(method.getName())) {
+    return new Integer(findColumn((String)args[0]));
+  }
+  if (isFirstArgColumnLabel(method,args)) {
+    try {
+      int columnIndex=findColumn((String)args[0]);
+      return invokeMethod(locateCorrespondingColumnIndexMethod(method),buildColumnIndexMethodArgs(args,columnIndex));
+    }
+ catch (    SQLException ex) {
+      StringBuffer buf=new StringBuffer().append("Exception getting column index for column: [").append(args[0]).append("].\nReverting to using: [").append(args[0]).append("] as first argument for method: [").append(method).append("]");
+      JDBCExceptionReporter.logExceptions(ex,buf.toString());
+    }
+catch (    NoSuchMethodException ex) {
+      StringBuffer buf=new StringBuffer().append("Exception switching from method: [").append(method).append("] to a method using the column index. Reverting to using: [").append(method).append("]");
+      if (log.isWarnEnabled()) {
+        log.warn(buf.toString());
+      }
+    }
+  }
+  return invokeMethod(method,args);
+}

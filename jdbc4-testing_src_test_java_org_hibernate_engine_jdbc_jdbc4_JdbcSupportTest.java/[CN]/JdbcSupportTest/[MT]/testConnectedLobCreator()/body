@@ -1,0 +1,33 @@
+{
+  final Connection connection=DriverManager.getConnection(envionment.getUrl(),envionment.getUser(),envionment.getPass());
+  final LobCreationContext lobCreationContext=new LobCreationContext(){
+    public Object execute(    Callback callback){
+      try {
+        return callback.executeOnConnection(connection);
+      }
+ catch (      SQLException e) {
+        throw new RuntimeException("Unexpected sql exception",e);
+      }
+    }
+  }
+;
+  LobCreator lobCreator=JdbcSupportLoader.loadJdbcSupport(connection).getLobCreator(lobCreationContext);
+  envionment.verifyCreator(lobCreator);
+  Blob blob=lobCreator.createBlob(new byte[]{});
+  envionment.verifyBlob(blob);
+  blob=lobCreator.wrap(blob);
+  assertTrue(blob instanceof WrappedBlob);
+  Clob clob=lobCreator.createClob("Hi");
+  envionment.verifyClob(clob);
+  clob=lobCreator.wrap(clob);
+  assertTrue(clob instanceof WrappedClob);
+  Clob nclob=lobCreator.createNClob("Hi");
+  envionment.verifyNClob(nclob);
+  assertTrue(NClob.class.isInstance(nclob));
+  nclob=lobCreator.wrap(nclob);
+  assertTrue(nclob instanceof WrappedClob);
+  blob.free();
+  clob.free();
+  nclob.free();
+  connection.close();
+}
