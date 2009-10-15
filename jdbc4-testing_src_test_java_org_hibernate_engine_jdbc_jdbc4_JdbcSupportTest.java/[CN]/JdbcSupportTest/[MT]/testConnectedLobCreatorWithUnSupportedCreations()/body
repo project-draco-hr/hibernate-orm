@@ -1,13 +1,13 @@
 {
   final Connection connection=createConnectionProxy(new JdbcLobBuilder(){
     public Blob createBlob(){
-      return new JdbcBlob();
+      throw new UnsupportedOperationException();
     }
     public Clob createClob(){
-      return new JdbcClob();
+      throw new UnsupportedOperationException();
     }
     public NClob createNClob(){
-      return new JdbcNClob();
+      throw new UnsupportedOperationException();
     }
   }
 );
@@ -23,17 +23,18 @@
   }
 ;
   LobCreator lobCreator=JdbcSupportLoader.loadJdbcSupport(connection).getLobCreator(lobCreationContext);
-  assertTrue(lobCreator instanceof ContextualLobCreator);
+  assertTrue(lobCreator instanceof NonContextualLobCreator);
   Blob blob=lobCreator.createBlob(new byte[]{});
-  assertTrue(blob instanceof JdbcBlob);
+  assertTrue(blob instanceof BlobImplementer);
   blob=lobCreator.wrap(blob);
   assertTrue(blob instanceof WrappedBlob);
   Clob clob=lobCreator.createClob("Hi");
-  assertTrue(clob instanceof JdbcClob);
+  assertTrue(clob instanceof ClobImplementer);
   clob=lobCreator.wrap(clob);
   assertTrue(clob instanceof WrappedClob);
   Clob nclob=lobCreator.createNClob("Hi");
-  assertTrue(nclob instanceof JdbcNClob);
+  assertTrue(nclob instanceof ClobImplementer);
+  assertTrue(nclob instanceof NClobImplementer);
   nclob=lobCreator.wrap(nclob);
   assertTrue(nclob instanceof WrappedClob);
   blob.free();
