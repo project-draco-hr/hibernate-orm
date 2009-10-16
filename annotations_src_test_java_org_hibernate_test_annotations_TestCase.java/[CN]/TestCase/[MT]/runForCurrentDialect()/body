@@ -1,13 +1,18 @@
 {
-  if (requiredDialectList.isEmpty()) {
-    return true;
-  }
- else {
-    for (    Class<? extends Dialect> dialect : requiredDialectList) {
-      if (dialect.isAssignableFrom(Dialect.getDialect().getClass())) {
-        return true;
-      }
+  boolean runTestForCurrentDialect=true;
+  for (  Class<? extends Dialect> dialect : requiredDialectList) {
+    if (dialect.isAssignableFrom(Dialect.getDialect().getClass())) {
+      runTestForCurrentDialect=true;
+      break;
     }
-    return false;
+    runTestForCurrentDialect=false;
   }
+  for (  Class<? extends Dialect> dialect : skipForDialectList) {
+    if (dialect.isAssignableFrom(Dialect.getDialect().getClass())) {
+      runTestForCurrentDialect=false;
+      break;
+    }
+    runTestForCurrentDialect=true;
+  }
+  return runTestForCurrentDialect;
 }
