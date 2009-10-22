@@ -1,14 +1,15 @@
 {
   Update update=new Update(getDialect()).setTableName(qualifiedTableName);
-  update.addColumns(elementColumnNames,elementColumnIsSettable);
+  update.addColumns(elementColumnNames,elementColumnIsSettable,elementColumnWriters);
   if (hasIdentifier) {
-    update.setPrimaryKeyColumnNames(new String[]{identifierColumnName});
+    update.addPrimaryKeyColumns(new String[]{identifierColumnName});
   }
  else   if (hasIndex && !indexContainsFormula) {
-    update.setPrimaryKeyColumnNames(ArrayHelper.join(keyColumnNames,indexColumnNames));
+    update.addPrimaryKeyColumns(ArrayHelper.join(keyColumnNames,indexColumnNames));
   }
  else {
-    update.setPrimaryKeyColumnNames(ArrayHelper.join(keyColumnNames,elementColumnNames,elementColumnIsInPrimaryKey));
+    update.addPrimaryKeyColumns(keyColumnNames);
+    update.addPrimaryKeyColumns(elementColumnNames,elementColumnIsInPrimaryKey,elementColumnWriters);
   }
   if (getFactory().getSettings().isCommentsEnabled()) {
     update.setComment("update collection row " + getRole());

@@ -1,0 +1,30 @@
+{
+  final double HEIGHT_INCHES=49;
+  final double HEIGHT_CENTIMETERS=HEIGHT_INCHES * 2.54d;
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  Child c=new Child("Child One");
+  c.setHeightInches(HEIGHT_INCHES);
+  Parent p=new Parent("Parent");
+  p.getChildren().add(c);
+  c.setParent(p);
+  s.save(p);
+  s.flush();
+  Double heightViaSql=(Double)s.createSQLQuery("select height_centimeters from parentchild c where c.name='Child One'").uniqueResult();
+  assertEquals(HEIGHT_CENTIMETERS,heightViaSql,0.01d);
+  Double heightViaHql=(Double)s.createQuery("select c.heightInches from Parent p join p.children c where p.name='Parent'").uniqueResult();
+  assertEquals(HEIGHT_INCHES,heightViaHql,0.01d);
+  p=(Parent)s.createCriteria(Parent.class).add(Restrictions.eq("name","Parent")).uniqueResult();
+  c=(Child)p.getChildren().iterator().next();
+  assertEquals(HEIGHT_INCHES,c.getHeightInches(),0.01d);
+  p=(Parent)s.createQuery("from Parent p join p.children c where c.heightInches between ? and ?").setDouble(0,HEIGHT_INCHES - 0.01d).setDouble(1,HEIGHT_INCHES + 0.01d).uniqueResult();
+  c=(Child)p.getChildren().iterator().next();
+  assertEquals(HEIGHT_INCHES,c.getHeightInches(),0.01d);
+  c.setHeightInches(1);
+  s.flush();
+  heightViaSql=(Double)s.createSQLQuery("select height_centimeters from parentchild c where c.name='Child One'").uniqueResult();
+  assertEquals(2.54d,heightViaSql,0.01d);
+  s.delete(p);
+  t.commit();
+  s.close();
+}

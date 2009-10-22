@@ -1,0 +1,27 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  final double SIZE_IN_KB=1536d;
+  final double SIZE_IN_MB=SIZE_IN_KB / 1024d;
+  Image image=new Image();
+  image.setName("picture.gif");
+  image.setSizeKb(SIZE_IN_KB);
+  s.persist(image);
+  s.flush();
+  Double sizeViaSql=(Double)s.createSQLQuery("select size_mb from image").uniqueResult();
+  assertEquals(SIZE_IN_MB,sizeViaSql,0.01d);
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  final double NEW_SIZE_IN_KB=2048d;
+  final double NEW_SIZE_IN_MB=NEW_SIZE_IN_KB / 1024d;
+  image.setSizeKb(NEW_SIZE_IN_KB);
+  s.update(image);
+  s.flush();
+  sizeViaSql=(Double)s.createSQLQuery("select size_mb from image").uniqueResult();
+  assertEquals(NEW_SIZE_IN_MB,sizeViaSql,0.01d);
+  s.delete(image);
+  t.commit();
+  s.close();
+}

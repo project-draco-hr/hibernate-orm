@@ -1,0 +1,22 @@
+{
+  Session s=openSession();
+  org.hibernate.Transaction t=s.beginTransaction();
+  final BigDecimal AMOUNT=new BigDecimal(73000000d);
+  final BigDecimal AMOUNT_MILLIONS=AMOUNT.divide(new BigDecimal(1000000d));
+  MutualFund f=new MutualFund();
+  f.setHoldings(new MonetoryAmount(AMOUNT,Currency.getInstance("USD")));
+  s.persist(f);
+  s.flush();
+  BigDecimal amountViaSql=(BigDecimal)s.createSQLQuery("select amount_millions from MutualFund").uniqueResult();
+  assertEquals(AMOUNT_MILLIONS.doubleValue(),amountViaSql.doubleValue(),0.01d);
+  BigDecimal amountViaHql=(BigDecimal)s.createQuery("select f.holdings.amount from MutualFund f").uniqueResult();
+  assertEquals(AMOUNT.doubleValue(),amountViaHql.doubleValue(),0.01d);
+  BigDecimal one=new BigDecimal(1);
+  f=(MutualFund)s.createCriteria(MutualFund.class).add(Restrictions.between("holdings.amount",AMOUNT.subtract(one),AMOUNT.add(one))).uniqueResult();
+  assertEquals(AMOUNT.doubleValue(),f.getHoldings().getAmount().doubleValue(),0.01d);
+  f=(MutualFund)s.createQuery("from MutualFund f where f.holdings.amount between ? and ?").setBigDecimal(0,AMOUNT.subtract(one)).setBigDecimal(1,AMOUNT.add(one)).uniqueResult();
+  assertEquals(AMOUNT.doubleValue(),f.getHoldings().getAmount().doubleValue(),0.01d);
+  s.delete(f);
+  t.commit();
+  s.close();
+}

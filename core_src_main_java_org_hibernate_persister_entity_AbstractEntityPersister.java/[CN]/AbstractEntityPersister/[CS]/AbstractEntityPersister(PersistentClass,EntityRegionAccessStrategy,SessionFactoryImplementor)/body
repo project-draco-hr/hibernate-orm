@@ -13,6 +13,8 @@
   propertyMapping=new BasicEntityPropertyMapping(this);
   identifierColumnSpan=persistentClass.getIdentifier().getColumnSpan();
   rootTableKeyColumnNames=new String[identifierColumnSpan];
+  rootTableKeyColumnReaders=new String[identifierColumnSpan];
+  rootTableKeyColumnReaderTemplates=new String[identifierColumnSpan];
   identifierAliases=new String[identifierColumnSpan];
   rowIdName=persistentClass.getRootTable().getRowId();
   loaderName=persistentClass.getLoaderName();
@@ -21,6 +23,8 @@
   while (iter.hasNext()) {
     Column col=(Column)iter.next();
     rootTableKeyColumnNames[i]=col.getQuotedName(factory.getDialect());
+    rootTableKeyColumnReaders[i]=col.getReadExpr(factory.getDialect());
+    rootTableKeyColumnReaderTemplates[i]=col.getTemplate(factory.getDialect(),factory.getSqlFunctionRegistry());
     identifierAliases[i]=col.getAlias(factory.getDialect(),persistentClass.getRootTable());
     i++;
   }
@@ -39,6 +43,8 @@
   propertyColumnAliases=new String[hydrateSpan][];
   propertyColumnNames=new String[hydrateSpan][];
   propertyColumnFormulaTemplates=new String[hydrateSpan][];
+  propertyColumnReaderTemplates=new String[hydrateSpan][];
+  propertyColumnWriters=new String[hydrateSpan][];
   propertyUniqueness=new boolean[hydrateSpan];
   propertySelectable=new boolean[hydrateSpan];
   propertyColumnUpdateable=new boolean[hydrateSpan][];
@@ -60,7 +66,9 @@
     propertySubclassNames[i]=prop.getPersistentClass().getEntityName();
     String[] colNames=new String[span];
     String[] colAliases=new String[span];
-    String[] templates=new String[span];
+    String[] colReaderTemplates=new String[span];
+    String[] colWriters=new String[span];
+    String[] formulaTemplates=new String[span];
     Iterator colIter=prop.getColumnIterator();
     int k=0;
     while (colIter.hasNext()) {
@@ -68,15 +76,20 @@
       colAliases[k]=thing.getAlias(factory.getDialect(),prop.getValue().getTable());
       if (thing.isFormula()) {
         foundFormula=true;
-        templates[k]=thing.getTemplate(factory.getDialect(),factory.getSqlFunctionRegistry());
+        formulaTemplates[k]=thing.getTemplate(factory.getDialect(),factory.getSqlFunctionRegistry());
       }
  else {
-        colNames[k]=thing.getTemplate(factory.getDialect(),factory.getSqlFunctionRegistry());
+        Column col=(Column)thing;
+        colNames[k]=col.getQuotedName(factory.getDialect());
+        colReaderTemplates[k]=col.getTemplate(factory.getDialect(),factory.getSqlFunctionRegistry());
+        colWriters[k]=col.getWriteExpr();
       }
       k++;
     }
     propertyColumnNames[i]=colNames;
-    propertyColumnFormulaTemplates[i]=templates;
+    propertyColumnFormulaTemplates[i]=formulaTemplates;
+    propertyColumnReaderTemplates[i]=colReaderTemplates;
+    propertyColumnWriters[i]=colWriters;
     propertyColumnAliases[i]=colAliases;
     if (lazyAvailable && prop.isLazy()) {
       lazyProperties.add(prop.getName());
@@ -98,6 +111,7 @@
   lazyPropertyTypes=ArrayHelper.toTypeArray(lazyTypes);
   ArrayList columns=new ArrayList();
   ArrayList columnsLazy=new ArrayList();
+  ArrayList columnReaderTemplates=new ArrayList();
   ArrayList aliases=new ArrayList();
   ArrayList formulas=new ArrayList();
   ArrayList formulaAliases=new ArrayList();
@@ -108,6 +122,8 @@
   ArrayList classes=new ArrayList();
   ArrayList templates=new ArrayList();
   ArrayList propColumns=new ArrayList();
+  ArrayList propColumnReaders=new ArrayList();
+  ArrayList propColumnReaderTemplates=new ArrayList();
   ArrayList joinedFetchesList=new ArrayList();
   ArrayList cascades=new ArrayList();
   ArrayList definedBySubclass=new ArrayList();
@@ -126,6 +142,8 @@
     types.add(prop.getType());
     Iterator colIter=prop.getColumnIterator();
     String[] cols=new String[prop.getColumnSpan()];
+    String[] readers=new String[prop.getColumnSpan()];
+    String[] readerTemplates=new String[prop.getColumnSpan()];
     String[] forms=new String[prop.getColumnSpan()];
     int[] colnos=new int[prop.getColumnSpan()];
     int[] formnos=new int[prop.getColumnSpan()];
@@ -144,7 +162,8 @@
         formulasLazy.add(lazy);
       }
  else {
-        String colName=thing.getTemplate(factory.getDialect(),factory.getSqlFunctionRegistry());
+        Column col=(Column)thing;
+        String colName=col.getQuotedName(factory.getDialect());
         colnos[l]=columns.size();
         formnos[l]=-1;
         columns.add(colName);
@@ -152,10 +171,16 @@
         aliases.add(thing.getAlias(factory.getDialect(),prop.getValue().getTable()));
         columnsLazy.add(lazy);
         columnSelectables.add(Boolean.valueOf(prop.isSelectable()));
+        readers[l]=col.getReadExpr(factory.getDialect());
+        String readerTemplate=col.getTemplate(factory.getDialect(),factory.getSqlFunctionRegistry());
+        readerTemplates[l]=readerTemplate;
+        columnReaderTemplates.add(readerTemplate);
       }
       l++;
     }
     propColumns.add(cols);
+    propColumnReaders.add(readers);
+    propColumnReaderTemplates.add(readerTemplates);
     templates.add(forms);
     propColumnNumbers.add(colnos);
     propFormulaNumbers.add(formnos);
@@ -166,6 +191,7 @@
   subclassColumnAliasClosure=ArrayHelper.toStringArray(aliases);
   subclassColumnLazyClosure=ArrayHelper.toBooleanArray(columnsLazy);
   subclassColumnSelectableClosure=ArrayHelper.toBooleanArray(columnSelectables);
+  subclassColumnReaderTemplateClosure=ArrayHelper.toStringArray(columnReaderTemplates);
   subclassFormulaClosure=ArrayHelper.toStringArray(formulas);
   subclassFormulaTemplateClosure=ArrayHelper.toStringArray(formulaTemplates);
   subclassFormulaAliasClosure=ArrayHelper.toStringArray(formulaAliases);
@@ -176,6 +202,8 @@
   subclassPropertyNullabilityClosure=ArrayHelper.toBooleanArray(propNullables);
   subclassPropertyFormulaTemplateClosure=ArrayHelper.to2DStringArray(templates);
   subclassPropertyColumnNameClosure=ArrayHelper.to2DStringArray(propColumns);
+  subclassPropertyColumnReaderClosure=ArrayHelper.to2DStringArray(propColumnReaders);
+  subclassPropertyColumnReaderTemplateClosure=ArrayHelper.to2DStringArray(propColumnReaderTemplates);
   subclassPropertyColumnNumberClosure=ArrayHelper.to2DIntArray(propColumnNumbers);
   subclassPropertyFormulaNumberClosure=ArrayHelper.to2DIntArray(propFormulaNumbers);
   subclassPropertyCascadeStyleClosure=new CascadeStyle[cascades.size()];

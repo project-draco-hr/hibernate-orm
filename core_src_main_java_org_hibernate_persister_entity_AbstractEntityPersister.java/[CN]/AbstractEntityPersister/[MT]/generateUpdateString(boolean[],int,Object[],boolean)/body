@@ -1,15 +1,15 @@
 {
   Update update=new Update(getFactory().getDialect()).setTableName(getTableName(j));
   if (useRowId) {
-    update.setPrimaryKeyColumnNames(new String[]{rowIdName});
+    update.addPrimaryKeyColumns(new String[]{rowIdName});
   }
  else {
-    update.setPrimaryKeyColumnNames(getKeyColumns(j));
+    update.addPrimaryKeyColumns(getKeyColumns(j));
   }
   boolean hasColumns=false;
   for (int i=0; i < entityMetamodel.getPropertySpan(); i++) {
     if (includeProperty[i] && isPropertyOfTable(i,j)) {
-      update.addColumns(getPropertyColumnNames(i),propertyColumnUpdateable[i]);
+      update.addColumns(getPropertyColumnNames(i),propertyColumnUpdateable[i],propertyColumnWriters[i]);
       hasColumns=hasColumns || getPropertyColumnSpan(i) > 0;
     }
   }
@@ -27,10 +27,11 @@
       boolean include=includeInWhere[i] && isPropertyOfTable(i,j) && versionability[i];
       if (include) {
         String[] propertyColumnNames=getPropertyColumnNames(i);
+        String[] propertyColumnWriters=getPropertyColumnWriters(i);
         boolean[] propertyNullness=types[i].toColumnNullness(oldFields[i],getFactory());
         for (int k=0; k < propertyNullness.length; k++) {
           if (propertyNullness[k]) {
-            update.addWhereColumn(propertyColumnNames[k]);
+            update.addWhereColumn(propertyColumnNames[k],"=" + propertyColumnWriters[k]);
           }
  else {
             update.addWhereColumn(propertyColumnNames[k]," is null");

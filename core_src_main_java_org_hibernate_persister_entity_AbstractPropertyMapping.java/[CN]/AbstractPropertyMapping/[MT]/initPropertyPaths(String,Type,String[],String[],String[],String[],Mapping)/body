@@ -1,0 +1,33 @@
+{
+  if (columns.length != type.getColumnSpan(factory)) {
+    throw new MappingException("broken column mapping for: " + path + " of: "+ getEntityName());
+  }
+  if (type.isAssociationType()) {
+    AssociationType actype=(AssociationType)type;
+    if (actype.useLHSPrimaryKey()) {
+      columns=getIdentifierColumnNames();
+      columnReaders=getIdentifierColumnReaders();
+      columnReaderTemplates=getIdentifierColumnReaderTemplates();
+    }
+ else {
+      String foreignKeyProperty=actype.getLHSPropertyName();
+      if (foreignKeyProperty != null && !path.equals(foreignKeyProperty)) {
+        columns=(String[])columnsByPropertyPath.get(foreignKeyProperty);
+        if (columns == null)         return;
+        columnReaders=(String[])columnReadersByPropertyPath.get(foreignKeyProperty);
+        columnReaderTemplates=(String[])columnReaderTemplatesByPropertyPath.get(foreignKeyProperty);
+      }
+    }
+  }
+  if (path != null)   addPropertyPath(path,type,columns,columnReaders,columnReaderTemplates,formulaTemplates);
+  if (type.isComponentType()) {
+    AbstractComponentType actype=(AbstractComponentType)type;
+    initComponentPropertyPaths(path,actype,columns,columnReaders,columnReaderTemplates,formulaTemplates,factory);
+    if (actype.isEmbedded()) {
+      initComponentPropertyPaths(path == null ? null : StringHelper.qualifier(path),actype,columns,columnReaders,columnReaderTemplates,formulaTemplates,factory);
+    }
+  }
+ else   if (type.isEntityType()) {
+    initIdentifierPropertyPaths(path,(EntityType)type,columns,columnReaders,columnReaderTemplates,factory);
+  }
+}

@@ -20,6 +20,8 @@
   final int idColumnSpan=getIdentifierColumnSpan();
   ArrayList tables=new ArrayList();
   ArrayList keyColumns=new ArrayList();
+  ArrayList keyColumnReaders=new ArrayList();
+  ArrayList keyColumnReaderTemplates=new ArrayList();
   ArrayList cascadeDeletes=new ArrayList();
   Iterator titer=persistentClass.getTableClosureIterator();
   Iterator kiter=persistentClass.getKeyClosureIterator();
@@ -29,15 +31,24 @@
     String tabname=tab.getQualifiedName(factory.getDialect(),factory.getSettings().getDefaultCatalogName(),factory.getSettings().getDefaultSchemaName());
     tables.add(tabname);
     String[] keyCols=new String[idColumnSpan];
+    String[] keyColReaders=new String[idColumnSpan];
+    String[] keyColReaderTemplates=new String[idColumnSpan];
     Iterator citer=key.getColumnIterator();
     for (int k=0; k < idColumnSpan; k++) {
-      keyCols[k]=((Column)citer.next()).getQuotedName(factory.getDialect());
+      Column column=(Column)citer.next();
+      keyCols[k]=column.getQuotedName(factory.getDialect());
+      keyColReaders[k]=column.getReadExpr(factory.getDialect());
+      keyColReaderTemplates[k]=column.getTemplate(factory.getDialect(),factory.getSqlFunctionRegistry());
     }
     keyColumns.add(keyCols);
+    keyColumnReaders.add(keyColReaders);
+    keyColumnReaderTemplates.add(keyColReaderTemplates);
     cascadeDeletes.add(new Boolean(key.isCascadeDeleteEnabled() && factory.getDialect().supportsCascadeDelete()));
   }
   naturalOrderTableNames=ArrayHelper.toStringArray(tables);
   naturalOrderTableKeyColumns=ArrayHelper.to2DStringArray(keyColumns);
+  naturalOrderTableKeyColumnReaders=ArrayHelper.to2DStringArray(keyColumnReaders);
+  naturalOrderTableKeyColumnReaderTemplates=ArrayHelper.to2DStringArray(keyColumnReaderTemplates);
   naturalOrderCascadeDeleteEnabled=ArrayHelper.toBooleanArray(cascadeDeletes);
   ArrayList subtables=new ArrayList();
   ArrayList isConcretes=new ArrayList();
@@ -68,6 +79,8 @@
   tableSpan=naturalOrderTableNames.length;
   tableNames=reverse(naturalOrderTableNames);
   tableKeyColumns=reverse(naturalOrderTableKeyColumns);
+  tableKeyColumnReaders=reverse(naturalOrderTableKeyColumnReaders);
+  tableKeyColumnReaderTemplates=reverse(naturalOrderTableKeyColumnReaderTemplates);
   reverse(subclassTableNameClosure,tableSpan);
   reverse(subclassTableKeyColumnClosure,tableSpan);
   spaces=ArrayHelper.join(tableNames,ArrayHelper.toStringArray(persistentClass.getSynchronizedTables()));

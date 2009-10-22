@@ -67,6 +67,9 @@
   int elementSpan=collection.getElement().getColumnSpan();
   elementColumnAliases=new String[elementSpan];
   elementColumnNames=new String[elementSpan];
+  elementColumnWriters=new String[elementSpan];
+  elementColumnReaders=new String[elementSpan];
+  elementColumnReaderTemplates=new String[elementSpan];
   elementFormulaTemplates=new String[elementSpan];
   elementFormulas=new String[elementSpan];
   elementColumnIsSettable=new boolean[elementSpan];
@@ -86,6 +89,9 @@
  else {
       Column col=(Column)selectable;
       elementColumnNames[j]=col.getQuotedName(dialect);
+      elementColumnWriters[j]=col.getWriteExpr();
+      elementColumnReaders[j]=col.getReadExpr(dialect);
+      elementColumnReaderTemplates[j]=col.getTemplate(dialect,factory.getSqlFunctionRegistry());
       elementColumnIsSettable[j]=true;
       elementColumnIsInPrimaryKey[j]=!col.isNullable();
       if (!col.isNullable()) {
@@ -217,7 +223,7 @@
     elementClass=null;
   }
   if (elementType.isComponentType()) {
-    elementPropertyMapping=new CompositeElementPropertyMapping(elementColumnNames,elementFormulaTemplates,(AbstractComponentType)elementType,factory);
+    elementPropertyMapping=new CompositeElementPropertyMapping(elementColumnNames,elementColumnReaders,elementColumnReaderTemplates,elementFormulaTemplates,(AbstractComponentType)elementType,factory);
   }
  else   if (!elementType.isEntityType()) {
     elementPropertyMapping=new ElementPropertyMapping(elementColumnNames,elementType);

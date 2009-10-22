@@ -21,11 +21,16 @@
     buf.append(assignments);
   }
   boolean conditionsAppended=false;
-  if (primaryKeyColumnNames != null || where != null || !whereColumns.isEmpty() || versionColumnName != null) {
+  if (!primaryKeyColumns.isEmpty() || where != null || !whereColumns.isEmpty() || versionColumnName != null) {
     buf.append(" where ");
   }
-  if (primaryKeyColumnNames != null) {
-    buf.append(StringHelper.join("=? and ",primaryKeyColumnNames)).append("=?");
+  iter=primaryKeyColumns.entrySet().iterator();
+  while (iter.hasNext()) {
+    Map.Entry e=(Map.Entry)iter.next();
+    buf.append(e.getKey()).append('=').append(e.getValue());
+    if (iter.hasNext()) {
+      buf.append(" and ");
+    }
     conditionsAppended=true;
   }
   if (where != null) {

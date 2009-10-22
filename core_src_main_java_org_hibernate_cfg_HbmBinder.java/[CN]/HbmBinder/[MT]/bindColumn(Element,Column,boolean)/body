@@ -13,6 +13,12 @@
   column.setDefaultValue(node.attributeValue("default"));
   Attribute typeNode=node.attribute("sql-type");
   if (typeNode != null)   column.setSqlType(typeNode.getValue());
+  String customWrite=node.attributeValue("write");
+  if (customWrite != null && !customWrite.matches("[^?]*\\?[^?]*")) {
+    throw new MappingException("write expression must contain exactly one value placeholder ('?') character");
+  }
+  column.setCustomWrite(customWrite);
+  column.setCustomRead(node.attributeValue("read"));
   Element comment=node.element("comment");
   if (comment != null)   column.setComment(comment.getTextTrim());
 }
