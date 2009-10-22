@@ -1,4 +1,13 @@
 {
+  if (ResultSetIdentifierConsumer.class.isInstance(type)) {
+    return ((ResultSetIdentifierConsumer)type).consumeIdentifier(rs);
+  }
+  if (CustomType.class.isInstance(type)) {
+    final CustomType customType=(CustomType)type;
+    if (ResultSetIdentifierConsumer.class.isInstance(customType.getUserType())) {
+      return ((ResultSetIdentifierConsumer)customType.getUserType()).consumeIdentifier(rs);
+    }
+  }
   Class clazz=type.getReturnedClass();
   if (clazz == Long.class) {
     return new Long(rs.getLong(1));
