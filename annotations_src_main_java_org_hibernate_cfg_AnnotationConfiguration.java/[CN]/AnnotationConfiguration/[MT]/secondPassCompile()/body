@@ -17,8 +17,12 @@
     AnnotationBinder.bindDefaults(createExtendedMappings());
     isDefaultProcessed=true;
   }
-  if (precedence == null)   precedence=getProperties().getProperty(ARTEFACT);
-  if (precedence == null)   precedence=DEFAULT_PRECEDENCE;
+  if (precedence == null) {
+    precedence=getProperties().getProperty(ARTEFACT);
+  }
+  if (precedence == null) {
+    precedence=DEFAULT_PRECEDENCE;
+  }
   StringTokenizer precedences=new StringTokenizer(precedence,",; ",false);
   if (!precedences.hasMoreElements()) {
     throw new MappingException(ARTEFACT + " cannot be empty: " + precedence);
@@ -87,37 +91,5 @@
       buildUniqueKeyFromColumnNames(columnNames,table,keyName);
     }
   }
-  boolean applyOnDdl=getProperties().getProperty("hibernate.validator.apply_to_ddl","true").equalsIgnoreCase("true");
-  Constructor validatorCtr=null;
-  Method applyMethod=null;
-  try {
-    Class classValidator=ReflectHelper.classForName("org.hibernate.validator.ClassValidator",this.getClass());
-    Class messageInterpolator=ReflectHelper.classForName("org.hibernate.validator.MessageInterpolator",this.getClass());
-    validatorCtr=classValidator.getDeclaredConstructor(Class.class,ResourceBundle.class,messageInterpolator,Map.class,ReflectionManager.class);
-    applyMethod=classValidator.getMethod("apply",PersistentClass.class);
-  }
- catch (  ClassNotFoundException e) {
-    if (!isValidatorNotPresentLogged) {
-      log.info("Hibernate Validator not found: ignoring");
-    }
-    isValidatorNotPresentLogged=true;
-  }
-catch (  NoSuchMethodException e) {
-    throw new AnnotationException(e);
-  }
-  if (applyMethod != null && applyOnDdl) {
-    for (    PersistentClass persistentClazz : (Collection<PersistentClass>)classes.values()) {
-      String className=persistentClazz.getClassName();
-      if (StringHelper.isNotEmpty(className)) {
-        try {
-          Object validator=validatorCtr.newInstance(ReflectHelper.classForName(className),null,null,null,reflectionManager);
-          applyMethod.invoke(validator,persistentClazz);
-        }
- catch (        Exception e) {
-          log.warn("Unable to apply constraints on DDL for " + className,e);
-        }
-      }
-    }
-  }
-  applyDDLOnBeanValidation((Collection<PersistentClass>)classes.values(),getProperties());
+  applyConstraintsToDDL();
 }
