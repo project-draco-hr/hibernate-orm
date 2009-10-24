@@ -1,0 +1,18 @@
+{
+  final StringBuilder jpaqlQuery=new StringBuilder();
+  queryStructure.render(jpaqlQuery,renderingContext);
+  if (!getOrderList().isEmpty()) {
+    jpaqlQuery.append(" order by ");
+    String sep="";
+    for (    Order orderSpec : getOrderList()) {
+      jpaqlQuery.append(sep).append(((ExpressionImplementor)orderSpec.getExpression()).render(renderingContext)).append(orderSpec.isAscending() ? " asc" : " desc");
+      sep=", ";
+    }
+  }
+  return new CriteriaQueryCompiler.RenderedCriteriaQuery(){
+    public String getQueryString(){
+      return jpaqlQuery.toString();
+    }
+  }
+;
+}

@@ -1,0 +1,40 @@
+{
+  jpaqlQuery.append("select ");
+  if (isDistinct()) {
+    jpaqlQuery.append(" distinct ");
+  }
+  if (getSelection() == null) {
+    final Root root=getRoots().iterator().next();
+    ((TableExpressionMapper)root).prepareAlias(renderingContext);
+    jpaqlQuery.append(root.getAlias());
+  }
+ else {
+    ((ExpressionImplementor)getSelection()).renderProjection(renderingContext);
+  }
+  jpaqlQuery.append(" from ");
+  String sep="";
+  for (  Root root : getRoots()) {
+    ((TableExpressionMapper)root).prepareAlias(renderingContext);
+    jpaqlQuery.append(sep);
+    jpaqlQuery.append(((TableExpressionMapper)root).renderTableExpression(renderingContext));
+    sep=", ";
+  }
+  for (  Root root : getRoots()) {
+    renderJoins(jpaqlQuery,renderingContext,root.getJoins());
+    renderFetches(jpaqlQuery,renderingContext,root.getFetches());
+  }
+  if (getRestriction() != null) {
+    jpaqlQuery.append(" where ").append(((ExpressionImplementor)getRestriction()).render(renderingContext));
+  }
+  if (!getGroupings().isEmpty()) {
+    jpaqlQuery.append(" group by ");
+    sep="";
+    for (    Expression grouping : getGroupings()) {
+      jpaqlQuery.append(sep).append(((ExpressionImplementor)grouping).render(renderingContext));
+      sep=", ";
+    }
+    if (getHaving() != null) {
+      jpaqlQuery.append(" having ").append(((ExpressionImplementor)getHaving()).render(renderingContext));
+    }
+  }
+}
