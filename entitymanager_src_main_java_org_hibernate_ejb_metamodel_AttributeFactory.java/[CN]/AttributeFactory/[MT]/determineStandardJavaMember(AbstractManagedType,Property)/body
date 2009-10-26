@@ -1,0 +1,20 @@
+{
+  if (Type.PersistenceType.EMBEDDABLE == ownerType.getPersistenceType()) {
+    EmbeddableTypeImpl embeddableType=(EmbeddableTypeImpl)ownerType;
+    return embeddableType.getHibernateType().getTuplizerMapping().getTuplizer(EntityMode.POJO).getGetter(embeddableType.getHibernateType().getPropertyIndex(property.getName())).getMember();
+  }
+ else   if (Type.PersistenceType.ENTITY == ownerType.getPersistenceType()) {
+    final EntityMetamodel entityMetamodel=getDeclarerEntityMetamodel(ownerType);
+    final String propertyName=property.getName();
+    final Integer index=entityMetamodel.getPropertyIndexOrNull(propertyName);
+    if (index == null) {
+      return determineVirtualIdentifierJavaMember(entityMetamodel,property);
+    }
+ else {
+      return entityMetamodel.getTuplizer(EntityMode.POJO).getGetter(index).getMember();
+    }
+  }
+ else {
+    throw new IllegalArgumentException("Unexpected owner type : " + ownerType.getPersistenceType());
+  }
+}
