@@ -1,0 +1,13 @@
+{
+  AttributeImplementor<X,Y> attribute;
+  final Type<V> attrType=getType(attrContext.getElementTypeStatus(),attrContext.getElementValue());
+  final Class<Y> collectionClass=(Class<Y>)attrContext.getCollectionClass();
+  if (java.util.Map.class.isAssignableFrom(collectionClass)) {
+    final Type<K> keyType=getType(attrContext.getKeyTypeStatus(),attrContext.getKeyValue());
+    attribute=PluralAttributeImpl.create(ownerType,attrType,collectionClass,keyType).member(determineJavaMember(property)).property(property).persistentAttributeType(attrContext.getElementAttributeType()).build();
+  }
+ else {
+    attribute=PluralAttributeImpl.create(ownerType,attrType,collectionClass,null).member(determineJavaMember(property)).property(property).persistentAttributeType(attrContext.getElementAttributeType()).build();
+  }
+  return attribute;
+}

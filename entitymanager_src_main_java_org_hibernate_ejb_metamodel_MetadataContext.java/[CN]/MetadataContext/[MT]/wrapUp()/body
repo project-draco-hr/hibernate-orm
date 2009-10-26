@@ -1,0 +1,13 @@
+{
+  for (  Map.Entry<PersistentClass,EntityTypeImpl<?>> entry : entityTypesByPersistentClass.entrySet()) {
+    applyIdMetadata(entry.getKey(),entry.getValue());
+    applyVersionAttribute(entry.getKey(),entry.getValue());
+    Iterator<Property> properties=(Iterator<Property>)entry.getKey().getPropertyIterator();
+    while (properties.hasNext()) {
+      final Property property=properties.next();
+      final Attribute attribute=attributeFactory.buildAttribute(entry.getValue(),property);
+      entry.getValue().getBuilder().addAttribute(attribute);
+    }
+    entry.getValue().lock();
+  }
+}
