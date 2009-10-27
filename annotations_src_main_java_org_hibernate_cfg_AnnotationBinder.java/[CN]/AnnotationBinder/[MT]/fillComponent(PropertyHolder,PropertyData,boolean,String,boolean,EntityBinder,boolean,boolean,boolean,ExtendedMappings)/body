@@ -1,28 +1,3 @@
 {
-  Component comp=new Component(propertyHolder.getPersistentClass());
-  comp.setEmbedded(isComponentEmbedded);
-  comp.setTable(propertyHolder.getTable());
-  if (!isIdentifierMapper) {
-    comp.setComponentClassName(inferredData.getClassOrElementName());
-  }
- else {
-    comp.setComponentClassName(comp.getOwner().getClassName());
-  }
-  comp.setNodeName(inferredData.getPropertyName());
-  String subpath=StringHelper.qualify(propertyHolder.getPath(),inferredData.getPropertyName());
-  log.debug("Binding component with path: {}",subpath);
-  PropertyHolder subHolder=PropertyHolderBuilder.buildPropertyHolder(comp,subpath,inferredData,propertyHolder,mappings);
-  List<PropertyData> classElements=new ArrayList<PropertyData>();
-  XClass returnedClassOrElement=inferredData.getClassOrElement();
-  bindTypeDefs(returnedClassOrElement,mappings);
-  addElementsOfAClass(classElements,subHolder,propertyAnnotated,propertyAccessor,returnedClassOrElement,mappings);
-  XClass superClass=inferredData.getPropertyClass().getSuperclass();
-  while (superClass != null && superClass.isAnnotationPresent(MappedSuperclass.class)) {
-    addElementsOfAClass(classElements,subHolder,entityBinder.isPropertyAnnotated(superClass),propertyAccessor,superClass,mappings);
-    superClass=superClass.getSuperclass();
-  }
-  for (  PropertyData propertyAnnotatedElement : classElements) {
-    processElementAnnotations(subHolder,isNullable ? Nullability.NO_CONSTRAINT : Nullability.FORCED_NOT_NULL,propertyAnnotatedElement.getProperty(),propertyAnnotatedElement,new HashMap<String,IdGenerator>(),entityBinder,isIdentifierMapper,isComponentEmbedded,inSecondPass,mappings);
-  }
-  return comp;
+  return fillComponent(propertyHolder,inferredData,null,propertyAnnotated,propertyAccessor,isNullable,entityBinder,isComponentEmbedded,isIdentifierMapper,inSecondPass,mappings);
 }

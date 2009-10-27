@@ -187,8 +187,9 @@
   final boolean subclassAndSingleTableStrategy=inheritanceState.type == InheritanceType.SINGLE_TABLE && inheritanceState.hasParents;
   Set<String> idProperties=new HashSet<String>();
   IdClass idClass=null;
+  XClass current=null;
   if (!inheritanceState.hasParents) {
-    XClass current=inheritanceState.clazz;
+    current=inheritanceState.clazz;
     InheritanceState state=inheritanceState;
     do {
       current=state.clazz;
@@ -208,12 +209,13 @@
     String generatorType="assigned";
     String generator=BinderHelper.ANNOTATION_STRING_DEFAULT;
     PropertyData inferredData=new PropertyPreloadedData(entityBinder.getPropertyAccessor(),"id",compositeClass);
+    PropertyData baseInferredData=new PropertyPreloadedData(entityBinder.getPropertyAccessor(),"id",current);
     HashMap<String,IdGenerator> localGenerators=new HashMap<String,IdGenerator>();
     boolean ignoreIdAnnotations=entityBinder.isIgnoreIdAnnotations();
     entityBinder.setIgnoreIdAnnotations(true);
-    bindId(generatorType,generator,inferredData,null,propertyHolder,localGenerators,isComponent,propertyAnnotated,propertyAccessor,entityBinder,true,false,mappings);
+    bindId(generatorType,generator,inferredData,baseInferredData,null,propertyHolder,localGenerators,isComponent,propertyAnnotated,propertyAccessor,entityBinder,true,false,mappings);
     inferredData=new PropertyPreloadedData(propertyAccessor,"_identifierMapper",compositeClass);
-    Component mapper=fillComponent(propertyHolder,inferredData,propertyAnnotated,propertyAccessor,false,entityBinder,true,true,false,mappings);
+    Component mapper=fillComponent(propertyHolder,inferredData,baseInferredData,propertyAnnotated,propertyAccessor,false,entityBinder,true,true,false,mappings);
     entityBinder.setIgnoreIdAnnotations(ignoreIdAnnotations);
     persistentClass.setIdentifierMapper(mapper);
     Property property=new Property();
