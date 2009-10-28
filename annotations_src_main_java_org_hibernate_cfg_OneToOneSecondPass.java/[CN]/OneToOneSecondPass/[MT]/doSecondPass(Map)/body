@@ -25,7 +25,7 @@
     if (rightOrder) {
       String path=StringHelper.qualify(propertyHolder.getPath(),propertyName);
       (new ToOneFkSecondPass(value,joinColumns,!optional,propertyHolder.getEntityOwnerClassName(),path,mappings)).doSecondPass(persistentClasses);
-      propertyHolder.addProperty(prop);
+      propertyHolder.addProperty(prop,inferredData.getDeclaringClass());
     }
  else {
     }
@@ -46,7 +46,7 @@
       throw new AnnotationException("Unknown mappedBy in: " + StringHelper.qualify(ownerEntity,ownerProperty) + ", referenced property unknown: "+ StringHelper.qualify(value.getReferencedEntityName(),mappedBy));
     }
     if (otherSideProperty.getValue() instanceof OneToOne) {
-      propertyHolder.addProperty(prop);
+      propertyHolder.addProperty(prop,inferredData.getDeclaringClass());
     }
  else     if (otherSideProperty.getValue() instanceof ManyToOne) {
       Iterator it=otherSide.getJoinIterator();
@@ -88,7 +88,7 @@
         mappedByJoin.addProperty(prop);
       }
  else {
-        propertyHolder.addProperty(prop);
+        propertyHolder.addProperty(prop,inferredData.getDeclaringClass());
       }
       value.setReferencedPropertyName(mappedBy);
       String propertyRef=value.getReferencedPropertyName();

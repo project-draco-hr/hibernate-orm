@@ -1,0 +1,34 @@
+{
+  List<XClass> classesToProcess=new ArrayList<XClass>();
+  XClass currentClassInHierarchy=annotatedClass;
+  InheritanceState superclassState;
+  final ReflectionManager reflectionManager=mappings.getReflectionManager();
+  do {
+    classesToProcess.add(0,currentClassInHierarchy);
+    XClass superClass=currentClassInHierarchy;
+    do {
+      superClass=superClass.getSuperclass();
+      superclassState=inheritanceStatePerClass.get(superClass);
+    }
+ while (superClass != null && !reflectionManager.equals(superClass,Object.class) && superclassState == null);
+    currentClassInHierarchy=superClass;
+  }
+ while (superclassState != null && superclassState.isEmbeddableSuperclass);
+  org.hibernate.mapping.MappedSuperclass mappedSuperclass=null;
+  final InheritanceState superEntityState=InheritanceState.getSuperEntityInheritanceState(annotatedClass,inheritanceStatePerClass,reflectionManager);
+  PersistentClass superEntity=superEntityState != null ? mappings.getClass(superEntityState.clazz.getName()) : null;
+  final int lastMappedSuperclass=classesToProcess.size() - 1;
+  for (int index=0; index < lastMappedSuperclass; index++) {
+    org.hibernate.mapping.MappedSuperclass parentSuperclass=mappedSuperclass;
+    final Class<?> type=mappings.getReflectionManager().toClass(classesToProcess.get(index));
+    mappedSuperclass=mappings.getMappedSuperclass(type);
+    if (mappedSuperclass == null) {
+      mappedSuperclass=new org.hibernate.mapping.MappedSuperclass(parentSuperclass,superEntity);
+      mappings.addMappedSuperclass(type,mappedSuperclass);
+    }
+  }
+  if (mappedSuperclass != null) {
+    persistentClass.setSuperMappedSuperclass(mappedSuperclass);
+  }
+  return classesToProcess;
+}

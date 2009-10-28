@@ -17,7 +17,8 @@
   }
   XAnnotatedElement annotatedClass=clazzToProcess;
   log.info("Binding entity from annotated class: {}",clazzToProcess.getName());
-  InheritanceState superEntityState=InheritanceState.getSuperEntityInheritanceState(clazzToProcess,inheritanceStatePerClass,mappings.getReflectionManager());
+  final ReflectionManager reflectionManager=mappings.getReflectionManager();
+  InheritanceState superEntityState=InheritanceState.getSuperEntityInheritanceState(clazzToProcess,inheritanceStatePerClass,reflectionManager);
   PersistentClass superEntity=superEntityState != null ? mappings.getClass(superEntityState.clazz.getName()) : null;
   if (superEntity == null) {
     if (inheritanceState.hasParents) {
@@ -122,7 +123,7 @@
       log.warn("Illegal use of @Table in a subclass of a SINGLE_TABLE hierarchy: " + clazzToProcess.getName());
     }
   }
-  PropertyHolder propertyHolder=PropertyHolderBuilder.buildPropertyHolder(clazzToProcess,persistentClass,entityBinder,mappings);
+  PropertyHolder propertyHolder=PropertyHolderBuilder.buildPropertyHolder(clazzToProcess,persistentClass,entityBinder,mappings,inheritanceStatePerClass);
   javax.persistence.SecondaryTable secTabAnn=annotatedClass.getAnnotation(javax.persistence.SecondaryTable.class);
   javax.persistence.SecondaryTables secTabsAnn=annotatedClass.getAnnotation(javax.persistence.SecondaryTables.class);
   entityBinder.firstLevelSecondaryTablesBinding(secTabAnn,secTabsAnn);
@@ -174,7 +175,7 @@
     log.warn("Inapropriate use of @OnDelete on entity, annotation ignored: {}",propertyHolder.getEntityName());
   }
   HashMap<String,IdGenerator> classGenerators=buildLocalGenerators(annotatedClass,mappings);
-  List<PropertyData> elements=getElementsToProcess(clazzToProcess,inheritanceStatePerClass,propertyHolder,entityBinder,mappings);
+  List<PropertyData> elements=getElementsToProcess(persistentClass,clazzToProcess,inheritanceStatePerClass,propertyHolder,entityBinder,mappings);
   if (elements == null) {
     throw new AnnotationException("No identifier specified for entity: " + propertyHolder.getEntityName());
   }
@@ -191,12 +192,12 @@
         idClass=current.getAnnotation(IdClass.class);
         break;
       }
-      state=InheritanceState.getSuperclassInheritanceState(current,inheritanceStatePerClass,mappings.getReflectionManager());
+      state=InheritanceState.getSuperclassInheritanceState(current,inheritanceStatePerClass,reflectionManager);
     }
  while (state != null);
   }
   if (idClass != null) {
-    XClass compositeClass=mappings.getReflectionManager().toXClass(idClass.value());
+    XClass compositeClass=reflectionManager.toXClass(idClass.value());
     boolean isComponent=true;
     boolean propertyAnnotated=entityBinder.isPropertyAnnotated(compositeClass);
     String propertyAccessor=entityBinder.getPropertyAccessor(compositeClass);
@@ -207,9 +208,9 @@
     HashMap<String,IdGenerator> localGenerators=new HashMap<String,IdGenerator>();
     boolean ignoreIdAnnotations=entityBinder.isIgnoreIdAnnotations();
     entityBinder.setIgnoreIdAnnotations(true);
-    bindId(generatorType,generator,inferredData,baseInferredData,null,propertyHolder,localGenerators,isComponent,propertyAnnotated,propertyAccessor,entityBinder,true,false,mappings);
+    bindId(generatorType,generator,inferredData,baseInferredData,null,propertyHolder,localGenerators,isComponent,propertyAnnotated,propertyAccessor,entityBinder,true,false,mappings,inheritanceStatePerClass);
     inferredData=new PropertyPreloadedData(propertyAccessor,"_identifierMapper",compositeClass);
-    Component mapper=fillComponent(propertyHolder,inferredData,baseInferredData,propertyAnnotated,propertyAccessor,false,entityBinder,true,true,false,mappings);
+    Component mapper=fillComponent(propertyHolder,inferredData,baseInferredData,propertyAnnotated,propertyAccessor,false,entityBinder,true,true,false,mappings,inheritanceStatePerClass);
     entityBinder.setIgnoreIdAnnotations(ignoreIdAnnotations);
     persistentClass.setIdentifierMapper(mapper);
     Property property=new Property();
@@ -230,7 +231,7 @@
   for (  PropertyData propertyAnnotatedElement : elements) {
     String propertyName=propertyAnnotatedElement.getPropertyName();
     if (!idProperties.contains(propertyName)) {
-      processElementAnnotations(propertyHolder,subclassAndSingleTableStrategy ? Nullability.FORCED_NULL : Nullability.NO_CONSTRAINT,propertyAnnotatedElement.getProperty(),propertyAnnotatedElement,classGenerators,entityBinder,false,false,false,mappings);
+      processElementAnnotations(propertyHolder,subclassAndSingleTableStrategy ? Nullability.FORCED_NULL : Nullability.NO_CONSTRAINT,propertyAnnotatedElement.getProperty(),propertyAnnotatedElement,classGenerators,entityBinder,false,false,false,mappings,inheritanceStatePerClass);
     }
  else {
       missingIdProperties.remove(propertyName);

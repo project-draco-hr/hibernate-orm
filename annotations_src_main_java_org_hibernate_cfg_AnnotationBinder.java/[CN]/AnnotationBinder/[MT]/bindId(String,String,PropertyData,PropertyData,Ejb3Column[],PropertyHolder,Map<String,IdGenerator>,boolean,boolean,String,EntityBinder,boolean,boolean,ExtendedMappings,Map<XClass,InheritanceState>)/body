@@ -1,0 +1,49 @@
+{
+  PersistentClass persistentClass=propertyHolder.getPersistentClass();
+  if (!(persistentClass instanceof RootClass)) {
+    throw new AnnotationException("Unable to define/override @Id(s) on a subclass: " + propertyHolder.getEntityName());
+  }
+  RootClass rootClass=(RootClass)persistentClass;
+  String persistentClassName=rootClass == null ? null : rootClass.getClassName();
+  SimpleValue id;
+  if (isComposite) {
+    id=fillComponent(propertyHolder,inferredData,baseInferredData,isPropertyAnnotated,propertyAccessor,false,entityBinder,isEmbedded,isIdentifierMapper,false,mappings,inheritanceStatePerClass);
+    Component componentId=(Component)id;
+    componentId.setKey(true);
+    if (rootClass.getIdentifier() != null) {
+      throw new AnnotationException(componentId.getComponentClassName() + " must not have @Id properties when used as an @EmbeddedId");
+    }
+    if (componentId.getPropertySpan() == 0) {
+      throw new AnnotationException(componentId.getComponentClassName() + " has no persistent id property");
+    }
+    XProperty property=inferredData.getProperty();
+    setupComponentTuplizer(property,componentId);
+  }
+ else {
+    for (    Ejb3Column column : columns) {
+      column.forceNotNull();
+    }
+    SimpleValueBinder value=new SimpleValueBinder();
+    value.setPropertyName(inferredData.getPropertyName());
+    value.setReturnedClassName(inferredData.getTypeName());
+    value.setColumns(columns);
+    value.setPersistentClassName(persistentClassName);
+    value.setMappings(mappings);
+    value.setType(inferredData.getProperty(),inferredData.getClassOrElement());
+    id=value.make();
+  }
+  rootClass.setIdentifier(id);
+  BinderHelper.makeIdGenerator(id,generatorType,generatorName,mappings,localGenerators);
+  if (isEmbedded) {
+    rootClass.setEmbeddedIdentifier(inferredData.getPropertyClass() == null);
+  }
+ else {
+    PropertyBinder binder=new PropertyBinder();
+    binder.setName(inferredData.getPropertyName());
+    binder.setValue(id);
+    binder.setPropertyAccessorName(inferredData.getDefaultAccess());
+    binder.setProperty(inferredData.getProperty());
+    Property prop=binder.make();
+    rootClass.setIdentifierProperty(prop);
+  }
+}

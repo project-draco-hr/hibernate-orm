@@ -66,6 +66,7 @@ catch (      Exception e) {
     mappings.addMappedBy(getCollectionType().getName(),mappedBy,propertyName);
   }
   XClass collectionType=getCollectionType();
+  if (inheritanceStatePerClass == null)   throw new AssertionFailure("inheritanceStatePerClass not set");
   SecondPass sp=getSecondPass(fkJoinColumns,joinColumns,inverseJoinColumns,elementColumns,mapKeyColumns,mapKeyManyToManyColumns,isEmbedded,property,collectionType,ignoreNotFound,oneToMany,tableBinder,mappings);
   if (collectionType.isAnnotationPresent(Embeddable.class) || property.isAnnotationPresent(CollectionOfElements.class) || property.isAnnotationPresent(ElementCollection.class)) {
     mappings.addSecondPass(sp,!isMappedBy);
@@ -86,5 +87,6 @@ catch (      Exception e) {
   binder.setInsertable(insertable);
   binder.setUpdatable(updatable);
   Property prop=binder.make();
-  propertyHolder.addProperty(prop);
+  if (!declaringClassSet)   throw new AssertionFailure("DeclaringClass is not set in CollectionBinder while binding");
+  propertyHolder.addProperty(prop,declaringClass);
 }
