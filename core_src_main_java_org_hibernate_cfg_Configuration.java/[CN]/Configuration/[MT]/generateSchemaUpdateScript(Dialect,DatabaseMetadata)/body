@@ -40,6 +40,17 @@
           }
         }
       }
+      Iterator subIter=table.getIndexIterator();
+      while (subIter.hasNext()) {
+        final Index index=(Index)subIter.next();
+        if (tableInfo != null && StringHelper.isNotEmpty(index.getName())) {
+          final IndexMetadata meta=tableInfo.getIndexMetadata(index.getName());
+          if (meta != null) {
+            continue;
+          }
+        }
+        script.add(index.sqlCreateString(dialect,mapping,defaultCatalog,defaultSchema));
+      }
     }
   }
   iter=iterateGenerators(dialect);
