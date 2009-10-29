@@ -1,14 +1,35 @@
 {
-  for (  Map.Entry<PersistentClass,EntityTypeImpl<?>> entry : entityTypesByPersistentClass.entrySet()) {
-    applyIdMetadata(entry.getKey(),entry.getValue());
-    applyVersionAttribute(entry.getKey(),entry.getValue());
-    Iterator<Property> properties=(Iterator<Property>)entry.getKey().getPropertyIterator();
-    while (properties.hasNext()) {
-      final Property property=properties.next();
-      final Attribute attribute=attributeFactory.buildAttribute(entry.getValue(),property);
-      entry.getValue().getBuilder().addAttribute(attribute);
+  for (  Object mapping : orderedMappings) {
+    if (PersistentClass.class.isAssignableFrom(mapping.getClass())) {
+      @SuppressWarnings("unchecked") final PersistentClass safeMapping=(PersistentClass)mapping;
+      final EntityTypeImpl<?> jpa2Mapping=entityTypesByPersistentClass.get(safeMapping);
+      applyIdMetadata(safeMapping,jpa2Mapping);
+      applyVersionAttribute(safeMapping,jpa2Mapping);
+      Iterator<Property> properties=(Iterator<Property>)safeMapping.getDeclaredPropertyIterator();
+      while (properties.hasNext()) {
+        final Property property=properties.next();
+        final Attribute attribute=attributeFactory.buildAttribute(jpa2Mapping,property,true);
+        jpa2Mapping.getBuilder().addAttribute(attribute);
+      }
+      jpa2Mapping.lock();
+      populateStaticMetamodel(jpa2Mapping);
     }
-    entry.getValue().lock();
-    populateStaticMetamodel(entry.getValue());
+ else     if (MappedSuperclass.class.isAssignableFrom(mapping.getClass())) {
+      @SuppressWarnings("unchecked") final MappedSuperclass safeMapping=(MappedSuperclass)mapping;
+      final MappedSuperclassTypeImpl<?> jpa2Mapping=mappedSuperclassByMappedSuperclassMapping.get(safeMapping);
+      applyIdMetadata(safeMapping,jpa2Mapping);
+      applyVersionAttribute(safeMapping,jpa2Mapping);
+      Iterator<Property> properties=(Iterator<Property>)safeMapping.getDeclaredPropertyIterator();
+      while (properties.hasNext()) {
+        final Property property=properties.next();
+        final Attribute attribute=attributeFactory.buildAttribute(jpa2Mapping,property,false);
+        jpa2Mapping.getBuilder().addAttribute(attribute);
+      }
+      jpa2Mapping.lock();
+      populateStaticMetamodel(jpa2Mapping);
+    }
+ else {
+      throw new AssertionFailure("Unexpected mapping type: " + mapping.getClass());
+    }
   }
 }

@@ -1,8 +1,12 @@
 {
-  final PersistentClass superPersistentClass=persistentClass.getSuperclass();
-  final EntityTypeImpl superEntityType=superPersistentClass == null ? null : locateOrBuildEntityType(superPersistentClass,context);
+  final MappedSuperclass superMappedSuperclass=persistentClass.getSuperMappedSuperclass();
+  AbstractIdentifiableType<?> superType=superMappedSuperclass == null ? null : locateOrBuildMappedsuperclassType(superMappedSuperclass,context);
+  if (superType == null) {
+    final PersistentClass superPersistentClass=persistentClass.getSuperclass();
+    superType=superPersistentClass == null ? null : locateOrBuildEntityType(superPersistentClass,context);
+  }
   final Class javaType=persistentClass.getMappedClass();
-  EntityTypeImpl entityType=new EntityTypeImpl(javaType,superEntityType,persistentClass.getClassName(),persistentClass.hasIdentifierProperty(),persistentClass.isVersioned());
+  EntityTypeImpl entityType=new EntityTypeImpl(javaType,superType,persistentClass.getClassName(),persistentClass.hasIdentifierProperty(),persistentClass.isVersioned());
   context.registerEntityType(persistentClass,entityType);
   return entityType;
 }

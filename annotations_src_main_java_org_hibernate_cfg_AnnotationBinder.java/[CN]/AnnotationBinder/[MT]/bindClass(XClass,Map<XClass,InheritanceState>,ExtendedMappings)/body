@@ -213,6 +213,13 @@
     Component mapper=fillComponent(propertyHolder,inferredData,baseInferredData,propertyAnnotated,propertyAccessor,false,entityBinder,true,true,false,mappings,inheritanceStatePerClass);
     entityBinder.setIgnoreIdAnnotations(ignoreIdAnnotations);
     persistentClass.setIdentifierMapper(mapper);
+    final org.hibernate.mapping.MappedSuperclass superclass=BinderHelper.getMappedSuperclassOrNull(inferredData.getDeclaringClass(),inheritanceStatePerClass,mappings);
+    if (superclass != null) {
+      superclass.setDeclaredIdentifierMapper(mapper);
+    }
+ else {
+      persistentClass.setDeclaredIdentifierMapper(mapper);
+    }
     Property property=new Property();
     property.setName("_identifierMapper");
     property.setNodeName("id");

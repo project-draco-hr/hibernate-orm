@@ -115,6 +115,13 @@
     Property prop=propBinder.bind();
     propBinder.getSimpleValueBinder().setVersion(true);
     rootClass.setVersion(prop);
+    final org.hibernate.mapping.MappedSuperclass superclass=BinderHelper.getMappedSuperclassOrNull(inferredData.getDeclaringClass(),inheritanceStatePerClass,mappings);
+    if (superclass != null) {
+      superclass.setDeclaredVersion(prop);
+    }
+ else {
+      rootClass.setDeclaredVersion(prop);
+    }
     SimpleValue simpleValue=(SimpleValue)prop.getValue();
     simpleValue.setNullValue("undefined");
     rootClass.setOptimisticLockMode(Versioning.OPTIMISTIC_LOCK_VERSION);
