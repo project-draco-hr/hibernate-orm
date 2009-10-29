@@ -1,8 +1,9 @@
 {
   EntityPersister persister=sfi().getEntityPersister(Entity.class.getName());
-  assertClassAssignability(SequenceStyleGenerator.class,persister.getIdentifierGenerator().getClass());
+  assertTrue("sequence style generator was not used",SequenceStyleGenerator.class.isInstance(persister.getIdentifierGenerator()));
   SequenceStyleGenerator generator=(SequenceStyleGenerator)persister.getIdentifierGenerator();
-  assertClassAssignability(OptimizerFactory.HiLoOptimizer.class,generator.getOptimizer().getClass());
+  assertTrue("table structure was not used",TableStructure.class.isInstance(generator.getDatabaseStructure()));
+  assertTrue("hilo optimizer was not used",OptimizerFactory.HiLoOptimizer.class.isInstance(generator.getOptimizer()));
   OptimizerFactory.HiLoOptimizer optimizer=(OptimizerFactory.HiLoOptimizer)generator.getOptimizer();
   int increment=optimizer.getIncrementSize();
   Entity[] entities=new Entity[increment + 1];
