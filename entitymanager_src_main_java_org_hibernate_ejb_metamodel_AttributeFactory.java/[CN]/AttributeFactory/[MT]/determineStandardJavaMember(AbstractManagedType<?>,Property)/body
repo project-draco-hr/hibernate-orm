@@ -1,0 +1,13 @@
+{
+  final Type.PersistenceType persistenceType=ownerType.getPersistenceType();
+  if (Type.PersistenceType.EMBEDDABLE == persistenceType) {
+    EmbeddableTypeImpl embeddableType=(EmbeddableTypeImpl<?>)ownerType;
+    return embeddableType.getHibernateType().getTuplizerMapping().getTuplizer(EntityMode.POJO).getGetter(embeddableType.getHibernateType().getPropertyIndex(property.getName())).getMember();
+  }
+ else   if (Type.PersistenceType.ENTITY == persistenceType || Type.PersistenceType.MAPPED_SUPERCLASS == persistenceType) {
+    return determineStandardJavaMemberOutOfIdentifiableType((IdentifiableType<?>)ownerType,property);
+  }
+ else {
+    throw new IllegalArgumentException("Unexpected owner type : " + persistenceType);
+  }
+}
