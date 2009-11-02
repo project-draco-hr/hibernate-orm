@@ -8,6 +8,9 @@
       Iterator<Property> properties=(Iterator<Property>)safeMapping.getDeclaredPropertyIterator();
       while (properties.hasNext()) {
         final Property property=properties.next();
+        if (property.getValue() == safeMapping.getIdentifierMapper()) {
+          continue;
+        }
         final Attribute attribute=attributeFactory.buildAttribute(jpa2Mapping,property,true);
         jpa2Mapping.getBuilder().addAttribute(attribute);
       }
@@ -31,5 +34,8 @@
  else {
       throw new AssertionFailure("Unexpected mapping type: " + mapping.getClass());
     }
+  }
+  for (  EmbeddableTypeImpl embeddable : embeddables.values()) {
+    populateStaticMetamodel(embeddable);
   }
 }
