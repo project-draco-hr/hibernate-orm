@@ -1,13 +1,14 @@
 {
   AttributeImplementor<X,Y> attribute;
   final Type<V> attrType=getType(ownerType,attrContext.getElementTypeStatus(),attrContext.getElementValue(),getMember);
-  final Class<Y> collectionClass=(Class<Y>)attrContext.getCollectionClass();
+  final Member member=getMember ? determineStandardJavaMember(ownerType,property) : null;
+  final Class<Y> collectionClass=(Class<Y>)(member instanceof Field ? ((Field)member).getType() : ((Method)member).getReturnType());
   if (java.util.Map.class.isAssignableFrom(collectionClass)) {
     final Type<K> keyType=getType(ownerType,attrContext.getKeyTypeStatus(),attrContext.getKeyValue(),getMember);
-    attribute=PluralAttributeImpl.create(ownerType,attrType,collectionClass,keyType).member(getMember ? determineStandardJavaMember(ownerType,property) : null).property(property).persistentAttributeType(attrContext.getElementAttributeType()).build();
+    attribute=PluralAttributeImpl.create(ownerType,attrType,collectionClass,keyType).member(member).property(property).persistentAttributeType(attrContext.getElementAttributeType()).build();
   }
  else {
-    attribute=PluralAttributeImpl.create(ownerType,attrType,collectionClass,null).member(getMember ? determineStandardJavaMember(ownerType,property) : null).property(property).persistentAttributeType(attrContext.getElementAttributeType()).build();
+    attribute=PluralAttributeImpl.create(ownerType,attrType,collectionClass,null).member(member).property(property).persistentAttributeType(attrContext.getElementAttributeType()).build();
   }
   return attribute;
 }
