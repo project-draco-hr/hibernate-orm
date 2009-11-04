@@ -1,0 +1,20 @@
+{
+  final int size=processes.size();
+  for (int i=0; i < size; i++) {
+    try {
+      AfterTransactionCompletionProcess process=(AfterTransactionCompletionProcess)processes.get(i);
+      process.doAfterTransactionCompletion(success,session);
+    }
+ catch (    CacheException ce) {
+      log.error("could not release a cache lock",ce);
+    }
+catch (    Exception e) {
+      throw new AssertionFailure("Exception releasing cache locks",e);
+    }
+  }
+  processes.clear();
+  if (session.getFactory().getSettings().isQueryCacheEnabled()) {
+    session.getFactory().getUpdateTimestampsCache().invalidate((String[])querySpacesToInvalidate.toArray(new String[querySpacesToInvalidate.size()]));
+  }
+  querySpacesToInvalidate.clear();
+}
