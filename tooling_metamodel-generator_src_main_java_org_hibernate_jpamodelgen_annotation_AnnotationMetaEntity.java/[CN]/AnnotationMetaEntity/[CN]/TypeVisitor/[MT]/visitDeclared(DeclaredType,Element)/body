@@ -1,11 +1,12 @@
 {
   if (isPersistent(element)) {
-    TypeElement returnedElement=(TypeElement)pe.getTypeUtils().asElement(t);
-    String collection=COLLECTIONS.get(returnedElement.getQualifiedName().toString());
+    TypeElement returnedElement=(TypeElement)context.getProcessingEnvironment().getTypeUtils().asElement(t);
+    String fqElementName=returnedElement.getQualifiedName().toString();
+    String collection=COLLECTIONS.get(fqElementName);
     if (collection != null) {
       if (element.getAnnotation(ElementCollection.class) != null) {
-        final TypeMirror collectionType=t.getTypeArguments().get(0);
-        final TypeElement collectionElement=(TypeElement)pe.getTypeUtils().asElement(collectionType);
+        TypeMirror collectionElementType=getCollectionElementType(t,fqElementName);
+        final TypeElement collectionElement=(TypeElement)context.getProcessingEnvironment().getTypeUtils().asElement(collectionElementType);
         this.parent.context.processElement(collectionElement,this.parent.defaultAccessTypeForElement);
       }
       if (collection.equals("javax.persistence.metamodel.MapAttribute")) {
