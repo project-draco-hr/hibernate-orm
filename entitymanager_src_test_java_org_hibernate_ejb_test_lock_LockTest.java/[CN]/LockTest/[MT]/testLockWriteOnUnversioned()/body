@@ -7,7 +7,16 @@
   em.getTransaction().commit();
   em.getTransaction().begin();
   lock=em.getReference(UnversionedLock.class,lock.getId());
-  em.lock(lock,LockModeType.READ);
+  try {
+    em.lock(lock,LockModeType.READ);
+    fail("expected OptimisticLockException exception");
+  }
+ catch (  OptimisticLockException expected) {
+  }
+  em.getTransaction().rollback();
+  em.getTransaction().begin();
+  lock=em.getReference(UnversionedLock.class,lock.getId());
+  em.lock(lock,LockModeType.PESSIMISTIC_READ);
   em.getTransaction().commit();
   em.getTransaction().begin();
   lock=em.getReference(UnversionedLock.class,lock.getId());
