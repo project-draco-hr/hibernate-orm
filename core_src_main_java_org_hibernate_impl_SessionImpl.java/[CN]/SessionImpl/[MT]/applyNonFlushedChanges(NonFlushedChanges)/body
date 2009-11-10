@@ -1,0 +1,11 @@
+{
+  errorIfClosed();
+  checkTransactionSynchStatus();
+  replacePersistenceContext(((NonFlushedChangesImpl)nonFlushedChanges).getPersistenceContext(entityMode));
+  replaceActionQueue(((NonFlushedChangesImpl)nonFlushedChanges).getActionQueue(entityMode));
+  if (childSessionsByEntityMode != null) {
+    for (Iterator it=childSessionsByEntityMode.values().iterator(); it.hasNext(); ) {
+      ((SessionImpl)it.next()).applyNonFlushedChanges(nonFlushedChanges);
+    }
+  }
+}

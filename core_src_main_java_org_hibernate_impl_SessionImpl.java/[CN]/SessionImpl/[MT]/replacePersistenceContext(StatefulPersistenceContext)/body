@@ -1,0 +1,24 @@
+{
+  if (persistenceContextNew.getSession() != null) {
+    throw new IllegalStateException("new persistence context is already connected to a session ");
+  }
+  persistenceContext.clear();
+  ObjectInputStream ois=null;
+  try {
+    ois=new ObjectInputStream(new ByteArrayInputStream(serializePersistenceContext(persistenceContextNew)));
+    this.persistenceContext=StatefulPersistenceContext.deserialize(ois,this);
+  }
+ catch (  IOException ex) {
+    throw new SerializationException("could not deserialize the persistence context",ex);
+  }
+catch (  ClassNotFoundException ex) {
+    throw new SerializationException("could not deserialize the persistence context",ex);
+  }
+ finally {
+    try {
+      if (ois != null)       ois.close();
+    }
+ catch (    IOException ex) {
+    }
+  }
+}

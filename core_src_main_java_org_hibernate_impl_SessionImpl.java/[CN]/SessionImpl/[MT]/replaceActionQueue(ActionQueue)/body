@@ -1,0 +1,24 @@
+{
+  if (actionQueue.hasAnyQueuedActions()) {
+    throw new IllegalStateException("cannot replace an ActionQueue with queued actions ");
+  }
+  actionQueue.clear();
+  ObjectInputStream ois=null;
+  try {
+    ois=new ObjectInputStream(new ByteArrayInputStream(serializeActionQueue(actionQueueNew)));
+    actionQueue=ActionQueue.deserialize(ois,this);
+  }
+ catch (  IOException ex) {
+    throw new SerializationException("could not deserialize the action queue",ex);
+  }
+catch (  ClassNotFoundException ex) {
+    throw new SerializationException("could not deserialize the action queue",ex);
+  }
+ finally {
+    try {
+      if (ois != null)       ois.close();
+    }
+ catch (    IOException ex) {
+    }
+  }
+}
