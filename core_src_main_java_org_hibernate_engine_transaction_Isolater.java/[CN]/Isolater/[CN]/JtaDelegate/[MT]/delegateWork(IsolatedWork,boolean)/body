@@ -1,50 +1,24 @@
 {
   TransactionManager transactionManager=session.getFactory().getTransactionManager();
-  Transaction surroundingTransaction=null;
-  Connection connection=null;
-  boolean caughtException=false;
   try {
-    surroundingTransaction=transactionManager.suspend();
+    Transaction surroundingTransaction=transactionManager.suspend();
     if (log.isDebugEnabled()) {
       log.debug("surrounding JTA transaction suspended [" + surroundingTransaction + "]");
     }
-    if (transacted) {
-      transactionManager.begin();
-    }
-    connection=session.getBatcher().openConnection();
-    work.doWork(connection);
-    session.getBatcher().closeConnection(connection);
-    if (transacted) {
-      transactionManager.commit();
-    }
-  }
- catch (  Throwable t) {
-    caughtException=true;
+    boolean hadProblems=false;
     try {
-      if (connection != null && !connection.isClosed()) {
-        session.getBatcher().closeConnection(connection);
+      if (transacted) {
+        doTheWorkInNewTransaction(work,transactionManager);
       }
-    }
- catch (    Throwable ignore) {
-      log.trace("unable to release connection on exception [" + ignore + "]");
-    }
-    if (transacted) {
-      try {
-        transactionManager.rollback();
-      }
- catch (      Throwable ignore) {
-        log.trace("unable to rollback new transaction on exception [" + ignore + "]");
-      }
-    }
-    if (t instanceof HibernateException) {
-      throw (HibernateException)t;
-    }
  else {
-      throw new HibernateException("error performing isolated work",t);
+        doTheWorkInNoTransaction(work);
+      }
     }
-  }
+ catch (    HibernateException e) {
+      hadProblems=true;
+      throw e;
+    }
  finally {
-    if (surroundingTransaction != null) {
       try {
         transactionManager.resume(surroundingTransaction);
         if (log.isDebugEnabled()) {
@@ -52,10 +26,13 @@
         }
       }
  catch (      Throwable t) {
-        if (!caughtException) {
-          throw new HibernateException("unable to resume previously suspended transaction",t);
+        if (!hadProblems) {
+          throw new HibernateException("Unable to resume previously suspended transaction",t);
         }
       }
     }
+  }
+ catch (  SystemException e) {
+    throw new HibernateException("Unable to suspend current JTA transaction",e);
   }
 }

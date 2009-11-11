@@ -1,49 +1,56 @@
 {
-  Connection connection=null;
   boolean wasAutoCommit=false;
   try {
-    connection=session.getBatcher().openConnection();
-    if (transacted) {
-      if (connection.getAutoCommit()) {
-        wasAutoCommit=true;
-        connection.setAutoCommit(false);
-      }
-    }
-    work.doWork(connection);
-    if (transacted) {
-      connection.commit();
-    }
-  }
- catch (  Throwable t) {
+    Connection connection=session.getFactory().getConnectionProvider().getConnection();
     try {
-      if (transacted && connection != null && !connection.isClosed()) {
-        connection.rollback();
+      if (transacted) {
+        if (connection.getAutoCommit()) {
+          wasAutoCommit=true;
+          connection.setAutoCommit(false);
+        }
+      }
+      work.doWork(connection);
+      if (transacted) {
+        connection.commit();
       }
     }
- catch (    Throwable ignore) {
-      log.trace("unable to release connection on exception [" + ignore + "]");
-    }
-    if (t instanceof HibernateException) {
-      throw (HibernateException)t;
-    }
- else     if (t instanceof SQLException) {
-      throw JDBCExceptionHelper.convert(session.getFactory().getSQLExceptionConverter(),(SQLException)t,"error performing isolated work");
-    }
+ catch (    Exception e) {
+      try {
+        if (transacted && !connection.isClosed()) {
+          connection.rollback();
+        }
+      }
+ catch (      Exception ignore) {
+        log.info("unable to rollback connection on exception [" + ignore + "]");
+      }
+      if (e instanceof HibernateException) {
+        throw (HibernateException)e;
+      }
+ else       if (e instanceof SQLException) {
+        throw JDBCExceptionHelper.convert(sqlExceptionConverter(),(SQLException)e,"error performing isolated work");
+      }
  else {
-      throw new HibernateException("error performing isolated work",t);
+        throw new HibernateException("error performing isolated work",e);
+      }
     }
-  }
  finally {
-    if (connection != null) {
       if (transacted && wasAutoCommit) {
         try {
           connection.setAutoCommit(true);
         }
- catch (        Throwable ignore) {
+ catch (        Exception ignore) {
           log.trace("was unable to reset connection back to auto-commit");
         }
       }
-      session.getBatcher().closeConnection(connection);
+      try {
+        session.getFactory().getConnectionProvider().closeConnection(connection);
+      }
+ catch (      Exception ignore) {
+        log.info("Unable to release isolated connection [" + ignore + "]");
+      }
     }
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(sqlExceptionConverter(),sqle,"unable to obtain isolated JDBC connection");
   }
 }
