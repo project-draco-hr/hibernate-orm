@@ -2,15 +2,18 @@
   this.query=query;
   this.shallow=shallow;
   if (enabledFilters == null || enabledFilters.isEmpty()) {
-    filterNames=Collections.EMPTY_SET;
+    filterKeys=Collections.EMPTY_SET;
   }
  else {
-    Set tmp=new HashSet();
-    tmp.addAll(enabledFilters.keySet());
-    this.filterNames=Collections.unmodifiableSet(tmp);
+    Set tmp=new HashSet(CollectionHelper.determineProperSizing(enabledFilters),CollectionHelper.LOAD_FACTOR);
+    Iterator itr=enabledFilters.values().iterator();
+    while (itr.hasNext()) {
+      tmp.add(new DynamicFilterKey((FilterImpl)itr.next()));
+    }
+    this.filterKeys=Collections.unmodifiableSet(tmp);
   }
   int hash=query.hashCode();
   hash=29 * hash + (shallow ? 1 : 0);
-  hash=29 * hash + filterNames.hashCode();
+  hash=29 * hash + filterKeys.hashCode();
   this.hashCode=hash;
 }

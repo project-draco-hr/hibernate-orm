@@ -13,7 +13,7 @@
   session=openSession();
   ts=((SessionImplementor)session).getTimestamp();
   session.enableFilter("fulfilledOrders").setParameter("asOfDate",testData.lastMonth.getTime());
-  sp=(Salesperson)session.createQuery("from Salesperson as s where s.id = :id").setLong("id",testData.steveId.longValue()).uniqueResult();
+  sp=(Salesperson)session.createQuery("from Salesperson as s where s.id = :id").setLong("id",testData.steveId).uniqueResult();
   assertEquals("Filtered-collection not bypassing 2L-cache",1,sp.getOrders().size());
   CollectionCacheEntry cachedData2=(CollectionCacheEntry)persister.getCacheAccessStrategy().get(new CacheKey(testData.steveId,persister.getKeyType(),persister.getRole(),EntityMode.POJO,sfi()),ts);
   assertNotNull("collection no longer in cache!",cachedData2);

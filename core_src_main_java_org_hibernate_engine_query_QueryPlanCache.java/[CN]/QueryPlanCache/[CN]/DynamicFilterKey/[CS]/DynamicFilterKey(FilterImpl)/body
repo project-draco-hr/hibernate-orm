@@ -1,0 +1,24 @@
+{
+  this.filterName=filter.getName();
+  if (filter.getParameters().isEmpty()) {
+    parameterMetadata=Collections.EMPTY_MAP;
+  }
+ else {
+    parameterMetadata=new HashMap(CollectionHelper.determineProperSizing(filter.getParameters()),CollectionHelper.LOAD_FACTOR);
+    Iterator itr=filter.getParameters().entrySet().iterator();
+    while (itr.hasNext()) {
+      final Integer valueCount;
+      final Map.Entry entry=(Map.Entry)itr.next();
+      if (Collection.class.isInstance(entry.getValue())) {
+        valueCount=new Integer(((Collection)entry.getValue()).size());
+      }
+ else {
+        valueCount=new Integer(1);
+      }
+      parameterMetadata.put(entry.getKey(),valueCount);
+    }
+  }
+  int hash=filterName.hashCode();
+  hash=31 * hash + parameterMetadata.hashCode();
+  this.hashCode=hash;
+}
