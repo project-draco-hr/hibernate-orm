@@ -1,0 +1,14 @@
+{
+  this.lockable=lockable;
+  this.lockMode=lockMode;
+  if (lockMode.lessThan(LockMode.PESSIMISTIC_READ)) {
+    throw new HibernateException("[" + lockMode + "] not valid for update statement");
+  }
+  if (!lockable.isVersioned()) {
+    log.warn("write locks via update not supported for non-versioned entities [" + lockable.getEntityName() + "]");
+    this.sql=null;
+  }
+ else {
+    this.sql=generateLockString();
+  }
+}
