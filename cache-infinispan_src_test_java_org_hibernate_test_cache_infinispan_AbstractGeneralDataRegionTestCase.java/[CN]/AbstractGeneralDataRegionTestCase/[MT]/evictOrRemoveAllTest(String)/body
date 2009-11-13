@@ -1,18 +1,18 @@
 {
   Configuration cfg=createConfiguration();
   InfinispanRegionFactory regionFactory=CacheTestUtil.startRegionFactory(cfg,getCacheTestSupport());
-  Cache localCache=getInfinispanCache(regionFactory);
+  CacheAdapter localCache=getInfinispanCache(regionFactory);
   avoidConcurrentFlush();
   GeneralDataRegion localRegion=(GeneralDataRegion)createRegion(regionFactory,getStandardRegionName(REGION_PREFIX),cfg.getProperties(),null);
   cfg=createConfiguration();
   regionFactory=CacheTestUtil.startRegionFactory(cfg,getCacheTestSupport());
-  Cache remoteCache=getInfinispanCache(regionFactory);
+  CacheAdapter remoteCache=getInfinispanCache(regionFactory);
   avoidConcurrentFlush();
   GeneralDataRegion remoteRegion=(GeneralDataRegion)createRegion(regionFactory,getStandardRegionName(REGION_PREFIX),cfg.getProperties(),null);
-  Set children=CacheHelper.getKeySet(localCache);
-  assertEquals("No children in " + children,0,children.size());
-  children=CacheHelper.getKeySet(remoteCache);
-  assertEquals("No children in " + children,0,children.size());
+  Set keys=localCache.keySet();
+  assertEquals("No valid children in " + keys,0,getValidKeyCount(keys));
+  keys=remoteCache.keySet();
+  assertEquals("No valid children in " + keys,0,getValidKeyCount(keys));
   assertNull("local is clean",localRegion.get(KEY));
   assertNull("remote is clean",remoteRegion.get(KEY));
   localRegion.put(KEY,VALUE1);
@@ -24,7 +24,9 @@
   localRegion.evictAll();
   sleep(250);
   assertNull(localRegion.get(KEY));
+  assertEquals("No valid children in " + keys,0,getValidKeyCount(localCache.keySet()));
   assertEquals(null,remoteRegion.get(KEY));
+  assertEquals("No valid children in " + keys,0,getValidKeyCount(remoteCache.keySet()));
   assertEquals("local is clean",null,localRegion.get(KEY));
   assertEquals("remote is clean",null,remoteRegion.get(KEY));
 }

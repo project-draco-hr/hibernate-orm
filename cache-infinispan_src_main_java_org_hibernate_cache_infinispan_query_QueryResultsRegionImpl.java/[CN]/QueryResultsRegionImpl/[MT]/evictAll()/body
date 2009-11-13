@@ -1,4 +1,9 @@
 {
-  if (localOnly)   CacheHelper.removeAll(getCache(),Flag.CACHE_MODE_LOCAL);
- else   CacheHelper.removeAll(getCache());
+  Transaction tx=suspend();
+  try {
+    CacheHelper.sendEvictAllNotification(cacheAdapter,getAddress());
+  }
+  finally {
+    resume(tx);
+  }
 }

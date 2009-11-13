@@ -1,5 +1,8 @@
 {
   log.debug("Building timestamps cache region [" + regionName + "]");
   String cacheName=typeOverrides.get(TIMESTAMPS_KEY).getCacheName();
-  return new TimestampsRegionImpl(manager.getCache(cacheName),regionName,transactionManager);
+  CacheAdapter cacheAdapter=CacheAdapterImpl.newInstance(manager.getCache(cacheName));
+  TimestampsRegionImpl region=new TimestampsRegionImpl(cacheAdapter,regionName,transactionManager);
+  region.start();
+  return region;
 }

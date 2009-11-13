@@ -1,0 +1,24 @@
+{
+  boolean valid=invalidateState.get() == InvalidateState.VALID;
+  if (!valid) {
+synchronized (invalidationMutex) {
+      if (invalidateState.compareAndSet(InvalidateState.INVALID,InvalidateState.CLEARING)) {
+        Transaction tx=suspend();
+        try {
+          cacheAdapter.withFlags(FlagAdapter.CACHE_MODE_LOCAL,FlagAdapter.ZERO_LOCK_ACQUISITION_TIMEOUT).clear();
+          invalidateState.compareAndSet(InvalidateState.CLEARING,InvalidateState.VALID);
+        }
+ catch (        Exception e) {
+          if (log.isTraceEnabled()) {
+            log.trace("Could not invalidate region: " + e.getLocalizedMessage());
+          }
+        }
+ finally {
+          resume(tx);
+        }
+      }
+    }
+    valid=invalidateState.get() == InvalidateState.VALID;
+  }
+  return valid;
+}

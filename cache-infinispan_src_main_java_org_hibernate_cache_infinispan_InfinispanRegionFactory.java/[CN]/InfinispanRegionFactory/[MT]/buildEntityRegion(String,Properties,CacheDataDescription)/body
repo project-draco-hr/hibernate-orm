@@ -1,5 +1,8 @@
 {
   if (log.isDebugEnabled())   log.debug("Building entity cache region [" + regionName + "]");
   Cache cache=getCache(regionName,ENTITY_KEY,properties);
-  return new EntityRegionImpl(cache,regionName,metadata,transactionManager);
+  CacheAdapter cacheAdapter=CacheAdapterImpl.newInstance(cache);
+  EntityRegionImpl region=new EntityRegionImpl(cacheAdapter,regionName,metadata,transactionManager);
+  region.start();
+  return region;
 }

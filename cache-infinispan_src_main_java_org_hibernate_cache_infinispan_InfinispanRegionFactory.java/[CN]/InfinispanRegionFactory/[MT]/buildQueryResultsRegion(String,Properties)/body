@@ -1,5 +1,8 @@
 {
   log.debug("Building query results cache region [" + regionName + "]");
   String cacheName=typeOverrides.get(QUERY_KEY).getCacheName();
-  return new QueryResultsRegionImpl(manager.getCache(cacheName),regionName,properties,transactionManager);
+  CacheAdapter cacheAdapter=CacheAdapterImpl.newInstance(manager.getCache(cacheName));
+  QueryResultsRegionImpl region=new QueryResultsRegionImpl(cacheAdapter,regionName,properties,transactionManager);
+  region.start();
+  return region;
 }

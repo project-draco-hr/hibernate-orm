@@ -1,5 +1,5 @@
 {
-  Cache cache=null;
+  CacheAdapter cache=null;
   Properties p=new Properties();
   p.setProperty("hibernate.cache.infinispan.entity.eviction.strategy","FIFO");
   p.setProperty("hibernate.cache.infinispan.entity.eviction.wake_up_interval","3000");
@@ -14,7 +14,7 @@
   try {
     EntityRegionImpl region=(EntityRegionImpl)factory.buildEntityRegion("com.acme.Address",p,null);
     assertNull(factory.getTypeOverrides().get("com.acme.Address"));
-    cache=region.getCache();
+    cache=region.getCacheAdapter();
     Configuration cacheCfg=cache.getConfiguration();
     assertEquals(EvictionStrategy.FIFO,cacheCfg.getEvictionStrategy());
     assertEquals(3000,cacheCfg.getEvictionWakeUpInterval());
@@ -22,7 +22,7 @@
     assertEquals(100000,cacheCfg.getExpirationMaxIdle());
     CollectionRegionImpl collectionRegion=(CollectionRegionImpl)factory.buildCollectionRegion("com.acme.Person.addresses",p,null);
     assertNull(factory.getTypeOverrides().get("com.acme.Person.addresses"));
-    cache=collectionRegion.getCache();
+    cache=collectionRegion.getCacheAdapter();
     cacheCfg=cache.getConfiguration();
     assertEquals(EvictionStrategy.LRU,cacheCfg.getEvictionStrategy());
     assertEquals(3500,cacheCfg.getEvictionWakeUpInterval());
