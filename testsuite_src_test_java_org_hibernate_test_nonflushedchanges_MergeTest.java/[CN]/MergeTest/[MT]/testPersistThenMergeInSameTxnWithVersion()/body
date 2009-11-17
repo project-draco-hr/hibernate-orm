@@ -1,0 +1,17 @@
+{
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  Session s=openSession();
+  VersionedEntity entity=new VersionedEntity("test","test");
+  s.persist(entity);
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  s.merge(new VersionedEntity("test","test-2"));
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  try {
+    s.saveOrUpdate(new VersionedEntity("test","test-3"));
+    fail("saveOrUpdate() should fail here");
+  }
+ catch (  NonUniqueObjectException expected) {
+  }
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  cleanup();
+}

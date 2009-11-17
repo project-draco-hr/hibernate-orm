@@ -1,0 +1,26 @@
+{
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  Session s=openSession();
+  VersionedEntity entity=new VersionedEntity("entity","entity");
+  s.persist(entity);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  clearCounts();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  VersionedEntity mergedEntity=(VersionedEntity)s.merge(entity);
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  mergedEntity=(VersionedEntity)getOldToNewEntityRefMap().get(mergedEntity);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  assertUpdateCount(0);
+  assertInsertCount(0);
+  assertEquals("unexpected version increment",entity.getVersion(),mergedEntity.getVersion());
+  entity.setName("new name");
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  entity=(VersionedEntity)s.merge(entity);
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  assertUpdateCount(1);
+  assertInsertCount(0);
+  cleanup();
+}

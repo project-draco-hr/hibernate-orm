@@ -1,0 +1,24 @@
+{
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  Session s=openSession();
+  Node node=new Node("test");
+  s.persist(node);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  clearCounts();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  node=(Node)s.merge(node);
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  assertUpdateCount(0);
+  assertInsertCount(0);
+  node.setDescription("new description");
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  node=(Node)s.merge(node);
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  assertUpdateCount(1);
+  assertInsertCount(0);
+  cleanup();
+}

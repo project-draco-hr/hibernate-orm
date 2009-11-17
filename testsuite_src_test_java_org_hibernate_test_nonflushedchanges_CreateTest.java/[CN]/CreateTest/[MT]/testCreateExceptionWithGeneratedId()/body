@@ -1,0 +1,34 @@
+{
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  Session s=openSession();
+  NumberedNode dupe=new NumberedNode("dupe");
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  s.persist(dupe);
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  dupe=(NumberedNode)getOldToNewEntityRefMap().get(dupe);
+  s.persist(dupe);
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  try {
+    s.persist(dupe);
+    assertFalse(true);
+  }
+ catch (  PersistentObjectException poe) {
+  }
+  SimpleJtaTransactionManagerImpl.getInstance().rollback();
+  NumberedNode nondupe=new NumberedNode("nondupe");
+  nondupe.addChild(dupe);
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  try {
+    s.persist(nondupe);
+    assertFalse(true);
+  }
+ catch (  PersistentObjectException poe) {
+  }
+  SimpleJtaTransactionManagerImpl.getInstance().rollback();
+}

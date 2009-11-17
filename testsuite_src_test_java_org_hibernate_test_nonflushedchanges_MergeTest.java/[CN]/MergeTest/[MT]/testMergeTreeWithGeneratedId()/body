@@ -1,0 +1,26 @@
+{
+  clearCounts();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  Session s=openSession();
+  NumberedNode root=new NumberedNode("root");
+  NumberedNode child=new NumberedNode("child");
+  root.addChild(child);
+  s.persist(root);
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  root=(NumberedNode)getOldToNewEntityRefMap().get(root);
+  child=(NumberedNode)root.getChildren().iterator().next();
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  assertInsertCount(2);
+  clearCounts();
+  root.setDescription("The root node");
+  child.setDescription("The child node");
+  NumberedNode secondChild=new NumberedNode("second child");
+  root.addChild(secondChild);
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  s.merge(root);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  assertInsertCount(1);
+  assertUpdateCount(2);
+  cleanup();
+}

@@ -1,0 +1,20 @@
+{
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  Session s=openSession();
+  Employer jboss=new Employer();
+  s.persist(jboss);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  Employer otherJboss;
+  otherJboss=(Employer)s.get(Employer.class,jboss.getId());
+  s.delete(otherJboss);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  jboss.setVers(new Integer(1));
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  s.merge(jboss);
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  cleanup();
+}

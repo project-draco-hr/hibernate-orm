@@ -1,0 +1,15 @@
+{
+  clearCounts();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  Session s=openSession();
+  Employer emp=new Employer();
+  s.persist(emp);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  s.delete(emp);
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  emp=(Employer)s.get(Employee.class,emp.getId());
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  assertNull("get did not return null after delete",emp);
+}

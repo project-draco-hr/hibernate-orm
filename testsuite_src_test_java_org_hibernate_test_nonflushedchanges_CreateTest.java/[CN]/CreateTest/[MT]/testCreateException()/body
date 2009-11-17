@@ -1,0 +1,38 @@
+{
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  Session s=openSession();
+  Node dupe=new Node("dupe");
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  s.persist(dupe);
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  dupe=(Node)getOldToNewEntityRefMap().get(dupe);
+  s.persist(dupe);
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  s.persist(dupe);
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  try {
+    SimpleJtaTransactionManagerImpl.getInstance().commit();
+    assertFalse(true);
+  }
+ catch (  ConstraintViolationException cve) {
+  }
+  SimpleJtaTransactionManagerImpl.getInstance().rollback();
+  Node nondupe=new Node("nondupe");
+  nondupe.addChild(dupe);
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  s.persist(nondupe);
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  try {
+    SimpleJtaTransactionManagerImpl.getInstance().commit();
+    assertFalse(true);
+  }
+ catch (  ConstraintViolationException cve) {
+  }
+  SimpleJtaTransactionManagerImpl.getInstance().rollback();
+}

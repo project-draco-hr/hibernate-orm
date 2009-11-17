@@ -1,0 +1,33 @@
+{
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  Session s=openSession();
+  VersionedEntity parent=new VersionedEntity("parent","parent");
+  VersionedEntity child=new VersionedEntity("child","child");
+  parent.getChildren().add(child);
+  child.setParent(parent);
+  s.persist(parent);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  clearCounts();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  VersionedEntity mergedParent=(VersionedEntity)s.merge(parent);
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  mergedParent=(VersionedEntity)getOldToNewEntityRefMap().get(mergedParent);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  assertUpdateCount(0);
+  assertInsertCount(0);
+  assertEquals("unexpected parent version increment",parent.getVersion(),mergedParent.getVersion());
+  VersionedEntity mergedChild=(VersionedEntity)mergedParent.getChildren().iterator().next();
+  assertEquals("unexpected child version increment",child.getVersion(),mergedChild.getVersion());
+  mergedParent.setName("new name");
+  mergedParent.getChildren().add(new VersionedEntity("child2","new child"));
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  parent=(VersionedEntity)s.merge(mergedParent);
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  parent=(VersionedEntity)getOldToNewEntityRefMap().get(parent);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  assertUpdateCount(1);
+  assertInsertCount(1);
+  cleanup();
+}

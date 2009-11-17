@@ -1,0 +1,23 @@
+{
+  NonFlushedChanges nfc=((SessionImplementor)oldSession).getNonFlushedChanges();
+  byte[] bytes=SerializationHelper.serialize(nfc);
+  NonFlushedChanges nfc2=(NonFlushedChanges)SerializationHelper.deserialize(bytes);
+  Session newSession=openSession();
+  ((SessionImplementor)newSession).applyNonFlushedChanges(nfc2);
+  oldToNewEntityRefs.clear();
+  for (Iterator it=((SessionImplementor)oldSession).getPersistenceContext().getEntitiesByKey().entrySet().iterator(); it.hasNext(); ) {
+    Map.Entry entry=(Map.Entry)it.next();
+    EntityKey entityKey=(EntityKey)entry.getKey();
+    Object oldEntityRef=entry.getValue();
+    oldToNewEntityRefs.put(oldEntityRef,((SessionImplementor)newSession).getPersistenceContext().getEntity(entityKey));
+  }
+  for (Iterator it=((StatefulPersistenceContext)((SessionImplementor)oldSession).getPersistenceContext()).getProxiesByKey().entrySet().iterator(); it.hasNext(); ) {
+    Map.Entry entry=(Map.Entry)it.next();
+    EntityKey entityKey=(EntityKey)entry.getKey();
+    Object oldProxyRef=entry.getValue();
+    oldToNewEntityRefs.put(oldProxyRef,((SessionImplementor)newSession).getPersistenceContext().getProxy(entityKey));
+  }
+  oldSession.clear();
+  oldSession.close();
+  return newSession;
+}

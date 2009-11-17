@@ -1,0 +1,23 @@
+{
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  Session s=openSession();
+  Person p=new Person("steve");
+  new PersonalDetails("I have big feet",p);
+  s.persist(p);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  clearCounts();
+  p.getDetails().setSomePersonalDetail(p.getDetails().getSomePersonalDetail() + " and big hands too");
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  p=(Person)s.merge(p);
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  p=(Person)getOldToNewEntityRefMap().get(p);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  assertInsertCount(0);
+  assertUpdateCount(1);
+  assertDeleteCount(0);
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  s.delete(p);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+}

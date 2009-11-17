@@ -1,0 +1,27 @@
+{
+  clearCounts();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  Session s=openSession();
+  VersionedEntity entity=new VersionedEntity("entity","entity");
+  s.persist(entity);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  VersionedEntity entity2=(VersionedEntity)s.get(VersionedEntity.class,entity.getId());
+  entity2.setName("entity-name");
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  try {
+    s.merge(entity);
+    s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+    entity=(VersionedEntity)getOldToNewEntityRefMap().get(entity);
+    SimpleJtaTransactionManagerImpl.getInstance().commit();
+    fail("was expecting staleness error");
+  }
+ catch (  StaleObjectStateException expected) {
+  }
+ finally {
+    SimpleJtaTransactionManagerImpl.getInstance().rollback();
+  }
+}
