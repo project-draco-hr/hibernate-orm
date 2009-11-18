@@ -1,10 +1,11 @@
 {
   if (checkValid()) {
-    Map map=cacheAdapter.toMap();
-    Set keys=map.keySet();
-    for (    Object key : keys) {
-      if (CacheHelper.isEvictAllNotification(key)) {
-        map.remove(key);
+    Map map=new HashMap();
+    Set<Map.Entry> entries=cacheAdapter.toMap().entrySet();
+    for (    Map.Entry entry : entries) {
+      Object key=entry.getKey();
+      if (!CacheHelper.isEvictAllNotification(key)) {
+        map.put(key,entry.getValue());
       }
     }
     return map;

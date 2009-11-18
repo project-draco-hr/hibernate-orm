@@ -1,32 +1,39 @@
 {
-  Session s=openSession();
-  Transaction txn=s.beginTransaction();
-  VersionedItem item=new VersionedItem();
-  item.setName("steve");
-  item.setDescription("steve's item");
-  s.save(item);
-  txn.commit();
-  s.close();
+  VersionedItem item=null;
+  Transaction txn=null;
+  Session s=null;
+  beginTx();
+  try {
+    s=openSession();
+    txn=s.beginTransaction();
+    item=new VersionedItem();
+    item.setName("steve");
+    item.setDescription("steve's item");
+    s.save(item);
+    txn.commit();
+    s.close();
+  }
+ catch (  Exception e) {
+    setRollbackOnlyTx(e);
+  }
+ finally {
+    commitOrRollbackTx();
+  }
   Long initialVersion=item.getVersion();
   item.setVersion(new Long(item.getVersion().longValue() - 1));
+  beginTx();
   try {
     s=openSession();
     txn=s.beginTransaction();
     s.update(item);
     txn.commit();
-    s.close();
     fail("expected stale write to fail");
   }
- catch (  Throwable expected) {
-    if (txn != null) {
-      try {
-        txn.rollback();
-      }
- catch (      Throwable ignore) {
-      }
-    }
+ catch (  Exception e) {
+    setRollbackOnlyTxExpected(e);
   }
  finally {
+    commitOrRollbackTx();
     if (s != null && s.isOpen()) {
       try {
         s.close();
@@ -40,10 +47,19 @@
   Long cachedVersionValue;
   cachedVersionValue=(Long)((CacheEntry)entry).getVersion();
   assertEquals(initialVersion.longValue(),cachedVersionValue.longValue());
-  s=openSession();
-  txn=s.beginTransaction();
-  item=(VersionedItem)s.load(VersionedItem.class,item.getId());
-  s.delete(item);
-  txn.commit();
-  s.close();
+  beginTx();
+  try {
+    s=openSession();
+    txn=s.beginTransaction();
+    item=(VersionedItem)s.load(VersionedItem.class,item.getId());
+    s.delete(item);
+    txn.commit();
+    s.close();
+  }
+ catch (  Exception e) {
+    setRollbackOnlyTx(e);
+  }
+ finally {
+    commitOrRollbackTx();
+  }
 }

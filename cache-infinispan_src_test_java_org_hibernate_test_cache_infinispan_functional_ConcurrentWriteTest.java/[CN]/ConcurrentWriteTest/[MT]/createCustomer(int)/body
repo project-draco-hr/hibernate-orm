@@ -1,0 +1,17 @@
+{
+  Customer customer=null;
+  beginTx();
+  try {
+    customer=new Customer();
+    customer.setName("customer_" + nameSuffix);
+    customer.setContacts(new HashSet<Contact>());
+    getEnvironment().getSessionFactory().getCurrentSession().persist(customer);
+  }
+ catch (  Exception e) {
+    setRollbackOnlyTx(e);
+  }
+ finally {
+    commitOrRollbackTx();
+  }
+  return customer;
+}

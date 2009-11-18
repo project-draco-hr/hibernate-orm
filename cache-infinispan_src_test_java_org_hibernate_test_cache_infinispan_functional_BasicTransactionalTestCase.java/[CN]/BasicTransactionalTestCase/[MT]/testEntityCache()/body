@@ -1,17 +1,35 @@
 {
   Item item=new Item("chris","Chris's Item");
-  Session s=openSession();
-  Statistics stats=s.getSessionFactory().getStatistics();
-  s.getTransaction().begin();
-  s.persist(item);
-  s.getTransaction().commit();
-  s.close();
-  s=openSession();
-  Item found=(Item)s.load(Item.class,item.getId());
-  System.out.println(stats);
-  assertEquals(item.getDescription(),found.getDescription());
-  assertEquals(0,stats.getSecondLevelCacheMissCount());
-  assertEquals(1,stats.getSecondLevelCacheHitCount());
-  s.delete(found);
-  s.close();
+  beginTx();
+  try {
+    Session s=openSession();
+    s.getTransaction().begin();
+    s.persist(item);
+    s.getTransaction().commit();
+    s.close();
+  }
+ catch (  Exception e) {
+    setRollbackOnlyTx(e);
+  }
+ finally {
+    commitOrRollbackTx();
+  }
+  beginTx();
+  try {
+    Session s=openSession();
+    Item found=(Item)s.load(Item.class,item.getId());
+    Statistics stats=s.getSessionFactory().getStatistics();
+    log.info(stats.toString());
+    assertEquals(item.getDescription(),found.getDescription());
+    assertEquals(0,stats.getSecondLevelCacheMissCount());
+    assertEquals(1,stats.getSecondLevelCacheHitCount());
+    s.delete(found);
+    s.close();
+  }
+ catch (  Exception e) {
+    setRollbackOnlyTx(e);
+  }
+ finally {
+    commitOrRollbackTx();
+  }
 }

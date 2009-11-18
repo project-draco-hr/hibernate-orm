@@ -1,3 +1,13 @@
 {
-  return putFromLoad(key,value,txTimestamp,version);
+  boolean trace=log.isTraceEnabled();
+  if (!region.checkValid()) {
+    if (trace)     log.trace("Region not valid");
+    return false;
+  }
+  if (!putValidator.isPutValid(key)) {
+    if (trace)     log.trace("Put {0} not valid",key);
+    return false;
+  }
+  cacheAdapter.putForExternalRead(key,value);
+  return true;
 }

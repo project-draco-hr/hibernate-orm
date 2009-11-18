@@ -7,11 +7,15 @@
     @SuppressWarnings("unchecked") List<Contact> list=session.createQuery(queryHQL).setParameter("cName",name).list();
     list.get(0).setTlf(newTLF);
     int rowsAffected=session.createQuery(updateHQL).setFlushMode(FlushMode.AUTO).setParameter("cNewTLF",newTLF).setParameter("cName",name).executeUpdate();
-    tm.commit();
     return rowsAffected;
   }
  catch (  Exception e) {
-    tm.rollback();
+    log.error("Unable to update contacts with one manual",e);
+    tm.setRollbackOnly();
     throw e;
+  }
+ finally {
+    if (tm.getStatus() == Status.STATUS_ACTIVE)     tm.commit();
+ else     tm.rollback();
   }
 }

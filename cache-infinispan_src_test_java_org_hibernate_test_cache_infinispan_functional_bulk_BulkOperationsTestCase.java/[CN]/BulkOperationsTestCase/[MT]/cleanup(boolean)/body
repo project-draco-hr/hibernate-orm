@@ -6,16 +6,24 @@
     Session session=getSessions().getCurrentSession();
     session.createQuery(deleteContactHQL).setFlushMode(FlushMode.AUTO).executeUpdate();
     session.createQuery(deleteCustomerHQL).setFlushMode(FlushMode.AUTO).executeUpdate();
-    tm.commit();
   }
  catch (  Exception e) {
-    if (!ignore) {
-      try {
-        tm.rollback();
+    log.error("Unable to get contact",e);
+    tm.setRollbackOnly();
+    throw e;
+  }
+ finally {
+    if (tm.getStatus() == Status.STATUS_ACTIVE) {
+      tm.commit();
+    }
+ else {
+      if (!ignore) {
+        try {
+          tm.rollback();
+        }
+ catch (        Exception ee) {
+        }
       }
- catch (      Exception ee) {
-      }
-      throw e;
     }
   }
 }

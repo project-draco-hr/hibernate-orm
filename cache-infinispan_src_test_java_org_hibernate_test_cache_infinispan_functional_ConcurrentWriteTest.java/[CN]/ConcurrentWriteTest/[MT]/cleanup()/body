@@ -1,0 +1,17 @@
+{
+  getCustomerIDs().clear();
+  String deleteContactHQL="delete from Contact";
+  String deleteCustomerHQL="delete from Customer";
+  beginTx();
+  try {
+    Session session=getEnvironment().getSessionFactory().getCurrentSession();
+    session.createQuery(deleteContactHQL).setFlushMode(FlushMode.AUTO).executeUpdate();
+    session.createQuery(deleteCustomerHQL).setFlushMode(FlushMode.AUTO).executeUpdate();
+  }
+ catch (  Exception e) {
+    setRollbackOnlyTx(e);
+  }
+ finally {
+    commitOrRollbackTx();
+  }
+}

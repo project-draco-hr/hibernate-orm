@@ -3,11 +3,15 @@
   try {
     Session session=getSessions().getCurrentSession();
     Contact contact=(Contact)session.get(Contact.class,id);
-    tm.commit();
     return contact;
   }
  catch (  Exception e) {
-    tm.rollback();
+    log.error("Unable to get contact",e);
+    tm.setRollbackOnly();
     throw e;
+  }
+ finally {
+    if (tm.getStatus() == Status.STATUS_ACTIVE)     tm.commit();
+ else     tm.rollback();
   }
 }

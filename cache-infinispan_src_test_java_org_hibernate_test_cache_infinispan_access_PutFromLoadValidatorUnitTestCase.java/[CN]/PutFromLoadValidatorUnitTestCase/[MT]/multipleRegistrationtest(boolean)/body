@@ -1,0 +1,33 @@
+{
+  final PutFromLoadValidator testee=new PutFromLoadValidator(transactional ? tm : null);
+  final CountDownLatch registeredLatch=new CountDownLatch(3);
+  final CountDownLatch finishedLatch=new CountDownLatch(3);
+  final AtomicInteger success=new AtomicInteger();
+  Runnable r=new Runnable(){
+    public void run(){
+      try {
+        if (transactional) {
+          tm.begin();
+        }
+        testee.registerPendingPut(KEY1);
+        registeredLatch.countDown();
+        registeredLatch.await(5,TimeUnit.SECONDS);
+        if (testee.isPutValid(KEY1)) {
+          success.incrementAndGet();
+        }
+        finishedLatch.countDown();
+      }
+ catch (      Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
+;
+  ExecutorService executor=Executors.newFixedThreadPool(3);
+  testee.cleared();
+  executor.execute(r);
+  executor.execute(r);
+  executor.execute(r);
+  finishedLatch.await(5,TimeUnit.SECONDS);
+  assertEquals("All threads succeeded",3,success.get());
+}
