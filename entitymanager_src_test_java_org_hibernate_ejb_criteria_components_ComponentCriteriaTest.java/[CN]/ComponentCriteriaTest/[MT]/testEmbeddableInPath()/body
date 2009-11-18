@@ -1,0 +1,23 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  Client client=new Client(111,"steve","ebersole");
+  em.persist(client);
+  em.getTransaction().commit();
+  em.close();
+  em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  CriteriaBuilder cb=em.getCriteriaBuilder();
+  CriteriaQuery<Client> cq=cb.createQuery(Client.class);
+  Root<Client> root=cq.from(Client.class);
+  cq.where(cb.equal(root.get("name").get("firstName"),client.getName().getFirstName()));
+  List<Client> list=em.createQuery(cq).getResultList();
+  assertEquals(1,list.size());
+  em.getTransaction().commit();
+  em.close();
+  em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  em.createQuery("delete Client").executeUpdate();
+  em.getTransaction().commit();
+  em.close();
+}
