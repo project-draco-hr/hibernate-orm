@@ -11,13 +11,20 @@
   dot.setJoinType(hibernateJoinType);
   dot.setFetch(fetch);
   dot.resolve(true,false,alias == null ? null : alias.getText());
-  FromElement fromElement=dot.getImpliedJoin();
-  fromElement.setAllPropertyFetch(propertyFetch != null);
-  if (with != null) {
-    if (fetch) {
-      throw new SemanticException("with-clause not allowed on fetched associations; use filters");
+  final FromElement fromElement;
+  if (dot.getDataType() != null && dot.getDataType().isComponentType()) {
+    FromElementFactory factory=new FromElementFactory(getCurrentFromClause(),dot.getLhs().getFromElement(),dot.getPropertyPath(),alias == null ? null : alias.getText(),null,false);
+    fromElement=factory.createComponentJoin((ComponentType)dot.getDataType());
+  }
+ else {
+    fromElement=dot.getImpliedJoin();
+    fromElement.setAllPropertyFetch(propertyFetch != null);
+    if (with != null) {
+      if (fetch) {
+        throw new SemanticException("with-clause not allowed on fetched associations; use filters");
+      }
+      handleWithFragment(fromElement,with);
     }
-    handleWithFragment(fromElement,with);
   }
   if (log.isDebugEnabled()) {
     log.debug("createFromJoinElement() : " + getASTPrinter().showAsString(fromElement,"-- join tree --"));
