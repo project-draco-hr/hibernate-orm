@@ -1,0 +1,24 @@
+{
+  LockRequest lockRequest=new LockRequest();
+  lockRequest.setLockMode(getLockMode(lockModeType));
+  if (properties != null) {
+    Object value=properties.get(PESSIMISTICLOCKSCOPE);
+    if (value instanceof String && PessimisticLockScope.valueOf((String)value) == PessimisticLockScope.EXTENDED) {
+      lockRequest.setScope(true);
+    }
+    value=properties.get(PESSIMISTICLOCKTIMEOUT);
+    if (value instanceof String) {
+      int timeout=Integer.parseInt((String)value);
+      if (timeout < 0) {
+        lockRequest.setTimeOut(LockRequest.WAIT_FOREVER);
+      }
+ else       if (timeout == 0) {
+        lockRequest.setTimeOut(LockRequest.NO_WAIT);
+      }
+ else {
+        lockRequest.setTimeOut(timeout);
+      }
+    }
+  }
+  return lockRequest;
+}

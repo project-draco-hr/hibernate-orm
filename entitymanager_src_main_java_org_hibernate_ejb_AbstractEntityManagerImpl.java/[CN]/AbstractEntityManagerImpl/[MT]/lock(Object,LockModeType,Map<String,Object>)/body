@@ -1,3 +1,14 @@
 {
-  lock(o,lockModeType);
+  try {
+    if (!isTransactionInProgress()) {
+      throw new TransactionRequiredException("no transaction is in progress");
+    }
+    if (!contains(entity)) {
+      throw new IllegalArgumentException("entity not in the persistence context");
+    }
+    getSession().lock(entity,getLockRequest(lockModeType,properties));
+  }
+ catch (  HibernateException he) {
+    throw convert(he);
+  }
 }
