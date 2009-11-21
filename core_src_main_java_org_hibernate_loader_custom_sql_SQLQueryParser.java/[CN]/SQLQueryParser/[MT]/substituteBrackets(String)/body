@@ -10,33 +10,65 @@
     if ((right=sqlQuery.indexOf('}',left + 1)) < 0) {
       throw new QueryException("Unmatched braces for alias path",sqlQuery);
     }
-    String aliasPath=sqlQuery.substring(left + 1,right);
-    int firstDot=aliasPath.indexOf('.');
-    if (firstDot == -1) {
-      if (context.isEntityAlias(aliasPath)) {
-        result.append(aliasPath);
-        aliasesFound++;
+    final String aliasPath=sqlQuery.substring(left + 1,right);
+    boolean isPlaceholder=aliasPath.startsWith(HIBERNATE_PLACEHOLDER_PREFIX);
+    if (isPlaceholder) {
+      if (DOMAIN_PLACEHOLDER.equals(aliasPath)) {
+        final String catalogName=factory.getSettings().getDefaultCatalogName();
+        if (catalogName != null) {
+          result.append(catalogName);
+          result.append(".");
+        }
+        final String schemaName=factory.getSettings().getDefaultSchemaName();
+        if (schemaName != null) {
+          result.append(schemaName);
+          result.append(".");
+        }
+      }
+ else       if (SCHEMA_PLACEHOLDER.equals(aliasPath)) {
+        final String schemaName=factory.getSettings().getDefaultSchemaName();
+        if (schemaName != null) {
+          result.append(schemaName);
+          result.append(".");
+        }
+      }
+ else       if (CATALOG_PLACEHOLDER.equals(aliasPath)) {
+        final String catalogName=factory.getSettings().getDefaultCatalogName();
+        if (catalogName != null) {
+          result.append(catalogName);
+          result.append(".");
+        }
       }
  else {
-        result.append('{').append(aliasPath).append('}');
+        throw new QueryException("Unknown placeholder ",aliasPath);
       }
     }
  else {
-      String aliasName=aliasPath.substring(0,firstDot);
-      boolean isCollection=context.isCollectionAlias(aliasName);
-      boolean isEntity=context.isEntityAlias(aliasName);
-      if (isCollection) {
-        String propertyName=aliasPath.substring(firstDot + 1);
-        result.append(resolveCollectionProperties(aliasName,propertyName));
-        aliasesFound++;
-      }
- else       if (isEntity) {
-        String propertyName=aliasPath.substring(firstDot + 1);
-        result.append(resolveProperties(aliasName,propertyName));
-        aliasesFound++;
+      int firstDot=aliasPath.indexOf('.');
+      if (firstDot == -1) {
+        if (context.isEntityAlias(aliasPath)) {
+          result.append(aliasPath);
+          aliasesFound++;
+        }
+ else {
+          result.append('{').append(aliasPath).append('}');
+        }
       }
  else {
-        result.append('{').append(aliasPath).append('}');
+        final String aliasName=aliasPath.substring(0,firstDot);
+        if (context.isCollectionAlias(aliasName)) {
+          String propertyName=aliasPath.substring(firstDot + 1);
+          result.append(resolveCollectionProperties(aliasName,propertyName));
+          aliasesFound++;
+        }
+ else         if (context.isEntityAlias(aliasName)) {
+          String propertyName=aliasPath.substring(firstDot + 1);
+          result.append(resolveProperties(aliasName,propertyName));
+          aliasesFound++;
+        }
+ else {
+          result.append('{').append(aliasPath).append('}');
+        }
       }
     }
   }
