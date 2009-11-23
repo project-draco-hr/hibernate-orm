@@ -2,7 +2,11 @@
   String extendsEntityName=verEntCfg.getAuditEntityName(pc.getSuperclass().getEntityName());
   Element class_mapping=MetadataTools.createSubclassEntity(xmlMappingData.getMainXmlMapping(),inheritanceMappingType,auditTableData,extendsEntityName,pc.getDiscriminatorValue());
   String parentEntityName=pc.getSuperclass().getEntityName();
-  ExtendedPropertyMapper parentPropertyMapper=entitiesConfigurations.get(parentEntityName).getPropertyMapper();
+  EntityConfiguration parentConfiguration=entitiesConfigurations.get(parentEntityName);
+  if (parentConfiguration == null) {
+    throw new MappingException("Entity '" + pc.getEntityName() + "' is audited, but its superclass: '"+ parentEntityName+ "' is not.");
+  }
+  ExtendedPropertyMapper parentPropertyMapper=parentConfiguration.getPropertyMapper();
   ExtendedPropertyMapper propertyMapper=new SubclassPropertyMapper(new MultiPropertyMapper(),parentPropertyMapper);
   return Triple.make(class_mapping,propertyMapper,parentEntityName);
 }
