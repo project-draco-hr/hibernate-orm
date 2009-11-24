@@ -1,0 +1,17 @@
+{
+  if (queryLoader != null) {
+    return queryLoader;
+  }
+ else   if (isAffectedByEnabledFilters(session)) {
+    return createEntityLoader(lockOptions,session.getLoadQueryInfluencers());
+  }
+ else   if (session.getLoadQueryInfluencers().getInternalFetchProfile() != null && LockMode.UPGRADE.greaterThan(lockOptions.getLockMode())) {
+    return (UniqueEntityLoader)loaders.get(session.getLoadQueryInfluencers().getInternalFetchProfile());
+  }
+ else   if (isAffectedByEnabledFetchProfiles(session)) {
+    return createEntityLoader(lockOptions,session.getLoadQueryInfluencers());
+  }
+ else {
+    return (UniqueEntityLoader)loaders.get(lockOptions.getLockMode());
+  }
+}
