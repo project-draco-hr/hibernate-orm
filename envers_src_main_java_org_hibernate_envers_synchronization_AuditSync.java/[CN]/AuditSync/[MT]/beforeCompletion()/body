@@ -22,7 +22,13 @@
     }
   }
  catch (  RuntimeException e) {
-    session.getTransaction().rollback();
-    throw e;
+    try {
+      if (session.getTransaction().isActive()) {
+        session.getTransaction().rollback();
+      }
+    }
+  finally {
+      throw e;
+    }
   }
 }
