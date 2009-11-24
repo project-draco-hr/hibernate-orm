@@ -4,11 +4,11 @@
   checkSession();
   Query query=verCfg.getRevisionInfoQueryCreator().getRevisionDateQuery(session,revision);
   try {
-    Long timestamp=(Long)query.uniqueResult();
-    if (timestamp == null) {
+    Object timestampObject=query.uniqueResult();
+    if (timestampObject == null) {
       throw new RevisionDoesNotExistException(revision);
     }
-    return new Date(timestamp);
+    return timestampObject instanceof Date ? (Date)timestampObject : new Date((Long)timestampObject);
   }
  catch (  NonUniqueResultException e) {
     throw new AuditException(e);

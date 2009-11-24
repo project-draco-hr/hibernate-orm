@@ -32,14 +32,15 @@
       }
       revisionInfoEntityName=pc.getEntityName();
       revisionInfoClass=pc.getMappedClass();
-      revisionInfoGenerator=new DefaultRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,revisionEntity.value(),revisionInfoTimestampData);
+      revisionInfoTimestampType=pc.getProperty(revisionInfoTimestampData.getName()).getType();
+      revisionInfoGenerator=new DefaultRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,revisionEntity.value(),revisionInfoTimestampData,isTimestampAsDate());
     }
   }
   Document revisionInfoXmlMapping=null;
   if (revisionInfoGenerator == null) {
     revisionInfoClass=DefaultRevisionEntity.class;
-    revisionInfoGenerator=new DefaultRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,RevisionListener.class,revisionInfoTimestampData);
+    revisionInfoGenerator=new DefaultRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,RevisionListener.class,revisionInfoTimestampData,isTimestampAsDate());
     revisionInfoXmlMapping=generateDefaultRevisionInfoXmlMapping();
   }
-  return new RevisionInfoConfigurationResult(revisionInfoGenerator,revisionInfoXmlMapping,new RevisionInfoQueryCreator(revisionInfoEntityName,revisionInfoIdData.getName(),revisionInfoTimestampData.getName()),generateRevisionInfoRelationMapping(),new RevisionInfoNumberReader(revisionInfoClass,revisionInfoIdData),revisionInfoEntityName);
+  return new RevisionInfoConfigurationResult(revisionInfoGenerator,revisionInfoXmlMapping,new RevisionInfoQueryCreator(revisionInfoEntityName,revisionInfoIdData.getName(),revisionInfoTimestampData.getName(),isTimestampAsDate()),generateRevisionInfoRelationMapping(),new RevisionInfoNumberReader(revisionInfoClass,revisionInfoIdData),revisionInfoEntityName);
 }
