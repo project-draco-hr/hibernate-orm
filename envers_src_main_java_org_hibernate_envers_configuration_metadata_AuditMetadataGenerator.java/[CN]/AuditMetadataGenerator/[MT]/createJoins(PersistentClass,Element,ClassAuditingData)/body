@@ -12,20 +12,8 @@
     if (auditTableName == null) {
       auditTableName=verEntCfg.getAuditEntityName(originalTableName);
     }
-    String schema=auditingData.getAuditTable().schema();
-    if (StringTools.isEmpty(schema)) {
-      schema=globalCfg.getDefaultSchemaName();
-      if (StringTools.isEmpty(schema)) {
-        schema=join.getTable().getSchema();
-      }
-    }
-    String catalog=auditingData.getAuditTable().catalog();
-    if (StringTools.isEmpty(catalog)) {
-      catalog=globalCfg.getDefaultCatalogName();
-      if (StringTools.isEmpty(catalog)) {
-        catalog=join.getTable().getCatalog();
-      }
-    }
+    String schema=getSchema(auditingData.getAuditTable(),join.getTable());
+    String catalog=getCatalog(auditingData.getAuditTable(),join.getTable());
     Element joinElement=MetadataTools.createJoin(parent,auditTableName,schema,catalog);
     joinElements.put(join,joinElement);
     Element joinKey=joinElement.addElement("key");
