@@ -4,6 +4,10 @@
   if (!isAudited) {
     String entityName=pc.getEntityName();
     IdMappingData idMapper=idMetadataGenerator.addId(pc);
+    if (idMapper == null) {
+      log.debug("Unable to create auditing id mapping for entity " + entityName + ", because of an unsupported Hibernate id mapping (e.g. key-many-to-one).");
+      return;
+    }
     ExtendedPropertyMapper propertyMapper=null;
     String parentEntityName=null;
     EntityConfiguration entityCfg=new EntityConfiguration(entityName,idMapper,propertyMapper,parentEntityName);
@@ -11,6 +15,7 @@
     return;
   }
   String entityName=pc.getEntityName();
+  log.debug("Generating first-pass auditing mapping for entity " + entityName + ".");
   String auditEntityName=verEntCfg.getAuditEntityName(entityName);
   String auditTableName=verEntCfg.getAuditTableName(entityName,pc.getTable().getName());
   AuditTableData auditTableData=new AuditTableData(auditEntityName,auditTableName,schema,catalog);
