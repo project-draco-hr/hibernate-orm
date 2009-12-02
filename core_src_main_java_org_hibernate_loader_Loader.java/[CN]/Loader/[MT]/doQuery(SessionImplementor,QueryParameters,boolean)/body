@@ -5,7 +5,7 @@
   final ArrayList hydratedObjects=entitySpan == 0 ? null : new ArrayList(entitySpan * 10);
   final PreparedStatement st=prepareQueryStatement(queryParameters,false,session);
   final ResultSet rs=getResultSet(st,queryParameters.hasAutoDiscoverScalarTypes(),queryParameters.isCallable(),selection,session);
-  final LockMode[] lockModeArray=getLockModes(queryParameters.getLockModes());
+  final LockOptions[] lockOptionsArray=getLockOptions(queryParameters.getLockOptions());
   final EntityKey optionalObjectKey=getOptionalObjectKey(queryParameters,session);
   final boolean createSubselects=isSubselectLoadingEnabled();
   final List subselectResultKeys=createSubselects ? new ArrayList() : null;
@@ -17,7 +17,7 @@
     int count;
     for (count=0; count < maxRows && rs.next(); count++) {
       if (log.isTraceEnabled())       log.debug("result set row: " + count);
-      Object result=getRowFromResultSet(rs,session,queryParameters,lockModeArray,optionalObjectKey,hydratedObjects,keys,returnProxies);
+      Object result=getRowFromResultSet(rs,session,queryParameters,lockOptionsArray,optionalObjectKey,hydratedObjects,keys,returnProxies);
       results.add(result);
       if (createSubselects) {
         subselectResultKeys.add(keys);

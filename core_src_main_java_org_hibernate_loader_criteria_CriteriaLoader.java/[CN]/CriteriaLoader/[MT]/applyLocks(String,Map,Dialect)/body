@@ -1,20 +1,20 @@
 {
-  if (lockModes == null || lockModes.isEmpty()) {
+  if (lockOptions == null || lockOptions.isEmpty()) {
     return sqlSelectString;
   }
-  final Map aliasedLockModes=new HashMap();
+  final Map aliasedLockOptions=new HashMap();
   final Map keyColumnNames=dialect.forUpdateOfColumns() ? new HashMap() : null;
   final String[] drivingSqlAliases=getAliases();
   for (int i=0; i < drivingSqlAliases.length; i++) {
-    final LockMode lockMode=(LockMode)lockModes.get(drivingSqlAliases[i]);
-    if (lockMode != null) {
+    final LockOptions lockOption=(LockOptions)lockOptions.get(drivingSqlAliases[i]);
+    if (lockOption != null) {
       final Lockable drivingPersister=(Lockable)getEntityPersisters()[i];
       final String rootSqlAlias=drivingPersister.getRootTableAlias(drivingSqlAliases[i]);
-      aliasedLockModes.put(rootSqlAlias,lockMode);
+      aliasedLockOptions.put(rootSqlAlias,lockOption);
       if (keyColumnNames != null) {
         keyColumnNames.put(rootSqlAlias,drivingPersister.getRootTableIdentifierColumnNames());
       }
     }
   }
-  return dialect.applyLocksToSql(sqlSelectString,aliasedLockModes,keyColumnNames);
+  return dialect.applyLocksToSql(sqlSelectString,aliasedLockOptions,keyColumnNames);
 }

@@ -1,0 +1,25 @@
+{
+  final int cols=persisters.length;
+  final EntityAliases[] descriptors=getEntityAliases();
+  if (log.isDebugEnabled()) {
+    log.debug("result row: " + StringHelper.toString(keys));
+  }
+  final Object[] rowResults=new Object[cols];
+  for (int i=0; i < cols; i++) {
+    Object object=null;
+    EntityKey key=keys[i];
+    if (keys[i] == null) {
+    }
+ else {
+      object=session.getEntityUsingInterceptor(key);
+      if (object != null) {
+        instanceAlreadyLoaded(rs,i,persisters[i],key,object,lockOptions[i],session);
+      }
+ else {
+        object=instanceNotYetLoaded(rs,i,persisters[i],descriptors[i].getRowIdAlias(),key,lockOptions[i],optionalObjectKey,optionalObject,hydratedObjects,session);
+      }
+    }
+    rowResults[i]=object;
+  }
+  return rowResults;
+}
