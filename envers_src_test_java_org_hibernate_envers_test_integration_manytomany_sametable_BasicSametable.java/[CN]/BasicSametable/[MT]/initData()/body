@@ -1,5 +1,13 @@
 {
   EntityManager em=getEntityManager();
+  em.getTransaction().begin();
+  Session session=(Session)em.getDelegate();
+  session.createSQLQuery("DROP TABLE children").executeUpdate();
+  session.createSQLQuery("CREATE TABLE children(parent_id integer, child1_id integer NULL, child2_id integer NULL)").executeUpdate();
+  session.createSQLQuery("DROP TABLE children_AUD").executeUpdate();
+  session.createSQLQuery("CREATE TABLE children_AUD(REV integer NOT NULL, REVTYPE tinyint, " + "parent_id integer, child1_id integer NULL, child2_id integer NULL)").executeUpdate();
+  em.getTransaction().commit();
+  em.clear();
   ParentEntity p1=new ParentEntity("parent_1");
   ParentEntity p2=new ParentEntity("parent_2");
   Child1Entity c1_1=new Child1Entity("child1_1");
@@ -14,6 +22,7 @@
   em.persist(c2_1);
   em.persist(c2_2);
   em.getTransaction().commit();
+  em.clear();
   em.getTransaction().begin();
   p1=em.find(ParentEntity.class,p1.getId());
   p2=em.find(ParentEntity.class,p2.getId());
@@ -22,6 +31,7 @@
   p1.getChildren1().add(c1_1);
   p2.getChildren2().add(c2_1);
   em.getTransaction().commit();
+  em.clear();
   em.getTransaction().begin();
   p1=em.find(ParentEntity.class,p1.getId());
   p2=em.find(ParentEntity.class,p2.getId());
@@ -32,6 +42,7 @@
   p1.getChildren2().add(c2_2);
   p2.getChildren1().add(c1_1);
   em.getTransaction().commit();
+  em.clear();
   em.getTransaction().begin();
   p1=em.find(ParentEntity.class,p1.getId());
   p2=em.find(ParentEntity.class,p2.getId());
@@ -40,6 +51,7 @@
   p1.getChildren1().remove(c1_1);
   p2.getChildren2().add(c2_2);
   em.getTransaction().commit();
+  em.clear();
   em.getTransaction().begin();
   p1=em.find(ParentEntity.class,p1.getId());
   p2=em.find(ParentEntity.class,p2.getId());
@@ -48,6 +60,7 @@
   c2_2.getParents().remove(p2);
   c1_2.getParents().remove(p1);
   em.getTransaction().commit();
+  em.clear();
   p1_id=p1.getId();
   p2_id=p2.getId();
   c1_1_id=c1_1.getId();
