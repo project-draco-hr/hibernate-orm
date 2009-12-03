@@ -1,5 +1,6 @@
 {
-  AuditMetadataGenerator auditMetaGen=new AuditMetadataGenerator(cfg,globalCfg,verEntCfg,revisionInfoRelationMapping);
+  AuditEntityNameRegister auditEntityNameRegister=new AuditEntityNameRegister();
+  AuditMetadataGenerator auditMetaGen=new AuditMetadataGenerator(cfg,globalCfg,verEntCfg,revisionInfoRelationMapping,auditEntityNameRegister);
   DOMWriter writer=new DOMWriter();
   Iterator<PersistentClass> classes=GraphTopologicalSort.sort(new PersistentClassGraphDefiner(cfg)).iterator();
   Map<PersistentClass,ClassAuditingData> pcDatas=new HashMap<PersistentClass,ClassAuditingData>();
@@ -8,20 +9,18 @@
     PersistentClass pc=classes.next();
     AnnotationsMetadataReader annotationsMetadataReader=new AnnotationsMetadataReader(globalCfg,reflectionManager,pc);
     ClassAuditingData auditData=annotationsMetadataReader.getAuditData();
+    EntityXmlMappingData xmlMappingData=new EntityXmlMappingData();
     if (auditData.isAudited()) {
       pcDatas.put(pc,auditData);
       if (!StringTools.isEmpty(auditData.getAuditTable().value())) {
         verEntCfg.addCustomAuditTableName(pc.getEntityName(),auditData.getAuditTable().value());
       }
-      EntityXmlMappingData xmlMappingData=new EntityXmlMappingData();
       auditMetaGen.generateFirstPass(pc,auditData,xmlMappingData,true);
-      xmlMappings.put(pc,xmlMappingData);
     }
  else {
-      EntityXmlMappingData xmlMappingData=new EntityXmlMappingData();
       auditMetaGen.generateFirstPass(pc,auditData,xmlMappingData,false);
-      xmlMappings.put(pc,xmlMappingData);
     }
+    xmlMappings.put(pc,xmlMappingData);
   }
   for (  Map.Entry<PersistentClass,ClassAuditingData> pcDatasEntry : pcDatas.entrySet()) {
     EntityXmlMappingData xmlMappingData=xmlMappings.get(pcDatasEntry.getKey());
