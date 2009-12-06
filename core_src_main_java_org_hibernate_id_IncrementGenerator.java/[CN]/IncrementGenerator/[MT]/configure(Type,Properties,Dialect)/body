@@ -1,19 +1,28 @@
 {
-  String tableList=params.getProperty("tables");
-  if (tableList == null)   tableList=params.getProperty(PersistentIdentifierGenerator.TABLES);
-  String[] tables=StringHelper.split(", ",tableList);
-  String column=params.getProperty("column");
-  if (column == null)   column=params.getProperty(PersistentIdentifierGenerator.PK);
-  String schema=params.getProperty(PersistentIdentifierGenerator.SCHEMA);
-  String catalog=params.getProperty(PersistentIdentifierGenerator.CATALOG);
   returnClass=type.getReturnedClass();
+  ObjectNameNormalizer normalizer=(ObjectNameNormalizer)params.get(PersistentIdentifierGenerator.IDENTIFIER_NORMALIZER);
+  String column=params.getProperty("column");
+  if (column == null) {
+    column=params.getProperty(PersistentIdentifierGenerator.PK);
+  }
+  column=dialect.quote(normalizer.normalizeIdentifierQuoting(column));
+  String tableList=params.getProperty("tables");
+  if (tableList == null) {
+    tableList=params.getProperty(PersistentIdentifierGenerator.TABLES);
+  }
+  String[] tables=StringHelper.split(", ",tableList);
+  final String schema=dialect.quote(normalizer.normalizeIdentifierQuoting(params.getProperty(PersistentIdentifierGenerator.SCHEMA)));
+  final String catalog=dialect.quote(normalizer.normalizeIdentifierQuoting(params.getProperty(PersistentIdentifierGenerator.CATALOG)));
   StringBuffer buf=new StringBuffer();
   for (int i=0; i < tables.length; i++) {
+    final String tableName=dialect.quote(normalizer.normalizeIdentifierQuoting(tables[i]));
     if (tables.length > 1) {
       buf.append("select ").append(column).append(" from ");
     }
-    buf.append(Table.qualify(catalog,schema,tables[i]));
-    if (i < tables.length - 1)     buf.append(" union ");
+    buf.append(Table.qualify(catalog,schema,tableName));
+    if (i < tables.length - 1) {
+      buf.append(" union ");
+    }
   }
   if (tables.length > 1) {
     buf.insert(0,"( ").append(" ) ids_");

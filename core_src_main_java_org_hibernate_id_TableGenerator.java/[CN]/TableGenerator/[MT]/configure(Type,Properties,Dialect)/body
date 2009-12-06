@@ -1,11 +1,14 @@
 {
+  ObjectNameNormalizer normalizer=(ObjectNameNormalizer)params.get(IDENTIFIER_NORMALIZER);
   tableName=PropertiesHelper.getString(TABLE,params,DEFAULT_TABLE_NAME);
-  columnName=PropertiesHelper.getString(COLUMN,params,DEFAULT_COLUMN_NAME);
-  String schemaName=params.getProperty(SCHEMA);
-  String catalogName=params.getProperty(CATALOG);
   if (tableName.indexOf('.') < 0) {
-    tableName=Table.qualify(catalogName,schemaName,tableName);
+    final String schemaName=normalizer.normalizeIdentifierQuoting(params.getProperty(SCHEMA));
+    final String catalogName=normalizer.normalizeIdentifierQuoting(params.getProperty(CATALOG));
+    tableName=Table.qualify(dialect.quote(catalogName),dialect.quote(schemaName),dialect.quote(tableName));
   }
-  query="select " + columnName + " from "+ dialect.appendLockHint(LockMode.UPGRADE,tableName)+ dialect.getForUpdateString();
+ else {
+  }
+  columnName=dialect.quote(normalizer.normalizeIdentifierQuoting(PropertiesHelper.getString(COLUMN,params,DEFAULT_COLUMN_NAME)));
+  query="select " + columnName + " from "+ dialect.appendLockHint(LockMode.PESSIMISTIC_WRITE,tableName)+ dialect.getForUpdateString();
   update="update " + tableName + " set "+ columnName+ " = ? where "+ columnName+ " = ?";
 }

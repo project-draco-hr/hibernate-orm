@@ -1,10 +1,13 @@
 {
-  sequenceName=PropertiesHelper.getString(SEQUENCE,params,"hibernate_sequence");
+  ObjectNameNormalizer normalizer=(ObjectNameNormalizer)params.get(IDENTIFIER_NORMALIZER);
+  sequenceName=normalizer.normalizeIdentifierQuoting(PropertiesHelper.getString(SEQUENCE,params,"hibernate_sequence"));
   parameters=params.getProperty(PARAMETERS);
-  String schemaName=params.getProperty(SCHEMA);
-  String catalogName=params.getProperty(CATALOG);
   if (sequenceName.indexOf('.') < 0) {
-    sequenceName=Table.qualify(catalogName,schemaName,sequenceName);
+    final String schemaName=normalizer.normalizeIdentifierQuoting(params.getProperty(SCHEMA));
+    final String catalogName=normalizer.normalizeIdentifierQuoting(params.getProperty(CATALOG));
+    sequenceName=Table.qualify(dialect.quote(catalogName),dialect.quote(schemaName),dialect.quote(sequenceName));
+  }
+ else {
   }
   this.identifierType=type;
   sql=dialect.getSequenceNextValString(sequenceName);

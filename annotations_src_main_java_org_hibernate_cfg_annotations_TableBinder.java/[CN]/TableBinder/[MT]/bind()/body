@@ -1,19 +1,18 @@
 {
-  String unquotedOwnerTable=StringHelper.unquote(ownerEntityTable);
-  String unquotedAssocTable=StringHelper.unquote(associatedEntityTable);
-  String logicalName=mappings.getNamingStrategy().logicalCollectionTableName(name,unquotedOwnerTable,unquotedAssocTable,propertyName);
-  if (StringHelper.isQuoted(ownerEntityTable) || StringHelper.isQuoted(associatedEntityTable)) {
-    logicalName=StringHelper.quote(logicalName);
-  }
-  String extendedName;
-  if (name != null) {
-    extendedName=mappings.getNamingStrategy().tableName(name);
-  }
- else {
-    extendedName=mappings.getNamingStrategy().collectionTableName(ownerEntity,unquotedOwnerTable,associatedEntity,unquotedAssocTable,propertyName);
-    if (StringHelper.isQuoted(ownerEntityTable) || StringHelper.isQuoted(associatedEntityTable)) {
-      extendedName=StringHelper.quote(extendedName);
+  final String unquotedOwnerTable=StringHelper.unquote(ownerEntityTable);
+  final String unquotedAssocTable=StringHelper.unquote(associatedEntityTable);
+  final ObjectNameSource nameSource=buildNameContext(unquotedOwnerTable,unquotedAssocTable);
+  final boolean ownerEntityTableQuoted=StringHelper.isQuoted(ownerEntityTable);
+  final boolean associatedEntityTableQuoted=StringHelper.isQuoted(associatedEntityTable);
+  final ObjectNameNormalizer.NamingStrategyHelper namingStrategyHelper=new ObjectNameNormalizer.NamingStrategyHelper(){
+    public String determineImplicitName(    NamingStrategy strategy){
+      final String strategyResult=strategy.collectionTableName(ownerEntity,unquotedOwnerTable,associatedEntity,unquotedAssocTable,propertyName);
+      return ownerEntityTableQuoted || associatedEntityTableQuoted ? StringHelper.quote(strategyResult) : strategyResult;
+    }
+    public String handleExplicitName(    NamingStrategy strategy,    String name){
+      return strategy.tableName(name);
     }
   }
-  return fillTable(schema,catalog,extendedName,logicalName,isAbstract,uniqueConstraints,constraints,denormalizedSuperTable,mappings);
+;
+  return buildAndFillTable(schema,catalog,nameSource,namingStrategyHelper,isAbstract,uniqueConstraints,constraints,denormalizedSuperTable,mappings);
 }

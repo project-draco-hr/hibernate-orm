@@ -1,8 +1,9 @@
 {
-  List oldConstraints=tableUniqueConstraints.get(table);
-  if (oldConstraints == null) {
-    oldConstraints=new ArrayList();
-    tableUniqueConstraints.put(table,oldConstraints);
+  List<UniqueConstraintHolder> constraintHolders=new ArrayList<UniqueConstraintHolder>(CollectionHelper.determineProperSizing(uniqueConstraints.size()));
+  int keyNameBase=determineCurrentNumberOfUniqueConstraintHolders(table);
+  for (  String[] columns : (List<String[]>)uniqueConstraints) {
+    final String keyName="key" + keyNameBase++;
+    constraintHolders.add(new UniqueConstraintHolder().setName(keyName).setColumns(columns));
   }
-  oldConstraints.addAll(uniqueConstraints);
+  addUniqueConstraintHolders(table,constraintHolders);
 }

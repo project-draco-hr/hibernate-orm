@@ -1,43 +1,30 @@
 {
   Join join=new Join();
   join.setPersistentClass(persistentClass);
-  String schema;
-  String catalog;
-  String table;
-  String realTable;
-  UniqueConstraint[] uniqueConstraintsAnn;
+  final String schema;
+  final String catalog;
+  final SecondaryTableNameSource secondaryTableNameContext;
+  final Object joinColumns;
+  final List<UniqueConstraintHolder> uniqueConstraintHolders;
   if (secondaryTable != null) {
     schema=secondaryTable.schema();
     catalog=secondaryTable.catalog();
-    table=secondaryTable.name();
-    realTable=mappings.getNamingStrategy().tableName(table);
-    uniqueConstraintsAnn=secondaryTable.uniqueConstraints();
+    secondaryTableNameContext=new SecondaryTableNameSource(secondaryTable.name());
+    joinColumns=secondaryTable.pkJoinColumns();
+    uniqueConstraintHolders=TableBinder.buildUniqueConstraintHolders(secondaryTable.uniqueConstraints());
   }
  else   if (joinTable != null) {
     schema=joinTable.schema();
     catalog=joinTable.catalog();
-    table=joinTable.name();
-    realTable=mappings.getNamingStrategy().tableName(table);
-    uniqueConstraintsAnn=joinTable.uniqueConstraints();
+    secondaryTableNameContext=new SecondaryTableNameSource(joinTable.name());
+    joinColumns=joinTable.joinColumns();
+    uniqueConstraintHolders=TableBinder.buildUniqueConstraintHolders(joinTable.uniqueConstraints());
   }
  else {
     throw new AssertionFailure("Both JoinTable and SecondaryTable are null");
   }
-  List uniqueConstraints=new ArrayList(uniqueConstraintsAnn == null ? 0 : uniqueConstraintsAnn.length);
-  if (uniqueConstraintsAnn != null && uniqueConstraintsAnn.length != 0) {
-    for (    UniqueConstraint uc : uniqueConstraintsAnn) {
-      uniqueConstraints.add(uc.columnNames());
-    }
-  }
-  Table tableMapping=TableBinder.fillTable(schema,catalog,realTable,table,false,uniqueConstraints,null,null,mappings);
-  join.setTable(tableMapping);
-  Object joinColumns=null;
-  if (secondaryTable != null) {
-    joinColumns=secondaryTable.pkJoinColumns();
-  }
- else   if (joinTable != null) {
-    joinColumns=joinTable.joinColumns();
-  }
+  final Table table=TableBinder.buildAndFillTable(schema,catalog,secondaryTableNameContext,SEC_TBL_NS_HELPER,false,uniqueConstraintHolders,null,null,mappings);
+  join.setTable(table);
   log.info("Adding secondary table to entity {} -> {}",persistentClass.getEntityName(),join.getTable().getName());
   org.hibernate.annotations.Table matchingTable=findMatchingComplimentTableAnnotation(join);
   if (matchingTable != null) {
@@ -63,8 +50,8 @@
     createPrimaryColumnsToSecondaryTable(joinColumns,propertyHolder,join);
   }
  else {
-    secondaryTables.put(realTable,join);
-    secondaryTableJoins.put(realTable,joinColumns);
+    secondaryTables.put(table.getQuotedName(),join);
+    secondaryTableJoins.put(table.getQuotedName(),joinColumns);
   }
   return join;
 }

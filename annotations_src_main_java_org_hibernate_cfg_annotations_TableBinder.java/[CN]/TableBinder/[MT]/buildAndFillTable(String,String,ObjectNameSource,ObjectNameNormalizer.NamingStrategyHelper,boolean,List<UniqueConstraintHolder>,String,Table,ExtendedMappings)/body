@@ -1,0 +1,21 @@
+{
+  schema=BinderHelper.isDefault(schema) ? mappings.getSchemaName() : schema;
+  catalog=BinderHelper.isDefault(catalog) ? mappings.getCatalogName() : catalog;
+  String realTableName=mappings.getObjectNameNormalizer().normalizeDatabaseIdentifier(nameSource.getExplicitName(),namingStrategyHelper);
+  final Table table;
+  if (denormalizedSuperTable != null) {
+    table=mappings.addDenormalizedTable(schema,catalog,realTableName,isAbstract,null,denormalizedSuperTable);
+  }
+ else {
+    table=mappings.addTable(schema,catalog,realTableName,null,isAbstract);
+  }
+  if (uniqueConstraints != null && uniqueConstraints.size() > 0) {
+    mappings.addUniqueConstraintHolders(table,uniqueConstraints);
+  }
+  if (constraints != null)   table.addCheckConstraint(constraints);
+  final String logicalName=nameSource.getLogicalName();
+  if (logicalName != null) {
+    mappings.addTableBinding(schema,catalog,logicalName,realTableName,denormalizedSuperTable);
+  }
+  return table;
+}

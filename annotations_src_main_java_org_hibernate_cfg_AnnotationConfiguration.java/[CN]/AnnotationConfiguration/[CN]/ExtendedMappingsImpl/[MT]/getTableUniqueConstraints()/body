@@ -1,3 +1,11 @@
 {
-  return tableUniqueConstraints;
+  final Map<Table,List<String[]>> deprecatedStructure=new HashMap<Table,List<String[]>>(CollectionHelper.determineProperSizing(getUniqueConstraintHoldersByTable()),CollectionHelper.LOAD_FACTOR);
+  for (  Map.Entry<Table,List<UniqueConstraintHolder>> entry : getUniqueConstraintHoldersByTable().entrySet()) {
+    List<String[]> columnsPerConstraint=new ArrayList<String[]>(CollectionHelper.determineProperSizing(entry.getValue().size()));
+    deprecatedStructure.put(entry.getKey(),columnsPerConstraint);
+    for (    UniqueConstraintHolder holder : entry.getValue()) {
+      columnsPerConstraint.add(holder.getColumns());
+    }
+  }
+  return deprecatedStructure;
 }
