@@ -1,12 +1,16 @@
 {
   StringBuffer buf=new StringBuffer("unique (");
+  boolean hadNullableColumn=false;
   Iterator iter=getColumnIterator();
-  boolean nullable=false;
   while (iter.hasNext()) {
     Column column=(Column)iter.next();
-    if (!nullable && column.isNullable())     nullable=true;
+    if (!hadNullableColumn && column.isNullable()) {
+      hadNullableColumn=true;
+    }
     buf.append(column.getQuotedName(dialect));
-    if (iter.hasNext())     buf.append(", ");
+    if (iter.hasNext()) {
+      buf.append(", ");
+    }
   }
-  return !nullable || dialect.supportsNotNullUnique() ? buf.append(')').toString() : null;
+  return !hadNullableColumn || dialect.supportsNotNullUnique() ? buf.append(')').toString() : null;
 }
