@@ -2,6 +2,7 @@
   CriteriaQueryImpl<T> criteriaQueryImpl=(CriteriaQueryImpl<T>)criteriaQuery;
   criteriaQueryImpl.validate();
   final Map<ParameterExpression<?>,String> explicitParameterMapping=new HashMap<ParameterExpression<?>,String>();
+  final Map<String,ParameterExpression<?>> explicitParameterNameMapping=new HashMap<String,ParameterExpression<?>>();
   final List<ImplicitParameterBinding> implicitParameterBindings=new ArrayList<ImplicitParameterBinding>();
   RenderingContext renderingContext=new RenderingContext(){
     private int aliasCount=0;
@@ -14,6 +15,9 @@
     }
     public void registerExplicitParameter(    ParameterExpression<?> criteriaQueryParameter,    String jpaqlParameterName){
       explicitParameterMapping.put(criteriaQueryParameter,jpaqlParameterName);
+      if (StringHelper.isNotEmpty(criteriaQueryParameter.getName())) {
+        explicitParameterNameMapping.put(criteriaQueryParameter.getName(),criteriaQueryParameter);
+      }
     }
     public void registerImplicitParameterBinding(    ImplicitParameterBinding binding){
       implicitParameterBindings.add(binding);
@@ -25,5 +29,5 @@
   for (  ImplicitParameterBinding implicitParameterBinding : implicitParameterBindings) {
     implicitParameterBinding.bind(jpaqlQuery);
   }
-  return wrap(jpaqlQuery,explicitParameterMapping);
+  return wrap(jpaqlQuery,explicitParameterMapping,explicitParameterNameMapping);
 }
