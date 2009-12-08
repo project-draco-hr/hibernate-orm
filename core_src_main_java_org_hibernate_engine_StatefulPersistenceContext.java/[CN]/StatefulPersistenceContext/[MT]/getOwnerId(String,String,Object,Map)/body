@@ -2,7 +2,16 @@
   final String collectionRole=entityName + '.' + propertyName;
   final EntityPersister persister=session.getFactory().getEntityPersister(entityName);
   final CollectionPersister collectionPersister=session.getFactory().getCollectionPersister(collectionRole);
-  Iterator entities=entityEntries.entrySet().iterator();
+  Object parent=parentsByChild.get(childEntity);
+  if (parent != null) {
+    if (isFoundInParent(propertyName,childEntity,persister,collectionPersister,parent)) {
+      return getEntry(parent).getId();
+    }
+ else {
+      parentsByChild.remove(childEntity);
+    }
+  }
+  Iterator entities=IdentityMap.entries(entityEntries).iterator();
   while (entities.hasNext()) {
     final Map.Entry me=(Map.Entry)entities.next();
     final EntityEntry entityEntry=(EntityEntry)me.getValue();

@@ -1,7 +1,22 @@
 {
   EntityPersister persister=session.getFactory().getEntityPersister(entity);
   CollectionPersister cp=session.getFactory().getCollectionPersister(entity + '.' + property);
-  Iterator entities=entityEntries.entrySet().iterator();
+  Object parent=parentsByChild.get(childEntity);
+  if (parent != null) {
+    Object index=getIndexInParent(property,childEntity,persister,cp,parent);
+    if (index == null && mergeMap != null) {
+      Object unmergedInstance=mergeMap.get(parent);
+      Object unmergedChild=mergeMap.get(childEntity);
+      if (unmergedInstance != null && unmergedChild != null) {
+        index=getIndexInParent(property,unmergedChild,persister,cp,unmergedInstance);
+      }
+    }
+    if (index != null) {
+      return index;
+    }
+    parentsByChild.remove(childEntity);
+  }
+  Iterator entities=IdentityMap.entries(entityEntries).iterator();
   while (entities.hasNext()) {
     Map.Entry me=(Map.Entry)entities.next();
     EntityEntry ee=(EntityEntry)me.getValue();
