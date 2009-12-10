@@ -1,14 +1,9 @@
 {
   String mappedBy=getMappedBy(propertyValue);
-  EntityConfiguration referencedEntityConfiguration=mainGenerator.getEntitiesConfigurations().get(referencedEntityName);
-  if (referencedEntityConfiguration == null) {
-    throwRelationNotAudited(referencedEntityName);
-    throw new AssertionError();
-  }
-  IdMappingData referencedIdMapping=referencedEntityConfiguration.getIdMappingData();
+  IdMappingData referencedIdMapping=mainGenerator.getReferencedIdMappingData(referencingEntityName,referencedEntityName,propertyAuditingData,false);
   IdMappingData referencingIdMapping=referencingEntityConfiguration.getIdMappingData();
-  MiddleIdData referencingIdData=new MiddleIdData(mainGenerator.getVerEntCfg(),referencingIdMapping,mappedBy + "_",referencingEntityName);
-  MiddleIdData referencedIdData=new MiddleIdData(mainGenerator.getVerEntCfg(),referencedIdMapping,null,referencedEntityName);
+  MiddleIdData referencingIdData=createMiddleIdData(referencingIdMapping,mappedBy + "_",referencingEntityName);
+  MiddleIdData referencedIdData=createMiddleIdData(referencedIdMapping,null,referencedEntityName);
   MiddleComponentData elementComponentData=new MiddleComponentData(new MiddleRelatedComponentMapper(referencedIdData),0);
   MiddleComponentData indexComponentData=addIndex(null,null);
   RelationQueryGenerator queryGenerator=new OneAuditEntityQueryGenerator(mainGenerator.getGlobalCfg(),mainGenerator.getVerEntCfg(),referencingIdData,referencedEntityName,referencedIdMapping.getIdMapper());

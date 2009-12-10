@@ -1,19 +1,6 @@
 {
   String referencedEntityName=((ToOne)value).getReferencedEntityName();
-  EntityConfiguration configuration=mainGenerator.getEntitiesConfigurations().get(referencedEntityName);
-  if (configuration == null) {
-    configuration=mainGenerator.getNotAuditedEntitiesConfigurations().get(referencedEntityName);
-    if (configuration != null) {
-      RelationTargetAuditMode relationTargetAuditMode=propertyAuditingData.getRelationTargetAuditMode();
-      if (!RelationTargetAuditMode.NOT_AUDITED.equals(relationTargetAuditMode)) {
-        throw new MappingException("An audited relation from " + entityName + "."+ propertyAuditingData.getName()+ " to a not audited entity "+ referencedEntityName+ "!"+ ". Such mapping is possible, but has to be strictly defined using RelationTargetAuditMode.NOT_AUDITED in @Audited.");
-      }
-    }
-  }
-  if (configuration == null) {
-    throw new MappingException("An audited relation from " + entityName + "."+ propertyAuditingData.getName()+ " to a not audited entity "+ referencedEntityName+ "!");
-  }
-  IdMappingData idMapping=configuration.getIdMappingData();
+  IdMappingData idMapping=mainGenerator.getReferencedIdMappingData(entityName,referencedEntityName,propertyAuditingData,true);
   String lastPropertyPrefix=propertyAuditingData.getName() + "_";
   IdMapper relMapper=idMapping.getIdMapper().prefixMappedProperties(lastPropertyPrefix);
   mainGenerator.getEntitiesConfigurations().get(entityName).addToOneRelation(propertyAuditingData.getName(),referencedEntityName,relMapper);
