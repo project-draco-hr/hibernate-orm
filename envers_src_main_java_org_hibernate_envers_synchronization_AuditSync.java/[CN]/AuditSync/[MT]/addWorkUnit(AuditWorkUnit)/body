@@ -9,23 +9,19 @@
       Pair<String,Object> usedIdsKey=Pair.make(entityName,entityId);
       if (usedIds.containsKey(usedIdsKey)) {
         AuditWorkUnit other=usedIds.get(usedIdsKey);
-switch (vwu.dispatch(other)) {
-case FIRST:
-          break;
-case SECOND:
-        removeWorkUnit(other);
-      usedIds.put(usedIdsKey,vwu);
-    workUnits.offer(vwu);
-  break;
-case NONE:
-removeWorkUnit(other);
-break;
-}
-}
+        AuditWorkUnit result=vwu.dispatch(other);
+        if (result != other) {
+          removeWorkUnit(other);
+          if (result != null) {
+            usedIds.put(usedIdsKey,result);
+            workUnits.offer(result);
+          }
+        }
+      }
  else {
-usedIds.put(usedIdsKey,vwu);
-workUnits.offer(vwu);
-}
-}
-}
+        usedIds.put(usedIdsKey,vwu);
+        workUnits.offer(vwu);
+      }
+    }
+  }
 }

@@ -1,0 +1,20 @@
+{
+  if (first instanceof PersistentCollectionChangeWorkUnit) {
+    PersistentCollectionChangeWorkUnit original=(PersistentCollectionChangeWorkUnit)first;
+    Map<Object,PersistentCollectionChangeData> newChangesIdMap=new HashMap<Object,PersistentCollectionChangeData>();
+    for (    PersistentCollectionChangeData persistentCollectionChangeData : getCollectionChanges()) {
+      newChangesIdMap.put(getOriginalId(persistentCollectionChangeData),persistentCollectionChangeData);
+    }
+    List<PersistentCollectionChangeData> mergedChanges=new ArrayList<PersistentCollectionChangeData>();
+    for (    PersistentCollectionChangeData originalCollectionChangeData : original.getCollectionChanges()) {
+      if (!newChangesIdMap.containsKey(getOriginalId(originalCollectionChangeData))) {
+        mergedChanges.add(originalCollectionChangeData);
+      }
+    }
+    mergedChanges.addAll(getCollectionChanges());
+    return new PersistentCollectionChangeWorkUnit(sessionImplementor,entityName,verCfg,id,mergedChanges,referencingPropertyName);
+  }
+ else {
+    throw new RuntimeException("Trying to merge a " + first + " with a PersitentCollectionChangeWorkUnit. "+ "This is not really possible.");
+  }
+}
