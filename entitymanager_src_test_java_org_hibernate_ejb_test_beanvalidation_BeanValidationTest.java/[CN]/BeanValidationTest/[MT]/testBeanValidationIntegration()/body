@@ -1,0 +1,16 @@
+{
+  CupHolder ch=new CupHolder();
+  ch.setRadius(new BigDecimal("12"));
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  try {
+    em.persist(ch);
+    em.flush();
+    fail("invalid object should not be persisted");
+  }
+ catch (  ConstraintViolationException e) {
+    assertEquals(1,e.getConstraintViolations().size());
+  }
+  em.getTransaction().rollback();
+  em.close();
+}
