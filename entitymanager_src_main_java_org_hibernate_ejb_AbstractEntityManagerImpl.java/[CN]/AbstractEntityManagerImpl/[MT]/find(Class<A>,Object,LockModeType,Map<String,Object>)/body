@@ -1,6 +1,7 @@
 {
+  LockOptions lockOptions=null;
   try {
-    if (lockModeType != null)     return (A)getSession().get(entityClass,(Serializable)primaryKey,getLockRequest(lockModeType,properties));
+    if (lockModeType != null)     return (A)getSession().get(entityClass,(Serializable)primaryKey,(lockOptions=getLockRequest(lockModeType,properties)));
  else     return (A)getSession().get(entityClass,(Serializable)primaryKey);
   }
  catch (  ObjectDeletedException e) {
@@ -19,6 +20,6 @@ catch (  ClassCastException e) {
     throw new IllegalArgumentException(e.getMessage(),e);
   }
 catch (  HibernateException he) {
-    throw convert(he);
+    throw convert(he,lockOptions);
   }
 }

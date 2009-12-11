@@ -6,7 +6,12 @@
   }
  else   if (e instanceof org.hibernate.PessimisticLockException) {
     org.hibernate.PessimisticLockException ple=(org.hibernate.PessimisticLockException)e;
-    pe=new PessimisticLockException(ple.getMessage(),ple,ple.getEntity());
+    if (lockOptions != null && lockOptions.getTimeOut() > -1) {
+      pe=new LockTimeoutException(ple.getMessage(),ple,ple.getEntity());
+    }
+ else {
+      pe=new PessimisticLockException(ple.getMessage(),ple,ple.getEntity());
+    }
   }
  else {
     pe=new OptimisticLockException(e);
