@@ -171,8 +171,6 @@
       throw new AnnotationException("@Column(s) not allowed on a @Any property: " + StringHelper.qualify(propertyHolder.getPath(),inferredData.getPropertyName()));
     }
     Cascade hibernateCascade=property.getAnnotation(Cascade.class);
-    NotFound notFound=property.getAnnotation(NotFound.class);
-    boolean ignoreNotFound=notFound != null && notFound.action().equals(NotFoundAction.IGNORE);
     OnDelete onDeleteAnn=property.getAnnotation(OnDelete.class);
     boolean onDeleteCascade=onDeleteAnn != null && OnDeleteAction.CASCADE.equals(onDeleteAnn.action());
     JoinTable assocTable=property.getAnnotation(JoinTable.class);
@@ -219,7 +217,7 @@
     collectionBinder.setCollectionType(inferredData.getProperty().getElementClass());
     collectionBinder.setMappings(mappings);
     collectionBinder.setPropertyAccessorName(inferredData.getDefaultAccess());
-    Ejb3Column[] elementColumns=null;
+    Ejb3Column[] elementColumns;
     PropertyData virtualProperty=new WrappedInferredData(inferredData,"element");
     if (property.isAnnotationPresent(Column.class) || property.isAnnotationPresent(Formula.class)) {
       Column ann=property.getAnnotation(Column.class);
@@ -349,7 +347,7 @@
     collectionBinder.bind();
   }
  else {
-    boolean isComponent=false;
+    boolean isComponent;
     Embeddable embeddableAnn=returnedClass.getAnnotation(Embeddable.class);
     Embedded embeddedAnn=property.getAnnotation(Embedded.class);
     isComponent=embeddedAnn != null || embeddableAnn != null;

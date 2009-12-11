@@ -6,102 +6,48 @@
     bindTypeDefs(clazzToProcess,mappings);
     bindFilterDefs(clazzToProcess,mappings);
   }
-  if (AnnotatedClassType.EMBEDDABLE_SUPERCLASS.equals(classType) || AnnotatedClassType.NONE.equals(classType) || AnnotatedClassType.EMBEDDABLE.equals(classType)) {
-    if (AnnotatedClassType.NONE.equals(classType) && clazzToProcess.isAnnotationPresent(org.hibernate.annotations.Entity.class)) {
-      log.warn("Class annotated @org.hibernate.annotations.Entity but not javax.persistence.Entity " + "(most likely a user error): {}",clazzToProcess.getName());
-    }
+  if (!isEntityClassType(clazzToProcess,classType)) {
     return;
   }
-  if (!classType.equals(AnnotatedClassType.ENTITY)) {
-    throw new AnnotationException("Annotated class should have a @javax.persistence.Entity, @javax.persistence.Embeddable or @javax.persistence.EmbeddedSuperclass annotation: " + clazzToProcess.getName());
-  }
-  XAnnotatedElement annotatedClass=clazzToProcess;
   log.info("Binding entity from annotated class: {}",clazzToProcess.getName());
-  final ReflectionManager reflectionManager=mappings.getReflectionManager();
-  InheritanceState superEntityState=InheritanceState.getSuperEntityInheritanceState(clazzToProcess,inheritanceStatePerClass,reflectionManager);
-  PersistentClass superEntity=superEntityState != null ? mappings.getClass(superEntityState.clazz.getName()) : null;
-  if (superEntity == null) {
-    if (inheritanceState.hasParents) {
-      throw new AssertionFailure("Subclass has to be binded after it's mother class: " + superEntityState.clazz.getName());
-    }
-  }
-  bindQueries(annotatedClass,mappings);
-  bindFilterDefs(annotatedClass,mappings);
-  bindTypeDefs(annotatedClass,mappings);
-  BinderHelper.bindAnyMetaDefs(annotatedClass,mappings);
+  PersistentClass superEntity=getSuperEntity(clazzToProcess,inheritanceStatePerClass,mappings,inheritanceState);
+  bindQueries(clazzToProcess,mappings);
+  bindFilterDefs(clazzToProcess,mappings);
+  bindTypeDefs(clazzToProcess,mappings);
+  BinderHelper.bindAnyMetaDefs(clazzToProcess,mappings);
   String schema="";
   String table="";
   String catalog="";
-  String discrimValue=null;
   List<UniqueConstraintHolder> uniqueConstraints=new ArrayList<UniqueConstraintHolder>();
-  Ejb3DiscriminatorColumn discriminatorColumn=null;
-  Ejb3JoinColumn[] inheritanceJoinedColumns=null;
-  if (annotatedClass.isAnnotationPresent(javax.persistence.Table.class)) {
-    javax.persistence.Table tabAnn=annotatedClass.getAnnotation(javax.persistence.Table.class);
+  if (clazzToProcess.isAnnotationPresent(javax.persistence.Table.class)) {
+    javax.persistence.Table tabAnn=clazzToProcess.getAnnotation(javax.persistence.Table.class);
     table=tabAnn.name();
     schema=tabAnn.schema();
     catalog=tabAnn.catalog();
     uniqueConstraints=TableBinder.buildUniqueConstraintHolders(tabAnn.uniqueConstraints());
   }
-  final boolean hasJoinedColumns=inheritanceState.hasParents && InheritanceType.JOINED.equals(inheritanceState.type);
-  if (hasJoinedColumns) {
-    PrimaryKeyJoinColumns jcsAnn=annotatedClass.getAnnotation(PrimaryKeyJoinColumns.class);
-    boolean explicitInheritanceJoinedColumns=jcsAnn != null && jcsAnn.value().length != 0;
-    if (explicitInheritanceJoinedColumns) {
-      int nbrOfInhJoinedColumns=jcsAnn.value().length;
-      PrimaryKeyJoinColumn jcAnn;
-      inheritanceJoinedColumns=new Ejb3JoinColumn[nbrOfInhJoinedColumns];
-      for (int colIndex=0; colIndex < nbrOfInhJoinedColumns; colIndex++) {
-        jcAnn=jcsAnn.value()[colIndex];
-        inheritanceJoinedColumns[colIndex]=Ejb3JoinColumn.buildJoinColumn(jcAnn,null,superEntity.getIdentifier(),(Map<String,Join>)null,(PropertyHolder)null,mappings);
-      }
-    }
- else {
-      PrimaryKeyJoinColumn jcAnn=annotatedClass.getAnnotation(PrimaryKeyJoinColumn.class);
-      inheritanceJoinedColumns=new Ejb3JoinColumn[1];
-      inheritanceJoinedColumns[0]=Ejb3JoinColumn.buildJoinColumn(jcAnn,null,superEntity.getIdentifier(),(Map<String,Join>)null,(PropertyHolder)null,mappings);
-    }
-    log.debug("Subclass joined column(s) created");
-  }
- else {
-    if (annotatedClass.isAnnotationPresent(javax.persistence.PrimaryKeyJoinColumns.class) || annotatedClass.isAnnotationPresent(javax.persistence.PrimaryKeyJoinColumn.class)) {
-      log.warn("Root entity should not hold an PrimaryKeyJoinColum(s), will be ignored");
-    }
-  }
-  if (InheritanceType.SINGLE_TABLE.equals(inheritanceState.type)) {
-    javax.persistence.DiscriminatorColumn discAnn=annotatedClass.getAnnotation(javax.persistence.DiscriminatorColumn.class);
+  Ejb3JoinColumn[] inheritanceJoinedColumns=makeInheritanceJoinColumns(clazzToProcess,mappings,inheritanceState,superEntity);
+  Ejb3DiscriminatorColumn discriminatorColumn=null;
+  String discrimValue=null;
+  if (InheritanceType.SINGLE_TABLE.equals(inheritanceState.getType())) {
+    javax.persistence.DiscriminatorColumn discAnn=clazzToProcess.getAnnotation(javax.persistence.DiscriminatorColumn.class);
     DiscriminatorType discriminatorType=discAnn != null ? discAnn.discriminatorType() : DiscriminatorType.STRING;
-    org.hibernate.annotations.DiscriminatorFormula discFormulaAnn=annotatedClass.getAnnotation(org.hibernate.annotations.DiscriminatorFormula.class);
-    if (!inheritanceState.hasParents) {
+    org.hibernate.annotations.DiscriminatorFormula discFormulaAnn=clazzToProcess.getAnnotation(org.hibernate.annotations.DiscriminatorFormula.class);
+    if (!inheritanceState.hasParents()) {
       discriminatorColumn=Ejb3DiscriminatorColumn.buildDiscriminatorColumn(discriminatorType,discAnn,discFormulaAnn,mappings);
     }
-    if (discAnn != null && inheritanceState.hasParents) {
+    if (discAnn != null && inheritanceState.hasParents()) {
       log.warn("Discriminator column has to be defined in the root entity, it will be ignored in subclass: {}",clazzToProcess.getName());
     }
-    discrimValue=annotatedClass.isAnnotationPresent(DiscriminatorValue.class) ? annotatedClass.getAnnotation(DiscriminatorValue.class).value() : null;
+    discrimValue=clazzToProcess.isAnnotationPresent(DiscriminatorValue.class) ? clazzToProcess.getAnnotation(DiscriminatorValue.class).value() : null;
   }
-  PersistentClass persistentClass;
-  if (!inheritanceState.hasParents) {
-    persistentClass=new RootClass();
-  }
- else   if (InheritanceType.SINGLE_TABLE.equals(inheritanceState.type)) {
-    persistentClass=new SingleTableSubclass(superEntity);
-  }
- else   if (InheritanceType.JOINED.equals(inheritanceState.type)) {
-    persistentClass=new JoinedSubclass(superEntity);
-  }
- else   if (InheritanceType.TABLE_PER_CLASS.equals(inheritanceState.type)) {
-    persistentClass=new UnionSubclass(superEntity);
-  }
- else {
-    throw new AssertionFailure("Unknown inheritance type: " + inheritanceState.type);
-  }
-  Proxy proxyAnn=annotatedClass.getAnnotation(Proxy.class);
-  BatchSize sizeAnn=annotatedClass.getAnnotation(BatchSize.class);
-  Where whereAnn=annotatedClass.getAnnotation(Where.class);
-  Entity entityAnn=annotatedClass.getAnnotation(Entity.class);
-  org.hibernate.annotations.Entity hibEntityAnn=annotatedClass.getAnnotation(org.hibernate.annotations.Entity.class);
-  org.hibernate.annotations.Cache cacheAnn=annotatedClass.getAnnotation(org.hibernate.annotations.Cache.class);
+  PersistentClass persistentClass=makePersistentClass(inheritanceState,superEntity);
+  Proxy proxyAnn=clazzToProcess.getAnnotation(Proxy.class);
+  BatchSize sizeAnn=clazzToProcess.getAnnotation(BatchSize.class);
+  Where whereAnn=clazzToProcess.getAnnotation(Where.class);
+  Entity entityAnn=clazzToProcess.getAnnotation(Entity.class);
+  org.hibernate.annotations.Entity hibEntityAnn=clazzToProcess.getAnnotation(org.hibernate.annotations.Entity.class);
+  org.hibernate.annotations.Cache cacheAnn=clazzToProcess.getAnnotation(org.hibernate.annotations.Cache.class);
   EntityBinder entityBinder=new EntityBinder(entityAnn,hibEntityAnn,clazzToProcess,persistentClass,mappings);
   entityBinder.setDiscriminatorValue(discrimValue);
   entityBinder.setBatchSize(sizeAnn);
@@ -109,27 +55,27 @@
   entityBinder.setWhere(whereAnn);
   entityBinder.setCache(cacheAnn);
   entityBinder.setInheritanceState(inheritanceState);
-  if (!inheritanceState.hasParents) {
+  if (!inheritanceState.hasParents()) {
     bindFilters(clazzToProcess,entityBinder,mappings);
   }
   entityBinder.bindEntity();
   if (inheritanceState.hasTable()) {
-    Check checkAnn=annotatedClass.getAnnotation(Check.class);
+    Check checkAnn=clazzToProcess.getAnnotation(Check.class);
     String constraints=checkAnn == null ? null : checkAnn.constraints();
     entityBinder.bindTable(schema,catalog,table,uniqueConstraints,constraints,inheritanceState.hasDenormalizedTable() ? superEntity.getTable() : null);
   }
  else {
-    if (annotatedClass.isAnnotationPresent(Table.class)) {
+    if (clazzToProcess.isAnnotationPresent(Table.class)) {
       log.warn("Illegal use of @Table in a subclass of a SINGLE_TABLE hierarchy: " + clazzToProcess.getName());
     }
   }
   PropertyHolder propertyHolder=PropertyHolderBuilder.buildPropertyHolder(clazzToProcess,persistentClass,entityBinder,mappings,inheritanceStatePerClass);
-  javax.persistence.SecondaryTable secTabAnn=annotatedClass.getAnnotation(javax.persistence.SecondaryTable.class);
-  javax.persistence.SecondaryTables secTabsAnn=annotatedClass.getAnnotation(javax.persistence.SecondaryTables.class);
+  javax.persistence.SecondaryTable secTabAnn=clazzToProcess.getAnnotation(javax.persistence.SecondaryTable.class);
+  javax.persistence.SecondaryTables secTabsAnn=clazzToProcess.getAnnotation(javax.persistence.SecondaryTables.class);
   entityBinder.firstLevelSecondaryTablesBinding(secTabAnn,secTabsAnn);
-  OnDelete onDeleteAnn=annotatedClass.getAnnotation(OnDelete.class);
+  OnDelete onDeleteAnn=clazzToProcess.getAnnotation(OnDelete.class);
   boolean onDeleteAppropriate=false;
-  if (InheritanceType.JOINED.equals(inheritanceState.type) && inheritanceState.hasParents) {
+  if (InheritanceType.JOINED.equals(inheritanceState.getType()) && inheritanceState.hasParents()) {
     onDeleteAppropriate=true;
     final JoinedSubclass jsc=(JoinedSubclass)persistentClass;
     if (persistentClass.getEntityPersisterClass() == null) {
@@ -137,7 +83,7 @@
     }
     SimpleValue key=new DependantValue(jsc.getTable(),jsc.getIdentifier());
     jsc.setKey(key);
-    ForeignKey fk=annotatedClass.getAnnotation(ForeignKey.class);
+    ForeignKey fk=clazzToProcess.getAnnotation(ForeignKey.class);
     if (fk != null && !BinderHelper.isDefault(fk.name())) {
       key.setForeignKeyName(fk.name());
     }
@@ -151,21 +97,21 @@
     mappings.addSecondPass(sp);
     mappings.addSecondPass(new CreateKeySecondPass(jsc));
   }
- else   if (InheritanceType.SINGLE_TABLE.equals(inheritanceState.type)) {
-    if (inheritanceState.hasParents) {
+ else   if (InheritanceType.SINGLE_TABLE.equals(inheritanceState.getType())) {
+    if (inheritanceState.hasParents()) {
       if (persistentClass.getEntityPersisterClass() == null) {
         persistentClass.getRootClass().setEntityPersisterClass(SingleTableEntityPersister.class);
       }
     }
  else {
-      if (inheritanceState.hasSons || !discriminatorColumn.isImplicit()) {
+      if (inheritanceState.hasSiblings() || !discriminatorColumn.isImplicit()) {
         bindDiscriminatorToPersistentClass((RootClass)persistentClass,discriminatorColumn,entityBinder.getSecondaryTables(),propertyHolder);
         entityBinder.bindDiscriminatorValue();
       }
     }
   }
- else   if (InheritanceType.TABLE_PER_CLASS.equals(inheritanceState.type)) {
-    if (inheritanceState.hasParents) {
+ else   if (InheritanceType.TABLE_PER_CLASS.equals(inheritanceState.getType())) {
+    if (inheritanceState.hasParents()) {
       if (persistentClass.getEntityPersisterClass() == null) {
         persistentClass.getRootClass().setEntityPersisterClass(UnionSubclassEntityPersister.class);
       }
@@ -174,30 +120,29 @@
   if (onDeleteAnn != null && !onDeleteAppropriate) {
     log.warn("Inapropriate use of @OnDelete on entity, annotation ignored: {}",propertyHolder.getEntityName());
   }
-  HashMap<String,IdGenerator> classGenerators=buildLocalGenerators(annotatedClass,mappings);
+  HashMap<String,IdGenerator> classGenerators=buildLocalGenerators(clazzToProcess,mappings);
   List<PropertyData> elements=getElementsToProcess(persistentClass,clazzToProcess,inheritanceStatePerClass,propertyHolder,entityBinder,mappings);
   if (elements == null) {
     throw new AnnotationException("No identifier specified for entity: " + propertyHolder.getEntityName());
   }
-  final boolean subclassAndSingleTableStrategy=inheritanceState.type == InheritanceType.SINGLE_TABLE && inheritanceState.hasParents;
+  final boolean subclassAndSingleTableStrategy=inheritanceState.getType() == InheritanceType.SINGLE_TABLE && inheritanceState.hasParents();
   Set<String> idProperties=new HashSet<String>();
   IdClass idClass=null;
   XClass current=null;
-  if (!inheritanceState.hasParents) {
-    current=inheritanceState.clazz;
+  if (!inheritanceState.hasParents()) {
     InheritanceState state=inheritanceState;
     do {
-      current=state.clazz;
+      current=state.getClazz();
       if (current.isAnnotationPresent(IdClass.class)) {
         idClass=current.getAnnotation(IdClass.class);
         break;
       }
-      state=InheritanceState.getSuperclassInheritanceState(current,inheritanceStatePerClass,reflectionManager);
+      state=InheritanceState.getSuperclassInheritanceState(current,inheritanceStatePerClass,mappings.getReflectionManager());
     }
  while (state != null);
   }
   if (idClass != null) {
-    XClass compositeClass=reflectionManager.toXClass(idClass.value());
+    XClass compositeClass=mappings.getReflectionManager().toXClass(idClass.value());
     boolean isComponent=true;
     boolean propertyAnnotated=entityBinder.isPropertyAnnotated(compositeClass);
     String propertyAccessor=entityBinder.getPropertyAccessor(compositeClass);
@@ -251,7 +196,7 @@
     }
     throw new AnnotationException("Unable to find properties (" + missings.substring(0,missings.length() - 2) + ") in entity annotated with @IdClass:"+ persistentClass.getEntityName());
   }
-  if (!inheritanceState.hasParents) {
+  if (!inheritanceState.hasParents()) {
     final RootClass rootClass=(RootClass)persistentClass;
     mappings.addSecondPass(new CreateKeySecondPass(rootClass));
   }
@@ -259,7 +204,7 @@
     superEntity.addSubclass((Subclass)persistentClass);
   }
   mappings.addClass(persistentClass);
-  mappings.addSecondPass(new SecondaryTableSecondPass(entityBinder,propertyHolder,annotatedClass));
-  entityBinder.processComplementaryTableDefinitions(annotatedClass.getAnnotation(org.hibernate.annotations.Table.class));
-  entityBinder.processComplementaryTableDefinitions(annotatedClass.getAnnotation(org.hibernate.annotations.Tables.class));
+  mappings.addSecondPass(new SecondaryTableSecondPass(entityBinder,propertyHolder,clazzToProcess));
+  entityBinder.processComplementaryTableDefinitions(clazzToProcess.getAnnotation(org.hibernate.annotations.Table.class));
+  entityBinder.processComplementaryTableDefinitions(clazzToProcess.getAnnotation(org.hibernate.annotations.Tables.class));
 }

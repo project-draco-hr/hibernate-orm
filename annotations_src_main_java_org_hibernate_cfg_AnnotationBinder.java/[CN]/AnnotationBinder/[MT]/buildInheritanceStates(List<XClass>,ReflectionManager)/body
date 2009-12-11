@@ -4,16 +4,16 @@
     InheritanceState superclassState=InheritanceState.getSuperclassInheritanceState(clazz,inheritanceStatePerClass,reflectionManager);
     InheritanceState state=new InheritanceState(clazz);
     if (superclassState != null) {
-      superclassState.hasSons=true;
-      InheritanceState superEntityState=InheritanceState.getSuperEntityInheritanceState(clazz,inheritanceStatePerClass,reflectionManager);
-      state.hasParents=superEntityState != null;
-      final boolean nonDefault=state.type != null && !InheritanceType.SINGLE_TABLE.equals(state.type);
-      if (superclassState.type != null) {
-        final boolean mixingStrategy=state.type != null && !state.type.equals(superclassState.type);
+      superclassState.setHasSiblings(true);
+      InheritanceState superEntityState=InheritanceState.getInheritanceStateOfSuperEntity(clazz,inheritanceStatePerClass,reflectionManager);
+      state.setHasParents(superEntityState != null);
+      final boolean nonDefault=state.getType() != null && !InheritanceType.SINGLE_TABLE.equals(state.getType());
+      if (superclassState.getType() != null) {
+        final boolean mixingStrategy=state.getType() != null && !state.getType().equals(superclassState.getType());
         if (nonDefault && mixingStrategy) {
           log.warn("Mixing inheritance strategy in a entity hierarchy is not allowed, ignoring sub strategy in: {}",clazz.getName());
         }
-        state.type=superclassState.type;
+        state.setType(superclassState.getType());
       }
     }
     inheritanceStatePerClass.put(clazz,state);

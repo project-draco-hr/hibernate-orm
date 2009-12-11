@@ -1,0 +1,19 @@
+{
+  PersistentClass persistentClass;
+  if (!inheritanceState.hasParents()) {
+    persistentClass=new RootClass();
+  }
+ else   if (InheritanceType.SINGLE_TABLE.equals(inheritanceState.getType())) {
+    persistentClass=new SingleTableSubclass(superEntity);
+  }
+ else   if (InheritanceType.JOINED.equals(inheritanceState.getType())) {
+    persistentClass=new JoinedSubclass(superEntity);
+  }
+ else   if (InheritanceType.TABLE_PER_CLASS.equals(inheritanceState.getType())) {
+    persistentClass=new UnionSubclass(superEntity);
+  }
+ else {
+    throw new AssertionFailure("Unknown inheritance type: " + inheritanceState.getType());
+  }
+  return persistentClass;
+}
