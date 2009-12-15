@@ -1,0 +1,13 @@
+{
+  List<PersistentCollectionChangeData> collectionChanges=verCfg.getEntCfg().get(collectionEntityName).getPropertyMapper().mapCollectionChanges(referencingPropertyName,newColl,oldColl,event.getAffectedOwnerIdOrNull());
+  String relatedEntityName=rd.getToEntityName();
+  IdMapper relatedIdMapper=verCfg.getEntCfg().get(relatedEntityName).getIdMapper();
+  for (  PersistentCollectionChangeData changeData : collectionChanges) {
+    Object relatedObj=changeData.getChangedElement();
+    Serializable relatedId=(Serializable)relatedIdMapper.mapToIdFromEntity(relatedObj);
+    RevisionType revType=(RevisionType)changeData.getData().get(verCfg.getAuditEntCfg().getRevisionTypePropName());
+    AuditWorkUnit nestedWorkUnit=new CollectionChangeWorkUnit(event.getSession(),relatedEntityName,verCfg,relatedId,relatedObj);
+    verSync.addWorkUnit(new FakeBidirectionalRelationWorkUnit(event.getSession(),relatedEntityName,verCfg,relatedId,event.getAffectedOwnerOrNull(),rd,revType,nestedWorkUnit));
+  }
+  verSync.addWorkUnit(new CollectionChangeWorkUnit(event.getSession(),collectionEntityName,verCfg,event.getAffectedOwnerIdOrNull(),event.getAffectedOwnerOrNull()));
+}

@@ -1,5 +1,10 @@
 {
-  Iterator<Property> assocClassProps=((OneToMany)collectionValue.getElement()).getAssociatedClass().getPropertyIterator();
+  PersistentClass referencedClass=((OneToMany)collectionValue.getElement()).getAssociatedClass();
+  String mappedByCommon=getMappedByCommon(referencedClass);
+  if (mappedByCommon != null) {
+    return mappedByCommon;
+  }
+  Iterator<Property> assocClassProps=referencedClass.getPropertyIterator();
   while (assocClassProps.hasNext()) {
     Property property=assocClassProps.next();
     if (Tools.iteratorsContentEqual(property.getValue().getColumnIterator(),collectionValue.getKey().getColumnIterator())) {

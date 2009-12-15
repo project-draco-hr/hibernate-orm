@@ -1,7 +1,10 @@
 {
   Type type=propertyValue.getType();
-  if ((type instanceof BagType || type instanceof SetType || type instanceof MapType|| type instanceof ListType) && (propertyValue.getElement() instanceof OneToMany) && (propertyValue.isInverse())) {
-    addOneToManyAttached();
+  boolean oneToManyAttachedType=type instanceof BagType || type instanceof SetType || type instanceof MapType|| type instanceof ListType;
+  boolean inverseOneToMany=(propertyValue.getElement() instanceof OneToMany) && (propertyValue.isInverse());
+  boolean fakeOneToManyBidirectional=(propertyValue.getElement() instanceof OneToMany) && (propertyAuditingData.getAuditMappedBy() != null);
+  if (oneToManyAttachedType && (inverseOneToMany || fakeOneToManyBidirectional)) {
+    addOneToManyAttached(fakeOneToManyBidirectional);
   }
  else {
     addWithMiddleTable();

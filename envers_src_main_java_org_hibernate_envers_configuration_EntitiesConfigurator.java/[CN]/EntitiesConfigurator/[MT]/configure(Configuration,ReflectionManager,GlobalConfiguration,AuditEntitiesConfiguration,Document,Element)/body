@@ -1,17 +1,21 @@
 {
   AuditEntityNameRegister auditEntityNameRegister=new AuditEntityNameRegister();
-  AuditMetadataGenerator auditMetaGen=new AuditMetadataGenerator(cfg,globalCfg,verEntCfg,revisionInfoRelationMapping,auditEntityNameRegister);
   DOMWriter writer=new DOMWriter();
   Iterator<PersistentClass> classes=GraphTopologicalSort.sort(new PersistentClassGraphDefiner(cfg)).iterator();
-  Map<PersistentClass,ClassAuditingData> pcDatas=new HashMap<PersistentClass,ClassAuditingData>();
+  ClassesAuditingData classesAuditingData=new ClassesAuditingData();
   Map<PersistentClass,EntityXmlMappingData> xmlMappings=new HashMap<PersistentClass,EntityXmlMappingData>();
   while (classes.hasNext()) {
     PersistentClass pc=classes.next();
     AnnotationsMetadataReader annotationsMetadataReader=new AnnotationsMetadataReader(globalCfg,reflectionManager,pc);
     ClassAuditingData auditData=annotationsMetadataReader.getAuditData();
+    classesAuditingData.addClassAuditingData(pc,auditData);
+  }
+  AuditMetadataGenerator auditMetaGen=new AuditMetadataGenerator(cfg,globalCfg,verEntCfg,revisionInfoRelationMapping,auditEntityNameRegister,classesAuditingData);
+  for (  Map.Entry<PersistentClass,ClassAuditingData> pcDatasEntry : classesAuditingData.getAllClassAuditedData()) {
+    PersistentClass pc=pcDatasEntry.getKey();
+    ClassAuditingData auditData=pcDatasEntry.getValue();
     EntityXmlMappingData xmlMappingData=new EntityXmlMappingData();
     if (auditData.isAudited()) {
-      pcDatas.put(pc,auditData);
       if (!StringTools.isEmpty(auditData.getAuditTable().value())) {
         verEntCfg.addCustomAuditTableName(pc.getEntityName(),auditData.getAuditTable().value());
       }
@@ -22,20 +26,22 @@
     }
     xmlMappings.put(pc,xmlMappingData);
   }
-  for (  Map.Entry<PersistentClass,ClassAuditingData> pcDatasEntry : pcDatas.entrySet()) {
+  for (  Map.Entry<PersistentClass,ClassAuditingData> pcDatasEntry : classesAuditingData.getAllClassAuditedData()) {
     EntityXmlMappingData xmlMappingData=xmlMappings.get(pcDatasEntry.getKey());
-    auditMetaGen.generateSecondPass(pcDatasEntry.getKey(),pcDatasEntry.getValue(),xmlMappingData);
-    try {
-      cfg.addDocument(writer.write(xmlMappingData.getMainXmlMapping()));
-      for (      Document additionalMapping : xmlMappingData.getAdditionalXmlMappings()) {
-        cfg.addDocument(writer.write(additionalMapping));
+    if (pcDatasEntry.getValue().isAudited()) {
+      auditMetaGen.generateSecondPass(pcDatasEntry.getKey(),pcDatasEntry.getValue(),xmlMappingData);
+      try {
+        cfg.addDocument(writer.write(xmlMappingData.getMainXmlMapping()));
+        for (        Document additionalMapping : xmlMappingData.getAdditionalXmlMappings()) {
+          cfg.addDocument(writer.write(additionalMapping));
+        }
+      }
+ catch (      DocumentException e) {
+        throw new MappingException(e);
       }
     }
- catch (    DocumentException e) {
-      throw new MappingException(e);
-    }
   }
-  if (pcDatas.size() > 0) {
+  if (classesAuditingData.getAllClassAuditedData().size() > 0) {
     try {
       if (revisionInfoXmlMapping != null) {
         cfg.addDocument(writer.write(revisionInfoXmlMapping));

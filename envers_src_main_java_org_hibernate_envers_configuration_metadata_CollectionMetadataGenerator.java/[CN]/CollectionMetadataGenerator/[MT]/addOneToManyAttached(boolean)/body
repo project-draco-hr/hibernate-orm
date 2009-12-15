@@ -1,0 +1,23 @@
+{
+  log.debug("Adding audit mapping for property " + referencingEntityName + "."+ propertyName+ ": one-to-many collection, using a join column on the referenced entity.");
+  String mappedBy=getMappedBy(propertyValue);
+  IdMappingData referencedIdMapping=mainGenerator.getReferencedIdMappingData(referencingEntityName,referencedEntityName,propertyAuditingData,false);
+  IdMappingData referencingIdMapping=referencingEntityConfiguration.getIdMappingData();
+  MiddleIdData referencingIdData=createMiddleIdData(referencingIdMapping,mappedBy + "_",referencingEntityName);
+  MiddleIdData referencedIdData=createMiddleIdData(referencedIdMapping,null,referencedEntityName);
+  MiddleComponentData elementComponentData=new MiddleComponentData(new MiddleRelatedComponentMapper(referencedIdData),0);
+  MiddleComponentData indexComponentData=addIndex(null,null);
+  RelationQueryGenerator queryGenerator=new OneAuditEntityQueryGenerator(mainGenerator.getGlobalCfg(),mainGenerator.getVerEntCfg(),referencingIdData,referencedEntityName,referencedIdMapping.getIdMapper());
+  CommonCollectionMapperData commonCollectionMapperData=new CommonCollectionMapperData(mainGenerator.getVerEntCfg(),referencedEntityName,propertyAuditingData.getPropertyData(),referencingIdData,queryGenerator);
+  addMapper(commonCollectionMapperData,elementComponentData,indexComponentData);
+  PropertyMapper fakeBidirectionalRelationMapper;
+  if (fakeOneToManyBidirectional) {
+    String auditMappedBy=propertyAuditingData.getAuditMappedBy();
+    IdMapper relMapper=referencingIdMapping.getIdMapper().prefixMappedProperties(MappingTools.createToOneRelationPrefix(auditMappedBy));
+    fakeBidirectionalRelationMapper=new ToOneIdMapper(relMapper,new PropertyData(auditMappedBy,null,null,null),referencedEntityName);
+  }
+ else {
+    fakeBidirectionalRelationMapper=null;
+  }
+  referencingEntityConfiguration.addToManyNotOwningRelation(propertyName,mappedBy,referencedEntityName,referencingIdData.getPrefixedMapper(),fakeBidirectionalRelationMapper);
+}

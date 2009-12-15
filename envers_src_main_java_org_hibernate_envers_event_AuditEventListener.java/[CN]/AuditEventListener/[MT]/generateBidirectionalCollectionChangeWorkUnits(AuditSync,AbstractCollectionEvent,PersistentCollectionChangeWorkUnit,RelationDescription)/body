@@ -1,0 +1,14 @@
+{
+  if (!verCfg.getGlobalCfg().isGenerateRevisionsForCollections()) {
+    return;
+  }
+  if (rd != null && rd.isBidirectional()) {
+    String relatedEntityName=rd.getToEntityName();
+    IdMapper relatedIdMapper=verCfg.getEntCfg().get(relatedEntityName).getIdMapper();
+    for (    PersistentCollectionChangeData changeData : workUnit.getCollectionChanges()) {
+      Object relatedObj=changeData.getChangedElement();
+      Serializable relatedId=(Serializable)relatedIdMapper.mapToIdFromEntity(relatedObj);
+      verSync.addWorkUnit(new CollectionChangeWorkUnit(event.getSession(),relatedEntityName,verCfg,relatedId,relatedObj));
+    }
+  }
+}
