@@ -1,6 +1,11 @@
 {
-  if (revisionType == RevisionType.DEL || second.getRevisionType() == RevisionType.ADD) {
-    return second;
+  AuditWorkUnit mergedNested=second.getNestedWorkUnit().dispatch(nestedWorkUnit);
+  Map<String,FakeRelationChange> secondFakeRelationChanges=second.getFakeRelationChanges();
+  Map<String,FakeRelationChange> mergedFakeRelationChanges=new HashMap<String,FakeRelationChange>();
+  Set<String> allPropertyNames=new HashSet<String>(fakeRelationChanges.keySet());
+  allPropertyNames.addAll(secondFakeRelationChanges.keySet());
+  for (  String propertyName : allPropertyNames) {
+    mergedFakeRelationChanges.put(propertyName,FakeRelationChange.merge(fakeRelationChanges.get(propertyName),secondFakeRelationChanges.get(propertyName)));
   }
-  return this;
+  return new FakeBidirectionalRelationWorkUnit(this,mergedFakeRelationChanges,mergedNested);
 }
