@@ -1,0 +1,26 @@
+{
+  EntityManager em=getEntityManager();
+  ListJoinColumnBidirectionalInheritanceRefEdParentEntity ed1=new ListJoinColumnBidirectionalInheritanceRefEdChildEntity("ed1",null,"ed1 child");
+  ListJoinColumnBidirectionalInheritanceRefEdParentEntity ed2=new ListJoinColumnBidirectionalInheritanceRefEdChildEntity("ed2",null,"ed2 child");
+  ListJoinColumnBidirectionalInheritanceRefIngEntity ing1=new ListJoinColumnBidirectionalInheritanceRefIngEntity("coll1",ed1);
+  ListJoinColumnBidirectionalInheritanceRefIngEntity ing2=new ListJoinColumnBidirectionalInheritanceRefIngEntity("coll1",ed2);
+  em.getTransaction().begin();
+  em.persist(ed1);
+  em.persist(ed2);
+  em.persist(ing1);
+  em.persist(ing2);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  ing1=em.find(ListJoinColumnBidirectionalInheritanceRefIngEntity.class,ing1.getId());
+  ing2=em.find(ListJoinColumnBidirectionalInheritanceRefIngEntity.class,ing2.getId());
+  ed1=em.find(ListJoinColumnBidirectionalInheritanceRefEdParentEntity.class,ed1.getId());
+  ed2=em.find(ListJoinColumnBidirectionalInheritanceRefEdParentEntity.class,ed2.getId());
+  ing2.getReferences().remove(ed2);
+  ing1.getReferences().add(ed2);
+  em.getTransaction().commit();
+  em.clear();
+  ing1_id=ing1.getId();
+  ing2_id=ing2.getId();
+  ed1_id=ed1.getId();
+  ed2_id=ed2.getId();
+}
