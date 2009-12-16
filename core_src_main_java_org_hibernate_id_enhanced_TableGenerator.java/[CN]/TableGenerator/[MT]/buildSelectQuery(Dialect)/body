@@ -1,8 +1,8 @@
 {
   final String alias="tbl";
   String query="select " + StringHelper.qualify(alias,valueColumnName) + " from "+ tableName+ ' '+ alias+ " where "+ StringHelper.qualify(alias,segmentColumnName)+ "=?";
-  HashMap lockMap=new HashMap();
-  lockMap.put(alias,LockOptions.UPGRADE);
+  LockOptions lockOptions=new LockOptions(LockMode.UPGRADE);
+  lockOptions.setAliasLockMode(LockMode.UPGRADE,alias);
   Map updateTargetColumnsMap=Collections.singletonMap(alias,new String[]{valueColumnName});
-  return dialect.applyLocksToSql(query,lockMap,updateTargetColumnsMap);
+  return dialect.applyLocksToSql(query,lockOptions,updateTargetColumnsMap);
 }

@@ -1,0 +1,14 @@
+{
+  final String instanceClass=getInstanceClass(rs,i,persister,key.getIdentifier(),session);
+  final Object object;
+  if (optionalObjectKey != null && key.equals(optionalObjectKey)) {
+    object=optionalObject;
+  }
+ else {
+    object=session.instantiate(instanceClass,key.getIdentifier());
+  }
+  LockMode acquiredLockMode=lockMode == LockMode.NONE ? LockMode.READ : lockMode;
+  loadFromResultSet(rs,i,object,instanceClass,key,rowIdAlias,acquiredLockMode,persister,session);
+  hydratedObjects.add(object);
+  return object;
+}
