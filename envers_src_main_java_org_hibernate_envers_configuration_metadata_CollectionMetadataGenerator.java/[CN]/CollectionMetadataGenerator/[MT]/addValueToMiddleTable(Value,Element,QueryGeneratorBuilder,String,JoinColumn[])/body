@@ -2,7 +2,7 @@
   Type type=value.getType();
   if (type instanceof ManyToOneType) {
     String prefixRelated=prefix + "_";
-    String referencedEntityName=getReferencedEntityName(value);
+    String referencedEntityName=MappingTools.getReferencedEntityName(value);
     IdMappingData referencedIdMapping=mainGenerator.getReferencedIdMappingData(referencingEntityName,referencedEntityName,propertyAuditingData,true);
     if (xmlMapping != null) {
       addRelatedToXmlMapping(xmlMapping,prefixRelated,joinColumns != null && joinColumns.length > 0 ? MetadataTools.getColumnNameIterator(joinColumns) : MetadataTools.getColumnNameIterator(value.getColumnIterator()),referencedIdMapping);
@@ -12,7 +12,7 @@
     return new MiddleComponentData(new MiddleRelatedComponentMapper(referencedIdData),queryGeneratorBuilder.getCurrentIndex());
   }
  else {
-    boolean mapped=mainGenerator.getBasicMetadataGenerator().addBasic(xmlMapping,new PropertyAuditingData(prefix,"field",ModificationStore.FULL,RelationTargetAuditMode.AUDITED,null,null),value,null,true,true);
+    boolean mapped=mainGenerator.getBasicMetadataGenerator().addBasic(xmlMapping,new PropertyAuditingData(prefix,"field",ModificationStore.FULL,RelationTargetAuditMode.AUDITED,null,null,false),value,null,true,true);
     if (mapped) {
       return new MiddleComponentData(new MiddleSimpleComponentMapper(mainGenerator.getVerEntCfg(),prefix),0);
     }

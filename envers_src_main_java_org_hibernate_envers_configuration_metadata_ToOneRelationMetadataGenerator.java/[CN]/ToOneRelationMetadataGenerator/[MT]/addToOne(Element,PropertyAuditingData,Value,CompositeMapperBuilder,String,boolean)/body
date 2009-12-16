@@ -4,18 +4,13 @@
   String lastPropertyPrefix=MappingTools.createToOneRelationPrefix(propertyAuditingData.getName());
   IdMapper relMapper=idMapping.getIdMapper().prefixMappedProperties(lastPropertyPrefix);
   mainGenerator.getEntitiesConfigurations().get(entityName).addToOneRelation(propertyAuditingData.getName(),referencedEntityName,relMapper,insertable);
-  boolean nonInsertableFake=false;
-  if (!insertable) {
-    ClassAuditingData referencedAuditingData=mainGenerator.getClassesAuditingData().getClassAuditingData(referencedEntityName);
-    for (    String referencedPropertyName : referencedAuditingData.getPropertyNames()) {
-      String auditMappedBy=referencedAuditingData.getPropertyAuditingData(referencedPropertyName).getAuditMappedBy();
-      if (propertyAuditingData.getName().equals(auditMappedBy)) {
-        log.debug("Non-insertable property " + entityName + "."+ propertyAuditingData.getName()+ " will be made insertable because a matching @AuditMappedBy was found in the "+ referencedEntityName+ " entity.");
-        insertable=true;
-        nonInsertableFake=true;
-        break;
-      }
-    }
+  boolean nonInsertableFake;
+  if (!insertable && propertyAuditingData.isForceInsertable()) {
+    nonInsertableFake=true;
+    insertable=true;
+  }
+ else {
+    nonInsertableFake=false;
   }
   Element properties=(Element)idMapping.getXmlRelationMapping().clone();
   properties.addAttribute("name",propertyAuditingData.getName());

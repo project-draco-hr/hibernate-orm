@@ -9,15 +9,25 @@
   MiddleComponentData indexComponentData=addIndex(null,null);
   RelationQueryGenerator queryGenerator=new OneAuditEntityQueryGenerator(mainGenerator.getGlobalCfg(),mainGenerator.getVerEntCfg(),referencingIdData,referencedEntityName,referencedIdMapping.getIdMapper());
   CommonCollectionMapperData commonCollectionMapperData=new CommonCollectionMapperData(mainGenerator.getVerEntCfg(),referencedEntityName,propertyAuditingData.getPropertyData(),referencingIdData,queryGenerator);
-  addMapper(commonCollectionMapperData,elementComponentData,indexComponentData);
   PropertyMapper fakeBidirectionalRelationMapper;
+  PropertyMapper fakeBidirectionalRelationIndexMapper;
   if (fakeOneToManyBidirectional) {
     String auditMappedBy=propertyAuditingData.getAuditMappedBy();
     IdMapper relMapper=referencingIdMapping.getIdMapper().prefixMappedProperties(MappingTools.createToOneRelationPrefix(auditMappedBy));
     fakeBidirectionalRelationMapper=new ToOneIdMapper(relMapper,new PropertyData(auditMappedBy,null,null,null),referencedEntityName,false);
+    if (propertyAuditingData.getPositionMappedBy() != null) {
+      String positionMappedBy=propertyAuditingData.getPositionMappedBy();
+      fakeBidirectionalRelationIndexMapper=new SinglePropertyMapper(new PropertyData(positionMappedBy,null,null,null));
+      indexComponentData=new MiddleComponentData(new MiddleStraightComponentMapper(positionMappedBy),0);
+    }
+ else {
+      fakeBidirectionalRelationIndexMapper=null;
+    }
   }
  else {
     fakeBidirectionalRelationMapper=null;
+    fakeBidirectionalRelationIndexMapper=null;
   }
-  referencingEntityConfiguration.addToManyNotOwningRelation(propertyName,mappedBy,referencedEntityName,referencingIdData.getPrefixedMapper(),fakeBidirectionalRelationMapper);
+  addMapper(commonCollectionMapperData,elementComponentData,indexComponentData);
+  referencingEntityConfiguration.addToManyNotOwningRelation(propertyName,mappedBy,referencedEntityName,referencingIdData.getPrefixedMapper(),fakeBidirectionalRelationMapper,fakeBidirectionalRelationIndexMapper);
 }
