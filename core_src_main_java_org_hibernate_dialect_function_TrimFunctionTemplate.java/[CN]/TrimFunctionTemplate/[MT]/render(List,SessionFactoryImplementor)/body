@@ -1,22 +1,20 @@
 {
+  final Options options=new Options();
+  final String trimSource;
   if (args.size() == 1) {
-    return BOTH_SPACE_TRIM.render(args,factory);
+    trimSource=(String)args.get(0);
   }
  else   if ("from".equalsIgnoreCase((String)args.get(0))) {
-    return BOTH_SPACE_TRIM_FROM.render(args,factory);
+    trimSource=(String)args.get(1);
   }
  else {
-    boolean leading=true;
-    boolean trailing=true;
-    String trimCharacter;
-    String trimSource;
     int potentialTrimCharacterArgIndex=1;
     String firstArg=(String)args.get(0);
     if ("leading".equalsIgnoreCase(firstArg)) {
-      trailing=false;
+      options.setTrimSpecification(Specification.LEADING);
     }
  else     if ("trailing".equalsIgnoreCase(firstArg)) {
-      leading=false;
+      options.setTrimSpecification(Specification.TRAILING);
     }
  else     if ("both".equalsIgnoreCase(firstArg)) {
     }
@@ -25,15 +23,13 @@
     }
     String potentialTrimCharacter=(String)args.get(potentialTrimCharacterArgIndex);
     if ("from".equalsIgnoreCase(potentialTrimCharacter)) {
-      trimCharacter="' '";
       trimSource=(String)args.get(potentialTrimCharacterArgIndex + 1);
     }
  else     if (potentialTrimCharacterArgIndex + 1 >= args.size()) {
-      trimCharacter="' '";
       trimSource=potentialTrimCharacter;
     }
  else {
-      trimCharacter=potentialTrimCharacter;
+      options.setTrimCharacter(potentialTrimCharacter);
       if ("from".equalsIgnoreCase((String)args.get(potentialTrimCharacterArgIndex + 1))) {
         trimSource=(String)args.get(potentialTrimCharacterArgIndex + 2);
       }
@@ -41,22 +37,6 @@
         trimSource=(String)args.get(potentialTrimCharacterArgIndex + 1);
       }
     }
-    List argsToUse=new ArrayList();
-    argsToUse.add(trimSource);
-    argsToUse.add(trimCharacter);
-    if (trimCharacter.equals("' '")) {
-      if (leading && trailing) {
-        return BOTH_SPACE_TRIM.render(argsToUse,factory);
-      }
- else       if (leading) {
-        return LEADING_SPACE_TRIM.render(argsToUse,factory);
-      }
- else {
-        return TRAILING_SPACE_TRIM.render(argsToUse,factory);
-      }
-    }
- else {
-      throw new HibernateException("cannot specify trim character when using Derby as Derby does not support the ANSI trim function, not does it support a replace function to properly emmulate it");
-    }
   }
+  return render(options,trimSource,factory);
 }
