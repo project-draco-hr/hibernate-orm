@@ -121,7 +121,7 @@
     log.warn("Inapropriate use of @OnDelete on entity, annotation ignored: {}",propertyHolder.getEntityName());
   }
   HashMap<String,IdGenerator> classGenerators=buildLocalGenerators(clazzToProcess,mappings);
-  List<PropertyData> elements=getElementsToProcess(persistentClass,clazzToProcess,inheritanceStatePerClass,propertyHolder,entityBinder,mappings);
+  List<PropertyData> elements=getElementsToProcess(persistentClass,clazzToProcess,inheritanceStatePerClass,entityBinder,mappings);
   if (elements == null) {
     throw new AnnotationException("No identifier specified for entity: " + propertyHolder.getEntityName());
   }
@@ -144,8 +144,7 @@
   if (idClass != null) {
     XClass compositeClass=mappings.getReflectionManager().toXClass(idClass.value());
     boolean isComponent=true;
-    boolean propertyAnnotated=entityBinder.isPropertyAnnotated(compositeClass);
-    String propertyAccessor=entityBinder.getPropertyAccessor(compositeClass);
+    AccessType propertyAccessor=entityBinder.getPropertyAccessor(compositeClass);
     String generatorType="assigned";
     String generator=BinderHelper.ANNOTATION_STRING_DEFAULT;
     PropertyData inferredData=new PropertyPreloadedData(entityBinder.getPropertyAccessor(),"id",compositeClass);
@@ -153,9 +152,9 @@
     HashMap<String,IdGenerator> localGenerators=new HashMap<String,IdGenerator>();
     boolean ignoreIdAnnotations=entityBinder.isIgnoreIdAnnotations();
     entityBinder.setIgnoreIdAnnotations(true);
-    bindId(generatorType,generator,inferredData,baseInferredData,null,propertyHolder,localGenerators,isComponent,propertyAnnotated,propertyAccessor,entityBinder,true,false,mappings,inheritanceStatePerClass);
+    bindId(generatorType,generator,inferredData,baseInferredData,null,propertyHolder,localGenerators,isComponent,propertyAccessor,entityBinder,true,false,mappings,inheritanceStatePerClass);
     inferredData=new PropertyPreloadedData(propertyAccessor,"_identifierMapper",compositeClass);
-    Component mapper=fillComponent(propertyHolder,inferredData,baseInferredData,propertyAnnotated,propertyAccessor,false,entityBinder,true,true,false,mappings,inheritanceStatePerClass);
+    Component mapper=fillComponent(propertyHolder,inferredData,baseInferredData,propertyAccessor,false,entityBinder,true,true,false,mappings,inheritanceStatePerClass);
     entityBinder.setIgnoreIdAnnotations(ignoreIdAnnotations);
     persistentClass.setIdentifierMapper(mapper);
     final org.hibernate.mapping.MappedSuperclass superclass=BinderHelper.getMappedSuperclassOrNull(inferredData.getDeclaringClass(),inheritanceStatePerClass,mappings);

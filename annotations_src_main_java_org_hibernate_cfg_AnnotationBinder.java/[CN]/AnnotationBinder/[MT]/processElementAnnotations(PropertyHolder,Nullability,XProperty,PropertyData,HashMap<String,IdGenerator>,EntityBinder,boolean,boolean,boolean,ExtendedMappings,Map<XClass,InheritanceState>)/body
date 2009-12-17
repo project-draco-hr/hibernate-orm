@@ -80,13 +80,12 @@
     HashMap<String,IdGenerator> localGenerators=(HashMap<String,IdGenerator>)classGenerators.clone();
     localGenerators.putAll(buildLocalGenerators(property,mappings));
     final boolean isComponent=returnedClass.isAnnotationPresent(Embeddable.class) || property.isAnnotationPresent(EmbeddedId.class);
-    boolean propertyAnnotated=entityBinder.isPropertyAnnotated(returnedClass);
-    String propertyAccessor=entityBinder.getPropertyAccessor(returnedClass);
+    AccessType propertyAccessor=entityBinder.getPropertyAccessor(returnedClass);
     GeneratedValue generatedValue=property.getAnnotation(GeneratedValue.class);
     String generatorType=generatedValue != null ? generatorType(generatedValue.strategy()) : "assigned";
     String generator=generatedValue != null ? generatedValue.generator() : BinderHelper.ANNOTATION_STRING_DEFAULT;
     if (isComponent)     generatorType="assigned";
-    bindId(generatorType,generator,inferredData,columns,propertyHolder,localGenerators,isComponent,propertyAnnotated,propertyAccessor,entityBinder,false,isIdentifierMapper,mappings,inheritanceStatePerClass);
+    bindId(generatorType,generator,inferredData,columns,propertyHolder,localGenerators,isComponent,propertyAccessor,entityBinder,false,isIdentifierMapper,mappings,inheritanceStatePerClass);
     log.debug("Bind {} on {}",(isComponent ? "@EmbeddedId" : "@Id"),inferredData.getPropertyName());
   }
  else   if (property.isAnnotationPresent(Version.class)) {
@@ -105,7 +104,7 @@
     propBinder.setName(inferredData.getPropertyName());
     propBinder.setReturnedClassName(inferredData.getTypeName());
     propBinder.setLazy(false);
-    propBinder.setPropertyAccessorName(inferredData.getDefaultAccess());
+    propBinder.setAccessType(inferredData.getDefaultAccess());
     propBinder.setColumns(columns);
     propBinder.setHolder(propertyHolder);
     propBinder.setProperty(property);
@@ -216,7 +215,7 @@
     collectionBinder.setIgnoreNotFound(ignoreNotFound);
     collectionBinder.setCollectionType(inferredData.getProperty().getElementClass());
     collectionBinder.setMappings(mappings);
-    collectionBinder.setPropertyAccessorName(inferredData.getDefaultAccess());
+    collectionBinder.setAccessType(inferredData.getDefaultAccess());
     Ejb3Column[] elementColumns;
     PropertyData virtualProperty=new WrappedInferredData(inferredData,"element");
     if (property.isAnnotationPresent(Column.class) || property.isAnnotationPresent(Formula.class)) {
@@ -352,9 +351,8 @@
     Embedded embeddedAnn=property.getAnnotation(Embedded.class);
     isComponent=embeddedAnn != null || embeddableAnn != null;
     if (isComponent) {
-      boolean propertyAnnotated=entityBinder.isPropertyAnnotated(property);
-      String propertyAccessor=entityBinder.getPropertyAccessor(property);
-      bindComponent(inferredData,propertyHolder,propertyAnnotated,propertyAccessor,entityBinder,isIdentifierMapper,mappings,isComponentEmbedded,inheritanceStatePerClass);
+      AccessType propertyAccessor=entityBinder.getPropertyAccessor(property);
+      bindComponent(inferredData,propertyHolder,propertyAccessor,entityBinder,isIdentifierMapper,mappings,isComponentEmbedded,inheritanceStatePerClass);
     }
  else {
       boolean optional=true;
@@ -373,7 +371,7 @@
       propBinder.setName(inferredData.getPropertyName());
       propBinder.setReturnedClassName(inferredData.getTypeName());
       propBinder.setLazy(lazy);
-      propBinder.setPropertyAccessorName(inferredData.getDefaultAccess());
+      propBinder.setAccessType(inferredData.getDefaultAccess());
       propBinder.setColumns(columns);
       propBinder.setHolder(propertyHolder);
       propBinder.setProperty(property);
