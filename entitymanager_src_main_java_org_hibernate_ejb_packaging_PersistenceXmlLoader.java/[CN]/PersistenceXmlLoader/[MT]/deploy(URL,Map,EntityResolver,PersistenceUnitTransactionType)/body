@@ -1,6 +1,7 @@
 {
   Document doc=loadURL(url,resolver);
   Element top=doc.getDocumentElement();
+  final String version=top.getAttribute("version");
   NodeList children=top.getChildNodes();
   ArrayList<PersistenceMetadata> units=new ArrayList<PersistenceMetadata>();
   for (int i=0; i < children.getLength(); i++) {
@@ -9,6 +10,7 @@
       String tag=element.getTagName();
       if (tag.equals("persistence-unit")) {
         PersistenceMetadata metadata=parsePersistenceUnit(element);
+        metadata.setVersion(version);
         if (overrides.containsKey(HibernatePersistence.PROVIDER)) {
           String provider=(String)overrides.get(HibernatePersistence.PROVIDER);
           metadata.setProvider(provider);

@@ -8,25 +8,21 @@
   if (is == null) {
     throw new IOException("Failed to obtain InputStream from url: " + configURL);
   }
-  List errors=new ArrayList();
-  DocumentBuilderFactory docBuilderFactory=null;
-  docBuilderFactory=DocumentBuilderFactory.newInstance();
-  docBuilderFactory.setValidating(true);
+  DocumentBuilderFactory docBuilderFactory=DocumentBuilderFactory.newInstance();
   docBuilderFactory.setNamespaceAware(true);
-  try {
-    docBuilderFactory.setAttribute("http://apache.org/xml/features/validation/schema",true);
-  }
- catch (  IllegalArgumentException e) {
-    docBuilderFactory.setValidating(false);
-    docBuilderFactory.setNamespaceAware(false);
-  }
+  final Schema v2Schema=SchemaFactory.newInstance(javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(getStreamFromClasspath("persistence_2_0.xsd")));
+  final Validator v2Validator=v2Schema.newValidator();
+  final Schema v1Schema=SchemaFactory.newInstance(javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(getStreamFromClasspath("persistence_1_0.xsd")));
+  final Validator v1Validator=v2Schema.newValidator();
   InputSource source=new InputSource(is);
   DocumentBuilder docBuilder=docBuilderFactory.newDocumentBuilder();
   docBuilder.setEntityResolver(resolver);
-  docBuilder.setErrorHandler(new ErrorLogger("XML InputStream",errors,resolver));
   Document doc=docBuilder.parse(source);
+  List errors=new ArrayList();
+  v2Validator.setErrorHandler(new ErrorLogger("XML InputStream",errors,resolver));
+  v2Validator.validate(new DOMSource(doc));
   if (errors.size() != 0) {
-    throw new PersistenceException("invalid persistence.xml",(Throwable)errors.get(0));
+    throw new PersistenceException("Invlid persistence.xml. Check the error logs for parsing errors",(Throwable)errors.get(0));
   }
   return doc;
 }
