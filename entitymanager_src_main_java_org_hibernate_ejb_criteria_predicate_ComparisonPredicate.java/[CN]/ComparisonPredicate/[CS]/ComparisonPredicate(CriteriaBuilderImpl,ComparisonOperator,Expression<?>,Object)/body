@@ -2,5 +2,10 @@
   super(criteriaBuilder);
   this.comparisonOperator=comparisonOperator;
   this.leftHandSide=leftHandSide;
-  this.rightHandSide=new LiteralExpression(criteriaBuilder,rightHandSide);
+  if (Number.class.isAssignableFrom(leftHandSide.getJavaType())) {
+    this.rightHandSide=new LiteralExpression(criteriaBuilder,ValueConverter.convert(rightHandSide,(Class<Number>)leftHandSide.getJavaType()));
+  }
+ else {
+    this.rightHandSide=new LiteralExpression(criteriaBuilder,rightHandSide);
+  }
 }

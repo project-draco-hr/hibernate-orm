@@ -1,0 +1,15 @@
+{
+  try {
+    org.hibernate.Query hqlQuery=getSession().createQuery(jpaqlString);
+    if (options.getConversions() != null) {
+      hqlQuery.setResultTransformer(new ValueConversionResultTransformer(options.getConversions()));
+    }
+ else {
+      options.getResultMetadataValidator().validate(hqlQuery.getReturnTypes());
+    }
+    return new QueryImpl<T>(hqlQuery,this,options.getNamedParameterExplicitTypes());
+  }
+ catch (  HibernateException he) {
+    throw convert(he);
+  }
+}
