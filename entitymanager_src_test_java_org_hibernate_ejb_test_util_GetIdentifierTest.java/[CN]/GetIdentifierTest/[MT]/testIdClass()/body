@@ -1,0 +1,15 @@
+{
+  EntityManager em=factory.createEntityManager();
+  em.getTransaction().begin();
+  Sickness sick=new Sickness();
+  sick.setClassification("H1N1");
+  sick.setType("Flu");
+  em.persist(sick);
+  em.flush();
+  Sickness.PK id=new Sickness.PK();
+  id.setClassification(sick.getClassification());
+  id.setType(sick.getType());
+  assertEquals(id,em.getEntityManagerFactory().getPersistenceUnitUtil().getIdentifier(sick));
+  em.getTransaction().rollback();
+  em.close();
+}
