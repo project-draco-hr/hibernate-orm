@@ -1,0 +1,76 @@
+{
+  super(propertyMapping,ownerType,member,persistentAttributeType);
+  this.attributeCollectionType=determineCollectionType(getJavaType());
+  this.elementPersistentAttributeType=elementPersistentAttributeType;
+  this.keyPersistentAttributeType=keyPersistentAttributeType;
+  ParameterizedType signatureType=getSignatureType(member);
+  if (keyPersistentAttributeType == null) {
+    elementJavaType=(Class)signatureType.getActualTypeArguments()[0];
+    keyJavaType=null;
+  }
+ else {
+    keyJavaType=(Class)signatureType.getActualTypeArguments()[0];
+    elementJavaType=(Class)signatureType.getActualTypeArguments()[1];
+  }
+  this.elementValueContext=new ValueContext(){
+    public Value getValue(){
+      return ((Collection)getPropertyMapping().getValue()).getElement();
+    }
+    public Class getBindableType(){
+      return elementJavaType;
+    }
+    public ValueClassification getValueClassification(){
+switch (PluralAttributeMetadataImpl.this.elementPersistentAttributeType) {
+case EMBEDDED:
+{
+          return ValueClassification.EMBEDDABLE;
+        }
+case BASIC:
+{
+        return ValueClassification.BASIC;
+      }
+default :
+{
+      return ValueClassification.ENTITY;
+    }
+}
+}
+public AttributeMetadata getAttributeMetadata(){
+return PluralAttributeMetadataImpl.this;
+}
+}
+;
+if (keyPersistentAttributeType != null) {
+this.keyValueContext=new ValueContext(){
+public Value getValue(){
+  return ((Map)getPropertyMapping().getValue()).getIndex();
+}
+public Class getBindableType(){
+  return keyJavaType;
+}
+public ValueClassification getValueClassification(){
+switch (PluralAttributeMetadataImpl.this.keyPersistentAttributeType) {
+case EMBEDDED:
+{
+      return ValueClassification.EMBEDDABLE;
+    }
+case BASIC:
+{
+    return ValueClassification.BASIC;
+  }
+default :
+{
+  return ValueClassification.ENTITY;
+}
+}
+}
+public AttributeMetadata getAttributeMetadata(){
+return PluralAttributeMetadataImpl.this;
+}
+}
+;
+}
+ else {
+keyValueContext=null;
+}
+}

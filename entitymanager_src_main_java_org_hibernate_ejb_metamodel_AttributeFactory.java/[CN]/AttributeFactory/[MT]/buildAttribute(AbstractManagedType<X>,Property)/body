@@ -1,12 +1,12 @@
 {
-  AttributeContext attrContext=getAttributeContext(property);
-  final AttributeImplementor<X,Y> attribute;
-  if (attrContext.isCollection()) {
-    attribute=buildPluralAttribute(ownerType,property,attrContext);
+  final AttributeContext<X> attributeContext=wrap(ownerType,property);
+  final AttributeMetadata<X,Y> attributeMetadata=determineAttributeMetadata(attributeContext,NORMAL_MEMBER_RESOLVER);
+  if (attributeMetadata.isPlural()) {
+    return buildPluralAttribute((PluralAttributeMetadata)attributeMetadata);
   }
  else {
-    final Type<Y> attrType=getType(ownerType,attrContext.getElementTypeStatus(),attrContext.getElementValue());
-    attribute=new SingularAttributeImpl<X,Y>(property.getName(),property.getType().getReturnedClass(),ownerType,determineStandardJavaMember(ownerType,property),false,false,property.isOptional(),attrType,attrContext.getElementAttributeType());
+    final SingularAttributeMetadata<X,Y> singularAttributeMetadata=(SingularAttributeMetadata<X,Y>)attributeMetadata;
+    final Type<Y> metaModelType=getMetaModelType(singularAttributeMetadata.getValueContext());
+    return new SingularAttributeImpl<X,Y>(attributeMetadata.getName(),attributeMetadata.getJavaType(),ownerType,attributeMetadata.getMember(),false,false,property.isOptional(),metaModelType,attributeMetadata.getPersistentAttributeType());
   }
-  return attribute;
 }
