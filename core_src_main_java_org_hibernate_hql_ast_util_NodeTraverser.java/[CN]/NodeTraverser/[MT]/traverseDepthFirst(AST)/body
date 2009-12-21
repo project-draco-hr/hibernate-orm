@@ -2,5 +2,29 @@
   if (ast == null) {
     throw new IllegalArgumentException("node to traverse cannot be null!");
   }
-  visitDepthFirst(ast.getFirstChild());
+  Map parentNodes=new HashMap();
+  AST currentNode=ast.getFirstChild();
+  parentNodes.put(currentNode,ast);
+  while (currentNode != null) {
+    strategy.visit(currentNode);
+    AST childNode=currentNode.getFirstChild();
+    if (childNode != null) {
+      parentNodes.put(childNode,currentNode);
+      currentNode=childNode;
+      continue;
+    }
+    while (currentNode != null) {
+      AST siblingNode=currentNode.getNextSibling();
+      if (siblingNode != null) {
+        AST parentNode=(AST)parentNodes.get(currentNode);
+        parentNodes.put(siblingNode,parentNode);
+        currentNode=siblingNode;
+        break;
+      }
+      currentNode=(AST)parentNodes.get(currentNode);
+      if (currentNode.equals(ast)) {
+        currentNode=null;
+      }
+    }
+  }
 }
