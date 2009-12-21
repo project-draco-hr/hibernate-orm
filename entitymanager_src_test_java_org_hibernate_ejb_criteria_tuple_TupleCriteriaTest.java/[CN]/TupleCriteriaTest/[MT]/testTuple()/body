@@ -1,0 +1,18 @@
+{
+  EntityManager em=factory.createEntityManager();
+  Customer c1=new Customer();
+  c1.setAge(18);
+  c1.setName("Bob");
+  em.getTransaction().begin();
+  em.persist(c1);
+  em.flush();
+  final CriteriaBuilder cb=em.getCriteriaBuilder();
+  CriteriaQuery<Tuple> q=cb.createTupleQuery();
+  Root<Customer> c=q.from(Customer.class);
+  Path<String> tname=c.get(Customer_.name);
+  q.multiselect(tname,c.get(Customer_.age).alias("age"));
+  List<Tuple> result=em.createQuery(q).getResultList();
+  assertEquals(1,result.size());
+  em.getTransaction().rollback();
+  em.close();
+}
