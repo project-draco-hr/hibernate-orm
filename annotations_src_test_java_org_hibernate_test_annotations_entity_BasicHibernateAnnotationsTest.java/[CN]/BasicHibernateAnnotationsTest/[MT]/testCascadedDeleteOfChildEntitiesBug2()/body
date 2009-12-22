@@ -1,0 +1,32 @@
+{
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  SoccerTeam team=new SoccerTeam();
+  int teamid=team.getId();
+  Player player1=new Player();
+  player1.setName("Shalrie Joseph");
+  team.addPlayer(player1);
+  Player player2=new Player();
+  player2.setName("Taylor Twellman");
+  team.addPlayer(player2);
+  Player player3=new Player();
+  player3.setName("Steve Ralston");
+  team.addPlayer(player3);
+  s.persist(team);
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  team=(SoccerTeam)s.merge(team);
+  int count=((Long)s.createQuery("select count(*) from Player").iterate().next()).intValue();
+  assertEquals("expected count of 3 but got = " + count,count,3);
+  team.getPlayers().clear();
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  count=((Long)s.createQuery("select count(*) from Player").iterate().next()).intValue();
+  assertEquals("expected count of 0 but got = " + count,count,0);
+  tx.commit();
+  s.close();
+}
