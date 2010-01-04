@@ -75,7 +75,13 @@
  else {
           throw new AssertionFailure("Unable to guess collection property accessor name");
         }
-        PropertyData inferredData=new PropertyPreloadedData(AccessType.PROPERTY,"key",elementClass);
+        PropertyData inferredData;
+        if (isHibernateExtensionMapping()) {
+          inferredData=new PropertyPreloadedData(AccessType.PROPERTY,"index",elementClass);
+        }
+ else {
+          inferredData=new PropertyPreloadedData(AccessType.PROPERTY,"key",elementClass);
+        }
         Component component=AnnotationBinder.fillComponent(holder,inferredData,isPropertyAnnotated ? AccessType.PROPERTY : AccessType.FIELD,true,entityBinder,false,false,true,mappings,inheritanceStatePerClass);
         mapValue.setIndex(component);
       }
