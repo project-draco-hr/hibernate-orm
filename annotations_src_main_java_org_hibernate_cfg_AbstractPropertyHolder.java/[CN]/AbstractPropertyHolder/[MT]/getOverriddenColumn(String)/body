@@ -1,13 +1,18 @@
 {
-  Column[] override=null;
-  if (parent != null) {
-    override=parent.getOverriddenColumn(propertyName);
+  Column[] result=getExactOverriddenColumn(propertyName);
+  if (result == null) {
+    if (propertyName.contains(".key.")) {
+      result=getExactOverriddenColumn(propertyName.replace(".key.",".index."));
+    }
+    if (result == null && propertyName.endsWith(".key")) {
+      result=getExactOverriddenColumn(propertyName.substring(0,propertyName.length() - ".key".length()) + ".index");
+    }
+    if (result == null && propertyName.contains(".value.")) {
+      result=getExactOverriddenColumn(propertyName.replace(".value.",".element."));
+    }
+    if (result == null && propertyName.endsWith(".value")) {
+      result=getExactOverriddenColumn(propertyName.substring(0,propertyName.length() - ".value".length()) + ".element");
+    }
   }
-  if (override == null && currentPropertyColumnOverride != null) {
-    override=currentPropertyColumnOverride.get(propertyName);
-  }
-  if (override == null && holderColumnOverride != null) {
-    override=holderColumnOverride.get(propertyName);
-  }
-  return override;
+  return result;
 }
