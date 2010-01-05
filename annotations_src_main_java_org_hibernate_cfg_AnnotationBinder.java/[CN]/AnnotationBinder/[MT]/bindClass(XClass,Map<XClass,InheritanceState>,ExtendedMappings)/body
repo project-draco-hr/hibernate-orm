@@ -122,9 +122,6 @@
   }
   HashMap<String,IdGenerator> classGenerators=buildLocalGenerators(clazzToProcess,mappings);
   List<PropertyData> elements=getElementsToProcess(persistentClass,clazzToProcess,inheritanceStatePerClass,entityBinder,mappings);
-  if (elements == null) {
-    throw new AnnotationException("No identifier specified for entity: " + propertyHolder.getEntityName());
-  }
   final boolean subclassAndSingleTableStrategy=inheritanceState.getType() == InheritanceType.SINGLE_TABLE && inheritanceState.hasParents();
   Set<String> idProperties=new HashSet<String>();
   IdClass idClass=null;
@@ -137,7 +134,7 @@
         idClass=current.getAnnotation(IdClass.class);
         break;
       }
-      state=InheritanceState.getSuperclassInheritanceState(current,inheritanceStatePerClass,mappings.getReflectionManager());
+      state=InheritanceState.getSuperclassInheritanceState(current,inheritanceStatePerClass);
     }
  while (state != null);
   }
@@ -147,8 +144,8 @@
     AccessType propertyAccessor=entityBinder.getPropertyAccessor(compositeClass);
     String generatorType="assigned";
     String generator=BinderHelper.ANNOTATION_STRING_DEFAULT;
-    PropertyData inferredData=new PropertyPreloadedData(entityBinder.getPropertyAccessor(),"id",compositeClass);
-    PropertyData baseInferredData=new PropertyPreloadedData(entityBinder.getPropertyAccessor(),"id",current);
+    PropertyData inferredData=new PropertyPreloadedData(entityBinder.getPropertyAccessType(),"id",compositeClass);
+    PropertyData baseInferredData=new PropertyPreloadedData(entityBinder.getPropertyAccessType(),"id",current);
     HashMap<String,IdGenerator> localGenerators=new HashMap<String,IdGenerator>();
     boolean ignoreIdAnnotations=entityBinder.isIgnoreIdAnnotations();
     entityBinder.setIgnoreIdAnnotations(true);

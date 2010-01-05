@@ -1,0 +1,11 @@
+{
+  AnnotationConfiguration cfg=new AnnotationConfiguration();
+  Class<?> classUnderTest=User.class;
+  cfg.addAnnotatedClass(classUnderTest);
+  cfg.addAnnotatedClass(Person.class);
+  cfg.addAnnotatedClass(Being.class);
+  SessionFactoryImplementor factory=(SessionFactoryImplementor)cfg.buildSessionFactory();
+  EntityMetamodel metaModel=factory.getEntityPersister(classUnderTest.getName()).getEntityMetamodel();
+  PojoEntityTuplizer tuplizer=(PojoEntityTuplizer)metaModel.getTuplizer(EntityMode.POJO);
+  assertTrue("Field access should be used since the default access mode gets inherited",tuplizer.getIdentifierGetter() instanceof DirectPropertyAccessor.DirectGetter);
+}
