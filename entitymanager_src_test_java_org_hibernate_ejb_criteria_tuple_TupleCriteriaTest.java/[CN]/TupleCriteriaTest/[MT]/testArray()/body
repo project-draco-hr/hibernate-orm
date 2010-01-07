@@ -1,11 +1,15 @@
 {
   EntityManager em=factory.createEntityManager();
+  em.getTransaction().begin();
   Customer c1=new Customer();
+  c1.setId("c1");
   c1.setAge(18);
   c1.setName("Bob");
-  em.getTransaction().begin();
   em.persist(c1);
-  em.flush();
+  em.getTransaction().commit();
+  em.close();
+  em=factory.createEntityManager();
+  em.getTransaction().begin();
   final CriteriaBuilder cb=em.getCriteriaBuilder();
   CriteriaQuery<Object[]> q=cb.createQuery(Object[].class);
   Root<Customer> c=q.from(Customer.class);
@@ -14,6 +18,11 @@
   assertEquals(1,result.size());
   assertEquals(c1.getName(),result.get(0)[0]);
   assertEquals(c1.getAge(),result.get(0)[1]);
-  em.getTransaction().rollback();
+  em.getTransaction().commit();
+  em.close();
+  em=factory.createEntityManager();
+  em.getTransaction().begin();
+  em.createQuery("delete Customer").executeUpdate();
+  em.getTransaction().commit();
   em.close();
 }
