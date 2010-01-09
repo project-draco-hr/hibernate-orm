@@ -4,30 +4,18 @@
     jpaqlQuery.append("distinct ");
   }
   if (getSelection() == null) {
-    final Root root=getRoots().iterator().next();
-    jpaqlQuery.append(((Renderable)root).renderProjection(renderingContext));
+    jpaqlQuery.append(locateImplicitSelection().renderProjection(renderingContext));
   }
  else {
     jpaqlQuery.append(((Renderable)getSelection()).renderProjection(renderingContext));
   }
-  jpaqlQuery.append(" from ");
-  String sep="";
-  for (  Root root : getRoots()) {
-    ((FromImplementor)root).prepareAlias(renderingContext);
-    jpaqlQuery.append(sep);
-    jpaqlQuery.append(((FromImplementor)root).renderTableExpression(renderingContext));
-    sep=", ";
-  }
-  for (  Root root : getRoots()) {
-    renderJoins(jpaqlQuery,renderingContext,root.getJoins());
-    renderFetches(jpaqlQuery,renderingContext,root.getFetches());
-  }
+  renderFromClause(jpaqlQuery,renderingContext);
   if (getRestriction() != null) {
     jpaqlQuery.append(" where ").append(((Renderable)getRestriction()).render(renderingContext));
   }
   if (!getGroupings().isEmpty()) {
     jpaqlQuery.append(" group by ");
-    sep="";
+    String sep="";
     for (    Expression grouping : getGroupings()) {
       jpaqlQuery.append(sep).append(((Renderable)grouping).render(renderingContext));
       sep=", ";

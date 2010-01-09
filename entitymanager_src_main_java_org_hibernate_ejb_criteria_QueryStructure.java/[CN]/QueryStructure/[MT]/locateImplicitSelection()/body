@@ -1,0 +1,18 @@
+{
+  FromImplementor implicitSelection=null;
+  if (!isSubQuery) {
+    implicitSelection=(FromImplementor)getRoots().iterator().next();
+  }
+ else {
+    final Set<Join<?,?>> correlatedJoins=collectCorrelatedJoins();
+    if (correlatedJoins != null) {
+      if (correlatedJoins.size() == 1) {
+        implicitSelection=(FromImplementor)correlatedJoins.iterator().next();
+      }
+    }
+  }
+  if (implicitSelection == null) {
+    throw new IllegalStateException("No explicit selection and an implicit one cold not be determined");
+  }
+  return implicitSelection;
+}
