@@ -5,9 +5,15 @@
   a.setBodyWeight(12.4f);
   a.setDescription("an animal");
   s.persist(a);
-  Integer bw=(Integer)s.createQuery("select cast(bodyWeight as integer) from Animal").uniqueResult();
-  bw=(Integer)s.createQuery("select cast(a.bodyWeight as integer) from Animal a").uniqueResult();
-  bw.toString();
+  Object bodyWeight=s.createQuery("select cast(bodyWeight as integer) from Animal").uniqueResult();
+  assertTrue(Integer.class.isInstance(bodyWeight));
+  assertEquals(12,bodyWeight);
+  bodyWeight=s.createQuery("select cast(bodyWeight as big_decimal) from Animal").uniqueResult();
+  assertTrue(BigDecimal.class.isInstance(bodyWeight));
+  assertEquals(BigDecimal.valueOf(a.getBodyWeight()),bodyWeight);
+  Object literal=s.createQuery("select cast(10000000 as big_integer) from Animal").uniqueResult();
+  assertTrue(BigInteger.class.isInstance(literal));
+  assertEquals(BigInteger.valueOf(10000000),literal);
   s.delete(a);
   t.commit();
   s.close();
