@@ -3,17 +3,7 @@
   for (  Element element : elementsForProperty) {
     if (xmlName.equals(element.getName())) {
       AnnotationDescriptor ad=new AnnotationDescriptor(annotationType);
-      String className=element.attributeValue("target-entity");
-      if (className != null) {
-        Class clazz;
-        try {
-          clazz=ReflectHelper.classForName(XMLContext.buildSafeClassName(className,defaults),this.getClass());
-        }
- catch (        ClassNotFoundException e) {
-          throw new AnnotationException("Unable to find " + element.getPath() + "target-entity: "+ className,e);
-        }
-        ad.setValue("targetEntity",clazz);
-      }
+      addTargetClass(element,ad,"target-entity",defaults);
       getFetchType(ad,element);
       getCascades(ad,element,defaults);
       getJoinTable(annotationList,element,defaults);
