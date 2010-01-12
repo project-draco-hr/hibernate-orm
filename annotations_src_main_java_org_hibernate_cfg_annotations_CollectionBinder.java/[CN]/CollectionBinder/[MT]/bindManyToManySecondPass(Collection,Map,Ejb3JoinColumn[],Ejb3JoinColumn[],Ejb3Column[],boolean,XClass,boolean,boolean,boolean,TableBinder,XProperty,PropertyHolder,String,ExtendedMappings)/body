@@ -23,13 +23,13 @@
       throw new AnnotationException("Use of @OneToMany or @ManyToMany targeting an unmapped class: " + path + "["+ collType+ "]");
     }
  else     if (anyAnn != null) {
-      if (!property.isAnnotationPresent(JoinTable.class)) {
+      if (parentPropertyHolder.getJoinTable(property) == null) {
         String path=collValue.getOwnerEntityName() + "." + joinColumns[0].getPropertyName();
         throw new AnnotationException("@JoinTable is mandatory when @ManyToAny is used: " + path);
       }
     }
  else {
-      JoinTable joinTableAnn=property.getAnnotation(JoinTable.class);
+      JoinTable joinTableAnn=parentPropertyHolder.getJoinTable(property);
       if (joinTableAnn != null && joinTableAnn.inverseJoinColumns().length > 0) {
         String path=collValue.getOwnerEntityName() + "." + joinColumns[0].getPropertyName();
         throw new AnnotationException("Use of @JoinTable.inverseJoinColumns targeting an unmapped class: " + path + "["+ collType+ "]");

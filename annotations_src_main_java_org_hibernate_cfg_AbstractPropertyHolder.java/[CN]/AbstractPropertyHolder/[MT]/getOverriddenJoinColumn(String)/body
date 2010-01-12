@@ -1,13 +1,7 @@
 {
-  JoinColumn[] override=null;
-  if (parent != null) {
-    override=parent.getOverriddenJoinColumn(propertyName);
+  JoinColumn[] result=getExactOverriddenJoinColumn(propertyName);
+  if (result == null && propertyName.contains(".collection&&element.")) {
+    result=getExactOverriddenJoinColumn(propertyName.replace(".collection&&element.","."));
   }
-  if (override == null && currentPropertyJoinColumnOverride != null) {
-    override=currentPropertyJoinColumnOverride.get(propertyName);
-  }
-  if (override == null && holderJoinColumnOverride != null) {
-    override=holderJoinColumnOverride.get(propertyName);
-  }
-  return override;
+  return result;
 }

@@ -42,8 +42,8 @@
     columns=Ejb3Column.buildColumnFromAnnotation(anns.columns(),null,nullability,propertyHolder,inferredData,entityBinder.getSecondaryTables(),mappings);
   }
   if (joinColumns == null && (property.isAnnotationPresent(ManyToOne.class) || property.isAnnotationPresent(OneToOne.class))) {
-    if (property.isAnnotationPresent(JoinTable.class)) {
-      JoinTable joinTableAnn=property.getAnnotation(JoinTable.class);
+    JoinTable joinTableAnn=propertyHolder.getJoinTable(property);
+    if (joinTableAnn != null) {
       joinColumns=Ejb3JoinColumn.buildJoinColumns(joinTableAnn.inverseJoinColumns(),null,entityBinder.getSecondaryTables(),propertyHolder,inferredData.getPropertyName(),mappings);
       if (StringHelper.isEmpty(joinTableAnn.name())) {
         throw new AnnotationException("JoinTable.name() on a @ToOne association has to be explicit: " + StringHelper.qualify(propertyHolder.getPath(),inferredData.getPropertyName()));
@@ -136,7 +136,7 @@
     boolean ignoreNotFound=notFound != null && notFound.action().equals(NotFoundAction.IGNORE);
     OnDelete onDeleteAnn=property.getAnnotation(OnDelete.class);
     boolean onDeleteCascade=onDeleteAnn != null && OnDeleteAction.CASCADE.equals(onDeleteAnn.action());
-    JoinTable assocTable=property.getAnnotation(JoinTable.class);
+    JoinTable assocTable=propertyHolder.getJoinTable(property);
     if (assocTable != null) {
       Join join=propertyHolder.addJoin(assocTable,false);
       for (      Ejb3JoinColumn joinColumn : joinColumns) {
@@ -156,7 +156,7 @@
     boolean ignoreNotFound=notFound != null && notFound.action().equals(NotFoundAction.IGNORE);
     OnDelete onDeleteAnn=property.getAnnotation(OnDelete.class);
     boolean onDeleteCascade=onDeleteAnn != null && OnDeleteAction.CASCADE.equals(onDeleteAnn.action());
-    JoinTable assocTable=property.getAnnotation(JoinTable.class);
+    JoinTable assocTable=propertyHolder.getJoinTable(property);
     if (assocTable != null) {
       Join join=propertyHolder.addJoin(assocTable,false);
       for (      Ejb3JoinColumn joinColumn : joinColumns) {
@@ -172,7 +172,7 @@
     Cascade hibernateCascade=property.getAnnotation(Cascade.class);
     OnDelete onDeleteAnn=property.getAnnotation(OnDelete.class);
     boolean onDeleteCascade=onDeleteAnn != null && OnDeleteAction.CASCADE.equals(onDeleteAnn.action());
-    JoinTable assocTable=property.getAnnotation(JoinTable.class);
+    JoinTable assocTable=propertyHolder.getJoinTable(property);
     if (assocTable != null) {
       Join join=propertyHolder.addJoin(assocTable,false);
       for (      Ejb3JoinColumn joinColumn : joinColumns) {
