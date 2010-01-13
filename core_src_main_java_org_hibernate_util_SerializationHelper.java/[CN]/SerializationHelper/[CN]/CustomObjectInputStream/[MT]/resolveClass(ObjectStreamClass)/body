@@ -1,9 +1,23 @@
 {
   String className=v.getName();
   log.trace("Attempting to locate class [" + className + "]");
-  if (loader != null) {
+  try {
+    return Class.forName(className,false,loader1);
+  }
+ catch (  ClassNotFoundException e) {
+    log.trace("Unable to locate class using given classloader");
+  }
+  if (different(loader1,loader2)) {
     try {
-      return Class.forName(className,false,loader);
+      return Class.forName(className,false,loader2);
+    }
+ catch (    ClassNotFoundException e) {
+      log.trace("Unable to locate class using given classloader");
+    }
+  }
+  if (different(loader1,loader3) && different(loader2,loader3)) {
+    try {
+      return Class.forName(className,false,loader2);
     }
  catch (    ClassNotFoundException e) {
       log.trace("Unable to locate class using given classloader");
