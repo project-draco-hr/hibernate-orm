@@ -1,8 +1,22 @@
 {
-  EntityEntry entry=getEntry(entity);
-  if (entry == null) {
-    throw new TransientObjectException("Instance was not associated with the session");
+  if (object == null) {
+    throw new AssertionFailure("object must be non-null.");
   }
-  entry.setReadOnly(readOnly,entity);
-  hasNonReadOnlyEntities=hasNonReadOnlyEntities || !readOnly;
+  if (isReadOnly(object) == readOnly) {
+    return;
+  }
+  if (object instanceof HibernateProxy) {
+    HibernateProxy proxy=(HibernateProxy)object;
+    setProxyReadOnly(proxy,readOnly);
+    if (Hibernate.isInitialized(proxy)) {
+      setEntityReadOnly(proxy.getHibernateLazyInitializer().getImplementation(),readOnly);
+    }
+  }
+ else {
+    setEntityReadOnly(object,readOnly);
+    Object maybeProxy=getSession().getPersistenceContext().proxyFor(object);
+    if (maybeProxy instanceof HibernateProxy) {
+      setProxyReadOnly((HibernateProxy)maybeProxy,readOnly);
+    }
+  }
 }

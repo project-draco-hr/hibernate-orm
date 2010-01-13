@@ -1,0 +1,13 @@
+{
+  errorIfReadOnlySettingNotAvailable();
+  if (this.readOnly != readOnly) {
+    Object proxy=getProxyOrNull();
+    if (proxy == null) {
+      throw new TransientObjectException("Cannot set the read-only/modifiable mode unless the proxy is associated with a session.");
+    }
+    this.readOnly=readOnly;
+    if (initialized) {
+      session.getPersistenceContext().setReadOnly(target,readOnly);
+    }
+  }
+}
