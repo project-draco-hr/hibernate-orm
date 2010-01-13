@@ -1,0 +1,26 @@
+{
+  Session s;
+  Transaction tx;
+  s=openSession();
+  tx=s.beginTransaction();
+  Employee e=new Employee();
+  e.setName("Sharon");
+  List<PhoneNumber> phoneNumbers=new ArrayList<PhoneNumber>();
+  Collection<Employee> employees=new ArrayList<Employee>();
+  employees.add(e);
+  ContactInfo contactInfo=new ContactInfo();
+  PhoneNumber number=new PhoneNumber();
+  number.setEmployees(employees);
+  phoneNumbers.add(number);
+  contactInfo.setPhoneNumbers(phoneNumbers);
+  e.setContactInfo(contactInfo);
+  s.persist(e);
+  s.flush();
+  s.clear();
+  tx.commit();
+  tx.begin();
+  e=(Employee)s.get(e.getClass(),e.getId());
+  assertEquals("same employee",e.getName(),e.getContactInfo().getPhoneNumbers().get(0).getEmployees().iterator().next().getName());
+  tx.commit();
+  s.close();
+}
