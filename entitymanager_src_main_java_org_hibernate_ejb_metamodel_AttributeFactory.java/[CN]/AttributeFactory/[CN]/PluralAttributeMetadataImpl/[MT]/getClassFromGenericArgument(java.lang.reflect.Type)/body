@@ -1,0 +1,15 @@
+{
+  Class<?> javaType;
+  Object unsafeElementType=type;
+  if (unsafeElementType instanceof Class) {
+    javaType=(Class)unsafeElementType;
+  }
+ else   if (unsafeElementType instanceof TypeVariable) {
+    final java.lang.reflect.Type upperBound=((TypeVariable)unsafeElementType).getBounds()[0];
+    javaType=getClassFromGenericArgument(upperBound);
+  }
+ else {
+    throw new AssertionFailure("Fail to process type argument in a generic declaration. Type: " + type.getClass());
+  }
+  return javaType;
+}
