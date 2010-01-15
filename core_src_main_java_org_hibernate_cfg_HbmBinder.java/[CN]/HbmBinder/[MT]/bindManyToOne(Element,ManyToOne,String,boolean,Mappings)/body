@@ -18,5 +18,8 @@
   }
   Attribute fkNode=node.attribute("foreign-key");
   if (fkNode != null)   manyToOne.setForeignKeyName(fkNode.getValue());
-  validateCascade(node,path);
+  String cascade=node.attributeValue("cascade");
+  if (cascade != null && cascade.indexOf("delete-orphan") >= 0) {
+    throw new MappingException("many-to-one attributes do not support orphan delete: " + path);
+  }
 }
