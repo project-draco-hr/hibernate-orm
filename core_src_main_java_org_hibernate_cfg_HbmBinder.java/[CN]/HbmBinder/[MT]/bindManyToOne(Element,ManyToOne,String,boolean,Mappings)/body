@@ -20,6 +20,8 @@
   if (fkNode != null)   manyToOne.setForeignKeyName(fkNode.getValue());
   String cascade=node.attributeValue("cascade");
   if (cascade != null && cascade.indexOf("delete-orphan") >= 0) {
-    throw new MappingException("many-to-one attributes do not support orphan delete: " + path);
+    if (!manyToOne.isLogicalOneToOne()) {
+      throw new MappingException("many-to-one attributes do not support orphan delete: " + path);
+    }
   }
 }
