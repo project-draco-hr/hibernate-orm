@@ -13,4 +13,10 @@
   if (ukName != null)   oneToOne.setReferencedPropertyName(ukName.getValue());
   oneToOne.setPropertyName(node.attributeValue("name"));
   oneToOne.setReferencedEntityName(getEntityName(node,mappings));
+  String cascade=node.attributeValue("cascade");
+  if (cascade != null && cascade.indexOf("delete-orphan") >= 0) {
+    if (oneToOne.isConstrained()) {
+      throw new MappingException("one-to-one attribute [" + path + "] does not support orphan delete as it is constrained");
+    }
+  }
 }
