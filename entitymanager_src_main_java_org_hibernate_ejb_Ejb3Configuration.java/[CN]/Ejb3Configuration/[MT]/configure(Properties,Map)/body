@@ -3,8 +3,8 @@
   isConfigurationProcessed=true;
   Properties preparedProperties=prepareProperties(properties,workingVars);
   if (workingVars == null)   workingVars=CollectionHelper.EMPTY_MAP;
-  if (preparedProperties.containsKey(HibernatePersistence.CFG_FILE)) {
-    String cfgFileName=preparedProperties.getProperty(HibernatePersistence.CFG_FILE);
+  if (preparedProperties.containsKey(AvailableSettings.CFG_FILE)) {
+    String cfgFileName=preparedProperties.getProperty(AvailableSettings.CFG_FILE);
     cfg.configure(cfgFileName);
   }
   cfg.addProperties(preparedProperties);
@@ -17,19 +17,19 @@
     Object uncastObject=propertyIt.next();
     if (uncastObject != null && uncastObject instanceof String) {
       String propertyKey=(String)uncastObject;
-      if (propertyKey.startsWith(HibernatePersistence.CLASS_CACHE_PREFIX)) {
+      if (propertyKey.startsWith(AvailableSettings.CLASS_CACHE_PREFIX)) {
         setCacheStrategy(propertyKey,preparedProperties,true,workingVars);
       }
- else       if (propertyKey.startsWith(HibernatePersistence.COLLECTION_CACHE_PREFIX)) {
+ else       if (propertyKey.startsWith(AvailableSettings.COLLECTION_CACHE_PREFIX)) {
         setCacheStrategy(propertyKey,preparedProperties,false,workingVars);
       }
- else       if (propertyKey.startsWith(HibernatePersistence.JACC_PREFIX) && !(propertyKey.equals(HibernatePersistence.JACC_CONTEXT_ID) || propertyKey.equals(HibernatePersistence.JACC_ENABLED))) {
+ else       if (propertyKey.startsWith(AvailableSettings.JACC_PREFIX) && !(propertyKey.equals(AvailableSettings.JACC_CONTEXT_ID) || propertyKey.equals(AvailableSettings.JACC_ENABLED))) {
         jaccKeys.add(propertyKey);
       }
     }
   }
-  if (preparedProperties.containsKey(HibernatePersistence.INTERCEPTOR) && (cfg.getInterceptor() == null || cfg.getInterceptor().equals(defaultInterceptor))) {
-    String interceptorName=preparedProperties.getProperty(HibernatePersistence.INTERCEPTOR);
+  if (preparedProperties.containsKey(AvailableSettings.INTERCEPTOR) && (cfg.getInterceptor() == null || cfg.getInterceptor().equals(defaultInterceptor))) {
+    String interceptorName=preparedProperties.getProperty(AvailableSettings.INTERCEPTOR);
     try {
       Class interceptor=classForName(interceptorName);
       cfg.setInterceptor((Interceptor)interceptor.newInstance());
@@ -47,8 +47,8 @@ catch (    ClassCastException e) {
       throw new PersistenceException(getExceptionHeader() + "Interceptor class does not implement Interceptor interface: " + interceptorName,e);
     }
   }
-  if (preparedProperties.containsKey(HibernatePersistence.NAMING_STRATEGY) && (cfg.getNamingStrategy() == null || cfg.getNamingStrategy().equals(defaultNamingStrategy))) {
-    String namingStrategyName=preparedProperties.getProperty(HibernatePersistence.NAMING_STRATEGY);
+  if (preparedProperties.containsKey(AvailableSettings.NAMING_STRATEGY) && (cfg.getNamingStrategy() == null || cfg.getNamingStrategy().equals(defaultNamingStrategy))) {
+    String namingStrategyName=preparedProperties.getProperty(AvailableSettings.NAMING_STRATEGY);
     try {
       Class namingStragegy=classForName(namingStrategyName);
       cfg.setNamingStrategy((NamingStrategy)namingStragegy.newInstance());
@@ -74,6 +74,6 @@ catch (    ClassCastException e) {
   if (!"true".equalsIgnoreCase(cfg.getProperty(Environment.AUTOCOMMIT))) {
     log.warn("{} = false break the EJB3 specification",Environment.AUTOCOMMIT);
   }
-  discardOnClose=preparedProperties.getProperty(HibernatePersistence.DISCARD_PC_ON_CLOSE).equals("true");
+  discardOnClose=preparedProperties.getProperty(AvailableSettings.DISCARD_PC_ON_CLOSE).equals("true");
   return this;
 }

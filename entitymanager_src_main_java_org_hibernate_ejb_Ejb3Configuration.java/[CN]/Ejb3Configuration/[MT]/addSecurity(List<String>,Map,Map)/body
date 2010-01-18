@@ -1,11 +1,11 @@
 {
   log.debug("Adding security");
-  if (!properties.containsKey(HibernatePersistence.JACC_CONTEXT_ID)) {
-    throw new PersistenceException(getExceptionHeader() + "Entities have been configured for JACC, but " + HibernatePersistence.JACC_CONTEXT_ID+ " has not been set");
+  if (!properties.containsKey(AvailableSettings.JACC_CONTEXT_ID)) {
+    throw new PersistenceException(getExceptionHeader() + "Entities have been configured for JACC, but " + AvailableSettings.JACC_CONTEXT_ID+ " has not been set");
   }
-  String contextId=(String)properties.get(HibernatePersistence.JACC_CONTEXT_ID);
+  String contextId=(String)properties.get(AvailableSettings.JACC_CONTEXT_ID);
   setProperty(Environment.JACC_CONTEXTID,contextId);
-  int roleStart=HibernatePersistence.JACC_PREFIX.length() + 1;
+  int roleStart=AvailableSettings.JACC_PREFIX.length() + 1;
   for (  String key : keys) {
     JACCConfiguration jaccCfg=new JACCConfiguration(contextId);
     try {
@@ -16,7 +16,7 @@
       jaccCfg.addPermission(role,clazz,actions);
     }
  catch (    IndexOutOfBoundsException e) {
-      throw new PersistenceException(getExceptionHeader() + "Illegal usage of " + HibernatePersistence.JACC_PREFIX+ ": "+ key);
+      throw new PersistenceException(getExceptionHeader() + "Illegal usage of " + AvailableSettings.JACC_PREFIX+ ": "+ key);
     }
   }
 }
