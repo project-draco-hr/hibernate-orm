@@ -1,0 +1,33 @@
+{
+  Object lockScope=props.get(AvailableSettings.LOCK_SCOPE);
+  if (lockScope instanceof String && PessimisticLockScope.valueOf((String)lockScope) == PessimisticLockScope.EXTENDED) {
+    options.setScope(true);
+  }
+ else   if (lockScope instanceof PessimisticLockScope) {
+    boolean extended=PessimisticLockScope.EXTENDED.equals((PessimisticLockScope)lockScope);
+    options.setScope(extended);
+  }
+ else {
+    throw new PersistenceException("Unable to parse " + AvailableSettings.LOCK_SCOPE + ": "+ lockScope);
+  }
+  Object lockTimeout=props.get(AvailableSettings.LOCK_TIMEOUT);
+  int timeout;
+  if (lockTimeout instanceof String) {
+    timeout=Integer.parseInt((String)lockTimeout);
+  }
+ else   if (lockTimeout instanceof Integer) {
+    timeout=(Integer)lockTimeout;
+  }
+ else {
+    throw new PersistenceException("Unable to parse " + AvailableSettings.LOCK_TIMEOUT + ": "+ lockTimeout);
+  }
+  if (timeout < 0) {
+    options.setTimeOut(LockOptions.WAIT_FOREVER);
+  }
+ else   if (timeout == 0) {
+    options.setTimeOut(LockOptions.NO_WAIT);
+  }
+ else {
+    options.setTimeOut(timeout);
+  }
+}

@@ -1,24 +1,9 @@
 {
   LockOptions lockOptions=new LockOptions();
+  LockOptions.copy(this.lockOptions,lockOptions);
   lockOptions.setLockMode(getLockMode(lockModeType));
   if (properties != null) {
-    Object value=properties.get(AvailableSettings.LOCK_SCOPE);
-    if (value instanceof String && PessimisticLockScope.valueOf((String)value) == PessimisticLockScope.EXTENDED) {
-      lockOptions.setScope(true);
-    }
-    value=properties.get(AvailableSettings.LOCK_TIMEOUT);
-    if (value instanceof String) {
-      int timeout=Integer.parseInt((String)value);
-      if (timeout < 0) {
-        lockOptions.setTimeOut(LockOptions.WAIT_FOREVER);
-      }
- else       if (timeout == 0) {
-        lockOptions.setTimeOut(LockOptions.NO_WAIT);
-      }
- else {
-        lockOptions.setTimeOut(timeout);
-      }
-    }
+    setLockOptions(properties,lockOptions);
   }
   return lockOptions;
 }
