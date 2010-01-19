@@ -1,6 +1,5 @@
 {
   Ejb3Column[] columns=null;
-  Ejb3JoinColumn[] joinColumns=null;
   log.debug("Processing annotations of {}.{}",propertyHolder.getEntityName(),inferredData.getPropertyName());
   if (property.isAnnotationPresent(Parent.class)) {
     if (propertyHolder.isComponent()) {
@@ -11,27 +10,7 @@
     }
     return;
   }
-{
-    JoinColumn[] anns=null;
-    if (property.isAnnotationPresent(JoinColumn.class)) {
-      anns=new JoinColumn[]{property.getAnnotation(JoinColumn.class)};
-    }
- else     if (property.isAnnotationPresent(JoinColumns.class)) {
-      JoinColumns ann=property.getAnnotation(JoinColumns.class);
-      anns=ann.value();
-      int length=anns.length;
-      if (length == 0) {
-        throw new AnnotationException("Cannot bind an empty @JoinColumns");
-      }
-    }
-    if (anns != null) {
-      joinColumns=Ejb3JoinColumn.buildJoinColumns(anns,null,entityBinder.getSecondaryTables(),propertyHolder,inferredData.getPropertyName(),mappings);
-    }
- else     if (property.isAnnotationPresent(JoinColumnsOrFormulas.class)) {
-      JoinColumnsOrFormulas ann=property.getAnnotation(JoinColumnsOrFormulas.class);
-      joinColumns=Ejb3JoinColumn.buildJoinColumnsOrFormulas(ann,null,entityBinder.getSecondaryTables(),propertyHolder,inferredData.getPropertyName(),mappings);
-    }
-  }
+  Ejb3JoinColumn[] joinColumns=buildExplicitJoinColumns(propertyHolder,property,inferredData,entityBinder,mappings);
   if (property.isAnnotationPresent(Column.class) || property.isAnnotationPresent(Formula.class)) {
     Column ann=property.getAnnotation(Column.class);
     Formula formulaAnn=property.getAnnotation(Formula.class);
@@ -42,18 +21,7 @@
     columns=Ejb3Column.buildColumnFromAnnotation(anns.columns(),null,nullability,propertyHolder,inferredData,entityBinder.getSecondaryTables(),mappings);
   }
   if (joinColumns == null && (property.isAnnotationPresent(ManyToOne.class) || property.isAnnotationPresent(OneToOne.class))) {
-    JoinTable joinTableAnn=propertyHolder.getJoinTable(property);
-    if (joinTableAnn != null) {
-      joinColumns=Ejb3JoinColumn.buildJoinColumns(joinTableAnn.inverseJoinColumns(),null,entityBinder.getSecondaryTables(),propertyHolder,inferredData.getPropertyName(),mappings);
-      if (StringHelper.isEmpty(joinTableAnn.name())) {
-        throw new AnnotationException("JoinTable.name() on a @ToOne association has to be explicit: " + StringHelper.qualify(propertyHolder.getPath(),inferredData.getPropertyName()));
-      }
-    }
- else {
-      OneToOne oneToOneAnn=property.getAnnotation(OneToOne.class);
-      String mappedBy=oneToOneAnn != null ? oneToOneAnn.mappedBy() : null;
-      joinColumns=Ejb3JoinColumn.buildJoinColumns((JoinColumn[])null,mappedBy,entityBinder.getSecondaryTables(),propertyHolder,inferredData.getPropertyName(),mappings);
-    }
+    joinColumns=buildDefaultJoinColumnsForXToOne(propertyHolder,property,inferredData,entityBinder,mappings);
   }
  else   if (joinColumns == null && (property.isAnnotationPresent(OneToMany.class) || property.isAnnotationPresent(CollectionOfElements.class) || property.isAnnotationPresent(ElementCollection.class))) {
     OneToMany oneToMany=property.getAnnotation(OneToMany.class);

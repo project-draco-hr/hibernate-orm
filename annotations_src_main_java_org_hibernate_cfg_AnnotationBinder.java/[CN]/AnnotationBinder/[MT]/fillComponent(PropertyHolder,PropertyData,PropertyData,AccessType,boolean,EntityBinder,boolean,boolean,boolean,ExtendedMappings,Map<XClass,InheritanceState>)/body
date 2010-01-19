@@ -12,6 +12,7 @@
   String subpath=StringHelper.qualify(propertyHolder.getPath(),inferredData.getPropertyName());
   log.debug("Binding component with path: {}",subpath);
   PropertyHolder subHolder=PropertyHolderBuilder.buildPropertyHolder(comp,subpath,inferredData,propertyHolder,mappings);
+  final XClass entityXClass=inferredData.getPropertyClass();
   List<PropertyData> classElements=new ArrayList<PropertyData>();
   XClass returnedClassOrElement=inferredData.getClassOrElement();
   List<PropertyData> baseClassElements=null;
@@ -20,20 +21,20 @@
     baseClassElements=new ArrayList<PropertyData>();
     baseReturnedClassOrElement=baseInferredData.getClassOrElement();
     bindTypeDefs(baseReturnedClassOrElement,mappings);
-    PropertyContainer propContainer=new PropertyContainer(baseReturnedClassOrElement);
+    PropertyContainer propContainer=new PropertyContainer(baseReturnedClassOrElement,entityXClass);
     addElementsOfClass(baseClassElements,propertyAccessor,propContainer,mappings);
   }
   bindTypeDefs(returnedClassOrElement,mappings);
-  PropertyContainer propContainer=new PropertyContainer(returnedClassOrElement);
+  PropertyContainer propContainer=new PropertyContainer(returnedClassOrElement,entityXClass);
   addElementsOfClass(classElements,propertyAccessor,propContainer,mappings);
-  XClass superClass=inferredData.getPropertyClass().getSuperclass();
+  XClass superClass=entityXClass.getSuperclass();
   while (superClass != null && superClass.isAnnotationPresent(MappedSuperclass.class)) {
-    propContainer=new PropertyContainer(superClass);
+    propContainer=new PropertyContainer(superClass,entityXClass);
     addElementsOfClass(classElements,propertyAccessor,propContainer,mappings);
     superClass=superClass.getSuperclass();
   }
   if (baseClassElements != null) {
-    if (!hasIdClassAnnotations(inferredData.getPropertyClass())) {
+    if (!hasIdClassAnnotations(entityXClass)) {
       for (int i=0; i < classElements.size(); i++) {
         classElements.set(i,baseClassElements.get(i));
       }

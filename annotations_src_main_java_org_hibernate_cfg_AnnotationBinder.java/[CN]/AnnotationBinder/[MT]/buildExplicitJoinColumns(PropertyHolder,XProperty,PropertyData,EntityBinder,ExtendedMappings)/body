@@ -1,0 +1,25 @@
+{
+  Ejb3JoinColumn[] joinColumns=null;
+{
+    JoinColumn[] anns=null;
+    if (property.isAnnotationPresent(JoinColumn.class)) {
+      anns=new JoinColumn[]{property.getAnnotation(JoinColumn.class)};
+    }
+ else     if (property.isAnnotationPresent(JoinColumns.class)) {
+      JoinColumns ann=property.getAnnotation(JoinColumns.class);
+      anns=ann.value();
+      int length=anns.length;
+      if (length == 0) {
+        throw new AnnotationException("Cannot bind an empty @JoinColumns");
+      }
+    }
+    if (anns != null) {
+      joinColumns=Ejb3JoinColumn.buildJoinColumns(anns,null,entityBinder.getSecondaryTables(),propertyHolder,inferredData.getPropertyName(),mappings);
+    }
+ else     if (property.isAnnotationPresent(JoinColumnsOrFormulas.class)) {
+      JoinColumnsOrFormulas ann=property.getAnnotation(JoinColumnsOrFormulas.class);
+      joinColumns=Ejb3JoinColumn.buildJoinColumnsOrFormulas(ann,null,entityBinder.getSecondaryTables(),propertyHolder,inferredData.getPropertyName(),mappings);
+    }
+  }
+  return joinColumns;
+}
