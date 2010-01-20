@@ -1,0 +1,22 @@
+{
+  assertTrue(SchemaUtil.isColumnPresent("ExclusiveDependent","FK",getCfg()));
+  assertTrue(!SchemaUtil.isColumnPresent("ExclusiveDependent","empPK",getCfg()));
+  Employee e=new Employee();
+  e.empId=1;
+  e.empName="Emmanuel";
+  Session s=openSession();
+  s.getTransaction().begin();
+  s.persist(e);
+  ExclusiveDependent d=new ExclusiveDependent();
+  d.emp=e;
+  d.id=new DependentId();
+  d.id.name="Doggy";
+  d.id.empPK=e.empId;
+  s.persist(d);
+  s.flush();
+  s.clear();
+  d=(ExclusiveDependent)s.get(ExclusiveDependent.class,d.id);
+  assertEquals(d.id.empPK,d.emp.empId);
+  s.getTransaction().rollback();
+  s.close();
+}
