@@ -3,13 +3,9 @@
   if (unique) {
     value.markAsLogicalOneToOne();
   }
-  if (isDefault(targetEntity,mappings)) {
-    value.setReferencedEntityName(inferredData.getClassOrElementName());
-  }
- else {
-    value.setReferencedEntityName(targetEntity.getName());
-  }
-  defineFetchingStrategy(value,inferredData.getProperty());
+  value.setReferencedEntityName(ToOneBinder.getReferenceEntityName(inferredData,targetEntity,mappings));
+  final XProperty property=inferredData.getProperty();
+  defineFetchingStrategy(value,property);
   value.setIgnoreNotFound(ignoreNotFound);
   value.setCascadeDeleteEnabled(cascadeOnDelete);
   if (!optional) {
@@ -17,10 +13,16 @@
       column.setNullable(false);
     }
   }
+  if (property.isAnnotationPresent(MapsId.class)) {
+    for (    Ejb3JoinColumn column : columns) {
+      column.setInsertable(false);
+      column.setUpdatable(false);
+    }
+  }
   value.setTypeName(inferredData.getClassOrElementName());
   final String propertyName=inferredData.getPropertyName();
   value.setTypeUsingReflection(propertyHolder.getClassName(),propertyName);
-  ForeignKey fk=inferredData.getProperty().getAnnotation(ForeignKey.class);
+  ForeignKey fk=property.getAnnotation(ForeignKey.class);
   String fkName=fk != null ? fk.name() : "";
   if (!BinderHelper.isDefault(fkName))   value.setForeignKeyName(fkName);
   String path=propertyHolder.getPath() + "." + propertyName;
@@ -45,7 +47,7 @@
   }
   binder.setAccessType(inferredData.getDefaultAccess());
   binder.setCascade(cascadeStrategy);
-  binder.setProperty(inferredData.getProperty());
+  binder.setProperty(property);
   Property prop=binder.make();
   propertyHolder.addProperty(prop,columns,inferredData.getDeclaringClass());
 }

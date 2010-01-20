@@ -1,0 +1,24 @@
+{
+  assertTrue(SchemaUtil.isColumnPresent("FinancialHistory","FK",getCfg()));
+  assertTrue(!SchemaUtil.isColumnPresent("FinancialHistory","id",getCfg()));
+  Person e=new Person();
+  e.ssn="aaa";
+  Session s=openSession();
+  s.getTransaction().begin();
+  s.persist(e);
+  FinancialHistory d=new FinancialHistory();
+  d.patient=e;
+  d.id="aaa";
+  s.persist(d);
+  s.flush();
+  s.clear();
+  d=(FinancialHistory)s.get(FinancialHistory.class,d.id);
+  assertEquals(d.id,d.patient.ssn);
+  d.lastupdate=new Date();
+  s.flush();
+  s.clear();
+  d=(FinancialHistory)s.get(FinancialHistory.class,d.id);
+  assertNotNull(d.lastupdate);
+  s.getTransaction().rollback();
+  s.close();
+}
