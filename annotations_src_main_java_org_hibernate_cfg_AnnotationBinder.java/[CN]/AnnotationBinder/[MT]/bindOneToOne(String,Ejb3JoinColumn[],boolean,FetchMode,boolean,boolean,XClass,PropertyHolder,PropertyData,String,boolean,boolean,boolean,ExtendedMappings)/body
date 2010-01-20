@@ -11,14 +11,19 @@
       Iterator idColumns=identifier.getColumnIterator();
       List<String> idColumnNames=new ArrayList<String>();
       org.hibernate.mapping.Column currentColumn;
-      while (idColumns.hasNext()) {
-        currentColumn=(org.hibernate.mapping.Column)idColumns.next();
-        idColumnNames.add(currentColumn.getName());
+      if (identifier.getColumnSpan() != joinColumns.length) {
+        mapToPK=false;
       }
-      for (      Ejb3JoinColumn col : joinColumns) {
-        if (!idColumnNames.contains(col.getMappingColumn().getName())) {
-          mapToPK=false;
-          break;
+ else {
+        while (idColumns.hasNext()) {
+          currentColumn=(org.hibernate.mapping.Column)idColumns.next();
+          idColumnNames.add(currentColumn.getName());
+        }
+        for (        Ejb3JoinColumn col : joinColumns) {
+          if (!idColumnNames.contains(col.getMappingColumn().getName())) {
+            mapToPK=false;
+            break;
+          }
         }
       }
     }
