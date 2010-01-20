@@ -1,13 +1,35 @@
 {
+  boolean failureExpected=runMethod.getAnnotation(FailureExpected.class) != null;
   try {
     runMethod.invoke(this,new Class[0]);
+    if (failureExpected) {
+      throw new FailureExpectedTestPassedException();
+    }
   }
- catch (  InvocationTargetException e) {
-    e.fillInStackTrace();
-    throw e.getTargetException();
+ catch (  FailureExpectedTestPassedException t) {
+    closeSession();
+    throw t;
   }
-catch (  IllegalAccessException e) {
-    e.fillInStackTrace();
-    throw e;
+catch (  Throwable t) {
+    closeSession();
+    if (failureExpected) {
+      FailureExpected ann=runMethod.getAnnotation(FailureExpected.class);
+      StringBuilder builder=new StringBuilder();
+      if (StringHelper.isNotEmpty(ann.message())) {
+        builder.append(ann.message());
+      }
+ else {
+        builder.append("ignoring test methods annoated with @FailureExpected");
+      }
+      if (StringHelper.isNotEmpty(ann.issueNumber())) {
+        builder.append(" (");
+        builder.append(ann.issueNumber());
+        builder.append(")");
+      }
+      reportSkip(builder.toString(),"Failed with: " + t.toString());
+    }
+ else {
+      throw t;
+    }
   }
 }
