@@ -41,6 +41,7 @@
   }
   final XClass returnedClass=inferredData.getClassOrElement();
   if (!entityBinder.isIgnoreIdAnnotations() && (property.isAnnotationPresent(Id.class) || property.isAnnotationPresent(EmbeddedId.class))) {
+    columns=overrideColumnFromMapsIdProperty("",columns,propertyHolder,entityBinder,mappings);
     if (isIdentifierMapper) {
       throw new AnnotationException("@IdClass class should not have @Id nor @EmbeddedId properties");
     }
@@ -337,6 +338,9 @@
         for (        Ejb3Column col : columns) {
           col.forceNotNull();
         }
+      }
+      if (propertyHolder.isOrWithinEmbeddedId()) {
+        columns=overrideColumnFromMapsIdProperty(property.getName(),columns,propertyHolder,entityBinder,mappings);
       }
       PropertyBinder propBinder=new PropertyBinder();
       propBinder.setName(inferredData.getPropertyName());
