@@ -1,0 +1,23 @@
+{
+  if (isId) {
+    final RootClass rootClass=(RootClass)holder.getPersistentClass();
+    rootClass.setIdentifier((KeyValue)getValue());
+    if (embedded) {
+      rootClass.setEmbeddedIdentifier(true);
+    }
+ else {
+      rootClass.setIdentifierProperty(prop);
+      final org.hibernate.mapping.MappedSuperclass superclass=BinderHelper.getMappedSuperclassOrNull(declaringClass,inheritanceStatePerClass,mappings);
+      if (superclass != null) {
+        superclass.setDeclaredIdentifierProperty(prop);
+      }
+ else {
+        rootClass.setDeclaredIdentifierProperty(prop);
+      }
+    }
+  }
+ else {
+    holder.addProperty(prop,columns,declaringClass);
+  }
+  return prop;
+}

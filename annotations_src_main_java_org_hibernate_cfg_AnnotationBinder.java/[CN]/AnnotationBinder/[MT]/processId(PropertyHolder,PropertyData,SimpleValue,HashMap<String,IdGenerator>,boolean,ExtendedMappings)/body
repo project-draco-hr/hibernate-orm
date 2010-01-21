@@ -2,15 +2,15 @@
   if (isIdentifierMapper) {
     throw new AnnotationException("@IdClass class should not have @Id nor @EmbeddedId properties: " + BinderHelper.getPath(propertyHolder,inferredData));
   }
-  log.trace("{} is an id",inferredData.getPropertyName());
+  XClass returnedClass=inferredData.getClassOrElement();
+  XProperty property=inferredData.getProperty();
   HashMap<String,IdGenerator> localGenerators=(HashMap<String,IdGenerator>)classGenerators.clone();
   localGenerators.putAll(buildLocalGenerators(property,mappings));
   final boolean isComponent=returnedClass.isAnnotationPresent(Embeddable.class) || property.isAnnotationPresent(EmbeddedId.class);
-  AccessType propertyAccessor=entityBinder.getPropertyAccessor(returnedClass);
   GeneratedValue generatedValue=property.getAnnotation(GeneratedValue.class);
   String generatorType=generatedValue != null ? generatorType(generatedValue.strategy()) : "assigned";
-  String generator=generatedValue != null ? generatedValue.generator() : BinderHelper.ANNOTATION_STRING_DEFAULT;
+  String generatorName=generatedValue != null ? generatedValue.generator() : BinderHelper.ANNOTATION_STRING_DEFAULT;
   if (isComponent)   generatorType="assigned";
-  bindId(generatorType,generator,inferredData,columns,propertyHolder,localGenerators,isComponent,propertyAccessor,entityBinder,false,isIdentifierMapper,mappings,inheritanceStatePerClass);
+  BinderHelper.makeIdGenerator(idValue,generatorType,generatorName,mappings,localGenerators);
   log.trace("Bind {} on {}",(isComponent ? "@EmbeddedId" : "@Id"),inferredData.getPropertyName());
 }

@@ -40,13 +40,8 @@
     }
   }
   final XClass returnedClass=inferredData.getClassOrElement();
-  boolean isId;
-  if (!entityBinder.isIgnoreIdAnnotations() && (property.isAnnotationPresent(Id.class) || property.isAnnotationPresent(EmbeddedId.class))) {
-    isId=true;
-    columns=overrideColumnFromMapsIdProperty("",columns,propertyHolder,entityBinder,mappings);
-    processId(propertyHolder,property,inferredData,classGenerators,entityBinder,isIdentifierMapper,mappings,inheritanceStatePerClass,columns,returnedClass);
-  }
- else   if (property.isAnnotationPresent(Version.class)) {
+  boolean isId=!entityBinder.isIgnoreIdAnnotations() && (property.isAnnotationPresent(Id.class) || property.isAnnotationPresent(EmbeddedId.class));
+  if (property.isAnnotationPresent(Version.class)) {
     if (isIdentifierMapper) {
       throw new AnnotationException("@IdClass class should not have @Version property");
     }
@@ -69,7 +64,7 @@
     propBinder.setReturnedClass(inferredData.getPropertyClass());
     propBinder.setMappings(mappings);
     propBinder.setDeclaringClass(inferredData.getDeclaringClass());
-    Property prop=propBinder.bind();
+    Property prop=propBinder.makePropertyValueAndBind();
     propBinder.getSimpleValueBinder().setVersion(true);
     rootClass.setVersion(prop);
     final org.hibernate.mapping.MappedSuperclass superclass=BinderHelper.getMappedSuperclassOrNull(inferredData.getDeclaringClass(),inheritanceStatePerClass,mappings);
@@ -306,14 +301,13 @@
     collectionBinder.setDeclaringClass(inferredData.getDeclaringClass());
     collectionBinder.bind();
   }
- else {
+ else   if (!isId || !entityBinder.isIgnoreIdAnnotations()) {
     boolean isComponent;
-    Embeddable embeddableAnn=returnedClass.getAnnotation(Embeddable.class);
-    Embedded embeddedAnn=property.getAnnotation(Embedded.class);
-    isComponent=embeddedAnn != null || embeddableAnn != null;
+    isComponent=property.isAnnotationPresent(Embedded.class) || property.isAnnotationPresent(EmbeddedId.class) || returnedClass.isAnnotationPresent(Embeddable.class);
+    PropertyBinder propertyBinder;
     if (isComponent) {
       AccessType propertyAccessor=entityBinder.getPropertyAccessor(property);
-      bindComponent(inferredData,propertyHolder,propertyAccessor,entityBinder,isIdentifierMapper,mappings,isComponentEmbedded,inheritanceStatePerClass);
+      propertyBinder=bindComponent(inferredData,propertyHolder,propertyAccessor,entityBinder,isIdentifierMapper,mappings,isComponentEmbedded,isId,inheritanceStatePerClass);
     }
  else {
       boolean optional=true;
@@ -323,30 +317,36 @@
         optional=ann.optional();
         lazy=ann.fetch() == FetchType.LAZY;
       }
-      if (!optional && nullability != Nullability.FORCED_NULL) {
+      if (isId || (!optional && nullability != Nullability.FORCED_NULL)) {
         for (        Ejb3Column col : columns) {
           col.forceNotNull();
         }
       }
-      if (propertyHolder.isOrWithinEmbeddedId()) {
-        columns=overrideColumnFromMapsIdProperty(property.getName(),columns,propertyHolder,entityBinder,mappings);
+      if (isId || propertyHolder.isOrWithinEmbeddedId()) {
+        columns=overrideColumnFromMapsIdProperty(isId ? "" : property.getName(),columns,propertyHolder,entityBinder,mappings);
       }
-      PropertyBinder propBinder=new PropertyBinder();
-      propBinder.setName(inferredData.getPropertyName());
-      propBinder.setReturnedClassName(inferredData.getTypeName());
-      propBinder.setLazy(lazy);
-      propBinder.setAccessType(inferredData.getDefaultAccess());
-      propBinder.setColumns(columns);
-      propBinder.setHolder(propertyHolder);
-      propBinder.setProperty(property);
-      propBinder.setReturnedClass(inferredData.getPropertyClass());
-      propBinder.setMappings(mappings);
+      propertyBinder=new PropertyBinder();
+      propertyBinder.setName(inferredData.getPropertyName());
+      propertyBinder.setReturnedClassName(inferredData.getTypeName());
+      propertyBinder.setLazy(lazy);
+      propertyBinder.setAccessType(inferredData.getDefaultAccess());
+      propertyBinder.setColumns(columns);
+      propertyBinder.setHolder(propertyHolder);
+      propertyBinder.setProperty(property);
+      propertyBinder.setReturnedClass(inferredData.getPropertyClass());
+      propertyBinder.setMappings(mappings);
       if (isIdentifierMapper) {
-        propBinder.setInsertable(false);
-        propBinder.setUpdatable(false);
+        propertyBinder.setInsertable(false);
+        propertyBinder.setUpdatable(false);
       }
-      propBinder.setDeclaringClass(inferredData.getDeclaringClass());
-      propBinder.bind();
+      propertyBinder.setDeclaringClass(inferredData.getDeclaringClass());
+      propertyBinder.setId(isId);
+      propertyBinder.setInheritanceStatePerClass(inheritanceStatePerClass);
+      propertyBinder.makePropertyValueAndBind();
+    }
+    if (isId) {
+      final SimpleValue value=(SimpleValue)propertyBinder.getValue();
+      processId(propertyHolder,inferredData,value,classGenerators,isIdentifierMapper,mappings);
     }
   }
   Index index=property.getAnnotation(Index.class);
