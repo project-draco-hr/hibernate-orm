@@ -7,14 +7,17 @@
     }
   }
  catch (  FailureExpectedTestPassedException t) {
-    closeSession();
+    closeResources();
     throw t;
   }
 catch (  Throwable t) {
-    if (t instanceof InvocationTargetException || t instanceof IllegalAccessException) {
+    if (t instanceof InvocationTargetException) {
+      t=((InvocationTargetException)t).getTargetException();
+    }
+    if (t instanceof IllegalAccessException) {
       t.fillInStackTrace();
     }
-    closeSession();
+    closeResources();
     if (failureExpected) {
       FailureExpected ann=runMethod.getAnnotation(FailureExpected.class);
       StringBuilder builder=new StringBuilder();
