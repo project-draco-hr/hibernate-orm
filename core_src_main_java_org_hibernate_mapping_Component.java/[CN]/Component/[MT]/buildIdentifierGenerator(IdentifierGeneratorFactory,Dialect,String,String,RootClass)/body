@@ -1,0 +1,34 @@
+{
+  final boolean hasCustomGenerator=!DEFAULT_ID_GEN_STRATEGY.equals(getIdentifierGeneratorStrategy());
+  if (hasCustomGenerator) {
+    return super.createIdentifierGenerator(identifierGeneratorFactory,dialect,defaultCatalog,defaultSchema,rootClass);
+  }
+  final Class entityClass=rootClass.getMappedClass();
+  final Class attributeDeclarer;
+  CompositeNestedGeneratedValueGenerator.GenerationContextLocator locator;
+  if (isEmbedded()) {
+    attributeDeclarer=entityClass;
+  }
+ else   if (rootClass.getIdentifierProperty() != null) {
+    attributeDeclarer=resolveComponentClass();
+  }
+ else {
+    attributeDeclarer=resolveComponentClass();
+  }
+  locator=new StandardGenerationContextLocator(rootClass.getEntityName());
+  final CompositeNestedGeneratedValueGenerator generator=new CompositeNestedGeneratedValueGenerator(locator);
+  Iterator itr=getPropertyIterator();
+  while (itr.hasNext()) {
+    final Property property=(Property)itr.next();
+    if (property.getValue().isSimpleValue()) {
+      final SimpleValue value=(SimpleValue)property.getValue();
+      if (DEFAULT_ID_GEN_STRATEGY.equals(value.getIdentifierGeneratorStrategy())) {
+        continue;
+      }
+      final IdentifierGenerator valueGenerator=value.createIdentifierGenerator(identifierGeneratorFactory,dialect,defaultCatalog,defaultSchema,rootClass);
+      final Setter injector=property.getPropertyAccessor(attributeDeclarer).getSetter(attributeDeclarer,property.getName());
+      generator.addGeneratedValuePlan(new ValueGenerationPlan(property.getName(),valueGenerator,injector));
+    }
+  }
+  return generator;
+}
