@@ -6,7 +6,7 @@
       propertyHolder.setParentProperty(property.getName());
     }
  else {
-      throw new AnnotationException("@Parent cannot be applied outside an embeddable object: " + StringHelper.qualify(propertyHolder.getPath(),property.getName()));
+      throw new AnnotationException("@Parent cannot be applied outside an embeddable object: " + BinderHelper.getPath(propertyHolder,inferredData));
     }
     return;
   }
@@ -29,7 +29,7 @@
     joinColumns=Ejb3JoinColumn.buildJoinColumns((JoinColumn[])null,mappedBy,entityBinder.getSecondaryTables(),propertyHolder,inferredData.getPropertyName(),mappings);
   }
  else   if (joinColumns == null && property.isAnnotationPresent(org.hibernate.annotations.Any.class)) {
-    throw new AnnotationException("@Any requires an explicit @JoinColumn(s): " + StringHelper.qualify(propertyHolder.getPath(),property.getName()));
+    throw new AnnotationException("@Any requires an explicit @JoinColumn(s): " + BinderHelper.getPath(propertyHolder,inferredData));
   }
   if (columns == null && !property.isAnnotationPresent(ManyToMany.class)) {
     columns=Ejb3Column.buildColumnFromAnnotation(null,null,nullability,propertyHolder,inferredData,entityBinder.getSecondaryTables(),mappings);
@@ -44,20 +44,7 @@
   if (!entityBinder.isIgnoreIdAnnotations() && (property.isAnnotationPresent(Id.class) || property.isAnnotationPresent(EmbeddedId.class))) {
     isId=true;
     columns=overrideColumnFromMapsIdProperty("",columns,propertyHolder,entityBinder,mappings);
-    if (isIdentifierMapper) {
-      throw new AnnotationException("@IdClass class should not have @Id nor @EmbeddedId properties");
-    }
-    log.trace("{} is an id",inferredData.getPropertyName());
-    HashMap<String,IdGenerator> localGenerators=(HashMap<String,IdGenerator>)classGenerators.clone();
-    localGenerators.putAll(buildLocalGenerators(property,mappings));
-    final boolean isComponent=returnedClass.isAnnotationPresent(Embeddable.class) || property.isAnnotationPresent(EmbeddedId.class);
-    AccessType propertyAccessor=entityBinder.getPropertyAccessor(returnedClass);
-    GeneratedValue generatedValue=property.getAnnotation(GeneratedValue.class);
-    String generatorType=generatedValue != null ? generatorType(generatedValue.strategy()) : "assigned";
-    String generator=generatedValue != null ? generatedValue.generator() : BinderHelper.ANNOTATION_STRING_DEFAULT;
-    if (isComponent)     generatorType="assigned";
-    bindId(generatorType,generator,inferredData,columns,propertyHolder,localGenerators,isComponent,propertyAccessor,entityBinder,false,isIdentifierMapper,mappings,inheritanceStatePerClass);
-    log.trace("Bind {} on {}",(isComponent ? "@EmbeddedId" : "@Id"),inferredData.getPropertyName());
+    processId(propertyHolder,property,inferredData,classGenerators,entityBinder,isIdentifierMapper,mappings,inheritanceStatePerClass,columns,returnedClass);
   }
  else   if (property.isAnnotationPresent(Version.class)) {
     if (isIdentifierMapper) {
@@ -100,7 +87,7 @@
  else   if (property.isAnnotationPresent(ManyToOne.class)) {
     ManyToOne ann=property.getAnnotation(ManyToOne.class);
     if (property.isAnnotationPresent(Column.class) || property.isAnnotationPresent(Columns.class)) {
-      throw new AnnotationException("@Column(s) not allowed on a @ManyToOne property: " + StringHelper.qualify(propertyHolder.getPath(),inferredData.getPropertyName()));
+      throw new AnnotationException("@Column(s) not allowed on a @ManyToOne property: " + BinderHelper.getPath(propertyHolder,inferredData));
     }
     Cascade hibernateCascade=property.getAnnotation(Cascade.class);
     NotFound notFound=property.getAnnotation(NotFound.class);
@@ -120,7 +107,7 @@
  else   if (property.isAnnotationPresent(OneToOne.class)) {
     OneToOne ann=property.getAnnotation(OneToOne.class);
     if (property.isAnnotationPresent(Column.class) || property.isAnnotationPresent(Columns.class)) {
-      throw new AnnotationException("@Column(s) not allowed on a @OneToOne property: " + StringHelper.qualify(propertyHolder.getPath(),inferredData.getPropertyName()));
+      throw new AnnotationException("@Column(s) not allowed on a @OneToOne property: " + BinderHelper.getPath(propertyHolder,inferredData));
     }
     boolean trueOneToOne=property.isAnnotationPresent(PrimaryKeyJoinColumn.class) || property.isAnnotationPresent(PrimaryKeyJoinColumns.class);
     Cascade hibernateCascade=property.getAnnotation(Cascade.class);
@@ -140,7 +127,7 @@
   }
  else   if (property.isAnnotationPresent(org.hibernate.annotations.Any.class)) {
     if (property.isAnnotationPresent(Column.class) || property.isAnnotationPresent(Columns.class)) {
-      throw new AnnotationException("@Column(s) not allowed on a @Any property: " + StringHelper.qualify(propertyHolder.getPath(),inferredData.getPropertyName()));
+      throw new AnnotationException("@Column(s) not allowed on a @Any property: " + BinderHelper.getPath(propertyHolder,inferredData));
     }
     Cascade hibernateCascade=property.getAnnotation(Cascade.class);
     OnDelete onDeleteAnn=property.getAnnotation(OnDelete.class);
@@ -238,7 +225,7 @@
           index++;
         }
         if (joinKeyColumns != null) {
-          throw new AnnotationException("@MapKeyJoinColumn and @MapKeyJoinColumns used on the same property: " + StringHelper.qualify(propertyHolder.getClassName(),property.getName()));
+          throw new AnnotationException("@MapKeyJoinColumn and @MapKeyJoinColumns used on the same property: " + BinderHelper.getPath(propertyHolder,inferredData));
         }
       }
  else       if (property.isAnnotationPresent(MapKeyJoinColumn.class)) {
