@@ -1,0 +1,34 @@
+{
+  Cache cacheAnn=clazzToProcess.getAnnotation(Cache.class);
+  if (cacheAnn != null) {
+    return cacheAnn;
+  }
+  Cacheable cacheableAnn=clazzToProcess.getAnnotation(Cacheable.class);
+  SharedCacheMode mode=(SharedCacheMode)mappings.getConfigurationProperties().get("javax.persistence.sharedCache.mode");
+switch (mode) {
+case ALL:
+{
+      cacheAnn=buildCacheMock(clazzToProcess.getName(),mappings);
+      break;
+    }
+case ENABLE_SELECTIVE:
+{
+    if (cacheableAnn != null && cacheableAnn.value()) {
+      cacheAnn=buildCacheMock(clazzToProcess.getName(),mappings);
+    }
+    break;
+  }
+case DISABLE_SELECTIVE:
+{
+  if (cacheableAnn == null || cacheableAnn.value()) {
+    cacheAnn=buildCacheMock(clazzToProcess.getName(),mappings);
+  }
+  break;
+}
+default :
+{
+break;
+}
+}
+return cacheAnn;
+}
