@@ -3,17 +3,19 @@
     TypeElement returnedElement=(TypeElement)context.getProcessingEnvironment().getTypeUtils().asElement(t);
     String fqElementName=returnedElement.getQualifiedName().toString();
     String collection=COLLECTIONS.get(fqElementName);
+    final List<? extends AnnotationMirror> annotations=element.getAnnotationMirrors();
+    String targetEntity=getTargetEntity(annotations);
     if (collection != null) {
-      if (element.getAnnotation(ElementCollection.class) != null) {
+      if (containsAnnotation(annotations,ElementCollection.class)) {
         TypeMirror collectionElementType=getCollectionElementType(t,fqElementName);
         final TypeElement collectionElement=(TypeElement)context.getProcessingEnvironment().getTypeUtils().asElement(collectionElementType);
         this.parent.context.processElement(collectionElement,this.parent.defaultAccessTypeForElement);
       }
       if (collection.equals("javax.persistence.metamodel.MapAttribute")) {
-        return new AnnotationMetaMap(parent,element,collection,getKeyType(t),getElementType(t));
+        return new AnnotationMetaMap(parent,element,collection,getKeyType(t),getElementType(t,targetEntity));
       }
  else {
-        return new AnnotationMetaCollection(parent,element,collection,getElementType(t));
+        return new AnnotationMetaCollection(parent,element,collection,getElementType(t,targetEntity));
       }
     }
  else {
