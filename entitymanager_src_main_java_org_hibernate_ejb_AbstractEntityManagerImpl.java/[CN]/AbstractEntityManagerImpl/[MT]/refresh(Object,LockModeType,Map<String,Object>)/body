@@ -1,7 +1,10 @@
 {
   checkTransactionNeeded();
+  CacheMode previousCacheMode=getSession().getCacheMode();
+  CacheMode localCacheMode=determineAppropriateLocalCacheMode(properties);
   LockOptions lockOptions=null;
   try {
+    getSession().setCacheMode(localCacheMode);
     if (!getSession().contains(entity)) {
       throw new IllegalArgumentException("Entity not managed");
     }
@@ -13,5 +16,8 @@
   }
 catch (  HibernateException he) {
     throw convert(he,lockOptions);
+  }
+ finally {
+    getSession().setCacheMode(previousCacheMode);
   }
 }

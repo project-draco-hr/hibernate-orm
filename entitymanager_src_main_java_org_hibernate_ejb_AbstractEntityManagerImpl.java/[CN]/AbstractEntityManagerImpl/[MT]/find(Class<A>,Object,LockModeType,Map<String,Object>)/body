@@ -1,6 +1,9 @@
 {
+  CacheMode previousCacheMode=getSession().getCacheMode();
+  CacheMode cacheMode=determineAppropriateLocalCacheMode(properties);
   LockOptions lockOptions=null;
   try {
+    getSession().setCacheMode(cacheMode);
     if (lockModeType != null) {
       return (A)getSession().get(entityClass,(Serializable)primaryKey,getLockRequest(lockModeType,properties));
     }
@@ -23,5 +26,8 @@ catch (  ClassCastException e) {
   }
 catch (  HibernateException he) {
     throw convert(he,lockOptions);
+  }
+ finally {
+    getSession().setCacheMode(previousCacheMode);
   }
 }
