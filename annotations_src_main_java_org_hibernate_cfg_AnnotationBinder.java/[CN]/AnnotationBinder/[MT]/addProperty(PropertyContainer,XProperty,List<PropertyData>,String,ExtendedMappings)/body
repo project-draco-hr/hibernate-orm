@@ -1,19 +1,18 @@
 {
   final XClass declaringClass=propertyContainer.getDeclaringClass();
   final XClass entity=propertyContainer.getEntityAtStake();
-  boolean hasIdentifier;
+  int idPropertyCounter=0;
   PropertyData propertyAnnotatedElement=new PropertyInferredData(declaringClass,property,propertyAccessor,mappings.getReflectionManager());
   final XAnnotatedElement element=propertyAnnotatedElement.getProperty();
   if (element.isAnnotationPresent(Id.class) || element.isAnnotationPresent(EmbeddedId.class)) {
     annElts.add(0,propertyAnnotatedElement);
-    hasIdentifier=true;
+    idPropertyCounter++;
   }
  else {
     annElts.add(propertyAnnotatedElement);
-    hasIdentifier=false;
   }
   if (element.isAnnotationPresent(MapsId.class)) {
     mappings.addPropertyAnnotatedWithMapsId(entity,propertyAnnotatedElement);
   }
-  return hasIdentifier;
+  return idPropertyCounter;
 }

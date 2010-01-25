@@ -1,18 +1,30 @@
 {
   if (isId) {
     final RootClass rootClass=(RootClass)holder.getPersistentClass();
-    rootClass.setIdentifier((KeyValue)getValue());
-    if (embedded) {
-      rootClass.setEmbeddedIdentifier(true);
+    if (isXToMany || entityBinder.wrapIdsInEmbeddedComponents()) {
+      Component identifier=(Component)rootClass.getIdentifier();
+      if (identifier == null) {
+        identifier=AnnotationBinder.createComponent(holder,new PropertyPreloadedData(null,null,null),true,false);
+        rootClass.setIdentifier(identifier);
+        identifier.setNullValue("undefined");
+        rootClass.setEmbeddedIdentifier(true);
+      }
+      identifier.addProperty(prop);
     }
  else {
-      rootClass.setIdentifierProperty(prop);
-      final org.hibernate.mapping.MappedSuperclass superclass=BinderHelper.getMappedSuperclassOrNull(declaringClass,inheritanceStatePerClass,mappings);
-      if (superclass != null) {
-        superclass.setDeclaredIdentifierProperty(prop);
+      rootClass.setIdentifier((KeyValue)getValue());
+      if (embedded) {
+        rootClass.setEmbeddedIdentifier(true);
       }
  else {
-        rootClass.setDeclaredIdentifierProperty(prop);
+        rootClass.setIdentifierProperty(prop);
+        final org.hibernate.mapping.MappedSuperclass superclass=BinderHelper.getMappedSuperclassOrNull(declaringClass,inheritanceStatePerClass,mappings);
+        if (superclass != null) {
+          superclass.setDeclaredIdentifierProperty(prop);
+        }
+ else {
+          rootClass.setDeclaredIdentifierProperty(prop);
+        }
       }
     }
   }

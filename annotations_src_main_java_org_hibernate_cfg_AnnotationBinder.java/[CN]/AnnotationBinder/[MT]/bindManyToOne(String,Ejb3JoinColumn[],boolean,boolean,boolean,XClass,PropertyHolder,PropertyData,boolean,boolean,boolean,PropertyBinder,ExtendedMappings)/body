@@ -34,20 +34,20 @@
     mappings.addSecondPass(secondPass);
   }
   Ejb3Column.checkPropertyConsistency(columns,propertyHolder.getEntityName() + propertyName);
-  PropertyBinder binder=new PropertyBinder();
-  binder.setName(propertyName);
-  binder.setValue(value);
+  propertyBinder.setName(propertyName);
+  propertyBinder.setValue(value);
   if (isIdentifierMapper) {
-    binder.setInsertable(false);
-    binder.setUpdatable(false);
+    propertyBinder.setInsertable(false);
+    propertyBinder.setUpdatable(false);
   }
  else {
-    binder.setInsertable(columns[0].isInsertable());
-    binder.setUpdatable(columns[0].isUpdatable());
+    propertyBinder.setInsertable(columns[0].isInsertable());
+    propertyBinder.setUpdatable(columns[0].isUpdatable());
   }
-  binder.setAccessType(inferredData.getDefaultAccess());
-  binder.setCascade(cascadeStrategy);
-  binder.setProperty(property);
-  Property prop=binder.makeProperty();
-  propertyHolder.addProperty(prop,columns,inferredData.getDeclaringClass());
+  propertyBinder.setColumns(columns);
+  propertyBinder.setAccessType(inferredData.getDefaultAccess());
+  propertyBinder.setCascade(cascadeStrategy);
+  propertyBinder.setProperty(property);
+  propertyBinder.setXToMany(true);
+  Property prop=propertyBinder.makePropertyAndBind();
 }

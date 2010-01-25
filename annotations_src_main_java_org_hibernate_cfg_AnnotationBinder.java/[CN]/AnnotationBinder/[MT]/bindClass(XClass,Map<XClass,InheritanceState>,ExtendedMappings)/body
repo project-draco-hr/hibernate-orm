@@ -121,7 +121,7 @@
     log.warn("Inapropriate use of @OnDelete on entity, annotation ignored: {}",propertyHolder.getEntityName());
   }
   HashMap<String,IdGenerator> classGenerators=buildLocalGenerators(clazzToProcess,mappings);
-  List<PropertyData> elements=getElementsToProcess(persistentClass,clazzToProcess,inheritanceStatePerClass,entityBinder,mappings);
+  final ElementsToProcess elementsToProcess=getElementsToProcess(persistentClass,clazzToProcess,inheritanceStatePerClass,entityBinder,mappings);
   final boolean subclassAndSingleTableStrategy=inheritanceState.getType() == InheritanceType.SINGLE_TABLE && inheritanceState.hasParents();
   Set<String> idProperties=new HashSet<String>();
   IdClass idClass=null;
@@ -175,8 +175,11 @@
       idProperties.add(((Property)properties.next()).getName());
     }
   }
+ else {
+    entityBinder.setWrapIdsInEmbeddedComponents(elementsToProcess.getIdPropertyCount() > 1);
+  }
   Set<String> missingIdProperties=new HashSet<String>(idProperties);
-  for (  PropertyData propertyAnnotatedElement : elements) {
+  for (  PropertyData propertyAnnotatedElement : elementsToProcess.getElements()) {
     String propertyName=propertyAnnotatedElement.getPropertyName();
     if (!idProperties.contains(propertyName)) {
       processElementAnnotations(propertyHolder,subclassAndSingleTableStrategy ? Nullability.FORCED_NULL : Nullability.NO_CONSTRAINT,propertyAnnotatedElement.getProperty(),propertyAnnotatedElement,classGenerators,entityBinder,false,false,false,mappings,inheritanceStatePerClass);
