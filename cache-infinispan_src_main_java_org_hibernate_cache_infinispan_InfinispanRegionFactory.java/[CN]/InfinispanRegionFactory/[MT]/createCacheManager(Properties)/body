@@ -1,7 +1,13 @@
 {
   try {
     String configLoc=PropertiesHelper.getString(INFINISPAN_CONFIG_RESOURCE_PROP,properties,DEF_INFINISPAN_CONFIG_RESOURCE);
-    return new DefaultCacheManager(configLoc);
+    CacheManager manager=new DefaultCacheManager(configLoc,false);
+    String globalStats=PropertiesHelper.extractPropertyValue(INFINISPAN_GLOBAL_STATISTICS_PROP,properties);
+    if (globalStats != null) {
+      manager.getGlobalConfiguration().setExposeGlobalJmxStatistics(Boolean.parseBoolean(globalStats));
+    }
+    manager.start();
+    return manager;
   }
  catch (  IOException e) {
     throw new CacheException("Unable to create default cache manager",e);
