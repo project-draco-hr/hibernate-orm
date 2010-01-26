@@ -1,0 +1,35 @@
+{
+  Component comp;
+  if (referencedEntityName != null) {
+    comp=createComponent(propertyHolder,inferredData,isComponentEmbedded,isIdentifierMapper);
+    SecondPass sp=new CopyIdentifierComponentSecondPass(comp,referencedEntityName,columns,mappings);
+    mappings.addSecondPass(sp);
+  }
+ else {
+    comp=fillComponent(propertyHolder,inferredData,propertyAccessor,!isId,entityBinder,isComponentEmbedded,isIdentifierMapper,false,mappings,inheritanceStatePerClass);
+  }
+  if (isId) {
+    comp.setKey(true);
+    if (propertyHolder.getPersistentClass().getIdentifier() != null) {
+      throw new AnnotationException(comp.getComponentClassName() + " must not have @Id properties when used as an @EmbeddedId: " + BinderHelper.getPath(propertyHolder,inferredData));
+    }
+    if (comp.getPropertySpan() == 0) {
+      throw new AnnotationException(comp.getComponentClassName() + " has no persistent id property" + BinderHelper.getPath(propertyHolder,inferredData));
+    }
+  }
+  XProperty property=inferredData.getProperty();
+  setupComponentTuplizer(property,comp);
+  PropertyBinder binder=new PropertyBinder();
+  binder.setName(inferredData.getPropertyName());
+  binder.setValue(comp);
+  binder.setProperty(inferredData.getProperty());
+  binder.setAccessType(inferredData.getDefaultAccess());
+  binder.setEmbedded(isComponentEmbedded);
+  binder.setHolder(propertyHolder);
+  binder.setId(isId);
+  binder.setEntityBinder(entityBinder);
+  binder.setInheritanceStatePerClass(inheritanceStatePerClass);
+  binder.setMappings(mappings);
+  binder.makePropertyAndBind();
+  return binder;
+}

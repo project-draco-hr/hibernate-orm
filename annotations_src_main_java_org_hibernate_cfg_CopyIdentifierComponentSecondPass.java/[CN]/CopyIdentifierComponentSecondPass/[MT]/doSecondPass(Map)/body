@@ -1,0 +1,69 @@
+{
+  PersistentClass referencedPersistentClass=(PersistentClass)persistentClasses.get(referencedEntityName);
+  if (referencedPersistentClass == null) {
+    throw new AnnotationException("Unknown entity name: " + referencedEntityName);
+  }
+  ;
+  if (!(referencedPersistentClass.getIdentifier() instanceof Component)) {
+    throw new AssertionFailure("Unexpected identifier type on the referenced entity when mapping a @MapsId: " + referencedEntityName);
+  }
+  Component referencedComponent=(Component)referencedPersistentClass.getIdentifier();
+  Iterator<Property> properties=referencedComponent.getPropertyIterator();
+  boolean isExplicitReference=true;
+  Map<String,Ejb3JoinColumn> columnByReferencedName=new HashMap<String,Ejb3JoinColumn>(joinColumns.length);
+  for (  Ejb3JoinColumn joinColumn : joinColumns) {
+    final String referencedColumnName=joinColumn.getReferencedColumn();
+    if (BinderHelper.isDefault(referencedColumnName)) {
+      break;
+    }
+    columnByReferencedName.put(referencedColumnName,joinColumn);
+  }
+  int index=0;
+  if (columnByReferencedName.isEmpty()) {
+    isExplicitReference=false;
+    for (    Ejb3JoinColumn joinColumn : joinColumns) {
+      columnByReferencedName.put("" + index,joinColumn);
+      index++;
+    }
+    index=0;
+  }
+  while (properties.hasNext()) {
+    Property referencedProperty=properties.next();
+    if (referencedProperty.isComposite()) {
+      throw new AssertionFailure("Unexpected nested component on the referenced entity when mapping a @MapsId: " + referencedEntityName);
+    }
+ else {
+      Property property=new Property();
+      property.setName(referencedProperty.getName());
+      property.setNodeName(referencedProperty.getNodeName());
+      property.setPersistentClass(component.getOwner());
+      property.setPropertyAccessorName(referencedProperty.getPropertyAccessorName());
+      SimpleValue value=new SimpleValue(component.getTable());
+      property.setValue(value);
+      final SimpleValue referencedValue=(SimpleValue)referencedProperty.getValue();
+      value.setTypeName(referencedValue.getTypeName());
+      value.setTypeParameters(referencedValue.getTypeParameters());
+      final Iterator<Column> columns=referencedValue.getColumnIterator();
+      while (columns.hasNext()) {
+        Column column=columns.next();
+        final Ejb3JoinColumn joinColumn;
+        String logicalColumnName=null;
+        if (isExplicitReference) {
+          final String columnName=column.getName();
+          logicalColumnName=mappings.getLogicalColumnName(columnName,referencedPersistentClass.getTable());
+          joinColumn=columnByReferencedName.get(logicalColumnName);
+        }
+ else {
+          joinColumn=columnByReferencedName.get("" + index);
+          index++;
+        }
+        if (joinColumn == null) {
+          throw new AnnotationException(isExplicitReference ? "Unable to find column reference in the @MapsId mapping: " + logicalColumnName : "Implicit column reference in the @MapsId mapping fails, try to use explicit referenceColumnNames: " + referencedEntityName);
+        }
+        value.addColumn(new Column(joinColumn.getName()));
+        column.setValue(value);
+      }
+      component.addProperty(property);
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  org.hibernate.mapping.MappedSuperclass mappedSuperclass=null;
+  final InheritanceState superEntityState=InheritanceState.getInheritanceStateOfSuperEntity(clazz,inheritanceStatePerClass);
+  PersistentClass superEntity=superEntityState != null ? mappings.getClass(superEntityState.getClazz().getName()) : null;
+  final int lastMappedSuperclass=classesToProcessForMappedSuperclass.size() - 1;
+  for (int index=0; index < lastMappedSuperclass; index++) {
+    org.hibernate.mapping.MappedSuperclass parentSuperclass=mappedSuperclass;
+    final Class<?> type=mappings.getReflectionManager().toClass(classesToProcessForMappedSuperclass.get(index));
+    mappedSuperclass=mappings.getMappedSuperclass(type);
+    if (mappedSuperclass == null) {
+      mappedSuperclass=new org.hibernate.mapping.MappedSuperclass(parentSuperclass,superEntity);
+      mappedSuperclass.setMappedClass(type);
+      mappings.addMappedSuperclass(type,mappedSuperclass);
+    }
+  }
+  if (mappedSuperclass != null) {
+    persistentClass.setSuperMappedSuperclass(mappedSuperclass);
+  }
+}

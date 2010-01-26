@@ -49,31 +49,11 @@
   caches.clear();
   try {
     inSecondPass=true;
-    Iterator iter=secondPasses.iterator();
-    while (iter.hasNext()) {
-      SecondPass sp=(SecondPass)iter.next();
-      if (sp instanceof SetSimpleValueTypeSecondPass) {
-        sp.doSecondPass(classes);
-        iter.remove();
-      }
-    }
+    processSecondPassesOfType(SetSimpleValueTypeSecondPass.class);
+    processSecondPassesOfType(CopyIdentifierComponentSecondPass.class);
     processFkSecondPassInOrder();
-    iter=secondPasses.iterator();
-    while (iter.hasNext()) {
-      SecondPass sp=(SecondPass)iter.next();
-      if (sp instanceof CreateKeySecondPass) {
-        sp.doSecondPass(classes);
-        iter.remove();
-      }
-    }
-    iter=secondPasses.iterator();
-    while (iter.hasNext()) {
-      SecondPass sp=(SecondPass)iter.next();
-      if (sp instanceof SecondaryTableSecondPass) {
-        sp.doSecondPass(classes);
-        iter.remove();
-      }
-    }
+    processSecondPassesOfType(CreateKeySecondPass.class);
+    processSecondPassesOfType(SecondaryTableSecondPass.class);
     super.secondPassCompile();
     inSecondPass=false;
   }

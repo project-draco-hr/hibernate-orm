@@ -1,5 +1,4 @@
 {
-  Ejb3Column[] columns=null;
   log.trace("Processing annotations of {}.{}",propertyHolder.getEntityName(),inferredData.getPropertyName());
   if (property.isAnnotationPresent(Parent.class)) {
     if (propertyHolder.isComponent()) {
@@ -10,35 +9,9 @@
     }
     return;
   }
-  Ejb3JoinColumn[] joinColumns=buildExplicitJoinColumns(propertyHolder,property,inferredData,entityBinder,mappings);
-  if (property.isAnnotationPresent(Column.class) || property.isAnnotationPresent(Formula.class)) {
-    Column ann=property.getAnnotation(Column.class);
-    Formula formulaAnn=property.getAnnotation(Formula.class);
-    columns=Ejb3Column.buildColumnFromAnnotation(new Column[]{ann},formulaAnn,nullability,propertyHolder,inferredData,entityBinder.getSecondaryTables(),mappings);
-  }
- else   if (property.isAnnotationPresent(Columns.class)) {
-    Columns anns=property.getAnnotation(Columns.class);
-    columns=Ejb3Column.buildColumnFromAnnotation(anns.columns(),null,nullability,propertyHolder,inferredData,entityBinder.getSecondaryTables(),mappings);
-  }
-  if (joinColumns == null && (property.isAnnotationPresent(ManyToOne.class) || property.isAnnotationPresent(OneToOne.class))) {
-    joinColumns=buildDefaultJoinColumnsForXToOne(propertyHolder,property,inferredData,entityBinder,mappings);
-  }
- else   if (joinColumns == null && (property.isAnnotationPresent(OneToMany.class) || property.isAnnotationPresent(CollectionOfElements.class) || property.isAnnotationPresent(ElementCollection.class))) {
-    OneToMany oneToMany=property.getAnnotation(OneToMany.class);
-    String mappedBy=oneToMany != null ? oneToMany.mappedBy() : "";
-    joinColumns=Ejb3JoinColumn.buildJoinColumns((JoinColumn[])null,mappedBy,entityBinder.getSecondaryTables(),propertyHolder,inferredData.getPropertyName(),mappings);
-  }
- else   if (joinColumns == null && property.isAnnotationPresent(org.hibernate.annotations.Any.class)) {
-    throw new AnnotationException("@Any requires an explicit @JoinColumn(s): " + BinderHelper.getPath(propertyHolder,inferredData));
-  }
-  if (columns == null && !property.isAnnotationPresent(ManyToMany.class)) {
-    columns=Ejb3Column.buildColumnFromAnnotation(null,null,nullability,propertyHolder,inferredData,entityBinder.getSecondaryTables(),mappings);
-  }
-  if (nullability == Nullability.FORCED_NOT_NULL) {
-    for (    Ejb3Column col : columns) {
-      col.forceNotNull();
-    }
-  }
+  ColumnsBuilder columnsBuilder=new ColumnsBuilder(propertyHolder,nullability,property,inferredData,entityBinder,mappings).extractMetadata();
+  Ejb3Column[] columns=columnsBuilder.getColumns();
+  Ejb3JoinColumn[] joinColumns=columnsBuilder.getJoinColumns();
   final XClass returnedClass=inferredData.getClassOrElement();
   PropertyBinder propertyBinder=new PropertyBinder();
   propertyBinder.setName(inferredData.getPropertyName());
@@ -310,9 +283,20 @@
  else   if (!isId || !entityBinder.isIgnoreIdAnnotations()) {
     boolean isComponent;
     isComponent=property.isAnnotationPresent(Embedded.class) || property.isAnnotationPresent(EmbeddedId.class) || returnedClass.isAnnotationPresent(Embeddable.class);
+    boolean isOverridden=false;
+    if (isId || propertyHolder.isOrWithinEmbeddedId()) {
+      Ejb3Column[] oldColumns=columns;
+      columns=columnsBuilder.overrideColumnFromMapsIdProperty(isId);
+      isOverridden=oldColumns != columns;
+    }
     if (isComponent) {
+      String referencedEntityName=null;
+      if (isOverridden) {
+        final PropertyData mapsIdProperty=BinderHelper.getPropertyAnnotatedWithMapsId(isId,propertyHolder,property.getName(),mappings);
+        referencedEntityName=mapsIdProperty.getClassOrElementName();
+      }
       AccessType propertyAccessor=entityBinder.getPropertyAccessor(property);
-      propertyBinder=bindComponent(inferredData,propertyHolder,propertyAccessor,entityBinder,isIdentifierMapper,mappings,isComponentEmbedded,isId,inheritanceStatePerClass);
+      propertyBinder=bindComponent(inferredData,propertyHolder,propertyAccessor,entityBinder,isIdentifierMapper,mappings,isComponentEmbedded,isId,inheritanceStatePerClass,referencedEntityName,isOverridden ? (Ejb3JoinColumn[])columns : null);
     }
  else {
       boolean optional=true;
@@ -326,9 +310,6 @@
         for (        Ejb3Column col : columns) {
           col.forceNotNull();
         }
-      }
-      if (isId || propertyHolder.isOrWithinEmbeddedId()) {
-        columns=overrideColumnFromMapsIdProperty(isId ? "" : property.getName(),columns,propertyHolder,entityBinder,mappings);
       }
       propertyBinder.setLazy(lazy);
       propertyBinder.setColumns(columns);

@@ -121,31 +121,20 @@
     log.warn("Inapropriate use of @OnDelete on entity, annotation ignored: {}",propertyHolder.getEntityName());
   }
   HashMap<String,IdGenerator> classGenerators=buildLocalGenerators(clazzToProcess,mappings);
-  final ElementsToProcess elementsToProcess=getElementsToProcess(persistentClass,clazzToProcess,inheritanceStatePerClass,entityBinder,mappings);
+  final InheritanceState.ElementsToProcess elementsToProcess=inheritanceState.getElementsToProcess();
+  inheritanceState.postProcess(persistentClass,entityBinder);
   final boolean subclassAndSingleTableStrategy=inheritanceState.getType() == InheritanceType.SINGLE_TABLE && inheritanceState.hasParents();
   Set<String> idProperties=new HashSet<String>();
-  IdClass idClass=null;
-  XClass current=null;
-  if (!inheritanceState.hasParents()) {
-    InheritanceState state=inheritanceState;
-    do {
-      current=state.getClazz();
-      if (current.isAnnotationPresent(IdClass.class)) {
-        idClass=current.getAnnotation(IdClass.class);
-        break;
-      }
-      state=InheritanceState.getSuperclassInheritanceState(current,inheritanceStatePerClass);
-    }
- while (state != null);
-  }
-  if (idClass != null) {
+  XClass classWithIdClass=inheritanceState.getClassWithIdClass(false);
+  if (classWithIdClass != null) {
+    IdClass idClass=classWithIdClass.getAnnotation(IdClass.class);
     XClass compositeClass=mappings.getReflectionManager().toXClass(idClass.value());
     boolean isComponent=true;
     AccessType propertyAccessor=entityBinder.getPropertyAccessor(compositeClass);
     String generatorType="assigned";
     String generator=BinderHelper.ANNOTATION_STRING_DEFAULT;
     PropertyData inferredData=new PropertyPreloadedData(entityBinder.getPropertyAccessType(),"id",compositeClass);
-    PropertyData baseInferredData=new PropertyPreloadedData(entityBinder.getPropertyAccessType(),"id",current);
+    PropertyData baseInferredData=new PropertyPreloadedData(entityBinder.getPropertyAccessType(),"id",classWithIdClass);
     HashMap<String,IdGenerator> localGenerators=new HashMap<String,IdGenerator>();
     boolean ignoreIdAnnotations=entityBinder.isIgnoreIdAnnotations();
     entityBinder.setIgnoreIdAnnotations(true);

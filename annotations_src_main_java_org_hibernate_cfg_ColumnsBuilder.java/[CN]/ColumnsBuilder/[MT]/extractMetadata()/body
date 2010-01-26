@@ -1,0 +1,33 @@
+{
+  columns=null;
+  joinColumns=buildExplicitJoinColumns(property,inferredData);
+  if (property.isAnnotationPresent(Column.class) || property.isAnnotationPresent(Formula.class)) {
+    Column ann=property.getAnnotation(Column.class);
+    Formula formulaAnn=property.getAnnotation(Formula.class);
+    columns=Ejb3Column.buildColumnFromAnnotation(new Column[]{ann},formulaAnn,nullability,propertyHolder,inferredData,entityBinder.getSecondaryTables(),mappings);
+  }
+ else   if (property.isAnnotationPresent(Columns.class)) {
+    Columns anns=property.getAnnotation(Columns.class);
+    columns=Ejb3Column.buildColumnFromAnnotation(anns.columns(),null,nullability,propertyHolder,inferredData,entityBinder.getSecondaryTables(),mappings);
+  }
+  if (joinColumns == null && (property.isAnnotationPresent(ManyToOne.class) || property.isAnnotationPresent(OneToOne.class))) {
+    joinColumns=buildDefaultJoinColumnsForXToOne(property,inferredData);
+  }
+ else   if (joinColumns == null && (property.isAnnotationPresent(OneToMany.class) || property.isAnnotationPresent(CollectionOfElements.class) || property.isAnnotationPresent(ElementCollection.class))) {
+    OneToMany oneToMany=property.getAnnotation(OneToMany.class);
+    String mappedBy=oneToMany != null ? oneToMany.mappedBy() : "";
+    joinColumns=Ejb3JoinColumn.buildJoinColumns(null,mappedBy,entityBinder.getSecondaryTables(),propertyHolder,inferredData.getPropertyName(),mappings);
+  }
+ else   if (joinColumns == null && property.isAnnotationPresent(org.hibernate.annotations.Any.class)) {
+    throw new AnnotationException("@Any requires an explicit @JoinColumn(s): " + BinderHelper.getPath(propertyHolder,inferredData));
+  }
+  if (columns == null && !property.isAnnotationPresent(ManyToMany.class)) {
+    columns=Ejb3Column.buildColumnFromAnnotation(null,null,nullability,propertyHolder,inferredData,entityBinder.getSecondaryTables(),mappings);
+  }
+  if (nullability == Nullability.FORCED_NOT_NULL) {
+    for (    Ejb3Column col : columns) {
+      col.forceNotNull();
+    }
+  }
+  return this;
+}
