@@ -1,13 +1,12 @@
 {
   List<? extends AnnotationMirror> annotationMirrors=element.getAnnotationMirrors();
   for (  AnnotationMirror mirror : annotationMirrors) {
-    final String annotationType=mirror.getAnnotationType().toString();
     if (element.getKind() == ElementKind.CLASS) {
-      if (annotationType.equals(ENTITY_ANN)) {
+      if (TypeUtils.isAnnotationMirrorOfType(mirror,Entity.class)) {
         AnnotationMetaEntity metaEntity=new AnnotationMetaEntity((TypeElement)element,context);
         context.getMetaEntitiesToProcess().put(metaEntity.getQualifiedName(),metaEntity);
       }
- else       if (annotationType.equals(MAPPED_SUPERCLASS_ANN) || annotationType.equals(EMBEDDABLE_ANN)) {
+ else       if (TypeUtils.isAnnotationMirrorOfType(mirror,MappedSuperclass.class) || TypeUtils.isAnnotationMirrorOfType(mirror,Embeddable.class)) {
         AnnotationMetaEntity metaEntity=new AnnotationMetaEntity((TypeElement)element,context);
         context.getMetaSuperclassAndEmbeddableToProcess().put(metaEntity.getQualifiedName(),metaEntity);
       }

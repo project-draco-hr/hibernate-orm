@@ -5,11 +5,11 @@
   addPersistentMembers(membersFound,elementAccessType,fieldsOfClass,AccessType.FIELD);
   List<? extends Element> methodsOfClass=ElementFilter.methodsIn(element.getEnclosedElements());
   addPersistentMembers(membersFound,elementAccessType,methodsOfClass,AccessType.PROPERTY);
-  for (TypeElement superclass=TypeUtils.getSuperclass(element); superclass != null; superclass=TypeUtils.getSuperclass(superclass)) {
-    if (superclass.getAnnotation(Entity.class) != null) {
+  for (TypeElement superclass=TypeUtils.getSuperclassTypeElement(element); superclass != null; superclass=TypeUtils.getSuperclassTypeElement(superclass)) {
+    if (TypeUtils.containsAnnotation(superclass,Entity.class)) {
       break;
     }
- else     if (superclass.getAnnotation(MappedSuperclass.class) != null) {
+ else     if (TypeUtils.containsAnnotation(superclass,MappedSuperclass.class)) {
       context.processElement(superclass,defaultAccessTypeForHierarchy);
     }
   }

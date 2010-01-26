@@ -3,10 +3,9 @@
     TypeElement returnedElement=(TypeElement)context.getProcessingEnvironment().getTypeUtils().asElement(t);
     String fqElementName=returnedElement.getQualifiedName().toString();
     String collection=COLLECTIONS.get(fqElementName);
-    final List<? extends AnnotationMirror> annotations=element.getAnnotationMirrors();
-    String targetEntity=getTargetEntity(annotations);
+    String targetEntity=getTargetEntity(element.getAnnotationMirrors());
     if (collection != null) {
-      if (containsAnnotation(annotations,ElementCollection.class)) {
+      if (TypeUtils.containsAnnotation(element,ElementCollection.class)) {
         TypeMirror collectionElementType=getCollectionElementType(t,fqElementName);
         final TypeElement collectionElement=(TypeElement)context.getProcessingEnvironment().getTypeUtils().asElement(collectionElementType);
         this.parent.context.processElement(collectionElement,this.parent.defaultAccessTypeForElement);
@@ -19,7 +18,7 @@
       }
     }
  else {
-      if (element.getAnnotation(Embedded.class) != null || returnedElement.getAnnotation(Embeddable.class) != null) {
+      if (TypeUtils.containsAnnotation(returnedElement,Embedded.class,Embeddable.class)) {
         this.parent.context.processElement(returnedElement,this.parent.defaultAccessTypeForElement);
       }
       return new AnnotationMetaSingleAttribute(parent,element,returnedElement.getQualifiedName().toString());

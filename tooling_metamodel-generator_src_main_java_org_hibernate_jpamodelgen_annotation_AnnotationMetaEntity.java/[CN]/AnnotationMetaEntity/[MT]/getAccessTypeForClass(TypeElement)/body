@@ -8,8 +8,7 @@
     context.logMessage(Diagnostic.Kind.OTHER,"Found in cache" + searchedElement + ":"+ accessType);
     return accessType;
   }
-  final Access accessAnn=searchedElement.getAnnotation(Access.class);
-  AccessType forcedAccessType=accessAnn != null ? accessAnn.value() : null;
+  AccessType forcedAccessType=determineAnnotationSpecifiedAccessType(searchedElement);
   if (forcedAccessType != null) {
     context.logMessage(Diagnostic.Kind.OTHER,"access type " + searchedElement + ":"+ forcedAccessType);
     context.addAccessType(searchedElement,forcedAccessType);
@@ -20,8 +19,7 @@
       List<? extends AnnotationMirror> entityAnnotations=context.getProcessingEnvironment().getElementUtils().getAllAnnotationMirrors(subElement);
       for (      Object entityAnnotation : entityAnnotations) {
         AnnotationMirror annotationMirror=(AnnotationMirror)entityAnnotation;
-        final String annotationType=annotationMirror.getAnnotationType().toString();
-        if (annotationType.equals(Id.class.getName()) || annotationType.equals(EmbeddedId.class.getName())) {
+        if (TypeUtils.isAnnotationMirrorOfType(annotationMirror,Id.class) || TypeUtils.isAnnotationMirrorOfType(annotationMirror,EmbeddedId.class)) {
           context.logMessage(Diagnostic.Kind.OTHER,"Found id on" + searchedElement);
           final ElementKind kind=subElement.getKind();
           if (kind == ElementKind.FIELD || kind == ElementKind.METHOD) {

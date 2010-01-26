@@ -1,0 +1,19 @@
+{
+  final AnnotationMirror accessAnnotationMirror=TypeUtils.getAnnotationMirror(element,Access.class);
+  AccessType forcedAccessType=null;
+  if (accessAnnotationMirror != null) {
+    Element accessElement=(Element)TypeUtils.getAnnotationValue(accessAnnotationMirror,DEFAULT_ANNOTATION_PARAMETER_NAME);
+    if (accessElement.getKind().equals(ElementKind.ENUM_CONSTANT)) {
+      if (accessElement.getSimpleName().toString().equals(AccessType.PROPERTY.toString())) {
+        forcedAccessType=AccessType.PROPERTY;
+      }
+ else       if (accessElement.getSimpleName().toString().equals(AccessType.FIELD.toString())) {
+        forcedAccessType=AccessType.FIELD;
+      }
+ else {
+        context.logMessage(Diagnostic.Kind.ERROR,"Unexpected type for access type");
+      }
+    }
+  }
+  return forcedAccessType;
+}
