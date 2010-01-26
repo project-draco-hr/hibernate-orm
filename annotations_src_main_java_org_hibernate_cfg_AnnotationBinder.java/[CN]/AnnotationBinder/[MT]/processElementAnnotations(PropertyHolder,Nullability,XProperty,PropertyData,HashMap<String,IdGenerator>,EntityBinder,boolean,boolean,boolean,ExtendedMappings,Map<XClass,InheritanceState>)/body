@@ -315,9 +315,22 @@
       propertyBinder.setColumns(columns);
       propertyBinder.makePropertyValueAndBind();
     }
+    if (isOverridden) {
+      final PropertyData mapsIdProperty=BinderHelper.getPropertyAnnotatedWithMapsId(isId,propertyHolder,property.getName(),mappings);
+      HashMap<String,IdGenerator> localGenerators=(HashMap<String,IdGenerator>)classGenerators.clone();
+      final IdGenerator foreignGenerator=new IdGenerator();
+      foreignGenerator.setIdentifierGeneratorStrategy("assigned");
+      foreignGenerator.setName("Hibernate-local--foreign generator");
+      foreignGenerator.setIdentifierGeneratorStrategy("foreign");
+      foreignGenerator.addParam("property",mapsIdProperty.getPropertyName());
+      localGenerators.put(foreignGenerator.getName(),foreignGenerator);
+      BinderHelper.makeIdGenerator((SimpleValue)propertyBinder.getValue(),foreignGenerator.getIdentifierGeneratorStrategy(),foreignGenerator.getName(),mappings,localGenerators);
+    }
     if (isId) {
       final SimpleValue value=(SimpleValue)propertyBinder.getValue();
-      processId(propertyHolder,inferredData,value,classGenerators,isIdentifierMapper,mappings);
+      if (!isOverridden) {
+        processId(propertyHolder,inferredData,value,classGenerators,isIdentifierMapper,mappings);
+      }
     }
   }
   Index index=property.getAnnotation(Index.class);
