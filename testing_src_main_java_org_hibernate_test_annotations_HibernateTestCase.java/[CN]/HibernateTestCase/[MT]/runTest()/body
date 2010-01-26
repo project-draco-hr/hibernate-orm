@@ -1,5 +1,37 @@
 {
-  if (runTest) {
-    runTestMethod(runMethod);
+  Method runMethod=findTestMethod();
+  FailureExpected failureExpected=locateAnnotation(FailureExpected.class,runMethod);
+  try {
+    super.runTest();
+    if (failureExpected != null) {
+      throw new FailureExpectedTestPassedException();
+    }
+  }
+ catch (  FailureExpectedTestPassedException t) {
+    closeResources();
+    throw t;
+  }
+catch (  Throwable t) {
+    if (t instanceof InvocationTargetException) {
+      t=((InvocationTargetException)t).getTargetException();
+    }
+    if (t instanceof IllegalAccessException) {
+      t.fillInStackTrace();
+    }
+    closeResources();
+    if (failureExpected != null) {
+      StringBuilder builder=new StringBuilder();
+      if (StringHelper.isNotEmpty(failureExpected.message())) {
+        builder.append(failureExpected.message());
+      }
+ else {
+        builder.append("ignoring @FailureExpected test");
+      }
+      builder.append(" (").append(failureExpected.jiraKey()).append(")");
+      reportSkip("Failed with: " + t.toString(),builder.toString());
+    }
+ else {
+      throw t;
+    }
   }
 }
