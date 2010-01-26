@@ -1,20 +1,20 @@
 {
   if (isPersistent(element)) {
-    TypeElement returnedElement=(TypeElement)context.getProcessingEnvironment().getTypeUtils().asElement(t);
+    TypeElement returnedElement=(TypeElement)context.getProcessingEnvironment().getTypeUtils().asElement(declaredType);
     String fqElementName=returnedElement.getQualifiedName().toString();
     String collection=COLLECTIONS.get(fqElementName);
     String targetEntity=getTargetEntity(element.getAnnotationMirrors());
     if (collection != null) {
       if (TypeUtils.containsAnnotation(element,ElementCollection.class)) {
-        TypeMirror collectionElementType=getCollectionElementType(t,fqElementName);
+        TypeMirror collectionElementType=getCollectionElementType(declaredType,fqElementName);
         final TypeElement collectionElement=(TypeElement)context.getProcessingEnvironment().getTypeUtils().asElement(collectionElementType);
         this.parent.context.processElement(collectionElement,this.parent.defaultAccessTypeForElement);
       }
       if (collection.equals("javax.persistence.metamodel.MapAttribute")) {
-        return new AnnotationMetaMap(parent,element,collection,getKeyType(t),getElementType(t,targetEntity));
+        return new AnnotationMetaMap(parent,element,collection,getKeyType(declaredType),getElementType(declaredType,targetEntity));
       }
  else {
-        return new AnnotationMetaCollection(parent,element,collection,getElementType(t,targetEntity));
+        return new AnnotationMetaCollection(parent,element,collection,getElementType(declaredType,targetEntity));
       }
     }
  else {

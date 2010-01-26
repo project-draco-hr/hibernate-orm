@@ -7,25 +7,25 @@
   EmbeddableAttributes attributes=embeddable.getAttributes();
   XmlMetaSingleAttribute attribute;
   for (  Basic basic : attributes.getBasic()) {
-    attribute=new XmlMetaSingleAttribute(this,basic.getName(),getType(basic.getName()));
+    attribute=new XmlMetaSingleAttribute(this,basic.getName(),getType(basic.getName(),null));
     members.add(attribute);
   }
   for (  ManyToOne manyToOne : attributes.getManyToOne()) {
-    attribute=new XmlMetaSingleAttribute(this,manyToOne.getName(),getType(manyToOne.getName()));
+    attribute=new XmlMetaSingleAttribute(this,manyToOne.getName(),getType(manyToOne.getName(),manyToOne.getTargetEntity()));
     members.add(attribute);
   }
   for (  OneToOne oneToOne : attributes.getOneToOne()) {
-    attribute=new XmlMetaSingleAttribute(this,oneToOne.getName(),getType(oneToOne.getName()));
+    attribute=new XmlMetaSingleAttribute(this,oneToOne.getName(),getType(oneToOne.getName(),oneToOne.getTargetEntity()));
     members.add(attribute);
   }
   XmlMetaCollection metaCollection;
   for (  OneToMany oneToMany : attributes.getOneToMany()) {
-    String[] types=getCollectionType(oneToMany.getName());
+    String[] types=getCollectionType(oneToMany.getName(),oneToMany.getTargetEntity());
     metaCollection=new XmlMetaCollection(this,oneToMany.getName(),types[0],types[1]);
     members.add(metaCollection);
   }
   for (  ElementCollection collection : attributes.getElementCollection()) {
-    String[] types=getCollectionType(collection.getName());
+    String[] types=getCollectionType(collection.getName(),collection.getTargetClass());
     metaCollection=new XmlMetaCollection(this,collection.getName(),types[0],types[1]);
     members.add(metaCollection);
   }
