@@ -33,6 +33,15 @@
   }
   for (  PropertyData propertyAnnotatedElement : classElements) {
     processElementAnnotations(subHolder,isNullable ? Nullability.NO_CONSTRAINT : Nullability.FORCED_NOT_NULL,propertyAnnotatedElement.getProperty(),propertyAnnotatedElement,new HashMap<String,IdGenerator>(),entityBinder,isIdentifierMapper,isComponentEmbedded,inSecondPass,mappings,inheritanceStatePerClass);
+    XProperty property=propertyAnnotatedElement.getProperty();
+    if (property.isAnnotationPresent(GeneratedValue.class) && property.isAnnotationPresent(Id.class)) {
+      HashMap<String,IdGenerator> localGenerators=(HashMap<String,IdGenerator>)new HashMap<String,IdGenerator>();
+      localGenerators.putAll(buildLocalGenerators(property,mappings));
+      GeneratedValue generatedValue=property.getAnnotation(GeneratedValue.class);
+      String generatorType=generatedValue != null ? generatorType(generatedValue.strategy()) : "assigned";
+      String generator=generatedValue != null ? generatedValue.generator() : BinderHelper.ANNOTATION_STRING_DEFAULT;
+      BinderHelper.makeIdGenerator((SimpleValue)comp.getProperty(property.getName()).getValue(),generatorType,generator,mappings,localGenerators);
+    }
   }
   return comp;
 }
