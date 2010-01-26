@@ -1,0 +1,23 @@
+{
+  SharedCacheMode mode;
+  final Object value=mappings.getConfigurationProperties().get("javax.persistence.sharedCache.mode");
+  if (value == null) {
+    log.debug("no value specified for 'javax.persistence.sharedCache.mode'; using UNSPECIFIED");
+    mode=SharedCacheMode.UNSPECIFIED;
+  }
+ else {
+    if (SharedCacheMode.class.isInstance(value)) {
+      mode=(SharedCacheMode)value;
+    }
+ else {
+      try {
+        mode=SharedCacheMode.valueOf(value.toString());
+      }
+ catch (      Exception e) {
+        log.debug("Unable to resolve given mode name [" + value.toString() + "]; using UNSPECIFIED : "+ e.toString());
+        mode=SharedCacheMode.UNSPECIFIED;
+      }
+    }
+  }
+  return mode;
+}

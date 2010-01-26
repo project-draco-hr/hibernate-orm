@@ -1,5 +1,9 @@
 {
   log.debug("Creating Factory: {}",metadata.getName());
+  Map overrides=new HashMap();
+  if (overridesIn != null) {
+    overrides.putAll(overridesIn);
+  }
   Map workingVars=new HashMap();
   workingVars.put(AvailableSettings.PERSISTENCE_UNIT_NAME,metadata.getName());
   this.persistenceUnitName=metadata.getName();
@@ -40,19 +44,36 @@
   if (metadata.getHbmfiles().size() > 0) {
     workingVars.put(AvailableSettings.HBXML_FILES,metadata.getHbmfiles());
   }
-  if (metadata.getValidationMode() != null) {
-    workingVars.put(AvailableSettings.VALIDATION_MODE,metadata.getValidationMode());
-  }
-  if (metadata.getSharedCacheMode() != null) {
-    workingVars.put(AvailableSettings.SHARED_CACHE_MODE,metadata.getSharedCacheMode());
-  }
   Properties props=new Properties();
   props.putAll(metadata.getProps());
-  if (overrides != null) {
-    for (    Map.Entry entry : (Set<Map.Entry>)overrides.entrySet()) {
-      Object value=entry.getValue();
-      props.put(entry.getKey(),value == null ? "" : value);
+  final Object validationFactory=overrides.get(AvailableSettings.VALIDATION_FACTORY);
+  if (validationFactory != null) {
+    props.put(AvailableSettings.VALIDATION_FACTORY,validationFactory);
+  }
+  overrides.remove(AvailableSettings.VALIDATION_FACTORY);
+{
+    final Object integrationValue=overrides.get(AvailableSettings.VALIDATION_MODE);
+    if (integrationValue != null) {
+      props.put(AvailableSettings.VALIDATION_MODE,integrationValue.toString());
     }
+ else     if (metadata.getValidationMode() != null) {
+      props.put(AvailableSettings.VALIDATION_MODE,metadata.getValidationMode());
+    }
+    overrides.remove(AvailableSettings.VALIDATION_MODE);
+  }
+{
+    final Object integrationValue=overrides.get(AvailableSettings.SHARED_CACHE_MODE);
+    if (integrationValue != null) {
+      props.put(AvailableSettings.SHARED_CACHE_MODE,integrationValue.toString());
+    }
+ else     if (metadata.getSharedCacheMode() != null) {
+      props.put(AvailableSettings.SHARED_CACHE_MODE,metadata.getSharedCacheMode());
+    }
+    overrides.remove(AvailableSettings.SHARED_CACHE_MODE);
+  }
+  for (  Map.Entry entry : (Set<Map.Entry>)overrides.entrySet()) {
+    Object value=entry.getValue();
+    props.put(entry.getKey(),value == null ? "" : value);
   }
   configure(props,workingVars);
   return this;

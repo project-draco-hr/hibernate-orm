@@ -7,7 +7,9 @@
   }
   integration=integration != null ? Collections.unmodifiableMap(integration) : CollectionHelper.EMPTY_MAP;
   String provider=(String)integration.get(AvailableSettings.PROVIDER);
-  if (provider == null)   provider=info.getPersistenceProviderClassName();
+  if (provider == null) {
+    provider=info.getPersistenceProviderClassName();
+  }
   if (provider != null && !provider.trim().startsWith(IMPLEMENTATION_NAME)) {
     log.info("Required a different provider: {}",provider);
     return null;
@@ -34,7 +36,9 @@
     List<NamedInputStream> hbmFiles=new ArrayList<NamedInputStream>();
     List<String> packages=new ArrayList<String>();
     List<String> xmlFiles=new ArrayList<String>(50);
-    if (info.getMappingFileNames() != null)     xmlFiles.addAll(info.getMappingFileNames());
+    if (info.getMappingFileNames() != null) {
+      xmlFiles.addAll(info.getMappingFileNames());
+    }
     boolean searchForORMFiles=!xmlFiles.contains(META_INF_ORM_XML);
     ScanningContext context=new ScanningContext();
     context.scanner(buildScanner()).searchOrm(searchForORMFiles).explicitMappingFiles(null);
@@ -56,13 +60,27 @@
     workingVars.put(AvailableSettings.PACKAGE_NAMES,packages);
     workingVars.put(AvailableSettings.XML_FILE_NAMES,xmlFiles);
     if (hbmFiles.size() > 0)     workingVars.put(AvailableSettings.HBXML_FILES,hbmFiles);
-    final Object validationMode=info.getValidationMode();
-    if (validationMode != null) {
-      workingVars.put(AvailableSettings.VALIDATION_MODE,validationMode);
+    final Object validationFactory=integration.get(AvailableSettings.VALIDATION_FACTORY);
+    if (validationFactory != null) {
+      properties.put(AvailableSettings.VALIDATION_FACTORY,validationFactory);
     }
-    final Object sharedCacheMode=info.getSharedCacheMode();
-    if (sharedCacheMode != null) {
-      workingVars.put(AvailableSettings.SHARED_CACHE_MODE,sharedCacheMode);
+{
+      final Object integrationValue=integration.get(AvailableSettings.VALIDATION_MODE);
+      if (integrationValue != null) {
+        properties.put(AvailableSettings.VALIDATION_MODE,integrationValue.toString());
+      }
+ else       if (info.getValidationMode() != null) {
+        properties.put(AvailableSettings.VALIDATION_MODE,info.getValidationMode().name());
+      }
+    }
+{
+      final Object integrationValue=integration.get(AvailableSettings.SHARED_CACHE_MODE);
+      if (integrationValue != null) {
+        properties.put(AvailableSettings.SHARED_CACHE_MODE,integrationValue.toString());
+      }
+ else       if (info.getSharedCacheMode() != null) {
+        properties.put(AvailableSettings.SHARED_CACHE_MODE,info.getSharedCacheMode().name());
+      }
     }
     Boolean isJTA=null;
     boolean overridenDatasource=false;

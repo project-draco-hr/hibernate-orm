@@ -1,0 +1,29 @@
+{
+  PersistenceUnitInfoAdapter empty=new PersistenceUnitInfoAdapter();
+{
+    Ejb3Configuration cfg=new Ejb3Configuration();
+    Ejb3Configuration configured=cfg.configure(empty,Collections.singletonMap(AvailableSettings.SHARED_CACHE_MODE,SharedCacheMode.DISABLE_SELECTIVE));
+    assertEquals(SharedCacheMode.DISABLE_SELECTIVE.name(),configured.getProperties().get(AvailableSettings.SHARED_CACHE_MODE));
+  }
+{
+    Ejb3Configuration cfg=new Ejb3Configuration();
+    Ejb3Configuration configured=cfg.configure(empty,Collections.singletonMap(AvailableSettings.SHARED_CACHE_MODE,SharedCacheMode.DISABLE_SELECTIVE.name()));
+    assertEquals(SharedCacheMode.DISABLE_SELECTIVE.name(),configured.getProperties().get(AvailableSettings.SHARED_CACHE_MODE));
+  }
+  PersistenceUnitInfoAdapter adapter=new PersistenceUnitInfoAdapter(){
+    @Override public SharedCacheMode getSharedCacheMode(){
+      return SharedCacheMode.ENABLE_SELECTIVE;
+    }
+  }
+;
+{
+    Ejb3Configuration cfg=new Ejb3Configuration();
+    Ejb3Configuration configured=cfg.configure(adapter,null);
+    assertEquals(SharedCacheMode.ENABLE_SELECTIVE.name(),configured.getProperties().get(AvailableSettings.SHARED_CACHE_MODE));
+  }
+{
+    Ejb3Configuration cfg=new Ejb3Configuration();
+    Ejb3Configuration configured=cfg.configure(adapter,Collections.singletonMap(AvailableSettings.SHARED_CACHE_MODE,SharedCacheMode.DISABLE_SELECTIVE));
+    assertEquals(SharedCacheMode.DISABLE_SELECTIVE.name(),configured.getProperties().get(AvailableSettings.SHARED_CACHE_MODE));
+  }
+}

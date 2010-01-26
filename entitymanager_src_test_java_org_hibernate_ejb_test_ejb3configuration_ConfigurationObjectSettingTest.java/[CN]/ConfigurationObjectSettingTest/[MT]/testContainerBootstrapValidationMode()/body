@@ -1,0 +1,29 @@
+{
+  PersistenceUnitInfoAdapter empty=new PersistenceUnitInfoAdapter();
+{
+    Ejb3Configuration cfg=new Ejb3Configuration();
+    Ejb3Configuration configured=cfg.configure(empty,Collections.singletonMap(AvailableSettings.VALIDATION_MODE,ValidationMode.CALLBACK));
+    assertEquals(ValidationMode.CALLBACK.name(),configured.getProperties().get(AvailableSettings.VALIDATION_MODE));
+  }
+{
+    Ejb3Configuration cfg=new Ejb3Configuration();
+    Ejb3Configuration configured=cfg.configure(empty,Collections.singletonMap(AvailableSettings.VALIDATION_MODE,ValidationMode.CALLBACK.name()));
+    assertEquals(ValidationMode.CALLBACK.name(),configured.getProperties().get(AvailableSettings.VALIDATION_MODE));
+  }
+  PersistenceUnitInfoAdapter adapter=new PersistenceUnitInfoAdapter(){
+    @Override public ValidationMode getValidationMode(){
+      return ValidationMode.CALLBACK;
+    }
+  }
+;
+{
+    Ejb3Configuration cfg=new Ejb3Configuration();
+    Ejb3Configuration configured=cfg.configure(adapter,null);
+    assertEquals(ValidationMode.CALLBACK.name(),configured.getProperties().get(AvailableSettings.VALIDATION_MODE));
+  }
+{
+    Ejb3Configuration cfg=new Ejb3Configuration();
+    Ejb3Configuration configured=cfg.configure(adapter,Collections.singletonMap(AvailableSettings.VALIDATION_MODE,ValidationMode.NONE));
+    assertEquals(ValidationMode.NONE.name(),configured.getProperties().get(AvailableSettings.VALIDATION_MODE));
+  }
+}
