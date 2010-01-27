@@ -64,4 +64,12 @@
   assertFalse(Hibernate.isInitialized(node));
   SimpleJtaTransactionManagerImpl.getInstance().commit();
   assertFetchCount(0);
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  s.createQuery("delete from Employer").executeUpdate();
+  List list=s.createQuery("from Node").list();
+  for (Iterator it=list.iterator(); it.hasNext(); ) {
+    s.delete(it.next());
+  }
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
 }

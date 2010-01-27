@@ -1,13 +1,25 @@
 {
   final PersistenceContext persistenceContext=session.getPersistenceContext();
+  boolean defaultReadOnlyOrig=persistenceContext.isDefaultReadOnly();
+  if (queryParameters.isReadOnlyInitialized()) {
+    persistenceContext.setDefaultReadOnly(queryParameters.isReadOnly());
+  }
+ else {
+    queryParameters.setReadOnly(persistenceContext.isDefaultReadOnly());
+  }
   persistenceContext.beforeLoad();
   List result;
   try {
-    result=doQuery(session,queryParameters,returnProxies);
+    try {
+      result=doQuery(session,queryParameters,returnProxies);
+    }
+  finally {
+      persistenceContext.afterLoad();
+    }
+    persistenceContext.initializeNonLazyCollections();
   }
   finally {
-    persistenceContext.afterLoad();
+    persistenceContext.setDefaultReadOnly(defaultReadOnlyOrig);
   }
-  persistenceContext.initializeNonLazyCollections();
   return result;
 }

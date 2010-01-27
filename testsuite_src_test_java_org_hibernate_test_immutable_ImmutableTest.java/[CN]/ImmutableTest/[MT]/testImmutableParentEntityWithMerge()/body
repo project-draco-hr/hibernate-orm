@@ -12,7 +12,14 @@
   s=openSession();
   t=s.beginTransaction();
   c.setCustomerName("foo bar");
-  s.merge(c);
+  c=(Contract)s.merge(c);
+  assertTrue(s.isReadOnly(c));
+  assertTrue(Hibernate.isInitialized(c.getVariations()));
+  Iterator it=c.getVariations().iterator();
+  cv1=(ContractVariation)it.next();
+  cv2=(ContractVariation)it.next();
+  assertTrue(s.isReadOnly(c));
+  assertTrue(s.isReadOnly(c));
   t.commit();
   s.close();
   s=openSession();
@@ -20,7 +27,7 @@
   c=(Contract)s.createCriteria(Contract.class).uniqueResult();
   assertEquals(c.getCustomerName(),"gavin");
   assertEquals(c.getVariations().size(),2);
-  Iterator it=c.getVariations().iterator();
+  it=c.getVariations().iterator();
   cv1=(ContractVariation)it.next();
   assertEquals(cv1.getText(),"expensive");
   cv2=(ContractVariation)it.next();

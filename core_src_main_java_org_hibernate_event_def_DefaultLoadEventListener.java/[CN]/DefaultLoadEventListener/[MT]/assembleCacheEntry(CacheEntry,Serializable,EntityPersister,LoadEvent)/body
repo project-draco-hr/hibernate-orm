@@ -14,7 +14,7 @@
   Object version=Versioning.getVersion(values,subclassPersister);
   if (log.isTraceEnabled())   log.trace("Cached Version: " + version);
   final PersistenceContext persistenceContext=session.getPersistenceContext();
-  persistenceContext.addEntry(result,Status.MANAGED,values,null,id,version,LockMode.NONE,true,subclassPersister,false,entry.areLazyPropertiesUnfetched());
+  persistenceContext.addEntry(result,(session.isDefaultReadOnly() || !persister.isMutable() ? Status.READ_ONLY : Status.MANAGED),values,null,id,version,LockMode.NONE,true,subclassPersister,false,entry.areLazyPropertiesUnfetched());
   subclassPersister.afterInitialize(result,entry.areLazyPropertiesUnfetched(),session);
   persistenceContext.initializeNonLazyCollections();
   PostLoadEvent postLoadEvent=new PostLoadEvent(session).setEntity(result).setId(id).setPersister(persister);

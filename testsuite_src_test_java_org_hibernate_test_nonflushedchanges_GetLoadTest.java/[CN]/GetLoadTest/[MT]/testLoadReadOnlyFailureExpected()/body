@@ -1,0 +1,34 @@
+{
+  clearCounts();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  Session s=openSession();
+  Employer emp=new Employer();
+  s.persist(emp);
+  Node node=new Node("foo");
+  Node parent=new Node("bar");
+  parent.addChild(node);
+  s.persist(parent);
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  assertFalse(s.isDefaultReadOnly());
+  s.setDefaultReadOnly(true);
+  emp=(Employer)s.load(Employer.class,emp.getId());
+  assertFalse(Hibernate.isInitialized(emp));
+  assertTrue(s.isReadOnly(emp));
+  assertTrue(s.isDefaultReadOnly());
+  s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  assertTrue(s.isDefaultReadOnly());
+  emp=(Employer)getOldToNewEntityRefMap().get(emp);
+  assertFalse(Hibernate.isInitialized(emp));
+  assertTrue(s.isReadOnly(emp));
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  s=openSession();
+  s.createQuery("delete from Employer").executeUpdate();
+  List list=s.createQuery("from Node").list();
+  for (Iterator it=list.iterator(); it.hasNext(); ) {
+    s.delete(it.next());
+  }
+  SimpleJtaTransactionManagerImpl.getInstance().commit();
+}
