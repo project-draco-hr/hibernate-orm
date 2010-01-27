@@ -1,5 +1,7 @@
 {
   if (!hasNext)   throw new NoSuchElementException("No more results");
+  boolean sessionDefaultReadOnlyOrig=session.isDefaultReadOnly();
+  session.setDefaultReadOnly(readOnly);
   try {
     boolean isHolder=holderInstantiator.isRequired();
     log.debug("assembling results");
@@ -24,5 +26,8 @@
   }
  catch (  SQLException sqle) {
     throw JDBCExceptionHelper.convert(session.getFactory().getSQLExceptionConverter(),sqle,"could not get next iterator result");
+  }
+ finally {
+    session.setDefaultReadOnly(sessionDefaultReadOnlyOrig);
   }
 }

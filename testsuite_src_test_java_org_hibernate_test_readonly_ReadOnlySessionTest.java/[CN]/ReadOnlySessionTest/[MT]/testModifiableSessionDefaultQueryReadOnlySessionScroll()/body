@@ -13,9 +13,12 @@
   s=openSession();
   s.setCacheMode(CacheMode.IGNORE);
   t=s.beginTransaction();
-  s.setDefaultReadOnly(true);
+  s.setDefaultReadOnly(false);
   int i=0;
-  ScrollableResults sr=s.createQuery("from DataPoint dp order by dp.x asc").scroll(ScrollMode.FORWARD_ONLY);
+  Query query=s.createQuery("from DataPoint dp order by dp.x asc");
+  s.setDefaultReadOnly(true);
+  ScrollableResults sr=query.scroll(ScrollMode.FORWARD_ONLY);
+  s.setDefaultReadOnly(false);
   while (sr.next()) {
     DataPoint dp=(DataPoint)sr.get(0);
     if (++i == 50) {
@@ -27,7 +30,7 @@
   s.clear();
   t=s.beginTransaction();
   List single=s.createQuery("from DataPoint where description='done!'").list();
-  assertEquals(single.size(),1);
+  assertEquals(1,single.size());
   s.createQuery("delete from DataPoint").executeUpdate();
   t.commit();
   s.close();
