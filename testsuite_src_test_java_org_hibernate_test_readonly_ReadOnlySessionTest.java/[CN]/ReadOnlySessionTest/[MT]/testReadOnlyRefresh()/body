@@ -14,11 +14,18 @@
   s.setDefaultReadOnly(true);
   t=s.beginTransaction();
   dp=(DataPoint)s.get(DataPoint.class,dp.getId());
+  assertTrue(s.isReadOnly(dp));
+  assertEquals("original",dp.getDescription());
+  dp.setDescription("changed");
+  assertEquals("changed",dp.getDescription());
+  s.refresh(dp);
+  assertTrue(s.isReadOnly(dp));
   assertEquals("original",dp.getDescription());
   dp.setDescription("changed");
   assertEquals("changed",dp.getDescription());
   s.setDefaultReadOnly(false);
   s.refresh(dp);
+  assertTrue(s.isReadOnly(dp));
   assertEquals("original",dp.getDescription());
   dp.setDescription("changed");
   assertEquals("changed",dp.getDescription());

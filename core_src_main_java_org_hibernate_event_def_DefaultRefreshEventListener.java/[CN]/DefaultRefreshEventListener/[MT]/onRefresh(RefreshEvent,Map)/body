@@ -1,6 +1,12 @@
 {
   final EventSource source=event.getSession();
-  if (source.getPersistenceContext().reassociateIfUninitializedProxy(event.getObject()))   return;
+  boolean isTransient=!source.contains(event.getObject());
+  if (source.getPersistenceContext().reassociateIfUninitializedProxy(event.getObject())) {
+    if (isTransient) {
+      source.setReadOnly(event.getObject(),source.isDefaultReadOnly());
+    }
+    return;
+  }
   final Object object=source.getPersistenceContext().unproxyAndReassociate(event.getObject());
   if (refreshedAlready.containsKey(object)) {
     log.trace("already refreshed");
@@ -45,6 +51,7 @@
   String previousFetchProfile=source.getFetchProfile();
   source.setFetchProfile("refresh");
   Object result=persister.load(id,object,event.getLockOptions(),source);
+  source.setReadOnly(result,(e == null ? source.isDefaultReadOnly() : e.isReadOnly()));
   source.setFetchProfile(previousFetchProfile);
   UnresolvableObjectException.throwIfNull(result,id,persister.getEntityName());
 }
