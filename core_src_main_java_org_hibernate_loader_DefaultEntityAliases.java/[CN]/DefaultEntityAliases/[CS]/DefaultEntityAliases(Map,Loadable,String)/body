@@ -1,21 +1,9 @@
 {
   this.suffix=suffix;
   this.userProvidedAliases=userProvidedAliases;
-  String[] keyColumnsCandidates=getUserProvidedAliases(persister.getIdentifierPropertyName(),(String[])null);
-  if (keyColumnsCandidates == null) {
-    suffixedKeyColumns=getUserProvidedAliases("id",getIdentifierAliases(persister,suffix));
-  }
- else {
-    suffixedKeyColumns=keyColumnsCandidates;
-  }
-  intern(suffixedKeyColumns);
-  suffixedPropertyColumns=getSuffixedPropertyAliases(persister);
-  suffixedDiscriminatorColumn=getUserProvidedAlias("class",getDiscriminatorAlias(persister,suffix));
-  if (persister.isVersioned()) {
-    suffixedVersionColumn=suffixedPropertyColumns[persister.getVersionProperty()];
-  }
- else {
-    suffixedVersionColumn=null;
-  }
+  suffixedKeyColumns=determineKeyAlias(persister,suffix);
+  suffixedPropertyColumns=determinePropertyAliases(persister);
+  suffixedDiscriminatorColumn=determineDiscriminatorAlias(persister,suffix);
+  suffixedVersionColumn=determineVersionAlias(persister);
   rowIdAlias=Loadable.ROWID_ALIAS + suffix;
 }
