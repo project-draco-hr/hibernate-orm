@@ -5,7 +5,18 @@
       jpaEntityType.getBuilder().applyIdAttribute(attributeFactory.buildIdAttribute(jpaEntityType,declaredIdentifierProperty));
     }
   }
- else {
+ else   if (persistentClass.hasIdentifierMapper()) {
     jpaEntityType.getBuilder().applyIdClassAttributes(buildIdClassAttributes(jpaEntityType,persistentClass));
+  }
+ else {
+    final KeyValue value=persistentClass.getIdentifier();
+    if (value instanceof Component) {
+      final Component component=(Component)value;
+      if (component.getPropertySpan() > 1) {
+      }
+ else {
+        jpaEntityType.getBuilder().applyIdAttribute(attributeFactory.buildIdAttribute(jpaEntityType,(Property)component.getPropertyIterator().next()));
+      }
+    }
   }
 }
