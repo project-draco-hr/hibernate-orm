@@ -18,18 +18,37 @@
     members.add(attribute);
   }
   XmlMetaCollection metaCollection;
+  String[] types;
   for (  ManyToMany manyToMany : attributes.getManyToMany()) {
-    String[] types=getCollectionType(manyToMany.getName(),manyToMany.getTargetEntity());
+    try {
+      types=getCollectionType(manyToMany.getName(),manyToMany.getTargetEntity());
+    }
+ catch (    MetaModelGenerationException e) {
+      logMetaModelException(manyToMany.getName(),e);
+      break;
+    }
     metaCollection=new XmlMetaCollection(this,manyToMany.getName(),types[0],types[1]);
     members.add(metaCollection);
   }
   for (  OneToMany oneToMany : attributes.getOneToMany()) {
-    String[] types=getCollectionType(oneToMany.getName(),oneToMany.getTargetEntity());
+    try {
+      types=getCollectionType(oneToMany.getName(),oneToMany.getTargetEntity());
+    }
+ catch (    MetaModelGenerationException e) {
+      logMetaModelException(oneToMany.getName(),e);
+      break;
+    }
     metaCollection=new XmlMetaCollection(this,oneToMany.getName(),types[0],types[1]);
     members.add(metaCollection);
   }
   for (  ElementCollection collection : attributes.getElementCollection()) {
-    String[] types=getCollectionType(collection.getName(),collection.getTargetClass());
+    try {
+      types=getCollectionType(collection.getName(),collection.getTargetClass());
+    }
+ catch (    MetaModelGenerationException e) {
+      logMetaModelException(collection.getName(),e);
+      break;
+    }
     metaCollection=new XmlMetaCollection(this,collection.getName(),types[0],types[1]);
     members.add(metaCollection);
   }

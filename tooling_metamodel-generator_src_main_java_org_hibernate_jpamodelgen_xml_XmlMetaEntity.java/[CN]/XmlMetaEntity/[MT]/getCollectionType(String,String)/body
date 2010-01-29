@@ -3,8 +3,12 @@
   for (  Element elem : element.getEnclosedElements()) {
     if (elem.getSimpleName().toString().equals(propertyName)) {
       DeclaredType type=((DeclaredType)elem.asType());
+      List<? extends TypeMirror> typeArguments=type.getTypeArguments();
+      if (typeArguments.size() == 0 && explicitTargetEntity == null) {
+        throw new MetaModelGenerationException("Unable to determine target entity type for " + clazzName + "."+ propertyName+ ".");
+      }
       if (explicitTargetEntity == null) {
-        types[0]=TypeUtils.extractClosestRealTypeAsString(type.getTypeArguments().get(0),context);
+        types[0]=TypeUtils.extractClosestRealTypeAsString(typeArguments.get(0),context);
       }
  else {
         types[0]=explicitTargetEntity;
