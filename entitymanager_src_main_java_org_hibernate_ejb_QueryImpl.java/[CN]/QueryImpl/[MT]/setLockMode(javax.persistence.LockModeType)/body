@@ -2,7 +2,10 @@
   if (!getEntityManager().isTransactionInProgress()) {
     throw new TransactionRequiredException("no transaction is in progress");
   }
+  if (!canApplyLockModes()) {
+    throw new IllegalStateException("Not a JPAQL/Criteria query");
+  }
   this.jpaLockMode=lockModeType;
-  query.setLockOptions(getEntityManager().getLockRequest(lockModeType,null));
+  ((org.hibernate.impl.QueryImpl)query).getLockOptions().setLockMode(LockModeTypeHelper.getLockMode(lockModeType));
   return this;
 }

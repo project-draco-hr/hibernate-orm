@@ -6,18 +6,19 @@
   locks.setScope(lockOptions.getScope());
   locks.setTimeOut(lockOptions.getTimeOut());
   final Map keyColumnNames=dialect.forUpdateOfColumns() ? new HashMap() : null;
-  final Iterator iter=lockOptions.getAliasLockIterator();
-  while (iter.hasNext()) {
-    Map.Entry me=(Map.Entry)iter.next();
-    final String userAlias=(String)me.getKey();
-    final String drivingSqlAlias=(String)sqlAliasByEntityAlias.get(userAlias);
+  final Iterator itr=sqlAliasByEntityAlias.entrySet().iterator();
+  while (itr.hasNext()) {
+    final Map.Entry entry=(Map.Entry)itr.next();
+    final String userAlias=(String)entry.getKey();
+    final String drivingSqlAlias=(String)entry.getValue();
     if (drivingSqlAlias == null) {
       throw new IllegalArgumentException("could not locate alias to apply lock mode : " + userAlias);
     }
     final QueryNode select=(QueryNode)queryTranslator.getSqlAST();
     final Lockable drivingPersister=(Lockable)select.getFromClause().getFromElement(userAlias).getQueryable();
     final String sqlAlias=drivingPersister.getRootTableAlias(drivingSqlAlias);
-    locks.setAliasLockMode((LockMode)me.getValue(),sqlAlias);
+    final LockMode effectiveLockMode=lockOptions.getEffectiveLockMode(userAlias);
+    locks.setAliasSpecificLockMode(sqlAlias,effectiveLockMode);
     if (keyColumnNames != null) {
       keyColumnNames.put(sqlAlias,drivingPersister.getRootTableIdentifierColumnNames());
     }
