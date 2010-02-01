@@ -1,0 +1,27 @@
+{
+  AccessType defaultAccessType=null;
+  TypeElement superClass=element;
+  do {
+    superClass=TypeUtils.getSuperclassTypeElement(superClass);
+    if (superClass != null) {
+      String fqcn=superClass.getQualifiedName().toString();
+      AccessTypeInformation accessTypeInfo=context.getAccessTypeInfo(fqcn);
+      if (accessTypeInfo != null && accessTypeInfo.getDefaultAccessType() != null) {
+        return accessTypeInfo.getDefaultAccessType();
+      }
+      if (TypeUtils.containsAnnotation(superClass,Entity.class,MappedSuperclass.class)) {
+        defaultAccessType=getAccessTypeInCaseElementIsRoot(superClass,context);
+        if (defaultAccessType != null) {
+          accessTypeInfo=new AccessTypeInformation(fqcn,null,defaultAccessType);
+          context.addAccessTypeInformation(fqcn,accessTypeInfo);
+          defaultAccessType=accessTypeInfo.getAccessType();
+        }
+ else {
+          defaultAccessType=getDefaultAccessForHierarchy(superClass,context);
+        }
+      }
+    }
+  }
+ while (superClass != null);
+  return defaultAccessType;
+}

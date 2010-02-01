@@ -1,0 +1,22 @@
+{
+  if (ElementKind.ENUM.equals(element.getKind())) {
+    return Boolean.TRUE;
+  }
+  if (ElementKind.CLASS.equals(element.getKind())) {
+    TypeElement typeElement=((TypeElement)element);
+    String typeName=typeElement.getQualifiedName().toString();
+    if (Constants.BASIC_TYPES.contains(typeName)) {
+      return Boolean.TRUE;
+    }
+    if (TypeUtils.containsAnnotation(element,Embeddable.class)) {
+      return Boolean.TRUE;
+    }
+    for (    TypeMirror mirror : typeElement.getInterfaces()) {
+      TypeElement interfaceElement=(TypeElement)context.getTypeUtils().asElement(mirror);
+      if ("java.io.Serializable".equals(interfaceElement.getQualifiedName().toString())) {
+        return Boolean.TRUE;
+      }
+    }
+  }
+  return Boolean.FALSE;
+}

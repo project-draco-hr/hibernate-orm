@@ -1,0 +1,18 @@
+{
+  for (  EntityMappings mappings : entityMappings) {
+    PersistenceUnitMetadata meta=mappings.getPersistenceUnitMetadata();
+    if (meta != null) {
+      if (meta.getXmlMappingMetadataComplete() != null) {
+        context.setPersistenceUnitCompletelyXmlConfigured(true);
+      }
+      PersistenceUnitDefaults persistenceUnitDefaults=meta.getPersistenceUnitDefaults();
+      if (persistenceUnitDefaults != null) {
+        org.hibernate.jpamodelgen.xml.jaxb.AccessType xmlAccessType=persistenceUnitDefaults.getAccess();
+        if (xmlAccessType != null) {
+          context.setPersistenceUnitDefaultAccessType(mapXmlAccessTypeToJpaAccessType(xmlAccessType));
+        }
+      }
+      break;
+    }
+  }
+}

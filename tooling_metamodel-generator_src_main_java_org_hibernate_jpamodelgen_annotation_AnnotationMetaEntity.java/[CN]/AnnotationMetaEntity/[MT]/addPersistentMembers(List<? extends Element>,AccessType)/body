@@ -1,0 +1,16 @@
+{
+  for (  Element memberOfClass : membersOfClass) {
+    AccessType forcedAccessType=TypeUtils.determineAnnotationSpecifiedAccessType(memberOfClass);
+    if (entityAccessTypeInfo.getAccessType() != membersKind && forcedAccessType == null) {
+      continue;
+    }
+    if (TypeUtils.containsAnnotation(memberOfClass,Transient.class) || memberOfClass.getModifiers().contains(Modifier.TRANSIENT) || memberOfClass.getModifiers().contains(Modifier.STATIC)) {
+      continue;
+    }
+    TypeVisitor visitor=new TypeVisitor(this);
+    AnnotationMetaAttribute result=memberOfClass.asType().accept(visitor,memberOfClass);
+    if (result != null) {
+      members.put(result.getPropertyName(),result);
+    }
+  }
+}

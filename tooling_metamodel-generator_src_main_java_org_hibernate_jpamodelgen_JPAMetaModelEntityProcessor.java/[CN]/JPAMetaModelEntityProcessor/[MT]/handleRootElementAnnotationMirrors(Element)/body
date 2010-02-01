@@ -1,15 +1,26 @@
 {
   List<? extends AnnotationMirror> annotationMirrors=element.getAnnotationMirrors();
   for (  AnnotationMirror mirror : annotationMirrors) {
-    if (element.getKind() == ElementKind.CLASS) {
-      if (TypeUtils.isAnnotationMirrorOfType(mirror,Entity.class)) {
-        AnnotationMetaEntity metaEntity=new AnnotationMetaEntity((TypeElement)element,context);
-        context.getMetaEntitiesToProcess().put(metaEntity.getQualifiedName(),metaEntity);
-      }
- else       if (TypeUtils.isAnnotationMirrorOfType(mirror,MappedSuperclass.class) || TypeUtils.isAnnotationMirrorOfType(mirror,Embeddable.class)) {
-        AnnotationMetaEntity metaEntity=new AnnotationMetaEntity((TypeElement)element,context);
-        context.getMetaSuperclassAndEmbeddableToProcess().put(metaEntity.getQualifiedName(),metaEntity);
-      }
+    if (!ElementKind.CLASS.equals(element.getKind())) {
+      continue;
     }
+    String fqn=((TypeElement)element).getQualifiedName().toString();
+    MetaEntity alreadyExistingMetaEntity=tryGettingExistingEntityFromContext(mirror,fqn);
+    if (alreadyExistingMetaEntity != null && alreadyExistingMetaEntity.isMetaComplete()) {
+      String msg="Skipping processing of annotations for " + fqn + " since xml configuration is metadata complete.";
+      context.logMessage(Diagnostic.Kind.OTHER,msg);
+      continue;
+    }
+    AnnotationMetaEntity metaEntity;
+    if (TypeUtils.containsAnnotation(element,Embeddable.class)) {
+      metaEntity=new AnnotationEmbeddable((TypeElement)element,context);
+    }
+ else {
+      metaEntity=new AnnotationMetaEntity((TypeElement)element,context);
+    }
+    if (alreadyExistingMetaEntity != null) {
+      metaEntity.mergeInMembers(alreadyExistingMetaEntity.getMembers());
+    }
+    addMetaEntityToContext(mirror,metaEntity);
   }
 }

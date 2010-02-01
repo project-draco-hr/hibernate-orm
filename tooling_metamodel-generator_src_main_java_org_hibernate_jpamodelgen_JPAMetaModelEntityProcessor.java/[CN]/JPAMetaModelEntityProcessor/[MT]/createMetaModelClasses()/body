@@ -1,13 +1,19 @@
 {
-  for (  MetaEntity entity : context.getMetaEntitiesToProcess().values()) {
-    context.logMessage(Diagnostic.Kind.OTHER,"Writing meta model for " + entity);
+  for (  MetaEntity entity : context.getMetaEntities()) {
+    context.logMessage(Diagnostic.Kind.OTHER,"Writing meta model for entity " + entity);
     ClassWriter.writeFile(entity,context);
   }
-  for (  String className : context.getElementsAlreadyProcessed()) {
-    context.getMetaSuperclassAndEmbeddableToProcess().remove(className);
-  }
-  for (  MetaEntity entity : context.getMetaSuperclassAndEmbeddableToProcess().values()) {
-    context.logMessage(Diagnostic.Kind.OTHER,"Writing meta model for " + entity);
-    ClassWriter.writeFile(entity,context);
+  Collection<MetaEntity> toProcessEntities=context.getMetaSuperclassOrEmbeddable();
+  while (!toProcessEntities.isEmpty()) {
+    Set<MetaEntity> processedEntities=new HashSet<MetaEntity>();
+    for (    MetaEntity entity : toProcessEntities) {
+      if (containedInEntity(toProcessEntities,entity)) {
+        continue;
+      }
+      context.logMessage(Diagnostic.Kind.OTHER,"Writing meta model for embeddable/mapped superclass" + entity);
+      ClassWriter.writeFile(entity,context);
+      processedEntities.add(entity);
+    }
+    toProcessEntities.removeAll(processedEntities);
   }
 }

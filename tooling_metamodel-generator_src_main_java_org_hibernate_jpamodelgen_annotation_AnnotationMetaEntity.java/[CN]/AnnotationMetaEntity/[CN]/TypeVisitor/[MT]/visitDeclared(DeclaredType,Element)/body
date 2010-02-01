@@ -1,31 +1,36 @@
 {
-  if (isPersistent(element)) {
-    TypeElement returnedElement=(TypeElement)context.getProcessingEnvironment().getTypeUtils().asElement(declaredType);
-    String fqNameOfReturnType=returnedElement.getQualifiedName().toString();
-    String collection=COLLECTIONS.get(fqNameOfReturnType);
-    String targetEntity=getTargetEntity(element.getAnnotationMirrors());
-    if (collection != null) {
-      if (TypeUtils.containsAnnotation(element,ElementCollection.class)) {
-        String explicitTargetEntity=getTargetEntity(element.getAnnotationMirrors());
-        TypeMirror collectionElementType=getCollectionElementType(declaredType,fqNameOfReturnType,explicitTargetEntity);
-        final TypeElement collectionElement=(TypeElement)context.getProcessingEnvironment().getTypeUtils().asElement(collectionElementType);
-        this.parent.context.processElement(collectionElement,this.parent.defaultAccessTypeForElement);
-      }
-      if (collection.equals("javax.persistence.metamodel.MapAttribute")) {
-        return createAnnotationMetaAttributeForMap(declaredType,element,collection,targetEntity);
+  TypeElement returnedElement=(TypeElement)context.getTypeUtils().asElement(declaredType);
+  String fqNameOfReturnType=returnedElement.getQualifiedName().toString();
+  String collection=Constants.COLLECTIONS.get(fqNameOfReturnType);
+  String targetEntity=getTargetEntity(element.getAnnotationMirrors());
+  if (collection != null) {
+    if (TypeUtils.containsAnnotation(element,ElementCollection.class)) {
+      String explicitTargetEntity=getTargetEntity(element.getAnnotationMirrors());
+      TypeMirror collectionElementType=TypeUtils.getCollectionElementType(declaredType,fqNameOfReturnType,explicitTargetEntity,context);
+      final TypeElement collectionElement=(TypeElement)context.getTypeUtils().asElement(collectionElementType);
+      AccessTypeInformation accessTypeInfo=context.getAccessTypeInfo(collectionElement.getQualifiedName().toString());
+      if (accessTypeInfo == null) {
+        AccessType explicitAccessType=TypeUtils.determineAnnotationSpecifiedAccessType(collectionElement);
+        accessTypeInfo=new AccessTypeInformation(collectionElement.getQualifiedName().toString(),explicitAccessType,entityAccessTypeInfo.getAccessType());
+        context.addAccessTypeInformation(collectionElement.getQualifiedName().toString(),accessTypeInfo);
       }
  else {
-        return new AnnotationMetaCollection(parent,element,collection,getElementType(declaredType,targetEntity));
+        accessTypeInfo.setDefaultAccessType(entityAccessTypeInfo.getAccessType());
       }
     }
+    if (collection.equals("javax.persistence.metamodel.MapAttribute")) {
+      return createAnnotationMetaAttributeForMap(declaredType,element,collection,targetEntity);
+    }
  else {
-      if (TypeUtils.containsAnnotation(returnedElement,Embedded.class,Embeddable.class)) {
-        this.parent.context.processElement(returnedElement,this.parent.defaultAccessTypeForElement);
-      }
-      return new AnnotationMetaSingleAttribute(parent,element,returnedElement.getQualifiedName().toString());
+      return new AnnotationMetaCollection(parent,element,collection,getElementType(declaredType,targetEntity));
     }
   }
  else {
-    return null;
+    if (isBasicAttribute(element,returnedElement)) {
+      return new AnnotationMetaSingleAttribute(parent,element,returnedElement.getQualifiedName().toString());
+    }
+ else {
+      return null;
+    }
   }
 }

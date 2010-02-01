@@ -7,17 +7,19 @@
   }
   if (!xmlProcessed) {
     XmlParser parser=new XmlParser(context);
-    parser.parsePersistenceXml();
+    parser.parseXml();
     xmlProcessed=true;
   }
-  if (!hostJPAAnnotations(annotations)) {
-    context.logMessage(Diagnostic.Kind.OTHER,"Current processing round does not contain entities");
+  if (context.isPersistenceUnitCompletelyXmlConfigured()) {
+    context.logMessage(Diagnostic.Kind.OTHER,"Skipping the processing of annotations since persistence unit is purely xml configured.");
     return ALLOW_OTHER_PROCESSORS_TO_CLAIM_ANNOTATIONS;
   }
   Set<? extends Element> elements=roundEnvironment.getRootElements();
   for (  Element element : elements) {
-    context.logMessage(Diagnostic.Kind.OTHER,"Processing " + element.toString());
-    handleRootElementAnnotationMirrors(element);
+    if (isJPAEntity(element)) {
+      context.logMessage(Diagnostic.Kind.OTHER,"Processing annotated class " + element.toString());
+      handleRootElementAnnotationMirrors(element);
+    }
   }
   return ALLOW_OTHER_PROCESSORS_TO_CLAIM_ANNOTATIONS;
 }

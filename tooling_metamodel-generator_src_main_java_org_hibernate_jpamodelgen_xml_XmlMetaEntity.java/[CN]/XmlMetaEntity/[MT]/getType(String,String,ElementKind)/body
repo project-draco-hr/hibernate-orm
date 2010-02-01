@@ -1,0 +1,66 @@
+{
+  for (  Element elem : element.getEnclosedElements()) {
+    if (!expectedElementKind.equals(elem.getKind())) {
+      continue;
+    }
+    TypeMirror mirror;
+    String name=elem.getSimpleName().toString();
+    if (ElementKind.METHOD.equals(elem.getKind())) {
+      name=StringUtil.getPropertyName(name);
+      mirror=((ExecutableElement)elem).getReturnType();
+    }
+ else {
+      mirror=elem.asType();
+    }
+    if (name == null || !name.equals(propertyName)) {
+      continue;
+    }
+    if (explicitTargetEntity != null) {
+      return explicitTargetEntity;
+    }
+switch (mirror.getKind()) {
+case INT:
+{
+        return "java.lang.Integer";
+      }
+case LONG:
+{
+      return "java.lang.Long";
+    }
+case BOOLEAN:
+{
+    return "java.lang.Boolean";
+  }
+case BYTE:
+{
+  return "java.lang.Byte";
+}
+case SHORT:
+{
+return "java.lang.Short";
+}
+case CHAR:
+{
+return "java.lang.Char";
+}
+case FLOAT:
+{
+return "java.lang.Float";
+}
+case DOUBLE:
+{
+return "java.lang.Double";
+}
+case DECLARED:
+{
+return mirror.toString();
+}
+case TYPEVAR:
+{
+return mirror.toString();
+}
+}
+}
+context.logMessage(Diagnostic.Kind.WARNING,"Unable to determine type for property " + propertyName + " of class "+ getQualifiedName()+ " using assess type "+ accessTypeInfo.getDefaultAccessType());
+return null;
+}

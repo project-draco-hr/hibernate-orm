@@ -1,0 +1,30 @@
+{
+  String fqcn=searchedElement.getQualifiedName().toString();
+  context.logMessage(Diagnostic.Kind.OTHER,"Determining access type for " + fqcn);
+  AccessTypeInformation accessTypeInfo=context.getAccessTypeInfo(fqcn);
+  if (accessTypeInfo != null && accessTypeInfo.isAccessTypeResolved()) {
+    context.logMessage(Diagnostic.Kind.OTHER,"AccessType for " + searchedElement.toString() + "found in cache: "+ accessTypeInfo);
+    return;
+  }
+  AccessType forcedAccessType=determineAnnotationSpecifiedAccessType(searchedElement);
+  if (forcedAccessType != null) {
+    context.logMessage(Diagnostic.Kind.OTHER,"Explicit access type on " + searchedElement + ":"+ forcedAccessType);
+    accessTypeInfo=new AccessTypeInformation(fqcn,forcedAccessType,null);
+    context.addAccessTypeInformation(fqcn,accessTypeInfo);
+    updateEmbeddableAccessType(searchedElement,context,forcedAccessType);
+    return;
+  }
+  AccessType defaultAccessType=getAccessTypeInCaseElementIsRoot(searchedElement,context);
+  if (defaultAccessType != null) {
+    accessTypeInfo=new AccessTypeInformation(fqcn,null,defaultAccessType);
+    context.addAccessTypeInformation(fqcn,accessTypeInfo);
+    updateEmbeddableAccessType(searchedElement,context,defaultAccessType);
+    return;
+  }
+  defaultAccessType=getDefaultAccessForHierarchy(searchedElement,context);
+  if (defaultAccessType == null) {
+    defaultAccessType=AccessType.PROPERTY;
+  }
+  accessTypeInfo=new AccessTypeInformation(fqcn,null,defaultAccessType);
+  context.addAccessTypeInformation(fqcn,accessTypeInfo);
+}
