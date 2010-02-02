@@ -1,16 +1,17 @@
 {
-  if (lockOptions == null || lockOptions.getAliasLockCount() == 0) {
+  if (lockOptions == null) {
     return defaultLockModes;
   }
- else {
-    LockMode[] lockModesArray=new LockMode[entityAliases.length];
-    for (int i=0; i < entityAliases.length; i++) {
-      LockMode lockMode=lockOptions.getEffectiveLockMode(entityAliases[i]);
-      if (lockMode == null) {
-        lockMode=LockMode.NONE;
-      }
-      lockModesArray[i]=lockMode;
-    }
-    return lockModesArray;
+  if (lockOptions.getAliasLockCount() == 0 && (lockOptions.getLockMode() == null || LockMode.NONE.equals(lockOptions.getLockMode()))) {
+    return defaultLockModes;
   }
+  LockMode[] lockModesArray=new LockMode[entityAliases.length];
+  for (int i=0; i < entityAliases.length; i++) {
+    LockMode lockMode=lockOptions.getEffectiveLockMode(entityAliases[i]);
+    if (lockMode == null) {
+      lockMode=LockMode.NONE;
+    }
+    lockModesArray[i]=lockMode;
+  }
+  return lockModesArray;
 }
