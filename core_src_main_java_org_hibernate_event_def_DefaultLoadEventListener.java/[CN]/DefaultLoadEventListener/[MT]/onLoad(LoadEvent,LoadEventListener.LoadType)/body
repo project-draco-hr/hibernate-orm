@@ -16,6 +16,20 @@
  else {
     Class idClass=persister.getIdentifierType().getReturnedClass();
     if (idClass != null && !idClass.isInstance(event.getEntityId())) {
+      if (persister.getEntityMetamodel().getIdentifierProperty().isEmbedded()) {
+        final EmbeddedComponentType dependentIdType=(EmbeddedComponentType)persister.getEntityMetamodel().getIdentifierProperty().getType();
+        if (dependentIdType.getSubtypes().length == 1) {
+          final Type singleSubType=dependentIdType.getSubtypes()[0];
+          if (singleSubType.isEntityType()) {
+            final EntityType dependentParentType=(EntityType)singleSubType;
+            final Type dependentParentIdType=dependentParentType.getIdentifierOrUniqueKeyType(source.getFactory());
+            if (dependentParentIdType.getReturnedClass().isInstance(event.getEntityId())) {
+              loadByDerivedIdentitySimplePkValue(event,loadType,persister,dependentIdType,source.getFactory().getEntityPersister(dependentParentType.getAssociatedEntityName()));
+              return;
+            }
+          }
+        }
+      }
       throw new TypeMismatchException("Provided id of the wrong type for class " + persister.getEntityName() + ". Expected: "+ idClass+ ", got "+ event.getEntityId().getClass());
     }
   }
