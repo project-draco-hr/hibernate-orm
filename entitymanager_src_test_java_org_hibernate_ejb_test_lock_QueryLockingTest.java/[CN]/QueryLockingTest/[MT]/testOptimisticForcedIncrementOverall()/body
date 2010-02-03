@@ -1,7 +1,7 @@
 {
   EntityManager em=getOrCreateEntityManager();
   em.getTransaction().begin();
-  Lock lock=new Lock("name");
+  Lockable lock=new Lockable("name");
   em.persist(lock);
   em.getTransaction().commit();
   em.close();
@@ -9,13 +9,14 @@
   assertNotNull(initial);
   em=getOrCreateEntityManager();
   em.getTransaction().begin();
-  Lock reread=em.createQuery("from Lock_",Lock.class).setLockMode(LockModeType.PESSIMISTIC_FORCE_INCREMENT).getSingleResult();
+  Lockable reread=em.createQuery("from Lockable",Lockable.class).setLockMode(LockModeType.OPTIMISTIC_FORCE_INCREMENT).getSingleResult();
+  assertEquals(initial,reread.getVersion());
   em.getTransaction().commit();
   em.close();
   assertFalse(reread.getVersion().equals(initial));
   em=getOrCreateEntityManager();
   em.getTransaction().begin();
-  em.remove(em.getReference(Lock.class,reread.getId()));
+  em.remove(em.getReference(Lockable.class,reread.getId()));
   em.getTransaction().commit();
   em.close();
 }
