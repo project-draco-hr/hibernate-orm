@@ -3,6 +3,9 @@
   if (queryableCollection == null) {
     return (PropertyMapping)persister;
   }
+  if (queryableCollection.isManyToMany() && queryableCollection.hasIndex() && SPECIAL_MANY2MANY_TREATMENT_FUNCTION_NAMES.contains(propertyName)) {
+    return new SpecialManyToManyCollectionPropertyMapping();
+  }
   if (CollectionProperties.isCollectionProperty(propertyName)) {
     if (collectionPropertyMapping == null) {
       collectionPropertyMapping=new CollectionPropertyMapping(queryableCollection);

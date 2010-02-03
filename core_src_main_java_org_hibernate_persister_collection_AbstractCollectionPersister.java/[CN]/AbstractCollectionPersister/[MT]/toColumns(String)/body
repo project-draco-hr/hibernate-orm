@@ -1,9 +1,13 @@
 {
   if ("index".equals(propertyName)) {
-    if (isManyToMany()) {
-      throw new QueryException("index() function not supported for many-to-many association");
+    if (indexFragments == null) {
+      String[] tmp=new String[indexColumnNames.length];
+      for (int i=0; i < indexColumnNames.length; i++) {
+        tmp[i]=indexColumnNames[i] == null ? indexFormulas[i] : indexColumnNames[i];
+        indexFragments=tmp;
+      }
     }
-    return indexColumnNames;
+    return indexFragments;
   }
   return elementPropertyMapping.toColumns(propertyName);
 }
