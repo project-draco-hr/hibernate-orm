@@ -8,7 +8,7 @@
   Lock lock=new Lock();
   Thread t=null;
   try {
-    lock.setName("contendedLock");
+    lock.setName("testContendedPessimisticLock");
     em.getTransaction().begin();
     em.persist(lock);
     em.getTransaction().commit();
@@ -22,18 +22,22 @@
     final CountDownLatch latch=new CountDownLatch(1);
     t=new Thread(new Runnable(){
       public void run(){
-        em2.getTransaction().begin();
-        log.info("testContendedPessimisticLock: (BG) about to read write-locked entity");
-        Lock lock2=em2.getReference(Lock.class,id);
-        lock2.getName();
-        log.info("testContendedPessimisticLock: (BG) read write-locked entity");
-        em2.lock(lock2,LockModeType.PESSIMISTIC_READ);
-        log.info("testContendedPessimisticLock: (BG) got read lock on entity");
-        em2.getTransaction().commit();
-        latch.countDown();
+        try {
+          em2.getTransaction().begin();
+          log.info("testContendedPessimisticLock: (BG) about to issue (PESSIMISTIC_READ) query against write-locked entity");
+          Query query=em2.createQuery("select L from Lock_ L where L.id < 10000 ");
+          query.setLockMode(LockModeType.PESSIMISTIC_READ);
+          List<Lock> resultList=query.getResultList();
+          resultList.get(0).getName();
+        }
+  finally {
+          em2.getTransaction().commit();
+          latch.countDown();
+        }
       }
     }
 );
+    t.setDaemon(true);
     t.setName("LockTest read lock");
     t.start();
     log.info("testContendedPessimisticLock:  wait on BG thread");

@@ -1,0 +1,77 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  final EntityManager em2=createIsolatedEntityManager();
+  if (!(getDialect() instanceof Oracle10gDialect)) {
+    log.info("skipping testContendedPessimisticWriteLockTimeout");
+    return;
+  }
+  Lock lock=new Lock();
+  Thread t=null;
+  FutureTask<Boolean> bgTask=null;
+  final CountDownLatch latch=new CountDownLatch(1);
+  try {
+    lock.setName("testContendedPessimisticWriteLockTimeout");
+    em.getTransaction().begin();
+    em.persist(lock);
+    em.getTransaction().commit();
+    em.clear();
+    em.getTransaction().begin();
+    lock=em.getReference(Lock.class,lock.getId());
+    em.lock(lock,LockModeType.PESSIMISTIC_WRITE);
+    final Integer id=lock.getId();
+    lock.getName();
+    log.info("testContendedPessimisticWriteLockTimeout: got write lock");
+    bgTask=new FutureTask<Boolean>(new Callable(){
+      public Boolean call(){
+        try {
+          boolean timedOut=false;
+          em2.getTransaction().begin();
+          log.info("testContendedPessimisticWriteLockTimeout: (BG) about to read write-locked entity");
+          Lock lock2=em2.getReference(Lock.class,id);
+          lock2.getName();
+          log.info("testContendedPessimisticWriteLockTimeout: (BG) read write-locked entity");
+          Map<String,Object> props=new HashMap<String,Object>();
+          props.put("javax.persistence.lock.timeout",new Integer(1000));
+          try {
+            em2.lock(lock2,LockModeType.PESSIMISTIC_WRITE,props);
+          }
+ catch (          LockTimeoutException e) {
+            log.info("testContendedPessimisticWriteLockTimeout: (BG) got expected timeout exception");
+            timedOut=true;
+          }
+catch (          Throwable e) {
+            log.info("Expected LockTimeoutException but got unexpected exception",e);
+          }
+          em2.getTransaction().commit();
+          return new Boolean(timedOut);
+        }
+  finally {
+          latch.countDown();
+        }
+      }
+    }
+);
+    t=new Thread(bgTask);
+    t.setDaemon(true);
+    t.setName("Lock timeout Test (bg)");
+    t.start();
+    boolean latchSet=latch.await(10,TimeUnit.SECONDS);
+    assertTrue("background test thread finished (lock timeout is broken)",latchSet);
+    assertTrue("background test thread timed out on lock attempt",bgTask.get().booleanValue());
+    em.getTransaction().commit();
+  }
+  finally {
+    if (em.getTransaction().isActive()) {
+      em.getTransaction().rollback();
+    }
+    if (t != null) {
+      t.join();
+    }
+    em.getTransaction().begin();
+    lock=em.getReference(Lock.class,lock.getId());
+    em.remove(lock);
+    em.getTransaction().commit();
+    em.close();
+    em2.close();
+  }
+}

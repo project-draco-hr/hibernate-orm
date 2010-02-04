@@ -1,8 +1,11 @@
 {
   sql=sql.trim();
+  String forUpdateClause=null;
   boolean isForUpdate=false;
-  if (sql.toLowerCase().endsWith(" for update")) {
-    sql=sql.substring(0,sql.length() - 11);
+  final int forUpdateIndex=sql.toLowerCase().lastIndexOf("for update");
+  if (forUpdateIndex > -1) {
+    forUpdateClause=sql.substring(forUpdateIndex);
+    sql=sql.substring(0,forUpdateIndex - 1);
     isForUpdate=true;
   }
   StringBuffer pagingSelect=new StringBuffer(sql.length() + 100);
@@ -20,7 +23,8 @@
     pagingSelect.append(" ) where rownum <= ?");
   }
   if (isForUpdate) {
-    pagingSelect.append(" for update");
+    pagingSelect.append(" ");
+    pagingSelect.append(forUpdateClause);
   }
   return pagingSelect.toString();
 }
