@@ -7,6 +7,7 @@
   List<PropertyData> classElements=new ArrayList<PropertyData>();
   XClass returnedClassOrElement=inferredData.getClassOrElement();
   List<PropertyData> baseClassElements=null;
+  Map<String,PropertyData> orderedBaseClassElements=new HashMap<String,PropertyData>();
   XClass baseReturnedClassOrElement;
   if (baseInferredData != null) {
     baseClassElements=new ArrayList<PropertyData>();
@@ -14,6 +15,9 @@
     bindTypeDefs(baseReturnedClassOrElement,mappings);
     PropertyContainer propContainer=new PropertyContainer(baseReturnedClassOrElement,entityXClass);
     addElementsOfClass(baseClassElements,propertyAccessor,propContainer,mappings);
+    for (    PropertyData element : baseClassElements) {
+      orderedBaseClassElements.put(element.getPropertyName(),element);
+    }
   }
   bindTypeDefs(returnedClassOrElement,mappings);
   PropertyContainer propContainer=new PropertyContainer(returnedClassOrElement,entityXClass);
@@ -25,9 +29,20 @@
     superClass=superClass.getSuperclass();
   }
   if (baseClassElements != null) {
-    if (!hasIdClassAnnotations(entityXClass)) {
+    if (!hasAnnotationsOnIdClass(entityXClass)) {
       for (int i=0; i < classElements.size(); i++) {
-        classElements.set(i,baseClassElements.get(i));
+        final PropertyData idClassPropertyData=classElements.get(i);
+        final PropertyData entityPropertyData=orderedBaseClassElements.get(idClassPropertyData.getPropertyName());
+        if (propertyHolder.isInIdClass()) {
+          if (entityPropertyData.getProperty().isAnnotationPresent(ManyToOne.class) || entityPropertyData.getProperty().isAnnotationPresent(OneToOne.class)) {
+          }
+ else {
+            classElements.set(i,entityPropertyData);
+          }
+        }
+ else {
+          classElements.set(i,entityPropertyData);
+        }
       }
     }
   }
@@ -35,7 +50,7 @@
     processElementAnnotations(subHolder,isNullable ? Nullability.NO_CONSTRAINT : Nullability.FORCED_NOT_NULL,propertyAnnotatedElement.getProperty(),propertyAnnotatedElement,new HashMap<String,IdGenerator>(),entityBinder,isIdentifierMapper,isComponentEmbedded,inSecondPass,mappings,inheritanceStatePerClass);
     XProperty property=propertyAnnotatedElement.getProperty();
     if (property.isAnnotationPresent(GeneratedValue.class) && property.isAnnotationPresent(Id.class)) {
-      HashMap<String,IdGenerator> localGenerators=(HashMap<String,IdGenerator>)new HashMap<String,IdGenerator>();
+      HashMap<String,IdGenerator> localGenerators=new HashMap<String,IdGenerator>();
       localGenerators.putAll(buildLocalGenerators(property,mappings));
       GeneratedValue generatedValue=property.getAnnotation(GeneratedValue.class);
       String generatorType=generatedValue != null ? generatorType(generatedValue.strategy(),mappings) : "assigned";

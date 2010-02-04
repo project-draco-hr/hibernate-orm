@@ -6,7 +6,11 @@
  catch (  ClassNotFoundException e) {
     throw new AssertionFailure("PersistentClass name cannot be converted into a Class",e);
   }
-  String propertyPath=isId ? "" : propertyName;
-  final PropertyData annotatedWithMapsId=mappings.getPropertyAnnotatedWithMapsId(persistentXClass,propertyPath);
-  return annotatedWithMapsId;
+  if (propertyHolder.isInIdClass()) {
+    return mappings.getPropertyAnnotatedWithIdAndToOne(persistentXClass,propertyName);
+  }
+ else {
+    String propertyPath=isId ? "" : propertyName;
+    return mappings.getPropertyAnnotatedWithMapsId(persistentXClass,propertyPath);
+  }
 }

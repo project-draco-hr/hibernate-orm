@@ -8,7 +8,13 @@
     id=((HibernateProxy)x).getHibernateLazyInitializer().getIdentifier();
   }
  else {
-    id=persister.getIdentifier(x,entityMode);
+    final Class mappedClass=persister.getMappedClass(entityMode);
+    if (mappedClass.isAssignableFrom(x.getClass())) {
+      id=persister.getIdentifier(x,entityMode);
+    }
+ else {
+      id=(Serializable)x;
+    }
   }
   return persister.getIdentifierType().getHashCode(id,entityMode,factory);
 }

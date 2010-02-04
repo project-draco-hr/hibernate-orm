@@ -286,15 +286,15 @@
       boolean isComponent;
       isComponent=property.isAnnotationPresent(Embedded.class) || property.isAnnotationPresent(EmbeddedId.class) || returnedClass.isAnnotationPresent(Embeddable.class);
       boolean isOverridden=false;
-      if (isId || propertyHolder.isOrWithinEmbeddedId()) {
+      if (isId || propertyHolder.isOrWithinEmbeddedId() || propertyHolder.isInIdClass()) {
         Ejb3Column[] oldColumns=columns;
-        columns=columnsBuilder.overrideColumnFromMapsIdProperty(isId);
+        columns=columnsBuilder.overrideColumnFromMapperOrMapsIdProperty(isId);
         isOverridden=oldColumns != columns;
       }
       if (isComponent) {
         String referencedEntityName=null;
         if (isOverridden) {
-          final PropertyData mapsIdProperty=BinderHelper.getPropertyAnnotatedWithMapsId(isId,propertyHolder,property.getName(),mappings);
+          final PropertyData mapsIdProperty=BinderHelper.getPropertyOverriddenByMapperOrMapsId(isId,propertyHolder,property.getName(),mappings);
           referencedEntityName=mapsIdProperty.getClassOrElementName();
         }
         AccessType propertyAccessor=entityBinder.getPropertyAccessor(property);
@@ -316,13 +316,13 @@
         propertyBinder.setLazy(lazy);
         propertyBinder.setColumns(columns);
         if (isOverridden) {
-          final PropertyData mapsIdProperty=BinderHelper.getPropertyAnnotatedWithMapsId(isId,propertyHolder,property.getName(),mappings);
+          final PropertyData mapsIdProperty=BinderHelper.getPropertyOverriddenByMapperOrMapsId(isId,propertyHolder,property.getName(),mappings);
           propertyBinder.setReferencedEntityName(mapsIdProperty.getClassOrElementName());
         }
         propertyBinder.makePropertyValueAndBind();
       }
       if (isOverridden) {
-        final PropertyData mapsIdProperty=BinderHelper.getPropertyAnnotatedWithMapsId(isId,propertyHolder,property.getName(),mappings);
+        final PropertyData mapsIdProperty=BinderHelper.getPropertyOverriddenByMapperOrMapsId(isId,propertyHolder,property.getName(),mappings);
         HashMap<String,IdGenerator> localGenerators=(HashMap<String,IdGenerator>)classGenerators.clone();
         final IdGenerator foreignGenerator=new IdGenerator();
         foreignGenerator.setIdentifierGeneratorStrategy("assigned");

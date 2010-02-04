@@ -1,10 +1,18 @@
 {
   Session session=(Session)sessionImplementor;
-  Object associatedObject=sessionImplementor.getFactory().getClassMetadata(entityName).getPropertyValue(object,propertyName,session.getEntityMode());
+  final ClassMetadata classMetadata=sessionImplementor.getFactory().getClassMetadata(entityName);
+  Object associatedObject=classMetadata.getPropertyValue(object,propertyName,session.getEntityMode());
   if (associatedObject == null) {
     throw new IdentifierGenerationException("attempted to assign id from null one-to-one property [" + getRole() + "]");
   }
-  EntityType type=(EntityType)sessionImplementor.getFactory().getClassMetadata(entityName).getPropertyType(propertyName);
+  final Type uncheckedType=classMetadata.getPropertyType(propertyName);
+  EntityType type;
+  if (uncheckedType instanceof EntityType) {
+    type=(EntityType)uncheckedType;
+  }
+ else {
+    type=(EntityType)classMetadata.getPropertyType("_identifierMapper." + propertyName);
+  }
   Serializable id;
   try {
     id=ForeignKeys.getEntityIdentifierIfNotUnsaved(type.getAssociatedEntityName(),associatedObject,sessionImplementor);

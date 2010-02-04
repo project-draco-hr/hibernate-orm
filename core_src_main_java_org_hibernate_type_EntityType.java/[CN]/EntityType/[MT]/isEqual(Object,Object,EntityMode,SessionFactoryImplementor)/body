@@ -3,19 +3,30 @@
   if (!persister.canExtractIdOutOfEntity()) {
     return super.isEqual(x,y,entityMode);
   }
+  final Class mappedClass=persister.getMappedClass(entityMode);
   Serializable xid;
   if (x instanceof HibernateProxy) {
     xid=((HibernateProxy)x).getHibernateLazyInitializer().getIdentifier();
   }
  else {
-    xid=persister.getIdentifier(x,entityMode);
+    if (mappedClass.isAssignableFrom(x.getClass())) {
+      xid=persister.getIdentifier(x,entityMode);
+    }
+ else {
+      xid=(Serializable)x;
+    }
   }
   Serializable yid;
   if (y instanceof HibernateProxy) {
     yid=((HibernateProxy)y).getHibernateLazyInitializer().getIdentifier();
   }
  else {
-    yid=persister.getIdentifier(y,entityMode);
+    if (mappedClass.isAssignableFrom(y.getClass())) {
+      yid=persister.getIdentifier(x,entityMode);
+    }
+ else {
+      yid=(Serializable)y;
+    }
   }
   return persister.getIdentifierType().isEqual(xid,yid,entityMode,factory);
 }

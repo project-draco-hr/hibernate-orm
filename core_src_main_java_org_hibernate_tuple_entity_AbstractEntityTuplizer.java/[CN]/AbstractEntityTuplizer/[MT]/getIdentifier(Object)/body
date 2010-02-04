@@ -11,7 +11,18 @@
  else {
         ComponentType copier=(ComponentType)entityMetamodel.getIdentifierProperty().getType();
         id=copier.instantiate(getEntityMode());
-        copier.setPropertyValues(id,identifierMapperType.getPropertyValues(entity,getEntityMode()),getEntityMode());
+        final Object[] propertyValues=identifierMapperType.getPropertyValues(entity,getEntityMode());
+        Type[] subTypes=identifierMapperType.getSubtypes();
+        Type[] copierSubTypes=copier.getSubtypes();
+        final int length=subTypes.length;
+        for (int i=0; i < length; i++) {
+          if (subTypes[i].isAssociationType() && !copierSubTypes[i].isAssociationType()) {
+            final String associatedEntityName=((EntityType)subTypes[i]).getAssociatedEntityName();
+            final EntityPersister entityPersister=getFactory().getEntityPersister(associatedEntityName);
+            propertyValues[i]=entityPersister.getIdentifier(propertyValues[i],getEntityMode());
+          }
+        }
+        copier.setPropertyValues(id,propertyValues,getEntityMode());
       }
     }
  else {

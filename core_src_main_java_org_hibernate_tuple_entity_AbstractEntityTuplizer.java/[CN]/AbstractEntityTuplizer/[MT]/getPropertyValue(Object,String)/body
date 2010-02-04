@@ -1,13 +1,19 @@
 {
-  final int loc=propertyPath.indexOf('.');
-  final String basePropertyName=loc > 0 ? propertyPath.substring(0,loc) : propertyPath;
-  final int index=entityMetamodel.getPropertyIndex(basePropertyName);
-  final Object baseValue=getPropertyValue(entity,index);
+  int loc=propertyPath.indexOf('.');
+  String basePropertyName=loc > 0 ? propertyPath.substring(0,loc) : propertyPath;
+  Integer index=entityMetamodel.getPropertyIndexOrNull(basePropertyName);
+  if (index == null) {
+    propertyPath="_identifierMapper." + propertyPath;
+    loc=propertyPath.indexOf('.');
+    basePropertyName=loc > 0 ? propertyPath.substring(0,loc) : propertyPath;
+  }
+  index=entityMetamodel.getPropertyIndexOrNull(basePropertyName);
+  final Object baseValue=getPropertyValue(entity,index.intValue());
   if (loc > 0) {
     if (baseValue == null) {
       return null;
     }
-    return getComponentValue((ComponentType)entityMetamodel.getPropertyTypes()[index],baseValue,propertyPath.substring(loc + 1));
+    return getComponentValue((ComponentType)entityMetamodel.getPropertyTypes()[index.intValue()],baseValue,propertyPath.substring(loc + 1));
   }
  else {
     return baseValue;
