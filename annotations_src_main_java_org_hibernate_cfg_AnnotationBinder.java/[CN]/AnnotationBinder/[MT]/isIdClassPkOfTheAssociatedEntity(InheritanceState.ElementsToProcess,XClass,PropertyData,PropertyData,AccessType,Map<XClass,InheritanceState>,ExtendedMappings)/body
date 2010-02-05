@@ -1,0 +1,21 @@
+{
+  if (elementsToProcess.getIdPropertyCount() == 1) {
+    final PropertyData idPropertyOnBaseClass=getUniqueIdPropertyFromBaseClass(inferredData,baseInferredData,propertyAccessor,mappings);
+    final InheritanceState state=inheritanceStatePerClass.get(idPropertyOnBaseClass.getClassOrElement());
+    if (state == null) {
+      return false;
+    }
+    final XClass associatedClassWithIdClass=state.getClassWithIdClass(true);
+    if (associatedClassWithIdClass == null) {
+      final XProperty property=idPropertyOnBaseClass.getProperty();
+      return property.isAnnotationPresent(ManyToOne.class) || property.isAnnotationPresent(OneToOne.class);
+    }
+ else {
+      final XClass idClass=mappings.getReflectionManager().toXClass(associatedClassWithIdClass.getAnnotation(IdClass.class).value());
+      return idClass.equals(compositeClass);
+    }
+  }
+ else {
+    return false;
+  }
+}

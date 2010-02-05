@@ -1,0 +1,50 @@
+{
+  XClass classWithIdClass=inheritanceState.getClassWithIdClass(false);
+  if (classWithIdClass != null) {
+    IdClass idClass=classWithIdClass.getAnnotation(IdClass.class);
+    XClass compositeClass=mappings.getReflectionManager().toXClass(idClass.value());
+    PropertyData inferredData=new PropertyPreloadedData(entityBinder.getPropertyAccessType(),"id",compositeClass);
+    PropertyData baseInferredData=new PropertyPreloadedData(entityBinder.getPropertyAccessType(),"id",classWithIdClass);
+    AccessType propertyAccessor=entityBinder.getPropertyAccessor(compositeClass);
+    final boolean isFakeIdClass=isIdClassPkOfTheAssociatedEntity(elementsToProcess,compositeClass,inferredData,baseInferredData,propertyAccessor,inheritanceStatePerClass,mappings);
+    if (isFakeIdClass) {
+      return false;
+    }
+    boolean isComponent=true;
+    String generatorType="assigned";
+    String generator=BinderHelper.ANNOTATION_STRING_DEFAULT;
+    boolean ignoreIdAnnotations=entityBinder.isIgnoreIdAnnotations();
+    entityBinder.setIgnoreIdAnnotations(true);
+    propertyHolder.setInIdClass(true);
+    bindIdClass(generatorType,generator,inferredData,baseInferredData,null,propertyHolder,isComponent,propertyAccessor,entityBinder,true,false,mappings,inheritanceStatePerClass);
+    propertyHolder.setInIdClass(null);
+    inferredData=new PropertyPreloadedData(propertyAccessor,"_identifierMapper",compositeClass);
+    Component mapper=fillComponent(propertyHolder,inferredData,baseInferredData,propertyAccessor,false,entityBinder,true,true,false,mappings,inheritanceStatePerClass);
+    entityBinder.setIgnoreIdAnnotations(ignoreIdAnnotations);
+    persistentClass.setIdentifierMapper(mapper);
+    final org.hibernate.mapping.MappedSuperclass superclass=BinderHelper.getMappedSuperclassOrNull(inferredData.getDeclaringClass(),inheritanceStatePerClass,mappings);
+    if (superclass != null) {
+      superclass.setDeclaredIdentifierMapper(mapper);
+    }
+ else {
+      persistentClass.setDeclaredIdentifierMapper(mapper);
+    }
+    Property property=new Property();
+    property.setName("_identifierMapper");
+    property.setNodeName("id");
+    property.setUpdateable(false);
+    property.setInsertable(false);
+    property.setValue(mapper);
+    property.setPropertyAccessorName("embedded");
+    persistentClass.addProperty(property);
+    entityBinder.setIgnoreIdAnnotations(true);
+    Iterator properties=mapper.getPropertyIterator();
+    while (properties.hasNext()) {
+      idPropertiesIfIdClass.add(((Property)properties.next()).getName());
+    }
+    return true;
+  }
+ else {
+    return false;
+  }
+}

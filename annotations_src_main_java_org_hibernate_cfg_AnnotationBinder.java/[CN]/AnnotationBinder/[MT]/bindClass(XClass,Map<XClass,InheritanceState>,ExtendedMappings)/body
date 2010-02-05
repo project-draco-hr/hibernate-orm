@@ -124,68 +124,12 @@
   final InheritanceState.ElementsToProcess elementsToProcess=inheritanceState.getElementsToProcess();
   inheritanceState.postProcess(persistentClass,entityBinder);
   final boolean subclassAndSingleTableStrategy=inheritanceState.getType() == InheritanceType.SINGLE_TABLE && inheritanceState.hasParents();
-  Set<String> idProperties=new HashSet<String>();
-  XClass classWithIdClass=inheritanceState.getClassWithIdClass(false);
-  if (classWithIdClass != null) {
-    IdClass idClass=classWithIdClass.getAnnotation(IdClass.class);
-    XClass compositeClass=mappings.getReflectionManager().toXClass(idClass.value());
-    boolean isComponent=true;
-    AccessType propertyAccessor=entityBinder.getPropertyAccessor(compositeClass);
-    String generatorType="assigned";
-    String generator=BinderHelper.ANNOTATION_STRING_DEFAULT;
-    PropertyData inferredData=new PropertyPreloadedData(entityBinder.getPropertyAccessType(),"id",compositeClass);
-    PropertyData baseInferredData=new PropertyPreloadedData(entityBinder.getPropertyAccessType(),"id",classWithIdClass);
-    HashMap<String,IdGenerator> localGenerators=new HashMap<String,IdGenerator>();
-    boolean ignoreIdAnnotations=entityBinder.isIgnoreIdAnnotations();
-    entityBinder.setIgnoreIdAnnotations(true);
-    propertyHolder.setInIdClass(true);
-    bindId(generatorType,generator,inferredData,baseInferredData,null,propertyHolder,localGenerators,isComponent,propertyAccessor,entityBinder,true,false,mappings,inheritanceStatePerClass);
-    propertyHolder.setInIdClass(null);
-    inferredData=new PropertyPreloadedData(propertyAccessor,"_identifierMapper",compositeClass);
-    Component mapper=fillComponent(propertyHolder,inferredData,baseInferredData,propertyAccessor,false,entityBinder,true,true,false,mappings,inheritanceStatePerClass);
-    entityBinder.setIgnoreIdAnnotations(ignoreIdAnnotations);
-    persistentClass.setIdentifierMapper(mapper);
-    final org.hibernate.mapping.MappedSuperclass superclass=BinderHelper.getMappedSuperclassOrNull(inferredData.getDeclaringClass(),inheritanceStatePerClass,mappings);
-    if (superclass != null) {
-      superclass.setDeclaredIdentifierMapper(mapper);
-    }
- else {
-      persistentClass.setDeclaredIdentifierMapper(mapper);
-    }
-    Property property=new Property();
-    property.setName("_identifierMapper");
-    property.setNodeName("id");
-    property.setUpdateable(false);
-    property.setInsertable(false);
-    property.setValue(mapper);
-    property.setPropertyAccessorName("embedded");
-    persistentClass.addProperty(property);
-    entityBinder.setIgnoreIdAnnotations(true);
-    Iterator properties=mapper.getPropertyIterator();
-    while (properties.hasNext()) {
-      idProperties.add(((Property)properties.next()).getName());
-    }
-  }
- else {
+  Set<String> idPropertiesIfIdClass=new HashSet<String>();
+  boolean isIdClass=mapAsIdClass(inheritanceStatePerClass,inheritanceState,persistentClass,entityBinder,propertyHolder,elementsToProcess,idPropertiesIfIdClass,mappings);
+  if (!isIdClass) {
     entityBinder.setWrapIdsInEmbeddedComponents(elementsToProcess.getIdPropertyCount() > 1);
   }
-  Set<String> missingIdProperties=new HashSet<String>(idProperties);
-  for (  PropertyData propertyAnnotatedElement : elementsToProcess.getElements()) {
-    String propertyName=propertyAnnotatedElement.getPropertyName();
-    if (!idProperties.contains(propertyName)) {
-      processElementAnnotations(propertyHolder,subclassAndSingleTableStrategy ? Nullability.FORCED_NULL : Nullability.NO_CONSTRAINT,propertyAnnotatedElement.getProperty(),propertyAnnotatedElement,classGenerators,entityBinder,false,false,false,mappings,inheritanceStatePerClass);
-    }
- else {
-      missingIdProperties.remove(propertyName);
-    }
-  }
-  if (missingIdProperties.size() != 0) {
-    StringBuilder missings=new StringBuilder();
-    for (    String property : missingIdProperties) {
-      missings.append(property).append(", ");
-    }
-    throw new AnnotationException("Unable to find properties (" + missings.substring(0,missings.length() - 2) + ") in entity annotated with @IdClass:"+ persistentClass.getEntityName());
-  }
+  processIdPropertiesIfNotAlready(inheritanceStatePerClass,mappings,persistentClass,entityBinder,propertyHolder,classGenerators,elementsToProcess,subclassAndSingleTableStrategy,idPropertiesIfIdClass);
   if (!inheritanceState.hasParents()) {
     final RootClass rootClass=(RootClass)persistentClass;
     mappings.addSecondPass(new CreateKeySecondPass(rootClass));
