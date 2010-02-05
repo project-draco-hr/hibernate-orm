@@ -283,14 +283,20 @@
       collectionBinder.bind();
     }
  else     if (!isId || !entityBinder.isIgnoreIdAnnotations()) {
-      boolean isComponent;
-      isComponent=property.isAnnotationPresent(Embedded.class) || property.isAnnotationPresent(EmbeddedId.class) || returnedClass.isAnnotationPresent(Embeddable.class);
+      boolean isComponent=false;
       boolean isOverridden=false;
       if (isId || propertyHolder.isOrWithinEmbeddedId() || propertyHolder.isInIdClass()) {
-        Ejb3Column[] oldColumns=columns;
-        columns=columnsBuilder.overrideColumnFromMapperOrMapsIdProperty(isId);
-        isOverridden=oldColumns != columns;
+        final PropertyData overridingProperty=BinderHelper.getPropertyOverriddenByMapperOrMapsId(isId,propertyHolder,property.getName(),mappings);
+        if (overridingProperty != null) {
+          isOverridden=true;
+          final InheritanceState state=inheritanceStatePerClass.get(overridingProperty.getClassOrElement());
+          if (state != null) {
+            isComponent=isComponent || state.hasIdClassOrEmbeddedId();
+          }
+          columns=columnsBuilder.overrideColumnFromMapperOrMapsIdProperty(isId);
+        }
       }
+      isComponent=isComponent || property.isAnnotationPresent(Embedded.class) || property.isAnnotationPresent(EmbeddedId.class)|| returnedClass.isAnnotationPresent(Embeddable.class);
       if (isComponent) {
         String referencedEntityName=null;
         if (isOverridden) {
