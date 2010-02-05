@@ -1,8 +1,10 @@
 {
   try {
-    return CGLIBLazyInitializer.getProxy(entityName,persistentClass,interfaces,getIdentifierMethodName == null ? null : getIdentifierMethodClass.getDeclaredMethod(getIdentifierMethodName,null),setIdentifierMethodName == null ? null : setIdentifierMethodClass.getDeclaredMethod(setIdentifierMethodName,setIdentifierMethodParams),componentIdType,id,null);
+    HibernateProxy proxy=CGLIBLazyInitializer.getProxy(getEntityName(),persistentClass,interfaces,getIdentifierMethodName == null ? null : getIdentifierMethodClass.getDeclaredMethod(getIdentifierMethodName,null),setIdentifierMethodName == null ? null : setIdentifierMethodClass.getDeclaredMethod(setIdentifierMethodName,setIdentifierMethodParams),componentIdType,getId(),null);
+    setReadOnlyBeforeAttachedToSession((CGLIBLazyInitializer)proxy.getHibernateLazyInitializer());
+    return proxy;
   }
  catch (  NoSuchMethodException nsme) {
-    throw new HibernateException("could not create proxy for entity: " + entityName,nsme);
+    throw new HibernateException("could not create proxy for entity: " + getEntityName(),nsme);
   }
 }

@@ -1,13 +1,16 @@
 {
   errorIfReadOnlySettingNotAvailable();
   if (this.readOnly != readOnly) {
-    Object proxy=getProxyOrNull();
-    if (proxy == null) {
-      throw new TransientObjectException("Cannot set the read-only/modifiable mode unless the proxy is associated with a session.");
+    final EntityPersister persister=session.getFactory().getEntityPersister(entityName);
+    if (!persister.isMutable() && !readOnly) {
+      throw new IllegalStateException("cannot make proxies for immutable entities modifiable");
     }
     this.readOnly=readOnly;
     if (initialized) {
-      session.getPersistenceContext().setReadOnly(target,readOnly);
+      EntityKey key=generateEntityKeyOrNull(getIdentifier(),session,getEntityName());
+      if (key != null && session.getPersistenceContext().containsEntity(key)) {
+        session.getPersistenceContext().setReadOnly(target,readOnly);
+      }
     }
   }
 }

@@ -34,10 +34,15 @@
       factory.getStatisticsImplementor().secondLevelCachePut(persister.getCacheAccessStrategy().getRegion().getName());
     }
   }
-  boolean isReallyReadOnly=readOnly || !persister.isMutable();
-  Object proxy=persistenceContext.getProxy(entityEntry.getEntityKey());
-  if (proxy != null) {
-    isReallyReadOnly=((HibernateProxy)proxy).getHibernateLazyInitializer().isReadOnly();
+  boolean isReallyReadOnly=readOnly;
+  if (!persister.isMutable()) {
+    isReallyReadOnly=true;
+  }
+ else {
+    Object proxy=persistenceContext.getProxy(entityEntry.getEntityKey());
+    if (proxy != null) {
+      isReallyReadOnly=((HibernateProxy)proxy).getHibernateLazyInitializer().isReadOnly();
+    }
   }
   if (isReallyReadOnly) {
     persistenceContext.setEntryStatus(entityEntry,Status.READ_ONLY);

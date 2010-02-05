@@ -1,14 +1,21 @@
 {
   if (s != session) {
-    readOnly=false;
     if (s == null) {
-      session=null;
+      unsetSession();
     }
  else     if (isConnectedToSession()) {
       throw new HibernateException("illegally attempted to associate a proxy with two open Sessions");
     }
  else {
       session=s;
+      if (readOnlyBeforeAttachedToSession == null) {
+        final EntityPersister persister=s.getFactory().getEntityPersister(entityName);
+        setReadOnly(s.getPersistenceContext().isDefaultReadOnly() || !persister.isMutable());
+      }
+ else {
+        setReadOnly(readOnlyBeforeAttachedToSession.booleanValue());
+        readOnlyBeforeAttachedToSession=null;
+      }
     }
   }
 }
