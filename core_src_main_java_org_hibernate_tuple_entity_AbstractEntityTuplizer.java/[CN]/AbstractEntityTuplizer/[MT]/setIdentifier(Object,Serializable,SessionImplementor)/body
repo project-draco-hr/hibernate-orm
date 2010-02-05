@@ -9,17 +9,6 @@
     idSetter.set(entity,id,getFactory());
   }
  else   if (identifierMapperType != null) {
-    ComponentType extractor=(ComponentType)entityMetamodel.getIdentifierProperty().getType();
-    ComponentType copier=(ComponentType)identifierMapperType;
-    final Object[] propertyValues=extractor.getPropertyValues(id,getEntityMode());
-    Type[] subTypes=identifierMapperType.getSubtypes();
-    Type[] copierSubTypes=copier.getSubtypes();
-    final int length=subTypes.length;
-    for (int i=0; i < length; i++) {
-      if (subTypes[i].isAssociationType() && !copierSubTypes[i].isAssociationType()) {
-        final String associatedEntityName=((EntityType)subTypes[i]).getAssociatedEntityName();
-      }
-    }
-    copier.setPropertyValues(entity,propertyValues,getEntityMode());
+    mappedIdentifierValueMarshaller.setIdentifier(entity,id,session);
   }
 }

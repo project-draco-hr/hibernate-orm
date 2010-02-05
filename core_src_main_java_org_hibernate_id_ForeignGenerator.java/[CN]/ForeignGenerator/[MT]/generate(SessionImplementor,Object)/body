@@ -1,24 +1,24 @@
 {
   Session session=(Session)sessionImplementor;
-  final ClassMetadata classMetadata=sessionImplementor.getFactory().getClassMetadata(entityName);
-  Object associatedObject=classMetadata.getPropertyValue(object,propertyName,session.getEntityMode());
+  final EntityPersister persister=sessionImplementor.getFactory().getEntityPersister(entityName);
+  Object associatedObject=persister.getPropertyValue(object,propertyName,session.getEntityMode());
   if (associatedObject == null) {
     throw new IdentifierGenerationException("attempted to assign id from null one-to-one property [" + getRole() + "]");
   }
-  final Type uncheckedType=classMetadata.getPropertyType(propertyName);
-  EntityType type;
-  if (uncheckedType instanceof EntityType) {
-    type=(EntityType)uncheckedType;
+  final EntityType foreignValueSourceType;
+  final Type propertyType=persister.getPropertyType(propertyName);
+  if (propertyType.isEntityType()) {
+    foreignValueSourceType=(EntityType)propertyType;
   }
  else {
-    type=(EntityType)classMetadata.getPropertyType("_identifierMapper." + propertyName);
+    foreignValueSourceType=(EntityType)persister.getPropertyType("_identifierMapper." + propertyName);
   }
   Serializable id;
   try {
-    id=ForeignKeys.getEntityIdentifierIfNotUnsaved(type.getAssociatedEntityName(),associatedObject,sessionImplementor);
+    id=ForeignKeys.getEntityIdentifierIfNotUnsaved(foreignValueSourceType.getAssociatedEntityName(),associatedObject,sessionImplementor);
   }
  catch (  TransientObjectException toe) {
-    id=session.save(type.getAssociatedEntityName(),associatedObject);
+    id=session.save(foreignValueSourceType.getAssociatedEntityName(),associatedObject);
   }
   if (session.contains(object)) {
     return IdentifierGeneratorHelper.SHORT_CIRCUIT_INDICATOR;
