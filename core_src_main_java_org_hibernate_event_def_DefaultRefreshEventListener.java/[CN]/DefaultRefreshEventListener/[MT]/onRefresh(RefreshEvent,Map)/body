@@ -51,7 +51,9 @@
   String previousFetchProfile=source.getFetchProfile();
   source.setFetchProfile("refresh");
   Object result=persister.load(id,object,event.getLockOptions(),source);
-  source.setReadOnly(result,(e == null ? source.isDefaultReadOnly() : e.isReadOnly()));
+  if (result != null) {
+    source.setReadOnly(result,(e == null ? source.isDefaultReadOnly() : e.isReadOnly()));
+  }
   source.setFetchProfile(previousFetchProfile);
   UnresolvableObjectException.throwIfNull(result,id,persister.getEntityName());
 }
