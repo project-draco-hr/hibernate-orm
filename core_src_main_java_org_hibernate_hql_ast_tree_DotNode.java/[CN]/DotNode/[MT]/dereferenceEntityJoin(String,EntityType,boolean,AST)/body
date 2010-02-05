@@ -16,7 +16,14 @@
   boolean useFoundFromElement=found && (elem.isImplied() || areSame(classAlias,elem.getClassAlias()));
   if (!useFoundFromElement) {
     JoinSequence joinSequence=getSessionFactoryHelper().createJoinSequence(impliedJoin,propertyType,tableAlias,joinType,joinColumns);
-    FromElementFactory factory=new FromElementFactory(currentFromClause,getLhs().getFromElement(),joinPath,classAlias,joinColumns,impliedJoin);
+    FromElement lhsFromElement=getLhs().getFromElement();
+    while (lhsFromElement != null && ComponentJoin.class.isInstance(lhsFromElement)) {
+      lhsFromElement=lhsFromElement.getOrigin();
+    }
+    if (lhsFromElement == null) {
+      throw new QueryException("Unable to locate appropriate lhs");
+    }
+    FromElementFactory factory=new FromElementFactory(currentFromClause,lhsFromElement,joinPath,classAlias,joinColumns,impliedJoin);
     elem=factory.createEntityJoin(associatedEntityName,tableAlias,joinSequence,fetch,getWalker().isInFrom(),propertyType);
   }
  else {
