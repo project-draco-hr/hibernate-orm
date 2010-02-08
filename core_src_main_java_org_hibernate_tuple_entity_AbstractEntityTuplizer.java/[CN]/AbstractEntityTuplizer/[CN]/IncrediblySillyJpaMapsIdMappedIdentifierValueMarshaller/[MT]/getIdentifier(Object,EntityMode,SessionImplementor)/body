@@ -1,0 +1,44 @@
+{
+  final Object id=mappedIdentifierType.instantiate(entityMode);
+  final Object[] propertyValues=virtualIdComponent.getPropertyValues(entity,entityMode);
+  final Type[] subTypes=virtualIdComponent.getSubtypes();
+  final Type[] copierSubTypes=mappedIdentifierType.getSubtypes();
+  final int length=subTypes.length;
+  for (int i=0; i < length; i++) {
+    if (propertyValues[i] == null) {
+      throw new HibernateException("No part of a composite identifier may be null");
+    }
+    if (subTypes[i].isAssociationType() && !copierSubTypes[i].isAssociationType()) {
+      if (session == null) {
+        throw new AssertionError("Deprecated version of getIdentifier (no session) was used but session was required");
+      }
+      final Object subId;
+      if (HibernateProxy.class.isInstance(propertyValues[i])) {
+        subId=((HibernateProxy)propertyValues[i]).getHibernateLazyInitializer().getIdentifier();
+      }
+ else {
+        EntityEntry pcEntry=session.getPersistenceContext().getEntry(propertyValues[i]);
+        if (pcEntry != null) {
+          subId=pcEntry.getId();
+        }
+ else {
+          log.debug("Performing implicit derived identity cascade");
+          final PersistEvent event=new PersistEvent(null,propertyValues[i],(EventSource)session);
+          for (int x=0; x < session.getListeners().getPersistEventListeners().length; x++) {
+            session.getListeners().getPersistEventListeners()[x].onPersist(event);
+          }
+          pcEntry=session.getPersistenceContext().getEntry(propertyValues[i]);
+          if (pcEntry == null || pcEntry.getId() == null) {
+            throw new HibernateException("Unable to process implicit derived identity cascade");
+          }
+ else {
+            subId=pcEntry.getId();
+          }
+        }
+      }
+      propertyValues[i]=subId;
+    }
+  }
+  mappedIdentifierType.setPropertyValues(id,propertyValues,entityMode);
+  return id;
+}

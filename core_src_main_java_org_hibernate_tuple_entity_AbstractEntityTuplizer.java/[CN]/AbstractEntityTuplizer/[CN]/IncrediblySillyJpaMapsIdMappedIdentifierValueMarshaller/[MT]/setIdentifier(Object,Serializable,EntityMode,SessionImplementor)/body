@@ -1,12 +1,15 @@
 {
-  final Object[] extractedValues=mappedIdentifierType.getPropertyValues(id,session.getEntityMode());
+  final Object[] extractedValues=mappedIdentifierType.getPropertyValues(id,entityMode);
   final Object[] injectionValues=new Object[extractedValues.length];
   for (int i=0; i < virtualIdComponent.getSubtypes().length; i++) {
     final Type virtualPropertyType=virtualIdComponent.getSubtypes()[i];
     final Type idClassPropertyType=mappedIdentifierType.getSubtypes()[i];
     if (virtualPropertyType.isEntityType() && !idClassPropertyType.isEntityType()) {
+      if (session == null) {
+        throw new AssertionError("Deprecated version of getIdentifier (no session) was used but session was required");
+      }
       final String associatedEntityName=((EntityType)virtualPropertyType).getAssociatedEntityName();
-      final EntityKey entityKey=new EntityKey((Serializable)extractedValues[i],session.getFactory().getEntityPersister(associatedEntityName),session.getEntityMode());
+      final EntityKey entityKey=new EntityKey((Serializable)extractedValues[i],session.getFactory().getEntityPersister(associatedEntityName),entityMode);
       Object association=session.getPersistenceContext().getProxy(entityKey);
       if (association == null) {
         association=session.getPersistenceContext().getEntity(entityKey);
