@@ -60,7 +60,7 @@
     log.trace("Version name: {}, unsavedValue: {}",rootClass.getVersion().getName(),((SimpleValue)rootClass.getVersion().getValue()).getNullValue());
   }
  else {
-    final boolean isMapsId=property.isAnnotationPresent(MapsId.class);
+    final boolean forcePersist=property.isAnnotationPresent(MapsId.class) || property.isAnnotationPresent(Id.class);
     if (property.isAnnotationPresent(ManyToOne.class)) {
       ManyToOne ann=property.getAnnotation(ManyToOne.class);
       if (property.isAnnotationPresent(Column.class) || property.isAnnotationPresent(Columns.class)) {
@@ -78,8 +78,8 @@
           joinColumn.setSecondaryTableName(join.getTable().getName());
         }
       }
-      final boolean mandatory=!ann.optional() || isMapsId;
-      bindManyToOne(getCascadeStrategy(ann.cascade(),hibernateCascade,false,isMapsId),joinColumns,!mandatory,ignoreNotFound,onDeleteCascade,ToOneBinder.getTargetEntity(inferredData,mappings),propertyHolder,inferredData,false,isIdentifierMapper,inSecondPass,propertyBinder,mappings);
+      final boolean mandatory=!ann.optional() || forcePersist;
+      bindManyToOne(getCascadeStrategy(ann.cascade(),hibernateCascade,false,forcePersist),joinColumns,!mandatory,ignoreNotFound,onDeleteCascade,ToOneBinder.getTargetEntity(inferredData,mappings),propertyHolder,inferredData,false,isIdentifierMapper,inSecondPass,propertyBinder,mappings);
     }
  else     if (property.isAnnotationPresent(OneToOne.class)) {
       OneToOne ann=property.getAnnotation(OneToOne.class);
@@ -99,8 +99,8 @@
           joinColumn.setSecondaryTableName(join.getTable().getName());
         }
       }
-      final boolean mandatory=!ann.optional() || isMapsId;
-      bindOneToOne(getCascadeStrategy(ann.cascade(),hibernateCascade,ann.orphanRemoval(),isMapsId),joinColumns,!mandatory,getFetchMode(ann.fetch()),ignoreNotFound,onDeleteCascade,ToOneBinder.getTargetEntity(inferredData,mappings),propertyHolder,inferredData,ann.mappedBy(),trueOneToOne,isIdentifierMapper,inSecondPass,propertyBinder,mappings);
+      final boolean mandatory=!ann.optional() || forcePersist;
+      bindOneToOne(getCascadeStrategy(ann.cascade(),hibernateCascade,ann.orphanRemoval(),forcePersist),joinColumns,!mandatory,getFetchMode(ann.fetch()),ignoreNotFound,onDeleteCascade,ToOneBinder.getTargetEntity(inferredData,mappings),propertyHolder,inferredData,ann.mappedBy(),trueOneToOne,isIdentifierMapper,inSecondPass,propertyBinder,mappings);
     }
  else     if (property.isAnnotationPresent(org.hibernate.annotations.Any.class)) {
       if (property.isAnnotationPresent(Column.class) || property.isAnnotationPresent(Columns.class)) {
@@ -116,7 +116,7 @@
           joinColumn.setSecondaryTableName(join.getTable().getName());
         }
       }
-      bindAny(getCascadeStrategy(null,hibernateCascade,false,isMapsId),joinColumns,onDeleteCascade,nullability,propertyHolder,inferredData,entityBinder,isIdentifierMapper,mappings);
+      bindAny(getCascadeStrategy(null,hibernateCascade,false,forcePersist),joinColumns,onDeleteCascade,nullability,propertyHolder,inferredData,entityBinder,isIdentifierMapper,mappings);
     }
  else     if (property.isAnnotationPresent(OneToMany.class) || property.isAnnotationPresent(ManyToMany.class) || property.isAnnotationPresent(CollectionOfElements.class)|| property.isAnnotationPresent(ElementCollection.class)|| property.isAnnotationPresent(ManyToAny.class)) {
       OneToMany oneToManyAnn=property.getAnnotation(OneToMany.class);
