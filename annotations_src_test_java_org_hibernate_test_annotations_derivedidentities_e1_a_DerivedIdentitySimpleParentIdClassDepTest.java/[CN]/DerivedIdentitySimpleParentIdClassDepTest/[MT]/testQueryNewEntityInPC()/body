@@ -1,0 +1,19 @@
+{
+  Session s=openSession();
+  s.getTransaction().begin();
+  Employee e=new Employee(1L,"Paula","P");
+  Dependent d=new Dependent("LittleP",e);
+  d.setEmp(e);
+  s.persist(d);
+  s.persist(e);
+  List depList=s.createQuery("Select d from Dependent d where d.name='LittleP' and d.emp.name='Paula'").list();
+  Object newDependent=null;
+  if (depList.size() > 0) {
+    newDependent=(Dependent)depList.get(0);
+  }
+  if (newDependent != d) {
+    fail("PC entity instance (" + d + ") does not match returned query result value ("+ newDependent);
+  }
+  s.getTransaction().rollback();
+  s.close();
+}
