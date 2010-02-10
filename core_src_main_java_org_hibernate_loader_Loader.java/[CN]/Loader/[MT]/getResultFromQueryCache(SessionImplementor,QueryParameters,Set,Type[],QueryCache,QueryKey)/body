@@ -2,7 +2,20 @@
   List result=null;
   if (session.getCacheMode().isGetEnabled()) {
     boolean isImmutableNaturalKeyLookup=queryParameters.isNaturalKeyLookup() && getEntityPersisters()[0].getEntityMetamodel().hasImmutableNaturalId();
-    result=queryCache.get(key,resultTypes,isImmutableNaturalKeyLookup,querySpaces,session);
+    final PersistenceContext persistenceContext=session.getPersistenceContext();
+    boolean defaultReadOnlyOrig=persistenceContext.isDefaultReadOnly();
+    if (queryParameters.isReadOnlyInitialized()) {
+      persistenceContext.setDefaultReadOnly(queryParameters.isReadOnly());
+    }
+ else {
+      queryParameters.setReadOnly(persistenceContext.isDefaultReadOnly());
+    }
+    try {
+      result=queryCache.get(key,resultTypes,isImmutableNaturalKeyLookup,querySpaces,session);
+    }
+  finally {
+      persistenceContext.setDefaultReadOnly(defaultReadOnlyOrig);
+    }
     if (factory.getStatistics().isStatisticsEnabled()) {
       if (result == null) {
         factory.getStatisticsImplementor().queryCacheMiss(getQueryIdentifier(),queryCache.getRegion().getName());
