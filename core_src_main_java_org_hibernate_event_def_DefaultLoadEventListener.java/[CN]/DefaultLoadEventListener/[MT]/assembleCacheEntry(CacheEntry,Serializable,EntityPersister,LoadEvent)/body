@@ -7,14 +7,25 @@
   }
   EntityPersister subclassPersister=factory.getEntityPersister(entry.getSubclass());
   Object result=optionalObject == null ? session.instantiate(subclassPersister,id) : optionalObject;
-  TwoPhaseLoad.addUninitializedCachedEntity(new EntityKey(id,subclassPersister,session.getEntityMode()),result,subclassPersister,LockMode.NONE,entry.areLazyPropertiesUnfetched(),entry.getVersion(),session);
+  EntityKey entityKey=new EntityKey(id,subclassPersister,session.getEntityMode());
+  TwoPhaseLoad.addUninitializedCachedEntity(entityKey,result,subclassPersister,LockMode.NONE,entry.areLazyPropertiesUnfetched(),entry.getVersion(),session);
   Type[] types=subclassPersister.getPropertyTypes();
   Object[] values=entry.assemble(result,id,subclassPersister,session.getInterceptor(),session);
   TypeFactory.deepCopy(values,types,subclassPersister.getPropertyUpdateability(),values,session);
   Object version=Versioning.getVersion(values,subclassPersister);
   if (log.isTraceEnabled())   log.trace("Cached Version: " + version);
   final PersistenceContext persistenceContext=session.getPersistenceContext();
-  persistenceContext.addEntry(result,(session.isDefaultReadOnly() || !persister.isMutable() ? Status.READ_ONLY : Status.MANAGED),values,null,id,version,LockMode.NONE,true,subclassPersister,false,entry.areLazyPropertiesUnfetched());
+  boolean isReadOnly=session.isDefaultReadOnly();
+  if (persister.isMutable()) {
+    Object proxy=persistenceContext.getProxy(entityKey);
+    if (proxy != null) {
+      isReadOnly=((HibernateProxy)proxy).getHibernateLazyInitializer().isReadOnly();
+    }
+  }
+ else {
+    isReadOnly=true;
+  }
+  persistenceContext.addEntry(result,(isReadOnly ? Status.READ_ONLY : Status.MANAGED),values,null,id,version,LockMode.NONE,true,subclassPersister,false,entry.areLazyPropertiesUnfetched());
   subclassPersister.afterInitialize(result,entry.areLazyPropertiesUnfetched(),session);
   persistenceContext.initializeNonLazyCollections();
   PostLoadEvent postLoadEvent=new PostLoadEvent(session).setEntity(result).setId(id).setPersister(persister);
