@@ -1,0 +1,116 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  Course course=new Course();
+  course.setCourseCode("HIB");
+  course.setDescription("Hibernate Training");
+  s.save(course);
+  Student gavin=new Student();
+  gavin.setName("Gavin King");
+  gavin.setStudentNumber(666);
+  s.save(gavin);
+  Student xam=new Student();
+  xam.setName("Max Rydahl Andersen");
+  xam.setStudentNumber(101);
+  s.save(xam);
+  Enrolment enrolment1=new Enrolment();
+  enrolment1.setCourse(course);
+  enrolment1.setCourseCode(course.getCourseCode());
+  enrolment1.setSemester((short)1);
+  enrolment1.setYear((short)1999);
+  enrolment1.setStudent(xam);
+  enrolment1.setStudentNumber(xam.getStudentNumber());
+  xam.getEnrolments().add(enrolment1);
+  s.save(enrolment1);
+  Enrolment enrolment2=new Enrolment();
+  enrolment2.setCourse(course);
+  enrolment2.setCourseCode(course.getCourseCode());
+  enrolment2.setSemester((short)3);
+  enrolment2.setYear((short)1998);
+  enrolment2.setStudent(gavin);
+  enrolment2.setStudentNumber(gavin.getStudentNumber());
+  gavin.getEnrolments().add(enrolment2);
+  s.save(enrolment2);
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  List list=s.createCriteria(Enrolment.class).createAlias("student","s").createAlias("course","c").add(Restrictions.isNotEmpty("s.enrolments")).setCacheable(true).setReadOnly(true).list();
+  assertEquals(list.size(),2);
+  Enrolment e=(Enrolment)list.get(0);
+  if (e.getStudent().getStudentNumber() == xam.getStudentNumber()) {
+    enrolment1=e;
+    enrolment2=(Enrolment)list.get(1);
+  }
+ else   if (e.getStudent().getStudentNumber() == xam.getStudentNumber()) {
+    enrolment2=e;
+    enrolment1=(Enrolment)list.get(1);
+  }
+ else {
+    fail("Enrolment has unknown student number: " + e.getStudent().getStudentNumber());
+  }
+  assertTrue(s.isReadOnly(enrolment1));
+  assertTrue(s.isReadOnly(enrolment2));
+  assertTrue(s.isReadOnly(enrolment1.getCourse()));
+  assertTrue(s.isReadOnly(enrolment2.getCourse()));
+  assertSame(enrolment1.getCourse(),enrolment2.getCourse());
+  assertTrue(s.isReadOnly(enrolment1.getStudent()));
+  assertTrue(s.isReadOnly(enrolment2.getStudent()));
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  list=s.createCriteria(Enrolment.class).createAlias("student","s").createAlias("course","c").setReadOnly(true).add(Restrictions.isNotEmpty("s.enrolments")).setCacheable(true).setReadOnly(true).list();
+  assertEquals(list.size(),2);
+  e=(Enrolment)list.get(0);
+  if (e.getStudent().getStudentNumber() == xam.getStudentNumber()) {
+    enrolment1=e;
+    enrolment2=(Enrolment)list.get(1);
+  }
+ else   if (e.getStudent().getStudentNumber() == xam.getStudentNumber()) {
+    enrolment2=e;
+    enrolment1=(Enrolment)list.get(1);
+  }
+ else {
+    fail("Enrolment has unknown student number: " + e.getStudent().getStudentNumber());
+  }
+  assertTrue(s.isReadOnly(enrolment1));
+  assertTrue(s.isReadOnly(enrolment2));
+  assertTrue(s.isReadOnly(enrolment1.getCourse()));
+  assertTrue(s.isReadOnly(enrolment2.getCourse()));
+  assertSame(enrolment1.getCourse(),enrolment2.getCourse());
+  assertTrue(s.isReadOnly(enrolment1.getStudent()));
+  assertTrue(s.isReadOnly(enrolment2.getStudent()));
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  list=s.createCriteria(Enrolment.class).setReadOnly(true).createAlias("student","s").createAlias("course","c").add(Restrictions.isNotEmpty("s.enrolments")).setCacheable(true).list();
+  assertEquals(list.size(),2);
+  e=(Enrolment)list.get(0);
+  if (e.getStudent().getStudentNumber() == xam.getStudentNumber()) {
+    enrolment1=e;
+    enrolment2=(Enrolment)list.get(1);
+  }
+ else   if (e.getStudent().getStudentNumber() == xam.getStudentNumber()) {
+    enrolment2=e;
+    enrolment1=(Enrolment)list.get(1);
+  }
+ else {
+    fail("Enrolment has unknown student number: " + e.getStudent().getStudentNumber());
+  }
+  assertTrue(s.isReadOnly(enrolment1));
+  assertTrue(s.isReadOnly(enrolment2));
+  assertTrue(s.isReadOnly(enrolment1.getCourse()));
+  assertTrue(s.isReadOnly(enrolment2.getCourse()));
+  assertSame(enrolment1.getCourse(),enrolment2.getCourse());
+  assertTrue(s.isReadOnly(enrolment1.getStudent()));
+  assertTrue(s.isReadOnly(enrolment2.getStudent()));
+  s.delete(enrolment1);
+  s.delete(enrolment2);
+  s.delete(enrolment1.getCourse());
+  s.delete(enrolment1.getStudent());
+  s.delete(enrolment2.getStudent());
+  t.commit();
+  s.close();
+}
