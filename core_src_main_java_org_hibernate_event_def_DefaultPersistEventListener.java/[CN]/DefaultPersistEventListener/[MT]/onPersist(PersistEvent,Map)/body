@@ -17,7 +17,28 @@
  else {
     entity=object;
   }
-  int entityState=getEntityState(entity,event.getEntityName(),source.getPersistenceContext().getEntry(entity),source);
+  final String entityName;
+  if (event.getEntityName() != null) {
+    entityName=event.getEntityName();
+  }
+ else {
+    entityName=source.bestGuessEntityName(entity);
+    event.setEntityName(entityName);
+  }
+  final EntityEntry entityEntry=source.getPersistenceContext().getEntry(entity);
+  int entityState=getEntityState(entity,entityName,entityEntry,source);
+  if (entityState == DETACHED) {
+    EntityPersister persister=source.getFactory().getEntityPersister(entityName);
+    if (ForeignGenerator.class.isInstance(persister.getIdentifierGenerator())) {
+      if (log.isDebugEnabled()) {
+        if (persister.getIdentifier(entity,source) != null) {
+          log.debug("Resetting entity id attribute to null for foreign generator");
+        }
+      }
+      persister.setIdentifier(entity,null,source);
+      entityState=getEntityState(entity,entityName,entityEntry,source);
+    }
+  }
 switch (entityState) {
 case DETACHED:
     throw new PersistentObjectException("detached entity passed to persist: " + getLoggableName(event.getEntityName(),entity));

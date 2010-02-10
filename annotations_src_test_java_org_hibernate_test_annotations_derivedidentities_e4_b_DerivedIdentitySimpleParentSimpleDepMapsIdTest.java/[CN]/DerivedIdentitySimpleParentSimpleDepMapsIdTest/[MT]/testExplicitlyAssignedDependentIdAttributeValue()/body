@@ -1,0 +1,27 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  Person person=new Person("123456789");
+  MedicalHistory medicalHistory=new MedicalHistory("987654321",person);
+  s.persist(person);
+  s.persist(medicalHistory);
+  s.getTransaction().commit();
+  s.close();
+  assertEquals(person.ssn,medicalHistory.patient.ssn);
+  assertEquals(person,medicalHistory.patient);
+  assertEquals(person.ssn,medicalHistory.id);
+  s=openSession();
+  s.beginTransaction();
+  MedicalHistory separateMedicalHistory=(MedicalHistory)s.get(MedicalHistory.class,"987654321");
+  assertNull(separateMedicalHistory);
+  separateMedicalHistory=(MedicalHistory)s.get(MedicalHistory.class,"123456789");
+  assertNotNull(separateMedicalHistory);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  s.delete(medicalHistory);
+  s.delete(person);
+  s.getTransaction().commit();
+  s.close();
+}
