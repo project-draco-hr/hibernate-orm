@@ -1,14 +1,18 @@
 {
   if (maxLo < 1) {
-    long val=((Number)super.generate(session,obj)).longValue();
-    if (val == 0)     val=((Number)super.generate(session,obj)).longValue();
-    return IdentifierGeneratorHelper.createNumber(val,returnClass);
+    IntegralDataTypeHolder value=null;
+    while (value == null || value.lt(0)) {
+      value=super.generateHolder(session);
+    }
+    return value.makeValue();
   }
   if (lo > maxLo) {
-    long hival=((Number)super.generate(session,obj)).longValue();
-    lo=(hival == 0) ? 1 : 0;
-    hi=hival * (maxLo + 1);
-    if (log.isDebugEnabled())     log.debug("new hi value: " + hival);
+    IntegralDataTypeHolder hiVal=generateHolder(session);
+    lo=(hiVal.eq(0)) ? 1 : 0;
+    value=hiVal.copy().multiplyBy(maxLo + 1).add(lo);
+    if (log.isDebugEnabled()) {
+      log.debug("new hi value: " + hiVal);
+    }
   }
-  return IdentifierGeneratorHelper.createNumber(hi + lo++,returnClass);
+  return value.makeValueThenIncrement();
 }

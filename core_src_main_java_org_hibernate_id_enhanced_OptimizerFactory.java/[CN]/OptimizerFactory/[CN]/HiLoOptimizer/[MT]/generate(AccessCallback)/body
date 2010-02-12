@@ -1,15 +1,15 @@
 {
-  if (lastSourceValue < 0) {
+  if (lastSourceValue == null) {
     lastSourceValue=callback.getNextValue();
-    while (lastSourceValue <= 0) {
+    while (lastSourceValue.lt(1)) {
       lastSourceValue=callback.getNextValue();
     }
-    hiValue=(lastSourceValue * incrementSize) + 1;
-    value=hiValue - incrementSize;
+    upperLimit=lastSourceValue.copy().multiplyBy(incrementSize).increment();
+    value=upperLimit.copy().subtract(incrementSize);
   }
- else   if (value >= hiValue) {
+ else   if (!upperLimit.gt(value)) {
     lastSourceValue=callback.getNextValue();
-    hiValue=(lastSourceValue * incrementSize) + 1;
+    upperLimit=lastSourceValue.copy().multiplyBy(incrementSize).increment();
   }
-  return make(value++);
+  return value.makeValueThenIncrement();
 }

@@ -1,5 +1,5 @@
 {
-  int result;
+  IntegralDataTypeHolder value=IdentifierGeneratorHelper.getIntegralDataTypeHolder(returnClass);
   int rows;
   do {
     SQL_STATEMENT_LOGGER.logStatement(sql,FormatStyle.BASIC);
@@ -9,13 +9,13 @@
       ResultSet rs=qps.executeQuery();
       boolean isInitialized=rs.next();
       if (!isInitialized) {
-        result=0;
+        value.initialize(0);
         ips=conn.prepareStatement(insert);
-        ips.setInt(1,result);
+        value.bind(ips,1);
         ips.execute();
       }
  else {
-        result=rs.getInt(1);
+        value.initialize(rs,0);
       }
       rs.close();
     }
@@ -31,8 +31,8 @@
     }
     PreparedStatement ups=conn.prepareStatement(update);
     try {
-      ups.setInt(1,result + 1);
-      ups.setInt(2,result);
+      value.copy().increment().bind(ups,1);
+      value.bind(ups,2);
       rows=ups.executeUpdate();
     }
  catch (    SQLException sqle) {
@@ -44,5 +44,5 @@
     }
   }
  while (rows == 0);
-  return new Integer(result);
+  return value;
 }

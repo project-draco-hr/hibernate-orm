@@ -1,6 +1,6 @@
 {
   return new AccessCallback(){
-    public long getNextValue(){
+    public IntegralDataTypeHolder getNextValue(){
       accessCounter++;
       try {
         PreparedStatement st=session.getBatcher().prepareSelectStatement(sql);
@@ -8,11 +8,12 @@
           ResultSet rs=st.executeQuery();
           try {
             rs.next();
-            long result=rs.getLong(1);
+            IntegralDataTypeHolder value=IdentifierGeneratorHelper.getIntegralDataTypeHolder(numberType);
+            value.initialize(rs,1);
             if (log.isDebugEnabled()) {
-              log.debug("Sequence identifier generated: " + result);
+              log.debug("Sequence value obtained: " + value.makeValue());
             }
-            return result;
+            return value;
           }
   finally {
             try {

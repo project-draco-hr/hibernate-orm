@@ -1,5 +1,5 @@
 {
-  int result;
+  IntegralDataTypeHolder value=IdentifierGeneratorHelper.getIntegralDataTypeHolder(identifierType.getReturnedClass());
   int rows;
   do {
     SQL_STATEMENT_LOGGER.logStatement(selectQuery,FormatStyle.BASIC);
@@ -8,13 +8,13 @@
       selectPS.setString(1,segmentValue);
       ResultSet selectRS=selectPS.executeQuery();
       if (!selectRS.next()) {
+        value.initialize(initialValue);
         PreparedStatement insertPS=null;
         try {
-          result=initialValue;
           SQL_STATEMENT_LOGGER.logStatement(insertQuery,FormatStyle.BASIC);
           insertPS=conn.prepareStatement(insertQuery);
           insertPS.setString(1,segmentValue);
-          insertPS.setLong(2,result);
+          value.bind(insertPS,2);
           insertPS.execute();
         }
   finally {
@@ -24,7 +24,7 @@
         }
       }
  else {
-        result=selectRS.getInt(1);
+        value.initialize(selectRS,1);
       }
       selectRS.close();
     }
@@ -38,9 +38,15 @@
     SQL_STATEMENT_LOGGER.logStatement(updateQuery,FormatStyle.BASIC);
     PreparedStatement updatePS=conn.prepareStatement(updateQuery);
     try {
-      long newValue=optimizer.applyIncrementSizeToSourceValues() ? result + incrementSize : result + 1;
-      updatePS.setLong(1,newValue);
-      updatePS.setLong(2,result);
+      final IntegralDataTypeHolder updateValue=value.copy();
+      if (optimizer.applyIncrementSizeToSourceValues()) {
+        updateValue.add(incrementSize);
+      }
+ else {
+        updateValue.increment();
+      }
+      updateValue.bind(updatePS,1);
+      value.bind(updatePS,2);
       updatePS.setString(3,segmentValue);
       rows=updatePS.executeUpdate();
     }
@@ -54,5 +60,5 @@
   }
  while (rows == 0);
   accessCount++;
-  return new Integer(result);
+  return value;
 }

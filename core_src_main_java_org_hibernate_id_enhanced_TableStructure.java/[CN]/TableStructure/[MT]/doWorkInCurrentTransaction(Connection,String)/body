@@ -1,5 +1,5 @@
 {
-  long result;
+  IntegralDataTypeHolder value=IdentifierGeneratorHelper.getIntegralDataTypeHolder(numberType);
   int rows;
   do {
     SQL_STATEMENT_LOGGER.logStatement(selectQuery,FormatStyle.BASIC);
@@ -11,7 +11,7 @@
         log.error(err);
         throw new IdentifierGenerationException(err);
       }
-      result=selectRS.getLong(1);
+      value.initialize(selectRS,1);
       selectRS.close();
     }
  catch (    SQLException sqle) {
@@ -24,9 +24,10 @@
     SQL_STATEMENT_LOGGER.logStatement(updateQuery,FormatStyle.BASIC);
     PreparedStatement updatePS=conn.prepareStatement(updateQuery);
     try {
-      int increment=applyIncrementSizeToSourceValues ? incrementSize : 1;
-      updatePS.setLong(1,result + increment);
-      updatePS.setLong(2,result);
+      final int increment=applyIncrementSizeToSourceValues ? incrementSize : 1;
+      final IntegralDataTypeHolder updateValue=value.copy().add(increment);
+      updateValue.bind(updatePS,1);
+      value.bind(updatePS,2);
       rows=updatePS.executeUpdate();
     }
  catch (    SQLException sqle) {
@@ -39,5 +40,5 @@
   }
  while (rows == 0);
   accessCounter++;
-  return new Long(result);
+  return value;
 }

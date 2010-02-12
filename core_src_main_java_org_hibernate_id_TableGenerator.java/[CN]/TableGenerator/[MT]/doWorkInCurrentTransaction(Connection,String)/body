@@ -1,5 +1,5 @@
 {
-  int result;
+  IntegralDataTypeHolder value=buildHolder();
   int rows;
   do {
     sql=query;
@@ -12,7 +12,7 @@
         log.error(err);
         throw new IdentifierGenerationException(err);
       }
-      result=rs.getInt(1);
+      value.initialize(rs,1);
       rs.close();
     }
  catch (    SQLException sqle) {
@@ -26,8 +26,8 @@
     SQL_STATEMENT_LOGGER.logStatement(sql,FormatStyle.BASIC);
     PreparedStatement ups=conn.prepareStatement(update);
     try {
-      ups.setInt(1,result + 1);
-      ups.setInt(2,result);
+      value.copy().increment().bind(ups,1);
+      value.bind(ups,2);
       rows=ups.executeUpdate();
     }
  catch (    SQLException sqle) {
@@ -39,5 +39,5 @@
     }
   }
  while (rows == 0);
-  return new Integer(result);
+  return value;
 }

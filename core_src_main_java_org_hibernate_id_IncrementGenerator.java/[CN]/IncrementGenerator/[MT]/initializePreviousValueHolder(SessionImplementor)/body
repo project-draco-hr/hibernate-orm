@@ -1,0 +1,29 @@
+{
+  previousValueHolder=IdentifierGeneratorHelper.getIntegralDataTypeHolder(returnClass);
+  log.debug("fetching initial value: " + sql);
+  try {
+    PreparedStatement st=session.getBatcher().prepareSelectStatement(sql);
+    try {
+      ResultSet rs=st.executeQuery();
+      try {
+        if (rs.next()) {
+          previousValueHolder.initialize(rs,0L).increment();
+        }
+ else {
+          previousValueHolder.initialize(1L);
+        }
+        sql=null;
+        log.debug("first free id: " + previousValueHolder.makeValue());
+      }
+  finally {
+        rs.close();
+      }
+    }
+  finally {
+      session.getBatcher().closeStatement(st);
+    }
+  }
+ catch (  SQLException sqle) {
+    throw JDBCExceptionHelper.convert(session.getFactory().getSQLExceptionConverter(),sqle,"could not fetch initial value for increment generator",sql);
+  }
+}
