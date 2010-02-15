@@ -2,13 +2,10 @@
   String[] types;
   XmlMetaCollection metaCollection;
   ElementKind elementKind=getElementKind(oneToMany.getAccess());
-  MapKeyClass mapKeyClass=oneToMany.getMapKeyClass();
-  String explicitMapKey=null;
-  if (mapKeyClass != null) {
-    explicitMapKey=mapKeyClass.getClazz();
-  }
+  String explicitTargetClass=determineExplicitTargetEntity(oneToMany.getTargetEntity());
+  String explicitMapKey=determineExplicitMapKeyClass(oneToMany.getMapKeyClass());
   try {
-    types=getCollectionTypes(oneToMany.getName(),oneToMany.getTargetEntity(),explicitMapKey,elementKind);
+    types=getCollectionTypes(oneToMany.getName(),explicitTargetClass,explicitMapKey,elementKind);
   }
  catch (  MetaModelGenerationException e) {
     logMetaModelException(oneToMany.getName(),e);
