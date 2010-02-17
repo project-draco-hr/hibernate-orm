@@ -3,6 +3,15 @@
   s.beginTransaction();
   s.createQuery("from Animal a where a.class = Dog").list();
   s.createQuery("from Animal a where type(a) = Dog").list();
+  Query query=s.createQuery("select a.class from Animal a where a.class = Dog");
+  query.list();
+  assertEquals(1,query.getReturnTypes().length);
+  assertEquals(Integer.class,query.getReturnTypes()[0].getReturnedClass());
+  query=s.createQuery("select type(a) from Animal a where type(a) = Dog");
+  query.list();
+  assertEquals(1,query.getReturnTypes().length);
+  assertEquals(DiscriminatorType.class,query.getReturnTypes()[0].getClass());
+  assertEquals(Class.class,query.getReturnTypes()[0].getReturnedClass());
   s.getTransaction().commit();
   s.close();
 }

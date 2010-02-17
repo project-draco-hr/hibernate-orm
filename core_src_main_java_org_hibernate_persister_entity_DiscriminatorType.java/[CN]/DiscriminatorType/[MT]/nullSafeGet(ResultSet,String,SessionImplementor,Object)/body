@@ -1,0 +1,13 @@
+{
+  final Object discriminatorValue=underlyingType.nullSafeGet(rs,name,session,owner);
+  final String entityName=persister.getSubclassForDiscriminatorValue(discriminatorValue);
+  if (entityName == null) {
+    throw new HibernateException("Unable to resolve discriminator value [" + discriminatorValue + "] to entity name");
+  }
+  if (EntityMode.POJO.equals(session.getEntityMode())) {
+    return session.getEntityPersister(entityName,null).getMappedClass(session.getEntityMode());
+  }
+ else {
+    return entityName;
+  }
+}

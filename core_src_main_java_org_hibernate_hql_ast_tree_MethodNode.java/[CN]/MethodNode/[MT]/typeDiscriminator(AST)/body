@@ -3,10 +3,9 @@
     throw new SemanticException("type() discriminator reference has no path!");
   }
   FromReferenceNode pathAsFromReferenceNode=(FromReferenceNode)path;
-  FromElement typeFromElement=pathAsFromReferenceNode.getFromElement();
-  Type type=typeFromElement.getPropertyType("class","class");
-  setDataType(type);
-  String[] columns=typeFromElement.toColumns(typeFromElement.getTableAlias(),"class",inSelect);
-  setText(columns[0]);
+  FromElement fromElement=pathAsFromReferenceNode.getFromElement();
+  TypeDiscriminatorMetadata typeDiscriminatorMetadata=fromElement.getTypeDiscriminatorMetadata();
+  setDataType(typeDiscriminatorMetadata.getResolutionType());
+  setText(typeDiscriminatorMetadata.getSqlFragment());
   setType(SqlTokenTypes.SQL_TOKEN);
 }
