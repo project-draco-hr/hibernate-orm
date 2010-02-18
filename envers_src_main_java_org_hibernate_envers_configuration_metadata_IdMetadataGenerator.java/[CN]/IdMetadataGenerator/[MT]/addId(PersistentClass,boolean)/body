@@ -9,14 +9,22 @@
   SimpleIdMapperBuilder mapper;
   if (id_mapper != null) {
     mapper=new MultipleIdMapper(((Component)pc.getIdentifier()).getComponentClassName());
-    addIdProperties(rel_id_mapping,(Iterator<Property>)id_mapper.getPropertyIterator(),mapper,false);
-    addIdProperties(orig_id_mapping,(Iterator<Property>)id_mapper.getPropertyIterator(),null,true);
+    if (!addIdProperties(rel_id_mapping,(Iterator<Property>)id_mapper.getPropertyIterator(),mapper,false,audited)) {
+      return null;
+    }
+    if (!addIdProperties(orig_id_mapping,(Iterator<Property>)id_mapper.getPropertyIterator(),null,true,audited)) {
+      return null;
+    }
   }
  else   if (id_prop.isComposite()) {
     Component id_component=(Component)id_prop.getValue();
     mapper=new EmbeddedIdMapper(getIdPropertyData(id_prop),id_component.getComponentClassName());
-    addIdProperties(rel_id_mapping,(Iterator<Property>)id_component.getPropertyIterator(),mapper,false);
-    addIdProperties(orig_id_mapping,(Iterator<Property>)id_component.getPropertyIterator(),null,true);
+    if (!addIdProperties(rel_id_mapping,(Iterator<Property>)id_component.getPropertyIterator(),mapper,false,audited)) {
+      return null;
+    }
+    if (!addIdProperties(orig_id_mapping,(Iterator<Property>)id_component.getPropertyIterator(),null,true,audited)) {
+      return null;
+    }
   }
  else {
     mapper=new SingleIdMapper();
