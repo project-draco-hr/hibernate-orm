@@ -1,39 +1,52 @@
 {
+  log.trace("Wrapping up metadata context...");
   for (  Object mapping : orderedMappings) {
     if (PersistentClass.class.isAssignableFrom(mapping.getClass())) {
       @SuppressWarnings("unchecked") final PersistentClass safeMapping=(PersistentClass)mapping;
-      final EntityTypeImpl<?> jpa2Mapping=entityTypesByPersistentClass.get(safeMapping);
-      applyIdMetadata(safeMapping,jpa2Mapping);
-      applyVersionAttribute(safeMapping,jpa2Mapping);
-      Iterator<Property> properties=(Iterator<Property>)safeMapping.getDeclaredPropertyIterator();
-      while (properties.hasNext()) {
-        final Property property=properties.next();
-        if (property.getValue() == safeMapping.getIdentifierMapper()) {
-          continue;
+      log.trace("Starting entity [{}]",safeMapping.getEntityName());
+      try {
+        final EntityTypeImpl<?> jpa2Mapping=entityTypesByPersistentClass.get(safeMapping);
+        applyIdMetadata(safeMapping,jpa2Mapping);
+        applyVersionAttribute(safeMapping,jpa2Mapping);
+        Iterator<Property> properties=(Iterator<Property>)safeMapping.getDeclaredPropertyIterator();
+        while (properties.hasNext()) {
+          final Property property=properties.next();
+          if (property.getValue() == safeMapping.getIdentifierMapper()) {
+            continue;
+          }
+          final Attribute attribute=attributeFactory.buildAttribute(jpa2Mapping,property);
+          if (attribute != null) {
+            jpa2Mapping.getBuilder().addAttribute(attribute);
+          }
         }
-        final Attribute attribute=attributeFactory.buildAttribute(jpa2Mapping,property);
-        if (attribute != null) {
-          jpa2Mapping.getBuilder().addAttribute(attribute);
-        }
+        jpa2Mapping.lock();
+        populateStaticMetamodel(jpa2Mapping);
       }
-      jpa2Mapping.lock();
-      populateStaticMetamodel(jpa2Mapping);
+  finally {
+        log.trace("Completed entity [{}]",safeMapping.getEntityName());
+      }
     }
  else     if (MappedSuperclass.class.isAssignableFrom(mapping.getClass())) {
       @SuppressWarnings("unchecked") final MappedSuperclass safeMapping=(MappedSuperclass)mapping;
-      final MappedSuperclassTypeImpl<?> jpa2Mapping=mappedSuperclassByMappedSuperclassMapping.get(safeMapping);
-      applyIdMetadata(safeMapping,jpa2Mapping);
-      applyVersionAttribute(safeMapping,jpa2Mapping);
-      Iterator<Property> properties=(Iterator<Property>)safeMapping.getDeclaredPropertyIterator();
-      while (properties.hasNext()) {
-        final Property property=properties.next();
-        final Attribute attribute=attributeFactory.buildAttribute(jpa2Mapping,property);
-        if (attribute != null) {
-          jpa2Mapping.getBuilder().addAttribute(attribute);
+      log.trace("Starting mapped superclass [{}]",safeMapping.getMappedClass().getName());
+      try {
+        final MappedSuperclassTypeImpl<?> jpa2Mapping=mappedSuperclassByMappedSuperclassMapping.get(safeMapping);
+        applyIdMetadata(safeMapping,jpa2Mapping);
+        applyVersionAttribute(safeMapping,jpa2Mapping);
+        Iterator<Property> properties=(Iterator<Property>)safeMapping.getDeclaredPropertyIterator();
+        while (properties.hasNext()) {
+          final Property property=properties.next();
+          final Attribute attribute=attributeFactory.buildAttribute(jpa2Mapping,property);
+          if (attribute != null) {
+            jpa2Mapping.getBuilder().addAttribute(attribute);
+          }
         }
+        jpa2Mapping.lock();
+        populateStaticMetamodel(jpa2Mapping);
       }
-      jpa2Mapping.lock();
-      populateStaticMetamodel(jpa2Mapping);
+  finally {
+        log.trace("Completed mapped superclass [{}]",safeMapping.getMappedClass().getName());
+      }
     }
  else {
       throw new AssertionFailure("Unexpected mapping type: " + mapping.getClass());
