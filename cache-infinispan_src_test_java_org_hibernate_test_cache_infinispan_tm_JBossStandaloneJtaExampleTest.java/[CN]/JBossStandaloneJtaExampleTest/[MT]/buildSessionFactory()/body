@@ -1,0 +1,29 @@
+{
+  Configuration cfg=new Configuration();
+  cfg.setProperty(Environment.DIALECT,"org.hibernate.dialect.HSQLDialect");
+  cfg.setProperty(Environment.HBM2DDL_AUTO,"create-drop");
+  cfg.setProperty(Environment.DATASOURCE,"java:/MyDatasource");
+  cfg.setProperty(Environment.JNDI_CLASS,"org.jnp.interfaces.NamingContextFactory");
+  cfg.setProperty(Environment.TRANSACTION_MANAGER_STRATEGY,"org.hibernate.transaction.JBossTransactionManagerLookup");
+  cfg.setProperty(Environment.TRANSACTION_STRATEGY,"org.hibernate.transaction.JTATransactionFactory");
+  cfg.setProperty(Environment.CURRENT_SESSION_CONTEXT_CLASS,"jta");
+  cfg.setProperty(Environment.RELEASE_CONNECTIONS,"auto");
+  cfg.setProperty(Environment.USE_SECOND_LEVEL_CACHE,"true");
+  cfg.setProperty(Environment.USE_QUERY_CACHE,"true");
+  cfg.setProperty(Environment.CACHE_REGION_FACTORY,"org.hibernate.cache.infinispan.InfinispanRegionFactory");
+  String[] mappings=new String[]{"org/hibernate/test/cache/infinispan/functional/Item.hbm.xml"};
+  for (  String mapping : mappings) {
+    cfg.addResource(mapping,Thread.currentThread().getContextClassLoader());
+  }
+  Iterator iter=cfg.getClassMappings();
+  while (iter.hasNext()) {
+    PersistentClass clazz=(PersistentClass)iter.next();
+    cfg.setCacheConcurrencyStrategy(clazz.getEntityName(),"transactional");
+  }
+  iter=cfg.getCollectionMappings();
+  while (iter.hasNext()) {
+    Collection coll=(Collection)iter.next();
+    cfg.setCollectionCacheConcurrencyStrategy(coll.getRole(),"transactional");
+  }
+  return cfg.buildSessionFactory();
+}
