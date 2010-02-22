@@ -1,0 +1,80 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  final EntityManager em2=createIsolatedEntityManager();
+  if (!(getDialect() instanceof Oracle10gDialect)) {
+    log.info("skipping testQueryTimeout");
+    return;
+  }
+  Lock lock=new Lock();
+  Thread t=null;
+  FutureTask<Boolean> bgTask=null;
+  final CountDownLatch latch=new CountDownLatch(1);
+  try {
+    lock.setName("testQueryTimeout");
+    em.getTransaction().begin();
+    em.persist(lock);
+    em.getTransaction().commit();
+    em.clear();
+    em.getTransaction().begin();
+    lock=em.getReference(Lock.class,lock.getId());
+    em.lock(lock,LockModeType.PESSIMISTIC_WRITE);
+    final Integer id=lock.getId();
+    lock.getName();
+    log.info("testQueryTimeout: got write lock");
+    bgTask=new FutureTask<Boolean>(new Callable(){
+      public Boolean call(){
+        try {
+          boolean timedOut=false;
+          em2.getTransaction().begin();
+          log.info("testQueryTimeout: (BG) about to read write-locked entity");
+          Lock lock2=em2.getReference(Lock.class,id);
+          lock2.getName();
+          log.info("testQueryTimeout: (BG) read write-locked entity");
+          try {
+            Query query=em2.createQuery("select L from Lock_ L where L.id < 10000 ");
+            query.setLockMode(LockModeType.PESSIMISTIC_READ);
+            query.setHint("javax.persistence.query.timeout",new Integer(500));
+            List<Lock> resultList=query.getResultList();
+            String name=resultList.get(0).getName();
+            log.info("testQueryTimeout: name read =" + name);
+          }
+ catch (          QueryTimeoutException e) {
+            log.info("testQueryTimeout: (BG) got expected timeout exception");
+            timedOut=true;
+          }
+catch (          Throwable e) {
+            log.info("testQueryTimeout: Expected LockTimeoutException but got unexpected exception",e);
+          }
+          em2.getTransaction().commit();
+          return new Boolean(timedOut);
+        }
+  finally {
+          latch.countDown();
+        }
+      }
+    }
+);
+    t=new Thread(bgTask);
+    t.setDaemon(true);
+    t.setName("testQueryTimeout (bg)");
+    t.start();
+    boolean latchSet=latch.await(10,TimeUnit.SECONDS);
+    assertTrue("background test thread finished (lock timeout is broken)",latchSet);
+    assertTrue("background test thread timed out on lock attempt",bgTask.get().booleanValue());
+    em.getTransaction().commit();
+  }
+  finally {
+    if (em.getTransaction().isActive()) {
+      em.getTransaction().rollback();
+    }
+    if (t != null) {
+      t.join();
+    }
+    em.getTransaction().begin();
+    lock=em.getReference(Lock.class,lock.getId());
+    em.remove(lock);
+    em.getTransaction().commit();
+    em.close();
+    em2.close();
+  }
+}
