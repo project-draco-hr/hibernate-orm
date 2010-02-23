@@ -1,14 +1,16 @@
 {
   TestValidator testee=new TestValidator(tm,5000,600,300,900);
-  testee.regionRemoved();
+  testee.invalidateRegion();
   testee.registerPendingPut("1");
   testee.registerPendingPut("2");
   testee.registerPendingPut("3");
   testee.registerPendingPut("4");
   testee.registerPendingPut("5");
   testee.registerPendingPut("6");
-  testee.isPutValid("6");
-  testee.isPutValid("2");
+  testee.acquirePutFromLoadLock("6");
+  testee.releasePutFromLoadLock("6");
+  testee.acquirePutFromLoadLock("2");
+  testee.releasePutFromLoadLock("2");
   assertEquals(6,testee.getPendingPutQueueLength());
   assertEquals(0,testee.getOveragePendingPutQueueLength());
   Thread.sleep(310);
@@ -20,7 +22,8 @@
   assertEquals(4,testee.getOveragePendingPutQueueLength());
   assertEquals(2,testee.getPendingPutQueueLength());
   Thread.sleep(310);
-  testee.isPutValid("3");
+  testee.acquirePutFromLoadLock("3");
+  testee.releasePutFromLoadLock("3");
   assertEquals(4,testee.getOveragePendingPutQueueLength());
   assertEquals(1,testee.getPendingPutQueueLength());
   Thread.sleep(310);
@@ -29,16 +32,46 @@
   Transaction tx=tm.suspend();
   assertEquals(3,testee.getOveragePendingPutQueueLength());
   assertEquals(1,testee.getPendingPutQueueLength());
-  assertFalse(testee.isPutValid("1"));
+  boolean locked=testee.acquirePutFromLoadLock("1");
+  if (locked) {
+    testee.releasePutFromLoadLock("1");
+  }
+  assertFalse(locked);
   assertEquals(2,testee.getOveragePendingPutQueueLength());
-  assertFalse(testee.isPutValid("2"));
+  locked=testee.acquirePutFromLoadLock("2");
+  if (locked) {
+    testee.releasePutFromLoadLock("1");
+  }
+  assertFalse(locked);
   assertEquals(1,testee.getOveragePendingPutQueueLength());
-  assertFalse(testee.isPutValid("3"));
-  assertFalse(testee.isPutValid("4"));
-  assertFalse(testee.isPutValid("5"));
-  assertFalse(testee.isPutValid("6"));
-  assertFalse(testee.isPutValid("7"));
-  assertTrue(testee.isPutValid("8"));
+  locked=testee.acquirePutFromLoadLock("3");
+  if (locked) {
+    testee.releasePutFromLoadLock("1");
+  }
+  assertFalse(locked);
+  locked=testee.acquirePutFromLoadLock("4");
+  if (locked) {
+    testee.releasePutFromLoadLock("1");
+  }
+  assertFalse(locked);
+  locked=testee.acquirePutFromLoadLock("5");
+  if (locked) {
+    testee.releasePutFromLoadLock("1");
+  }
+  assertFalse(locked);
+  locked=testee.acquirePutFromLoadLock("1");
+  if (locked) {
+    testee.releasePutFromLoadLock("1");
+  }
+  assertFalse(testee.acquirePutFromLoadLock("6"));
+  locked=testee.acquirePutFromLoadLock("7");
+  if (locked) {
+    testee.releasePutFromLoadLock("1");
+  }
+  assertFalse(locked);
+  assertTrue(testee.acquirePutFromLoadLock("8"));
+  testee.releasePutFromLoadLock("8");
   tm.resume(tx);
-  assertTrue(testee.isPutValid("7"));
+  assertTrue(testee.acquirePutFromLoadLock("7"));
+  testee.releasePutFromLoadLock("7");
 }

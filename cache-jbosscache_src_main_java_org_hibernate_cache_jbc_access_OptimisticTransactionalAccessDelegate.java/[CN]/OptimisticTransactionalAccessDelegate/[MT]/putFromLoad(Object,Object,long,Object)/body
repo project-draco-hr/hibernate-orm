@@ -1,7 +1,12 @@
 {
   if (!region.checkValid())   return false;
-  if (!putValidator.isPutValid(key))   return false;
-  region.ensureRegionRootExists();
-  Option opt=getDataVersionOption(version,version);
-  return CacheHelper.putForExternalRead(cache,regionFqn,key,value,opt);
+  if (!putValidator.acquirePutFromLoadLock(key))   return false;
+  try {
+    region.ensureRegionRootExists();
+    Option opt=getDataVersionOption(version,version);
+    return CacheHelper.putForExternalRead(cache,regionFqn,key,value,opt);
+  }
+  finally {
+    putValidator.releasePutFromLoadLock(key);
+  }
 }

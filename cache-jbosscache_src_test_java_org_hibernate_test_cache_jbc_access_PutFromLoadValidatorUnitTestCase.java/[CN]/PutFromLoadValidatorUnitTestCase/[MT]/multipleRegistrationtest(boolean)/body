@@ -12,8 +12,13 @@
         testee.registerPendingPut(KEY1);
         registeredLatch.countDown();
         registeredLatch.await(5,TimeUnit.SECONDS);
-        if (testee.isPutValid(KEY1)) {
-          success.incrementAndGet();
+        if (testee.acquirePutFromLoadLock(KEY1)) {
+          try {
+            success.incrementAndGet();
+          }
+  finally {
+            testee.releasePutFromLoadLock(KEY1);
+          }
         }
         finishedLatch.countDown();
       }
@@ -24,7 +29,7 @@
   }
 ;
   ExecutorService executor=Executors.newFixedThreadPool(3);
-  testee.regionRemoved();
+  testee.invalidateRegion();
   executor.execute(r);
   executor.execute(r);
   executor.execute(r);

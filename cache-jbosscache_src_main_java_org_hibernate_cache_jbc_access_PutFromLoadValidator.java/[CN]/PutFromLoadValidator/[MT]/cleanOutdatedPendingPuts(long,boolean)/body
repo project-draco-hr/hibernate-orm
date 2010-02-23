@@ -51,14 +51,22 @@
   if (toClean != null) {
     PendingPutMap map=pendingPuts.get(toClean.key);
     if (map != null) {
-synchronized (map) {
-        PendingPut cleaned=map.remove(toClean.owner);
-        if (toClean.equals(cleaned) == false) {
-          map.put(cleaned);
+      if (map.acquireLock(100,TimeUnit.MILLISECONDS)) {
+        try {
+          PendingPut cleaned=map.remove(toClean.owner);
+          if (toClean.equals(cleaned) == false) {
+            map.put(cleaned);
+          }
+ else           if (map.size() == 0) {
+            pendingPuts.remove(toClean.key);
+          }
         }
- else         if (map.size() == 0) {
-          pendingPuts.remove(toClean.key);
+  finally {
+          map.releaseLock();
         }
+      }
+ else {
+        restorePendingPut(toClean);
       }
     }
   }

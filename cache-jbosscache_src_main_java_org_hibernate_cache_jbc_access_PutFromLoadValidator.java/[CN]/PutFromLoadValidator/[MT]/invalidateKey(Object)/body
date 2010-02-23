@@ -1,5 +1,19 @@
 {
-  pendingPuts.remove(key);
+  boolean success=true;
+  PendingPutMap pending=pendingPuts.get(key);
+  if (pending != null) {
+    if (pending.acquireLock(60,TimeUnit.SECONDS)) {
+      try {
+        pending.invalidate();
+      }
+  finally {
+        pending.releaseLock();
+      }
+    }
+ else {
+      success=false;
+    }
+  }
   RecentRemoval removal=new RecentRemoval(key,this.nakedPutInvalidationPeriod);
   recentRemovals.put(key,removal.timestamp);
   RecentRemoval toClean=null;
@@ -26,4 +40,5 @@
       }
     }
   }
+  return success;
 }

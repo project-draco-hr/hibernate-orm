@@ -1,5 +1,7 @@
 {
-  putValidator.keyRemoved(key);
+  if (!putValidator.invalidateKey(key)) {
+    throw new CacheException("Failed to invalidate pending putFromLoad calls for key " + key + " from region "+ region.getName());
+  }
   region.ensureRegionRootExists();
   Option opt=NonLockingDataVersion.getInvocationOption();
   CacheHelper.remove(cache,regionFqn,key,opt);
