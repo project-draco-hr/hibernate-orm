@@ -1,6 +1,6 @@
 {
+  clearCounts();
   Session s=openSession();
-  s.setCacheMode(CacheMode.IGNORE);
   Transaction t=s.beginTransaction();
   DataPoint dp=null;
   for (int i=0; i < 100; i++) {
@@ -11,8 +11,10 @@
   }
   t.commit();
   s.close();
+  assertInsertCount(100);
+  assertUpdateCount(0);
+  clearCounts();
   s=openSession();
-  s.setCacheMode(CacheMode.IGNORE);
   t=s.beginTransaction();
   DataPoint dpLast=(DataPoint)s.get(DataPoint.class,dp.getId());
   assertFalse(s.isReadOnly(dpLast));
@@ -35,10 +37,14 @@
   }
   t.commit();
   s.clear();
+  assertInsertCount(0);
+  assertUpdateCount(nExpectedChanges);
+  clearCounts();
   t=s.beginTransaction();
   List list=s.createQuery("from DataPoint where description='done!'").list();
   assertEquals(list.size(),nExpectedChanges);
-  s.createQuery("delete from DataPoint").executeUpdate();
+  assertEquals(100,s.createQuery("delete from DataPoint").executeUpdate());
   t.commit();
   s.close();
+  assertUpdateCount(0);
 }

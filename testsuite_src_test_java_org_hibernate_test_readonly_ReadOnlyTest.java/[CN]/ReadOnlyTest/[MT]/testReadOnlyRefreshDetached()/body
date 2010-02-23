@@ -1,6 +1,6 @@
 {
+  clearCounts();
   Session s=openSession();
-  s.setCacheMode(CacheMode.IGNORE);
   Transaction t=s.beginTransaction();
   DataPoint dp=new DataPoint();
   dp.setDescription("original");
@@ -9,8 +9,10 @@
   s.save(dp);
   t.commit();
   s.close();
+  assertInsertCount(1);
+  assertUpdateCount(0);
+  clearCounts();
   s=openSession();
-  s.setCacheMode(CacheMode.IGNORE);
   t=s.beginTransaction();
   dp.setDescription("changed");
   assertEquals("changed",dp.getDescription());
@@ -25,6 +27,8 @@
   assertEquals("original",dp.getDescription());
   assertFalse(s.isReadOnly(dp));
   t.commit();
+  assertInsertCount(0);
+  assertUpdateCount(0);
   s.clear();
   t=s.beginTransaction();
   dp=(DataPoint)s.get(DataPoint.class,dp.getId());
@@ -32,4 +36,6 @@
   s.delete(dp);
   t.commit();
   s.close();
+  assertUpdateCount(0);
+  assertDeleteCount(1);
 }

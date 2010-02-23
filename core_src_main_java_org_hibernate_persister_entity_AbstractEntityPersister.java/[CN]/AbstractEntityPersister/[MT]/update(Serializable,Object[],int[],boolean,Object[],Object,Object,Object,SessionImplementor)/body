@@ -3,7 +3,14 @@
   final int span=getTableSpan();
   final boolean[] propsToUpdate;
   final String[] updateStrings;
-  if (entityMetamodel.isDynamicUpdate() && dirtyFields != null) {
+  EntityEntry entry=session.getPersistenceContext().getEntry(object);
+  if (entry == null && !isMutable()) {
+    throw new IllegalStateException("Updating immutable entity that is not in session yet!");
+  }
+  if (entry != null && !isModifiableEntity(entry) && entry.getStatus() != Status.DELETED) {
+    throw new IllegalStateException("Updating non-modifiable entity that is not being deleted!");
+  }
+  if ((entityMetamodel.isDynamicUpdate() || !isModifiableEntity(entry)) && dirtyFields != null) {
     propsToUpdate=getPropertiesToUpdate(dirtyFields,hasDirtyCollection);
     updateStrings=new String[span];
     for (int j=0; j < span; j++) {

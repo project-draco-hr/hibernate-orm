@@ -8,7 +8,15 @@
   final Object[] values=event.getPropertyValues();
   if (log.isTraceEnabled()) {
     if (status == Status.DELETED) {
-      log.trace("Updating deleted entity: " + MessageHelper.infoString(persister,entry.getId(),session.getFactory()));
+      if (!persister.isMutable()) {
+        log.trace("Updating immutable, deleted entity: " + MessageHelper.infoString(persister,entry.getId(),session.getFactory()));
+      }
+ else       if (!entry.isModifiableEntity()) {
+        log.trace("Updating non-modifiable, deleted entity: " + MessageHelper.infoString(persister,entry.getId(),session.getFactory()));
+      }
+ else {
+        log.trace("Updating deleted entity: " + MessageHelper.infoString(persister,entry.getId(),session.getFactory()));
+      }
     }
  else {
       log.trace("Updating entity: " + MessageHelper.infoString(persister,entry.getId(),session.getFactory()));
@@ -31,6 +39,6 @@
     dirtyProperties=ArrayHelper.EMPTY_INT_ARRAY;
   }
   new Nullability(session).checkNullability(values,persister,true);
-  session.getActionQueue().addAction(new EntityUpdateAction(entry.getId(),values,dirtyProperties,event.hasDirtyCollection(),entry.getLoadedState(),entry.getVersion(),nextVersion,entity,entry.getRowId(),persister,session));
+  session.getActionQueue().addAction(new EntityUpdateAction(entry.getId(),values,dirtyProperties,event.hasDirtyCollection(),(status == Status.DELETED && !entry.isModifiableEntity() ? persister.getPropertyValues(entity,entityMode) : entry.getLoadedState()),entry.getVersion(),nextVersion,entity,entry.getRowId(),persister,session));
   return intercepted;
 }

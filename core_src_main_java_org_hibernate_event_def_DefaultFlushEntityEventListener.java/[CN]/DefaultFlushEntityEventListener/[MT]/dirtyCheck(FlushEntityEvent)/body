@@ -16,6 +16,14 @@
     if (!cannotDirtyCheck) {
       dirtyProperties=persister.findDirty(values,loadedState,entity,session);
     }
+ else     if (entry.getStatus() == Status.DELETED && !event.getEntityEntry().isModifiableEntity()) {
+      if (values != entry.getDeletedState()) {
+        throw new IllegalStateException("Entity has status Status.DELETED but values != entry.getDeletedState");
+      }
+      final Object[] currentState=persister.getPropertyValues(event.getEntity(),event.getSession().getEntityMode());
+      dirtyProperties=persister.findDirty(entry.getDeletedState(),currentState,entity,session);
+      cannotDirtyCheck=false;
+    }
  else {
       final Object[] databaseSnapshot=getDatabaseSnapshot(session,persister,id);
       if (databaseSnapshot != null) {

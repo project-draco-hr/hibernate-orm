@@ -1,6 +1,6 @@
 {
+  clearCounts();
   Session s=openSession();
-  s.setCacheMode(CacheMode.IGNORE);
   Transaction t=s.beginTransaction();
   for (int i=0; i < 100; i++) {
     DataPoint dp=new DataPoint();
@@ -10,8 +10,10 @@
   }
   t.commit();
   s.close();
+  assertInsertCount(100);
+  assertUpdateCount(0);
+  clearCounts();
   s=openSession();
-  s.setCacheMode(CacheMode.IGNORE);
   t=s.beginTransaction();
   int i=0;
   ScrollableResults sr=s.createQuery("from DataPoint dp order by dp.x asc").setReadOnly(true).scroll(ScrollMode.FORWARD_ONLY);
@@ -23,11 +25,14 @@
     dp.setDescription("done!");
   }
   t.commit();
+  assertUpdateCount(1);
+  clearCounts();
   s.clear();
   t=s.beginTransaction();
   List single=s.createQuery("from DataPoint where description='done!'").list();
   assertEquals(single.size(),1);
-  s.createQuery("delete from DataPoint").executeUpdate();
+  assertEquals(100,s.createQuery("delete from DataPoint").executeUpdate());
   t.commit();
   s.close();
+  assertUpdateCount(0);
 }

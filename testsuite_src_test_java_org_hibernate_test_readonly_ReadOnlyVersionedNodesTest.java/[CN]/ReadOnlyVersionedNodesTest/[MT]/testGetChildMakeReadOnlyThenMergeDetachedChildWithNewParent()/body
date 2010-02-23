@@ -19,6 +19,7 @@
   s.close();
   assertUpdateCount(1);
   assertInsertCount(1);
+  clearCounts();
   s=openSession();
   s.beginTransaction();
   parent=(VersionedNode)s.get(VersionedNode.class,parent.getId());
@@ -29,8 +30,12 @@
   assertNotNull(parent);
   assertEquals(0,parent.getChildren().size());
   assertEquals(1,parent.getVersion());
+  s.setReadOnly(parent,true);
+  s.setReadOnly(child,true);
   s.delete(parent);
   s.delete(child);
   s.getTransaction().commit();
   s.close();
+  assertUpdateCount(0);
+  assertDeleteCount(2);
 }
