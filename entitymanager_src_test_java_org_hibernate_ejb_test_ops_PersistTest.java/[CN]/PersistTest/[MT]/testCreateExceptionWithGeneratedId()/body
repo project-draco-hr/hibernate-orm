@@ -1,31 +1,31 @@
 {
-  Session s=openSession();
-  Transaction tx=s.beginTransaction();
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
   NumberedNode dupe=new NumberedNode("dupe");
-  s.persist(dupe);
-  s.persist(dupe);
-  tx.commit();
-  s.close();
-  s=openSession();
-  tx=s.beginTransaction();
+  em.persist(dupe);
+  em.persist(dupe);
+  em.getTransaction().commit();
+  em.close();
+  em=getOrCreateEntityManager();
+  em.getTransaction().begin();
   try {
-    s.persist(dupe);
+    em.persist(dupe);
     fail();
   }
- catch (  PersistentObjectException poe) {
+ catch (  PersistenceException poe) {
   }
-  tx.rollback();
-  s.close();
+  em.getTransaction().rollback();
+  em.close();
   NumberedNode nondupe=new NumberedNode("nondupe");
   nondupe.addChild(dupe);
-  s=openSession();
-  tx=s.beginTransaction();
+  em=getOrCreateEntityManager();
+  em.getTransaction().begin();
   try {
-    s.persist(nondupe);
+    em.persist(nondupe);
     fail();
   }
- catch (  PersistentObjectException poe) {
+ catch (  PersistenceException poe) {
   }
-  tx.rollback();
-  s.close();
+  em.getTransaction().rollback();
+  em.close();
 }

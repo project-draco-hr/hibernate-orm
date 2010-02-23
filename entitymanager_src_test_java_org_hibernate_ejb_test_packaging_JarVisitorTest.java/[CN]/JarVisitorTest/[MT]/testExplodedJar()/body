@@ -1,7 +1,12 @@
 {
-  String jarFileName=jarFileBase + "/explodedpar.par";
+  File explodedPar=buildExplodedPar();
+  addPackageToClasspath(explodedPar);
   Filter[] filters=getFilters();
-  JarVisitor jarVisitor=new ExplodedJarVisitor(jarFileName,filters);
+  String dirPath=explodedPar.toURL().toExternalForm();
+  if (dirPath.endsWith("/")) {
+    dirPath=dirPath.substring(0,dirPath.length() - 1);
+  }
+  JarVisitor jarVisitor=new ExplodedJarVisitor(dirPath,filters);
   assertEquals("explodedpar",jarVisitor.getUnqualifiedJarName());
   Set[] entries=jarVisitor.getMatchingEntries();
   assertEquals(1,entries[1].size());

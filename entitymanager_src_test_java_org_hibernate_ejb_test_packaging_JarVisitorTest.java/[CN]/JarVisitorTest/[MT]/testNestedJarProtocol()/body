@@ -1,5 +1,9 @@
 {
-  String jarFileName=jarFileBase + "/nestedjar.ear!/defaultpar.par";
+  File defaultPar=buildDefaultPar();
+  File nestedEar=buildNestedEar(defaultPar);
+  File nestedEarDir=buildNestedEarDir(defaultPar);
+  addPackageToClasspath(nestedEar);
+  String jarFileName=nestedEar.toURL().toExternalForm() + "!/defaultpar.par";
   Filter[] filters=getFilters();
   JarVisitor jarVisitor=new JarProtocolVisitor(new URL(jarFileName),filters,"");
   Set entries=jarVisitor.getMatchingEntries()[1];
@@ -14,7 +18,7 @@
     assertNotNull(localEntry.getInputStream());
     localEntry.getInputStream().close();
   }
-  jarFileName=jarFileBase + "/nesteddir.ear!/defaultpar.par";
+  jarFileName=nestedEarDir.toURL().toExternalForm() + "!/defaultpar.par";
   filters=getFilters();
   jarVisitor=new JarProtocolVisitor(new URL(jarFileName),filters,"");
   entries=jarVisitor.getMatchingEntries()[1];

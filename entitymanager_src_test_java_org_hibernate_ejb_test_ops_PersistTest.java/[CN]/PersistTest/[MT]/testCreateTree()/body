@@ -1,22 +1,22 @@
 {
   clearCounts();
-  Session s=openSession();
-  Transaction tx=s.beginTransaction();
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
   Node root=new Node("root");
   Node child=new Node("child");
   root.addChild(child);
-  s.persist(root);
-  tx.commit();
-  s.close();
+  em.persist(root);
+  em.getTransaction().commit();
+  em.close();
   assertInsertCount(2);
   assertUpdateCount(0);
-  s=openSession();
-  tx=s.beginTransaction();
-  root=(Node)s.get(Node.class,"root");
+  em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  root=(Node)em.find(Node.class,"root");
   Node child2=new Node("child2");
   root.addChild(child2);
-  tx.commit();
-  s.close();
+  em.getTransaction().commit();
+  em.close();
   assertInsertCount(3);
   assertUpdateCount(0);
 }
