@@ -1,0 +1,47 @@
+{
+  final CountDownLatch pferLatch=new CountDownLatch(1);
+  final CountDownLatch removeLatch=new CountDownLatch(1);
+  TransactionManager tm=DualNodeJtaTransactionManagerImpl.getInstance("test1234");
+  PutFromLoadValidator validator=new PutFromLoadValidator(tm){
+    @Override public boolean acquirePutFromLoadLock(    Object key){
+      boolean acquired=super.acquirePutFromLoadLock(key);
+      try {
+        removeLatch.countDown();
+        pferLatch.await(2,TimeUnit.SECONDS);
+      }
+ catch (      InterruptedException e) {
+        log.debug("Interrupted");
+        Thread.currentThread().interrupt();
+      }
+catch (      Exception e) {
+        log.error("Error",e);
+        throw new RuntimeException("Error",e);
+      }
+      return acquired;
+    }
+  }
+;
+  final TransactionalAccessDelegate delegate=new TransactionalAccessDelegate((CollectionRegionImpl)localCollectionRegion,validator);
+  Callable<Void> pferCallable=new Callable<Void>(){
+    public Void call() throws Exception {
+      delegate.putFromLoad("k1","v1",0,null);
+      return null;
+    }
+  }
+;
+  Callable<Void> removeCallable=new Callable<Void>(){
+    public Void call() throws Exception {
+      removeLatch.await();
+      delegate.remove("k1");
+      pferLatch.countDown();
+      return null;
+    }
+  }
+;
+  ExecutorService executorService=Executors.newCachedThreadPool();
+  Future<Void> pferFuture=executorService.submit(pferCallable);
+  Future<Void> removeFuture=executorService.submit(removeCallable);
+  pferFuture.get();
+  removeFuture.get();
+  assertFalse(localCache.containsKey("k1"));
+}

@@ -1,5 +1,7 @@
 {
-  putValidator.cleared();
+  if (!putValidator.invalidateRegion()) {
+    throw new CacheException("Failed to invalidate pending putFromLoad calls for region " + region.getName());
+  }
   Transaction tx=region.suspend();
   try {
     CacheHelper.sendEvictAllNotification(cacheAdapter,region.getAddress());

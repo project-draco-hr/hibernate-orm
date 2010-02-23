@@ -1,14 +1,22 @@
 {
   PutFromLoadValidator testee=new PutFromLoadValidator(transactional ? tm : null);
   if (removeRegion) {
-    testee.cleared();
+    testee.invalidateRegion();
   }
  else {
-    testee.keyRemoved(KEY1);
+    testee.invalidateKey(KEY1);
   }
   if (transactional) {
     tm.begin();
   }
   testee.registerPendingPut(KEY1);
-  assertTrue(testee.isPutValid(KEY1));
+  boolean lockable=testee.acquirePutFromLoadLock(KEY1);
+  try {
+    assertTrue(lockable);
+  }
+  finally {
+    if (lockable) {
+      testee.releasePutFromLoadLock(KEY1);
+    }
+  }
 }

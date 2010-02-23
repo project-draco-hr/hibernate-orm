@@ -1,0 +1,35 @@
+{
+  boolean ok=false;
+  invalidationTimestamp=System.currentTimeMillis() + this.nakedPutInvalidationPeriod;
+  try {
+    for (    PendingPutMap entry : pendingPuts.values()) {
+      if (entry.acquireLock(60,TimeUnit.SECONDS)) {
+        try {
+          entry.invalidate();
+        }
+  finally {
+          entry.releaseLock();
+        }
+      }
+ else {
+        ok=false;
+      }
+    }
+    removalsLock.lock();
+    try {
+      recentRemovals.clear();
+      removalsQueue.clear();
+      ok=true;
+    }
+  finally {
+      removalsLock.unlock();
+    }
+  }
+ catch (  Exception e) {
+    ok=false;
+  }
+ finally {
+    earliestRemovalTimestamp=invalidationTimestamp;
+  }
+  return ok;
+}

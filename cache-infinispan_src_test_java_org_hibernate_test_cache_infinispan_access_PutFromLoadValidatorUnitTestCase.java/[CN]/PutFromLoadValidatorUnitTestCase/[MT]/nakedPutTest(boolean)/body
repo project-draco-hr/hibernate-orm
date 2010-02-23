@@ -3,5 +3,13 @@
   if (transactional) {
     tm.begin();
   }
-  assertTrue(testee.isPutValid(KEY1));
+  boolean lockable=testee.acquirePutFromLoadLock(KEY1);
+  try {
+    assertTrue(lockable);
+  }
+  finally {
+    if (lockable) {
+      testee.releasePutFromLoadLock(KEY1);
+    }
+  }
 }

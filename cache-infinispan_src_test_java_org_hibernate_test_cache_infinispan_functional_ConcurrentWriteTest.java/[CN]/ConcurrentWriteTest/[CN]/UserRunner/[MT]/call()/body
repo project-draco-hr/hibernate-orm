@@ -3,12 +3,12 @@
   log.info("Wait for all executions paths to be ready to perform calls");
   try {
     for (int i=0; i < ITERATION_COUNT && !TERMINATE_ALL_USERS; i++) {
-      if (contactExists())       throw new IllegalStateException("contact already exists before add, customerId=" + customerId);
+      contactExists();
       if (trace)       log.trace("Add contact for customer " + customerId);
       addContact(customerId);
       if (trace)       log.trace("Added contact");
       thinkRandomTime();
-      if (!contactExists())       throw new IllegalStateException("contact missing after successful add, customerId=" + customerId);
+      contactExists();
       thinkRandomTime();
       if (trace)       log.trace("Read all customers' first contact");
       readEveryonesFirstContact();
@@ -17,7 +17,7 @@
       if (trace)       log.trace("Remove contact of customer" + customerId);
       removeContact(customerId);
       if (trace)       log.trace("Removed contact");
-      if (contactExists())       throw new IllegalStateException("contact still exists after successful remove call, customerId=" + customerId);
+      contactExists();
       thinkRandomTime();
       ++completedIterations;
       if (log.isTraceEnabled())       log.trace("Iteration completed {0}",completedIterations);

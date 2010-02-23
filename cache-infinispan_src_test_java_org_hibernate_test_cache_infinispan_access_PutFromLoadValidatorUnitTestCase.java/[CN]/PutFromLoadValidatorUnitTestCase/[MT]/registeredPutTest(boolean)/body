@@ -4,5 +4,13 @@
     tm.begin();
   }
   testee.registerPendingPut(KEY1);
-  assertTrue(testee.isPutValid(KEY1));
+  boolean lockable=testee.acquirePutFromLoadLock(KEY1);
+  try {
+    assertTrue(lockable);
+  }
+  finally {
+    if (lockable) {
+      testee.releasePutFromLoadLock(KEY1);
+    }
+  }
 }

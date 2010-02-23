@@ -1,10 +1,11 @@
 {
-  if (!region.checkValid()) {
-    return false;
+  if (!region.checkValid())   return false;
+  if (!putValidator.acquirePutFromLoadLock(key))   return false;
+  try {
+    cacheAdapter.putForExternalRead(key,value);
   }
-  if (!putValidator.isPutValid(key)) {
-    return false;
+  finally {
+    putValidator.releasePutFromLoadLock(key);
   }
-  cacheAdapter.putForExternalRead(key,value);
   return true;
 }

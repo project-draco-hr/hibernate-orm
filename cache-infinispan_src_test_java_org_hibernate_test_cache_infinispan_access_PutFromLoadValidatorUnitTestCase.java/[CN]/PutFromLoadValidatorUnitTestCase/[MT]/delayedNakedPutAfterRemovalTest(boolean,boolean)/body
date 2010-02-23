@@ -1,14 +1,22 @@
 {
   PutFromLoadValidator testee=new TestValidator(transactional ? tm : null,100,1000,500,10000);
   if (removeRegion) {
-    testee.cleared();
+    testee.invalidateRegion();
   }
  else {
-    testee.keyRemoved(KEY1);
+    testee.invalidateKey(KEY1);
   }
   if (transactional) {
     tm.begin();
   }
   Thread.sleep(110);
-  assertTrue(testee.isPutValid(KEY1));
+  boolean lockable=testee.acquirePutFromLoadLock(KEY1);
+  try {
+    assertTrue(lockable);
+  }
+  finally {
+    if (lockable) {
+      testee.releasePutFromLoadLock(KEY1);
+    }
+  }
 }
