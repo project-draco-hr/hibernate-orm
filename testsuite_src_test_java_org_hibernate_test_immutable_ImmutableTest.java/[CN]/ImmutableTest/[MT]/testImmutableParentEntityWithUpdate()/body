@@ -17,13 +17,17 @@
   t=s.beginTransaction();
   c.setCustomerName("foo bar");
   s.update(c);
-  assertFalse(s.isReadOnly(c));
-  assertFalse(s.contains(cv1));
-  assertFalse(s.contains(cv2));
+  assertTrue(s.isReadOnly(c));
+  for (Iterator it=c.getVariations().iterator(); it.hasNext(); ) {
+    assertTrue(s.contains(it.next()));
+  }
   t.commit();
-  assertFalse(s.isReadOnly(c));
-  assertFalse(s.isReadOnly(cv1));
-  assertFalse(s.isReadOnly(cv2));
+  assertTrue(s.isReadOnly(c));
+  for (Iterator it=c.getVariations().iterator(); it.hasNext(); ) {
+    ContractVariation cv=(ContractVariation)it.next();
+    assertTrue(s.contains(cv));
+    assertTrue(s.isReadOnly(cv));
+  }
   s.close();
   assertUpdateCount(0);
   s=openSession();
