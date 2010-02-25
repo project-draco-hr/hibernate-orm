@@ -80,6 +80,17 @@
   if (loader != null) {
     persistentClass.setLoaderName(loader.namedQuery());
   }
+  if (annotatedClass.isAnnotationPresent(Synchronize.class)) {
+    Synchronize synchronizedWith=annotatedClass.getAnnotation(Synchronize.class);
+    String[] tables=synchronizedWith.value();
+    for (    String table : tables) {
+      persistentClass.addSynchronizedTable(table);
+    }
+  }
+  if (annotatedClass.isAnnotationPresent(Subselect.class)) {
+    Subselect subselect=annotatedClass.getAnnotation(Subselect.class);
+    this.subselect=subselect.value();
+  }
   if (annotatedClass.isAnnotationPresent(Tuplizers.class)) {
     for (    Tuplizer tuplizer : annotatedClass.getAnnotation(Tuplizers.class).value()) {
       EntityMode mode=EntityMode.parse(tuplizer.entityMode());
