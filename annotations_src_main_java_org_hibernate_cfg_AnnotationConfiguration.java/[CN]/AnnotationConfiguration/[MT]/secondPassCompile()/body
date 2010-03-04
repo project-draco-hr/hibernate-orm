@@ -21,20 +21,16 @@
     AnnotationBinder.bindDefaults(createExtendedMappings());
     isDefaultProcessed=true;
   }
-  if (precedence == null) {
-    precedence=getProperties().getProperty(ARTEFACT);
+  if (configurationArtefactPrecedence.isEmpty() && StringHelper.isNotEmpty(getProperties().getProperty(ARTEFACT_PROCESSING_ORDER))) {
+    configurationArtefactPrecedence=parsePrecedence(getProperties().getProperty(ARTEFACT_PROCESSING_ORDER));
   }
-  if (precedence == null) {
-    precedence=DEFAULT_PRECEDENCE;
+  if (configurationArtefactPrecedence.isEmpty()) {
+    configurationArtefactPrecedence=Arrays.asList(DEFAULT_ARTEFACT_PROCESSING_ORDER);
   }
-  StringTokenizer precedences=new StringTokenizer(precedence,",; ",false);
-  if (!precedences.hasMoreElements()) {
-    throw new MappingException(ARTEFACT + " cannot be empty: " + precedence);
-  }
-  while (precedences.hasMoreElements()) {
-    String artifact=(String)precedences.nextElement();
-    removeConflictedArtifact(artifact);
-    processArtifactsOfType(artifact);
+  configurationArtefactPrecedence=Collections.unmodifiableList(configurationArtefactPrecedence);
+  for (  ConfigurationArtefactType p : configurationArtefactPrecedence) {
+    removeConflictedArtifact(p);
+    processArtifactsOfType(p);
   }
   int cacheNbr=caches.size();
   for (int index=0; index < cacheNbr; index++) {
@@ -61,11 +57,9 @@
  catch (  RecoverableException e) {
     throw (RuntimeException)e.getCause();
   }
-  Iterator<Map.Entry<Table,List<UniqueConstraintHolder>>> tables=uniqueConstraintHoldersByTable.entrySet().iterator();
-  while (tables.hasNext()) {
-    final Map.Entry<Table,List<UniqueConstraintHolder>> entry=tables.next();
-    final Table table=entry.getKey();
-    final List<UniqueConstraintHolder> uniqueConstraints=entry.getValue();
+  for (  Map.Entry<Table,List<UniqueConstraintHolder>> tableListEntry : uniqueConstraintHoldersByTable.entrySet()) {
+    final Table table=tableListEntry.getKey();
+    final List<UniqueConstraintHolder> uniqueConstraints=tableListEntry.getValue();
     int uniqueIndexPerTable=0;
     for (    UniqueConstraintHolder holder : uniqueConstraints) {
       uniqueIndexPerTable++;

@@ -1,0 +1,19 @@
+{
+  AnnotationConfiguration config=new AnnotationConfiguration();
+  config.addAnnotatedClass(Customer5.class);
+  config.addAnnotatedClass(Order.class);
+  InputStream is=Thread.currentThread().getContextClassLoader().getResourceAsStream("org/hibernate/test/annotations/fetchprofile/mappings.hbm.xml");
+  config.addInputStream(is);
+  SessionFactoryImplementor sessionImpl=(SessionFactoryImplementor)config.buildSessionFactory();
+  assertTrue("fetch profile not parsed properly",sessionImpl.containsFetchProfileDefinition("orders-profile"));
+  config=new AnnotationConfiguration();
+  config.addAnnotatedClass(Customer5.class);
+  config.addAnnotatedClass(Order.class);
+  try {
+    config.buildSessionFactory();
+    fail();
+  }
+ catch (  MappingException e) {
+    log.trace("success");
+  }
+}
