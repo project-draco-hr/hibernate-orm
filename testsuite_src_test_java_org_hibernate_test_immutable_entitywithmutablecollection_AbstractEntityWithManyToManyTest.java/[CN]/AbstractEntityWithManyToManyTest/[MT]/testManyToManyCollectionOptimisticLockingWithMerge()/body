@@ -1,0 +1,48 @@
+{
+  clearCounts();
+  Plan pOrig=new Plan("plan");
+  Contract cOrig=new Contract(null,"gail","phone");
+  pOrig.addContract(cOrig);
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  s.persist(pOrig);
+  t.commit();
+  s.close();
+  assertInsertCount(2);
+  assertUpdateCount(0);
+  clearCounts();
+  s=openSession();
+  t=s.beginTransaction();
+  Plan p=(Plan)s.get(Plan.class,pOrig.getId());
+  Contract newC=new Contract(null,"sherman","note");
+  p.addContract(newC);
+  t.commit();
+  s.close();
+  assertInsertCount(1);
+  assertUpdateCount(isContractVersioned ? 1 : 0);
+  clearCounts();
+  s=openSession();
+  t=s.beginTransaction();
+  pOrig.removeContract(cOrig);
+  try {
+    s.merge(pOrig);
+    assertFalse(isContractVersioned);
+  }
+ catch (  StaleObjectStateException ex) {
+    assertTrue(isContractVersioned);
+  }
+ finally {
+    t.rollback();
+  }
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  p=(Plan)s.createCriteria(Plan.class).uniqueResult();
+  s.delete(p);
+  assertEquals(new Long(0),s.createCriteria(Plan.class).setProjection(Projections.rowCount()).uniqueResult());
+  assertEquals(new Long(0),s.createCriteria(Contract.class).setProjection(Projections.rowCount()).uniqueResult());
+  t.commit();
+  s.close();
+  assertUpdateCount(0);
+  assertDeleteCount(3);
+}

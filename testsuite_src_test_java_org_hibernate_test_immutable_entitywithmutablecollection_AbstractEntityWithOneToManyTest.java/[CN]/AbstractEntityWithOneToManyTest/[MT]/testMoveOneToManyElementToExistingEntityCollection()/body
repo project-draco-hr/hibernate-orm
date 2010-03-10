@@ -1,0 +1,62 @@
+{
+  clearCounts();
+  Contract c=new Contract(null,"gail","phone");
+  c.addParty(new Party("party"));
+  Contract c2=new Contract(null,"david","phone");
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  s.persist(c);
+  s.persist(c2);
+  t.commit();
+  s.close();
+  assertInsertCount(3);
+  assertUpdateCount(0);
+  clearCounts();
+  s=openSession();
+  t=s.beginTransaction();
+  c=(Contract)s.createCriteria(Contract.class).add(Restrictions.idEq(new Long(c.getId()))).uniqueResult();
+  assertEquals(1,c.getParties().size());
+  Party party=(Party)c.getParties().iterator().next();
+  assertEquals("party",party.getName());
+  if (isContractPartiesBidirectional) {
+    assertSame(c,party.getContract());
+  }
+  c.removeParty(party);
+  c2=(Contract)s.createCriteria(Contract.class).add(Restrictions.idEq(new Long(c2.getId()))).uniqueResult();
+  c2.addParty(party);
+  t.commit();
+  s.close();
+  assertInsertCount(0);
+  assertUpdateCount(isContractVersioned ? 2 : 0);
+  clearCounts();
+  s=openSession();
+  t=s.beginTransaction();
+  c=(Contract)s.createCriteria(Contract.class).add(Restrictions.idEq(new Long(c.getId()))).uniqueResult();
+  c2=(Contract)s.createCriteria(Contract.class).add(Restrictions.idEq(new Long(c2.getId()))).uniqueResult();
+  if (isContractPartiesInverse) {
+    assertEquals(1,c.getParties().size());
+    party=(Party)c.getParties().iterator().next();
+    assertEquals("party",party.getName());
+    if (isContractPartiesBidirectional) {
+      assertSame(c,party.getContract());
+    }
+    assertEquals(0,c2.getParties().size());
+  }
+ else {
+    assertEquals(0,c.getParties().size());
+    assertEquals(1,c2.getParties().size());
+    party=(Party)c2.getParties().iterator().next();
+    assertEquals("party",party.getName());
+    if (isContractPartiesBidirectional) {
+      assertSame(c2,party.getContract());
+    }
+  }
+  s.delete(c);
+  s.delete(c2);
+  assertEquals(new Long(0),s.createCriteria(Contract.class).setProjection(Projections.rowCount()).uniqueResult());
+  assertEquals(new Long(0),s.createCriteria(Party.class).setProjection(Projections.rowCount()).uniqueResult());
+  t.commit();
+  s.close();
+  assertUpdateCount(0);
+  assertDeleteCount(3);
+}

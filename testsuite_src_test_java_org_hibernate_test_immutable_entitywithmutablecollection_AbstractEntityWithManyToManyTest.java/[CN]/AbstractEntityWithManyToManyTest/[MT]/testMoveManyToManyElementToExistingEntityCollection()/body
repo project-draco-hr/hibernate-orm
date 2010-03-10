@@ -1,0 +1,59 @@
+{
+  clearCounts();
+  Plan p=new Plan("plan");
+  p.addContract(new Contract(null,"gail","phone"));
+  Plan p2=new Plan("plan2");
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  s.persist(p);
+  s.persist(p2);
+  t.commit();
+  s.close();
+  assertInsertCount(3);
+  assertUpdateCount(0);
+  clearCounts();
+  s=openSession();
+  t=s.beginTransaction();
+  p=(Plan)s.createCriteria(Plan.class).add(Restrictions.idEq(new Long(p.getId()))).uniqueResult();
+  assertEquals(1,p.getContracts().size());
+  Contract c=(Contract)p.getContracts().iterator().next();
+  assertEquals("gail",c.getCustomerName());
+  if (isPlanContractsBidirectional) {
+    assertSame(p,c.getPlans().iterator().next());
+  }
+  p.removeContract(c);
+  t.commit();
+  s.close();
+  assertInsertCount(0);
+  assertUpdateCount(isPlanVersioned && isContractVersioned ? 2 : 0);
+  clearCounts();
+  s=openSession();
+  t=s.beginTransaction();
+  p2=(Plan)s.createCriteria(Plan.class).add(Restrictions.idEq(new Long(p2.getId()))).uniqueResult();
+  c=(Contract)s.createCriteria(Contract.class).add(Restrictions.idEq(new Long(c.getId()))).uniqueResult();
+  p2.addContract(c);
+  t.commit();
+  s.close();
+  assertInsertCount(0);
+  assertUpdateCount(isPlanVersioned && isContractVersioned ? 2 : 0);
+  clearCounts();
+  s=openSession();
+  t=s.beginTransaction();
+  p=(Plan)s.createCriteria(Plan.class).add(Restrictions.idEq(new Long(p.getId()))).uniqueResult();
+  p2=(Plan)s.createCriteria(Plan.class).add(Restrictions.idEq(new Long(p2.getId()))).uniqueResult();
+  assertEquals(0,p.getContracts().size());
+  assertEquals(1,p2.getContracts().size());
+  c=(Contract)p2.getContracts().iterator().next();
+  assertEquals("gail",c.getCustomerName());
+  if (isPlanContractsBidirectional) {
+    assertSame(p2,c.getPlans().iterator().next());
+  }
+  s.delete(p);
+  s.delete(p2);
+  assertEquals(new Long(0),s.createCriteria(Plan.class).setProjection(Projections.rowCount()).uniqueResult());
+  assertEquals(new Long(0),s.createCriteria(Contract.class).setProjection(Projections.rowCount()).uniqueResult());
+  t.commit();
+  s.close();
+  assertUpdateCount(0);
+  assertDeleteCount(3);
+}

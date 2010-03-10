@@ -1,0 +1,47 @@
+{
+  clearCounts();
+  Plan p=new Plan("plan");
+  Contract c=new Contract(null,"gail","phone");
+  p.addContract(c);
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  s.persist(p);
+  t.commit();
+  s.close();
+  assertInsertCount(2);
+  assertUpdateCount(0);
+  clearCounts();
+  Contract newC=new Contract(null,"yogi","mail");
+  p.addContract(newC);
+  s=openSession();
+  t=s.beginTransaction();
+  p=(Plan)s.merge(p);
+  t.commit();
+  s.close();
+  assertInsertCount(1);
+  assertUpdateCount(isContractVersioned && isPlanVersioned ? 2 : 0);
+  clearCounts();
+  s=openSession();
+  t=s.beginTransaction();
+  p=(Plan)s.createCriteria(Plan.class).uniqueResult();
+  assertEquals(2,p.getContracts().size());
+  for (Iterator it=p.getContracts().iterator(); it.hasNext(); ) {
+    Contract aContract=(Contract)it.next();
+    if (aContract.getId() == c.getId()) {
+      assertEquals("gail",aContract.getCustomerName());
+    }
+ else     if (!aContract.getCustomerName().equals(newC.getCustomerName())) {
+      fail("unknown contract:" + aContract.getCustomerName());
+    }
+    if (isPlanContractsBidirectional) {
+      assertSame(p,aContract.getPlans().iterator().next());
+    }
+  }
+  s.delete(p);
+  assertEquals(new Long(0),s.createCriteria(Plan.class).setProjection(Projections.rowCount()).uniqueResult());
+  assertEquals(new Long(0),s.createCriteria(Contract.class).setProjection(Projections.rowCount()).uniqueResult());
+  t.commit();
+  s.close();
+  assertUpdateCount(0);
+  assertDeleteCount(3);
+}
