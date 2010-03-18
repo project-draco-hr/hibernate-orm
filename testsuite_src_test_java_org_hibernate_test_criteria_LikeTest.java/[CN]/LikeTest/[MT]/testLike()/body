@@ -1,0 +1,48 @@
+{
+  Session session=openSession();
+  String uniq="uniq" + System.currentTimeMillis();
+  try {
+    Transaction tx=session.beginTransaction();
+    TestObject obj=new TestObject();
+    obj.setText("XyZ " + uniq + " blablabla");
+    session.saveOrUpdate(obj);
+    session.flush();
+    tx.commit();
+  }
+  finally {
+    session.close();
+  }
+  String pattern="XyZ " + uniq + "%";
+  session=openSession();
+  try {
+    List objects=session.createCriteria(TestObject.class).add(Restrictions.like("text",pattern)).list();
+    assertEquals(1,objects.size());
+  }
+  finally {
+    session.close();
+  }
+  session=openSession();
+  try {
+    List objects=session.createCriteria(TestObject.class).add(Restrictions.like("text",pattern).ignoreCase()).list();
+    assertEquals(1,objects.size());
+  }
+  finally {
+    session.close();
+  }
+  session=openSession();
+  try {
+    List objects=session.createCriteria(TestObject.class).add(StringExpression.stringExpression("text",pattern,true)).list();
+    assertEquals(1,objects.size());
+  }
+  finally {
+    session.close();
+  }
+  session=openSession();
+  try {
+    List objects=session.createCriteria(TestObject.class).add(StringExpression.stringExpression("text",pattern,false)).list();
+    assertEquals(1,objects.size());
+  }
+  finally {
+    session.close();
+  }
+}
