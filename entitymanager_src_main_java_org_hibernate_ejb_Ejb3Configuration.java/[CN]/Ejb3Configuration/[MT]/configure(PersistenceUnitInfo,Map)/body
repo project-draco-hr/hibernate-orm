@@ -41,7 +41,9 @@
     }
     boolean searchForORMFiles=!xmlFiles.contains(META_INF_ORM_XML);
     ScanningContext context=new ScanningContext();
-    context.scanner(buildScanner()).searchOrm(searchForORMFiles).explicitMappingFiles(null);
+    final Properties copyOfProperties=(Properties)info.getProperties().clone();
+    ConfigurationHelper.overrideProperties(copyOfProperties,integration);
+    context.scanner(buildScanner(copyOfProperties)).searchOrm(searchForORMFiles).explicitMappingFiles(null);
     setDetectedArtifactsOnScanningContext(context,info.getProperties(),null,false);
     for (    URL jar : info.getJarFileUrls()) {
       context.url(jar);
