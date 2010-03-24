@@ -17,4 +17,23 @@
       inListChild=inListChild.getNextSibling();
     }
   }
+  SessionFactoryImplementor sessionFactory=getSessionFactoryHelper().getFactory();
+  if (sessionFactory.getDialect().supportsRowValueConstructorSyntaxInInList())   return;
+  Type lhsType=extractDataType(lhs);
+  if (lhsType == null)   return;
+  int lhsColumnSpan=lhsType.getColumnSpan(sessionFactory);
+  Node rhsNode=(Node)inList.getFirstChild();
+  if (!isNodeAcceptable(rhsNode))   return;
+  int rhsColumnSpan=0;
+  if (rhsNode.getType() == HqlTokenTypes.VECTOR_EXPR) {
+    rhsColumnSpan=rhsNode.getNumberOfChildren();
+  }
+ else {
+    Type rhsType=extractDataType(rhsNode);
+    if (rhsType == null)     return;
+    rhsColumnSpan=rhsType.getColumnSpan(sessionFactory);
+  }
+  if (lhsColumnSpan > 1 && rhsColumnSpan > 1) {
+    mutateRowValueConstructorSyntaxInInListSyntax(lhsColumnSpan,rhsColumnSpan);
+  }
 }

@@ -1,0 +1,37 @@
+{
+  String[] lhsElementTexts=extractMutationTexts(getLeftHandOperand(),lhsColumnSpan);
+  Node rhsNode=(Node)getInList().getFirstChild();
+  ParameterSpecification lhsEmbeddedCompositeParameterSpecification=getLeftHandOperand() == null || (!ParameterNode.class.isInstance(getLeftHandOperand())) ? null : ((ParameterNode)getLeftHandOperand()).getHqlParameterSpecification();
+  if (rhsNode != null && rhsNode.getNextSibling() == null) {
+    String[] rhsElementTexts=extractMutationTexts(rhsNode,rhsColumnSpan);
+    setType(HqlSqlTokenTypes.AND);
+    setText("AND");
+    ParameterSpecification rhsEmbeddedCompositeParameterSpecification=rhsNode == null || (!ParameterNode.class.isInstance(rhsNode)) ? null : ((ParameterNode)rhsNode).getHqlParameterSpecification();
+    translate(lhsColumnSpan,HqlSqlTokenTypes.EQ,"=",lhsElementTexts,rhsElementTexts,lhsEmbeddedCompositeParameterSpecification,rhsEmbeddedCompositeParameterSpecification,this);
+  }
+ else {
+    List andElementsNodeList=new ArrayList();
+    while (rhsNode != null) {
+      String[] rhsElementTexts=extractMutationTexts(rhsNode,rhsColumnSpan);
+      AST and=getASTFactory().create(HqlSqlTokenTypes.AND,"AND");
+      ParameterSpecification rhsEmbeddedCompositeParameterSpecification=rhsNode == null || (!ParameterNode.class.isInstance(rhsNode)) ? null : ((ParameterNode)rhsNode).getHqlParameterSpecification();
+      translate(lhsColumnSpan,HqlSqlTokenTypes.EQ,"=",lhsElementTexts,rhsElementTexts,lhsEmbeddedCompositeParameterSpecification,rhsEmbeddedCompositeParameterSpecification,and);
+      andElementsNodeList.add(and);
+      rhsNode=(Node)rhsNode.getNextSibling();
+    }
+    setType(HqlSqlTokenTypes.OR);
+    setText("OR");
+    AST curNode=this;
+    for (int i=andElementsNodeList.size() - 1; i > 1; i--) {
+      AST or=getASTFactory().create(HqlSqlTokenTypes.OR,"OR");
+      curNode.setFirstChild(or);
+      curNode=or;
+      AST and=(AST)andElementsNodeList.get(i);
+      or.setNextSibling(and);
+    }
+    AST node0=(AST)andElementsNodeList.get(0);
+    AST node1=(AST)andElementsNodeList.get(1);
+    node0.setNextSibling(node1);
+    curNode.setFirstChild(node0);
+  }
+}
