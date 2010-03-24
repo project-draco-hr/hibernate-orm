@@ -1,5 +1,24 @@
 {
   log.info("building session factory");
+  Statistics concurrentStatistics=null;
+  try {
+    Class concurrentStatsClass=ReflectHelper.classForName("org.hibernate.stat.ConcurrentStatisticsImpl");
+    Constructor constructor=concurrentStatsClass.getConstructor(new Class[]{SessionFactoryImplementor.class});
+    concurrentStatistics=(Statistics)constructor.newInstance(new Object[]{this});
+    log.trace("JDK 1.5 concurrent classes present");
+  }
+ catch (  Exception noJava5) {
+    log.trace("JDK 1.5 concurrent classes missing");
+  }
+  if (concurrentStatistics != null) {
+    this.statistics=concurrentStatistics;
+  }
+ else {
+    this.statistics=new StatisticsImpl(this);
+  }
+  if (log.isTraceEnabled()) {
+    log.trace("Statistics initialized with " + statistics.getClass().getName());
+  }
   this.properties=new Properties();
   this.properties.putAll(cfg.getProperties());
   this.interceptor=cfg.getInterceptor();

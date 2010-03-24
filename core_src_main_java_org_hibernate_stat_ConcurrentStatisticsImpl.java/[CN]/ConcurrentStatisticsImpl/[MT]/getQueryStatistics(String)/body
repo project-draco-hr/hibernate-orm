@@ -1,0 +1,11 @@
+{
+  ConcurrentQueryStatisticsImpl qs=(ConcurrentQueryStatisticsImpl)queryStatistics.get(queryString);
+  if (qs == null) {
+    qs=new ConcurrentQueryStatisticsImpl(queryString);
+    ConcurrentQueryStatisticsImpl previous;
+    if ((previous=(ConcurrentQueryStatisticsImpl)queryStatistics.putIfAbsent(queryString,qs)) != null) {
+      qs=previous;
+    }
+  }
+  return qs;
+}

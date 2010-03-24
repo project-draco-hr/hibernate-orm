@@ -1,0 +1,13 @@
+{
+  readLock.lock();
+  try {
+    for (long old=executionMinTime.get(); (time < old) && !executionMinTime.compareAndSet(old,time); old=executionMinTime.get())     ;
+    for (long old=executionMaxTime.get(); (time > old) && !executionMaxTime.compareAndSet(old,time); old=executionMaxTime.get())     ;
+    executionCount.getAndIncrement();
+    executionRowCount.addAndGet(rows);
+    totalExecutionTime.addAndGet(time);
+  }
+  finally {
+    readLock.unlock();
+  }
+}

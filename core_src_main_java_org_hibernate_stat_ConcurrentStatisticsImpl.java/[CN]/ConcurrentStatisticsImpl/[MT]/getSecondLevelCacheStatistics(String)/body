@@ -1,0 +1,18 @@
+{
+  ConcurrentSecondLevelCacheStatisticsImpl slcs=(ConcurrentSecondLevelCacheStatisticsImpl)secondLevelCacheStatistics.get(regionName);
+  if (slcs == null) {
+    if (sessionFactory == null) {
+      return null;
+    }
+    Region region=sessionFactory.getSecondLevelCacheRegion(regionName);
+    if (region == null) {
+      return null;
+    }
+    slcs=new ConcurrentSecondLevelCacheStatisticsImpl(region);
+    ConcurrentSecondLevelCacheStatisticsImpl previous;
+    if ((previous=(ConcurrentSecondLevelCacheStatisticsImpl)secondLevelCacheStatistics.putIfAbsent(regionName,slcs)) != null) {
+      slcs=previous;
+    }
+  }
+  return slcs;
+}

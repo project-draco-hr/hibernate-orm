@@ -1,0 +1,12 @@
+{
+  queryExecutionCount.getAndIncrement();
+  boolean isLongestQuery=false;
+  for (long old=queryExecutionMaxTime.get(); (time > old) && (isLongestQuery=!queryExecutionMaxTime.compareAndSet(old,time)); old=queryExecutionMaxTime.get())   ;
+  if (isLongestQuery) {
+    queryExecutionMaxTimeQueryString=hql;
+  }
+  if (hql != null) {
+    ConcurrentQueryStatisticsImpl qs=(ConcurrentQueryStatisticsImpl)getQueryStatistics(hql);
+    qs.executed(rows,time);
+  }
+}
