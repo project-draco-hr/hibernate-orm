@@ -1,6 +1,9 @@
 {
   final Projection projection=rootCriteria.getProjection();
-  String[] projectionColumns=projection == null ? null : projection.getColumnAliases(propertyName,0);
+  String[] projectionColumns=null;
+  if (projection != null) {
+    projectionColumns=(projection instanceof EnhancedProjection ? ((EnhancedProjection)projection).getColumnAliases(propertyName,0,rootCriteria,this) : projection.getColumnAliases(propertyName,0));
+  }
   if (projectionColumns == null) {
     try {
       return getColumns(propertyName,subcriteria);
