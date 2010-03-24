@@ -1,0 +1,22 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  Lock lock=new Lock();
+  lock.setName("name");
+  em.persist(lock);
+  em.getTransaction().commit();
+  em.close();
+  em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  Map<String,Object> properties=new HashMap<String,Object>();
+  properties.put(AvailableSettings.LOCK_TIMEOUT,0L);
+  em.find(Lock.class,1,LockModeType.PESSIMISTIC_WRITE,properties);
+  em.getTransaction().commit();
+  em.close();
+  em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  lock=em.find(Lock.class,lock.getId());
+  em.remove(lock);
+  em.getTransaction().commit();
+  em.close();
+}
