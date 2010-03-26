@@ -1,0 +1,31 @@
+{
+  final String injectedString="******";
+  final InstantiateInterceptor initiateInterceptor=new InstantiateInterceptor(injectedString);
+  Session s=openSession(initiateInterceptor);
+  Transaction t=s.beginTransaction();
+  User u=new User("Gavin","nivag");
+  s.persist(u);
+  t.commit();
+  s.close();
+  assertNull(u.getInjectedString());
+  u.setPassword("blah");
+  s=openSession(initiateInterceptor);
+  t=s.beginTransaction();
+  User merged=(User)s.merge(u);
+  assertEquals(injectedString,merged.getInjectedString());
+  assertEquals(u.getName(),merged.getName());
+  assertEquals(u.getPassword(),merged.getPassword());
+  merged.setInjectedString(null);
+  User loaded=(User)s.load(User.class,merged.getName());
+  assertSame(merged,loaded);
+  assertNull(merged.getInjectedString());
+  s.flush();
+  s.evict(merged);
+  User reloaded=(User)s.load(User.class,merged.getName());
+  assertEquals(injectedString,reloaded.getInjectedString());
+  assertEquals(u.getName(),reloaded.getName());
+  assertEquals(u.getPassword(),reloaded.getPassword());
+  s.delete(reloaded);
+  t.commit();
+  s.close();
+}
