@@ -1,11 +1,11 @@
 {
   String entityName=event.getPersister().getEntityName();
   if (verCfg.getEntCfg().isVersioned(entityName)) {
-    AuditSync verSync=verCfg.getSyncManager().get(event.getSession());
+    AuditProcess auditProcess=verCfg.getSyncManager().get(event.getSession());
     AuditWorkUnit workUnit=new DelWorkUnit(event.getSession(),event.getPersister().getEntityName(),verCfg,event.getId(),event.getPersister(),event.getDeletedState());
-    verSync.addWorkUnit(workUnit);
+    auditProcess.addWorkUnit(workUnit);
     if (workUnit.containsWork()) {
-      generateBidirectionalCollectionChangeWorkUnits(verSync,event.getPersister(),entityName,null,event.getDeletedState(),event.getSession());
+      generateBidirectionalCollectionChangeWorkUnits(auditProcess,event.getPersister(),entityName,null,event.getDeletedState(),event.getSession());
     }
   }
 }

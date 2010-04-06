@@ -1,0 +1,16 @@
+{
+  final Transaction transaction=session.getTransaction();
+  AuditProcess auditProcess=auditProcesses.get(transaction);
+  if (auditProcess == null) {
+    auditProcess=new AuditProcess(revisionInfoGenerator);
+    auditProcesses.put(transaction,auditProcess);
+    session.getActionQueue().registerProcess(auditProcess);
+    session.getActionQueue().registerProcess(new AfterTransactionCompletionProcess(){
+      public void doAfterTransactionCompletion(      boolean success,      SessionImplementor session){
+        auditProcesses.remove(transaction);
+      }
+    }
+);
+  }
+  return auditProcess;
+}

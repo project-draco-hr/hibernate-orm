@@ -1,0 +1,14 @@
+{
+  List<PersistentCollectionChangeData> collectionChanges=verCfg.getEntCfg().get(collectionEntityName).getPropertyMapper().mapCollectionChanges(referencingPropertyName,newColl,oldColl,event.getAffectedOwnerIdOrNull());
+  String relatedEntityName=rd.getToEntityName();
+  IdMapper relatedIdMapper=verCfg.getEntCfg().get(relatedEntityName).getIdMapper();
+  for (  PersistentCollectionChangeData changeData : collectionChanges) {
+    Object relatedObj=changeData.getChangedElement();
+    Serializable relatedId=(Serializable)relatedIdMapper.mapToIdFromEntity(relatedObj);
+    RevisionType revType=(RevisionType)changeData.getData().get(verCfg.getAuditEntCfg().getRevisionTypePropName());
+    String realRelatedEntityName=event.getSession().bestGuessEntityName(relatedObj);
+    AuditWorkUnit nestedWorkUnit=new CollectionChangeWorkUnit(event.getSession(),realRelatedEntityName,verCfg,relatedId,relatedObj);
+    auditProcess.addWorkUnit(new FakeBidirectionalRelationWorkUnit(event.getSession(),realRelatedEntityName,verCfg,relatedId,referencingPropertyName,event.getAffectedOwnerOrNull(),rd,revType,changeData.getChangedElementIndex(),nestedWorkUnit));
+  }
+  auditProcess.addWorkUnit(new CollectionChangeWorkUnit(event.getSession(),collectionEntityName,verCfg,event.getAffectedOwnerIdOrNull(),event.getAffectedOwnerOrNull()));
+}
