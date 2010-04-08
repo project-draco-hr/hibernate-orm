@@ -1,0 +1,96 @@
+{
+  Session session=openSession();
+  Transaction t=session.beginTransaction();
+  Course course=new Course();
+  course.setCourseCode("HIB");
+  course.setDescription("Hibernate Training");
+  session.persist(course);
+  CityState odessaWa=new CityState("Odessa","WA");
+  Student gavin=new Student();
+  gavin.setName("Gavin King");
+  gavin.setStudentNumber(232);
+  gavin.setCityState(odessaWa);
+  session.persist(gavin);
+  Enrolment enrolment2=new Enrolment();
+  enrolment2.setCourse(course);
+  enrolment2.setCourseCode(course.getCourseCode());
+  enrolment2.setSemester((short)3);
+  enrolment2.setYear((short)1998);
+  enrolment2.setStudent(gavin);
+  enrolment2.setStudentNumber(gavin.getStudentNumber());
+  gavin.getEnrolments().add(enrolment2);
+  session.persist(enrolment2);
+  DetachedCriteria dc=DetachedCriteria.forClass(Student.class).add(Property.forName("cityState").eq(odessaWa)).setProjection(Property.forName("cityState"));
+  session.createCriteria(Student.class).add(Subqueries.exists(dc)).list();
+  t.commit();
+  session.close();
+  session=openSession();
+  t=session.beginTransaction();
+  try {
+    session.createCriteria(Student.class).add(Subqueries.propertyEqAll("cityState",dc)).list();
+    fail("should have failed because cannot compare subquery results with multiple columns");
+  }
+ catch (  QueryException ex) {
+  }
+ finally {
+    t.rollback();
+    session.close();
+  }
+  session=openSession();
+  t=session.beginTransaction();
+  try {
+    session.createCriteria(Student.class).add(Property.forName("cityState").eqAll(dc)).list();
+    fail("should have failed because cannot compare subquery results with multiple columns");
+  }
+ catch (  QueryException ex) {
+  }
+ finally {
+    t.rollback();
+    session.close();
+  }
+  session=openSession();
+  t=session.beginTransaction();
+  try {
+    session.createCriteria(Student.class).add(Subqueries.in(odessaWa,dc)).list();
+    fail("should have failed because cannot compare subquery results with multiple columns");
+  }
+ catch (  JDBCException ex) {
+  }
+ finally {
+    t.rollback();
+    session.close();
+  }
+  session=openSession();
+  t=session.beginTransaction();
+  DetachedCriteria dc2=DetachedCriteria.forClass(Student.class,"st1").add(Property.forName("st1.cityState").eqProperty("st2.cityState")).setProjection(Property.forName("cityState"));
+  try {
+    session.createCriteria(Student.class,"st2").add(Subqueries.eq(odessaWa,dc2)).list();
+    fail("should have failed because cannot compare subquery results with multiple columns");
+  }
+ catch (  JDBCException ex) {
+  }
+ finally {
+    t.rollback();
+    session.close();
+  }
+  session=openSession();
+  t=session.beginTransaction();
+  DetachedCriteria dc3=DetachedCriteria.forClass(Student.class,"st").createCriteria("enrolments").createCriteria("course").add(Property.forName("description").eq("Hibernate Training")).setProjection(Property.forName("st.cityState"));
+  try {
+    session.createCriteria(Enrolment.class,"e").add(Subqueries.eq(odessaWa,dc3)).list();
+    fail("should have failed because cannot compare subquery results with multiple columns");
+  }
+ catch (  JDBCException ex) {
+  }
+ finally {
+    t.rollback();
+    session.close();
+  }
+  session=openSession();
+  t=session.beginTransaction();
+  session.delete(enrolment2);
+  session.delete(gavin);
+  session.delete(course);
+  t.commit();
+  session.close();
+}

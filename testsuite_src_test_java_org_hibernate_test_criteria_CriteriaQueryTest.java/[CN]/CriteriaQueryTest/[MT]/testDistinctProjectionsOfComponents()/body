@@ -1,0 +1,67 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  Course course=new Course();
+  course.setCourseCode("HIB");
+  course.setDescription("Hibernate Training");
+  s.save(course);
+  Student gavin=new Student();
+  gavin.setName("Gavin King");
+  gavin.setStudentNumber(667);
+  gavin.setCityState(new CityState("Odessa","WA"));
+  s.save(gavin);
+  Student xam=new Student();
+  xam.setName("Max Rydahl Andersen");
+  xam.setStudentNumber(101);
+  xam.setPreferredCourse(course);
+  xam.setCityState(new CityState("Odessa","WA"));
+  s.save(xam);
+  Enrolment enrolment=new Enrolment();
+  enrolment.setCourse(course);
+  enrolment.setCourseCode(course.getCourseCode());
+  enrolment.setSemester((short)1);
+  enrolment.setYear((short)1999);
+  enrolment.setStudent(xam);
+  enrolment.setStudentNumber(xam.getStudentNumber());
+  xam.getEnrolments().add(enrolment);
+  s.save(enrolment);
+  enrolment=new Enrolment();
+  enrolment.setCourse(course);
+  enrolment.setCourseCode(course.getCourseCode());
+  enrolment.setSemester((short)3);
+  enrolment.setYear((short)1998);
+  enrolment.setStudent(gavin);
+  enrolment.setStudentNumber(gavin.getStudentNumber());
+  gavin.getEnrolments().add(enrolment);
+  s.save(enrolment);
+  s.flush();
+  Object result=s.createCriteria(Student.class).setProjection(Projections.distinct(Property.forName("cityState"))).uniqueResult();
+  assertTrue(result instanceof CityState);
+  assertEquals(((CityState)result).getCity(),"Odessa");
+  assertEquals(((CityState)result).getState(),"WA");
+  result=s.createCriteria(Student.class).setProjection(Projections.distinct(Property.forName("cityState").as("cityState"))).addOrder(Order.asc("cityState")).uniqueResult();
+  assertTrue(result instanceof CityState);
+  assertEquals(((CityState)result).getCity(),"Odessa");
+  assertEquals(((CityState)result).getState(),"WA");
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  try {
+    result=s.createCriteria(Student.class).setProjection(Projections.count("cityState")).uniqueResult();
+    fail("should have failed with QueryException");
+  }
+ catch (  QueryException ex) {
+  }
+ finally {
+    t.rollback();
+  }
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  s.delete(gavin);
+  s.delete(xam);
+  s.delete(course);
+  t.commit();
+  s.close();
+}

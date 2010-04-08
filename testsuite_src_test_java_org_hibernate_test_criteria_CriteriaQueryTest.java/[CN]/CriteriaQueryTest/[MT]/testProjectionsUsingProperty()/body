@@ -4,10 +4,14 @@
   Course course=new Course();
   course.setCourseCode("HIB");
   course.setDescription("Hibernate Training");
+  course.getCourseMeetings().add(new CourseMeeting(course,"Monday",1,"1313 Mockingbird Lane"));
   s.save(course);
   Student gavin=new Student();
   gavin.setName("Gavin King");
   gavin.setStudentNumber(667);
+  CityState odessaWa=new CityState("Odessa","WA");
+  gavin.setCityState(odessaWa);
+  gavin.setPreferredCourse(course);
   s.save(gavin);
   Student xam=new Student();
   xam.setName("Max Rydahl Andersen");
@@ -32,6 +36,39 @@
   gavin.getEnrolments().add(enrolment);
   s.save(enrolment);
   s.flush();
+  List resultList=s.createCriteria(Enrolment.class).setProjection(Projections.projectionList().add(Property.forName("student"),"student").add(Property.forName("course"),"course").add(Property.forName("semester"),"semester").add(Property.forName("year"),"year")).list();
+  assertEquals(2,resultList.size());
+  for (Iterator it=resultList.iterator(); it.hasNext(); ) {
+    Object[] objects=(Object[])it.next();
+    assertEquals(4,objects.length);
+    assertTrue(objects[0] instanceof Student);
+    assertTrue(objects[1] instanceof Course);
+    assertTrue(objects[2] instanceof Short);
+    assertTrue(objects[3] instanceof Short);
+  }
+  resultList=s.createCriteria(Student.class).setProjection(Projections.projectionList().add(Projections.id().as("studentNumber")).add(Property.forName("name"),"name").add(Property.forName("cityState"),"cityState").add(Property.forName("preferredCourse"),"preferredCourse")).list();
+  assertEquals(2,resultList.size());
+  for (Iterator it=resultList.iterator(); it.hasNext(); ) {
+    Object[] objects=(Object[])it.next();
+    assertEquals(4,objects.length);
+    assertTrue(objects[0] instanceof Long);
+    assertTrue(objects[1] instanceof String);
+    if ("Gavin King".equals(objects[1])) {
+      assertTrue(objects[2] instanceof CityState);
+      assertTrue(objects[3] instanceof Course);
+    }
+ else {
+      assertNull(objects[2]);
+      assertNull(objects[3]);
+    }
+  }
+  Object[] aResult=(Object[])s.createCriteria(Student.class).add(Restrictions.idEq(new Long(667))).setProjection(Projections.projectionList().add(Projections.id().as("studentNumber")).add(Property.forName("name"),"name").add(Property.forName("cityState"),"cityState").add(Property.forName("preferredCourse"),"preferredCourse")).uniqueResult();
+  assertNotNull(aResult);
+  assertEquals(4,aResult.length);
+  assertTrue(aResult[0] instanceof Long);
+  assertTrue(aResult[1] instanceof String);
+  assertTrue(aResult[2] instanceof CityState);
+  assertTrue(aResult[3] instanceof Course);
   Long count=(Long)s.createCriteria(Enrolment.class).setProjection(Property.forName("studentNumber").count().setDistinct()).uniqueResult();
   assertEquals(count,new Long(2));
   Object object=s.createCriteria(Enrolment.class).setProjection(Projections.projectionList().add(Property.forName("studentNumber").count()).add(Property.forName("studentNumber").max()).add(Property.forName("studentNumber").min()).add(Property.forName("studentNumber").avg())).uniqueResult();
@@ -57,6 +94,13 @@
   StudentDTO dto=(StudentDTO)resultWithAliasedBean.get(0);
   assertNotNull(dto.getDescription());
   assertNotNull(dto.getName());
+  CourseMeeting courseMeetingDto=(CourseMeeting)s.createCriteria(CourseMeeting.class).setProjection(Projections.projectionList().add(Property.forName("id").as("id")).add(Property.forName("course").as("course"))).addOrder(Order.desc("id")).setResultTransformer(Transformers.aliasToBean(CourseMeeting.class)).uniqueResult();
+  assertNotNull(courseMeetingDto.getId());
+  assertEquals(course.getCourseCode(),courseMeetingDto.getId().getCourseCode());
+  assertEquals("Monday",courseMeetingDto.getId().getDay());
+  assertEquals("1313 Mockingbird Lane",courseMeetingDto.getId().getLocation());
+  assertEquals(1,courseMeetingDto.getId().getPeriod());
+  assertEquals(course.getDescription(),courseMeetingDto.getCourse().getDescription());
   s.createCriteria(Student.class).add(Restrictions.like("name","Gavin",MatchMode.START)).addOrder(Order.asc("name")).createCriteria("enrolments","e").addOrder(Order.desc("year")).addOrder(Order.desc("semester")).createCriteria("course","c").addOrder(Order.asc("description")).setProjection(Projections.projectionList().add(Property.forName("this.name")).add(Property.forName("e.year")).add(Property.forName("e.semester")).add(Property.forName("c.courseCode")).add(Property.forName("c.description"))).uniqueResult();
   Projection p1=Projections.projectionList().add(Property.forName("studentNumber").count()).add(Property.forName("studentNumber").max()).add(Projections.rowCount());
   Projection p2=Projections.projectionList().add(Property.forName("studentNumber").min()).add(Property.forName("studentNumber").avg()).add(Projections.sqlProjection("1 as constOne, count(*) as countStar",new String[]{"constOne","countStar"},new Type[]{Hibernate.INTEGER,Hibernate.INTEGER}));
