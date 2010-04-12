@@ -1,0 +1,46 @@
+{
+  Session s=openSession();
+  Transaction txn=s.beginTransaction();
+  assertTrue(s.createQuery("from Animal a left join fetch a.offspring where a.description like :desc order by a.id").setString("desc","root%").list().isEmpty());
+  ScrollableResults results=s.createQuery("from Animal a left join fetch a.offspring where a.description like :desc order by a.id").setString("desc","root%").scroll();
+  assertFalse(results.isFirst());
+  assertFalse(results.isLast());
+  assertFalse(results.next());
+  assertFalse(results.isFirst());
+  assertFalse(results.isLast());
+  assertFalse(results.previous());
+  assertFalse(results.isFirst());
+  assertFalse(results.isLast());
+  results.beforeFirst();
+  assertFalse(results.isFirst());
+  assertFalse(results.isLast());
+  assertFalse(results.next());
+  assertFalse(results.first());
+  assertFalse(results.isFirst());
+  assertFalse(results.isLast());
+  assertFalse(results.next());
+  results.afterLast();
+  assertFalse(results.isFirst());
+  assertFalse(results.isLast());
+  assertFalse(results.next());
+  assertFalse(results.last());
+  assertFalse(results.isFirst());
+  assertFalse(results.isLast());
+  assertFalse(results.next());
+  for (int i=1; i < 3; i++) {
+    assertFalse(results.scroll(i));
+    assertFalse(results.isFirst());
+    assertFalse(results.isLast());
+    assertFalse(results.scroll(-i));
+    assertFalse(results.isFirst());
+    assertFalse(results.isLast());
+    assertFalse(results.setRowNumber(i));
+    assertFalse(results.isFirst());
+    assertFalse(results.isLast());
+    assertFalse(results.setRowNumber(-i));
+    assertFalse(results.isFirst());
+    assertFalse(results.isLast());
+  }
+  txn.commit();
+  s.close();
+}
