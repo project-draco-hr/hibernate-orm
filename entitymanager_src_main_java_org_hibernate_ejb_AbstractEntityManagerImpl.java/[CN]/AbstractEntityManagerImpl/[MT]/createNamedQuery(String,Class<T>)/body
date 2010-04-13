@@ -1,12 +1,48 @@
 {
   try {
     org.hibernate.Query namedQuery=getSession().getNamedQuery(name);
+    final SessionFactoryImplementor factoryImplementor=(SessionFactoryImplementor)entityManagerFactory.getSessionFactory();
+    final NamedSQLQueryDefinition queryDefinition=factoryImplementor.getNamedSQLQuery(name);
     try {
-      if (namedQuery.getReturnTypes().length != 1) {
-        throw new IllegalArgumentException("Cannot create TypedQuery for query with more than one return");
+      if (queryDefinition != null) {
+        Class<?> actualReturnedClass;
+        final NativeSQLQueryReturn[] queryReturns;
+        if (queryDefinition.getQueryReturns() != null) {
+          queryReturns=queryDefinition.getQueryReturns();
+        }
+ else         if (queryDefinition.getResultSetRef() != null) {
+          final ResultSetMappingDefinition rsMapping=factoryImplementor.getResultSetMapping(queryDefinition.getResultSetRef());
+          queryReturns=rsMapping.getQueryReturns();
+        }
+ else {
+          throw new AssertionFailure("Unsupported named query model. Please report the bug in Hibernate EntityManager");
+        }
+        if (queryReturns.length > 1) {
+          throw new IllegalArgumentException("Cannot create TypedQuery for query with more than one return");
+        }
+        final NativeSQLQueryReturn nativeSQLQueryReturn=queryReturns[0];
+        if (nativeSQLQueryReturn instanceof NativeSQLQueryRootReturn) {
+          final String entityClassName=((NativeSQLQueryRootReturn)nativeSQLQueryReturn).getReturnEntityName();
+          try {
+            actualReturnedClass=ReflectHelper.classForName(entityClassName,AbstractEntityManagerImpl.class);
+          }
+ catch (          ClassNotFoundException e) {
+            throw new AssertionFailure("Unable to instantiate class declared on named native query: " + name + " "+ entityClassName);
+          }
+          if (!resultClass.isAssignableFrom(actualReturnedClass)) {
+            throw buildIncompatibleException(resultClass,actualReturnedClass);
+          }
+        }
+ else {
+        }
       }
-      if (!resultClass.isAssignableFrom(namedQuery.getReturnTypes()[0].getReturnedClass())) {
-        throw new IllegalArgumentException("Type specified for TypedQuery [" + resultClass.getName() + "] is incompatible with query return type ["+ namedQuery.getReturnTypes()[0].getReturnedClass()+ "]");
+ else {
+        if (namedQuery.getReturnTypes().length != 1) {
+          throw new IllegalArgumentException("Cannot create TypedQuery for query with more than one return");
+        }
+        if (!resultClass.isAssignableFrom(namedQuery.getReturnTypes()[0].getReturnedClass())) {
+          throw buildIncompatibleException(resultClass,namedQuery.getReturnTypes()[0].getReturnedClass());
+        }
       }
       return new QueryImpl<T>(namedQuery,this);
     }
