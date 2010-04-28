@@ -7,7 +7,39 @@
   course.getCourseMeetings().add(new CourseMeeting(course,"Monday",1,"1313 Mockingbird Lane"));
   s.save(course);
   s.flush();
+  s.clear();
   List data=(List)s.createCriteria(CourseMeeting.class).setProjection(Projections.id()).list();
-  t.rollback();
+  t.commit();
+  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  try {
+    s.createCriteria(CourseMeeting.class).setProjection(Projections.count("id")).list();
+    fail("should have thrown SQLGrammarException");
+  }
+ catch (  SQLGrammarException ex) {
+  }
+ finally {
+    t.rollback();
+    s.close();
+  }
+  s=openSession();
+  t=s.beginTransaction();
+  try {
+    Object result=s.createCriteria(CourseMeeting.class).setProjection(Projections.countDistinct("id")).list();
+  }
+ catch (  SQLGrammarException ex) {
+    if (!(getDialect() instanceof HSQLDialect)) {
+      throw ex;
+    }
+  }
+ finally {
+    t.rollback();
+    s.close();
+  }
+  s=openSession();
+  t=s.beginTransaction();
+  s.delete(course);
+  t.commit();
   s.close();
 }

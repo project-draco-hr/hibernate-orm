@@ -33,6 +33,10 @@
   s.save(enrolment);
   Long count=(Long)s.createCriteria(Enrolment.class).setProjection(Projections.count("studentNumber").setDistinct()).uniqueResult();
   assertEquals(count,new Long(2));
+  count=(Long)s.createCriteria(Enrolment.class).setProjection(Projections.countDistinct("studentNumber")).uniqueResult();
+  assertEquals(count,new Long(2));
+  count=(Long)s.createCriteria(Enrolment.class).setProjection(Projections.countDistinct("courseCode").as("cnt")).uniqueResult();
+  assertEquals(count,new Long(1));
   Object object=s.createCriteria(Enrolment.class).setProjection(Projections.projectionList().add(Projections.count("studentNumber")).add(Projections.max("studentNumber")).add(Projections.min("studentNumber")).add(Projections.avg("studentNumber"))).uniqueResult();
   Object[] result=(Object[])object;
   assertEquals(new Long(2),result[0]);

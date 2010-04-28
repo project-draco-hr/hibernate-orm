@@ -43,20 +43,39 @@
   assertTrue(result instanceof CityState);
   assertEquals(((CityState)result).getCity(),"Odessa");
   assertEquals(((CityState)result).getState(),"WA");
+  result=s.createCriteria(Student.class).setProjection(Projections.count("cityState.city")).uniqueResult();
+  assertEquals(2,((Long)result).longValue());
+  result=s.createCriteria(Student.class).setProjection(Projections.countDistinct("cityState.city")).uniqueResult();
+  assertEquals(1,((Long)result).longValue());
   t.commit();
   s.close();
   s=openSession();
   t=s.beginTransaction();
   try {
     result=s.createCriteria(Student.class).setProjection(Projections.count("cityState")).uniqueResult();
-    fail("should have failed with QueryException");
+    fail("expected SQLGrammarException");
   }
- catch (  QueryException ex) {
+ catch (  SQLGrammarException ex) {
   }
  finally {
     t.rollback();
+    s.close();
   }
-  s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  try {
+    result=s.createCriteria(Student.class).setProjection(Projections.countDistinct("cityState")).uniqueResult();
+    assertEquals(1,((Long)result).longValue());
+  }
+ catch (  SQLGrammarException ex) {
+    if (!(getDialect() instanceof HSQLDialect)) {
+      throw ex;
+    }
+  }
+ finally {
+    t.rollback();
+    s.close();
+  }
   s=openSession();
   t=s.beginTransaction();
   s.delete(gavin);
