@@ -23,7 +23,7 @@
   }
   log.info("Mapping class join: " + persistentClass.getEntityName() + " -> "+ join.getTable().getName());
   Element keyNode=node.element("key");
-  SimpleValue key=new DependantValue(table,persistentClass.getIdentifier());
+  SimpleValue key=new DependantValue(mappings,table,persistentClass.getIdentifier());
   join.setKey(key);
   key.setCascadeDeleteEnabled("cascade".equals(keyNode.attributeValue("on-delete")));
   bindSimpleValue(keyNode,key,false,persistentClass.getEntityName(),mappings);
@@ -36,20 +36,20 @@
     String propertyName=subnode.attributeValue("name");
     Value value=null;
     if ("many-to-one".equals(name)) {
-      value=new ManyToOne(table);
+      value=new ManyToOne(mappings,table);
       bindManyToOne(subnode,(ManyToOne)value,propertyName,true,mappings);
     }
  else     if ("any".equals(name)) {
-      value=new Any(table);
+      value=new Any(mappings,table);
       bindAny(subnode,(Any)value,true,mappings);
     }
  else     if ("property".equals(name)) {
-      value=new SimpleValue(table);
+      value=new SimpleValue(mappings,table);
       bindSimpleValue(subnode,(SimpleValue)value,true,propertyName,mappings);
     }
  else     if ("component".equals(name) || "dynamic-component".equals(name)) {
       String subpath=StringHelper.qualify(path,propertyName);
-      value=new Component(join);
+      value=new Component(mappings,join);
       bindComponent(subnode,(Component)value,join.getPersistentClass().getClassName(),propertyName,subpath,true,false,mappings,inheritedMetas,false);
     }
     if (value != null) {

@@ -85,7 +85,7 @@
     if (persistentClass.getEntityPersisterClass() == null) {
       persistentClass.getRootClass().setEntityPersisterClass(JoinedSubclassEntityPersister.class);
     }
-    SimpleValue key=new DependantValue(jsc.getTable(),jsc.getIdentifier());
+    SimpleValue key=new DependantValue(mappings,jsc.getTable(),jsc.getIdentifier());
     jsc.setKey(key);
     ForeignKey fk=clazzToProcess.getAnnotation(ForeignKey.class);
     if (fk != null && !BinderHelper.isDefault(fk.name())) {
@@ -109,7 +109,7 @@
     }
  else {
       if (inheritanceState.hasSiblings() || !discriminatorColumn.isImplicit()) {
-        bindDiscriminatorToPersistentClass((RootClass)persistentClass,discriminatorColumn,entityBinder.getSecondaryTables(),propertyHolder);
+        bindDiscriminatorToPersistentClass((RootClass)persistentClass,discriminatorColumn,entityBinder.getSecondaryTables(),propertyHolder,mappings);
         entityBinder.bindDiscriminatorValue();
       }
     }

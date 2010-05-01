@@ -7,7 +7,7 @@
       throw new AnnotationException("Map key property not found: " + collType + "."+ mapKeyPropertyName);
     }
     org.hibernate.mapping.Map map=(org.hibernate.mapping.Map)this.collection;
-    Value indexValue=createFormulatedValue(mapProperty.getValue(),map,targetPropertyName,associatedClass);
+    Value indexValue=createFormulatedValue(mapProperty.getValue(),map,targetPropertyName,associatedClass,mappings);
     map.setIndex(indexValue);
   }
  else {
@@ -33,7 +33,7 @@
     ManyToOne element=null;
     org.hibernate.mapping.Map mapValue=(org.hibernate.mapping.Map)this.collection;
     if (isIndexOfEntities) {
-      element=new ManyToOne(mapValue.getCollectionTable());
+      element=new ManyToOne(mappings,mapValue.getCollectionTable());
       mapValue.setIndex(element);
       element.setReferencedEntityName(mapKeyType);
       element.setFetchMode(FetchMode.JOIN);

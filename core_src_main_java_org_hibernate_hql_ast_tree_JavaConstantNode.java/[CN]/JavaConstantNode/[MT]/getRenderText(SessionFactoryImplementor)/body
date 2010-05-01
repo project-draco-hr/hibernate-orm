@@ -1,4 +1,11 @@
 {
-  Type type=expectedType == null ? heuristicType : expectedType;
-  return resolveToLiteralString(type);
+  Type type=expectedType == null ? heuristicType : Number.class.isAssignableFrom(heuristicType.getReturnedClass()) ? heuristicType : expectedType;
+  try {
+    LiteralType literalType=(LiteralType)type;
+    Dialect dialect=factory.getDialect();
+    return literalType.objectToSQLString(constantValue,dialect);
+  }
+ catch (  Throwable t) {
+    throw new QueryException(QueryTranslator.ERROR_CANNOT_FORMAT_LITERAL + constantExpression,t);
+  }
 }

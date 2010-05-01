@@ -27,7 +27,7 @@
  else {
         keyVal=(KeyValue)collection.getOwner().getRecursiveProperty(propRef).getValue();
       }
-      SimpleValue key=new DependantValue(collection.getCollectionTable(),keyVal);
+      SimpleValue key=new DependantValue(mappings,collection.getCollectionTable(),keyVal);
       key.setCascadeDeleteEnabled("cascade".equals(subnode.attributeValue("on-delete")));
       bindSimpleValue(subnode,key,collection.isOneToMany(),Collection.DEFAULT_KEY_COLUMN_NAME,mappings);
       collection.setKey(key);
@@ -37,23 +37,23 @@
       ((DependantValue)key).setUpdateable(updateable == null || updateable.getValue().equals("true"));
     }
  else     if ("element".equals(name)) {
-      SimpleValue elt=new SimpleValue(collection.getCollectionTable());
+      SimpleValue elt=new SimpleValue(mappings,collection.getCollectionTable());
       collection.setElement(elt);
       bindSimpleValue(subnode,elt,true,Collection.DEFAULT_ELEMENT_COLUMN_NAME,mappings);
     }
  else     if ("many-to-many".equals(name)) {
-      ManyToOne element=new ManyToOne(collection.getCollectionTable());
+      ManyToOne element=new ManyToOne(mappings,collection.getCollectionTable());
       collection.setElement(element);
       bindManyToOne(subnode,element,Collection.DEFAULT_ELEMENT_COLUMN_NAME,false,mappings);
       bindManyToManySubelements(collection,subnode,mappings);
     }
  else     if ("composite-element".equals(name)) {
-      Component element=new Component(collection);
+      Component element=new Component(mappings,collection);
       collection.setElement(element);
       bindComposite(subnode,element,collection.getRole() + ".element",true,mappings,inheritedMetas);
     }
  else     if ("many-to-any".equals(name)) {
-      Any element=new Any(collection.getCollectionTable());
+      Any element=new Any(mappings,collection.getCollectionTable());
       collection.setElement(element);
       bindAny(subnode,element,true,mappings);
     }

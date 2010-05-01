@@ -4,11 +4,12 @@
   HashMap deletes=(HashMap)snapshot.clone();
   deletes.keySet().removeAll(((HashMap)getSnapshot(persister)).keySet());
   ArrayList deleteList=new ArrayList(deletes.size());
-  Iterator iter=deletes.entrySet().iterator();
-  while (iter.hasNext()) {
-    Map.Entry me=(Map.Entry)iter.next();
-    final Object object=indexIsFormula ? me.getValue() : ((NullableType)indexType).fromXMLString((String)me.getKey(),persister.getFactory());
-    if (object != null)     deleteList.add(object);
+  for (  Object o : deletes.entrySet()) {
+    Map.Entry me=(Map.Entry)o;
+    final Object object=indexIsFormula ? me.getValue() : ((XmlRepresentableType)indexType).fromXMLString((String)me.getKey(),persister.getFactory());
+    if (object != null) {
+      deleteList.add(object);
+    }
   }
   return deleteList.iterator();
 }

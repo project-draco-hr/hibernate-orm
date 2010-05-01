@@ -5,7 +5,7 @@
     Element subnode=(Element)iter.next();
     String name=subnode.getName();
     if ("index".equals(name) || "map-key".equals(name)) {
-      SimpleValue value=new SimpleValue(map.getCollectionTable());
+      SimpleValue value=new SimpleValue(mappings,map.getCollectionTable());
       bindSimpleValue(subnode,value,map.isOneToMany(),IndexedCollection.DEFAULT_INDEX_COLUMN_NAME,mappings);
       if (!value.isTypeSpecified()) {
         throw new MappingException("map index element must specify a type: " + map.getRole());
@@ -14,17 +14,17 @@
       map.setIndexNodeName(subnode.attributeValue("node"));
     }
  else     if ("index-many-to-many".equals(name) || "map-key-many-to-many".equals(name)) {
-      ManyToOne mto=new ManyToOne(map.getCollectionTable());
+      ManyToOne mto=new ManyToOne(mappings,map.getCollectionTable());
       bindManyToOne(subnode,mto,IndexedCollection.DEFAULT_INDEX_COLUMN_NAME,map.isOneToMany(),mappings);
       map.setIndex(mto);
     }
  else     if ("composite-index".equals(name) || "composite-map-key".equals(name)) {
-      Component component=new Component(map);
+      Component component=new Component(mappings,map);
       bindComposite(subnode,component,map.getRole() + ".index",map.isOneToMany(),mappings,inheritedMetas);
       map.setIndex(component);
     }
  else     if ("index-many-to-any".equals(name)) {
-      Any any=new Any(map.getCollectionTable());
+      Any any=new Any(mappings,map.getCollectionTable());
       bindAny(subnode,any,map.isOneToMany(),mappings);
       map.setIndex(any);
     }

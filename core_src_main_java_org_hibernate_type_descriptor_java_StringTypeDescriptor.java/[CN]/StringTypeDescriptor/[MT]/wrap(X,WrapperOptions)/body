@@ -1,0 +1,20 @@
+{
+  if (value == null) {
+    return null;
+  }
+  if (String.class.isInstance(value)) {
+    return (String)value;
+  }
+  if (Reader.class.isInstance(value)) {
+    return DataHelper.extractString((Reader)value);
+  }
+  if (Clob.class.isInstance(value) || DataHelper.isNClob(value.getClass())) {
+    try {
+      return DataHelper.extractString(((Clob)value).getCharacterStream());
+    }
+ catch (    SQLException e) {
+      throw new HibernateException("Unable to access lob stream",e);
+    }
+  }
+  throw unknownWrap(value.getClass());
+}

@@ -1,0 +1,31 @@
+{
+  ByteArrayOutputStream outputStream=new ByteArrayOutputStream(2048);
+  try {
+    byte[] buffer=new byte[2048];
+    while (true) {
+      int amountRead=inputStream.read(buffer);
+      if (amountRead == -1) {
+        break;
+      }
+      outputStream.write(buffer,0,amountRead);
+    }
+  }
+ catch (  IOException ioe) {
+    throw new HibernateException("IOException occurred reading a binary value",ioe);
+  }
+ finally {
+    try {
+      inputStream.close();
+    }
+ catch (    IOException e) {
+      log.warn("IOException occurred closing input stream",e);
+    }
+    try {
+      outputStream.close();
+    }
+ catch (    IOException e) {
+      log.warn("IOException occurred closing output stream",e);
+    }
+  }
+  return outputStream.toByteArray();
+}

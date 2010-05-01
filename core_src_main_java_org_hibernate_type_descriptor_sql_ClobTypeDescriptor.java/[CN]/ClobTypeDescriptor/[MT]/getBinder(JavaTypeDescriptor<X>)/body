@@ -1,0 +1,13 @@
+{
+  return new BasicBinder<X>(javaTypeDescriptor,this){
+    @Override protected void doBind(    PreparedStatement st,    X value,    int index,    WrapperOptions options) throws SQLException {
+      if (options.useStreamForLobBinding()) {
+        st.setCharacterStream(index,getJavaDescriptor().unwrap(value,Reader.class,options));
+      }
+ else {
+        st.setClob(index,javaTypeDescriptor.unwrap(value,Clob.class,options));
+      }
+    }
+  }
+;
+}
