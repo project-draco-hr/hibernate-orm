@@ -1,0 +1,39 @@
+{
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  PartnerA a=new PartnerA();
+  a.setName("Partner A");
+  PartnerB b=new PartnerB();
+  b.setName("Partner B");
+  Contract obj1=new Contract();
+  obj1.setName("Contract");
+  obj1.setA(a);
+  obj1.setB(b);
+  s.save(a);
+  s.save(b);
+  s.save(obj1);
+  tx.commit();
+  s.close();
+  s=openSession();
+  Query q=s.getNamedQuery(Contract.class.getName() + ".testQuery");
+  q.setFetchSize(100);
+  q.setResultTransformer(new ResultTransformer(){
+    private static final long serialVersionUID=-5815434828170704822L;
+    public Object transformTuple(    Object[] arg0,    String[] arg1){
+      return arg0[1];
+    }
+    @SuppressWarnings("unchecked") public List transformList(    List arg0){
+      return arg0;
+    }
+  }
+);
+  ScrollableResults sr=q.scroll();
+  sr.first();
+  Object[] row=sr.get();
+  assertEquals(1,row.length);
+  Object obj=row[0];
+  assertTrue(obj instanceof PartnerA);
+  PartnerA obj2=(PartnerA)obj;
+  assertEquals("Partner A",obj2.getName());
+  s.close();
+}
