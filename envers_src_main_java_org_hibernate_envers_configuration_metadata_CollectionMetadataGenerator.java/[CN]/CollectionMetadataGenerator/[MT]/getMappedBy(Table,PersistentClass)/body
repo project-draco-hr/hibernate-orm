@@ -3,14 +3,18 @@
   if (auditMappedBy != null) {
     return auditMappedBy;
   }
-  Iterator<Property> properties=referencedClass.getPropertyIterator();
-  while (properties.hasNext()) {
-    Property property=properties.next();
-    if (property.getValue() instanceof Collection) {
-      if (((Collection)property.getValue()).getCollectionTable() == collectionTable) {
-        return property.getName();
-      }
+  String mappedBy=this.searchMappedBy(referencedClass,collectionTable);
+  if (mappedBy == null) {
+    log.debug("Going to search the mapped by attribute for " + propertyName + " in superclases of entity: "+ referencedClass.getClassName());
+    PersistentClass tempClass=referencedClass;
+    while ((mappedBy == null) && (tempClass.getSuperclass() != null)) {
+      log.debug("Searching in superclass: " + tempClass.getSuperclass().getClassName());
+      mappedBy=this.searchMappedBy(tempClass.getSuperclass(),collectionTable);
+      tempClass=tempClass.getSuperclass();
     }
   }
-  throw new MappingException("Unable to read the mapped by attribute for " + propertyName + " in "+ referencingEntityName+ "!");
+  if (mappedBy == null) {
+    throw new MappingException("Unable to read the mapped by attribute for " + propertyName + " in "+ referencedClass.getClassName()+ "!");
+  }
+  return mappedBy;
 }
