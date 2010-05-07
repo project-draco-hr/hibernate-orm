@@ -23,7 +23,7 @@
       boolean isOpenQuote;
       if ("`".equals(token)) {
         isOpenQuote=!quotedIdentifier;
-        token=lcToken=isOpenQuote ? new Character(dialect.openQuote()).toString() : new Character(dialect.closeQuote()).toString();
+        token=lcToken=isOpenQuote ? Character.toString(dialect.openQuote()) : Character.toString(dialect.closeQuote());
         quotedIdentifier=isOpenQuote;
         isQuoteCharacter=true;
       }
@@ -44,6 +44,68 @@
         result.append(placeholder).append('.');
       }
     }
+    if ("extract".equals(lcToken) && "(".equals(nextToken)) {
+      final String field=extractUntil(tokens,"from");
+      final String source=renderWhereStringTemplate(extractUntil(tokens,")"),placeholder,dialect,functionRegistry);
+      result.append("extract(").append(field).append(" from ").append(source).append(')');
+      hasMore=tokens.hasMoreTokens();
+      nextToken=hasMore ? tokens.nextToken() : null;
+      continue;
+    }
+    if ("trim".equals(lcToken) && "(".equals(nextToken)) {
+      List<String> operands=new ArrayList<String>();
+      StringBuilder builder=new StringBuilder();
+      boolean hasMoreOperands=true;
+      String operandToken=tokens.nextToken();
+      boolean quotedOperand=false;
+      while (hasMoreOperands) {
+        final boolean isQuote="'".equals(operandToken);
+        if (isQuote) {
+          quotedOperand=!quotedOperand;
+          if (!quotedOperand) {
+            operands.add(builder.append('\'').toString());
+            builder.setLength(0);
+          }
+ else {
+            builder.append('\'');
+          }
+        }
+ else         if (quotedOperand) {
+          builder.append(operandToken);
+        }
+ else         if (operandToken.length() == 1 && Character.isWhitespace(operandToken.charAt(0))) {
+        }
+ else {
+          operands.add(operandToken);
+        }
+        operandToken=tokens.nextToken();
+        hasMoreOperands=tokens.hasMoreTokens() && !")".equals(operandToken);
+      }
+      TrimOperands trimOperands=new TrimOperands(operands);
+      result.append("trim(");
+      if (trimOperands.trimSpec != null) {
+        result.append(trimOperands.trimSpec).append(' ');
+      }
+      if (trimOperands.trimChar != null) {
+        if (trimOperands.trimChar.startsWith("'") && trimOperands.trimChar.endsWith("'")) {
+          result.append(trimOperands.trimChar);
+        }
+ else {
+          result.append(renderWhereStringTemplate(trimOperands.trimSpec,placeholder,dialect,functionRegistry));
+        }
+        result.append(' ');
+      }
+      if (trimOperands.from != null) {
+        result.append(trimOperands.from).append(' ');
+      }
+ else       if (trimOperands.trimSpec != null || trimOperands.trimChar != null) {
+        result.append("from ");
+      }
+      result.append(renderWhereStringTemplate(trimOperands.trimSource,placeholder,dialect,functionRegistry)).append(')');
+      hasMore=tokens.hasMoreTokens();
+      nextToken=hasMore ? tokens.nextToken() : null;
+      continue;
+    }
     boolean quotedOrWhitespace=quoted || quotedIdentifier || isQuoteCharacter|| Character.isWhitespace(token.charAt(0));
     if (quotedOrWhitespace) {
       result.append(token);
@@ -54,7 +116,9 @@
       afterFromTable=true;
     }
  else     if (afterFromTable) {
-      if (!"as".equals(lcToken))       afterFromTable=false;
+      if (!"as".equals(lcToken)) {
+        afterFromTable=false;
+      }
       result.append(token);
     }
  else     if (isNamedParameter(token)) {
