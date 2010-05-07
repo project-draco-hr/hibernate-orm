@@ -31,15 +31,9 @@
   }
   RequiresDialectFeature requiresDialectFeatureAnn=locateAnnotation(RequiresDialectFeature.class,runMethod);
   if (requiresDialectFeatureAnn != null) {
-    String feature=requiresDialectFeatureAnn.value();
-    boolean skip=false;
-    try {
-      Method m=dialect.getClass().getMethod(feature);
-      skip=(Boolean)m.invoke(dialect);
-    }
- catch (    NoSuchMethodException e) {
-      fail("Dialect does not have a method: " + feature);
-    }
+    Class<? extends DialectChecks> checkClass=requiresDialectFeatureAnn.value();
+    DialectChecks check=checkClass.newInstance();
+    boolean skip=check.include(dialect);
     if (skip) {
       return buildSkip(dialect,null,null);
     }
