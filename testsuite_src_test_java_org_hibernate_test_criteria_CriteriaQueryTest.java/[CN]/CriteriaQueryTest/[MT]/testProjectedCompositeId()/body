@@ -26,10 +26,15 @@
   s=openSession();
   t=s.beginTransaction();
   try {
-    Object result=s.createCriteria(CourseMeeting.class).setProjection(Projections.countDistinct("id")).list();
+    s.createCriteria(CourseMeeting.class).setProjection(Projections.countDistinct("id")).list();
+    if (!getDialect().supportsTupleDistinctCounts()) {
+      fail("expected SQLGrammarException");
+    }
   }
  catch (  SQLGrammarException ex) {
-    if (!(getDialect() instanceof HSQLDialect)) {
+    if (!getDialect().supportsTupleDistinctCounts()) {
+    }
+ else {
       throw ex;
     }
   }
