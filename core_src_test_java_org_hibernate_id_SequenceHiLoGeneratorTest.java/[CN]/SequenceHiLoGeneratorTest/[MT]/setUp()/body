@@ -1,0 +1,21 @@
+{
+  super.setUp();
+  Properties properties=new Properties();
+  properties.setProperty(SequenceGenerator.SEQUENCE,TEST_SEQUENCE);
+  properties.setProperty(SequenceHiLoGenerator.MAX_LO,"3");
+  properties.put(PersistentIdentifierGenerator.IDENTIFIER_NORMALIZER,new ObjectNameNormalizer(){
+    @Override protected boolean isUseQuotedIdentifiersGlobally(){
+      return false;
+    }
+    @Override protected NamingStrategy getNamingStrategy(){
+      return cfg.getNamingStrategy();
+    }
+  }
+);
+  Dialect dialect=new H2Dialect();
+  generator=new SequenceHiLoGenerator();
+  generator.configure(Hibernate.LONG,properties,dialect);
+  cfg=new Configuration().setProperty(Environment.DRIVER,"org.h2.Driver").setProperty(Environment.URL,"jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1").setProperty(Environment.USER,"sa").setProperty(Environment.HBM2DDL_AUTO,"create-drop");
+  cfg.addAuxiliaryDatabaseObject(new SimpleAuxiliaryDatabaseObject(generator.sqlCreateStrings(dialect)[0],generator.sqlDropStrings(dialect)[0]));
+  sessionFactory=(SessionFactoryImplementor)cfg.buildSessionFactory();
+}

@@ -6,13 +6,10 @@
     }
     return value.makeValue();
   }
-  if (lo > maxLo) {
-    IntegralDataTypeHolder hiVal=generateHolder(session);
-    lo=(hiVal.eq(0)) ? 1 : 0;
-    value=hiVal.copy().multiplyBy(maxLo + 1).add(lo);
-    if (log.isDebugEnabled()) {
-      log.debug("new hi value: " + hiVal);
+  return hiloOptimizer.generate(new AccessCallback(){
+    public IntegralDataTypeHolder getNextValue(){
+      return generateHolder(session);
     }
   }
-  return value.makeValueThenIncrement();
+);
 }

@@ -2,7 +2,7 @@
   IntegralDataTypeHolder value=IdentifierGeneratorHelper.getIntegralDataTypeHolder(returnClass);
   int rows;
   do {
-    SQL_STATEMENT_LOGGER.logStatement(sql,FormatStyle.BASIC);
+    SQL_STATEMENT_LOGGER.logStatement(query,FormatStyle.BASIC);
     PreparedStatement qps=conn.prepareStatement(query);
     PreparedStatement ips=null;
     try {
@@ -10,6 +10,7 @@
       boolean isInitialized=rs.next();
       if (!isInitialized) {
         value.initialize(0);
+        SQL_STATEMENT_LOGGER.logStatement(insert,FormatStyle.BASIC);
         ips=conn.prepareStatement(insert);
         value.bind(ips,1);
         ips.execute();
@@ -29,6 +30,7 @@
       }
       qps.close();
     }
+    SQL_STATEMENT_LOGGER.logStatement(update,FormatStyle.BASIC);
     PreparedStatement ups=conn.prepareStatement(update);
     try {
       value.copy().increment().bind(ups,1);
