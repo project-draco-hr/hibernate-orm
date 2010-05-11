@@ -1,0 +1,33 @@
+{
+  getSessions().evictQueries();
+  getSessions().getStatistics().clear();
+  Session s=openSession();
+  List list=new ArrayList();
+  s.beginTransaction();
+  for (int i=0; i < 3; i++) {
+    Item a=new Item();
+    a.setName("a" + i);
+    a.setDescription("a" + i);
+    list.add(a);
+    s.persist(a);
+  }
+  s.getTransaction().commit();
+  s.beginTransaction();
+  String queryString="from Item";
+  s.createQuery(queryString).setCacheable(true).list();
+  s.getTransaction().commit();
+  s.beginTransaction();
+  s.createQuery(queryString).setCacheable(true).list();
+  s.getTransaction().commit();
+  QueryStatistics qs=s.getSessionFactory().getStatistics().getQueryStatistics(queryString);
+  assertEquals(1,qs.getCacheHitCount());
+  assertEquals(1,qs.getCachePutCount());
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  for (  Object obj : list) {
+    s.delete(obj);
+  }
+  s.getTransaction().commit();
+  s.close();
+}
