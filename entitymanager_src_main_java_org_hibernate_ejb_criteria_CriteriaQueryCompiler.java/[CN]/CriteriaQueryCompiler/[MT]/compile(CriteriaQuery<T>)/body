@@ -14,15 +14,37 @@
     public String generateParameterName(){
       return "param" + explicitParameterCount++;
     }
-    public void registerExplicitParameter(    ParameterExpression<?> criteriaQueryParameter,    String jpaqlParameterName){
-      explicitParameterMapping.put(criteriaQueryParameter,jpaqlParameterName);
+    public String registerExplicitParameter(    ParameterExpression<?> criteriaQueryParameter){
+      final String jpaqlParameterName;
+      if (explicitParameterMapping.containsKey(criteriaQueryParameter)) {
+        jpaqlParameterName=explicitParameterMapping.get(criteriaQueryParameter);
+      }
+ else {
+        jpaqlParameterName=generateParameterName();
+        explicitParameterMapping.put(criteriaQueryParameter,jpaqlParameterName);
+      }
       if (StringHelper.isNotEmpty(criteriaQueryParameter.getName())) {
         explicitParameterNameMapping.put(criteriaQueryParameter.getName(),criteriaQueryParameter);
       }
+      return jpaqlParameterName;
     }
-    public void registerImplicitParameterBinding(    ImplicitParameterBinding binding){
+    public String registerLiteralParameterBinding(    final Object literal,    final Class javaType){
+      final String parameterName=generateParameterName();
+      final ImplicitParameterBinding binding=new CriteriaQueryCompiler.ImplicitParameterBinding(){
+        public String getParameterName(){
+          return parameterName;
+        }
+        public Class getJavaType(){
+          return javaType;
+        }
+        public void bind(        TypedQuery typedQuery){
+          typedQuery.setParameter(parameterName,literal);
+        }
+      }
+;
       implicitParameterBindings.add(binding);
-      implicitParameterTypes.put(binding.getParameterName(),binding.getJavaType());
+      implicitParameterTypes.put(parameterName,javaType);
+      return parameterName;
     }
     public String getCastType(    Class javaType){
       SessionFactoryImplementor factory=(SessionFactoryImplementor)entityManager.getFactory().getSessionFactory();
