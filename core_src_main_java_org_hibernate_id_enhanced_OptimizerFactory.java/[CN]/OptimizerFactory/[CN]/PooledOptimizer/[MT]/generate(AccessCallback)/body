@@ -4,7 +4,13 @@
     if (value.lt(1)) {
       log.info("pooled optimizer source reported [" + value + "] as the initial value; use of 1 or greater highly recommended");
     }
-    hiValue=callback.getNextValue();
+    if ((initialValue == -1 && value.lt(incrementSize)) || value.eq(initialValue)) {
+      hiValue=callback.getNextValue();
+    }
+ else {
+      hiValue=value;
+      value=hiValue.copy().subtract(incrementSize);
+    }
   }
  else   if (!hiValue.gt(value)) {
     hiValue=callback.getNextValue();
