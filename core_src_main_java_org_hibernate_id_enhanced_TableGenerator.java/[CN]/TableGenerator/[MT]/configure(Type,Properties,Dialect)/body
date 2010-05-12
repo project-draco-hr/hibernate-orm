@@ -10,7 +10,8 @@
   this.selectQuery=buildSelectQuery(dialect);
   this.updateQuery=buildUpdateQuery();
   this.insertQuery=buildInsertQuery();
-  final String defOptStrategy=incrementSize <= 1 ? OptimizerFactory.NONE : OptimizerFactory.POOL;
-  final String optimizationStrategy=PropertiesHelper.getString(OPT_PARAM,params,defOptStrategy);
+  String defaultPooledOptimizerStrategy=PropertiesHelper.getBoolean(Environment.PREFER_POOLED_VALUES_LO,params,false) ? OptimizerFactory.POOL_LO : OptimizerFactory.POOL;
+  final String defaultOptimizerStrategy=incrementSize <= 1 ? OptimizerFactory.NONE : defaultPooledOptimizerStrategy;
+  final String optimizationStrategy=PropertiesHelper.getString(OPT_PARAM,params,defaultOptimizerStrategy);
   optimizer=OptimizerFactory.buildOptimizer(optimizationStrategy,identifierType.getReturnedClass(),incrementSize,PropertiesHelper.getInt(INITIAL_PARAM,params,-1));
 }
