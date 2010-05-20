@@ -4,7 +4,7 @@
   Session s=openSession();
   s.beginTransaction();
   LobHolder entity=new LobHolder();
-  entity.setClobLocator(Hibernate.createClob(original));
+  entity.setClobLocator(s.getLobHelper().createClob(original));
   s.save(entity);
   s.getTransaction().commit();
   s.close();
@@ -40,7 +40,7 @@
   assertNotNull(entity.getClobLocator());
   assertEquals(CLOB_SIZE,entity.getClobLocator().length());
   assertEquals(original,extractData(entity.getClobLocator()));
-  entity.setClobLocator(Hibernate.createClob(changed));
+  entity.setClobLocator(s.getLobHelper().createClob(changed));
   s.getTransaction().commit();
   s.close();
   s=openSession();

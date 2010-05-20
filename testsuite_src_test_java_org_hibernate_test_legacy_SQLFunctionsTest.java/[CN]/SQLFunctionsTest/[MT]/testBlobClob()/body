@@ -1,8 +1,8 @@
 {
   Session s=openSession();
   Blobber b=new Blobber();
-  b.setBlob(Hibernate.createBlob("foo/bar/baz".getBytes()));
-  b.setClob(Hibernate.createClob("foo/bar/baz"));
+  b.setBlob(s.getLobHelper().createBlob("foo/bar/baz".getBytes()));
+  b.setClob(s.getLobHelper().createClob("foo/bar/baz"));
   s.save(b);
   s.flush();
   if (getDialect() instanceof SybaseDialect || getDialect() instanceof Sybase11Dialect || getDialect() instanceof SybaseASE15Dialect|| getDialect() instanceof SybaseAnywhereDialect) {
@@ -27,7 +27,7 @@
   s.close();
   s=openSession();
   b=(Blobber)s.load(Blobber.class,new Integer(b.getId()));
-  b.setClob(Hibernate.createClob("xcvfxvc xcvbx cvbx cvbx cvbxcvbxcvbxcvb"));
+  b.setClob(s.getLobHelper().createClob("xcvfxvc xcvbx cvbx cvbx cvbxcvbxcvbxcvb"));
   s.flush();
   s.connection().commit();
   s.close();
