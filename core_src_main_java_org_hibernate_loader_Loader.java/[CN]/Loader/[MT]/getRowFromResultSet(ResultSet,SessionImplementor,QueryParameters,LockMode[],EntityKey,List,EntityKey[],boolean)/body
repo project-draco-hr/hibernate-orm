@@ -1,9 +1,7 @@
 {
   final Loadable[] persisters=getEntityPersisters();
   final int entitySpan=persisters.length;
-  for (int i=0; i < entitySpan; i++) {
-    keys[i]=getKeyFromResultSet(i,persisters[i],i == entitySpan - 1 ? queryParameters.getOptionalId() : null,resultSet,session);
-  }
+  extractKeysFromResultSet(persisters,queryParameters,resultSet,session,keys,lockModesArray,hydratedObjects);
   registerNonExists(keys,persisters,session);
   Object[] row=getRow(resultSet,persisters,keys,queryParameters.getOptionalObject(),optionalObjectKey,lockModesArray,hydratedObjects,session);
   readCollectionElements(row,resultSet,session);

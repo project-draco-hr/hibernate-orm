@@ -1,0 +1,41 @@
+{
+  final int entitySpan=persisters.length;
+  final int numberOfPersistersToProcess;
+  final Serializable optionalId=queryParameters.getOptionalId();
+  if (isSingleRowLoader() && optionalId != null) {
+    keys[entitySpan - 1]=new EntityKey(optionalId,persisters[entitySpan - 1],session.getEntityMode());
+    numberOfPersistersToProcess=entitySpan - 1;
+  }
+ else {
+    numberOfPersistersToProcess=entitySpan;
+  }
+  final Object[] hydratedKeyState=new Object[numberOfPersistersToProcess];
+  for (int i=0; i < numberOfPersistersToProcess; i++) {
+    final Type idType=persisters[i].getIdentifierType();
+    hydratedKeyState[i]=idType.hydrate(resultSet,getEntityAliases()[i].getSuffixedKeyAliases(),session,null);
+  }
+  for (int i=0; i < numberOfPersistersToProcess; i++) {
+    final Type idType=persisters[i].getIdentifierType();
+    if (idType.isComponentType() && getCompositeKeyManyToOneTargetIndices() != null) {
+      int[] keyManyToOneTargetIndices=getCompositeKeyManyToOneTargetIndices()[i];
+      if (keyManyToOneTargetIndices != null) {
+        for (        int targetIndex : keyManyToOneTargetIndices) {
+          if (targetIndex < numberOfPersistersToProcess) {
+            final Type targetIdType=persisters[targetIndex].getIdentifierType();
+            final Serializable targetId=(Serializable)targetIdType.resolve(hydratedKeyState[targetIndex],session,null);
+            keys[targetIndex]=new EntityKey(targetId,persisters[targetIndex],session.getEntityMode());
+          }
+          Object object=session.getEntityUsingInterceptor(keys[targetIndex]);
+          if (object != null) {
+            instanceAlreadyLoaded(resultSet,targetIndex,persisters[targetIndex],keys[targetIndex],object,lockModes[targetIndex],session);
+          }
+ else {
+            object=instanceNotYetLoaded(resultSet,targetIndex,persisters[targetIndex],getEntityAliases()[targetIndex].getRowIdAlias(),keys[targetIndex],lockModes[targetIndex],getOptionalObjectKey(queryParameters,session),queryParameters.getOptionalObject(),hydratedObjects,session);
+          }
+        }
+      }
+    }
+    final Serializable resolvedId=(Serializable)idType.resolve(hydratedKeyState[i],session,null);
+    keys[i]=resolvedId == null ? null : new EntityKey(resolvedId,persisters[i],session.getEntityMode());
+  }
+}
