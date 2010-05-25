@@ -1,0 +1,21 @@
+{
+  final Class<?> clazz=proxy.getClass();
+  try {
+    Member member=cache.getMember(clazz,property);
+    if (member instanceof Field) {
+      return ((Field)member).get(proxy);
+    }
+ else     if (member instanceof Method) {
+      return ((Method)member).invoke(proxy);
+    }
+ else {
+      throw new AssertionFailure("Member object neither Field nor Method: " + member);
+    }
+  }
+ catch (  IllegalAccessException e) {
+    throw new PersistenceException("Unable to access field or method: " + clazz + "#"+ property,e);
+  }
+catch (  InvocationTargetException e) {
+    throw new PersistenceException("Unable to access field or method: " + clazz + "#"+ property,e);
+  }
+}

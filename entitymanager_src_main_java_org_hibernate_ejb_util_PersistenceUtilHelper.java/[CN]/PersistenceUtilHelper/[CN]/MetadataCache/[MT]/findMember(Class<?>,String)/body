@@ -1,0 +1,19 @@
+{
+  final List<Class<?>> classes=getClassHierarchy(clazz);
+  for (  Class current : classes) {
+    final Field field;
+    try {
+      field=current.getDeclaredField(property);
+      setAccessibility(field);
+      return field;
+    }
+ catch (    NoSuchFieldException e) {
+      final Method method=getMethod(clazz,property);
+      if (method != null) {
+        setAccessibility(method);
+        return method;
+      }
+    }
+  }
+  throw new PersistenceException("Unable to find field or method: " + clazz + "#"+ property);
+}
