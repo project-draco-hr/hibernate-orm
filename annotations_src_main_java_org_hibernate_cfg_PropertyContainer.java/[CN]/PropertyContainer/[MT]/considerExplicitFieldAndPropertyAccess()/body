@@ -1,0 +1,28 @@
+{
+  for (  XProperty property : fieldAccessMap.values()) {
+    Access access=property.getAnnotation(Access.class);
+    if (access == null) {
+      continue;
+    }
+    AccessType accessType=AccessType.getAccessStrategy(access.value());
+    if (accessType == AccessType.FIELD) {
+      propertyAccessMap.put(property.getName(),property);
+    }
+ else {
+      log.warn("Placing @Access(AccessType.PROPERTY) on a field does not have any effect.");
+    }
+  }
+  for (  XProperty property : propertyAccessMap.values()) {
+    Access access=property.getAnnotation(Access.class);
+    if (access == null) {
+      continue;
+    }
+    AccessType accessType=AccessType.getAccessStrategy(access.value());
+    if (accessType == AccessType.PROPERTY) {
+      fieldAccessMap.put(property.getName(),property);
+    }
+ else {
+      log.warn("Placing @Access(AccessType.FIELD) on a property does not have any effect.");
+    }
+  }
+}
