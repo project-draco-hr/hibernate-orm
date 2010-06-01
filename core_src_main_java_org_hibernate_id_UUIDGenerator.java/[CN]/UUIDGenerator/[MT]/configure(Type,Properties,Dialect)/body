@@ -1,0 +1,35 @@
+{
+  strategy=(UUIDGenerationStrategy)params.get(UUID_GEN_STRATEGY);
+  if (strategy == null) {
+    final String strategyClassName=params.getProperty(UUID_GEN_STRATEGY_CLASS);
+    if (strategyClassName != null) {
+      try {
+        final Class strategyClass=ReflectHelper.classForName(strategyClassName);
+        try {
+          strategy=(UUIDGenerationStrategy)strategyClass.newInstance();
+        }
+ catch (        Exception ignore) {
+          log.warn("Unable to instantiate UUID generation strategy class : {}",ignore);
+        }
+      }
+ catch (      ClassNotFoundException ignore) {
+        log.warn("Unable to locate requested UUID generation strategy class : {}",strategyClassName);
+      }
+    }
+  }
+  if (strategy == null) {
+    strategy=StandardRandomStrategy.INSTANCE;
+  }
+  if (UUID.class.isAssignableFrom(type.getReturnedClass())) {
+    valueTransformer=UUIDTypeDescriptor.PassThroughTransformer.INSTANCE;
+  }
+ else   if (String.class.isAssignableFrom(type.getReturnedClass())) {
+    valueTransformer=UUIDTypeDescriptor.ToStringTransformer.INSTANCE;
+  }
+ else   if (byte[].class.isAssignableFrom(type.getReturnedClass())) {
+    valueTransformer=UUIDTypeDescriptor.ToBytesTransformer.INSTANCE;
+  }
+ else {
+    throw new HibernateException("Unanticipated return type [" + type.getReturnedClass().getName() + "] for UUID conversion");
+  }
+}
