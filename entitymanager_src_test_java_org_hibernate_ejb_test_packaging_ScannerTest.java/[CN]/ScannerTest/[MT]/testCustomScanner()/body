@@ -4,11 +4,17 @@
   addPackageToClasspath(defaultPar,explicitPar);
   EntityManagerFactory emf;
   CustomScanner.resetUsed();
-  emf=Persistence.createEntityManagerFactory("defaultpar",new HashMap());
+  final HashMap integration=new HashMap();
+  emf=Persistence.createEntityManagerFactory("defaultpar",integration);
   assertTrue(!CustomScanner.isUsed());
   emf.close();
   CustomScanner.resetUsed();
-  emf=Persistence.createEntityManagerFactory("manager1",new HashMap());
+  emf=Persistence.createEntityManagerFactory("manager1",integration);
+  assertTrue(CustomScanner.isUsed());
+  emf.close();
+  CustomScanner.resetUsed();
+  integration.put(AvailableSettings.SCANNER,new CustomScanner());
+  emf=Persistence.createEntityManagerFactory("defaultpar",integration);
   assertTrue(CustomScanner.isUsed());
   emf.close();
 }
