@@ -1,15 +1,16 @@
 {
-  Class<?> javaType;
-  Object unsafeElementType=type;
-  if (unsafeElementType instanceof Class) {
-    javaType=(Class)unsafeElementType;
+  if (type instanceof Class) {
+    return (Class)type;
   }
- else   if (unsafeElementType instanceof TypeVariable) {
-    final java.lang.reflect.Type upperBound=((TypeVariable)unsafeElementType).getBounds()[0];
-    javaType=getClassFromGenericArgument(upperBound);
+ else   if (type instanceof TypeVariable) {
+    final java.lang.reflect.Type upperBound=((TypeVariable)type).getBounds()[0];
+    return getClassFromGenericArgument(upperBound);
+  }
+ else   if (type instanceof ParameterizedType) {
+    final java.lang.reflect.Type rawType=((ParameterizedType)type).getRawType();
+    return getClassFromGenericArgument(rawType);
   }
  else {
-    throw new AssertionFailure("Fail to process type argument in a generic declaration. Type: " + type.getClass());
+    throw new AssertionFailure("Fail to process type argument in a generic declaration. Member : " + getMemberDescription() + " Type: "+ type.getClass());
   }
-  return javaType;
 }
