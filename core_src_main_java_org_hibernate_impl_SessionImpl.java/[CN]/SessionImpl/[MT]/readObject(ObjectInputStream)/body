@@ -20,9 +20,12 @@
   actionQueue=ActionQueue.deserialize(ois,this);
   loadQueryInfluencers=(LoadQueryInfluencers)ois.readObject();
   childSessionsByEntityMode=(Map)ois.readObject();
-  Iterator iter=loadQueryInfluencers.getEnabledFilters().values().iterator();
+  Iterator iter=loadQueryInfluencers.getEnabledFilterNames().iterator();
   while (iter.hasNext()) {
-    ((FilterImpl)iter.next()).afterDeserialize(factory);
+    String filterName=(String)iter.next();
+    FilterImpl filter=(FilterImpl)loadQueryInfluencers.getEnabledFilter(filterName);
+    filter.afterDeserialize(factory);
+    filter.validate();
   }
   if (isRootSession && childSessionsByEntityMode != null) {
     iter=childSessionsByEntityMode.values().iterator();
