@@ -23,6 +23,21 @@
   assertNotNull(trainer);
   assertNotNull(trainer.getTrainedMonkeys());
   assertEquals(2,trainer.getTrainedMonkeys().size());
-  tx.rollback();
+  final Set<Monkey> monkeySet=new HashSet(trainer.getTrainedMonkeys());
+  s.delete(trainer);
+  s.flush();
+  tx.commit();
+  s.clear();
+  tx=s.beginTransaction();
+  for (  Monkey m : monkeySet) {
+    final Object managedMonkey=s.get(Monkey.class,m.getId());
+    assertNotNull("No trainers but monkeys should still be here",managedMonkey);
+  }
+  for (  Monkey m : monkeySet) {
+    final Object managedMonkey=s.get(Monkey.class,m.getId());
+    s.delete(managedMonkey);
+  }
+  s.flush();
+  tx.commit();
   s.close();
 }
