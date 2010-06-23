@@ -7,7 +7,7 @@
     boolean halt=false;
     boolean export=true;
     String outFile=null;
-    String importFile="/import.sql";
+    String importFile=DEFAULT_IMPORT_FILE;
     String propFile=null;
     boolean format=false;
     String delim=null;
@@ -66,7 +66,10 @@
       props.load(new FileInputStream(propFile));
       cfg.setProperties(props);
     }
-    SchemaExport se=new SchemaExport(cfg).setHaltOnError(halt).setOutputFile(outFile).setImportFile(importFile).setDelimiter(delim);
+    if (importFile != null) {
+      cfg.setProperty(Environment.HBM2DDL_IMPORT_FILE,importFile);
+    }
+    SchemaExport se=new SchemaExport(cfg).setHaltOnError(halt).setOutputFile(outFile).setDelimiter(delim);
     if (format) {
       se.setFormat(true);
     }
