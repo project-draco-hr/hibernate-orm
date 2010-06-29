@@ -2,14 +2,10 @@
   ConnectionProvider connections;
   String providerClass=properties.getProperty(Environment.CONNECTION_PROVIDER);
   if (providerClass != null) {
-    try {
-      log.info("Initializing connection provider: " + providerClass);
-      connections=(ConnectionProvider)ReflectHelper.classForName(providerClass).newInstance();
-    }
- catch (    Exception e) {
-      log.error("Could not instantiate connection provider",e);
-      throw new HibernateException("Could not instantiate connection provider: " + providerClass);
-    }
+    connections=initializeConnectionProviderFromConfig(providerClass);
+  }
+ else   if (c3p0ConfigDefined(properties) && c3p0ProviderPresent()) {
+    connections=initializeConnectionProviderFromConfig("org.hibernate.connection.C3P0ConnectionProvider");
   }
  else   if (properties.getProperty(Environment.DATASOURCE) != null) {
     connections=new DatasourceConnectionProvider();
@@ -34,13 +30,13 @@
       }
     }
  catch (    IntrospectionException e) {
-      throw new HibernateException("Unable to inject objects into the conenction provider",e);
+      throw new HibernateException("Unable to inject objects into the connection provider",e);
     }
 catch (    IllegalAccessException e) {
-      throw new HibernateException("Unable to inject objects into the conenction provider",e);
+      throw new HibernateException("Unable to inject objects into the connection provider",e);
     }
 catch (    InvocationTargetException e) {
-      throw new HibernateException("Unable to inject objects into the conenction provider",e);
+      throw new HibernateException("Unable to inject objects into the connection provider",e);
     }
   }
   connections.configure(properties);
