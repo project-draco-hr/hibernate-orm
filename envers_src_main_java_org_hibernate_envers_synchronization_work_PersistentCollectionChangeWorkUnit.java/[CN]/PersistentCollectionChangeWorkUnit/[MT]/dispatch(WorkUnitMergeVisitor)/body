@@ -7,11 +7,18 @@
     }
     List<PersistentCollectionChangeData> mergedChanges=new ArrayList<PersistentCollectionChangeData>();
     for (    PersistentCollectionChangeData originalCollectionChangeData : original.getCollectionChanges()) {
-      if (!newChangesIdMap.containsKey(getOriginalId(originalCollectionChangeData))) {
+      Object originalOriginalId=getOriginalId(originalCollectionChangeData);
+      if (!newChangesIdMap.containsKey(originalOriginalId)) {
         mergedChanges.add(originalCollectionChangeData);
       }
+ else {
+        String revTypePropName=verCfg.getAuditEntCfg().getRevisionTypePropName();
+        if (RevisionType.ADD.equals(newChangesIdMap.get(originalOriginalId).getData().get(revTypePropName)) && RevisionType.DEL.equals(originalCollectionChangeData.getData().get(revTypePropName))) {
+          newChangesIdMap.remove(originalOriginalId);
+        }
+      }
     }
-    mergedChanges.addAll(getCollectionChanges());
+    mergedChanges.addAll(newChangesIdMap.values());
     return new PersistentCollectionChangeWorkUnit(sessionImplementor,entityName,verCfg,id,mergedChanges,referencingPropertyName);
   }
  else {

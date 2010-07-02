@@ -1,0 +1,11 @@
+{
+  AuditEntitiesConfiguration audEntCfg=auditCfg.getAuditEntCfg();
+  String auditedEntityName=audEntCfg.getAuditEntityName(entityName);
+  if (getRevisionType(auditCfg,data) != RevisionType.ADD) {
+    QueryBuilder qb=new QueryBuilder(auditedEntityName,"e");
+    IdMapper idMapper=auditCfg.getEntCfg().get(entityName).getIdMapper();
+    idMapper.addIdEqualsToQuery(qb.getRootParameters(),id,auditCfg.getAuditEntCfg().getOriginalIdPropName(),true);
+    updateLastRevision(session,auditCfg,qb,id,auditedEntityName,revision);
+  }
+  session.save(auditedEntityName,data);
+}
