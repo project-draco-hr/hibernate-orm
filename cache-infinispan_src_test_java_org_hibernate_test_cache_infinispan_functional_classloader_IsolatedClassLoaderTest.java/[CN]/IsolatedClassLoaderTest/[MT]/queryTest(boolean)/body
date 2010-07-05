@@ -1,11 +1,20 @@
 {
   CacheManager localManager=ClusterAwareRegionFactory.getCacheManager(DualNodeTestCase.LOCAL);
-  localQueryCache=localManager.getCache("replicated-query");
+  CacheManager remoteManager=ClusterAwareRegionFactory.getCacheManager(DualNodeTestCase.REMOTE);
+  String cacheName;
+  if (useNamedRegion) {
+    cacheName="AccountRegion";
+    localManager.defineConfiguration(cacheName,"replicated-query",new org.infinispan.config.Configuration());
+    remoteManager.defineConfiguration(cacheName,"replicated-query",new org.infinispan.config.Configuration());
+  }
+ else {
+    cacheName="replicated-query";
+  }
+  localQueryCache=localManager.getCache(cacheName);
   localQueryListener=new CacheAccessListener();
   localQueryCache.addListener(localQueryListener);
   TransactionManager localTM=DualNodeJtaTransactionManagerImpl.getInstance(DualNodeTestCase.LOCAL);
-  CacheManager remoteManager=ClusterAwareRegionFactory.getCacheManager(DualNodeTestCase.REMOTE);
-  remoteQueryCache=remoteManager.getCache("replicated-query");
+  remoteQueryCache=remoteManager.getCache(cacheName);
   remoteQueryListener=new CacheAccessListener();
   remoteQueryCache.addListener(remoteQueryListener);
   TransactionManager remoteTM=DualNodeJtaTransactionManagerImpl.getInstance(DualNodeTestCase.REMOTE);
