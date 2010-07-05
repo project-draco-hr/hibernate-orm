@@ -12,7 +12,11 @@
       value=versionsReader.getFirstLevelCache().get(referencedEntityName,revision,entityId);
     }
  else {
-      Class<?> entityClass=ReflectionTools.loadClass(referencedEntityName);
+      EntityConfiguration entCfg=verCfg.getEntCfg().get(referencedEntityName);
+      if (entCfg == null) {
+        entCfg=verCfg.getEntCfg().getNotVersionEntityConfiguration(referencedEntityName);
+      }
+      Class<?> entityClass=ReflectionTools.loadClass(entCfg.getEntityClassName());
       value=versionsReader.getSessionImplementor().getFactory().getEntityPersister(referencedEntityName).createProxy((Serializable)entityId,new ToOneDelegateSessionImplementor(versionsReader,entityClass,entityId,revision,verCfg));
     }
   }

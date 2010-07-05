@@ -14,7 +14,11 @@
   }
   Object ret;
   try {
-    Class<?> cls=ReflectionTools.loadClass(entityName);
+    EntityConfiguration entCfg=verCfg.getEntCfg().get(entityName);
+    if (entCfg == null) {
+      entCfg=verCfg.getEntCfg().getNotVersionEntityConfiguration(entityName);
+    }
+    Class<?> cls=ReflectionTools.loadClass(entCfg.getEntityClassName());
     ret=ReflectHelper.getDefaultConstructor(cls).newInstance();
   }
  catch (  Exception e) {

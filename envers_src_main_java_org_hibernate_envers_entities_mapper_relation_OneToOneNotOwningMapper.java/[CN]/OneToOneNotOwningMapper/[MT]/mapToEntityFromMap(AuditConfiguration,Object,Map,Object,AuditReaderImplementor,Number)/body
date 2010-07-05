@@ -2,10 +2,14 @@
   if (obj == null) {
     return;
   }
-  Class<?> entityClass=ReflectionTools.loadClass(owningEntityName);
+  EntityConfiguration entCfg=verCfg.getEntCfg().get(owningEntityName);
+  if (entCfg == null) {
+    entCfg=verCfg.getEntCfg().getNotVersionEntityConfiguration(owningEntityName);
+  }
+  Class<?> entityClass=ReflectionTools.loadClass(entCfg.getEntityClassName());
   Object value;
   try {
-    value=versionsReader.createQuery().forEntitiesAtRevision(entityClass,revision).add(AuditEntity.relatedId(owningReferencePropertyName).eq(primaryKey)).getSingleResult();
+    value=versionsReader.createQuery().forEntitiesAtRevision(entityClass,owningEntityName,revision).add(AuditEntity.relatedId(owningReferencePropertyName).eq(primaryKey)).getSingleResult();
   }
  catch (  NoResultException e) {
     value=null;
