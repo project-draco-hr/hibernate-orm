@@ -1,0 +1,25 @@
+{
+  boolean stopProcess=false;
+  RuntimeException originalException=null;
+  while (!stopProcess) {
+    List<FkSecondPass> failingSecondPasses=new ArrayList<FkSecondPass>();
+    Iterator<FkSecondPass> it=endOfQueueFkSecondPasses.listIterator();
+    while (it.hasNext()) {
+      final FkSecondPass pass=it.next();
+      try {
+        pass.doSecondPass(classes);
+      }
+ catch (      RecoverableException e) {
+        failingSecondPasses.add(pass);
+        if (originalException == null) {
+          originalException=(RuntimeException)e.getCause();
+        }
+      }
+    }
+    stopProcess=failingSecondPasses.size() == 0 || failingSecondPasses.size() == endOfQueueFkSecondPasses.size();
+    endOfQueueFkSecondPasses=failingSecondPasses;
+  }
+  if (endOfQueueFkSecondPasses.size() > 0) {
+    throw originalException;
+  }
+}
