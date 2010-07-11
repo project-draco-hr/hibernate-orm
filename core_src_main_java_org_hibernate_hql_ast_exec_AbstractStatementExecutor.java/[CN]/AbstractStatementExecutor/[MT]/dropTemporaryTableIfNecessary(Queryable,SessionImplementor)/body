@@ -2,23 +2,23 @@
   if (getFactory().getDialect().dropTemporaryTableAfterUse()) {
     IsolatedWork work=new IsolatedWork(){
       public void doWork(      Connection connection) throws HibernateException {
-        Statement stmnt=null;
+        final String command=session.getFactory().getSettings().getDialect().getDropTemporaryTableString() + ' ' + persister.getTemporaryIdTableName();
         try {
-          final String command=session.getFactory().getSettings().getDialect().getDropTemporaryTableString() + " " + persister.getTemporaryIdTableName();
-          stmnt=connection.createStatement();
-          stmnt.executeUpdate(command);
-        }
- catch (        Throwable t) {
-          log.warn("unable to drop temporary id table after use [" + t.getMessage() + "]");
-        }
- finally {
-          if (stmnt != null) {
+          Statement statement=connection.createStatement();
+          try {
+            statement=connection.createStatement();
+            statement.executeUpdate(command);
+          }
+  finally {
             try {
-              stmnt.close();
+              statement.close();
             }
  catch (            Throwable ignore) {
             }
           }
+        }
+ catch (        Exception e) {
+          log.warn("unable to drop temporary id table after use [" + e.getMessage() + "]");
         }
       }
     }

@@ -1,14 +1,4 @@
 {
-  if (log.isWarnEnabled()) {
-    if (log.isDebugEnabled() && warning != null) {
-      message=StringHelper.isNotEmpty(message) ? message : DEFAULT_WARNING_MSG;
-      log.debug(message,warning);
-    }
-    while (warning != null) {
-      StringBuffer buf=new StringBuffer(30).append("SQL Warning: ").append(warning.getErrorCode()).append(", SQLState: ").append(warning.getSQLState());
-      log.warn(buf.toString());
-      log.warn(warning.getMessage());
-      warning=warning.getNextWarning();
-    }
-  }
+  final WarningHandler handler=StringHelper.isNotEmpty(message) ? new StandardWarningHandler(message) : STANDARD_WARNING_HANDLER;
+  walkWarnings(warning,handler);
 }

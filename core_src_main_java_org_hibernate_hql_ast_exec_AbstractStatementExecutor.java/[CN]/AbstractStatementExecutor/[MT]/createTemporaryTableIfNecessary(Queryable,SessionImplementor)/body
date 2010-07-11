@@ -1,22 +1,22 @@
 {
   IsolatedWork work=new IsolatedWork(){
     public void doWork(    Connection connection) throws HibernateException {
-      Statement stmnt=null;
       try {
-        stmnt=connection.createStatement();
-        stmnt.executeUpdate(persister.getTemporaryIdTableDDL());
-      }
- catch (      Throwable t) {
-        log.debug("unable to create temporary id table [" + t.getMessage() + "]");
-      }
- finally {
-        if (stmnt != null) {
+        Statement statement=connection.createStatement();
+        try {
+          statement.executeUpdate(persister.getTemporaryIdTableDDL());
+          JDBCExceptionReporter.handleAndClearWarnings(statement,CREATION_WARNING_HANDLER);
+        }
+  finally {
           try {
-            stmnt.close();
+            statement.close();
           }
  catch (          Throwable ignore) {
           }
         }
+      }
+ catch (      Exception e) {
+        log.debug("unable to create temporary id table [" + e.getMessage() + "]");
       }
     }
   }
