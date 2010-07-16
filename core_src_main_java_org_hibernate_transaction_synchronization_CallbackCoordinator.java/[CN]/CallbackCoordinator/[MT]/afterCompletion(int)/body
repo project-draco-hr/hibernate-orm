@@ -1,0 +1,16 @@
+{
+  log.trace("transaction after completion callback [status={}]",status);
+  try {
+    afterCompletionAction.doAction(ctx,status);
+    final boolean wasSuccessful=(status == Status.STATUS_COMMITTED);
+    jdbcContext.afterTransactionCompletion(wasSuccessful,hibernateTransaction);
+  }
+  finally {
+    reset();
+    jdbcContext.cleanUpJtaSynchronizationCallbackCoordinator();
+    if (ctx.shouldAutoClose() && !ctx.isClosed()) {
+      log.trace("automatically closing session");
+      ctx.managedClose();
+    }
+  }
+}

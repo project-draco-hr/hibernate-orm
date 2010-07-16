@@ -26,58 +26,26 @@
           throw new AssertionFailure("Transaction MARKED_FOR_JOINED after isOpen() call");
         }
         log.trace("Adding flush() and close() synchronization");
-        joinableCMTTransaction.registerSynchronization(new Synchronization(){
-          public void beforeCompletion(){
-            boolean flush=false;
-            TransactionFactory.Context ctx=null;
-            try {
-              ctx=(TransactionFactory.Context)session;
-              JoinableCMTTransaction joinable=(JoinableCMTTransaction)session.getTransaction();
-              javax.transaction.Transaction transaction=joinable.getTransaction();
-              if (transaction == null) {
-                log.warn("Transaction not available on beforeCompletionPhase: assuming valid");
-              }
-              flush=!ctx.isFlushModeNever() && (transaction == null || !JTAHelper.isRollback(transaction.getStatus()));
+        CallbackCoordinator callbackCoordinator=((SessionImplementor)getSession()).getJDBCContext().getJtaSynchronizationCallbackCoordinator();
+        if (callbackCoordinator == null) {
+          throw new AssertionFailure("Expecting CallbackCoordinator to be non-null");
+        }
+        callbackCoordinator.setBeforeCompletionManagedFlushChecker(new BeforeCompletionManagedFlushChecker(){
+          public boolean shouldDoManagedFlush(          TransactionFactory.Context ctx,          javax.transaction.Transaction jtaTransaction) throws SystemException {
+            if (transaction == null) {
+              log.warn("Transaction not available on beforeCompletion: assuming valid");
             }
- catch (            SystemException se) {
-              log.error("could not determine transaction status",se);
-              PersistenceException pe=new PersistenceException("could not determine transaction status in beforeCompletion()",se);
-              handlePersistenceException(pe);
-              throw pe;
-            }
-catch (            HibernateException he) {
-              throwPersistenceException(he);
-            }
-            try {
-              if (flush) {
-                log.trace("automatically flushing session");
-                ctx.managedFlush();
-              }
- else {
-                log.trace("skipping managed flushing");
-              }
-            }
- catch (            HibernateException he) {
-              throw convert(he);
-            }
-catch (            PersistenceException pe) {
-              handlePersistenceException(pe);
-              throw pe;
-            }
-catch (            RuntimeException re) {
-              PersistenceException wrapped=new PersistenceException(re);
-              handlePersistenceException(wrapped);
-              throw wrapped;
-            }
+            return !ctx.isFlushModeNever() && (jtaTransaction == null || !JTAHelper.isRollback(jtaTransaction.getStatus()));
           }
-          public void afterCompletion(          int status){
+        }
+);
+        callbackCoordinator.setAfterCompletionAction(new AfterCompletionAction(){
+          public void doAction(          TransactionFactory.Context ctx,          int status){
             try {
-              if (Status.STATUS_ROLLEDBACK == status && transactionType == PersistenceUnitTransactionType.JTA) {
-                if (session.isOpen()) {
+              if (!ctx.isClosed()) {
+                if (Status.STATUS_ROLLEDBACK == status && transactionType == PersistenceUnitTransactionType.JTA) {
                   session.clear();
                 }
-              }
-              if (session.isOpen()) {
                 JoinableCMTTransaction joinable=(JoinableCMTTransaction)session.getTransaction();
                 joinable.resetStatus();
               }
@@ -85,6 +53,21 @@ catch (            RuntimeException re) {
  catch (            HibernateException e) {
               throw convert(e);
             }
+          }
+        }
+);
+        callbackCoordinator.setExceptionMapper(new ExceptionMapper(){
+          public RuntimeException mapStatusCheckFailure(          String message,          SystemException systemException){
+            throw new PersistenceException(message,systemException);
+          }
+          public RuntimeException mapManagedFlushFailure(          String message,          RuntimeException failure){
+            if (HibernateException.class.isInstance(failure)) {
+              throw convert(failure);
+            }
+            if (PersistenceException.class.isInstance(failure)) {
+              throw failure;
+            }
+            throw new PersistenceException(message,failure);
           }
         }
 );
