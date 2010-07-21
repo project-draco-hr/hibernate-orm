@@ -1,11 +1,19 @@
 {
   super();
+  try {
+    Class props=ReflectHelper.classForName("org.hsqldb.persist.HsqlDatabaseProperties");
+    String versionString=(String)props.getDeclaredField("THIS_VERSION").get(null);
+    hsqldbVersion=Integer.parseInt(versionString.substring(0,1)) * 10;
+    hsqldbVersion+=Integer.parseInt(versionString.substring(2,3));
+  }
+ catch (  Throwable e) {
+  }
   registerColumnType(Types.BIGINT,"bigint");
   registerColumnType(Types.BINARY,"binary");
   registerColumnType(Types.BIT,"bit");
-  registerColumnType(Types.CHAR,"char(1)");
+  registerColumnType(Types.CHAR,"char($l)");
   registerColumnType(Types.DATE,"date");
-  registerColumnType(Types.DECIMAL,"decimal");
+  registerColumnType(Types.DECIMAL,"decimal($p,$s)");
   registerColumnType(Types.DOUBLE,"double");
   registerColumnType(Types.FLOAT,"float");
   registerColumnType(Types.INTEGER,"integer");
@@ -17,11 +25,20 @@
   registerColumnType(Types.TIMESTAMP,"timestamp");
   registerColumnType(Types.VARCHAR,"varchar($l)");
   registerColumnType(Types.VARBINARY,"varbinary($l)");
-  registerColumnType(Types.NUMERIC,"numeric");
-  registerColumnType(Types.BLOB,"longvarbinary");
-  registerColumnType(Types.CLOB,"longvarchar");
-  registerColumnType(Types.LONGVARBINARY,"longvarbinary");
-  registerColumnType(Types.LONGVARCHAR,"longvarchar");
+  if (hsqldbVersion < 20) {
+    registerColumnType(Types.NUMERIC,"numeric");
+  }
+ else {
+    registerColumnType(Types.NUMERIC,"numeric($p,$s)");
+  }
+  if (hsqldbVersion < 20) {
+    registerColumnType(Types.BLOB,"longvarbinary");
+    registerColumnType(Types.CLOB,"longvarchar");
+  }
+ else {
+    registerColumnType(Types.BLOB,"blob");
+    registerColumnType(Types.CLOB,"clob");
+  }
   registerFunction("avg",new AvgWithArgumentCastFunction("double"));
   registerFunction("ascii",new StandardSQLFunction("ascii",Hibernate.INTEGER));
   registerFunction("char",new StandardSQLFunction("char",Hibernate.CHARACTER));
@@ -36,8 +53,10 @@
   registerFunction("space",new StandardSQLFunction("space",Hibernate.STRING));
   registerFunction("rawtohex",new StandardSQLFunction("rawtohex"));
   registerFunction("hextoraw",new StandardSQLFunction("hextoraw"));
+  registerFunction("str",new SQLFunctionTemplate(Hibernate.STRING,"cast(?1 as varchar(24))"));
   registerFunction("user",new NoArgSQLFunction("user",Hibernate.STRING));
   registerFunction("database",new NoArgSQLFunction("database",Hibernate.STRING));
+  registerFunction("sysdate",new NoArgSQLFunction("sysdate",Hibernate.DATE,false));
   registerFunction("current_date",new NoArgSQLFunction("current_date",Hibernate.DATE,false));
   registerFunction("curdate",new NoArgSQLFunction("curdate",Hibernate.DATE));
   registerFunction("current_timestamp",new NoArgSQLFunction("current_timestamp",Hibernate.TIMESTAMP,false));
@@ -51,7 +70,7 @@
   registerFunction("month",new StandardSQLFunction("month",Hibernate.INTEGER));
   registerFunction("year",new StandardSQLFunction("year",Hibernate.INTEGER));
   registerFunction("week",new StandardSQLFunction("week",Hibernate.INTEGER));
-  registerFunction("quater",new StandardSQLFunction("quater",Hibernate.INTEGER));
+  registerFunction("quarter",new StandardSQLFunction("quarter",Hibernate.INTEGER));
   registerFunction("hour",new StandardSQLFunction("hour",Hibernate.INTEGER));
   registerFunction("minute",new StandardSQLFunction("minute",Hibernate.INTEGER));
   registerFunction("second",new StandardSQLFunction("second",Hibernate.INTEGER));
