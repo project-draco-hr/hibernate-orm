@@ -1,0 +1,34 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  Organization jboss=new Organization("JBoss");
+  Person me=new Person("Steve");
+  Employment emp=new Employment(me,jboss,"US");
+  Serializable jbossId=s.save(jboss);
+  s.save(me);
+  s.save(emp);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  String sql="SELECT org.ORGID 		as orgid," + "       org.NAME 		as name," + "       emp.EMPLOYER 	as employer,"+ "       emp.EMPID 		as empid,"+ "       emp.EMPLOYEE 	as employee,"+ "       emp.EMPLOYER 	as employer,"+ "       emp.STARTDATE 	as startDate,"+ "       emp.ENDDATE 	as endDate,"+ "       emp.REGIONCODE 	as regionCode,"+ "       emp.VALUE 		as VALUE,"+ "       emp.CURRENCY 	as CURRENCY"+ " FROM 	ORGANIZATION org"+ "    LEFT OUTER JOIN EMPLOYMENT emp ON org.ORGID = emp.EMPLOYER";
+  SQLQuery sqlQuery=s.createSQLQuery(sql);
+  sqlQuery.setResultSetMapping("org-description");
+  sqlQuery.list();
+  sqlQuery.addRoot("org",Organization.class);
+  sqlQuery.addFetch("emp","org","employments");
+  sqlQuery.list();
+  sqlQuery.addRoot("org",Organization.class).addProperty("id","orgid").addProperty("name").addColumnAlias("name");
+  sqlQuery.addFetch("emp","org","employments").addProperty("key","employer").addProperty("element","empid").addProperty("element.employee","employee").addProperty("element.employer","employer").addProperty("element.startDate","startDate").addProperty("element.endDate","endDate").addProperty("element.regionCode","regionCode").addProperty("element.employmentId","empId").addProperty("element.salary").addColumnAlias("VALUE").addColumnAlias("CURRENCY");
+  sqlQuery.list();
+  sqlQuery.addScalar("orgid",LongType.INSTANCE).addScalar("name",StringType.INSTANCE).addScalar("empid",LongType.INSTANCE).addScalar("employee",LongType.INSTANCE).addScalar("startDate",TimestampType.INSTANCE).addScalar("endDate",TimestampType.INSTANCE).addScalar("regionCode",StringType.INSTANCE).addScalar("empId",LongType.INSTANCE).addScalar("VALUE",FloatType.INSTANCE).addScalar("CURRENCY",StringType.INSTANCE);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  s.delete(emp);
+  s.delete(jboss);
+  s.delete(me);
+  s.getTransaction().commit();
+  s.close();
+}
