@@ -1,27 +1,8 @@
 {
   log.info("building session factory");
-  Statistics concurrentStatistics=null;
-  try {
-    Class concurrentStatsClass=ReflectHelper.classForName("org.hibernate.stat.ConcurrentStatisticsImpl");
-    Constructor constructor=concurrentStatsClass.getConstructor(new Class[]{SessionFactoryImplementor.class});
-    concurrentStatistics=(Statistics)constructor.newInstance(new Object[]{this});
-    log.trace("JDK 1.5 concurrent classes present");
-  }
- catch (  NoClassDefFoundError noJava5) {
-    log.trace("JDK 1.5 concurrent classes missing");
-  }
-catch (  Exception noJava5) {
-    log.trace("JDK 1.5 concurrent classes missing");
-  }
-  if (concurrentStatistics != null) {
-    this.statistics=concurrentStatistics;
-  }
- else {
-    this.statistics=new StatisticsImpl(this);
-  }
-  if (log.isTraceEnabled()) {
-    log.trace("Statistics initialized with " + statistics.getClass().getName());
-  }
+  this.statistics=new ConcurrentStatisticsImpl(this);
+  getStatistics().setStatisticsEnabled(settings.isStatisticsEnabled());
+  log.debug("Statistics initialized [enabled={}]}",settings.isStatisticsEnabled());
   this.properties=new Properties();
   this.properties.putAll(cfg.getProperties());
   this.interceptor=cfg.getInterceptor();
@@ -201,7 +182,6 @@ catch (  Exception noJava5) {
       throw new HibernateException(failingQueries.toString());
     }
   }
-  getStatistics().setStatisticsEnabled(settings.isStatisticsEnabled());
   EntityNotFoundDelegate entityNotFoundDelegate=cfg.getEntityNotFoundDelegate();
   if (entityNotFoundDelegate == null) {
     entityNotFoundDelegate=new EntityNotFoundDelegate(){
