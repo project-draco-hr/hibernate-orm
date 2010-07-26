@@ -1,0 +1,36 @@
+{
+  if (BinaryStream.class.isInstance(inputStream) && Integer.MAX_VALUE > position) {
+    byte[] data=((BinaryStream)inputStream).getBytes();
+    int size=Math.min(length,data.length);
+    byte[] result=new byte[size];
+    System.arraycopy(data,(int)position,result,0,size);
+    return result;
+  }
+  ByteArrayOutputStream outputStream=new ByteArrayOutputStream(length);
+  try {
+    long skipped=inputStream.skip(position - 1);
+    if (skipped != position - 1) {
+      throw new HibernateException("Unable to skip needed bytes");
+    }
+    byte[] buffer=new byte[2048];
+    int bytesRead=0;
+    while (true) {
+      int amountRead=inputStream.read(buffer);
+      if (amountRead == -1) {
+        break;
+      }
+      outputStream.write(buffer,0,amountRead);
+      if (amountRead < buffer.length) {
+        break;
+      }
+      bytesRead+=amountRead;
+      if (bytesRead >= length) {
+        break;
+      }
+    }
+  }
+ catch (  IOException ioe) {
+    throw new HibernateException("IOException occurred reading a binary value",ioe);
+  }
+  return outputStream.toByteArray();
+}

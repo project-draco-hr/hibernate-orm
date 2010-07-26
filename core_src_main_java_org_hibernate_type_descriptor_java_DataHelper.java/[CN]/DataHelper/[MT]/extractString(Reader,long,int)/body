@@ -1,0 +1,29 @@
+{
+  StringBuilder stringBuilder=new StringBuilder(length);
+  try {
+    long skipped=characterStream.skip(start - 1);
+    if (skipped != start - 1) {
+      throw new HibernateException("Unable to skip needed bytes");
+    }
+    char[] buffer=new char[2048];
+    int charsRead=0;
+    while (true) {
+      int amountRead=characterStream.read(buffer,0,buffer.length);
+      if (amountRead == -1) {
+        break;
+      }
+      stringBuilder.append(buffer,0,amountRead);
+      if (amountRead < buffer.length) {
+        break;
+      }
+      charsRead+=amountRead;
+      if (charsRead >= length) {
+        break;
+      }
+    }
+  }
+ catch (  IOException ioe) {
+    throw new HibernateException("IOException occurred reading a binary value",ioe);
+  }
+  return stringBuilder.toString();
+}

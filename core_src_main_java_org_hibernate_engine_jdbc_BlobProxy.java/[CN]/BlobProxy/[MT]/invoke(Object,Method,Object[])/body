@@ -1,21 +1,52 @@
 {
-  if ("length".equals(method.getName())) {
-    return new Long(getLength());
+  final String methodName=method.getName();
+  final int argCount=method.getParameterTypes().length;
+  if ("length".equals(methodName) && argCount == 0) {
+    return Long.valueOf(getLength());
   }
-  if ("getBinaryStream".equals(method.getName()) && method.getParameterTypes().length == 0) {
-    return getStream();
+  if ("getBinaryStream".equals(methodName)) {
+    if (argCount == 0) {
+      return getStream();
+    }
+ else     if (argCount == 2) {
+      long start=(Long)args[0];
+      if (start < 1) {
+        throw new SQLException("Start position 1-based; must be 1 or more.");
+      }
+      if (start > getLength()) {
+        throw new SQLException("Start position [" + start + "] cannot exceed overall CLOB length ["+ getLength()+ "]");
+      }
+      int length=(Integer)args[1];
+      if (length < 0) {
+        throw new SQLException("Length must be great-than-or-equal to zero.");
+      }
+      return DataHelper.subStream(getStream(),start - 1,length);
+    }
   }
-  if ("free".equals(method.getName())) {
+  if ("getBytes".equals(methodName)) {
+    if (argCount == 2) {
+      long start=(Long)args[0];
+      if (start < 1) {
+        throw new SQLException("Start position 1-based; must be 1 or more.");
+      }
+      int length=(Integer)args[1];
+      if (length < 0) {
+        throw new SQLException("Length must be great-than-or-equal to zero.");
+      }
+      return DataHelper.extractBytes(getStream(),start - 1,length);
+    }
+  }
+  if ("free".equals(methodName) && argCount == 0) {
     stream.close();
     return null;
   }
-  if ("toString".equals(method.getName())) {
+  if ("toString".equals(methodName) && argCount == 0) {
     return this.toString();
   }
-  if ("equals".equals(method.getName())) {
+  if ("equals".equals(methodName) && argCount == 1) {
     return Boolean.valueOf(proxy == args[0]);
   }
-  if ("hashCode".equals(method.getName())) {
+  if ("hashCode".equals(methodName) && argCount == 0) {
     return new Integer(this.hashCode());
   }
   throw new UnsupportedOperationException("Blob may not be manipulated from creating session");
