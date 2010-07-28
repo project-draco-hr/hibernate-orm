@@ -1,0 +1,24 @@
+{
+  CriteriaExecutor criteriaExecutor=new CriteriaExecutor(){
+    protected Criteria getCriteria(    Session s){
+      return s.createCriteria(Course.class);
+    }
+  }
+;
+  HqlExecutor hqlExecutor=new HqlExecutor(){
+    public Query getQuery(    Session s){
+      return s.createQuery("from Course");
+    }
+  }
+;
+  ResultChecker checker=new ResultChecker(){
+    public void check(    Object results){
+      assertTrue(results instanceof Course);
+      assertEquals(courseExpected,results);
+      assertTrue(Hibernate.isInitialized(((Course)courseExpected).getCourseMeetings()));
+      assertEquals(courseExpected.getCourseMeetings(),((Course)courseExpected).getCourseMeetings());
+    }
+  }
+;
+  runTest(hqlExecutor,criteriaExecutor,checker,true);
+}
