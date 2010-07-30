@@ -2,22 +2,24 @@
   secondPassCompile();
   String defaultCatalog=properties.getProperty(Environment.DEFAULT_CATALOG);
   String defaultSchema=properties.getProperty(Environment.DEFAULT_SCHEMA);
-  ArrayList script=new ArrayList(50);
-  ListIterator itr=auxiliaryDatabaseObjects.listIterator(auxiliaryDatabaseObjects.size());
-  while (itr.hasPrevious()) {
-    AuxiliaryDatabaseObject object=(AuxiliaryDatabaseObject)itr.previous();
-    if (object.appliesToDialect(dialect)) {
-      script.add(object.sqlDropString(dialect,defaultCatalog,defaultSchema));
+  ArrayList<String> script=new ArrayList<String>(50);
+{
+    ListIterator itr=auxiliaryDatabaseObjects.listIterator(auxiliaryDatabaseObjects.size());
+    while (itr.hasPrevious()) {
+      AuxiliaryDatabaseObject object=(AuxiliaryDatabaseObject)itr.previous();
+      if (object.appliesToDialect(dialect)) {
+        script.add(object.sqlDropString(dialect,defaultCatalog,defaultSchema));
+      }
     }
   }
   if (dialect.dropConstraints()) {
-    Iterator iter=getTableMappings();
-    while (iter.hasNext()) {
-      Table table=(Table)iter.next();
+    Iterator itr=getTableMappings();
+    while (itr.hasNext()) {
+      Table table=(Table)itr.next();
       if (table.isPhysicalTable()) {
-        Iterator subIter=table.getForeignKeyIterator();
-        while (subIter.hasNext()) {
-          ForeignKey fk=(ForeignKey)subIter.next();
+        Iterator subItr=table.getForeignKeyIterator();
+        while (subItr.hasNext()) {
+          ForeignKey fk=(ForeignKey)subItr.next();
           if (fk.isPhysicalConstraint()) {
             script.add(fk.sqlDropString(dialect,defaultCatalog,defaultSchema));
           }
@@ -25,19 +27,17 @@
       }
     }
   }
-  Iterator iter=getTableMappings();
-  while (iter.hasNext()) {
-    Table table=(Table)iter.next();
+  Iterator itr=getTableMappings();
+  while (itr.hasNext()) {
+    Table table=(Table)itr.next();
     if (table.isPhysicalTable()) {
       script.add(table.sqlDropString(dialect,defaultCatalog,defaultSchema));
     }
   }
-  iter=iterateGenerators(dialect);
-  while (iter.hasNext()) {
-    String[] lines=((PersistentIdentifierGenerator)iter.next()).sqlDropStrings(dialect);
-    for (int i=0; i < lines.length; i++) {
-      script.add(lines[i]);
-    }
+  itr=iterateGenerators(dialect);
+  while (itr.hasNext()) {
+    String[] lines=((PersistentIdentifierGenerator)itr.next()).sqlDropStrings(dialect);
+    script.addAll(Arrays.asList(lines));
   }
   return ArrayHelper.toStringArray(script);
 }

@@ -1,15 +1,13 @@
 {
+  final String urlExternalForm=url.toExternalForm();
   if (log.isDebugEnabled()) {
-    log.debug("Reading mapping document from URL:" + url.toExternalForm());
+    log.debug("Reading mapping document from URL : {}",urlExternalForm);
   }
   try {
-    addInputStream(url.openStream());
+    add(url.openStream(),"URL",urlExternalForm);
   }
- catch (  InvalidMappingException e) {
-    throw new InvalidMappingException("URL",url.toExternalForm(),e.getCause());
-  }
-catch (  Exception e) {
-    throw new InvalidMappingException("URL",url.toExternalForm(),e);
+ catch (  IOException e) {
+    throw new InvalidMappingException("Unable to open url stream [" + urlExternalForm + "]","URL",urlExternalForm,e);
   }
   return this;
 }

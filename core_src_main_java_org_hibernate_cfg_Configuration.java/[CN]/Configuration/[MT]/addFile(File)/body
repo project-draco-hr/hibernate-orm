@@ -1,24 +1,30 @@
 {
   log.info("Reading mappings from file: " + xmlFile.getPath());
-  if (!xmlFile.exists()) {
+  final String name=xmlFile.getAbsolutePath();
+  final InputSource inputSource;
+  try {
+    inputSource=new InputSource(new FileInputStream(xmlFile));
+  }
+ catch (  FileNotFoundException e) {
     throw new MappingNotFoundException("file",xmlFile.toString());
   }
-  try {
-    List errors=new ArrayList();
-    org.dom4j.Document doc=xmlHelper.createSAXReader(xmlFile.toString(),errors,entityResolver).read(xmlFile);
-    if (errors.size() != 0) {
-      throw new InvalidMappingException("file",xmlFile.toString(),(Throwable)errors.get(0));
+  add(new XMLHelper.MetadataXmlSource(){
+    private final Origin origin=new Origin(){
+      public String getType(){
+        return "file";
+      }
+      public String getName(){
+        return name;
+      }
     }
-    add(doc);
-    return this;
+;
+    public Origin getOrigin(){
+      return origin;
+    }
+    public InputSource getInputSource(){
+      return inputSource;
+    }
   }
- catch (  InvalidMappingException e) {
-    throw e;
-  }
-catch (  MappingNotFoundException e) {
-    throw e;
-  }
-catch (  Exception e) {
-    throw new InvalidMappingException("file",xmlFile.toString(),e);
-  }
+);
+  return this;
 }

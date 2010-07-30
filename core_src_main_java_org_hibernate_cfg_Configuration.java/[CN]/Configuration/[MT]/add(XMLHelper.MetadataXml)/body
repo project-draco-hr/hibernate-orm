@@ -1,0 +1,18 @@
+{
+  if (inSecondPass || !metadataXml.isOrmXml()) {
+    metadataSourceQueue.add(metadataXml);
+  }
+ else {
+    final MetadataProvider metadataProvider=((MetadataProviderInjector)reflectionManager).getMetadataProvider();
+    JPAMetadataProvider jpaMetadataProvider=(JPAMetadataProvider)metadataProvider;
+    List<String> classNames=jpaMetadataProvider.getXMLContext().addDocument(metadataXml.getXmlDocument());
+    for (    String className : classNames) {
+      try {
+        metadataSourceQueue.add(reflectionManager.classForName(className,this.getClass()));
+      }
+ catch (      ClassNotFoundException e) {
+        throw new AnnotationException("Unable to load class defined in XML: " + className,e);
+      }
+    }
+  }
+}

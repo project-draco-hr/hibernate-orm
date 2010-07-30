@@ -1,28 +1,40 @@
 {
-  Attribute rsrc=subelement.attribute("resource");
-  Attribute file=subelement.attribute("file");
-  Attribute jar=subelement.attribute("jar");
-  Attribute pkg=subelement.attribute("package");
-  Attribute clazz=subelement.attribute("class");
-  if (rsrc != null) {
-    log.debug(name + "<-" + rsrc);
-    addResource(rsrc.getValue());
+  final Attribute resourceAttribute=mappingElement.attribute("resource");
+  final Attribute fileAttribute=mappingElement.attribute("file");
+  final Attribute jarAttribute=mappingElement.attribute("jar");
+  final Attribute packageAttribute=mappingElement.attribute("package");
+  final Attribute classAttribute=mappingElement.attribute("class");
+  if (resourceAttribute != null) {
+    final String resourceName=resourceAttribute.getValue();
+    log.debug("session-factory config [{}] named resource [{}] for mapping",name,resourceName);
+    addResource(resourceName);
   }
- else   if (jar != null) {
-    log.debug(name + "<-" + jar);
-    addJar(new File(jar.getValue()));
+ else   if (fileAttribute != null) {
+    final String fileName=fileAttribute.getValue();
+    log.debug("session-factory config [{}] named file [{}] for mapping",name,fileName);
+    addFile(fileName);
   }
- else   if (pkg != null) {
-    throw new MappingException("An AnnotationConfiguration instance is required to use <mapping package=\"" + pkg.getValue() + "\"/>");
+ else   if (jarAttribute != null) {
+    final String jarFileName=jarAttribute.getValue();
+    log.debug("session-factory config [{}] named jar file [{}] for mapping",name,jarFileName);
+    addJar(new File(jarFileName));
   }
- else   if (clazz != null) {
-    throw new MappingException("An AnnotationConfiguration instance is required to use <mapping class=\"" + clazz.getValue() + "\"/>");
+ else   if (packageAttribute != null) {
+    final String packageName=packageAttribute.getValue();
+    log.debug("session-factory config [{}] named package [{}] for mapping",name,packageName);
+    addPackage(packageName);
+  }
+ else   if (classAttribute != null) {
+    final String className=classAttribute.getValue();
+    log.debug("session-factory config [{}] named class [{}] for mapping",name,className);
+    try {
+      addAnnotatedClass(ReflectHelper.classForName(className));
+    }
+ catch (    Exception e) {
+      throw new MappingException("Unable to load class [ " + className + "] declared in Hibernate configuration <mapping/> entry",e);
+    }
   }
  else {
-    if (file == null) {
-      throw new MappingException("<mapping> element in configuration specifies no attributes");
-    }
-    log.debug(name + "<-" + file);
-    addFile(file.getValue());
+    throw new MappingException("<mapping> element in configuration specifies no known attributes");
   }
 }

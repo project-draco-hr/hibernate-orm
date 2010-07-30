@@ -2,7 +2,7 @@
   secondPassCompile();
   String defaultCatalog=properties.getProperty(Environment.DEFAULT_CATALOG);
   String defaultSchema=properties.getProperty(Environment.DEFAULT_SCHEMA);
-  ArrayList script=new ArrayList(50);
+  ArrayList<String> script=new ArrayList<String>(50);
   Iterator iter=getTableMappings();
   while (iter.hasNext()) {
     Table table=(Table)iter.next();
@@ -12,12 +12,12 @@
         script.add(table.sqlCreateString(dialect,mapping,defaultCatalog,defaultSchema));
       }
  else {
-        Iterator subiter=table.sqlAlterStrings(dialect,mapping,tableInfo,defaultCatalog,defaultSchema);
+        Iterator<String> subiter=table.sqlAlterStrings(dialect,mapping,tableInfo,defaultCatalog,defaultSchema);
         while (subiter.hasNext()) {
           script.add(subiter.next());
         }
       }
-      Iterator comments=table.sqlCommentStrings(dialect,defaultCatalog,defaultSchema);
+      Iterator<String> comments=table.sqlCommentStrings(dialect,defaultCatalog,defaultSchema);
       while (comments.hasNext()) {
         script.add(comments.next());
       }
@@ -59,9 +59,7 @@
     Object key=generator.generatorKey();
     if (!databaseMetadata.isSequence(key) && !databaseMetadata.isTable(key)) {
       String[] lines=generator.sqlCreateStrings(dialect);
-      for (int i=0; i < lines.length; i++) {
-        script.add(lines[i]);
-      }
+      script.addAll(Arrays.asList(lines));
     }
   }
   return ArrayHelper.toStringArray(script);

@@ -1,0 +1,16 @@
+{
+  log.debug("Process annotated classes");
+  List<XClass> orderedClasses=orderAndFillHierarchy(annotatedClasses);
+  ExtendedMappings mappings=createMappings();
+  Map<XClass,InheritanceState> inheritanceStatePerClass=AnnotationBinder.buildInheritanceStates(orderedClasses,mappings);
+  for (  XClass clazz : orderedClasses) {
+    AnnotationBinder.bindClass(clazz,inheritanceStatePerClass,mappings);
+    final String entityName=clazz.getName();
+    if (hbmMetadataByEntityNameXRef.containsKey(entityName)) {
+      hbmMetadataToEntityNamesMap.remove(hbmMetadataByEntityNameXRef.get(entityName));
+      hbmMetadataByEntityNameXRef.remove(entityName);
+    }
+  }
+  annotatedClasses.clear();
+  annotatedClassesByEntityNameMap.clear();
+}

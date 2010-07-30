@@ -1,6 +1,6 @@
 {
   secondPassCompile();
-  ArrayList script=new ArrayList(50);
+  ArrayList<String> script=new ArrayList<String>(50);
   String defaultCatalog=properties.getProperty(Environment.DEFAULT_CATALOG);
   String defaultSchema=properties.getProperty(Environment.DEFAULT_SCHEMA);
   Iterator iter=getTableMappings();
@@ -8,7 +8,7 @@
     Table table=(Table)iter.next();
     if (table.isPhysicalTable()) {
       script.add(table.sqlCreateString(dialect,mapping,defaultCatalog,defaultSchema));
-      Iterator comments=table.sqlCommentStrings(dialect,defaultCatalog,defaultSchema);
+      Iterator<String> comments=table.sqlCommentStrings(dialect,defaultCatalog,defaultSchema);
       while (comments.hasNext()) {
         script.add(comments.next());
       }
@@ -45,15 +45,11 @@
   iter=iterateGenerators(dialect);
   while (iter.hasNext()) {
     String[] lines=((PersistentIdentifierGenerator)iter.next()).sqlCreateStrings(dialect);
-    for (int i=0; i < lines.length; i++) {
-      script.add(lines[i]);
-    }
+    script.addAll(Arrays.asList(lines));
   }
-  Iterator itr=auxiliaryDatabaseObjects.iterator();
-  while (itr.hasNext()) {
-    AuxiliaryDatabaseObject object=(AuxiliaryDatabaseObject)itr.next();
-    if (object.appliesToDialect(dialect)) {
-      script.add(object.sqlCreateString(dialect,mapping,defaultCatalog,defaultSchema));
+  for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : auxiliaryDatabaseObjects) {
+    if (auxiliaryDatabaseObject.appliesToDialect(dialect)) {
+      script.add(auxiliaryDatabaseObject.sqlCreateString(dialect,mapping,defaultCatalog,defaultSchema));
     }
   }
   return ArrayHelper.toStringArray(script);

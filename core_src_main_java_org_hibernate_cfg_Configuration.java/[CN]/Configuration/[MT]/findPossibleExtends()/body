@@ -1,14 +1,11 @@
 {
-  Iterator iter=extendsQueue.keySet().iterator();
-  while (iter.hasNext()) {
-    final ExtendsQueueEntry entry=(ExtendsQueueEntry)iter.next();
-    if (getClassMapping(entry.getExplicitName()) != null) {
-      iter.remove();
-      return entry.getDocument();
-    }
- else     if (getClassMapping(HbmBinder.getClassName(entry.getExplicitName(),entry.getMappingPackage())) != null) {
-      iter.remove();
-      return entry.getDocument();
+  Iterator<ExtendsQueueEntry> itr=extendsQueue.keySet().iterator();
+  while (itr.hasNext()) {
+    final ExtendsQueueEntry entry=itr.next();
+    boolean found=getClassMapping(entry.getExplicitName()) != null || getClassMapping(HbmBinder.getClassName(entry.getExplicitName(),entry.getMappingPackage())) != null;
+    if (found) {
+      itr.remove();
+      return entry;
     }
   }
   return null;

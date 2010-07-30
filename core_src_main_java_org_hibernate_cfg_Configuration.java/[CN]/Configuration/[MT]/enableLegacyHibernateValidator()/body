@@ -1,0 +1,57 @@
+{
+  boolean enableValidatorListeners=!"false".equalsIgnoreCase(getProperty("hibernate.validator.autoregister_listeners"));
+  Class validateEventListenerClass=null;
+  try {
+    validateEventListenerClass=ReflectHelper.classForName(LEGACY_VALIDATOR_EVENT_LISTENER,Configuration.class);
+  }
+ catch (  ClassNotFoundException e) {
+    log.debug("Legacy Validator not present in classpath, ignoring event listener registration");
+  }
+  if (enableValidatorListeners && validateEventListenerClass != null) {
+    Object validateEventListener;
+    try {
+      validateEventListener=validateEventListenerClass.newInstance();
+    }
+ catch (    Exception e) {
+      throw new AnnotationException("Unable to load Validator event listener",e);
+    }
+{
+      boolean present=false;
+      PreInsertEventListener[] listeners=getEventListeners().getPreInsertEventListeners();
+      if (listeners != null) {
+        for (        Object eventListener : listeners) {
+          present=present || validateEventListenerClass == eventListener.getClass();
+        }
+        if (!present) {
+          int length=listeners.length + 1;
+          PreInsertEventListener[] newListeners=new PreInsertEventListener[length];
+          System.arraycopy(listeners,0,newListeners,0,length - 1);
+          newListeners[length - 1]=(PreInsertEventListener)validateEventListener;
+          getEventListeners().setPreInsertEventListeners(newListeners);
+        }
+      }
+ else {
+        getEventListeners().setPreInsertEventListeners(new PreInsertEventListener[]{(PreInsertEventListener)validateEventListener});
+      }
+    }
+{
+      boolean present=false;
+      PreUpdateEventListener[] listeners=getEventListeners().getPreUpdateEventListeners();
+      if (listeners != null) {
+        for (        Object eventListener : listeners) {
+          present=present || validateEventListenerClass == eventListener.getClass();
+        }
+        if (!present) {
+          int length=listeners.length + 1;
+          PreUpdateEventListener[] newListeners=new PreUpdateEventListener[length];
+          System.arraycopy(listeners,0,newListeners,0,length - 1);
+          newListeners[length - 1]=(PreUpdateEventListener)validateEventListener;
+          getEventListeners().setPreUpdateEventListeners(newListeners);
+        }
+      }
+ else {
+        getEventListeners().setPreUpdateEventListeners(new PreUpdateEventListener[]{(PreUpdateEventListener)validateEventListener});
+      }
+    }
+  }
+}

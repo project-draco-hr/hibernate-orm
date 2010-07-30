@@ -1,39 +1,53 @@
 {
-  log.debug("processing extends queue");
-  processExtendsQueue();
-  log.debug("processing collection mappings");
-  Iterator iter=secondPasses.iterator();
-  while (iter.hasNext()) {
-    SecondPass sp=(SecondPass)iter.next();
-    if (!(sp instanceof QuerySecondPass)) {
-      sp.doSecondPass(classes);
-      iter.remove();
+  log.trace("Starting secondPassCompile() processing");
+{
+    if (!isDefaultProcessed) {
+      final Object isDelimited=reflectionManager.getDefaults().get("delimited-identifier");
+      if (isDelimited != null && isDelimited == Boolean.TRUE) {
+        getProperties().put(Environment.GLOBALLY_QUOTED_IDENTIFIERS,"true");
+      }
+      AnnotationBinder.bindDefaults(createMappings());
+      isDefaultProcessed=true;
     }
   }
-  log.debug("processing native query and ResultSetMapping mappings");
-  iter=secondPasses.iterator();
-  while (iter.hasNext()) {
-    SecondPass sp=(SecondPass)iter.next();
-    sp.doSecondPass(classes);
-    iter.remove();
+{
+    metadataSourceQueue.syncAnnotatedClasses();
+    metadataSourceQueue.processMetadata(determineMetadataSourcePrecedence());
   }
-  log.debug("processing association property references");
-  iter=propertyReferences.iterator();
-  while (iter.hasNext()) {
-    Mappings.PropertyReference upr=(Mappings.PropertyReference)iter.next();
-    PersistentClass clazz=getClassMapping(upr.referencedClass);
-    if (clazz == null) {
-      throw new MappingException("property-ref to unmapped class: " + upr.referencedClass);
+{
+    for (    CacheHolder holder : caches) {
+      if (holder.isClass) {
+        applyCacheConcurrencyStrategy(holder);
+      }
+ else {
+        applyCollectionCacheConcurrencyStrategy(holder);
+      }
     }
-    Property prop=clazz.getReferencedProperty(upr.propertyName);
-    if (upr.unique) {
-      ((SimpleValue)prop.getValue()).setAlternateUniqueKey(true);
+    caches.clear();
+  }
+  try {
+    inSecondPass=true;
+    processSecondPassesOfType(PkDrivenByDefaultMapsIdSecondPass.class);
+    processSecondPassesOfType(SetSimpleValueTypeSecondPass.class);
+    processSecondPassesOfType(CopyIdentifierComponentSecondPass.class);
+    processFkSecondPassInOrder();
+    processSecondPassesOfType(CreateKeySecondPass.class);
+    processSecondPassesOfType(SecondaryTableSecondPass.class);
+    originalSecondPassCompile();
+    inSecondPass=false;
+  }
+ catch (  RecoverableException e) {
+    throw (RuntimeException)e.getCause();
+  }
+  for (  Map.Entry<Table,List<UniqueConstraintHolder>> tableListEntry : uniqueConstraintHoldersByTable.entrySet()) {
+    final Table table=tableListEntry.getKey();
+    final List<UniqueConstraintHolder> uniqueConstraints=tableListEntry.getValue();
+    int uniqueIndexPerTable=0;
+    for (    UniqueConstraintHolder holder : uniqueConstraints) {
+      uniqueIndexPerTable++;
+      final String keyName=StringHelper.isEmpty(holder.getName()) ? "key" + uniqueIndexPerTable : holder.getName();
+      buildUniqueKeyFromColumnNames(table,keyName,holder.getColumns());
     }
   }
-  log.debug("processing foreign key constraints");
-  iter=getTableMappings();
-  Set done=new HashSet();
-  while (iter.hasNext()) {
-    secondPassCompileForeignKeys((Table)iter.next(),done);
-  }
+  applyConstraintsToDDL();
 }

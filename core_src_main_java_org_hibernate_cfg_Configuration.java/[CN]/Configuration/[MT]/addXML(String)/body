@@ -2,16 +2,24 @@
   if (log.isDebugEnabled()) {
     log.debug("Mapping XML:\n" + xml);
   }
-  try {
-    List errors=new ArrayList();
-    org.dom4j.Document doc=xmlHelper.createSAXReader("XML String",errors,entityResolver).read(new StringReader(xml));
-    if (errors.size() != 0) {
-      throw new MappingException("invalid mapping",(Throwable)errors.get(0));
+  final InputSource inputSource=new InputSource(new StringReader(xml));
+  add(new XMLHelper.MetadataXmlSource(){
+    final Origin origin=new Origin(){
+      public String getType(){
+        return "string";
+      }
+      public String getName(){
+        return "XML String";
+      }
     }
-    add(doc);
+;
+    public Origin getOrigin(){
+      return origin;
+    }
+    public InputSource getInputSource(){
+      return inputSource;
+    }
   }
- catch (  DocumentException e) {
-    throw new MappingException("Could not parse mapping document in XML string",e);
-  }
+);
   return this;
 }
