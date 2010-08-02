@@ -1,0 +1,70 @@
+{
+  if (args.size() == 1) {
+    return resolveBothSpaceTrimFunction().render(argumentType,args,factory);
+  }
+ else   if ("from".equalsIgnoreCase((String)args.get(0))) {
+    return resolveBothSpaceTrimFromFunction().render(argumentType,args,factory);
+  }
+ else {
+    boolean leading=true;
+    boolean trailing=true;
+    String trimCharacter;
+    String trimSource;
+    int potentialTrimCharacterArgIndex=1;
+    String firstArg=(String)args.get(0);
+    if ("leading".equalsIgnoreCase(firstArg)) {
+      trailing=false;
+    }
+ else     if ("trailing".equalsIgnoreCase(firstArg)) {
+      leading=false;
+    }
+ else     if ("both".equalsIgnoreCase(firstArg)) {
+    }
+ else {
+      potentialTrimCharacterArgIndex=0;
+    }
+    String potentialTrimCharacter=(String)args.get(potentialTrimCharacterArgIndex);
+    if ("from".equalsIgnoreCase(potentialTrimCharacter)) {
+      trimCharacter="' '";
+      trimSource=(String)args.get(potentialTrimCharacterArgIndex + 1);
+    }
+ else     if (potentialTrimCharacterArgIndex + 1 >= args.size()) {
+      trimCharacter="' '";
+      trimSource=potentialTrimCharacter;
+    }
+ else {
+      trimCharacter=potentialTrimCharacter;
+      if ("from".equalsIgnoreCase((String)args.get(potentialTrimCharacterArgIndex + 1))) {
+        trimSource=(String)args.get(potentialTrimCharacterArgIndex + 2);
+      }
+ else {
+        trimSource=(String)args.get(potentialTrimCharacterArgIndex + 1);
+      }
+    }
+    List argsToUse=new ArrayList();
+    argsToUse.add(trimSource);
+    argsToUse.add(trimCharacter);
+    if (trimCharacter.equals("' '")) {
+      if (leading && trailing) {
+        return resolveBothSpaceTrimFunction().render(argumentType,argsToUse,factory);
+      }
+ else       if (leading) {
+        return resolveLeadingSpaceTrimFunction().render(argumentType,argsToUse,factory);
+      }
+ else {
+        return resolveTrailingSpaceTrimFunction().render(argumentType,argsToUse,factory);
+      }
+    }
+ else {
+      if (leading && trailing) {
+        return resolveBothTrimFunction().render(argumentType,argsToUse,factory);
+      }
+ else       if (leading) {
+        return resolveLeadingTrimFunction().render(argumentType,argsToUse,factory);
+      }
+ else {
+        return resolveTrailingTrimFunction().render(argumentType,argsToUse,factory);
+      }
+    }
+  }
+}

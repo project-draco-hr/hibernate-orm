@@ -61,9 +61,13 @@
     }
   }
  else   if (COUNT_MODIFIERS.contains(lctoken)) {
-    if (!ready || !aggregate)     throw new QueryException(token + " only allowed inside aggregate function in SELECT");
+    if (!ready || !aggregate) {
+      throw new QueryException(token + " only allowed inside aggregate function in SELECT");
+    }
     q.appendScalarSelectToken(token);
-    if ("*".equals(token))     q.addSelectScalar(getFunction("count",q).getReturnType(Hibernate.LONG,q.getFactory()));
+    if ("*".equals(token)) {
+      q.addSelectScalar(getFunction("count",q).getReturnType(Hibernate.LONG,q.getFactory()));
+    }
   }
  else   if (getFunction(lctoken,q) != null && token.equals(q.unalias(token))) {
     if (!ready)     throw new QueryException(", expected before aggregate function in SELECT: " + token);
