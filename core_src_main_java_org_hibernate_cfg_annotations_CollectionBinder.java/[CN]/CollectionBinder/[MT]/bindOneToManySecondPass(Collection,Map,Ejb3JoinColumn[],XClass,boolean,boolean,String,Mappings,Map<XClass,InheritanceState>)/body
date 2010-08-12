@@ -1,0 +1,39 @@
+{
+  log.debug("Binding a OneToMany: {}.{} through a foreign key",propertyHolder.getEntityName(),propertyName);
+  org.hibernate.mapping.OneToMany oneToMany=new org.hibernate.mapping.OneToMany(mappings,collection.getOwner());
+  collection.setElement(oneToMany);
+  oneToMany.setReferencedEntityName(collectionType.getName());
+  oneToMany.setIgnoreNotFound(ignoreNotFound);
+  String assocClass=oneToMany.getReferencedEntityName();
+  PersistentClass associatedClass=(PersistentClass)persistentClasses.get(assocClass);
+  String orderBy=buildOrderByClauseFromHql(hqlOrderBy,associatedClass,collection.getRole());
+  if (orderBy != null)   collection.setOrderBy(orderBy);
+  if (mappings == null) {
+    throw new AssertionFailure("CollectionSecondPass for oneToMany should not be called with null mappings");
+  }
+  Map<String,Join> joins=mappings.getJoins(assocClass);
+  if (associatedClass == null) {
+    throw new MappingException("Association references unmapped class: " + assocClass);
+  }
+  oneToMany.setAssociatedClass(associatedClass);
+  for (  Ejb3JoinColumn column : fkJoinColumns) {
+    column.setPersistentClass(associatedClass,joins,inheritanceStatePerClass);
+    column.setJoins(joins);
+    collection.setCollectionTable(column.getTable());
+  }
+  log.info("Mapping collection: " + collection.getRole() + " -> "+ collection.getCollectionTable().getName());
+  bindFilters(false);
+  bindCollectionSecondPass(collection,null,fkJoinColumns,cascadeDeleteEnabled,property,mappings);
+  if (!collection.isInverse() && !collection.getKey().isNullable()) {
+    String entityName=oneToMany.getReferencedEntityName();
+    PersistentClass referenced=mappings.getClass(entityName);
+    Backref prop=new Backref();
+    prop.setName('_' + fkJoinColumns[0].getPropertyName() + "Backref");
+    prop.setUpdateable(false);
+    prop.setSelectable(false);
+    prop.setCollectionRole(collection.getRole());
+    prop.setEntityName(collection.getOwner().getEntityName());
+    prop.setValue(collection.getKey());
+    referenced.addProperty(prop);
+  }
+}
