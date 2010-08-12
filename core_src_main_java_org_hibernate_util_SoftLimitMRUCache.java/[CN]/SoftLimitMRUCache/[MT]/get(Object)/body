@@ -1,7 +1,15 @@
 {
-  Object result=softReferenceCache.get(key);
-  if (result != null) {
-    strongReferenceCache.put(key,result);
+  if (key == null) {
+    throw new NullPointerException("Key to get cannot be null");
   }
-  return result;
+  clearObsoleteReferences();
+  SoftReference ref=(SoftReference)softRefCache.get(key);
+  if (ref != null) {
+    Object refValue=ref.get();
+    if (refValue != null) {
+      strongRefCache.put(key,refValue);
+      return refValue;
+    }
+  }
+  return null;
 }
