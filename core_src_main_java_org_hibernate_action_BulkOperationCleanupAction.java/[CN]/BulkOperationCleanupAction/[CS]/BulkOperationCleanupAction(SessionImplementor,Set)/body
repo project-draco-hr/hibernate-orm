@@ -1,22 +1,18 @@
 {
-  Set tmpSpaces=new HashSet(tableSpaces);
+  LinkedHashSet<String> spacesList=new LinkedHashSet<String>();
+  spacesList.addAll(tableSpaces);
   SessionFactoryImplementor factory=session.getFactory();
-  Iterator iterator=factory.getAllClassMetadata().entrySet().iterator();
-  while (iterator.hasNext()) {
-    Map.Entry entry=(Map.Entry)iterator.next();
-    String entityName=(String)entry.getKey();
-    EntityPersister persister=factory.getEntityPersister(entityName);
-    Serializable[] entitySpaces=persister.getQuerySpaces();
+  for (  String entityName : factory.getAllClassMetadata().keySet()) {
+    final EntityPersister persister=factory.getEntityPersister(entityName);
+    final String[] entitySpaces=(String[])persister.getQuerySpaces();
     if (affectedEntity(tableSpaces,entitySpaces)) {
-      tmpSpaces.addAll(Arrays.asList(entitySpaces));
+      spacesList.addAll(Arrays.asList(entitySpaces));
       if (persister.hasCache()) {
         entityCleanups.add(new EntityCleanup(persister.getCacheAccessStrategy()));
       }
-      Set roles=session.getFactory().getCollectionRolesByEntityParticipant(persister.getEntityName());
+      Set<String> roles=session.getFactory().getCollectionRolesByEntityParticipant(persister.getEntityName());
       if (roles != null) {
-        Iterator itr=roles.iterator();
-        while (itr.hasNext()) {
-          String role=(String)itr.next();
+        for (        String role : roles) {
           CollectionPersister collectionPersister=factory.getCollectionPersister(role);
           if (collectionPersister.hasCache()) {
             collectionCleanups.add(new CollectionCleanup(collectionPersister.getCacheAccessStrategy()));
@@ -25,5 +21,5 @@
       }
     }
   }
-  this.affectedTableSpaces=(Serializable[])tmpSpaces.toArray(new Serializable[tmpSpaces.size()]);
+  this.affectedTableSpaces=spacesList.toArray(new String[spacesList.size()]);
 }

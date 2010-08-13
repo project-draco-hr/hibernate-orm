@@ -3,12 +3,6 @@
     executable.execute();
   }
   finally {
-    beforeTransactionProcesses.register(executable.getBeforeTransactionCompletionProcess());
-    if (session.getFactory().getSettings().isQueryCacheEnabled()) {
-      final String[] spaces=(String[])executable.getPropertySpaces();
-      afterTransactionProcesses.addSpacesToInvalidate(spaces);
-      session.getFactory().getUpdateTimestampsCache().preinvalidate(executable.getPropertySpaces());
-    }
-    afterTransactionProcesses.register(executable.getAfterTransactionCompletionProcess());
+    registerCleanupActions(executable);
   }
 }

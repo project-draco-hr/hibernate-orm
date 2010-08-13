@@ -40,7 +40,7 @@
   final String cacheRegionPrefix=settings.getCacheRegionPrefix() == null ? "" : settings.getCacheRegionPrefix() + ".";
   entityPersisters=new HashMap();
   Map entityAccessStrategies=new HashMap();
-  Map classMeta=new HashMap();
+  Map<String,ClassMetadata> classMeta=new HashMap<String,ClassMetadata>();
   classes=cfg.getClassMappings();
   while (classes.hasNext()) {
     final PersistentClass model=(PersistentClass)classes.next();
@@ -61,8 +61,8 @@
     entityPersisters.put(model.getEntityName(),cp);
     classMeta.put(model.getEntityName(),cp.getClassMetadata());
   }
-  classMetadata=Collections.unmodifiableMap(classMeta);
-  Map tmpEntityToCollectionRoleMap=new HashMap();
+  this.classMetadata=Collections.unmodifiableMap(classMeta);
+  Map<String,Set<String>> tmpEntityToCollectionRoleMap=new HashMap<String,Set<String>>();
   collectionPersisters=new HashMap();
   Iterator collections=cfg.getCollectionMappings();
   while (collections.hasNext()) {

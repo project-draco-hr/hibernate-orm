@@ -1,6 +1,5 @@
 {
-  for (Iterator actionItr=insertions.iterator(); actionItr.hasNext(); ) {
-    EntityInsertAction action=(EntityInsertAction)actionItr.next();
+  for (  EntityInsertAction action : (List<EntityInsertAction>)insertions) {
     String entityName=action.getEntityName();
     Object currentEntity=action.getInstance();
     Integer batchNumber;
@@ -8,7 +7,7 @@
       batchNumber=findBatchNumber(action,entityName);
     }
  else {
-      batchNumber=new Integer(actionBatches.size());
+      batchNumber=Integer.valueOf(actionBatches.size());
       latestBatches.put(entityName,batchNumber);
     }
     entityBatchNumber.put(currentEntity,batchNumber);
@@ -17,8 +16,8 @@
   insertions.clear();
   for (int i=0; i < actionBatches.size(); i++) {
     List batch=(List)actionBatches.get(new Integer(i));
-    for (Iterator batchItr=batch.iterator(); batchItr.hasNext(); ) {
-      EntityInsertAction action=(EntityInsertAction)batchItr.next();
+    for (    Object aBatch : batch) {
+      EntityInsertAction action=(EntityInsertAction)aBatch;
       insertions.add(action);
     }
   }
