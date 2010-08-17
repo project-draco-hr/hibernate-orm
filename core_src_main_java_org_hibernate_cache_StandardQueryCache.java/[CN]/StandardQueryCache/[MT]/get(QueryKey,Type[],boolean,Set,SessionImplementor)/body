@@ -31,14 +31,14 @@
         result.add(TypeHelper.assemble((Serializable[])cacheable.get(i),returnTypes,session,null));
       }
     }
- catch (    UnresolvableObjectException uoe) {
-      if (isNaturalKeyLookup) {
+ catch (    RuntimeException ex) {
+      if (isNaturalKeyLookup && (UnresolvableObjectException.class.isInstance(ex) || EntityNotFoundException.class.isInstance(ex))) {
         log.debug("could not reassemble cached result set");
         cacheRegion.evict(key);
         return null;
       }
  else {
-        throw uoe;
+        throw ex;
       }
     }
   }

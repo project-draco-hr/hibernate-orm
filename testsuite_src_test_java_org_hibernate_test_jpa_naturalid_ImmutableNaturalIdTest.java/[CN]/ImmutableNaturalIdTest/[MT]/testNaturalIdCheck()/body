@@ -1,0 +1,17 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  User u=new User("steve","superSecret");
+  s.persist(u);
+  u.setUserName("Steve");
+  try {
+    s.flush();
+    fail();
+  }
+ catch (  HibernateException he) {
+  }
+  u.setUserName("steve");
+  s.delete(u);
+  t.commit();
+  s.close();
+}
