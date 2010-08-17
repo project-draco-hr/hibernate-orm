@@ -1,0 +1,18 @@
+{
+  InputSource source=null;
+  String path="org/hibernate/" + systemId.substring(namespace.length());
+  InputStream dtdStream=resolveInHibernateNamespace(path);
+  if (dtdStream == null) {
+    log.debug("unable to locate [" + systemId + "] on classpath");
+    if (systemId.substring(namespace.length()).indexOf("2.0") > -1) {
+      log.error("Don't use old DTDs, read the Hibernate 3.x Migration Guide!");
+    }
+  }
+ else {
+    log.debug("located [" + systemId + "] in classpath");
+    source=new InputSource(dtdStream);
+    source.setPublicId(publicId);
+    source.setSystemId(systemId);
+  }
+  return source;
+}
