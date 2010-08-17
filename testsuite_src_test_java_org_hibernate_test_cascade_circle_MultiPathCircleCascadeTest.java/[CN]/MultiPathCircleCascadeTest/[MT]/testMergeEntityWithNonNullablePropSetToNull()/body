@@ -1,0 +1,23 @@
+{
+  Route route=getUpdatedDetachedEntity();
+  Node node=(Node)route.getNodes().iterator().next();
+  node.setName(null);
+  Session s=openSession();
+  s.beginTransaction();
+  try {
+    s.merge(route);
+    fail("should have thrown an exception");
+  }
+ catch (  Exception ex) {
+    if (((SessionImplementor)s).getFactory().getSettings().isCheckNullability()) {
+      assertTrue(ex instanceof PropertyValueException);
+    }
+ else {
+      assertTrue(ex instanceof JDBCException);
+    }
+  }
+ finally {
+    s.getTransaction().rollback();
+    s.close();
+  }
+}
