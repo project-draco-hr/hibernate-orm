@@ -1,3 +1,11 @@
 {
-  return context.getSqlFunctionRegistry().hasFunction(ast.getText());
+  AST child=ast.getFirstChild();
+  if (child != null && "{param list}".equals(child.getText())) {
+    return true;
+  }
+  final SQLFunction function=context.getSqlFunctionRegistry().findSQLFunction(ast.getText());
+  if (function == null) {
+    return false;
+  }
+  return !function.hasParenthesesIfNoArguments();
 }
