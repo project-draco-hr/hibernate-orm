@@ -3,12 +3,12 @@
   Serializable id=key == null ? null : key.getIdentifier();
   boolean inTxn=source.getJDBCContext().isTransactionInProgress();
   boolean shouldDelayIdentityInserts=!inTxn && !requiresImmediateIdAccess;
+  source.getPersistenceContext().addEntry(entity,Status.SAVING,null,null,id,null,LockMode.WRITE,useIdentityColumn,persister,false,false);
+  cascadeBeforeSave(source,persister,entity,anything);
   if (useIdentityColumn && !shouldDelayIdentityInserts) {
     log.trace("executing insertions");
     source.getActionQueue().executeInserts();
   }
-  source.getPersistenceContext().addEntry(entity,Status.SAVING,null,null,id,null,LockMode.WRITE,useIdentityColumn,persister,false,false);
-  cascadeBeforeSave(source,persister,entity,anything);
   Object[] values=persister.getPropertyValuesToInsert(entity,getMergeMap(anything),source);
   Type[] types=persister.getPropertyTypes();
   boolean substitute=substituteValuesIfNecessary(entity,id,values,persister,source);
