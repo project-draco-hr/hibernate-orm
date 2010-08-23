@@ -1,0 +1,28 @@
+{
+  EntityManager em=getEntityManager();
+  uste1=new UnversionedStrTestEntity("str1");
+  uste2=new UnversionedStrTestEntity("str2");
+  em.getTransaction().begin();
+  em.persist(uste1);
+  em.persist(uste2);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  uste1=em.find(UnversionedStrTestEntity.class,uste1.getId());
+  uste2=em.find(UnversionedStrTestEntity.class,uste2.getId());
+  M2MIndexedListTargetNotAuditedEntity itnae1=new M2MIndexedListTargetNotAuditedEntity(1,"tnae1");
+  itnae1.getReferences().add(uste1);
+  itnae1.getReferences().add(uste2);
+  em.persist(itnae1);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  M2MIndexedListTargetNotAuditedEntity itnae2=new M2MIndexedListTargetNotAuditedEntity(2,"tnae2");
+  itnae2.getReferences().add(uste2);
+  em.persist(itnae2);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  itnae1.getReferences().set(0,uste2);
+  itnae1.getReferences().set(1,uste1);
+  em.getTransaction().commit();
+  itnae1_id=itnae1.getId();
+  itnae2_id=itnae2.getId();
+}
