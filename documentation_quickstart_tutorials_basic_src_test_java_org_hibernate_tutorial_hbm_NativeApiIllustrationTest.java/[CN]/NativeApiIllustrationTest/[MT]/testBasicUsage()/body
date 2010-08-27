@@ -1,0 +1,16 @@
+{
+  Session session=sessionFactory.openSession();
+  session.beginTransaction();
+  session.save(new Event("Our very first event!",new Date()));
+  session.save(new Event("A follow up event",new Date()));
+  session.getTransaction().commit();
+  session.close();
+  session=sessionFactory.openSession();
+  session.beginTransaction();
+  List result=session.createQuery("from Event").list();
+  for (  Event event : (List<Event>)result) {
+    System.out.println("Event (" + event.getDate() + ") : "+ event.getTitle());
+  }
+  session.getTransaction().commit();
+  session.close();
+}
