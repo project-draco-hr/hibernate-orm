@@ -1,5 +1,5 @@
 {
-  HashSet proxyInterfaces=new HashSet();
+  HashSet<Class> proxyInterfaces=new HashSet<Class>();
   proxyInterfaces.add(HibernateProxy.class);
   Class mappedClass=persistentClass.getMappedClass();
   Class proxyInterface=persistentClass.getProxyInterface();
@@ -12,13 +12,13 @@
   if (mappedClass.isInterface()) {
     proxyInterfaces.add(mappedClass);
   }
-  Iterator iter=persistentClass.getSubclassIterator();
-  while (iter.hasNext()) {
-    Subclass subclass=(Subclass)iter.next();
-    Class subclassProxy=subclass.getProxyInterface();
-    Class subclassClass=subclass.getMappedClass();
+  Iterator subclasses=persistentClass.getSubclassIterator();
+  while (subclasses.hasNext()) {
+    final Subclass subclass=(Subclass)subclasses.next();
+    final Class subclassProxy=subclass.getProxyInterface();
+    final Class subclassClass=subclass.getMappedClass();
     if (subclassProxy != null && !subclassClass.equals(subclassProxy)) {
-      if (!proxyInterface.isInterface()) {
+      if (!subclassProxy.isInterface()) {
         throw new MappingException("proxy must be either an interface, or the class itself: " + subclass.getEntityName());
       }
       proxyInterfaces.add(subclassProxy);
