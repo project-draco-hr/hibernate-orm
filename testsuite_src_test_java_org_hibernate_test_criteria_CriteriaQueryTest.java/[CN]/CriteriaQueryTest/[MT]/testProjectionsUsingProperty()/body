@@ -62,6 +62,8 @@
       assertNull(objects[3]);
     }
   }
+  resultList=s.createCriteria(Student.class).add(Restrictions.eq("name","Gavin King")).setProjection(Projections.projectionList().add(Projections.id().as("studentNumber")).add(Property.forName("name"),"name").add(Property.forName("cityState"),"cityState").add(Property.forName("preferredCourse"),"preferredCourse")).list();
+  assertEquals(1,resultList.size());
   Object[] aResult=(Object[])s.createCriteria(Student.class).add(Restrictions.idEq(new Long(667))).setProjection(Projections.projectionList().add(Projections.id().as("studentNumber")).add(Property.forName("name"),"name").add(Property.forName("cityState"),"cityState").add(Property.forName("preferredCourse"),"preferredCourse")).uniqueResult();
   assertNotNull(aResult);
   assertEquals(4,aResult.length);
@@ -107,6 +109,10 @@
   Object[] array=(Object[])s.createCriteria(Enrolment.class).setProjection(Projections.projectionList().add(p1).add(p2)).uniqueResult();
   assertEquals(array.length,7);
   List list=s.createCriteria(Enrolment.class).createAlias("student","st").createAlias("course","co").setProjection(Projections.projectionList().add(Property.forName("co.courseCode").group()).add(Property.forName("st.studentNumber").count().setDistinct()).add(Property.forName("year").group())).list();
+  assertEquals(list.size(),2);
+  list=s.createCriteria(Enrolment.class).createAlias("student","st").createAlias("course","co").setProjection(Projections.projectionList().add(Property.forName("co.courseCode").group().as("courseCode")).add(Property.forName("st.studentNumber").count().setDistinct().as("studentNumber")).add(Property.forName("year").group())).addOrder(Order.asc("courseCode")).addOrder(Order.asc("studentNumber")).list();
+  assertEquals(list.size(),2);
+  list=s.createCriteria(Enrolment.class).createAlias("student","st").createAlias("course","co").setProjection(Projections.projectionList().add(Property.forName("co.courseCode").group().as("cCode")).add(Property.forName("st.studentNumber").count().setDistinct().as("stNumber")).add(Property.forName("year").group())).addOrder(Order.asc("cCode")).addOrder(Order.asc("stNumber")).list();
   assertEquals(list.size(),2);
   s.delete(gavin);
   s.delete(xam);
