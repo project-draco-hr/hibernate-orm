@@ -11,7 +11,13 @@
   }
   log.info("Cache region factory : " + regionFactoryClassName);
   try {
-    return (RegionFactory)ReflectHelper.classForName(regionFactoryClassName).getConstructor(new Class[]{Properties.class}).newInstance(new Object[]{properties});
+    try {
+      return (RegionFactory)ReflectHelper.classForName(regionFactoryClassName).getConstructor(Properties.class).newInstance(properties);
+    }
+ catch (    NoSuchMethodException nsme) {
+      log.debug(regionFactoryClassName + " did not provide constructor accepting java.util.Properties; " + "attempting no-arg constructor.");
+      return (RegionFactory)ReflectHelper.classForName(regionFactoryClassName).newInstance();
+    }
   }
  catch (  Exception e) {
     throw new HibernateException("could not instantiate RegionFactory [" + regionFactoryClassName + "]",e);
