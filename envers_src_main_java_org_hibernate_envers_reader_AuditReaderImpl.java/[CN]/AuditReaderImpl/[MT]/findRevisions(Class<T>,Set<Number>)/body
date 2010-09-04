@@ -1,0 +1,20 @@
+{
+  Map<Number,T> result=new HashMap<Number,T>(revisions.size());
+  for (  Number revision : revisions) {
+    checkNotNull(revision,"Entity revision");
+    checkPositive(revision,"Entity revision");
+  }
+  checkSession();
+  Query query=verCfg.getRevisionInfoQueryCreator().getRevisionsQuery(session,revisions);
+  try {
+    List<T> revisionList=query.list();
+    for (    T revision : revisionList) {
+      Number revNo=verCfg.getRevisionInfoNumberReader().getRevisionNumber(revision);
+      result.put(revNo,revision);
+    }
+    return result;
+  }
+ catch (  HibernateException e) {
+    throw new AuditException(e);
+  }
+}
