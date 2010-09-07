@@ -1,0 +1,15 @@
+{
+  this.referencingIdData=referencingIdData;
+  String revisionPropertyPath=verEntCfg.getRevisionNumberPath();
+  String originalIdPropertyName=verEntCfg.getOriginalIdPropName();
+  String versionsReferencedEntityName=verEntCfg.getAuditEntityName(referencedEntityName);
+  QueryBuilder qb=new QueryBuilder(versionsReferencedEntityName,"e");
+  qb.addProjection("new list","e",false,false);
+  Parameters rootParameters=qb.getRootParameters();
+  referencingIdData.getPrefixedMapper().addNamedIdEqualsToQuery(rootParameters,null,true);
+  auditStrategy.addEntityAtRevisionRestriction(globalCfg,qb,revisionPropertyPath,verEntCfg.getRevisionEndFieldName(),true,referencedIdData,revisionPropertyPath,originalIdPropertyName,"e","e2");
+  rootParameters.addWhereWithNamedParam(verEntCfg.getRevisionTypePropName(),false,"!=","delrevisiontype");
+  StringBuilder sb=new StringBuilder();
+  qb.build(sb,Collections.<String,Object>emptyMap());
+  queryString=sb.toString();
+}

@@ -1,0 +1,23 @@
+{
+  this.referencingIdData=referencingIdData;
+  String revisionPropertyPath=verEntCfg.getRevisionNumberPath();
+  String originalIdPropertyName=verEntCfg.getOriginalIdPropName();
+  String eeOriginalIdPropertyPath="ee." + originalIdPropertyName;
+  QueryBuilder qb=new QueryBuilder(versionsMiddleEntityName,"ee");
+  qb.addFrom(referencedIdData.getAuditEntityName(),"e");
+  qb.addFrom(indexIdData.getAuditEntityName(),"f");
+  qb.addProjection("new list","ee, e, f",false,false);
+  Parameters rootParameters=qb.getRootParameters();
+  referencedIdData.getPrefixedMapper().addIdsEqualToQuery(rootParameters,eeOriginalIdPropertyPath,referencedIdData.getOriginalMapper(),"e." + originalIdPropertyName);
+  indexIdData.getPrefixedMapper().addIdsEqualToQuery(rootParameters,eeOriginalIdPropertyPath,indexIdData.getOriginalMapper(),"f." + originalIdPropertyName);
+  referencingIdData.getPrefixedMapper().addNamedIdEqualsToQuery(rootParameters,originalIdPropertyName,true);
+  auditStrategy.addEntityAtRevisionRestriction(globalCfg,qb,"e." + revisionPropertyPath,"e." + verEntCfg.getRevisionEndFieldName(),false,referencedIdData,revisionPropertyPath,originalIdPropertyName,"e","e2");
+  auditStrategy.addEntityAtRevisionRestriction(globalCfg,qb,"e." + revisionPropertyPath,"e." + verEntCfg.getRevisionEndFieldName(),false,referencedIdData,revisionPropertyPath,originalIdPropertyName,"f","f2");
+  auditStrategy.addAssociationAtRevisionRestriction(qb,revisionPropertyPath,verEntCfg.getRevisionEndFieldName(),true,referencingIdData,versionsMiddleEntityName,eeOriginalIdPropertyPath,revisionPropertyPath,originalIdPropertyName,componentDatas);
+  rootParameters.addWhereWithNamedParam(verEntCfg.getRevisionTypePropName(),"!=","delrevisiontype");
+  rootParameters.addWhereWithNamedParam("e." + verEntCfg.getRevisionTypePropName(),false,"!=","delrevisiontype");
+  rootParameters.addWhereWithNamedParam("f." + verEntCfg.getRevisionTypePropName(),false,"!=","delrevisiontype");
+  StringBuilder sb=new StringBuilder();
+  qb.build(sb,Collections.<String,Object>emptyMap());
+  queryString=sb.toString();
+}

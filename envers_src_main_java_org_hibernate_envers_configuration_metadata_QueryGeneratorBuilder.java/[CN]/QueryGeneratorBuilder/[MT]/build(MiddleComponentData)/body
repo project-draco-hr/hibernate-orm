@@ -1,20 +1,20 @@
 {
   if (idDatas.size() == 0) {
-    return new OneEntityQueryGenerator(verEntCfg,auditMiddleEntityName,referencingIdData,componentDatas);
+    return new OneEntityQueryGenerator(verEntCfg,auditStrategy,auditMiddleEntityName,referencingIdData,componentDatas);
   }
  else   if (idDatas.size() == 1) {
     if (idDatas.get(0).isAudited()) {
-      return new TwoEntityQueryGenerator(globalCfg,verEntCfg,auditMiddleEntityName,referencingIdData,idDatas.get(0),componentDatas);
+      return new TwoEntityQueryGenerator(globalCfg,verEntCfg,auditStrategy,auditMiddleEntityName,referencingIdData,idDatas.get(0),componentDatas);
     }
  else {
-      return new TwoEntityOneAuditedQueryGenerator(verEntCfg,auditMiddleEntityName,referencingIdData,idDatas.get(0),componentDatas);
+      return new TwoEntityOneAuditedQueryGenerator(verEntCfg,auditStrategy,auditMiddleEntityName,referencingIdData,idDatas.get(0),componentDatas);
     }
   }
  else   if (idDatas.size() == 2) {
     if (!idDatas.get(0).isAudited() || !idDatas.get(1).isAudited()) {
       throw new MappingException("Ternary relations using @Audited(targetAuditMode = NOT_AUDITED) are not supported.");
     }
-    return new ThreeEntityQueryGenerator(globalCfg,verEntCfg,auditMiddleEntityName,referencingIdData,idDatas.get(0),idDatas.get(1),componentDatas);
+    return new ThreeEntityQueryGenerator(globalCfg,verEntCfg,auditStrategy,auditMiddleEntityName,referencingIdData,idDatas.get(0),idDatas.get(1),componentDatas);
   }
  else {
     throw new IllegalStateException("Illegal number of related entities.");

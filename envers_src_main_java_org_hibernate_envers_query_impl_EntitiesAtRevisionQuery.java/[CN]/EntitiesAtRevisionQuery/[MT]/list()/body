@@ -1,17 +1,19 @@
 {
-  QueryBuilder maxRevQb=qb.newSubQueryBuilder(versionsEntityName,"e2");
   AuditEntitiesConfiguration verEntCfg=verCfg.getAuditEntCfg();
   String revisionPropertyPath=verEntCfg.getRevisionNumberPath();
   String originalIdPropertyName=verEntCfg.getOriginalIdPropName();
-  maxRevQb.addProjection("max",revisionPropertyPath,false);
-  maxRevQb.getRootParameters().addWhereWithParam(revisionPropertyPath,"<=",revision);
-  verCfg.getEntCfg().get(entityName).getIdMapper().addIdsEqualToQuery(maxRevQb.getRootParameters(),"e." + originalIdPropertyName,"e2." + originalIdPropertyName);
+  MiddleIdData referencedIdData=new MiddleIdData(verEntCfg,verCfg.getEntCfg().get(entityName).getIdMappingData(),null,entityName,verCfg.getEntCfg().isVersioned(entityName));
+  verCfg.getAuditStrategy().addEntityAtRevisionRestriction(verCfg.getGlobalCfg(),qb,revisionPropertyPath,verEntCfg.getRevisionEndFieldName(),true,referencedIdData,revisionPropertyPath,originalIdPropertyName,"e","e2");
   qb.getRootParameters().addWhereWithParam(verEntCfg.getRevisionTypePropName(),"<>",RevisionType.DEL);
-  qb.getRootParameters().addWhere(revisionPropertyPath,verCfg.getGlobalCfg().getCorrelatedSubqueryOperator(),maxRevQb);
   for (  AuditCriterion criterion : criterions) {
     criterion.addToQuery(verCfg,entityName,qb,qb.getRootParameters());
   }
-  List queryResult=buildAndExecuteQuery();
+  Query query=buildQuery();
+  List<String> params=Arrays.asList(query.getNamedParameters());
+  if (params.contains("revision")) {
+    query.setParameter("revision",revision);
+  }
+  List queryResult=query.list();
   if (hasProjection) {
     return queryResult;
   }
