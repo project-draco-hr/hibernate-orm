@@ -1,0 +1,37 @@
+{
+  Exception failure;
+  ErrorLogger errorHandler=new ErrorLogger();
+  SAXReader saxReader=new SAXReader();
+  saxReader.setEntityResolver(entityResolver);
+  saxReader.setErrorHandler(errorHandler);
+  saxReader.setMergeAdjacentText(true);
+  saxReader.setValidation(true);
+  Document document=null;
+  try {
+    setValidationFor(saxReader,"orm_2_0.xsd");
+    document=saxReader.read(source);
+    if (errorHandler.getError() != null) {
+      throw errorHandler.getError();
+    }
+    return new XmlDocumentImpl(document,origin.getType(),origin.getName());
+  }
+ catch (  Exception orm2Problem) {
+    log.debug("Problem parsing XML using orm 2 xsd : {}",orm2Problem.getMessage());
+    failure=orm2Problem;
+    errorHandler.reset();
+    if (document != null) {
+      try {
+        setValidationFor(saxReader,"orm_1_0.xsd");
+        document=saxReader.read(new StringReader(document.asXML()));
+        if (errorHandler.getError() != null) {
+          throw errorHandler.getError();
+        }
+        return new XmlDocumentImpl(document,origin.getType(),origin.getName());
+      }
+ catch (      Exception orm1Problem) {
+        log.debug("Problem parsing XML using orm 1 xsd : {}",orm1Problem.getMessage());
+      }
+    }
+  }
+  throw new InvalidMappingException("Unable to read XML",origin.getType(),origin.getName(),failure);
+}

@@ -1,0 +1,43 @@
+{
+  java.util.List<String> extendz=new ArrayList<String>();
+  Iterator[] subclasses=new Iterator[3];
+  final Element hmNode=metadataXml.getDocumentTree().getRootElement();
+  Attribute packNode=hmNode.attribute("package");
+  final String packageName=packNode == null ? null : packNode.getValue();
+  if (packageName != null) {
+    mappings.setDefaultPackage(packageName);
+  }
+  subclasses[0]=hmNode.elementIterator("subclass");
+  subclasses[1]=hmNode.elementIterator("joined-subclass");
+  subclasses[2]=hmNode.elementIterator("union-subclass");
+  Iterator iterator=new JoinedIterator(subclasses);
+  while (iterator.hasNext()) {
+    final Element element=(Element)iterator.next();
+    final String extendsName=element.attributeValue("extends");
+    if (mappings.getClass(extendsName) == null && mappings.getClass(getClassName(extendsName,mappings)) == null) {
+      extendz.add(extendsName);
+    }
+  }
+  if (!extendz.isEmpty()) {
+    final java.util.Set<String> set=new HashSet<String>(extendz);
+    EntityElementHandler handler=new EntityElementHandler(){
+      public void handleEntity(      String entityName,      String className,      Mappings mappings){
+        if (entityName != null) {
+          set.remove(entityName);
+        }
+ else {
+          String fqn=getClassName(className,packageName);
+          set.remove(fqn);
+          if (packageName != null) {
+            set.remove(StringHelper.unqualify(fqn));
+          }
+        }
+      }
+    }
+;
+    recognizeEntities(mappings,hmNode,handler);
+    extendz.clear();
+    extendz.addAll(set);
+  }
+  return extendz;
+}
