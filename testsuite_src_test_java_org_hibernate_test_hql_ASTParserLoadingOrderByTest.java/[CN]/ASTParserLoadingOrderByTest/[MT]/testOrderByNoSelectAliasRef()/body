@@ -1,0 +1,20 @@
+{
+  createData();
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  checkTestOrderByResults(s.createQuery("select name, address from Zoo order by name, address").list(),zoo2,zoo4,zoo3,zoo1,null);
+  checkTestOrderByResults(s.createQuery("select z.name, z.address from Zoo z order by z.name, z.address").list(),zoo2,zoo4,zoo3,zoo1,null);
+  checkTestOrderByResults(s.createQuery("select z2.name, z2.address from Zoo z2 where z2.name in ( select name from Zoo ) order by z2.name, z2.address").list(),zoo2,zoo4,zoo3,zoo1,null);
+  checkTestOrderByResults(s.createQuery("select name, address from Zoo order by name ASC, address ASC").list(),zoo2,zoo4,zoo3,zoo1,null);
+  checkTestOrderByResults(s.createQuery("select z.name, z.address from Zoo z order by z.name ASC, z.address ASC").list(),zoo2,zoo4,zoo3,zoo1,null);
+  checkTestOrderByResults(s.createQuery("select z2.name, z2.address from Zoo z2 where z2.name in ( select name from Zoo ) order by z2.name ASC, z2.address ASC").list(),zoo2,zoo4,zoo3,zoo1,null);
+  checkTestOrderByResults(s.createQuery("select z.name, z.address from Zoo z order by z.address, z.name").list(),zoo3,zoo4,zoo2,zoo1,null);
+  checkTestOrderByResults(s.createQuery("select name, address from Zoo order by address, name").list(),zoo3,zoo4,zoo2,zoo1,null);
+  checkTestOrderByResults(s.createQuery("select z.name, z.address from Zoo z order by z.address").list(),zoo3,zoo4,null,null,zoosWithSameAddress);
+  checkTestOrderByResults(s.createQuery("select name, address from Zoo order by address").list(),zoo3,zoo4,null,null,zoosWithSameAddress);
+  checkTestOrderByResults(s.createQuery("select z.name, z.address from Zoo z order by z.name").list(),zoo2,zoo4,null,null,zoosWithSameName);
+  checkTestOrderByResults(s.createQuery("select name, address from Zoo order by name").list(),zoo2,zoo4,null,null,zoosWithSameName);
+  t.commit();
+  s.close();
+  cleanupData();
+}
