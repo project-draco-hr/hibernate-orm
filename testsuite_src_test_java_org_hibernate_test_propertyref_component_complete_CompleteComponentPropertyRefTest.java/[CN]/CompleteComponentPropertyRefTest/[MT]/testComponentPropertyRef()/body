@@ -1,4 +1,6 @@
 {
+  Session s=openSession();
+  s.beginTransaction();
   Person p=new Person();
   p.setIdentity(new Identity());
   Account a=new Account();
@@ -6,12 +8,12 @@
   a.setOwner(p);
   p.getIdentity().setName("Gavin");
   p.getIdentity().setSsn("123-12-1234");
-  Session s=openSession();
-  Transaction tx=s.beginTransaction();
   s.persist(p);
   s.persist(a);
-  s.flush();
-  s.clear();
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
   a=(Account)s.createQuery("from Account a left join fetch a.owner").uniqueResult();
   assertTrue(Hibernate.isInitialized(a.getOwner()));
   assertNotNull(a.getOwner());
@@ -32,6 +34,6 @@
   assertTrue(Hibernate.isInitialized(a.getOwner()));
   s.delete(a);
   s.delete(a.getOwner());
-  tx.commit();
+  s.getTransaction().commit();
   s.close();
 }
