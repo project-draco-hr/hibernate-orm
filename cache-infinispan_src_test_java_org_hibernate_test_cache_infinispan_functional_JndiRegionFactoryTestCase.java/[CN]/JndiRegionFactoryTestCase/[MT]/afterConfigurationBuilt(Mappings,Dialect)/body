@@ -1,0 +1,20 @@
+{
+  if (bindToJndi) {
+    try {
+      namingServer=new SingletonNamingServer();
+      namingMain=new Main();
+      namingMain.setInstallGlobalService(true);
+      namingMain.setPort(-1);
+      namingMain.start();
+      props=new Properties();
+      props.put("java.naming.factory.initial","org.jnp.interfaces.NamingContextFactory");
+      props.put("java.naming.factory.url.pkgs","org.jboss.naming:org.jnp.interfaces");
+      manager=new DefaultCacheManager(InfinispanRegionFactory.DEF_INFINISPAN_CONFIG_RESOURCE,false);
+      Context ctx=new InitialContext(props);
+      bind(JNDI_NAME,manager,EmbeddedCacheManager.class,ctx);
+    }
+ catch (    Exception e) {
+      throw new RuntimeException("Failure to set up JNDI",e);
+    }
+  }
+}

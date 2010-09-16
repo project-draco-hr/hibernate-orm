@@ -19,5 +19,9 @@
     manager.defineConfiguration(regionName,templateCacheName,regionCacheCfg);
     definedConfigurations.add(regionName);
   }
-  return manager.getCache(regionName);
+  Cache cache=manager.getCache(regionName);
+  if (!cache.getStatus().allowInvocations()) {
+    cache.start();
+  }
+  return createCacheWrapper(cache.getAdvancedCache());
 }
