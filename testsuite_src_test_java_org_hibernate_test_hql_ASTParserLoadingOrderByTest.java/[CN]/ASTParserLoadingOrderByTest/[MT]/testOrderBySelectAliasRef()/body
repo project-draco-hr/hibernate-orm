@@ -22,17 +22,5 @@
   checkTestOrderByResults(s.createQuery("select z.name as address, z.address as name from Zoo z order by address").list(),zoo2,zoo4,null,null,zoosWithSameName);
   t.commit();
   s.close();
-  s=openSession();
-  t=s.beginTransaction();
-  try {
-    s.createQuery("select z2.name as zname, z2.address as zooAddress from Zoo z2 where z2.name in ( select name as zname from Zoo order by zname ) order by zooAddress").list();
-    fail("Exception should have been thrown because subquery has ORDER BY");
-  }
- catch (  QuerySyntaxException ex) {
-  }
- finally {
-    t.rollback();
-    s.close();
-  }
   cleanupData();
 }
