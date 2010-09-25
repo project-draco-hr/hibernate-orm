@@ -6,6 +6,19 @@
     reportSkip("deadlock","jpa read locking");
     return;
   }
+  if (getDialect() instanceof HSQLDialect) {
+    int hsqldbVersion=18;
+    try {
+      Class props=ReflectHelper.classForName("org.hsqldb.persist.HsqlDatabaseProperties");
+      String versionString=(String)props.getDeclaredField("THIS_VERSION").get(null);
+      hsqldbVersion=Integer.parseInt(versionString.substring(0,1)) * 10;
+      hsqldbVersion+=Integer.parseInt(versionString.substring(2,3));
+    }
+ catch (    Throwable e) {
+    }
+    if (hsqldbVersion < 20)     reportSkip("hsqldb 1.8.x only supports read uncommitted","lock doesn't work on hsqldb 1.8.x");
+    return;
+  }
   final String initialName="lock test";
   Session s1=getSessions().openSession();
   Transaction t1=s1.beginTransaction();
