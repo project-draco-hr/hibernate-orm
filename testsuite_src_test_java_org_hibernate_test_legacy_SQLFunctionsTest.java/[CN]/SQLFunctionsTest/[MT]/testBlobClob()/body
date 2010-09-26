@@ -1,15 +1,13 @@
 {
+  if (getDialect() instanceof SybaseDialect || getDialect() instanceof Sybase11Dialect || getDialect() instanceof SybaseASE15Dialect|| getDialect() instanceof SybaseAnywhereDialect) {
+    return;
+  }
   Session s=openSession();
   Blobber b=new Blobber();
   b.setBlob(s.getLobHelper().createBlob("foo/bar/baz".getBytes()));
   b.setClob(s.getLobHelper().createClob("foo/bar/baz"));
   s.save(b);
   s.flush();
-  if (getDialect() instanceof SybaseDialect || getDialect() instanceof Sybase11Dialect || getDialect() instanceof SybaseASE15Dialect|| getDialect() instanceof SybaseAnywhereDialect) {
-    s.connection().rollback();
-    s.close();
-    return;
-  }
   s.refresh(b);
   b.getClob().getSubString(2,3);
   s.flush();
