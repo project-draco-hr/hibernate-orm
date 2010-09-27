@@ -1,0 +1,26 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  final double HEIGHT_INCHES=73;
+  final double HEIGHT_CENTIMETERS=HEIGHT_INCHES * 2.54d;
+  Staff staff=new Staff(HEIGHT_INCHES,HEIGHT_INCHES,1);
+  s.persist(staff);
+  s.flush();
+  Double heightViaSql=(Double)s.createSQLQuery("select size_in_cm from t_staff where t_staff.id=1").uniqueResult();
+  assertEquals(HEIGHT_CENTIMETERS,heightViaSql,0.01d);
+  heightViaSql=(Double)s.createSQLQuery("select radiusS from t_staff where t_staff.id=1").uniqueResult();
+  assertEquals(HEIGHT_CENTIMETERS,heightViaSql,0.01d);
+  Double heightViaHql=(Double)s.createQuery("select s.sizeInInches from Staff s where s.id = 1").uniqueResult();
+  assertEquals(HEIGHT_INCHES,heightViaHql,0.01d);
+  staff=(Staff)s.createCriteria(Staff.class).add(Restrictions.between("sizeInInches",HEIGHT_INCHES - 0.01d,HEIGHT_INCHES + 0.01d)).uniqueResult();
+  assertEquals(HEIGHT_INCHES,staff.getSizeInInches(),0.01d);
+  staff=(Staff)s.createQuery("from Staff s where s.sizeInInches between ? and ?").setDouble(0,HEIGHT_INCHES - 0.01d).setDouble(1,HEIGHT_INCHES + 0.01d).uniqueResult();
+  assertEquals(HEIGHT_INCHES,staff.getSizeInInches(),0.01d);
+  staff.setSizeInInches(1);
+  s.flush();
+  heightViaSql=(Double)s.createSQLQuery("select size_in_cm from t_staff where t_staff.id=1").uniqueResult();
+  assertEquals(2.54d,heightViaSql,0.01d);
+  s.delete(staff);
+  t.commit();
+  s.close();
+}

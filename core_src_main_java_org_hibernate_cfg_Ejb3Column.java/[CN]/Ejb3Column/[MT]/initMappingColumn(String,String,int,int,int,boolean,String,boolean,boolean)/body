@@ -14,5 +14,14 @@
     this.mappingColumn.setNullable(nullable);
     this.mappingColumn.setSqlType(sqlType);
     this.mappingColumn.setUnique(unique);
+    if (writeExpression != null && !writeExpression.matches("[^?]*\\?[^?]*")) {
+      throw new AnnotationException("@WriteExpression must contain exactly one value placeholder ('?') character: property [" + propertyName + "] and column ["+ logicalColumnName+ "]");
+    }
+    if (readExpression != null) {
+      this.mappingColumn.setCustomRead(readExpression);
+    }
+    if (writeExpression != null) {
+      this.mappingColumn.setCustomWrite(writeExpression);
+    }
   }
 }
