@@ -1,12 +1,14 @@
 {
-  QueryBuilder qb=new QueryBuilder(persistentCollectionChangeData.getEntityName(),"e");
-  String originalIdPropName=auditCfg.getAuditEntCfg().getOriginalIdPropName();
-  Map<String,Object> originalId=(Map<String,Object>)persistentCollectionChangeData.getData().get(originalIdPropName);
-  for (  Map.Entry<String,Object> originalIdEntry : originalId.entrySet()) {
-    if (!auditCfg.getAuditEntCfg().getRevisionFieldName().equals(originalIdEntry.getKey())) {
-      qb.getRootParameters().addWhereWithParam(originalIdPropName + "." + originalIdEntry.getKey(),true,"=",originalIdEntry.getValue());
+  if (getRevisionType(auditCfg,persistentCollectionChangeData.getData()) != RevisionType.ADD) {
+    QueryBuilder qb=new QueryBuilder(persistentCollectionChangeData.getEntityName(),"e");
+    String originalIdPropName=auditCfg.getAuditEntCfg().getOriginalIdPropName();
+    Map<String,Object> originalId=(Map<String,Object>)persistentCollectionChangeData.getData().get(originalIdPropName);
+    for (    Map.Entry<String,Object> originalIdEntry : originalId.entrySet()) {
+      if (!auditCfg.getAuditEntCfg().getRevisionFieldName().equals(originalIdEntry.getKey())) {
+        qb.getRootParameters().addWhereWithParam(originalIdPropName + "." + originalIdEntry.getKey(),true,"=",originalIdEntry.getValue());
+      }
     }
+    updateLastRevision(session,auditCfg,qb,originalId,persistentCollectionChangeData.getEntityName(),revision);
   }
-  updateLastRevision(session,auditCfg,qb,originalId,persistentCollectionChangeData.getEntityName(),revision);
   session.save(persistentCollectionChangeData.getEntityName(),persistentCollectionChangeData.getData());
 }
