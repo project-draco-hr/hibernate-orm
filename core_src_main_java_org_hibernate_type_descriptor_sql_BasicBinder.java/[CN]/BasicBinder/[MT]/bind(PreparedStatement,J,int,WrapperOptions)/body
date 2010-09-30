@@ -1,10 +1,12 @@
 {
   if (value == null) {
-    log.trace("binding [null] to parameter [{}]",index);
+    if (log.isTraceEnabled()) {
+      log.trace(String.format(NULL_BIND_MSG_TEMPLATE,index,JdbcTypeNameMapper.getTypeName(sqlDescriptor.getSqlType())));
+    }
     st.setNull(index,sqlDescriptor.getSqlType());
   }
  else {
-    log.trace("binding [{}] to parameter [{}]",getJavaDescriptor().extractLoggableRepresentation(value),index);
+    log.trace(String.format(BIND_MSG_TEMPLATE,index,JdbcTypeNameMapper.getTypeName(sqlDescriptor.getSqlType()),getJavaDescriptor().extractLoggableRepresentation(value)));
     doBind(st,value,index,options);
   }
 }
