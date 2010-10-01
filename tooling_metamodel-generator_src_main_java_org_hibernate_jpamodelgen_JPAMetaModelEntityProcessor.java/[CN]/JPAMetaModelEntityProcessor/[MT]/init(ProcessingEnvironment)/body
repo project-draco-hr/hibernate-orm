@@ -3,5 +3,12 @@
   context=new Context(env);
   context.logMessage(Diagnostic.Kind.NOTE,"Hibernate JPA 2 Static-Metamodel Generator " + Version.getVersionString());
   String tmp=env.getOptions().get(JPAMetaModelEntityProcessor.FULLY_ANNOTATION_CONFIGURED_OPTION);
-  fullyAnnotationConfigured=Boolean.parseBoolean(tmp);
+  boolean fullyAnnotationConfigured=Boolean.parseBoolean(tmp);
+  if (!fullyAnnotationConfigured) {
+    XmlParser parser=new XmlParser(context);
+    parser.parseXml();
+    if (context.isPersistenceUnitCompletelyXmlConfigured()) {
+      createMetaModelClasses();
+    }
+  }
 }

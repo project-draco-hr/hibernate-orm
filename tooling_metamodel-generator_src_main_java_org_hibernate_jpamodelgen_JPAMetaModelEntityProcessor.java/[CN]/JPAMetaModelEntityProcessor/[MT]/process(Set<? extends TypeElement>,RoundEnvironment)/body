@@ -1,14 +1,11 @@
 {
   if (roundEnvironment.processingOver()) {
-    context.logMessage(Diagnostic.Kind.OTHER,"Last processing round.");
-    createMetaModelClasses();
-    context.logMessage(Diagnostic.Kind.OTHER,"Finished processing");
+    if (!context.isPersistenceUnitCompletelyXmlConfigured()) {
+      context.logMessage(Diagnostic.Kind.OTHER,"Last processing round.");
+      createMetaModelClasses();
+      context.logMessage(Diagnostic.Kind.OTHER,"Finished processing");
+    }
     return ALLOW_OTHER_PROCESSORS_TO_CLAIM_ANNOTATIONS;
-  }
-  if (!fullyAnnotationConfigured && !xmlProcessed) {
-    XmlParser parser=new XmlParser(context);
-    parser.parseXml();
-    xmlProcessed=true;
   }
   if (context.isPersistenceUnitCompletelyXmlConfigured()) {
     context.logMessage(Diagnostic.Kind.OTHER,"Skipping the processing of annotations since persistence unit is purely xml configured.");
