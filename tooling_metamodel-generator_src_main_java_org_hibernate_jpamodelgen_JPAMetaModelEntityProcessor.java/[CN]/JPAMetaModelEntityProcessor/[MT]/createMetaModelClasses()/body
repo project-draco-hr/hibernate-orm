@@ -1,13 +1,20 @@
 {
+  Collection<String> generatedModelClasses=new ArrayList<String>();
   for (  MetaEntity entity : context.getMetaEntities()) {
     context.logMessage(Diagnostic.Kind.OTHER,"Writing meta model for entity " + entity);
     ClassWriter.writeFile(entity,context);
+    generatedModelClasses.add(entity.getQualifiedName());
   }
   Collection<MetaEntity> toProcessEntities=context.getMetaEmbeddables();
   while (!toProcessEntities.isEmpty()) {
     Set<MetaEntity> processedEntities=new HashSet<MetaEntity>();
+    int toProcessCountBeforeLoop=toProcessEntities.size();
     for (    MetaEntity entity : toProcessEntities) {
-      if (containedInEntity(toProcessEntities,entity)) {
+      if (generatedModelClasses.contains(entity.getQualifiedName())) {
+        toProcessEntities.remove(entity);
+        continue;
+      }
+      if (modelGenerationNeedsToBeDeferred(toProcessEntities,entity)) {
         continue;
       }
       context.logMessage(Diagnostic.Kind.OTHER,"Writing meta model for embeddable/mapped superclass" + entity);
@@ -15,5 +22,8 @@
       processedEntities.add(entity);
     }
     toProcessEntities.removeAll(processedEntities);
+    if (toProcessEntities.size() >= toProcessCountBeforeLoop) {
+      context.logMessage(Diagnostic.Kind.ERROR,"Potential endless loop in generation of entities.");
+    }
   }
 }
