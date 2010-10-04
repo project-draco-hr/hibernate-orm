@@ -19,14 +19,16 @@
       column.setUpdatable(false);
     }
   }
+  boolean hasSpecjManyToOne=false;
   if (System.getProperty("hibernate.enable_specj_proprietary_syntax") != null) {
     String columnName="";
     for (    XProperty prop : inferredData.getDeclaringClass().getDeclaredProperties(AccessType.FIELD.getType())) {
       if (prop.isAnnotationPresent(Id.class) && prop.isAnnotationPresent(Column.class)) {
         columnName=prop.getAnnotation(Column.class).name();
       }
-      final JoinColumn joinColumn=prop.getAnnotation(JoinColumn.class);
-      if (prop.isAnnotationPresent(ManyToOne.class) && joinColumn != null && !joinColumn.name().isEmpty() && joinColumn.name().equals(columnName) && !prop.isAnnotationPresent(MapsId.class)) {
+      final JoinColumn joinColumn=property.getAnnotation(JoinColumn.class);
+      if (property.isAnnotationPresent(ManyToOne.class) && joinColumn != null && !joinColumn.name().isEmpty() && joinColumn.name().equals(columnName) && !property.isAnnotationPresent(MapsId.class)) {
+        hasSpecjManyToOne=true;
         for (        Ejb3JoinColumn column : columns) {
           column.setInsertable(false);
           column.setUpdatable(false);
@@ -54,6 +56,10 @@
   propertyBinder.setName(propertyName);
   propertyBinder.setValue(value);
   if (isIdentifierMapper) {
+    propertyBinder.setInsertable(false);
+    propertyBinder.setUpdatable(false);
+  }
+ else   if (hasSpecjManyToOne) {
     propertyBinder.setInsertable(false);
     propertyBinder.setUpdatable(false);
   }
