@@ -6,6 +6,17 @@
   final XAnnotatedElement element=propertyAnnotatedElement.getProperty();
   if (element.isAnnotationPresent(Id.class) || element.isAnnotationPresent(EmbeddedId.class)) {
     annElts.add(0,propertyAnnotatedElement);
+    if (System.getProperty("hibernate.enable_specj_proprietary_syntax") != null) {
+      if (element.isAnnotationPresent(Id.class) && element.isAnnotationPresent(Column.class)) {
+        String columnName=element.getAnnotation(Column.class).name();
+        for (        XProperty prop : declaringClass.getDeclaredProperties(AccessType.FIELD.getType())) {
+          if (prop.isAnnotationPresent(JoinColumn.class) && prop.getAnnotation(JoinColumn.class).name().equals(columnName) && !prop.isAnnotationPresent(MapsId.class)) {
+            PropertyData specJPropertyData=new PropertyInferredData(declaringClass,prop,propertyAccessor,mappings.getReflectionManager());
+            mappings.addPropertyAnnotatedWithMapsIdSpecj(entity,specJPropertyData,"custId");
+          }
+        }
+      }
+    }
     if (element.isAnnotationPresent(ManyToOne.class) || element.isAnnotationPresent(OneToOne.class)) {
       mappings.addToOneAndIdProperty(entity,propertyAnnotatedElement);
     }

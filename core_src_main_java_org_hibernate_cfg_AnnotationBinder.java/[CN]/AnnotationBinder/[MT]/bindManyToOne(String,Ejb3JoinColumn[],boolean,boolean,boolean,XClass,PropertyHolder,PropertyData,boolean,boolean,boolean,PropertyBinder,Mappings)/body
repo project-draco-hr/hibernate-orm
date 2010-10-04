@@ -19,6 +19,21 @@
       column.setUpdatable(false);
     }
   }
+  if (System.getProperty("hibernate.enable_specj_proprietary_syntax") != null) {
+    String columnName="";
+    for (    XProperty prop : inferredData.getDeclaringClass().getDeclaredProperties(AccessType.FIELD.getType())) {
+      if (prop.isAnnotationPresent(Id.class) && prop.isAnnotationPresent(Column.class)) {
+        columnName=prop.getAnnotation(Column.class).name();
+      }
+      final JoinColumn joinColumn=prop.getAnnotation(JoinColumn.class);
+      if (prop.isAnnotationPresent(ManyToOne.class) && joinColumn != null && !joinColumn.name().isEmpty() && joinColumn.name().equals(columnName) && !prop.isAnnotationPresent(MapsId.class)) {
+        for (        Ejb3JoinColumn column : columns) {
+          column.setInsertable(false);
+          column.setUpdatable(false);
+        }
+      }
+    }
+  }
   value.setTypeName(inferredData.getClassOrElementName());
   final String propertyName=inferredData.getPropertyName();
   value.setTypeUsingReflection(propertyHolder.getClassName(),propertyName);
