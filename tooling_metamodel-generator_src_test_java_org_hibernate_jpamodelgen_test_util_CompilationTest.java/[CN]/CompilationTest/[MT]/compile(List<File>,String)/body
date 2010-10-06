@@ -1,12 +1,11 @@
 {
-  TestUtil.deleteGeneratedSourceFiles(new File(outBaseDir));
   List<String> options=createJavaOptions();
   JavaCompiler compiler=ToolProvider.getSystemJavaCompiler();
   DiagnosticCollector<JavaFileObject> diagnostics=new DiagnosticCollector<JavaFileObject>();
   StandardJavaFileManager fileManager=compiler.getStandardFileManager(diagnostics,null,null);
-  Iterable<? extends JavaFileObject> compilationUnits=fileManager.getJavaFileObjectsFromFiles(getCompilationUnits(sourceBaseDir));
+  Iterable<? extends JavaFileObject> compilationUnits=fileManager.getJavaFileObjectsFromFiles(sourceFiles);
   compileSources(options,compiler,diagnostics,fileManager,compilationUnits);
-  compilationUnits=fileManager.getJavaFileObjectsFromFiles(getCompilationUnits(outBaseDir));
+  compilationUnits=fileManager.getJavaFileObjectsFromFiles(getCompilationUnits(outBaseDir,packageName));
   options.add(PROC_NONE);
   compileSources(options,compiler,diagnostics,fileManager,compilationUnits);
   compilationDiagnostics.addAll(diagnostics.getDiagnostics());
