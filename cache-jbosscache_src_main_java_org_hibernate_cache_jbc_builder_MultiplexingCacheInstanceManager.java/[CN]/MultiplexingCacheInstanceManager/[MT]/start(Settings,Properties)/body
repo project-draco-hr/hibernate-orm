@@ -5,18 +5,18 @@
     boolean buildCaches=jbcEntityCache == null && jbcCollectionCache == null && jbcTsCache == null && jbcQueryCache == null;
     if (buildCaches && jbcFactory == null) {
       if (channelFactory == null) {
-        String muxStacks=PropertiesHelper.getString(CHANNEL_FACTORY_RESOURCE_PROP,properties,null);
+        String muxStacks=ConfigurationHelper.getString(CHANNEL_FACTORY_RESOURCE_PROP,properties,null);
         if (muxStacks == null) {
-          muxStacks=PropertiesHelper.getString(LEGACY_CHANNEL_FACTORY_RESOURCE_PROP,properties,DEF_JGROUPS_RESOURCE);
+          muxStacks=ConfigurationHelper.getString(LEGACY_CHANNEL_FACTORY_RESOURCE_PROP,properties,DEF_JGROUPS_RESOURCE);
         }
         if (muxStacks != null) {
           channelFactory=new JChannelFactory();
           channelFactory.setMultiplexerConfig(muxStacks);
         }
       }
-      String factoryRes=PropertiesHelper.getString(CACHE_FACTORY_RESOURCE_PROP,properties,null);
+      String factoryRes=ConfigurationHelper.getString(CACHE_FACTORY_RESOURCE_PROP,properties,null);
       if (factoryRes == null) {
-        factoryRes=PropertiesHelper.getString(LEGACY_CACHE_FACTORY_RESOURCE_PROP,properties,DEF_CACHE_FACTORY_RESOURCE);
+        factoryRes=ConfigurationHelper.getString(LEGACY_CACHE_FACTORY_RESOURCE_PROP,properties,DEF_CACHE_FACTORY_RESOURCE);
       }
       jbcFactory=new CacheManagerImpl(factoryRes,channelFactory);
       ((CacheManagerImpl)jbcFactory).start();
@@ -24,14 +24,14 @@
     }
     if (settings.isSecondLevelCacheEnabled()) {
       if (buildCaches) {
-        entityConfig=PropertiesHelper.getString(ENTITY_CACHE_RESOURCE_PROP,properties,null);
+        entityConfig=ConfigurationHelper.getString(ENTITY_CACHE_RESOURCE_PROP,properties,null);
         if (entityConfig == null) {
-          entityConfig=PropertiesHelper.getString(LEGACY_ENTITY_CACHE_RESOURCE_PROP,properties,DEF_ENTITY_RESOURCE);
+          entityConfig=ConfigurationHelper.getString(LEGACY_ENTITY_CACHE_RESOURCE_PROP,properties,DEF_ENTITY_RESOURCE);
         }
         jbcEntityCache=jbcFactory.getCache(entityConfig,true);
-        collectionConfig=PropertiesHelper.getString(COLLECTION_CACHE_RESOURCE_PROP,properties,null);
+        collectionConfig=ConfigurationHelper.getString(COLLECTION_CACHE_RESOURCE_PROP,properties,null);
         if (collectionConfig == null) {
-          collectionConfig=PropertiesHelper.getString(LEGACY_COLLECTION_CACHE_RESOURCE_PROP,properties,entityConfig);
+          collectionConfig=ConfigurationHelper.getString(LEGACY_COLLECTION_CACHE_RESOURCE_PROP,properties,entityConfig);
         }
         if (entityConfig.equals(collectionConfig)) {
           jbcCollectionCache=jbcEntityCache;
@@ -56,9 +56,9 @@
     if (settings.isQueryCacheEnabled()) {
       if (buildCaches) {
         String dfltQueryResource=(entityConfig == null ? DEF_QUERY_RESOURCE : entityConfig);
-        queryConfig=PropertiesHelper.getString(QUERY_CACHE_RESOURCE_PROP,properties,null);
+        queryConfig=ConfigurationHelper.getString(QUERY_CACHE_RESOURCE_PROP,properties,null);
         if (queryConfig == null) {
-          queryConfig=PropertiesHelper.getString(LEGACY_QUERY_CACHE_RESOURCE_PROP,properties,dfltQueryResource);
+          queryConfig=ConfigurationHelper.getString(LEGACY_QUERY_CACHE_RESOURCE_PROP,properties,dfltQueryResource);
         }
         if (queryConfig.equals(entityConfig)) {
           jbcQueryCache=jbcEntityCache;
@@ -69,9 +69,9 @@
  else {
           jbcQueryCache=jbcFactory.getCache(queryConfig,true);
         }
-        tsConfig=PropertiesHelper.getString(TIMESTAMP_CACHE_RESOURCE_PROP,properties,null);
+        tsConfig=ConfigurationHelper.getString(TIMESTAMP_CACHE_RESOURCE_PROP,properties,null);
         if (tsConfig == null) {
-          tsConfig=PropertiesHelper.getString(LEGACY_TIMESTAMP_CACHE_RESOURCE_PROP,properties,DEF_TS_RESOURCE);
+          tsConfig=ConfigurationHelper.getString(LEGACY_TIMESTAMP_CACHE_RESOURCE_PROP,properties,DEF_TS_RESOURCE);
         }
         if (tsConfig.equals(queryConfig)) {
           jbcTsCache=jbcQueryCache;

@@ -1,6 +1,6 @@
 {
   ObjectNameNormalizer normalizer=(ObjectNameNormalizer)params.get(IDENTIFIER_NORMALIZER);
-  tableName=normalizer.normalizeIdentifierQuoting(PropertiesHelper.getString(ID_TABLE,params,DEFAULT_TABLE));
+  tableName=normalizer.normalizeIdentifierQuoting(ConfigurationHelper.getString(ID_TABLE,params,DEFAULT_TABLE));
   if (tableName.indexOf('.') < 0) {
     tableName=dialect.quote(tableName);
     final String schemaName=dialect.quote(normalizer.normalizeIdentifierQuoting(params.getProperty(SCHEMA)));
@@ -9,14 +9,14 @@
   }
  else {
   }
-  pkColumnName=dialect.quote(normalizer.normalizeIdentifierQuoting(PropertiesHelper.getString(PK_COLUMN_NAME,params,DEFAULT_PK_COLUMN)));
-  valueColumnName=dialect.quote(normalizer.normalizeIdentifierQuoting(PropertiesHelper.getString(VALUE_COLUMN_NAME,params,DEFAULT_VALUE_COLUMN)));
-  keySize=PropertiesHelper.getInt(PK_LENGTH_NAME,params,DEFAULT_PK_LENGTH);
-  String keyValue=PropertiesHelper.getString(PK_VALUE_NAME,params,params.getProperty(TABLE));
+  pkColumnName=dialect.quote(normalizer.normalizeIdentifierQuoting(ConfigurationHelper.getString(PK_COLUMN_NAME,params,DEFAULT_PK_COLUMN)));
+  valueColumnName=dialect.quote(normalizer.normalizeIdentifierQuoting(ConfigurationHelper.getString(VALUE_COLUMN_NAME,params,DEFAULT_VALUE_COLUMN)));
+  keySize=ConfigurationHelper.getInt(PK_LENGTH_NAME,params,DEFAULT_PK_LENGTH);
+  String keyValue=ConfigurationHelper.getString(PK_VALUE_NAME,params,params.getProperty(TABLE));
   query="select " + valueColumnName + " from "+ dialect.appendLockHint(LockMode.PESSIMISTIC_WRITE,tableName)+ " where "+ pkColumnName+ " = '"+ keyValue+ "'"+ dialect.getForUpdateString();
   update="update " + tableName + " set "+ valueColumnName+ " = ? where "+ valueColumnName+ " = ? and "+ pkColumnName+ " = '"+ keyValue+ "'";
   insert="insert into " + tableName + "("+ pkColumnName+ ", "+ valueColumnName+ ") "+ "values('"+ keyValue+ "', ?)";
-  maxLo=PropertiesHelper.getInt(MAX_LO,params,Short.MAX_VALUE);
+  maxLo=ConfigurationHelper.getInt(MAX_LO,params,Short.MAX_VALUE);
   returnClass=type.getReturnedClass();
   if (maxLo >= 1) {
     hiloOptimizer=new OptimizerFactory.LegacyHiLoAlgorithmOptimizer(returnClass,maxLo);
