@@ -1,0 +1,14 @@
+{
+  final String domain=service.getManagementDomain() == null ? DEFAULT_OBJ_NAME_DOMAIN : service.getManagementDomain();
+  final String serviceType=service.getManagementServiceType() == null ? service.getClass().getName() : service.getManagementServiceType();
+  try {
+    final ObjectName objectName=new ObjectName(String.format(OBJ_NAME_TEMPLATE,domain,sessionFactoryName,serviceRole.getName(),serviceType));
+    registerMBean(objectName,service.getManagementBean());
+  }
+ catch (  HibernateException e) {
+    throw e;
+  }
+catch (  MalformedObjectNameException e) {
+    throw new HibernateException("Unable to generate service IbjectName",e);
+  }
+}

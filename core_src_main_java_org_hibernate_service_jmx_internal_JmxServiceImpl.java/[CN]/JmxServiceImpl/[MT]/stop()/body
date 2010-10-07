@@ -1,0 +1,38 @@
+{
+  try {
+    if (startedServer || registeredMBeans != null) {
+      MBeanServer mBeanServer=findServer();
+      if (mBeanServer == null) {
+        log.warn("Unable to locate MBeanServer on JMX service shutdown");
+        return;
+      }
+      if (registeredMBeans != null) {
+        for (        ObjectName objectName : registeredMBeans) {
+          try {
+            log.trace("Unregistering registered MBean [ON=" + objectName + "]");
+            mBeanServer.unregisterMBean(objectName);
+          }
+ catch (          Exception e) {
+            log.debug("Unable to unregsiter registered MBean [ON=" + objectName + "] : "+ e.toString());
+          }
+        }
+      }
+      if (startedServer) {
+        log.trace("Attempting to release created MBeanServer");
+        try {
+          MBeanServerFactory.releaseMBeanServer(mBeanServer);
+        }
+ catch (        Exception e) {
+          log.warn("Unable to release created MBeanServer : " + e.toString());
+        }
+      }
+    }
+  }
+  finally {
+    startedServer=false;
+    if (registeredMBeans != null) {
+      registeredMBeans.clear();
+      registeredMBeans=null;
+    }
+  }
+}

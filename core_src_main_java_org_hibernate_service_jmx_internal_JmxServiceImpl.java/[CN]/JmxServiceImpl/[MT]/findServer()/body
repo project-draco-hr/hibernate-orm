@@ -1,0 +1,15 @@
+{
+  if (usePlatformServer) {
+    return ManagementFactory.getPlatformMBeanServer();
+  }
+  ArrayList<MBeanServer> mbeanServers=MBeanServerFactory.findMBeanServer(agentId);
+  if (defaultDomain == null) {
+    return mbeanServers.get(0);
+  }
+  for (  MBeanServer mbeanServer : mbeanServers) {
+    if (defaultDomain.equals(mbeanServer.getDefaultDomain())) {
+      return mbeanServer;
+    }
+  }
+  return null;
+}

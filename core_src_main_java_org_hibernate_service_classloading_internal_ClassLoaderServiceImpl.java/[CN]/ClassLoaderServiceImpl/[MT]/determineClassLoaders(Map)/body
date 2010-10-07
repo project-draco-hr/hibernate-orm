@@ -1,0 +1,23 @@
+{
+  ClassLoader applicationClassLoader=(ClassLoader)configVales.get(APP_CL);
+  ClassLoader resourcesClassLoader=(ClassLoader)configVales.get(RESOURCES_CL);
+  ClassLoader hibernateClassLoader=(ClassLoader)configVales.get(HIB_CL);
+  ClassLoader environmentClassLoader=(ClassLoader)configVales.get(ENV_CL);
+  if (hibernateClassLoader == null) {
+    hibernateClassLoader=ClassLoaderServiceImpl.class.getClassLoader();
+  }
+  if (environmentClassLoader == null || applicationClassLoader == null) {
+    ClassLoader sysClassLoader=locateSystemClassLoader();
+    ClassLoader tccl=locateTCCL();
+    if (environmentClassLoader == null) {
+      environmentClassLoader=sysClassLoader != null ? sysClassLoader : hibernateClassLoader;
+    }
+    if (applicationClassLoader == null) {
+      applicationClassLoader=tccl != null ? tccl : hibernateClassLoader;
+    }
+  }
+  if (resourcesClassLoader == null) {
+    resourcesClassLoader=applicationClassLoader;
+  }
+  return new ClassLoader[]{applicationClassLoader,resourcesClassLoader,hibernateClassLoader,environmentClassLoader};
+}

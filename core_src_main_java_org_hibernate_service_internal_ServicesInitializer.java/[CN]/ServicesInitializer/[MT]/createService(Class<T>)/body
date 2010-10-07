@@ -1,0 +1,17 @@
+{
+  ServiceInitiator<T> initiator=(ServiceInitiator<T>)serviceInitiatorMap.get(serviceRole);
+  if (initiator == null) {
+    throw new UnknownServiceException(serviceRole);
+  }
+  try {
+    T service=initiator.initiateService(configurationValues,servicesRegistry);
+    servicesRegistry.registerService(serviceRole,service);
+    return service;
+  }
+ catch (  ServiceException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    throw new ServiceException("Unable to create requested service [" + serviceRole.getName() + "]",e);
+  }
+}
