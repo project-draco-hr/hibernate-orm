@@ -1,26 +1,3 @@
 {
-  final Object[] result;
-  final String[] aliases;
-  if (translator.hasProjection()) {
-    Type[] types=translator.getProjectedTypes();
-    result=new Object[types.length];
-    String[] columnAliases=translator.getProjectedColumnAliases();
-    for (int i=0, pos=0; i < result.length; i++) {
-      int numColumns=types[i].getColumnSpan(session.getFactory());
-      if (numColumns > 1) {
-        String[] typeColumnAliases=ArrayHelper.slice(columnAliases,pos,numColumns);
-        result[i]=types[i].nullSafeGet(rs,typeColumnAliases,session,null);
-      }
- else {
-        result[i]=types[i].nullSafeGet(rs,columnAliases[pos],session,null);
-      }
-      pos+=numColumns;
-    }
-    aliases=translator.getProjectedAliases();
-  }
- else {
-    result=row;
-    aliases=userAliases;
-  }
-  return resolveResultTransformer(transformer).transformTuple(result,aliases);
+  return resolveResultTransformer(transformer).transformTuple(getResultRow(row,rs,session),getResultRowAliases());
 }

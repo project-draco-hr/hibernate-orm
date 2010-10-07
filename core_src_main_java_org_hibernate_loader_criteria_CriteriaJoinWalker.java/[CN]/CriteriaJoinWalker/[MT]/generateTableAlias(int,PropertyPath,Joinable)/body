@@ -3,11 +3,19 @@
     final Criteria subcriteria=translator.getCriteria(path.getFullPath());
     String sqlAlias=subcriteria == null ? null : translator.getSQLAlias(subcriteria);
     if (sqlAlias != null) {
-      userAliasList.add(subcriteria.getAlias());
+      if (!translator.hasProjection()) {
+        includeInResultRowList.add(subcriteria.getAlias() != null);
+        if (subcriteria.getAlias() != null) {
+          userAliasList.add(subcriteria.getAlias());
+          resultTypeList.add(translator.getResultType(subcriteria));
+        }
+      }
       return sqlAlias;
     }
  else {
-      userAliasList.add(null);
+      if (!translator.hasProjection()) {
+        includeInResultRowList.add(false);
+      }
     }
   }
   return super.generateTableAlias(n + translator.getSQLAliasCount(),path,joinable);

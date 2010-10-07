@@ -1,21 +1,4 @@
 {
-  row=toResultRow(row);
-  if (hasScalars) {
-    String[][] scalarColumns=getColumnNames();
-    int queryCols=returnTypes.length;
-    if (holderClass == null && queryCols == 1) {
-      return returnTypes[0].nullSafeGet(rs,scalarColumns[0],session,null);
-    }
- else {
-      row=new Object[queryCols];
-      for (int i=0; i < queryCols; i++)       row[i]=returnTypes[i].nullSafeGet(rs,scalarColumns[i],session,null);
-      return row;
-    }
-  }
- else   if (holderClass == null) {
-    return row.length == 1 ? row[0] : row;
-  }
- else {
-    return row;
-  }
+  Object[] resultRow=getResultRow(row,rs,session);
+  return (holderClass == null && resultRow.length == 1 ? resultRow[0] : resultRow);
 }

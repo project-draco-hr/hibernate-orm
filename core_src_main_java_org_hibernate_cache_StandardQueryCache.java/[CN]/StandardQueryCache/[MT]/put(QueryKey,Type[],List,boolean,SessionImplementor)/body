@@ -8,6 +8,9 @@
       log.debug("caching query results in region: " + cacheRegion.getName() + "; timestamp="+ ts);
     }
     List cacheable=new ArrayList(result.size() + 1);
+    if (log.isTraceEnabled()) {
+      logCachedResultDetails(key,null,returnTypes,cacheable);
+    }
     cacheable.add(ts);
     for (    Object aResult : result) {
       if (returnTypes.length == 1) {
@@ -15,6 +18,9 @@
       }
  else {
         cacheable.add(TypeHelper.disassemble((Object[])aResult,returnTypes,null,session,null));
+      }
+      if (log.isTraceEnabled()) {
+        logCachedResultRowDetails(returnTypes,aResult);
       }
     }
     cacheRegion.put(key,cacheable);
