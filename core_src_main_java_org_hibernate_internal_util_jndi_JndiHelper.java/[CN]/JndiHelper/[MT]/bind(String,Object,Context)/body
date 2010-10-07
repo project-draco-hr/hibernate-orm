@@ -1,0 +1,45 @@
+{
+  try {
+    log.trace("binding : " + jndiName);
+    context.rebind(jndiName,value);
+  }
+ catch (  Exception initialException) {
+    Name n=tokenizeName(jndiName,context);
+    Context intermediateContextBase=context;
+    while (n.size() > 1) {
+      final String intermediateContextName=n.get(0);
+      Context intermediateContext=null;
+      try {
+        log.trace("intermediate lookup: " + intermediateContextName);
+        intermediateContext=(Context)intermediateContextBase.lookup(intermediateContextName);
+      }
+ catch (      NameNotFoundException handledBelow) {
+      }
+catch (      NamingException e) {
+        throw new JndiException("Unaniticipated error doing intermediate lookup",e);
+      }
+      if (intermediateContext != null) {
+        log.trace("Found interediate context: " + intermediateContextName);
+      }
+ else {
+        log.trace("Creating subcontext: " + intermediateContextName);
+        try {
+          intermediateContext=intermediateContextBase.createSubcontext(intermediateContextName);
+        }
+ catch (        NamingException e) {
+          throw new JndiException("Error creating intermediate context [" + intermediateContextName + "]",e);
+        }
+      }
+      intermediateContextBase=intermediateContext;
+      n=n.getSuffix(1);
+    }
+    log.trace("binding: " + n);
+    try {
+      intermediateContextBase.rebind(n,value);
+    }
+ catch (    NamingException e) {
+      throw new JndiException("Error performing intermediate bind [" + n + "]",e);
+    }
+  }
+  log.debug("Bound name: " + jndiName);
+}
