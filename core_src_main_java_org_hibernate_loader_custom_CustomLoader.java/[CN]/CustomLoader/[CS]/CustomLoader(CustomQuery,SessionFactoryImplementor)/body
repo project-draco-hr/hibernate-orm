@@ -16,6 +16,7 @@
   List specifiedAliases=new ArrayList();
   int returnableCounter=0;
   boolean hasScalars=false;
+  List includeInResultRowList=new ArrayList();
   Iterator itr=customQuery.getCustomQueryReturns().iterator();
   while (itr.hasNext()) {
     final Return rtn=(Return)itr.next();
@@ -24,6 +25,7 @@
       resultTypes.add(scalarRtn.getType());
       specifiedAliases.add(scalarRtn.getColumnAlias());
       resultColumnProcessors.add(new ScalarResultColumnProcessor(StringHelper.unquote(scalarRtn.getColumnAlias(),factory.getDialect()),scalarRtn.getType()));
+      includeInResultRowList.add(true);
       hasScalars=true;
     }
  else     if (rtn instanceof RootReturn) {
@@ -38,6 +40,7 @@
       specifiedAliases.add(rootRtn.getAlias());
       entityAliases.add(rootRtn.getEntityAliases());
       ArrayHelper.addAll(querySpaces,persister.getQuerySpaces());
+      includeInResultRowList.add(true);
     }
  else     if (rtn instanceof CollectionReturn) {
       CollectionReturn collRtn=(CollectionReturn)rtn;
@@ -59,6 +62,7 @@
         entityAliases.add(collRtn.getElementEntityAliases());
         ArrayHelper.addAll(querySpaces,elementPersister.getQuerySpaces());
       }
+      includeInResultRowList.add(true);
     }
  else     if (rtn instanceof EntityFetchReturn) {
       EntityFetchReturn fetchRtn=(EntityFetchReturn)rtn;
@@ -75,6 +79,7 @@
       specifiedAliases.add(fetchRtn.getAlias());
       entityAliases.add(fetchRtn.getEntityAliases());
       ArrayHelper.addAll(querySpaces,persister.getQuerySpaces());
+      includeInResultRowList.add(false);
     }
  else     if (rtn instanceof CollectionFetchReturn) {
       CollectionFetchReturn fetchRtn=(CollectionFetchReturn)rtn;
@@ -97,6 +102,7 @@
         entityAliases.add(fetchRtn.getElementEntityAliases());
         ArrayHelper.addAll(querySpaces,elementPersister.getQuerySpaces());
       }
+      includeInResultRowList.add(false);
     }
  else {
       throw new HibernateException("unexpected custom query return type : " + rtn.getClass().getName());
@@ -127,4 +133,5 @@
   this.resultTypes=ArrayHelper.toTypeArray(resultTypes);
   this.transformerAliases=ArrayHelper.toStringArray(specifiedAliases);
   this.rowProcessor=new ResultRowProcessor(hasScalars,(ResultColumnProcessor[])resultColumnProcessors.toArray(new ResultColumnProcessor[resultColumnProcessors.size()]));
+  this.includeInResultRow=ArrayHelper.toBooleanArray(includeInResultRowList);
 }

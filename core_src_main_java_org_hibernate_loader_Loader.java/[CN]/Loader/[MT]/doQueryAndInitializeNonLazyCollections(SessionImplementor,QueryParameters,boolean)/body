@@ -1,25 +1,3 @@
 {
-  final PersistenceContext persistenceContext=session.getPersistenceContext();
-  boolean defaultReadOnlyOrig=persistenceContext.isDefaultReadOnly();
-  if (queryParameters.isReadOnlyInitialized()) {
-    persistenceContext.setDefaultReadOnly(queryParameters.isReadOnly());
-  }
- else {
-    queryParameters.setReadOnly(persistenceContext.isDefaultReadOnly());
-  }
-  persistenceContext.beforeLoad();
-  List result;
-  try {
-    try {
-      result=doQuery(session,queryParameters,returnProxies);
-    }
-  finally {
-      persistenceContext.afterLoad();
-    }
-    persistenceContext.initializeNonLazyCollections();
-  }
-  finally {
-    persistenceContext.setDefaultReadOnly(defaultReadOnlyOrig);
-  }
-  return result;
+  return doQueryAndInitializeNonLazyCollections(session,queryParameters,returnProxies,null);
 }

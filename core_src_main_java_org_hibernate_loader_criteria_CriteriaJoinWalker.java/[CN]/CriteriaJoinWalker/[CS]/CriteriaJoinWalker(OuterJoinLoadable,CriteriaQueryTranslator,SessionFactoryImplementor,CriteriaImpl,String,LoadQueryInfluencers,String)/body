@@ -3,13 +3,19 @@
   this.translator=translator;
   querySpaces=translator.getQuerySpaces();
   if (translator.hasProjection()) {
-    resultTypes=translator.getProjectedTypes();
     initProjection(translator.getSelect(),translator.getWhereCondition(),translator.getOrderBy(),translator.getGroupBy(),LockOptions.NONE);
+    resultTypes=translator.getProjectedTypes();
+    userAliases=translator.getProjectedAliases();
+    includeInResultRow=new boolean[resultTypes.length];
+    Arrays.fill(includeInResultRow,true);
   }
  else {
-    resultTypes=new Type[]{factory.getTypeResolver().getTypeFactory().manyToOne(persister.getEntityName())};
     initAll(translator.getWhereCondition(),translator.getOrderBy(),LockOptions.NONE);
+    userAliasList.add(criteria.getAlias());
+    resultTypeList.add(translator.getResultType(criteria));
+    includeInResultRowList.add(true);
+    userAliases=ArrayHelper.toStringArray(userAliasList);
+    resultTypes=ArrayHelper.toTypeArray(resultTypeList);
+    includeInResultRow=ArrayHelper.toBooleanArray(includeInResultRowList);
   }
-  userAliasList.add(criteria.getAlias());
-  userAliases=ArrayHelper.toStringArray(userAliasList);
 }

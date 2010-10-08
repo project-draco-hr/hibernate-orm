@@ -1,0 +1,20 @@
+{
+  final Loadable[] persisters=getEntityPersisters();
+  final int entitySpan=persisters.length;
+  extractKeysFromResultSet(persisters,queryParameters,resultSet,session,keys,lockModesArray,hydratedObjects);
+  registerNonExists(keys,persisters,session);
+  Object[] row=getRow(resultSet,persisters,keys,queryParameters.getOptionalObject(),optionalObjectKey,lockModesArray,hydratedObjects,session);
+  readCollectionElements(row,resultSet,session);
+  if (returnProxies) {
+    for (int i=0; i < entitySpan; i++) {
+      Object entity=row[i];
+      Object proxy=session.getPersistenceContext().proxyFor(persisters[i],keys[i],entity);
+      if (entity != proxy) {
+        ((HibernateProxy)proxy).getHibernateLazyInitializer().setImplementation(entity);
+        row[i]=proxy;
+      }
+    }
+  }
+  applyPostLoadLocks(row,lockModesArray,session);
+  return forcedResultTransformer == null ? getResultColumnOrRow(row,queryParameters.getResultTransformer(),resultSet,session) : forcedResultTransformer.transformTuple(getResultRow(row,resultSet,session),getResultRowAliases());
+}

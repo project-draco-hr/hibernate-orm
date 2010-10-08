@@ -1,16 +1,6 @@
 {
   if (session.getCacheMode().isPutEnabled()) {
-    if (log.isTraceEnabled()) {
-      logCachedResultDetails(key.getResultTransformer(),resultTypes,result);
-    }
-    List cachedResult=result;
-    if (resultTypes.length == 1 && key.getResultTransformer() == null && resolveResultTransformer(queryParameters.getResultTransformer()) != null) {
-      cachedResult=new ArrayList(result.size());
-      for (int i=0; i < result.size(); i++) {
-        cachedResult.add(((Object[])result.get(i))[0]);
-      }
-    }
-    boolean put=queryCache.put(key,resultTypes,cachedResult,queryParameters.isNaturalKeyLookup(),session);
+    boolean put=queryCache.put(key,key.getResultTransformer().getCachedResultTypes(resultTypes),result,queryParameters.isNaturalKeyLookup(),session);
     if (put && factory.getStatistics().isStatisticsEnabled()) {
       factory.getStatisticsImplementor().queryCachePut(getQueryIdentifier(),queryCache.getRegion().getName());
     }

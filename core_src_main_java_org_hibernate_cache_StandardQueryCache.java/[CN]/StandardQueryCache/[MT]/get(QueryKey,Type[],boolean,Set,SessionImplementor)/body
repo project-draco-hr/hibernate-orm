@@ -3,6 +3,9 @@
     log.debug("checking cached query results in region: " + cacheRegion.getName());
   }
   List cacheable=(List)cacheRegion.get(key);
+  if (log.isTraceEnabled()) {
+    logCachedResultDetails(key,spaces,returnTypes,cacheable);
+  }
   if (cacheable == null) {
     log.debug("query results were not found in cache");
     return null;
@@ -29,6 +32,9 @@
       }
  else {
         result.add(TypeHelper.assemble((Serializable[])cacheable.get(i),returnTypes,session,null));
+      }
+      if (log.isTraceEnabled()) {
+        logCachedResultRowDetails(returnTypes,result.get(i - 1));
       }
     }
  catch (    RuntimeException ex) {

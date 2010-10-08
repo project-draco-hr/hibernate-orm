@@ -1,0 +1,27 @@
+{
+  if (!log.isTraceEnabled()) {
+    return;
+  }
+  if (tuple == null) {
+    log.trace(" tuple is null; returnTypes is " + (returnTypes == null ? "null" : "Type[" + returnTypes.length + "]"));
+    if (returnTypes != null && returnTypes.length > 1) {
+      log.trace("unexpected result tuple! " + "tuple is null; should be Object[" + returnTypes.length + "]!");
+    }
+  }
+ else {
+    if (returnTypes == null || returnTypes.length == 0) {
+      log.trace("unexpected result tuple! " + "tuple is non-null; returnTypes is " + (returnTypes == null ? "null" : "empty"));
+    }
+    log.trace(" tuple is Object[" + tuple.length + "]; returnTypes is Type["+ returnTypes.length+ "]");
+    if (tuple.length != returnTypes.length) {
+      log.trace("unexpected tuple length! transformer=" + " expected=" + returnTypes.length + " got="+ tuple.length);
+    }
+ else {
+      for (int j=0; j < tuple.length; j++) {
+        if (tuple[j] != null && !returnTypes[j].getReturnedClass().isInstance(tuple[j])) {
+          log.trace("unexpected tuple value type! transformer=" + " expected=" + returnTypes[j].getReturnedClass().getName() + " got="+ tuple[j].getClass().getName());
+        }
+      }
+    }
+  }
+}
