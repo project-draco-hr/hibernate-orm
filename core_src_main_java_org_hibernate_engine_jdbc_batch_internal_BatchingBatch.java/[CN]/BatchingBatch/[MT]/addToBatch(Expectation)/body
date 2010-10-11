@@ -1,0 +1,19 @@
+{
+  if (!expectation.canBeBatched()) {
+    throw new HibernateException("attempting to batch an operation which cannot be batched");
+  }
+  for (  Map.Entry<String,PreparedStatement> entry : getStatements().entrySet()) {
+    try {
+      entry.getValue().addBatch();
+    }
+ catch (    SQLException e) {
+      log.error("sqlexception escaped proxy",e);
+      throw getJdbcServices().getSqlExceptionHelper().convert(e,"could not perform addBatch",entry.getKey());
+    }
+  }
+  expectations[batchPosition++]=expectation;
+  if (batchPosition == batchSize) {
+    notifyObserversImplicitExecution();
+    doExecuteBatch();
+  }
+}

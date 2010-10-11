@@ -1,0 +1,14 @@
+{
+  log.trace("closing result set [{}]",resultSet);
+  if (resultSet instanceof InvalidatableWrapper) {
+    InvalidatableWrapper<ResultSet> wrapper=(InvalidatableWrapper<ResultSet>)resultSet;
+    close(wrapper.getWrappedObject());
+    wrapper.invalidate();
+  }
+  try {
+    resultSet.close();
+  }
+ catch (  SQLException e) {
+    log.debug("Unable to release result set [{}]",e.getMessage());
+  }
+}

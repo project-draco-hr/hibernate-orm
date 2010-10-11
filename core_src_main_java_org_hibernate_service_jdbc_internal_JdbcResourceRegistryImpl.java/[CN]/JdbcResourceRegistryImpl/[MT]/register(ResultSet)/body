@@ -1,0 +1,24 @@
+{
+  log.trace("registering result set [" + resultSet + "]");
+  Statement statement;
+  try {
+    statement=resultSet.getStatement();
+  }
+ catch (  SQLException e) {
+    throw exceptionHelper.convert(e,"unable to access statement from resultset");
+  }
+  if (statement != null) {
+    if (log.isWarnEnabled() && !xref.containsKey(statement)) {
+      log.warn("resultset's statement was not yet registered");
+    }
+    Set<ResultSet> resultSets=xref.get(statement);
+    if (resultSets == null) {
+      resultSets=new HashSet<ResultSet>();
+      xref.put(statement,resultSets);
+    }
+    resultSets.add(resultSet);
+  }
+ else {
+    unassociatedResultSets.add(resultSet);
+  }
+}

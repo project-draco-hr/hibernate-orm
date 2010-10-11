@@ -1,0 +1,27 @@
+{
+  log.trace("closing prepared statement [{}]",statement);
+  if (statement instanceof InvalidatableWrapper) {
+    InvalidatableWrapper<Statement> wrapper=(InvalidatableWrapper<Statement>)statement;
+    close(wrapper.getWrappedObject());
+    wrapper.invalidate();
+    return;
+  }
+  try {
+    try {
+      if (statement.getMaxRows() != 0) {
+        statement.setMaxRows(0);
+      }
+      if (statement.getQueryTimeout() != 0) {
+        statement.setQueryTimeout(0);
+      }
+    }
+ catch (    SQLException sqle) {
+      log.debug("Exception clearing maxRows/queryTimeout [{}]",sqle.getMessage());
+      return;
+    }
+    statement.close();
+  }
+ catch (  SQLException sqle) {
+    log.debug("Unable to release statement [{}]",sqle.getMessage());
+  }
+}

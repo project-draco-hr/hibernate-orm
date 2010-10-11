@@ -1,0 +1,14 @@
+{
+  notifyObserversImplicitExecution();
+  for (  Map.Entry<String,PreparedStatement> entry : getStatements().entrySet()) {
+    try {
+      final PreparedStatement statement=entry.getValue();
+      final int rowCount=statement.executeUpdate();
+      expectation.verifyOutcome(rowCount,statement,0);
+    }
+ catch (    SQLException e) {
+      log.error("sqlexception escaped proxy",e);
+      throw getJdbcServices().getSqlExceptionHelper().convert(e,"could not execute batch statement",entry.getKey());
+    }
+  }
+}

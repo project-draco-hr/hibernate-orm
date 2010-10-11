@@ -1,0 +1,40 @@
+{
+  log.info("Using Hibernate built-in connection pool (not for production use!)");
+  String driverClassName=(String)configurationValues.get(Environment.DRIVER);
+  if (driverClassName == null) {
+    log.warn("no JDBC Driver class was specified by property " + Environment.DRIVER);
+  }
+ else {
+    try {
+      Class.forName(driverClassName);
+    }
+ catch (    ClassNotFoundException cnfe) {
+      try {
+        ReflectHelper.classForName(driverClassName);
+      }
+ catch (      ClassNotFoundException e) {
+        throw new HibernateException("Specified JDBC Driver " + driverClassName + " class not found",e);
+      }
+    }
+  }
+  poolSize=ConfigurationHelper.getInt(Environment.POOL_SIZE,configurationValues,20);
+  log.info("Hibernate connection pool size: " + poolSize);
+  autocommit=ConfigurationHelper.getBoolean(Environment.AUTOCOMMIT,configurationValues);
+  log.info("autocommit mode: " + autocommit);
+  isolation=ConfigurationHelper.getInteger(Environment.ISOLATION,configurationValues);
+  if (isolation != null)   log.info("JDBC isolation level: " + Environment.isolationLevelToString(isolation.intValue()));
+  url=(String)configurationValues.get(Environment.URL);
+  if (url == null) {
+    String msg="JDBC URL was not specified by property " + Environment.URL;
+    log.error(msg);
+    throw new HibernateException(msg);
+  }
+  connectionProps=ConnectionProviderInitiator.getConnectionProperties(configurationValues);
+  log.info("using driver [" + driverClassName + "] at URL ["+ url+ "]");
+  if (log.isDebugEnabled()) {
+    log.info("connection properties: " + connectionProps);
+  }
+ else   if (log.isInfoEnabled()) {
+    log.info("connection properties: " + ConfigurationHelper.maskOut(connectionProps,"password"));
+  }
+}

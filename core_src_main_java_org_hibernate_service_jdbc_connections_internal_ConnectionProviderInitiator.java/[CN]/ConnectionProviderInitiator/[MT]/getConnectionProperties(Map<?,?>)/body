@@ -1,0 +1,22 @@
+{
+  Properties result=new Properties();
+  for (  Map.Entry entry : properties.entrySet()) {
+    if (!(String.class.isInstance(entry.getKey())) && String.class.isInstance(entry.getValue())) {
+      continue;
+    }
+    final String key=(String)entry.getKey();
+    final String value=(String)entry.getValue();
+    if (key.startsWith(Environment.CONNECTION_PREFIX)) {
+      if (SPECIAL_PROPERTIES.contains(key)) {
+        if (Environment.USER.equals(key)) {
+          result.setProperty("user",value);
+        }
+      }
+ else {
+        final String passThruKey=key.substring(Environment.CONNECTION_PREFIX.length() + 1);
+        result.setProperty(passThruKey,value);
+      }
+    }
+  }
+  return result;
+}

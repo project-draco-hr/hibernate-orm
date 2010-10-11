@@ -1,0 +1,14 @@
+{
+  log.trace("starting after statement execution processing [{}]",connectionReleaseMode);
+  if (connectionReleaseMode == ConnectionReleaseMode.AFTER_STATEMENT) {
+    if (!releasesEnabled) {
+      log.debug("skipping aggressive release due to manual disabling");
+      return;
+    }
+    if (jdbcResourceRegistry.hasRegisteredResources()) {
+      log.debug("skipping aggressive release due to registered resources");
+      return;
+    }
+    releaseConnection();
+  }
+}

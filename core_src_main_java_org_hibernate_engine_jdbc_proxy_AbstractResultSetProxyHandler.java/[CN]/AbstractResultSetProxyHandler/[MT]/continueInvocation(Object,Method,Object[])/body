@@ -1,0 +1,37 @@
+{
+  String methodName=method.getName();
+  log.trace("Handling invocation of ResultSet method [{}]",methodName);
+  if ("close".equals(methodName)) {
+    explicitClose((ResultSet)proxy);
+    return null;
+  }
+  if ("invalidate".equals(methodName)) {
+    invalidateHandle();
+    return null;
+  }
+  errorIfInvalid();
+  if ("isWrapperFor".equals(methodName) && args.length == 1) {
+    return method.invoke(getResultSetWithoutChecks(),args);
+  }
+  if ("unwrap".equals(methodName) && args.length == 1) {
+    return method.invoke(getResultSetWithoutChecks(),args);
+  }
+  if ("getWrappedObject".equals(methodName)) {
+    return getResultSetWithoutChecks();
+  }
+  if ("getStatement".equals(methodName)) {
+    return getExposableStatement();
+  }
+  try {
+    return method.invoke(resultSet,args);
+  }
+ catch (  InvocationTargetException e) {
+    Throwable realException=e.getTargetException();
+    if (SQLException.class.isInstance(realException)) {
+      throw getJdbcServices().getSqlExceptionHelper().convert((SQLException)realException,realException.getMessage());
+    }
+ else {
+      throw realException;
+    }
+  }
+}

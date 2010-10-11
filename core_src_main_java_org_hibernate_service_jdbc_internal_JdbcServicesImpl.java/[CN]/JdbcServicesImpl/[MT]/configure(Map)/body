@@ -1,0 +1,65 @@
+{
+  Dialect dialect=null;
+  boolean metaSupportsScrollable=false;
+  boolean metaSupportsGetGeneratedKeys=false;
+  boolean metaSupportsBatchUpdates=false;
+  boolean metaReportsDDLCausesTxnCommit=false;
+  boolean metaReportsDDLInTxnSupported=true;
+  String extraKeywordsString="";
+  int sqlStateType=-1;
+  boolean lobLocatorUpdateCopy=false;
+  String catalogName=null;
+  String schemaName=null;
+  LinkedHashSet<TypeInfo> typeInfoSet=new LinkedHashSet<TypeInfo>();
+  boolean useJdbcMetadata=ConfigurationHelper.getBoolean("hibernate.temp.use_jdbc_metadata_defaults",configValues,true);
+  if (useJdbcMetadata) {
+    try {
+      Connection conn=connectionProvider.getConnection();
+      try {
+        DatabaseMetaData meta=conn.getMetaData();
+        log.info("Database ->\n" + "       name : " + meta.getDatabaseProductName() + '\n'+ "    version : "+ meta.getDatabaseProductVersion()+ '\n'+ "      major : "+ meta.getDatabaseMajorVersion()+ '\n'+ "      minor : "+ meta.getDatabaseMinorVersion());
+        log.info("Driver ->\n" + "       name : " + meta.getDriverName() + '\n'+ "    version : "+ meta.getDriverVersion()+ '\n'+ "      major : "+ meta.getDriverMajorVersion()+ '\n'+ "      minor : "+ meta.getDriverMinorVersion());
+        log.info("JDBC version : " + meta.getJDBCMajorVersion() + "."+ meta.getJDBCMinorVersion());
+        metaSupportsScrollable=meta.supportsResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
+        metaSupportsBatchUpdates=meta.supportsBatchUpdates();
+        metaReportsDDLCausesTxnCommit=meta.dataDefinitionCausesTransactionCommit();
+        metaReportsDDLInTxnSupported=!meta.dataDefinitionIgnoredInTransactions();
+        metaSupportsGetGeneratedKeys=meta.supportsGetGeneratedKeys();
+        extraKeywordsString=meta.getSQLKeywords();
+        sqlStateType=meta.getSQLStateType();
+        lobLocatorUpdateCopy=meta.locatorsUpdateCopy();
+        typeInfoSet.addAll(TypeInfoExtracter.extractTypeInfo(meta));
+        dialect=dialectFactory.buildDialect(configValues,conn);
+        catalogName=conn.getCatalog();
+        SchemaNameResolver schemaNameResolver=determineExplicitSchemaNameResolver(configValues);
+        if (schemaNameResolver == null) {
+        }
+        if (schemaNameResolver != null) {
+          schemaName=schemaNameResolver.resolveSchemaName(conn);
+        }
+      }
+ catch (      SQLException sqle) {
+        log.warn("Could not obtain connection metadata",sqle);
+      }
+ finally {
+        connectionProvider.closeConnection(conn);
+      }
+    }
+ catch (    SQLException sqle) {
+      log.warn("Could not obtain connection to query metadata",sqle);
+      dialect=dialectFactory.buildDialect(configValues,null);
+    }
+catch (    UnsupportedOperationException uoe) {
+      dialect=dialectFactory.buildDialect(configValues,null);
+    }
+  }
+ else {
+    dialect=dialectFactory.buildDialect(configValues,null);
+  }
+  final boolean showSQL=ConfigurationHelper.getBoolean(Environment.SHOW_SQL,configValues,false);
+  final boolean formatSQL=ConfigurationHelper.getBoolean(Environment.FORMAT_SQL,configValues,false);
+  this.dialect=dialect;
+  this.sqlStatementLogger=new SQLStatementLogger(showSQL,formatSQL);
+  this.sqlExceptionHelper=new SQLExceptionHelper(dialect.buildSQLExceptionConverter());
+  this.extractedMetaDataSupport=new ExtractedDatabaseMetaDataImpl(metaSupportsScrollable,metaSupportsGetGeneratedKeys,metaSupportsBatchUpdates,metaReportsDDLInTxnSupported,metaReportsDDLCausesTxnCommit,parseKeywords(extraKeywordsString),parseSQLStateType(sqlStateType),lobLocatorUpdateCopy,schemaName,catalogName,typeInfoSet);
+}

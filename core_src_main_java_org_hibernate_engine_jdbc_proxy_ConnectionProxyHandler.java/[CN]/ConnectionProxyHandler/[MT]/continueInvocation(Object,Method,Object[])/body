@@ -1,0 +1,32 @@
+{
+  String methodName=method.getName();
+  log.trace("Handling invocation of connection method [{}]",methodName);
+  if ("close".equals(methodName)) {
+    explicitClose();
+    return null;
+  }
+  errorIfInvalid();
+  if ("isWrapperFor".equals(methodName) && args.length == 1) {
+    return method.invoke(extractPhysicalConnection(),args);
+  }
+  if ("unwrap".equals(methodName) && args.length == 1) {
+    return method.invoke(extractPhysicalConnection(),args);
+  }
+  if ("getWrappedObject".equals(methodName)) {
+    return extractPhysicalConnection();
+  }
+  try {
+    Object result=method.invoke(extractPhysicalConnection(),args);
+    result=wrapIfNecessary(result,proxy,method,args);
+    return result;
+  }
+ catch (  InvocationTargetException e) {
+    Throwable realException=e.getTargetException();
+    if (SQLException.class.isInstance(realException)) {
+      throw logicalConnection.getJdbcServices().getSqlExceptionHelper().convert((SQLException)realException,realException.getMessage());
+    }
+ else {
+      throw realException;
+    }
+  }
+}

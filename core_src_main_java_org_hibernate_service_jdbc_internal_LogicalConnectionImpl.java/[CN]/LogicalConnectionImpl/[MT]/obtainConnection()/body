@@ -1,0 +1,13 @@
+{
+  log.debug("obtaining JDBC connection");
+  try {
+    physicalConnection=getJdbcServices().getConnectionProvider().getConnection();
+    for (    ConnectionObserver observer : observers) {
+      observer.physicalConnectionObtained(physicalConnection);
+    }
+    log.debug("obtained JDBC connection");
+  }
+ catch (  SQLException sqle) {
+    throw getJdbcServices().getSqlExceptionHelper().convert(sqle,"Could not open connection");
+  }
+}

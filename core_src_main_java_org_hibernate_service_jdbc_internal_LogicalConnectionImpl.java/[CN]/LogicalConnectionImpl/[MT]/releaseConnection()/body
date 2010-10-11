@@ -1,0 +1,17 @@
+{
+  log.debug("releasing JDBC connection");
+  try {
+    if (!physicalConnection.isClosed()) {
+      getJdbcServices().getSqlExceptionHelper().logAndClearWarnings(physicalConnection);
+    }
+    for (    ConnectionObserver observer : observers) {
+      observer.physicalConnectionReleased();
+    }
+    getJdbcServices().getConnectionProvider().closeConnection(physicalConnection);
+    physicalConnection=null;
+    log.debug("released JDBC connection");
+  }
+ catch (  SQLException sqle) {
+    throw getJdbcServices().getSqlExceptionHelper().convert(sqle,"Could not close connection");
+  }
+}

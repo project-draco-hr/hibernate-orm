@@ -1,0 +1,15 @@
+{
+  log.trace("closing logical connection");
+  Connection c=physicalConnection;
+  if (!isUserSuppliedConnection && physicalConnection != null) {
+    jdbcResourceRegistry.close();
+    releaseConnection();
+  }
+  physicalConnection=null;
+  isClosed=true;
+  for (  ConnectionObserver observer : observers) {
+    observer.logicalConnectionClosed();
+  }
+  log.trace("logical connection closed");
+  return c;
+}

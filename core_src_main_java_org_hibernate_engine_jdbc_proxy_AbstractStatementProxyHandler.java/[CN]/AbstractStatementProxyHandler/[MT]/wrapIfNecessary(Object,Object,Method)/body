@@ -1,0 +1,14 @@
+{
+  if (!(ResultSet.class.isAssignableFrom(method.getReturnType()))) {
+    return result;
+  }
+  final ResultSet wrapper;
+  if ("getGeneratedKeys".equals(method.getName())) {
+    wrapper=ProxyBuilder.buildImplicitResultSet((ResultSet)result,connectionProxyHandler,connectionProxy);
+  }
+ else {
+    wrapper=ProxyBuilder.buildResultSet((ResultSet)result,this,(Statement)proxy);
+  }
+  getResourceRegistry().register(wrapper);
+  return wrapper;
+}

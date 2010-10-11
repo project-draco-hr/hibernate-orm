@@ -1,0 +1,29 @@
+{
+  log.trace("releasing result set [{}]",resultSet);
+  Statement statement;
+  try {
+    statement=resultSet.getStatement();
+  }
+ catch (  SQLException e) {
+    throw exceptionHelper.convert(e,"unable to access statement from resultset");
+  }
+  if (statement != null) {
+    if (log.isWarnEnabled() && !xref.containsKey(statement)) {
+      log.warn("resultset's statement was not registered");
+    }
+    Set<ResultSet> resultSets=xref.get(statement);
+    if (resultSets != null) {
+      resultSets.remove(resultSet);
+      if (resultSets.isEmpty()) {
+        xref.remove(statement);
+      }
+    }
+  }
+ else {
+    boolean removed=unassociatedResultSets.remove(resultSet);
+    if (!removed) {
+      log.warn("ResultSet had no statement associated with it, but was not yet registered");
+    }
+  }
+  close(resultSet);
+}
