@@ -1,0 +1,40 @@
+{
+  String username=(String)getProject().getProperties().get(USER);
+  String password=(String)getProject().getProperties().get(PASS);
+  if (username != null && password != null) {
+    return newAuthentication(username,password);
+  }
+  File alternateFile=new File(new File(System.getProperty("user.home"),".gradle"),ALT_PROP_FILE_NAME);
+  Properties alternateProperties=new Properties();
+  if (username != null) {
+    alternateProperties.put(USER,username);
+  }
+  if (password != null) {
+    alternateProperties.put(PASS,password);
+  }
+  try {
+    FileInputStream fis=new FileInputStream(alternateFile);
+    try {
+      alternateProperties.load(fis);
+    }
+ catch (    IOException e) {
+      getLogger().debug("Unable to load alternate JBoss Nexus properties file",e);
+    }
+ finally {
+      try {
+        fis.close();
+      }
+ catch (      IOException ignore) {
+      }
+    }
+  }
+ catch (  FileNotFoundException e) {
+    getLogger().debug("Unable to locate alternate JBoss Nexus properties file");
+  }
+  username=alternateProperties.getProperty(USER);
+  password=alternateProperties.getProperty(PASS);
+  if (username != null && password != null) {
+    return newAuthentication(username,password);
+  }
+  return null;
+}

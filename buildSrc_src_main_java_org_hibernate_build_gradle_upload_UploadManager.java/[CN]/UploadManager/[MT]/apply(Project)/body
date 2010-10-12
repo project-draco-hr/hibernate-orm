@@ -1,0 +1,23 @@
+{
+  final Authenticator authenticator=project.getTasks().add("nexusAuthHandler",Authenticator.class);
+  project.getTasks().withType(Upload.class).allTasks(new Action<Upload>(){
+    @Override public void execute(    final Upload uploadTask){
+      uploadTask.getRepositories().withType(MavenDeployer.class).allObjects(new Action<MavenDeployer>(){
+        public void execute(        MavenDeployer deployer){
+          RemoteRepository repository=deployer.getRepository();
+          if (repository != null) {
+            authenticator.addRepository(repository);
+            uploadTask.getDependsOn().add(authenticator);
+          }
+          repository=deployer.getSnapshotRepository();
+          if (repository != null) {
+            authenticator.addRepository(repository);
+            uploadTask.getDependsOn().add(authenticator);
+          }
+        }
+      }
+);
+    }
+  }
+);
+}
