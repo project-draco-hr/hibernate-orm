@@ -1,0 +1,15 @@
+{
+  LogicalConnectionImpl logicalConnection=new LogicalConnectionImpl(null,ConnectionReleaseMode.AFTER_TRANSACTION,services);
+  Connection proxiedConnection=ProxyBuilder.buildConnection(logicalConnection);
+  try {
+    proxiedConnection.prepareStatement("select count(*) from NON_EXISTENT").executeQuery();
+  }
+ catch (  SQLException sqle) {
+    fail("incorrect exception type : sqlexception");
+  }
+catch (  JDBCException ok) {
+  }
+ finally {
+    logicalConnection.close();
+  }
+}

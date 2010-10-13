@@ -1,0 +1,42 @@
+{
+  LogicalConnectionImpl logicalConnection=new LogicalConnectionImpl(null,ConnectionReleaseMode.AFTER_STATEMENT,services);
+  Connection proxiedConnection=ProxyBuilder.buildConnection(logicalConnection);
+  ConnectionCounter observer=new ConnectionCounter();
+  logicalConnection.addObserver(observer);
+  try {
+    PreparedStatement ps=proxiedConnection.prepareStatement("insert into SANDBOX_JDBC_TST( ID, NAME ) values ( ?, ? )");
+    ps.setLong(1,1);
+    ps.setString(2,"name");
+    ps.execute();
+    assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    assertEquals(1,observer.obtainCount);
+    assertEquals(0,observer.releaseCount);
+    ps.close();
+    assertFalse(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    assertEquals(1,observer.obtainCount);
+    assertEquals(1,observer.releaseCount);
+    ps=proxiedConnection.prepareStatement("select * from SANDBOX_JDBC_TST");
+    ps.executeQuery();
+    assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    assertEquals(2,observer.obtainCount);
+    assertEquals(1,observer.releaseCount);
+    PreparedStatement ps2=proxiedConnection.prepareStatement("select * from SANDBOX_JDBC_TST");
+    ps2.execute();
+    assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    assertEquals(2,observer.obtainCount);
+    assertEquals(1,observer.releaseCount);
+    ps2.close();
+    assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    assertEquals(2,observer.obtainCount);
+    assertEquals(1,observer.releaseCount);
+  }
+ catch (  SQLException sqle) {
+    fail("incorrect exception type : sqlexception");
+  }
+ finally {
+    logicalConnection.close();
+  }
+  assertFalse(logicalConnection.getResourceRegistry().hasRegisteredResources());
+  assertEquals(2,observer.obtainCount);
+  assertEquals(2,observer.releaseCount);
+}

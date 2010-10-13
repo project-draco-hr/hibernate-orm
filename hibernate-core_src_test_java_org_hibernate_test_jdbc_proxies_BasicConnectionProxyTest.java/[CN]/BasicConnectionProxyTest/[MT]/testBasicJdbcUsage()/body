@@ -1,0 +1,28 @@
+{
+  LogicalConnectionImpl logicalConnection=new LogicalConnectionImpl(null,ConnectionReleaseMode.AFTER_TRANSACTION,services);
+  Connection proxiedConnection=ProxyBuilder.buildConnection(logicalConnection);
+  try {
+    Statement stmnt=proxiedConnection.createStatement();
+    stmnt.execute("drop table SANDBOX_JDBC_TST if exists");
+    stmnt.execute("create table SANDBOX_JDBC_TST ( ID integer, NAME varchar(100) )");
+    assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    assertTrue(logicalConnection.isPhysicallyConnected());
+    stmnt.close();
+    assertFalse(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    assertTrue(logicalConnection.isPhysicallyConnected());
+    PreparedStatement ps=proxiedConnection.prepareStatement("insert into SANDBOX_JDBC_TST( ID, NAME ) values ( ?, ? )");
+    ps.setLong(1,1);
+    ps.setString(2,"name");
+    ps.execute();
+    ps=proxiedConnection.prepareStatement("select * from SANDBOX_JDBC_TST");
+    ps.executeQuery();
+    assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
+  }
+ catch (  SQLException sqle) {
+    fail("incorrect exception type : sqlexception");
+  }
+ finally {
+    logicalConnection.close();
+  }
+  assertFalse(logicalConnection.getResourceRegistry().hasRegisteredResources());
+}

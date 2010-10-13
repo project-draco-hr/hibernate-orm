@@ -1,0 +1,22 @@
+{
+  LogicalConnectionImpl logicalConnection=new LogicalConnectionImpl(null,ConnectionReleaseMode.AFTER_TRANSACTION,services);
+  Connection proxiedConnection=ProxyBuilder.buildConnection(logicalConnection);
+  try {
+    DatabaseMetaData metaData=proxiedConnection.getMetaData();
+    assertFalse(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    ResultSet rs1=metaData.getCatalogs();
+    assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    rs1.close();
+    assertFalse(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    metaData.getCatalogs();
+    metaData.getSchemas();
+    assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
+  }
+ catch (  SQLException sqle) {
+    fail("incorrect exception type : sqlexception");
+  }
+ finally {
+    logicalConnection.close();
+    assertFalse(logicalConnection.getResourceRegistry().hasRegisteredResources());
+  }
+}
