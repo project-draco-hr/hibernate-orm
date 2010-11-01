@@ -1,0 +1,28 @@
+{
+  NotAudited unVer=property.getAnnotation(NotAudited.class);
+  if (unVer != null) {
+    return false;
+  }
+ else {
+    if (globalCfg.isDoNotAuditOptimisticLockingField()) {
+      Version jpaVer=property.getAnnotation(Version.class);
+      if (jpaVer != null) {
+        return false;
+      }
+    }
+  }
+  if (!this.checkAudited(property,propertyData,allClassAudited)) {
+    return false;
+  }
+  propertyData.setName(propertyNamePrefix + property.getName());
+  propertyData.setBeanName(property.getName());
+  propertyData.setAccessType(accessType);
+  addPropertyJoinTables(property,propertyData);
+  addPropertyAuditingOverrides(property,propertyData);
+  if (!processPropertyAuditingOverrides(property,propertyData)) {
+    return false;
+  }
+  addPropertyMapKey(property,propertyData);
+  setPropertyAuditMappedBy(property,propertyData);
+  return true;
+}
