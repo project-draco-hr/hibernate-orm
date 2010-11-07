@@ -2,24 +2,14 @@
   if (offset == 0) {
     return new StringBuffer(querySqlString.length() + 8).append(querySqlString).insert(getAfterSelectInsertPoint(querySqlString)," top " + limit).toString();
   }
-  StringBuilder sb=new StringBuilder(querySqlString.trim());
-  String querySqlLowered=querySqlString.trim().toLowerCase();
-  int orderByIndex=querySqlLowered.toLowerCase().indexOf("order by");
-  String orderby=orderByIndex > 0 ? querySqlString.substring(orderByIndex) : "ORDER BY CURRENT_TIMESTAMP";
+  StringBuilder sb=new StringBuilder(querySqlString.trim().toLowerCase());
+  int orderByIndex=sb.indexOf("order by");
+  CharSequence orderby=orderByIndex > 0 ? sb.subSequence(orderByIndex,sb.length()) : "ORDER BY CURRENT_TIMESTAMP";
   if (orderByIndex > 0) {
     sb.delete(orderByIndex,orderByIndex + orderby.length());
   }
-  int selectIndex=querySqlLowered.trim().indexOf(SELECT_DISTINCT);
-  if (selectIndex != -1) {
-    selectIndex+=SELECT_DISTINCT.length();
-  }
- else {
-    selectIndex=querySqlLowered.trim().indexOf(SELECT);
-    if (selectIndex != -1) {
-      selectIndex+=SELECT.length();
-    }
-  }
-  sb.insert(selectIndex," ROW_NUMBER() OVER (" + orderby + ") as __hibernate_row_nr__,");
+  replaceDistinctWithGroupBy(sb);
+  insertRowNumberFunction(sb,orderby);
   sb.insert(0,"WITH query AS (").append(") SELECT * FROM query ");
   sb.append("WHERE __hibernate_row_nr__ BETWEEN ").append(offset + 1).append(" AND ").append(limit);
   return sb.toString();
