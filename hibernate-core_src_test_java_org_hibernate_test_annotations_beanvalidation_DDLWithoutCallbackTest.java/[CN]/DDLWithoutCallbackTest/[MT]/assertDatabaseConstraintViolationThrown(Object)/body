@@ -1,0 +1,21 @@
+{
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  try {
+    s.persist(o);
+    s.flush();
+    fail("expecting SQL constraint violation");
+  }
+ catch (  ConstraintViolationException e) {
+    fail("invalid object should not be validated");
+  }
+catch (  org.hibernate.exception.ConstraintViolationException e) {
+    if (getDialect().supportsColumnCheck()) {
+    }
+ else {
+      fail("Unexpected SQL constraint violation [" + e.getConstraintName() + "] : "+ e.getSQLException());
+    }
+  }
+  tx.rollback();
+  s.close();
+}
