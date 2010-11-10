@@ -1,16 +1,6 @@
 {
-  if (offset == 0) {
-    return new StringBuffer(querySqlString.length() + 8).append(querySqlString).insert(getAfterSelectInsertPoint(querySqlString)," top " + limit).toString();
+  if (offset > 0) {
+    throw new UnsupportedOperationException("query result offset is not supported");
   }
-  StringBuilder sb=new StringBuilder(querySqlString.trim().toLowerCase());
-  int orderByIndex=sb.indexOf("order by");
-  CharSequence orderby=orderByIndex > 0 ? sb.subSequence(orderByIndex,sb.length()) : "ORDER BY CURRENT_TIMESTAMP";
-  if (orderByIndex > 0) {
-    sb.delete(orderByIndex,orderByIndex + orderby.length());
-  }
-  replaceDistinctWithGroupBy(sb);
-  insertRowNumberFunction(sb,orderby);
-  sb.insert(0,"WITH query AS (").append(") SELECT * FROM query ");
-  sb.append("WHERE __hibernate_row_nr__ BETWEEN ").append(offset + 1).append(" AND ").append(limit);
-  return sb.toString();
+  return new StringBuffer(querySelect.length() + 8).append(querySelect).insert(getAfterSelectInsertPoint(querySelect)," top " + limit).toString();
 }
