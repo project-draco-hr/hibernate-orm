@@ -25,7 +25,6 @@ case 9:
     }
   return new IngresDialect();
 case 10:
-log.warn("Ingres " + databaseMajorVersion + " is not yet fully supported; using Ingres 9.3 dialect");
 return new Ingres10Dialect();
 default :
 log.warn("Unknown Ingres major version [" + databaseMajorVersion + "] using Ingres 9.2 dialect");
@@ -33,6 +32,16 @@ log.warn("Unknown Ingres major version [" + databaseMajorVersion + "] using Ingr
 return new IngresDialect();
 }
 if (databaseName.startsWith("Microsoft SQL Server")) {
+switch (databaseMajorVersion) {
+case 8:
+return new SQLServerDialect();
+case 9:
+return new SQLServer2005Dialect();
+case 10:
+return new SQLServer2008Dialect();
+default :
+log.warn("Unknown Microsoft SQL Server major version [" + databaseMajorVersion + "] using SQL Server 2000 dialect");
+}
 return new SQLServerDialect();
 }
 if ("Sybase SQL Server".equals(databaseName) || "Adaptive Server Enterprise".equals(databaseName)) {
@@ -50,7 +59,6 @@ return new DB2Dialect();
 if ("Oracle".equals(databaseName)) {
 switch (databaseMajorVersion) {
 case 11:
-log.warn("Oracle 11g is not yet fully supported; using 10g dialect");
 return new Oracle10gDialect();
 case 10:
 return new Oracle10gDialect();
