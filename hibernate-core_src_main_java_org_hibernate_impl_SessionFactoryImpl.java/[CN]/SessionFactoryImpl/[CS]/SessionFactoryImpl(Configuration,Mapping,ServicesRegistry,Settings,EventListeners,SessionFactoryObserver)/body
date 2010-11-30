@@ -8,7 +8,7 @@
   this.interceptor=cfg.getInterceptor();
   this.serviceRegistry=serviceRegistry;
   this.settings=settings;
-  this.sqlFunctionRegistry=new SQLFunctionRegistry(settings.getDialect(),cfg.getSqlFunctions());
+  this.sqlFunctionRegistry=new SQLFunctionRegistry(getDialect(),cfg.getSqlFunctions());
   this.eventListeners=listeners;
   this.observer=observer != null ? observer : new SessionFactoryObserver(){
     public void sessionFactoryCreated(    SessionFactory factory){
@@ -34,7 +34,7 @@
   while (classes.hasNext()) {
     PersistentClass model=(PersistentClass)classes.next();
     if (!model.isInherited()) {
-      IdentifierGenerator generator=model.getIdentifier().createIdentifierGenerator(cfg.getIdentifierGeneratorFactory(),settings.getDialect(),settings.getDefaultCatalogName(),settings.getDefaultSchemaName(),(RootClass)model);
+      IdentifierGenerator generator=model.getIdentifier().createIdentifierGenerator(cfg.getIdentifierGeneratorFactory(),getDialect(),settings.getDefaultCatalogName(),settings.getDefaultSchemaName(),(RootClass)model);
       identifierGenerators.put(model.getEntityName(),generator);
     }
   }
@@ -45,7 +45,7 @@
   classes=cfg.getClassMappings();
   while (classes.hasNext()) {
     final PersistentClass model=(PersistentClass)classes.next();
-    model.prepareTemporaryTables(mapping,settings.getDialect());
+    model.prepareTemporaryTables(mapping,getDialect());
     final String cacheRegionName=cacheRegionPrefix + model.getRootClass().getCacheRegionName();
     EntityRegionAccessStrategy accessStrategy=(EntityRegionAccessStrategy)entityAccessStrategies.get(cacheRegionName);
     if (accessStrategy == null && settings.isSecondLevelCacheEnabled()) {

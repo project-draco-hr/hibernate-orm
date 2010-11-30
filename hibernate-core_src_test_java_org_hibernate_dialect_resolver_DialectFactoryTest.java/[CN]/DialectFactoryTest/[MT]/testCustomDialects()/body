@@ -1,23 +1,22 @@
 {
-  DialectFactory.registerDialectResolver(TestingDialects.MyDialectResolver1.class.getName());
-  DialectFactory.registerDialectResolver(TestingDialects.MyDialectResolver2.class.getName());
-  DialectFactory.registerDialectResolver(TestingDialects.ErrorDialectResolver1.class.getName());
-  DialectFactory.registerDialectResolver(TestingDialects.ErrorDialectResolver2.class.getName());
-  DialectFactory.registerDialectResolver(TestingDialects.MyOverridingDialectResolver1.class.getName());
-  DialectFactory.registerDialectResolver("org.hibernate.dialect.NoSuchDialectResolver");
-  DialectFactory.registerDialectResolver("java.lang.Object");
-  testDetermination("MyDatabase1",TestingDialects.MyDialect1.class);
-  testDetermination("MyDatabase2",1,TestingDialects.MyDialect21.class);
-  testDetermination("MyTrickyDatabase1",TestingDialects.MyDialect1.class);
-  testDetermination("DB2/MySpecialPlatform",TestingDialects.MySpecialDB2Dialect.class);
+  DialectResolverSet resolvers=new DialectResolverSet();
+  resolvers.addResolver(new TestingDialects.MyDialectResolver1());
+  resolvers.addResolver(new TestingDialects.MyDialectResolver2());
+  resolvers.addResolver(new TestingDialects.ErrorDialectResolver1());
+  resolvers.addResolver(new TestingDialects.ErrorDialectResolver2());
+  resolvers.addResolver(new TestingDialects.MyOverridingDialectResolver1());
+  testDetermination("MyDatabase1",TestingDialects.MyDialect1.class,resolvers);
+  testDetermination("MyDatabase2",1,TestingDialects.MyDialect21.class,resolvers);
+  testDetermination("MyTrickyDatabase1",TestingDialects.MyDialect1.class,resolvers);
+  testDetermination("DB2/MySpecialPlatform",TestingDialects.MySpecialDB2Dialect.class,resolvers);
   try {
-    testDetermination("ErrorDatabase1",Void.TYPE);
+    testDetermination("ErrorDatabase1",Void.TYPE,resolvers);
     fail();
   }
  catch (  HibernateException e) {
   }
   try {
-    testDetermination("ErrorDatabase2",Void.TYPE);
+    testDetermination("ErrorDatabase2",Void.TYPE,resolvers);
     fail();
   }
  catch (  HibernateException e) {
