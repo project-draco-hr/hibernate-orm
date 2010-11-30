@@ -2,10 +2,17 @@
   AnnotationConfiguration cfg=new AnnotationConfiguration();
   cfg.addAnnotatedClass(Show.class).addAnnotatedClass(ShowDescription.class);
   cfg.setProperty(Environment.HBM2DDL_AUTO,"create-drop");
+  ServiceRegistryHolder serviceRegistryHolder=null;
   try {
-    SessionFactory sf=cfg.buildSessionFactory();
+    serviceRegistryHolder=new ServiceRegistryHolder(Environment.getProperties());
+    SessionFactory sf=cfg.buildSessionFactory(serviceRegistryHolder.getServiceRegistry());
     fail("Wrong mappedBy does not fail property");
   }
  catch (  AnnotationException e) {
+  }
+ finally {
+    if (serviceRegistryHolder != null) {
+      serviceRegistryHolder.destroy();
+    }
   }
 }
