@@ -2,13 +2,11 @@
   Settings settings=new Settings();
   String sessionFactoryName=props.getProperty(Environment.SESSION_FACTORY_NAME);
   settings.setSessionFactoryName(sessionFactoryName);
-  Dialect dialect=jdbcServices.getDialect();
   ExtractedDatabaseMetaData meta=jdbcServices.getExtractedMetaDataSupport();
   settings.setDataDefinitionImplicitCommit(meta.doesDataDefinitionCauseTransactionCommit());
   settings.setDataDefinitionInTransactionSupported(meta.supportsDataDefinitionInTransaction());
-  settings.setDialect(dialect);
   final Properties properties=new Properties();
-  properties.putAll(dialect.getDefaultProperties());
+  properties.putAll(jdbcServices.getDialect().getDefaultProperties());
   properties.putAll(props);
   settings.setJdbcSupport(new JdbcSupport(!ConfigurationHelper.getBoolean(Environment.NON_CONTEXTUAL_LOB_CREATION,properties)));
   TransactionFactory transactionFactory=createTransactionFactory(properties);
