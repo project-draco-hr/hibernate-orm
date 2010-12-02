@@ -1,0 +1,13 @@
+{
+  Person p=(Person)getSession().createCriteria(Person.class).add(Restrictions.idEq(personId)).uniqueResult();
+  Name n2=new Name();
+  n2.setName("name2");
+  p.getNames().add(n2);
+  Transaction transaction=getSession().beginTransaction();
+  getSession().saveOrUpdate(p);
+  transaction.commit();
+  int size=getAuditReader().getRevisions(Person.class,personId).size();
+  System.out.println(size);
+  Assert.assertEquals(config.getProperty("org.hibernate.envers.revision_on_collection_change"),"false");
+  Assert.assertEquals(size,1);
+}
