@@ -6,8 +6,12 @@
   Transaction transaction=getSession().beginTransaction();
   getSession().saveOrUpdate(p);
   transaction.commit();
-  int size=getAuditReader().getRevisions(Person.class,personId).size();
-  System.out.println(size);
-  Assert.assertEquals(config.getProperty("org.hibernate.envers.revision_on_collection_change"),"false");
-  Assert.assertEquals(size,1);
+  namesId.add(n2.getId());
+  int sizePerson=getAuditReader().getRevisions(Person.class,personId).size();
+  Assert.assertEquals(config.getProperty("org.hibernate.envers.revision_on_collection_change"),getCollectionChangeValue());
+  Assert.assertEquals(sizePerson,getExpectedPersonRevisionCount());
+  for (  Integer id : namesId) {
+    int sizeName=getAuditReader().getRevisions(Name.class,id).size();
+    Assert.assertEquals(sizeName,EXPECTED_NAME_REVISION_COUNT);
+  }
 }
