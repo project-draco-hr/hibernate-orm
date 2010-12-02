@@ -1,23 +1,17 @@
 {
-  releaseBorrowedConnection();
   if (connection == null) {
     log.trace("connection already null in cleanup : no action");
     return null;
   }
   try {
     log.trace("performing cleanup");
-    batcher.closeStatements();
-    Connection c=null;
-    if (!wasConnectionSupplied) {
-      closeConnection();
+    if (isLogicallyConnected()) {
+      batcher.closeStatements();
     }
- else {
-      c=connection;
-    }
-    connection=null;
+    Connection c=connection.close();
     return c;
   }
   finally {
-    callback.physicalConnectionReleased();
+    connection=null;
   }
 }

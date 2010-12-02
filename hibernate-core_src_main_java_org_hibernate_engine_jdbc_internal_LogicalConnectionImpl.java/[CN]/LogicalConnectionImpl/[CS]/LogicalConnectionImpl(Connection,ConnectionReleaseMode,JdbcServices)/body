@@ -1,10 +1,6 @@
 {
-  if (connectionReleaseMode == ConnectionReleaseMode.AFTER_STATEMENT && !jdbcServices.getConnectionProvider().supportsAggressiveRelease()) {
-    log.debug("connection provider reports to not support aggressive release; overriding");
-    connectionReleaseMode=ConnectionReleaseMode.AFTER_TRANSACTION;
-  }
   this.physicalConnection=userSuppliedConnection;
-  this.connectionReleaseMode=connectionReleaseMode;
+  this.connectionReleaseMode=determineConnectionReleaseMode(userSuppliedConnection != null,connectionReleaseMode,jdbcServices);
   this.jdbcServices=jdbcServices;
   this.jdbcResourceRegistry=new JdbcResourceRegistryImpl(jdbcServices.getSqlExceptionHelper());
   this.isUserSuppliedConnection=(userSuppliedConnection != null);

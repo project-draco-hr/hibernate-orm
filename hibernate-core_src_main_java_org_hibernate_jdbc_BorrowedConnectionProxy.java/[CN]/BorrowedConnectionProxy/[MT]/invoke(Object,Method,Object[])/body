@@ -1,16 +1,16 @@
 {
   if ("close".equals(method.getName())) {
-    connectionManager.releaseBorrowedConnection();
+    logicalConnection.releaseBorrowedConnection();
     return null;
   }
   if (!useable) {
     throw new HibernateException("connnection proxy not usable after transaction completion");
   }
   if ("getWrappedConnection".equals(method.getName())) {
-    return connectionManager.getConnection();
+    return logicalConnection.getConnection();
   }
   try {
-    return method.invoke(connectionManager.getConnection(),args);
+    return method.invoke(logicalConnection.getConnection(),args);
   }
  catch (  InvocationTargetException e) {
     throw e.getTargetException();
