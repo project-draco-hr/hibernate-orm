@@ -17,27 +17,17 @@
   try {
     final PreparedStatement insert;
     if (useBatch) {
-      if (callable) {
-        insert=session.getBatcher().prepareBatchCallableStatement(sql);
-      }
- else {
-        insert=session.getBatcher().prepareBatchStatement(sql);
-      }
+      insert=session.getJDBCContext().getConnectionManager().prepareBatchStatement(sql,callable);
     }
  else {
-      if (callable) {
-        insert=session.getBatcher().prepareCallableStatement(sql);
-      }
- else {
-        insert=session.getBatcher().prepareStatement(sql);
-      }
+      insert=session.getJDBCContext().getConnectionManager().prepareStatement(sql,callable);
     }
     try {
       int index=1;
       index+=expectation.prepare(insert);
       dehydrate(id,fields,null,notNull,propertyColumnInsertable,j,insert,session,index);
       if (useBatch) {
-        session.getBatcher().addToBatch(expectation);
+        session.getJDBCContext().getConnectionManager().addToBatch(expectation);
       }
  else {
         expectation.verifyOutcome(insert.executeUpdate(),insert,-1);
@@ -45,13 +35,13 @@
     }
  catch (    SQLException sqle) {
       if (useBatch) {
-        session.getBatcher().abortBatch(sqle);
+        session.getJDBCContext().getConnectionManager().abortBatch(sqle);
       }
       throw sqle;
     }
  finally {
       if (!useBatch) {
-        session.getBatcher().closeStatement(insert);
+        insert.close();
       }
     }
   }

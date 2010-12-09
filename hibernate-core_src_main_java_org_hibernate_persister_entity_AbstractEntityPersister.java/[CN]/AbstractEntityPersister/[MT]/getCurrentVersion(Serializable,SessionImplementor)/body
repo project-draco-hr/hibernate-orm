@@ -3,7 +3,7 @@
     log.trace("Getting version: " + MessageHelper.infoString(this,id,getFactory()));
   }
   try {
-    PreparedStatement st=session.getBatcher().prepareSelectStatement(getVersionSelectString());
+    PreparedStatement st=session.getJDBCContext().getConnectionManager().prepareSelectStatement(getVersionSelectString());
     try {
       getIdentifierType().nullSafeSet(st,id,1,session);
       ResultSet rs=st.executeQuery();
@@ -21,7 +21,7 @@
       }
     }
   finally {
-      session.getBatcher().closeStatement(st);
+      st.close();
     }
   }
  catch (  SQLException sqle) {

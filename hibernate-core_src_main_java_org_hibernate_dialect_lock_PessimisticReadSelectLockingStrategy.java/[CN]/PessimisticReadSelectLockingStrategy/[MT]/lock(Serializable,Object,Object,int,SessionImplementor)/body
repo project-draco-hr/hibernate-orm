@@ -2,7 +2,7 @@
   final String sql=determineSql(timeout);
   SessionFactoryImplementor factory=session.getFactory();
   try {
-    PreparedStatement st=session.getBatcher().prepareSelectStatement(sql);
+    PreparedStatement st=session.getJDBCContext().getConnectionManager().prepareSelectStatement(sql);
     try {
       getLockable().getIdentifierType().nullSafeSet(st,id,1,session);
       if (getLockable().isVersioned()) {
@@ -22,7 +22,7 @@
       }
     }
   finally {
-      session.getBatcher().closeStatement(st);
+      st.close();
     }
   }
  catch (  SQLException sqle) {

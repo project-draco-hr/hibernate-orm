@@ -13,20 +13,10 @@
     int index=1;
     final PreparedStatement update;
     if (useBatch) {
-      if (callable) {
-        update=session.getBatcher().prepareBatchCallableStatement(sql);
-      }
- else {
-        update=session.getBatcher().prepareBatchStatement(sql);
-      }
+      update=session.getJDBCContext().getConnectionManager().prepareBatchStatement(sql,callable);
     }
  else {
-      if (callable) {
-        update=session.getBatcher().prepareCallableStatement(sql);
-      }
- else {
-        update=session.getBatcher().prepareStatement(sql);
-      }
+      update=session.getJDBCContext().getConnectionManager().prepareStatement(sql,callable);
     }
     try {
       index+=expectation.prepare(update);
@@ -50,7 +40,7 @@
         }
       }
       if (useBatch) {
-        session.getBatcher().addToBatch(expectation);
+        session.getJDBCContext().getConnectionManager().addToBatch(expectation);
         return true;
       }
  else {
@@ -59,13 +49,13 @@
     }
  catch (    SQLException sqle) {
       if (useBatch) {
-        session.getBatcher().abortBatch(sqle);
+        session.getJDBCContext().getConnectionManager().abortBatch(sqle);
       }
       throw sqle;
     }
  finally {
       if (!useBatch) {
-        session.getBatcher().closeStatement(update);
+        update.close();
       }
     }
   }

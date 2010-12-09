@@ -1,50 +1,10 @@
 {
   try {
-    releasing=true;
-    try {
-      if (batchUpdate != null) {
-        batchUpdate.close();
-      }
-    }
- catch (    SQLException sqle) {
-      log.warn("Could not close a JDBC prepared statement",sqle);
-    }
-    batchUpdate=null;
-    batchUpdateSQL=null;
-    Iterator iter=resultSetsToClose.iterator();
-    while (iter.hasNext()) {
-      try {
-        logCloseResults();
-        ((ResultSet)iter.next()).close();
-      }
- catch (      SQLException e) {
-        log.warn("Could not close a JDBC result set",e);
-      }
-catch (      ConcurrentModificationException e) {
-        log.info("encountered CME attempting to release batcher; assuming cause is tx-timeout scenario and ignoring");
-        break;
-      }
-catch (      Throwable e) {
-        log.warn("Could not close a JDBC result set",e);
-      }
-    }
-    resultSetsToClose.clear();
-    iter=statementsToClose.iterator();
-    while (iter.hasNext()) {
-      try {
-        closeQueryStatement((PreparedStatement)iter.next());
-      }
- catch (      ConcurrentModificationException e) {
-        log.info("encountered CME attempting to release batcher; assuming cause is tx-timeout scenario and ignoring");
-        break;
-      }
-catch (      SQLException e) {
-        log.warn("Could not close a JDBC statement",e);
-      }
-    }
-    statementsToClose.clear();
+    closeBatchUpdate();
   }
-  finally {
-    releasing=false;
+ catch (  SQLException sqle) {
+    log.warn("Could not close a JDBC prepared statement",sqle);
   }
+  batchUpdate=null;
+  batchUpdateSQL=null;
 }

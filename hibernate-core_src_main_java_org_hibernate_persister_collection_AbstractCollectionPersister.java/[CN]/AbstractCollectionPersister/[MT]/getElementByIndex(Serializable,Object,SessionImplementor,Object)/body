@@ -1,6 +1,6 @@
 {
   try {
-    PreparedStatement st=session.getBatcher().prepareSelectStatement(sqlSelectRowByIndexString);
+    PreparedStatement st=session.getJDBCContext().getConnectionManager().prepareSelectStatement(sqlSelectRowByIndexString);
     try {
       getKeyType().nullSafeSet(st,key,1,session);
       getIndexType().nullSafeSet(st,incrementIndexByBase(index),keyColumnNames.length + 1,session);
@@ -18,7 +18,7 @@
       }
     }
   finally {
-      session.getBatcher().closeStatement(st);
+      st.close();
     }
   }
  catch (  SQLException sqle) {

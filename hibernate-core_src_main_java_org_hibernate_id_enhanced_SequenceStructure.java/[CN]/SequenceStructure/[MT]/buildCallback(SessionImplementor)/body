@@ -3,7 +3,7 @@
     public IntegralDataTypeHolder getNextValue(){
       accessCounter++;
       try {
-        PreparedStatement st=session.getBatcher().prepareSelectStatement(sql);
+        PreparedStatement st=session.getJDBCContext().getConnectionManager().prepareSelectStatement(sql);
         try {
           ResultSet rs=st.executeQuery();
           try {
@@ -24,7 +24,7 @@
           }
         }
   finally {
-          session.getBatcher().closeStatement(st);
+          st.close();
         }
       }
  catch (      SQLException sqle) {

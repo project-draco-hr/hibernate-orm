@@ -1,6 +1,6 @@
 {
   try {
-    PreparedStatement st=session.getBatcher().prepareSelectStatement(sql);
+    PreparedStatement st=session.getJDBCContext().getConnectionManager().prepareSelectStatement(sql);
     try {
       getKeyType().nullSafeSet(st,key,1,session);
       indexOrElementType.nullSafeSet(st,indexOrElement,keyColumnNames.length + 1,session);
@@ -16,7 +16,7 @@
       return false;
     }
  finally {
-      session.getBatcher().closeStatement(st);
+      st.close();
     }
   }
  catch (  SQLException sqle) {

@@ -6,7 +6,7 @@
     int resultCount=0;
     try {
       try {
-        ps=session.getBatcher().prepareStatement(idInsertSelect);
+        ps=session.getJDBCContext().getConnectionManager().prepareStatement(idInsertSelect,false);
         Iterator whereParams=getIdSelectParameterSpecifications().iterator();
         int sum=1;
         while (whereParams.hasNext()) {
@@ -16,7 +16,7 @@
       }
   finally {
         if (ps != null) {
-          session.getBatcher().closeStatement(ps);
+          ps.close();
         }
       }
     }
@@ -29,7 +29,7 @@
       }
       try {
         try {
-          ps=session.getBatcher().prepareStatement(updates[i]);
+          ps=session.getJDBCContext().getConnectionManager().prepareStatement(updates[i],false);
           if (hqlParameters[i] != null) {
             int position=1;
             for (int x=0; x < hqlParameters[i].length; x++) {
@@ -40,7 +40,7 @@
         }
   finally {
           if (ps != null) {
-            session.getBatcher().closeStatement(ps);
+            ps.close();
           }
         }
       }

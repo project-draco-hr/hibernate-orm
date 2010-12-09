@@ -1,12 +1,12 @@
 {
   try {
-    PreparedStatement insert=session.getBatcher().prepareStatement(insertSQL,false);
+    PreparedStatement insert=session.getJDBCContext().getConnectionManager().prepareStatement(insertSQL,PreparedStatement.NO_GENERATED_KEYS);
     try {
       binder.bindValues(insert);
       insert.executeUpdate();
     }
   finally {
-      session.getBatcher().closeStatement(insert);
+      insert.close();
     }
   }
  catch (  SQLException sqle) {
@@ -14,7 +14,7 @@
   }
   final String selectSQL=getSelectSQL();
   try {
-    PreparedStatement idSelect=session.getBatcher().prepareStatement(selectSQL);
+    PreparedStatement idSelect=session.getJDBCContext().getConnectionManager().prepareStatement(selectSQL,false);
     try {
       bindParameters(session,idSelect,binder.getEntity());
       ResultSet rs=idSelect.executeQuery();
@@ -26,7 +26,7 @@
       }
     }
   finally {
-      session.getBatcher().closeStatement(idSelect);
+      idSelect.close();
     }
   }
  catch (  SQLException sqle) {

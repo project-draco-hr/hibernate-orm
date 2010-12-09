@@ -6,7 +6,7 @@
     int resultCount=0;
     try {
       try {
-        ps=session.getBatcher().prepareStatement(idInsertSelect);
+        ps=session.getJDBCContext().getConnectionManager().prepareStatement(idInsertSelect,false);
         Iterator paramSpecifications=getIdSelectParameterSpecifications().iterator();
         int pos=1;
         while (paramSpecifications.hasNext()) {
@@ -17,7 +17,7 @@
       }
   finally {
         if (ps != null) {
-          session.getBatcher().closeStatement(ps);
+          ps.close();
         }
       }
     }
@@ -27,12 +27,12 @@
     for (int i=0; i < deletes.length; i++) {
       try {
         try {
-          ps=session.getBatcher().prepareStatement(deletes[i]);
+          ps=session.getJDBCContext().getConnectionManager().prepareStatement(deletes[i],false);
           ps.executeUpdate();
         }
   finally {
           if (ps != null) {
-            session.getBatcher().closeStatement(ps);
+            ps.close();
           }
         }
       }

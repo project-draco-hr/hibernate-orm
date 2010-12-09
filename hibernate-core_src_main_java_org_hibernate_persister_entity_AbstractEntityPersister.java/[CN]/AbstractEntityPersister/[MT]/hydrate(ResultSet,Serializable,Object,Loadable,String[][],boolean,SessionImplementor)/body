@@ -11,7 +11,7 @@
     if (hasDeferred) {
       final String sql=rootPersister.getSequentialSelect(getEntityName());
       if (sql != null) {
-        sequentialSelect=session.getBatcher().prepareSelectStatement(sql);
+        sequentialSelect=session.getJDBCContext().getConnectionManager().prepareSelectStatement(sql);
         rootPersister.getIdentifierType().nullSafeSet(sequentialSelect,id,1,session);
         sequentialResultSet=sequentialSelect.executeQuery();
         if (!sequentialResultSet.next()) {
@@ -50,7 +50,7 @@
   }
   finally {
     if (sequentialSelect != null) {
-      session.getBatcher().closeStatement(sequentialSelect);
+      sequentialSelect.close();
     }
   }
 }

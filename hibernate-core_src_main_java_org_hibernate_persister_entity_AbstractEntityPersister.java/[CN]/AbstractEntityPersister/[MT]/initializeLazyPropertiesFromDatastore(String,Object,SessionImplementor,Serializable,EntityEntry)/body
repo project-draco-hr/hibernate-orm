@@ -11,7 +11,7 @@
       ResultSet rs=null;
       try {
         if (lazySelect != null) {
-          ps=session.getBatcher().prepareSelectStatement(lazySelect);
+          ps=session.getJDBCContext().getConnectionManager().prepareSelectStatement(lazySelect);
           getIdentifierType().nullSafeSet(ps,id,1,session);
           rs=ps.executeQuery();
           rs.next();
@@ -32,7 +32,7 @@
     }
   finally {
       if (ps != null) {
-        session.getBatcher().closeStatement(ps);
+        ps.close();
       }
     }
     log.trace("done initializing lazy properties");

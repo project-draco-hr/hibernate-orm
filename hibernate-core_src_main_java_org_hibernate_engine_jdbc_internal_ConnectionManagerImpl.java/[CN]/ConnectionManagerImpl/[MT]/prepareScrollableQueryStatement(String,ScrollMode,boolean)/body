@@ -1,0 +1,10 @@
+{
+  if (!factory.getSettings().isScrollableResultSetsEnabled()) {
+    throw new AssertionFailure("scrollable result sets are not enabled");
+  }
+  sql=getSQL(sql);
+  PreparedStatement result=(isCallable ? proxiedConnection.prepareCall(sql,scrollMode.toResultSetType(),ResultSet.CONCUR_READ_ONLY) : proxiedConnection.prepareStatement(sql,scrollMode.toResultSetType(),ResultSet.CONCUR_READ_ONLY));
+  setStatementFetchSize(result);
+  logicalConnection.getResourceRegistry().registerLastQuery(result);
+  return result;
+}

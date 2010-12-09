@@ -39,7 +39,7 @@
  else {
     PreparedStatement ps=null;
     try {
-      ps=session.getBatcher().prepareStatement("delete from " + persister.getTemporaryIdTableName());
+      ps=session.getJDBCContext().getConnectionManager().prepareStatement("delete from " + persister.getTemporaryIdTableName(),false);
       ps.executeUpdate();
     }
  catch (    Throwable t) {
@@ -48,7 +48,7 @@
  finally {
       if (ps != null) {
         try {
-          session.getBatcher().closeStatement(ps);
+          ps.close();
         }
  catch (        Throwable ignore) {
         }

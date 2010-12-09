@@ -24,7 +24,7 @@
   String sql=select.setOuterJoins("","").setWhereClause(whereClause).toStatementString();
   Object[] snapshot=new Object[naturalIdPropertyCount];
   try {
-    PreparedStatement ps=session.getBatcher().prepareSelectStatement(sql);
+    PreparedStatement ps=session.getJDBCContext().getConnectionManager().prepareSelectStatement(sql);
     try {
       getIdentifierType().nullSafeSet(ps,id,1,session);
       ResultSet rs=ps.executeQuery();
@@ -47,7 +47,7 @@
       }
     }
   finally {
-      session.getBatcher().closeStatement(ps);
+      ps.close();
     }
   }
  catch (  SQLException sqle) {

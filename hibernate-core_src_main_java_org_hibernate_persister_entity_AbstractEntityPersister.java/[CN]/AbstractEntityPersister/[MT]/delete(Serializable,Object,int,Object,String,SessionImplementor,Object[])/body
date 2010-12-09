@@ -22,20 +22,10 @@
     PreparedStatement delete;
     int index=1;
     if (useBatch) {
-      if (callable) {
-        delete=session.getBatcher().prepareBatchCallableStatement(sql);
-      }
- else {
-        delete=session.getBatcher().prepareBatchStatement(sql);
-      }
+      delete=session.getJDBCContext().getConnectionManager().prepareBatchStatement(sql,callable);
     }
  else {
-      if (callable) {
-        delete=session.getBatcher().prepareCallableStatement(sql);
-      }
- else {
-        delete=session.getBatcher().prepareStatement(sql);
-      }
+      delete=session.getJDBCContext().getConnectionManager().prepareStatement(sql,callable);
     }
     try {
       index+=expectation.prepare(delete);
@@ -56,7 +46,7 @@
         }
       }
       if (useBatch) {
-        session.getBatcher().addToBatch(expectation);
+        session.getJDBCContext().getConnectionManager().addToBatch(expectation);
       }
  else {
         check(delete.executeUpdate(),id,j,expectation,delete);
@@ -64,13 +54,13 @@
     }
  catch (    SQLException sqle) {
       if (useBatch) {
-        session.getBatcher().abortBatch(sqle);
+        session.getJDBCContext().getConnectionManager().abortBatch(sqle);
       }
       throw sqle;
     }
  finally {
       if (!useBatch) {
-        session.getBatcher().closeStatement(delete);
+        delete.close();
       }
     }
   }

@@ -3,7 +3,7 @@
     log.trace("Getting current persistent state for: " + MessageHelper.infoString(this,id,getFactory()));
   }
   try {
-    PreparedStatement ps=session.getBatcher().prepareSelectStatement(getSQLSnapshotSelectString());
+    PreparedStatement ps=session.getJDBCContext().getConnectionManager().prepareSelectStatement(getSQLSnapshotSelectString());
     try {
       getIdentifierType().nullSafeSet(ps,id,1,session);
       ResultSet rs=ps.executeQuery();
@@ -26,7 +26,7 @@
       }
     }
   finally {
-      session.getBatcher().closeStatement(ps);
+      ps.close();
     }
   }
  catch (  SQLException sqle) {

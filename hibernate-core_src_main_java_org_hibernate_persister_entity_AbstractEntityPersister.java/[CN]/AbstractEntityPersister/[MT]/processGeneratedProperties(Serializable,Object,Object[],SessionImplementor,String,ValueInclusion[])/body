@@ -1,7 +1,7 @@
 {
-  session.getBatcher().executeBatch();
+  session.getJDBCContext().getConnectionManager().executeBatch();
   try {
-    PreparedStatement ps=session.getBatcher().prepareSelectStatement(selectionSQL);
+    PreparedStatement ps=session.getJDBCContext().getConnectionManager().prepareSelectStatement(selectionSQL);
     try {
       getIdentifierType().nullSafeSet(ps,id,1,session);
       ResultSet rs=ps.executeQuery();
@@ -24,7 +24,7 @@
       }
     }
   finally {
-      session.getBatcher().closeStatement(ps);
+      ps.close();
     }
   }
  catch (  SQLException sqle) {

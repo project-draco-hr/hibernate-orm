@@ -2,12 +2,7 @@
   ResultSet rs=null;
   try {
     Dialect dialect=getFactory().getDialect();
-    if (callable) {
-      rs=session.getBatcher().getResultSet((CallableStatement)st,dialect);
-    }
- else {
-      rs=session.getBatcher().getResultSet(st);
-    }
+    rs=st.executeQuery();
     rs=wrapResultSetIfEnabled(rs,session);
     if (!dialect.supportsLimitOffset() || !useLimit(selection,dialect)) {
       advance(rs,selection);
@@ -18,7 +13,7 @@
     return rs;
   }
  catch (  SQLException sqle) {
-    session.getBatcher().closeQueryStatement(st,rs);
+    st.close();
     throw sqle;
   }
 }

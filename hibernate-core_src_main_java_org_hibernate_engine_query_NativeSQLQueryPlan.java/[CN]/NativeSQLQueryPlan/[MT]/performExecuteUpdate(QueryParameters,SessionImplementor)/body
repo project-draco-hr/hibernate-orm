@@ -8,7 +8,7 @@
   try {
     queryParameters.processFilters(this.customQuery.getSQL(),session);
     String sql=queryParameters.getFilteredSQL();
-    ps=session.getBatcher().prepareStatement(sql);
+    ps=session.getJDBCContext().getConnectionManager().prepareStatement(sql,false);
     try {
       int col=1;
       col+=bindPositionalParameters(ps,queryParameters,col,session);
@@ -17,7 +17,7 @@
     }
   finally {
       if (ps != null) {
-        session.getBatcher().closeStatement(ps);
+        ps.close();
       }
     }
   }
