@@ -1,0 +1,18 @@
+{
+  if (isScrollable && !factory.getSettings().isScrollableResultSetsEnabled()) {
+    throw new AssertionFailure("scrollable result sets are not enabled");
+  }
+  StatementPreparer statementPreparer=new StatementPreparer(sql){
+    public PreparedStatement doPrepare() throws SQLException {
+      PreparedStatement ps=isScrollable ? prepareScrollableStatementInternal(getSqlToPrepare(),scrollMode,isCallable) : prepareStatementInternal(getSqlToPrepare(),isCallable);
+      return ps;
+    }
+    public void afterPrepare(    PreparedStatement preparedStatement) throws SQLException {
+      super.afterPrepare(preparedStatement);
+      setStatementFetchSize(preparedStatement,getSqlToPrepare());
+      logicalConnection.getResourceRegistry().registerLastQuery(preparedStatement);
+    }
+  }
+;
+  return prepareStatement(statementPreparer,false);
+}
