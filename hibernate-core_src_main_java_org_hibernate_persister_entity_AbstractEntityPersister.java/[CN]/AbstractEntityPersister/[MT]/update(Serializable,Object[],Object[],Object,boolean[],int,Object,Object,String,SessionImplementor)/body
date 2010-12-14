@@ -13,7 +13,7 @@
     int index=1;
     final PreparedStatement update;
     if (useBatch) {
-      update=session.getJDBCContext().getConnectionManager().prepareBatchStatement(sql,callable);
+      update=session.getJDBCContext().getConnectionManager().prepareBatchStatement(this,sql,callable);
     }
  else {
       update=session.getJDBCContext().getConnectionManager().prepareStatement(sql,callable);
@@ -40,7 +40,7 @@
         }
       }
       if (useBatch) {
-        session.getJDBCContext().getConnectionManager().addToBatch(expectation);
+        session.getJDBCContext().getConnectionManager().addToBatch(this,sql,expectation);
         return true;
       }
  else {
@@ -49,7 +49,7 @@
     }
  catch (    SQLException sqle) {
       if (useBatch) {
-        session.getJDBCContext().getConnectionManager().abortBatch(sqle);
+        session.getJDBCContext().getConnectionManager().abortBatch();
       }
       throw sqle;
     }

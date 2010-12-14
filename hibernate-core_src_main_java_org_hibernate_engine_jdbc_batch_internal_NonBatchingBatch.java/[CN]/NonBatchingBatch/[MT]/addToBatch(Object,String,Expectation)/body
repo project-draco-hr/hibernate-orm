@@ -1,0 +1,16 @@
+{
+  checkConsistentBatchKey(key);
+  if (sql == null) {
+    throw new IllegalArgumentException("sql must be non-null.");
+  }
+  notifyObserversImplicitExecution();
+  try {
+    final PreparedStatement statement=getStatements().get(sql);
+    final int rowCount=statement.executeUpdate();
+    expectation.verifyOutcome(rowCount,statement,0);
+  }
+ catch (  SQLException e) {
+    log.error("sqlexception escaped proxy",e);
+    throw getSqlExceptionHelper().convert(e,"could not execute batch statement",sql);
+  }
+}

@@ -15,7 +15,7 @@
         int offset=1;
         if (useBatch) {
           if (st == null) {
-            st=session.getJDBCContext().getConnectionManager().prepareBatchStatement(sql,callable);
+            st=session.getJDBCContext().getConnectionManager().prepareBatchStatement(this,sql,callable);
           }
         }
  else {
@@ -37,7 +37,7 @@
             }
           }
           if (useBatch) {
-            session.getJDBCContext().getConnectionManager().addToBatch(expectation);
+            session.getJDBCContext().getConnectionManager().addToBatch(this,sql,expectation);
           }
  else {
             expectation.verifyOutcome(st.executeUpdate(),st,-1);
@@ -45,7 +45,7 @@
         }
  catch (        SQLException sqle) {
           if (useBatch) {
-            session.getJDBCContext().getConnectionManager().abortBatch(sqle);
+            session.getJDBCContext().getConnectionManager().abortBatch();
           }
           throw sqle;
         }

@@ -1,29 +1,23 @@
 {
-  if (batchPosition == 0) {
+  if (maxBatchPosition == 0) {
     log.debug("no batched statements to execute");
   }
  else {
     if (log.isDebugEnabled()) {
-      log.debug("Executing batch size: " + batchPosition);
+      log.debug("Executing {} statements with maximum batch size {} ",getStatements().size(),maxBatchPosition);
     }
     try {
-      for (      Map.Entry<String,PreparedStatement> entry : getStatements().entrySet()) {
-        try {
-          final PreparedStatement statement=entry.getValue();
-          checkRowCounts(statement.executeBatch(),statement);
-        }
- catch (        SQLException e) {
-          log.error("sqlexception escaped proxy",e);
-          throw getJdbcServices().getSqlExceptionHelper().convert(e,"could not perform addBatch",entry.getKey());
-        }
-      }
+      executeStatements();
     }
  catch (    RuntimeException re) {
       log.error("Exception executing batch [{}]",re.getMessage());
       throw re;
     }
  finally {
-      batchPosition=0;
+      for (      List<Expectation> expectations : expectationsBySql.values()) {
+        expectations.clear();
+      }
+      maxBatchPosition=0;
     }
   }
 }
