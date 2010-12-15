@@ -1,0 +1,20 @@
+{
+  Session s=openSession();
+  SessionFactory sf=s.getSessionFactory();
+  Transaction tx=s.beginTransaction();
+  VicePresident vpSales=new VicePresident();
+  vpSales.name="Dwight";
+  Company company=new Company();
+  company.conferenceRoomExtensions.put("8932","x1234");
+  company.organization.put("sales",vpSales);
+  s.persist(company);
+  s.flush();
+  s.clear();
+  BasicCollectionPersister confRoomMeta=(BasicCollectionPersister)sf.getCollectionMetadata(Company.class.getName() + ".conferenceRoomExtensions");
+  assertEquals("company_id",confRoomMeta.getKeyColumnNames()[0]);
+  assertEquals("phone_extension",confRoomMeta.getElementColumnNames()[0]);
+  assertEquals("room_number",confRoomMeta.getIndexColumnNames()[0]);
+  assertEquals("phone_extension_lookup",confRoomMeta.getTableName());
+  tx.rollback();
+  s.close();
+}
