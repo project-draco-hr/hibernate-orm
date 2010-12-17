@@ -12,22 +12,22 @@
         while (entries.hasNext()) {
           Object entry=entries.next();
           if (collection.needsUpdating(entry,i,elementType)) {
+            String sql=getSQLDeleteRowString();
             if (st == null) {
-              String sql=getSQLDeleteRowString();
               if (isDeleteCallable()) {
                 expectation=Expectations.appropriateExpectation(getDeleteCheckStyle());
                 useBatch=expectation.canBeBatched();
-                st=useBatch ? session.getJDBCContext().getConnectionManager().prepareBatchStatement(sql,true) : session.getJDBCContext().getConnectionManager().prepareStatement(sql,true);
+                st=useBatch ? session.getJDBCContext().getConnectionManager().prepareBatchStatement(this,sql,true) : session.getJDBCContext().getConnectionManager().prepareStatement(sql,true);
                 offset+=expectation.prepare(st);
               }
  else {
-                st=session.getJDBCContext().getConnectionManager().prepareBatchStatement(getSQLDeleteRowString(),false);
+                st=session.getJDBCContext().getConnectionManager().prepareBatchStatement(this,sql,false);
               }
             }
             int loc=writeKey(st,id,offset,session);
             writeElementToWhere(st,collection.getSnapshotElement(entry,i),loc,session);
             if (useBatch) {
-              session.getJDBCContext().getConnectionManager().addToBatch(expectation);
+              session.getJDBCContext().getConnectionManager().addToBatch(this,sql,expectation);
             }
  else {
               expectation.verifyOutcome(st.executeUpdate(),st,-1);
@@ -39,7 +39,7 @@
       }
  catch (      SQLException sqle) {
         if (useBatch) {
-          session.getJDBCContext().getConnectionManager().abortBatch(sqle);
+          session.getJDBCContext().getConnectionManager().abortBatch();
         }
         throw sqle;
       }
@@ -64,7 +64,7 @@
           if (collection.needsUpdating(entry,i,elementType)) {
             if (useBatch) {
               if (st == null) {
-                st=session.getJDBCContext().getConnectionManager().prepareBatchStatement(sql,callable);
+                st=session.getJDBCContext().getConnectionManager().prepareBatchStatement(this,sql,callable);
               }
             }
  else {
@@ -77,7 +77,7 @@
             }
             writeElementToWhere(st,collection.getElement(entry),loc,session);
             if (useBatch) {
-              session.getJDBCContext().getConnectionManager().addToBatch(expectation);
+              session.getJDBCContext().getConnectionManager().addToBatch(this,sql,expectation);
             }
  else {
               expectation.verifyOutcome(st.executeUpdate(),st,-1);
@@ -89,7 +89,7 @@
       }
  catch (      SQLException sqle) {
         if (useBatch) {
-          session.getJDBCContext().getConnectionManager().abortBatch(sqle);
+          session.getJDBCContext().getConnectionManager().abortBatch();
         }
         throw sqle;
       }

@@ -22,7 +22,7 @@
     PreparedStatement delete;
     int index=1;
     if (useBatch) {
-      delete=session.getJDBCContext().getConnectionManager().prepareBatchStatement(sql,callable);
+      delete=session.getJDBCContext().getConnectionManager().prepareBatchStatement(this,sql,callable);
     }
  else {
       delete=session.getJDBCContext().getConnectionManager().prepareStatement(sql,callable);
@@ -46,7 +46,7 @@
         }
       }
       if (useBatch) {
-        session.getJDBCContext().getConnectionManager().addToBatch(expectation);
+        session.getJDBCContext().getConnectionManager().addToBatch(this,sql,expectation);
       }
  else {
         check(delete.executeUpdate(),id,j,expectation,delete);
@@ -54,7 +54,7 @@
     }
  catch (    SQLException sqle) {
       if (useBatch) {
-        session.getJDBCContext().getConnectionManager().abortBatch(sqle);
+        session.getJDBCContext().getConnectionManager().abortBatch();
       }
       throw sqle;
     }

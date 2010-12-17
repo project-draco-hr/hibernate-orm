@@ -17,7 +17,7 @@
   try {
     final PreparedStatement insert;
     if (useBatch) {
-      insert=session.getJDBCContext().getConnectionManager().prepareBatchStatement(sql,callable);
+      insert=session.getJDBCContext().getConnectionManager().prepareBatchStatement(this,sql,callable);
     }
  else {
       insert=session.getJDBCContext().getConnectionManager().prepareStatement(sql,callable);
@@ -27,7 +27,7 @@
       index+=expectation.prepare(insert);
       dehydrate(id,fields,null,notNull,propertyColumnInsertable,j,insert,session,index);
       if (useBatch) {
-        session.getJDBCContext().getConnectionManager().addToBatch(expectation);
+        session.getJDBCContext().getConnectionManager().addToBatch(this,sql,expectation);
       }
  else {
         expectation.verifyOutcome(insert.executeUpdate(),insert,-1);
@@ -35,7 +35,7 @@
     }
  catch (    SQLException sqle) {
       if (useBatch) {
-        session.getJDBCContext().getConnectionManager().abortBatch(sqle);
+        session.getJDBCContext().getConnectionManager().abortBatch();
       }
       throw sqle;
     }

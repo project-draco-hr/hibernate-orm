@@ -1,3 +1,18 @@
 {
-  return null;
+  String batchBuilderClass=properties.getProperty(Environment.BATCH_STRATEGY);
+  BatchBuilder batchBuilder;
+  if (batchBuilderClass == null) {
+    batchBuilder=batchSize > 0 ? new BatchBuilder(batchSize) : new BatchBuilder();
+  }
+ else {
+    log.info("Batch factory: " + batchBuilderClass);
+    try {
+      batchBuilder=(BatchBuilder)ReflectHelper.classForName(batchBuilderClass).newInstance();
+    }
+ catch (    Exception cnfe) {
+      throw new HibernateException("could not instantiate BatchBuilder: " + batchBuilderClass,cnfe);
+    }
+  }
+  batchBuilder.setJdbcBatchSize(batchSize);
+  return batchBuilder;
 }
