@@ -10,15 +10,11 @@
   s.beginTransaction();
   try {
     s.merge(node);
+    s.getTransaction().commit();
     fail("should have thrown an exception");
   }
  catch (  Exception ex) {
-    if (((SessionImplementor)s).getFactory().getSettings().isCheckNullability()) {
-      assertTrue(ex instanceof TransientObjectException);
-    }
- else {
-      assertTrue(ex instanceof JDBCException);
-    }
+    checkExceptionFromNullValueForNonNullable(ex,((SessionImplementor)s).getFactory().getSettings().isCheckNullability(),false);
   }
  finally {
     s.getTransaction().rollback();
