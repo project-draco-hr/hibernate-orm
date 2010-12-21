@@ -2,20 +2,12 @@
   PersistentClass collectionEntity=(PersistentClass)persistentClasses.get(collType.getName());
   boolean isCollectionOfEntities=collectionEntity != null;
   ManyToAny anyAnn=property.getAnnotation(ManyToAny.class);
-  if (log.isDebugEnabled()) {
+  if (LOG.isDebugEnabled()) {
     String path=collValue.getOwnerEntityName() + "." + joinColumns[0].getPropertyName();
-    if (isCollectionOfEntities && unique) {
-      log.debug("Binding a OneToMany: {} through an association table",path);
-    }
- else     if (isCollectionOfEntities) {
-      log.debug("Binding as ManyToMany: {}",path);
-    }
- else     if (anyAnn != null) {
-      log.debug("Binding a ManyToAny: {}",path);
-    }
- else {
-      log.debug("Binding a collection of element: {}",path);
-    }
+    if (isCollectionOfEntities && unique)     LOG.bindingOneToMany(path);
+ else     if (isCollectionOfEntities)     LOG.bindingManyToMany(path);
+ else     if (anyAnn != null)     LOG.bindingManyToAny(path);
+ else     LOG.bindingCollection(path);
   }
   if (!isCollectionOfEntities) {
     if (property.isAnnotationPresent(ManyToMany.class) || property.isAnnotationPresent(OneToMany.class)) {

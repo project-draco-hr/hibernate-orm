@@ -1,24 +1,24 @@
 {
-  log.trace("deserializing persistent-context");
+  LOG.deserializingPersistentContext();
   StatefulPersistenceContext rtn=new StatefulPersistenceContext(session);
   try {
     rtn.defaultReadOnly=ois.readBoolean();
     rtn.hasNonReadOnlyEntities=ois.readBoolean();
     int count=ois.readInt();
-    log.trace("staring deserialization of [" + count + "] entitiesByKey entries");
+    LOG.deserializingEntitiesByKey(count);
     rtn.entitiesByKey=new HashMap(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
     for (int i=0; i < count; i++) {
       rtn.entitiesByKey.put(EntityKey.deserialize(ois,session),ois.readObject());
     }
     count=ois.readInt();
-    log.trace("staring deserialization of [" + count + "] entitiesByUniqueKey entries");
+    LOG.deserializingEntitiesByUniqueKey(count);
     rtn.entitiesByUniqueKey=new HashMap(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
     for (int i=0; i < count; i++) {
       rtn.entitiesByUniqueKey.put(EntityUniqueKey.deserialize(ois,session),ois.readObject());
     }
     count=ois.readInt();
-    log.trace("staring deserialization of [" + count + "] proxiesByKey entries");
-    rtn.proxiesByKey=new ReferenceMap(ReferenceMap.HARD,ReferenceMap.WEAK,count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count,.75f);
+    LOG.deserializingProxiesByKey(count);
+    rtn.proxiesByKey=new ReferenceMap(AbstractReferenceMap.HARD,AbstractReferenceMap.WEAK,count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count,.75f);
     for (int i=0; i < count; i++) {
       EntityKey ek=EntityKey.deserialize(ois,session);
       Object proxy=ois.readObject();
@@ -26,18 +26,16 @@
         ((HibernateProxy)proxy).getHibernateLazyInitializer().setSession(session);
         rtn.proxiesByKey.put(ek,proxy);
       }
- else {
-        log.trace("encountered prunded proxy");
-      }
+ else       LOG.encounteredPrunedProxy();
     }
     count=ois.readInt();
-    log.trace("staring deserialization of [" + count + "] entitySnapshotsByKey entries");
+    LOG.deserializingEntitySnapshotsByKey(count);
     rtn.entitySnapshotsByKey=new HashMap(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
     for (int i=0; i < count; i++) {
       rtn.entitySnapshotsByKey.put(EntityKey.deserialize(ois,session),ois.readObject());
     }
     count=ois.readInt();
-    log.trace("staring deserialization of [" + count + "] entityEntries entries");
+    LOG.deserializingEntityEntries(count);
     rtn.entityEntries=IdentityMap.instantiateSequenced(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
     for (int i=0; i < count; i++) {
       Object entity=ois.readObject();
@@ -45,13 +43,13 @@
       rtn.entityEntries.put(entity,entry);
     }
     count=ois.readInt();
-    log.trace("staring deserialization of [" + count + "] collectionsByKey entries");
+    LOG.deserializingCollectionsByKey(count);
     rtn.collectionsByKey=new HashMap(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
     for (int i=0; i < count; i++) {
       rtn.collectionsByKey.put(CollectionKey.deserialize(ois,session),ois.readObject());
     }
     count=ois.readInt();
-    log.trace("staring deserialization of [" + count + "] collectionEntries entries");
+    LOG.deserializingCollectionEntries(count);
     rtn.collectionEntries=IdentityMap.instantiateSequenced(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
     for (int i=0; i < count; i++) {
       final PersistentCollection pc=(PersistentCollection)ois.readObject();
@@ -60,13 +58,13 @@
       rtn.collectionEntries.put(pc,ce);
     }
     count=ois.readInt();
-    log.trace("staring deserialization of [" + count + "] arrayHolders entries");
+    LOG.deserializingArrayHolders(count);
     rtn.arrayHolders=IdentityMap.instantiate(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
     for (int i=0; i < count; i++) {
       rtn.arrayHolders.put(ois.readObject(),ois.readObject());
     }
     count=ois.readInt();
-    log.trace("staring deserialization of [" + count + "] nullifiableEntityKeys entries");
+    LOG.deserializingNullifiableEntityKeys(count);
     rtn.nullifiableEntityKeys=new HashSet();
     for (int i=0; i < count; i++) {
       rtn.nullifiableEntityKeys.add(EntityKey.deserialize(ois,session));

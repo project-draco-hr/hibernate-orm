@@ -1,5 +1,5 @@
 {
-  log.info("Running hbm2ddl schema update");
+  LOG.runningHbm2ddlSchemaUpdate();
   Connection connection=null;
   Statement stmt=null;
   Writer outputFileWriter=null;
@@ -7,7 +7,7 @@
   try {
     DatabaseMetadata meta;
     try {
-      log.info("fetching database metadata");
+      LOG.fetchingDatabaseMetadata();
       connectionHelper.prepare(true);
       connection=connectionHelper.getConnection();
       meta=new DatabaseMetadata(connection,dialect);
@@ -15,12 +15,12 @@
     }
  catch (    SQLException sqle) {
       exceptions.add(sqle);
-      log.error("could not get database metadata",sqle);
+      LOG.error(LOG.unableToGetDatabaseMetadata(),sqle);
       throw sqle;
     }
-    log.info("updating schema");
+    LOG.updatingSchema();
     if (outputFile != null) {
-      log.info("writing generated schema to file: " + outputFile);
+      LOG.writingGeneratedSchemaToFile(outputFile);
       outputFileWriter=new FileWriter(outputFile);
     }
     String[] createSQL=configuration.generateSchemaUpdateScript(dialect,meta);
@@ -38,7 +38,7 @@
           outputFileWriter.write(formatted + "\n");
         }
         if (doUpdate) {
-          log.debug(sql);
+          LOG.debug(sql);
           stmt.executeUpdate(formatted);
         }
       }
@@ -47,15 +47,15 @@
           throw new JDBCException("Error during DDL export",e);
         }
         exceptions.add(e);
-        log.error("Unsuccessful: " + sql);
-        log.error(e.getMessage());
+        LOG.unsuccessful(sql);
+        LOG.error(e.getMessage());
       }
     }
-    log.info("schema update complete");
+    LOG.schemaUpdateComplete();
   }
  catch (  Exception e) {
     exceptions.add(e);
-    log.error("could not complete schema update",e);
+    LOG.error(LOG.unableToCompleteSchemaUpdate(),e);
   }
  finally {
     try {
@@ -66,7 +66,7 @@
     }
  catch (    Exception e) {
       exceptions.add(e);
-      log.error("Error closing connection",e);
+      LOG.error(LOG.unableToCloseConnection(),e);
     }
     try {
       if (outputFileWriter != null) {
@@ -75,7 +75,7 @@
     }
  catch (    Exception e) {
       exceptions.add(e);
-      log.error("Error closing connection",e);
+      LOG.error(LOG.unableToCloseConnection(),e);
     }
   }
 }

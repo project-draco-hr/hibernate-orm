@@ -1,19 +1,15 @@
 {
   previousValueHolder=IdentifierGeneratorHelper.getIntegralDataTypeHolder(returnClass);
-  log.debug("fetching initial value: " + sql);
+  LOG.fetchingInitialValue(sql);
   try {
     PreparedStatement st=session.getJDBCContext().getConnectionManager().prepareSelectStatement(sql);
     try {
       ResultSet rs=st.executeQuery();
       try {
-        if (rs.next()) {
-          previousValueHolder.initialize(rs,0L).increment();
-        }
- else {
-          previousValueHolder.initialize(1L);
-        }
+        if (rs.next())         previousValueHolder.initialize(rs,0L).increment();
+ else         previousValueHolder.initialize(1L);
         sql=null;
-        log.debug("first free id: " + previousValueHolder.makeValue());
+        LOG.firstFreeId(previousValueHolder.makeValue());
       }
   finally {
         rs.close();

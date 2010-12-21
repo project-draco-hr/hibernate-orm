@@ -2,9 +2,7 @@
   final Object optionalObject=event.getInstanceToLoad();
   final EventSource session=event.getSession();
   final SessionFactoryImplementor factory=session.getFactory();
-  if (log.isTraceEnabled()) {
-    log.trace("assembling entity from second-level cache: " + MessageHelper.infoString(persister,id,factory));
-  }
+  if (LOG.isTraceEnabled())   LOG.assemblingEntityFromSecondLevelCache(MessageHelper.infoString(persister,id,factory));
   EntityPersister subclassPersister=factory.getEntityPersister(entry.getSubclass());
   Object result=optionalObject == null ? session.instantiate(subclassPersister,id) : optionalObject;
   EntityKey entityKey=new EntityKey(id,subclassPersister,session.getEntityMode());
@@ -13,7 +11,7 @@
   Object[] values=entry.assemble(result,id,subclassPersister,session.getInterceptor(),session);
   TypeHelper.deepCopy(values,types,subclassPersister.getPropertyUpdateability(),values,session);
   Object version=Versioning.getVersion(values,subclassPersister);
-  if (log.isTraceEnabled())   log.trace("Cached Version: " + version);
+  if (LOG.isTraceEnabled())   LOG.cachedVersion(version);
   final PersistenceContext persistenceContext=session.getPersistenceContext();
   boolean isReadOnly=session.isDefaultReadOnly();
   if (persister.isMutable()) {

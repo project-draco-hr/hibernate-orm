@@ -1,33 +1,25 @@
 {
   if (!source.getEnabledFilters().isEmpty() && persister.isAffectedByEnabledFilters(source)) {
-    log.trace("disregarding cached version (if any) of collection due to enabled filters ");
+    LOG.ignoringCachedVersionOfCollection();
     return false;
   }
   final boolean useCache=persister.hasCache() && source.getCacheMode().isGetEnabled();
-  if (!useCache) {
-    return false;
-  }
- else {
-    final SessionFactoryImplementor factory=source.getFactory();
-    final CacheKey ck=new CacheKey(id,persister.getKeyType(),persister.getRole(),source.getEntityMode(),source.getFactory());
-    Object ce=persister.getCacheAccessStrategy().get(ck,source.getTimestamp());
-    if (factory.getStatistics().isStatisticsEnabled()) {
-      if (ce == null) {
-        factory.getStatisticsImplementor().secondLevelCacheMiss(persister.getCacheAccessStrategy().getRegion().getName());
-      }
- else {
-        factory.getStatisticsImplementor().secondLevelCacheHit(persister.getCacheAccessStrategy().getRegion().getName());
-      }
-    }
+  if (!useCache)   return false;
+  final SessionFactoryImplementor factory=source.getFactory();
+  final CacheKey ck=new CacheKey(id,persister.getKeyType(),persister.getRole(),source.getEntityMode(),source.getFactory());
+  Object ce=persister.getCacheAccessStrategy().get(ck,source.getTimestamp());
+  if (factory.getStatistics().isStatisticsEnabled()) {
     if (ce == null) {
-      return false;
+      factory.getStatisticsImplementor().secondLevelCacheMiss(persister.getCacheAccessStrategy().getRegion().getName());
     }
  else {
-      CollectionCacheEntry cacheEntry=(CollectionCacheEntry)persister.getCacheEntryStructure().destructure(ce,factory);
-      final PersistenceContext persistenceContext=source.getPersistenceContext();
-      cacheEntry.assemble(collection,persister,persistenceContext.getCollectionOwner(id,persister));
-      persistenceContext.getCollectionEntry(collection).postInitialize(collection);
-      return true;
+      factory.getStatisticsImplementor().secondLevelCacheHit(persister.getCacheAccessStrategy().getRegion().getName());
     }
   }
+  if (ce == null)   return false;
+  CollectionCacheEntry cacheEntry=(CollectionCacheEntry)persister.getCacheEntryStructure().destructure(ce,factory);
+  final PersistenceContext persistenceContext=source.getPersistenceContext();
+  cacheEntry.assemble(collection,persister,persistenceContext.getCollectionOwner(id,persister));
+  persistenceContext.getCollectionEntry(collection).postInitialize(collection);
+  return true;
 }

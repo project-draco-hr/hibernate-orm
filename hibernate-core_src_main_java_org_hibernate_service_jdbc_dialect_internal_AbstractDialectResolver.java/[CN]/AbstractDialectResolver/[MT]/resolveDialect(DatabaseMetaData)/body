@@ -4,16 +4,12 @@
   }
  catch (  SQLException sqlException) {
     JDBCException jdbcException=BasicSQLExceptionConverter.INSTANCE.convert(sqlException);
-    if (jdbcException instanceof JDBCConnectionException) {
-      throw jdbcException;
-    }
- else {
-      log.warn(BasicSQLExceptionConverter.MSG + " : " + sqlException.getMessage());
-      return null;
-    }
+    if (jdbcException instanceof JDBCConnectionException)     throw jdbcException;
+    LOG.warn(BasicSQLExceptionConverter.MSG + " : " + sqlException.getMessage());
+    return null;
   }
 catch (  Throwable t) {
-    log.warn("Error executing resolver [" + this + "] : "+ t.getMessage());
+    LOG.unableToExecuteResolver(this,t.getMessage());
     return null;
   }
 }

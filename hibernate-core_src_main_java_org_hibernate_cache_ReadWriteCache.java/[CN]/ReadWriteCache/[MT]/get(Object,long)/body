@@ -1,20 +1,12 @@
 {
-  if (log.isTraceEnabled())   log.trace("Cache lookup: " + key);
+  LOG.lookup(key);
   Lockable lockable=(Lockable)cache.get(key);
   boolean gettable=lockable != null && lockable.isGettable(txTimestamp);
   if (gettable) {
-    if (log.isTraceEnabled())     log.trace("Cache hit: " + key);
+    LOG.hit(key);
     return ((Item)lockable).getValue();
   }
- else {
-    if (log.isTraceEnabled()) {
-      if (lockable == null) {
-        log.trace("Cache miss: " + key);
-      }
- else {
-        log.trace("Cached item was locked: " + key);
-      }
-    }
-    return null;
-  }
+  if (lockable == null)   LOG.miss(key);
+ else   LOG.locked(key);
+  return null;
 }

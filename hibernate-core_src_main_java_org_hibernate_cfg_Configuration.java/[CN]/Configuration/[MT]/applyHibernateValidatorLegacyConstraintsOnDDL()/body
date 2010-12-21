@@ -8,9 +8,7 @@
     applyMethod=classValidator.getMethod("apply",PersistentClass.class);
   }
  catch (  ClassNotFoundException e) {
-    if (!isValidatorNotPresentLogged) {
-      log.info("Hibernate Validator not found: ignoring");
-    }
+    if (!isValidatorNotPresentLogged)     LOG.validatorNotFound();
     isValidatorNotPresentLogged=true;
   }
 catch (  NoSuchMethodException e) {
@@ -25,7 +23,7 @@ catch (  NoSuchMethodException e) {
           applyMethod.invoke(validator,persistentClazz);
         }
  catch (        Exception e) {
-          log.warn("Unable to apply constraints on DDL for " + className,e);
+          LOG.unableToApplyConstraints(className,e.getMessage());
         }
       }
     }

@@ -6,13 +6,11 @@
   if (!inheritanceState.hasParents()) {
     discriminatorColumn=Ejb3DiscriminatorColumn.buildDiscriminatorColumn(discriminatorType,discAnn,discFormulaAnn,mappings);
   }
-  if (discAnn != null && inheritanceState.hasParents()) {
-    log.warn("Discriminator column has to be defined in the root entity, it will be ignored in subclass: {}",clazzToProcess.getName());
-  }
+  if (discAnn != null && inheritanceState.hasParents())   LOG.invalidDescriminatorAnnotation(clazzToProcess.getName());
   String discrimValue=clazzToProcess.isAnnotationPresent(DiscriminatorValue.class) ? clazzToProcess.getAnnotation(DiscriminatorValue.class).value() : null;
   entityBinder.setDiscriminatorValue(discrimValue);
   if (clazzToProcess.isAnnotationPresent(ForceDiscriminator.class)) {
-    log.warn("@ForceDiscriminator is deprecated use @DiscriminatorOptions instead.");
+    LOG.deprecatedForceDescriminatorAnnotation();
     entityBinder.setForceDiscriminator(true);
   }
   DiscriminatorOptions discriminatorOptions=clazzToProcess.getAnnotation(DiscriminatorOptions.class);

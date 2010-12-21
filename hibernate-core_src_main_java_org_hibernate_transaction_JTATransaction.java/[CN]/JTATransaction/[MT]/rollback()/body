@@ -2,28 +2,28 @@
   if (!begun && !commitFailed) {
     throw new TransactionException("Transaction not successfully started");
   }
-  log.debug("rollback");
+  LOG.rollback();
   try {
     closeIfRequired();
   }
  catch (  Exception e) {
-    log.error("could not close session during rollback",e);
+    LOG.error(LOG.unableToCloseSessionDuringRollback(),e);
   }
   try {
     if (newTransaction) {
       if (!commitFailed) {
         userTransaction.rollback();
-        log.debug("Rolled back JTA UserTransaction");
+        LOG.rolledBackJtaUserTransaction();
       }
     }
  else {
       userTransaction.setRollbackOnly();
-      log.debug("set JTA UserTransaction to rollback only");
+      LOG.jtaUserTransactionSetToRollbackOnly();
     }
   }
  catch (  Exception e) {
-    log.error("JTA rollback failed",e);
-    throw new TransactionException("JTA rollback failed",e);
+    LOG.error(LOG.unableToRollbackJta(),e);
+    throw new TransactionException(LOG.unableToRollbackJta(),e);
   }
  finally {
     afterCommitRollback();

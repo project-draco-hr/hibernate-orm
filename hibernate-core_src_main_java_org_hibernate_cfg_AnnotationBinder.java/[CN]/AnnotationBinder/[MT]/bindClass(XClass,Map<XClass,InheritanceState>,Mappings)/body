@@ -12,7 +12,7 @@
   if (!isEntityClassType(clazzToProcess,classType)) {
     return;
   }
-  log.info("Binding entity from annotated class: {}",clazzToProcess.getName());
+  LOG.bindingEntityFromClass(clazzToProcess.getName());
   PersistentClass superEntity=getSuperEntity(clazzToProcess,inheritanceStatePerClass,mappings,inheritanceState);
   PersistentClass persistentClass=makePersistentClass(inheritanceState,superEntity);
   Entity entityAnn=clazzToProcess.getAnnotation(Entity.class);
@@ -53,11 +53,7 @@
     String constraints=checkAnn == null ? null : checkAnn.constraints();
     entityBinder.bindTable(schema,catalog,table,uniqueConstraints,constraints,inheritanceState.hasDenormalizedTable() ? superEntity.getTable() : null);
   }
- else {
-    if (clazzToProcess.isAnnotationPresent(Table.class)) {
-      log.warn("Illegal use of @Table in a subclass of a SINGLE_TABLE hierarchy: " + clazzToProcess.getName());
-    }
-  }
+ else   if (clazzToProcess.isAnnotationPresent(Table.class))   LOG.invalidTableAnnotation(clazzToProcess.getName());
   PropertyHolder propertyHolder=PropertyHolderBuilder.buildPropertyHolder(clazzToProcess,persistentClass,entityBinder,mappings,inheritanceStatePerClass);
   javax.persistence.SecondaryTable secTabAnn=clazzToProcess.getAnnotation(javax.persistence.SecondaryTable.class);
   javax.persistence.SecondaryTables secTabsAnn=clazzToProcess.getAnnotation(javax.persistence.SecondaryTables.class);
@@ -106,9 +102,7 @@
       }
     }
   }
-  if (onDeleteAnn != null && !onDeleteAppropriate) {
-    log.warn("Inapropriate use of @OnDelete on entity, annotation ignored: {}",propertyHolder.getEntityName());
-  }
+  if (onDeleteAnn != null && !onDeleteAppropriate)   LOG.invalidOnDeleteAnnotation(propertyHolder.getEntityName());
   HashMap<String,IdGenerator> classGenerators=buildLocalGenerators(clazzToProcess,mappings);
   final InheritanceState.ElementsToProcess elementsToProcess=inheritanceState.getElementsToProcess();
   inheritanceState.postProcess(persistentClass,entityBinder);

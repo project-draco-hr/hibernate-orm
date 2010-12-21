@@ -5,17 +5,11 @@
   if (type == null) {
     throw new HibernateException("Type to register cannot be null");
   }
-  if (type.getRegistrationKeys() == null || type.getRegistrationKeys().length == 0) {
-    log.warn("Type [{}] defined no registration keys; ignoring",type);
-  }
+  if (type.getRegistrationKeys() == null || type.getRegistrationKeys().length == 0)   LOG.typeDefinedNoRegistrationKeys(type);
   for (  String key : type.getRegistrationKeys()) {
-    if (key == null) {
-      continue;
-    }
-    log.debug("Adding type registration {} -> {}",key,type);
+    if (key == null)     continue;
+    LOG.addingTypeRegistration(key,type);
     final Type old=registry.put(key,type);
-    if (old != null && old != type) {
-      log.info("Type registration [{}] overrides previous : {}",key,old);
-    }
+    if (old != null && old != type)     LOG.typeRegistrationOverridesPrevious(key,old);
   }
 }

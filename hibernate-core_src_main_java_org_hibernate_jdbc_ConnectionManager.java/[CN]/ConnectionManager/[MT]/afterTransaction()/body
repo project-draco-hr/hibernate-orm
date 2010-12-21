@@ -1,0 +1,10 @@
+{
+  if (isAfterTransactionRelease())   aggressiveRelease();
+ else   if (isAggressiveReleaseNoTransactionCheck() && batcher.hasOpenResources()) {
+    LOG.forcingBatcherResourceCleanup();
+    batcher.closeStatements();
+    aggressiveRelease();
+  }
+ else   if (isOnCloseRelease())   LOG.transactionCompletedWithOnCloseConnectionReleaseMode();
+  batcher.unsetTransactionTimeout();
+}

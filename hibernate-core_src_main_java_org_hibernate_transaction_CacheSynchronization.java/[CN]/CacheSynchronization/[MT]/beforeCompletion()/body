@@ -1,17 +1,17 @@
 {
-  log.trace("transaction before completion callback");
+  LOG.transactionBeforeCompletionCallback();
   boolean flush;
   try {
     flush=!ctx.isFlushModeNever() && ctx.isFlushBeforeCompletionEnabled() && !JTAHelper.isRollback(transaction.getStatus());
   }
  catch (  SystemException se) {
-    log.error("could not determine transaction status",se);
+    LOG.error(LOG.unableToDetermineTransactionStatus(),se);
     setRollbackOnly();
     throw new TransactionException("could not determine transaction status in beforeCompletion()",se);
   }
   try {
     if (flush) {
-      log.trace("automatically flushing session");
+      LOG.automaticallyFlushingSession();
       ctx.managedFlush();
     }
   }

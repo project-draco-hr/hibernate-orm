@@ -1,0 +1,16 @@
+{
+  if (releaseMode == ConnectionReleaseMode.AFTER_STATEMENT) {
+    return true;
+  }
+ else   if (releaseMode == ConnectionReleaseMode.AFTER_TRANSACTION) {
+    boolean inAutoCommitState;
+    try {
+      inAutoCommitState=isAutoCommit() && !callback.isTransactionInProgress();
+    }
+ catch (    SQLException e) {
+      inAutoCommitState=true;
+    }
+    return inAutoCommitState;
+  }
+  return false;
+}

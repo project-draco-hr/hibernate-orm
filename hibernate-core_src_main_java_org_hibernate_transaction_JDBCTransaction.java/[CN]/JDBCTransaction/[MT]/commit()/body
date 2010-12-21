@@ -2,7 +2,7 @@
   if (!begun) {
     throw new TransactionException("Transaction not successfully started");
   }
-  log.debug("commit");
+  LOG.commit();
   if (!transactionContext.isFlushModeNever() && callback) {
     transactionContext.managedFlush();
   }
@@ -12,7 +12,7 @@
   }
   try {
     commitAndResetAutoCommit();
-    log.debug("committed JDBC Connection");
+    LOG.commitedJdbcConnection();
     committed=true;
     if (callback) {
       jdbcContext.afterTransactionCompletion(true,this);
@@ -20,13 +20,13 @@
     notifySynchronizationsAfterTransactionCompletion(Status.STATUS_COMMITTED);
   }
  catch (  SQLException e) {
-    log.error("JDBC commit failed",e);
+    LOG.error(LOG.unableToPerformJdbcCommit(),e);
     commitFailed=true;
     if (callback) {
       jdbcContext.afterTransactionCompletion(false,this);
     }
     notifySynchronizationsAfterTransactionCompletion(Status.STATUS_UNKNOWN);
-    throw new TransactionException("JDBC commit failed",e);
+    throw new TransactionException(LOG.unableToPerformJdbcCommit(),e);
   }
  finally {
     closeIfRequired();

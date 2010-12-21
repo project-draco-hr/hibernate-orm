@@ -5,22 +5,20 @@
   if (commitFailed) {
     throw new TransactionException("cannot re-start transaction after failed commit");
   }
-  log.debug("begin");
+  LOG.begin();
   try {
     newTransaction=userTransaction.getStatus() == Status.STATUS_NO_TRANSACTION;
     if (newTransaction) {
       userTransaction.begin();
-      log.debug("Began a new JTA transaction");
+      LOG.beganNewJtaTransaction();
     }
   }
  catch (  Exception e) {
-    log.error("JTA transaction begin failed",e);
-    throw new TransactionException("JTA transaction begin failed",e);
+    LOG.error(LOG.unableToBeginJtaTransaction(),e);
+    throw new TransactionException(LOG.unableToBeginJtaTransaction(),e);
   }
   boolean synchronization=jdbcContext.registerSynchronizationIfPossible();
-  if (!newTransaction && !synchronization) {
-    log.warn("You should set hibernate.transaction.manager_lookup_class if cache is enabled");
-  }
+  if (!newTransaction && !synchronization)   LOG.managerLookupClassShouldBeSet();
   if (!synchronization) {
     callback=jdbcContext.registerCallbackIfNecessary();
   }

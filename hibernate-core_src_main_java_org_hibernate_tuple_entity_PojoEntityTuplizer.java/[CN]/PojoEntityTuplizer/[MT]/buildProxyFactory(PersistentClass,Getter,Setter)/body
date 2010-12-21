@@ -30,11 +30,11 @@
     Property property=(Property)properties.next();
     Method method=property.getGetter(clazz).getMethod();
     if (method != null && Modifier.isFinal(method.getModifiers())) {
-      log.error("Getters of lazy classes cannot be final: " + persistentClass.getEntityName() + "."+ property.getName());
+      LOG.gettersOfLazyClassesCannotBeFinal(persistentClass.getEntityName(),property.getName());
     }
     method=property.getSetter(clazz).getMethod();
     if (method != null && Modifier.isFinal(method.getModifiers())) {
-      log.error("Setters of lazy classes cannot be final: " + persistentClass.getEntityName() + "."+ property.getName());
+      LOG.settersOfLazyClassesCannotBeFinal(persistentClass.getEntityName(),property.getName());
     }
   }
   Method idGetterMethod=idGetter == null ? null : idGetter.getMethod();
@@ -46,7 +46,7 @@
     pf.postInstantiate(getEntityName(),mappedClass,proxyInterfaces,proxyGetIdentifierMethod,proxySetIdentifierMethod,persistentClass.hasEmbeddedIdentifier() ? (CompositeType)persistentClass.getIdentifier().getType() : null);
   }
  catch (  HibernateException he) {
-    log.warn("could not create proxy factory for:" + getEntityName(),he);
+    LOG.warn(LOG.unableToCreateProxyFactory(getEntityName()),he);
     pf=null;
   }
   return pf;

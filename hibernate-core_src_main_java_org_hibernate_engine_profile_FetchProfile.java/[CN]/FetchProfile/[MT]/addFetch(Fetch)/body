@@ -1,18 +1,16 @@
 {
   Type associationType=fetch.getAssociation().getOwner().getPropertyType(fetch.getAssociation().getAssociationPath());
   if (associationType.isCollectionType()) {
-    log.trace("handling request to add collection fetch [{}]",fetch.getAssociation().getRole());
+    LOG.addingFetch(fetch.getAssociation().getRole());
     if (Fetch.Style.JOIN == fetch.getStyle()) {
       if (BagType.class.isInstance(associationType)) {
         if (containsJoinFetchedCollection) {
-          log.warn("Ignoring bag join fetch [{}] due to prior collection join fetch",fetch.getAssociation().getRole());
+          LOG.containsJoinFetchedCollection(fetch.getAssociation().getRole());
           return;
         }
       }
       if (containsJoinFetchedBag) {
-        if (fetches.remove(bagJoinFetch.getAssociation().getRole()) != bagJoinFetch) {
-          log.warn("Unable to erase previously added bag join fetch");
-        }
+        if (fetches.remove(bagJoinFetch.getAssociation().getRole()) != bagJoinFetch)         LOG.unableToRemoveBagJoinFetch();
         bagJoinFetch=null;
         containsJoinFetchedBag=false;
       }

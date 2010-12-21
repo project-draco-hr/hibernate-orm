@@ -1,5 +1,5 @@
 {
-  super(walker,log);
+  super(walker,null);
   if (!walker.getSessionFactoryHelper().getFactory().getDialect().supportsTemporaryTables()) {
     throw new HibernateException("cannot doAfterTransactionCompletion multi-table updates using dialect not supporting temp tables");
   }
@@ -8,7 +8,7 @@
   String bulkTargetAlias=fromElement.getTableAlias();
   this.persister=fromElement.getQueryable();
   this.idInsertSelect=generateIdInsertSelect(persister,bulkTargetAlias,updateStatement.getWhereClause());
-  log.trace("Generated ID-INSERT-SELECT SQL (multi-table update) : " + idInsertSelect);
+  LOG.generatedIdInsertSelectUpdate(idInsertSelect);
   String[] tableNames=persister.getConstraintOrderedTableNameClosure();
   String[][] columnNames=persister.getContraintOrderedTableKeyColumnClosure();
   String idSubselect=generateIdSubselect(persister);

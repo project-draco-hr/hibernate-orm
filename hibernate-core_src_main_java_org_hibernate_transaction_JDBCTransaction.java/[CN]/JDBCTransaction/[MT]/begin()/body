@@ -5,20 +5,18 @@
   if (commitFailed) {
     throw new TransactionException("cannot re-start transaction after failed commit");
   }
-  log.debug("begin");
+  LOG.begin();
   try {
     toggleAutoCommit=jdbcContext.connection().getAutoCommit();
-    if (log.isDebugEnabled()) {
-      log.debug("current autocommit status: " + toggleAutoCommit);
-    }
+    LOG.currentAutoCommitStatus(toggleAutoCommit);
     if (toggleAutoCommit) {
-      log.debug("disabling autocommit");
+      LOG.disablingAutoCommit();
       jdbcContext.connection().setAutoCommit(false);
     }
   }
  catch (  SQLException e) {
-    log.error("JDBC begin failed",e);
-    throw new TransactionException("JDBC begin failed: ",e);
+    LOG.error(LOG.jdbcBeginFailed(),e);
+    throw new TransactionException(LOG.jdbcBeginFailed(),e);
   }
   callback=jdbcContext.registerCallbackIfNecessary();
   begun=true;

@@ -12,8 +12,9 @@
   CollectionPersister persister=factory.getCollectionPersister(type.getRole());
   ce.setCurrentPersister(persister);
   ce.setCurrentKey(type.getKeyOfOwner(entity,session));
-  if (log.isDebugEnabled()) {
-    log.debug("Collection found: " + MessageHelper.collectionInfoString(persister,ce.getCurrentKey(),factory) + ", was: "+ MessageHelper.collectionInfoString(ce.getLoadedPersister(),ce.getLoadedKey(),factory)+ (collection.wasInitialized() ? " (initialized)" : " (uninitialized)"));
+  if (LOG.isDebugEnabled()) {
+    if (collection.wasInitialized())     LOG.collectionFound(MessageHelper.collectionInfoString(persister,ce.getCurrentKey(),factory),MessageHelper.collectionInfoString(ce.getLoadedPersister(),ce.getLoadedKey(),factory),LOG.initialized());
+ else     LOG.collectionFound(MessageHelper.collectionInfoString(persister,ce.getCurrentKey(),factory),MessageHelper.collectionInfoString(ce.getLoadedPersister(),ce.getLoadedKey(),factory),LOG.uninitialized());
   }
   prepareCollectionForUpdate(collection,ce,session.getEntityMode(),factory);
 }

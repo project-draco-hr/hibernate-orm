@@ -7,7 +7,7 @@
   final Serializable id;
   final Object version;
   if (entityEntry == null) {
-    log.trace("entity was not persistent in delete processing");
+    LOG.entityNotpersistentInDeleteProcessing();
     persister=source.getEntityPersister(event.getEntityName(),entity);
     if (ForeignKeys.isTransient(persister.getEntityName(),entity,null,source)) {
       deleteTransientEntity(source,entity,event.isCascadeDeleteEnabled(),persister,transientEntities);
@@ -27,9 +27,9 @@
     entityEntry=persistenceContext.addEntity(entity,(persister.isMutable() ? Status.MANAGED : Status.READ_ONLY),persister.getPropertyValues(entity,source.getEntityMode()),key,version,LockMode.NONE,true,persister,false,false);
   }
  else {
-    log.trace("deleting a persistent instance");
+    LOG.deletingPersistentInstance();
     if (entityEntry.getStatus() == Status.DELETED || entityEntry.getStatus() == Status.GONE) {
-      log.trace("object was already deleted");
+      LOG.objectAlreadyDeleted();
       return;
     }
     persister=entityEntry.getPersister();

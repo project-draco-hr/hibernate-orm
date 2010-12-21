@@ -1,9 +1,7 @@
 {
-  log.info("Using Hibernate built-in connection pool (not for production use!)");
+  LOG.usingHibernateBuiltInConnectionPool();
   String driverClassName=(String)configurationValues.get(Environment.DRIVER);
-  if (driverClassName == null) {
-    log.warn("no JDBC Driver class was specified by property " + Environment.DRIVER);
-  }
+  if (driverClassName == null)   LOG.jdbcDriverNotSpecified(Environment.DRIVER);
  else {
     try {
       Class.forName(driverClassName);
@@ -18,23 +16,19 @@
     }
   }
   poolSize=ConfigurationHelper.getInt(Environment.POOL_SIZE,configurationValues,20);
-  log.info("Hibernate connection pool size: " + poolSize);
+  LOG.hibernateConnectionPoolSize(poolSize);
   autocommit=ConfigurationHelper.getBoolean(Environment.AUTOCOMMIT,configurationValues);
-  log.info("autocommit mode: " + autocommit);
+  LOG.autoCommitMode(autocommit);
   isolation=ConfigurationHelper.getInteger(Environment.ISOLATION,configurationValues);
-  if (isolation != null)   log.info("JDBC isolation level: " + Environment.isolationLevelToString(isolation.intValue()));
+  if (isolation != null)   LOG.jdbcIsolationLevel(Environment.isolationLevelToString(isolation.intValue()));
   url=(String)configurationValues.get(Environment.URL);
   if (url == null) {
-    String msg="JDBC URL was not specified by property " + Environment.URL;
-    log.error(msg);
+    String msg=LOG.jdbcUrlNotSpecified(Environment.URL);
+    LOG.error(msg);
     throw new HibernateException(msg);
   }
   connectionProps=ConnectionProviderInitiator.getConnectionProperties(configurationValues);
-  log.info("using driver [" + driverClassName + "] at URL ["+ url+ "]");
-  if (log.isDebugEnabled()) {
-    log.info("connection properties: " + connectionProps);
-  }
- else   if (log.isInfoEnabled()) {
-    log.info("connection properties: " + ConfigurationHelper.maskOut(connectionProps,"password"));
-  }
+  LOG.usingDriver(driverClassName,url);
+  if (LOG.isDebugEnabled())   LOG.connectionProperties(connectionProps);
+ else   LOG.connectionProperties(ConfigurationHelper.maskOut(connectionProps,"password"));
 }

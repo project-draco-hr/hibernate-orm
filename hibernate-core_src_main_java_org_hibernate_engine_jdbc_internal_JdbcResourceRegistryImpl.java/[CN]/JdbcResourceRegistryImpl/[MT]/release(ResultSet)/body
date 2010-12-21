@@ -1,5 +1,5 @@
 {
-  log.trace("releasing result set [{}]",resultSet);
+  LOG.releasingResultSet(resultSet);
   Statement statement;
   try {
     statement=resultSet.getStatement();
@@ -8,9 +8,7 @@
     throw exceptionHelper.convert(e,"unable to access statement from resultset");
   }
   if (statement != null) {
-    if (log.isWarnEnabled() && !xref.containsKey(statement)) {
-      log.warn("resultset's statement was not registered");
-    }
+    if (LOG.isEnabled(Level.WARN) && !xref.containsKey(statement))     LOG.unregisteredStatement();
     Set<ResultSet> resultSets=xref.get(statement);
     if (resultSets != null) {
       resultSets.remove(resultSet);
@@ -21,9 +19,7 @@
   }
  else {
     boolean removed=unassociatedResultSets.remove(resultSet);
-    if (!removed) {
-      log.warn("ResultSet had no statement associated with it, but was not yet registered");
-    }
+    if (!removed)     LOG.unregisteredResultSetWithoutStatement();
   }
   close(resultSet);
 }

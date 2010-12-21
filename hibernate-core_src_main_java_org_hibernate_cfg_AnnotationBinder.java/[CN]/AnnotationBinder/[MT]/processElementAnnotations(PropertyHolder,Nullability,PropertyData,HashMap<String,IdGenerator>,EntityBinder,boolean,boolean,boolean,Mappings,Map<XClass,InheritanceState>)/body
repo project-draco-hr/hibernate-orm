@@ -1,5 +1,5 @@
 {
-  log.trace("Processing annotations of {}.{}",propertyHolder.getEntityName(),inferredData.getPropertyName());
+  LOG.processingAnnotations(propertyHolder.getEntityName(),inferredData.getPropertyName());
   final XProperty property=inferredData.getProperty();
   if (property.isAnnotationPresent(Parent.class)) {
     if (propertyHolder.isComponent()) {
@@ -41,7 +41,7 @@
     if (!propertyHolder.isEntity()) {
       throw new AnnotationException("Unable to define @Version on an embedded class: " + propertyHolder.getEntityName());
     }
-    log.trace("{} is a version property",inferredData.getPropertyName());
+    LOG.versionProperty(inferredData.getPropertyName());
     RootClass rootClass=(RootClass)propertyHolder.getPersistentClass();
     propertyBinder.setColumns(columns);
     Property prop=propertyBinder.makePropertyValueAndBind();
@@ -57,7 +57,7 @@
     SimpleValue simpleValue=(SimpleValue)prop.getValue();
     simpleValue.setNullValue("undefined");
     rootClass.setOptimisticLockMode(Versioning.OPTIMISTIC_LOCK_VERSION);
-    log.trace("Version name: {}, unsavedValue: {}",rootClass.getVersion().getName(),((SimpleValue)rootClass.getVersion().getValue()).getNullValue());
+    LOG.version(rootClass.getVersion().getName(),((SimpleValue)rootClass.getVersion().getValue()).getNullValue());
   }
  else {
     final boolean forcePersist=property.isAnnotationPresent(MapsId.class) || property.isAnnotationPresent(Id.class);

@@ -6,16 +6,12 @@
   final boolean callable=isDeleteCallable(j);
   final Expectation expectation=Expectations.appropriateExpectation(deleteResultCheckStyles[j]);
   final boolean useBatch=j == 0 && isBatchable() && expectation.canBeBatched();
-  if (log.isTraceEnabled()) {
-    log.trace("Deleting entity: " + MessageHelper.infoString(this,id,getFactory()));
-    if (useVersion) {
-      log.trace("Version: " + version);
-    }
+  if (LOG.isTraceEnabled()) {
+    LOG.deletingEntity(MessageHelper.infoString(this,id,getFactory()));
+    if (useVersion)     LOG.version(version);
   }
   if (isTableCascadeDeleteEnabled(j)) {
-    if (log.isTraceEnabled()) {
-      log.trace("delete handled by foreign key constraint: " + getTableName(j));
-    }
+    LOG.deleteHandledByForeignKeyConstraint(getTableName(j));
     return;
   }
   try {

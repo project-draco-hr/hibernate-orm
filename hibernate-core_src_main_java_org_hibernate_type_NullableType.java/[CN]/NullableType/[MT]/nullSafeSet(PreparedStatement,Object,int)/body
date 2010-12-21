@@ -1,24 +1,20 @@
 {
   try {
     if (value == null) {
-      if (IS_VALUE_TRACING_ENABLED) {
-        log().trace("binding null to parameter: " + index);
-      }
+      if (LOG.isTraceEnabled())       LOG.bindingToParameter(index);
       st.setNull(index,sqlType());
     }
  else {
-      if (IS_VALUE_TRACING_ENABLED) {
-        log().trace("binding '" + toString(value) + "' to parameter: "+ index);
-      }
+      if (LOG.isTraceEnabled())       LOG.bindingToParameter(toString(value),index);
       set(st,value,index);
     }
   }
  catch (  RuntimeException re) {
-    log().info("could not bind value '" + nullSafeToString(value) + "' to parameter: "+ index+ "; "+ re.getMessage());
+    LOG.unableToBindValueToParameter(nullSafeToString(value),index,re.getMessage());
     throw re;
   }
 catch (  SQLException se) {
-    log().info("could not bind value '" + nullSafeToString(value) + "' to parameter: "+ index+ "; "+ se.getMessage());
+    LOG.unableToBindValueToParameter(nullSafeToString(value),index,se.getMessage());
     throw se;
   }
 }

@@ -1,0 +1,39 @@
+{
+  if (scrollable && !factory.getSettings().isScrollableResultSetsEnabled()) {
+    throw new AssertionFailure("scrollable result sets are not enabled");
+  }
+  if (useGetGeneratedKeys && !factory.getSettings().isGetGeneratedKeysEnabled()) {
+    throw new AssertionFailure("getGeneratedKeys() support is not enabled");
+  }
+  sql=getSQL(sql);
+  log(sql);
+  LOG.preparingStatement();
+  PreparedStatement result;
+  if (scrollable) {
+    if (callable) {
+      result=conn.prepareCall(sql,scrollMode.toResultSetType(),ResultSet.CONCUR_READ_ONLY);
+    }
+ else {
+      result=conn.prepareStatement(sql,scrollMode.toResultSetType(),ResultSet.CONCUR_READ_ONLY);
+    }
+  }
+ else   if (useGetGeneratedKeys) {
+    result=conn.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
+  }
+ else   if (namedGeneratedKeys != null) {
+    result=conn.prepareStatement(sql,namedGeneratedKeys);
+  }
+ else {
+    if (callable) {
+      result=conn.prepareCall(sql);
+    }
+ else {
+      result=conn.prepareStatement(sql);
+    }
+  }
+  setTimeout(result);
+  if (factory.getStatistics().isStatisticsEnabled()) {
+    factory.getStatisticsImplementor().prepareStatement();
+  }
+  return result;
+}

@@ -1,25 +1,23 @@
 {
   InputSource source=null;
   if (systemId != null) {
-    log.debug("trying to resolve system-id [" + systemId + "]");
+    LOG.tryingToResolveSystemId(systemId);
     if (systemId.startsWith(HIBERNATE_NAMESPACE)) {
-      log.debug("recognized hibernate namespace; attempting to resolve on classpath under org/hibernate/");
+      LOG.recognizedHibernateNamespace();
       source=resolveOnClassPath(publicId,systemId,HIBERNATE_NAMESPACE);
     }
  else     if (systemId.startsWith(OLD_HIBERNATE_NAMESPACE)) {
-      log.warn("recognized obsolete hibernate namespace " + OLD_HIBERNATE_NAMESPACE + ". Use namespace "+ HIBERNATE_NAMESPACE+ " instead. Refer to Hibernate 3.6 Migration Guide!");
-      log.debug("attempting to resolve on classpath under org/hibernate/");
+      LOG.recognizedObsoleteHibernateNamespace(OLD_HIBERNATE_NAMESPACE,HIBERNATE_NAMESPACE);
+      LOG.attemptingToResolveSystemId();
       source=resolveOnClassPath(publicId,systemId,OLD_HIBERNATE_NAMESPACE);
     }
  else     if (systemId.startsWith(USER_NAMESPACE)) {
-      log.debug("recognized local namespace; attempting to resolve on classpath");
+      LOG.recognizedLocalNamespace();
       String path=systemId.substring(USER_NAMESPACE.length());
       InputStream stream=resolveInLocalNamespace(path);
-      if (stream == null) {
-        log.debug("unable to locate [" + systemId + "] on classpath");
-      }
+      if (stream == null)       LOG.unableToLocateSystemId(systemId);
  else {
-        log.debug("located [" + systemId + "] in classpath");
+        LOG.systemIdLocated(systemId);
         source=new InputSource(stream);
         source.setPublicId(publicId);
         source.setSystemId(systemId);

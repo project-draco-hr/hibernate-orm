@@ -13,10 +13,10 @@
   try {
     handleEmptyCollections(queryParameters.getCollectionKeys(),rs,session);
     EntityKey[] keys=new EntityKey[entitySpan];
-    if (log.isTraceEnabled())     log.trace("processing result set");
+    LOG.processingResultSet();
     int count;
     for (count=0; count < maxRows && rs.next(); count++) {
-      if (log.isTraceEnabled())       log.debug("result set row: " + count);
+      LOG.resultSetRow(count);
       Object result=getRowFromResultSet(rs,session,queryParameters,lockModesArray,optionalObjectKey,hydratedObjects,keys,returnProxies,forcedResultTransformer);
       results.add(result);
       if (createSubselects) {
@@ -24,9 +24,7 @@
         keys=new EntityKey[entitySpan];
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("done processing result set (" + count + " rows)");
-    }
+    LOG.processingResultSetDone(count);
   }
   finally {
     st.close();

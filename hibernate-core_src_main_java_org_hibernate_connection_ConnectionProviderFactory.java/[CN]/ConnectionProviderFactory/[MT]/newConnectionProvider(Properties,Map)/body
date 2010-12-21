@@ -1,0 +1,44 @@
+{
+  ConnectionProvider connections;
+  String providerClass=properties.getProperty(Environment.CONNECTION_PROVIDER);
+  if (providerClass != null) {
+    connections=initializeConnectionProviderFromConfig(providerClass);
+  }
+ else   if (c3p0ConfigDefined(properties) && c3p0ProviderPresent()) {
+    connections=initializeConnectionProviderFromConfig("org.hibernate.connection.C3P0ConnectionProvider");
+  }
+ else   if (properties.getProperty(Environment.DATASOURCE) != null) {
+    connections=new DatasourceConnectionProvider();
+  }
+ else   if (properties.getProperty(Environment.URL) != null) {
+    connections=new DriverManagerConnectionProvider();
+  }
+ else {
+    connections=new UserSuppliedConnectionProvider();
+  }
+  if (connectionProviderInjectionData != null && connectionProviderInjectionData.size() != 0) {
+    try {
+      BeanInfo info=Introspector.getBeanInfo(connections.getClass());
+      PropertyDescriptor[] descritors=info.getPropertyDescriptors();
+      int size=descritors.length;
+      for (int index=0; index < size; index++) {
+        String propertyName=descritors[index].getName();
+        if (connectionProviderInjectionData.containsKey(propertyName)) {
+          Method method=descritors[index].getWriteMethod();
+          method.invoke(connections,new Object[]{connectionProviderInjectionData.get(propertyName)});
+        }
+      }
+    }
+ catch (    IntrospectionException e) {
+      throw new HibernateException("Unable to inject objects into the connection provider",e);
+    }
+catch (    IllegalAccessException e) {
+      throw new HibernateException("Unable to inject objects into the connection provider",e);
+    }
+catch (    InvocationTargetException e) {
+      throw new HibernateException("Unable to inject objects into the connection provider",e);
+    }
+  }
+  connections.configure(properties);
+  return connections;
+}

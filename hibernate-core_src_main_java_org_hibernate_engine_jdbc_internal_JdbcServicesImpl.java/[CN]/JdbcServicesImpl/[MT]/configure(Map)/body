@@ -17,9 +17,9 @@
       Connection conn=connectionProvider.getConnection();
       try {
         DatabaseMetaData meta=conn.getMetaData();
-        log.info("Database ->\n" + "       name : " + meta.getDatabaseProductName() + '\n'+ "    version : "+ meta.getDatabaseProductVersion()+ '\n'+ "      major : "+ meta.getDatabaseMajorVersion()+ '\n'+ "      minor : "+ meta.getDatabaseMinorVersion());
-        log.info("Driver ->\n" + "       name : " + meta.getDriverName() + '\n'+ "    version : "+ meta.getDriverVersion()+ '\n'+ "      major : "+ meta.getDriverMajorVersion()+ '\n'+ "      minor : "+ meta.getDriverMinorVersion());
-        log.info("JDBC version : " + meta.getJDBCMajorVersion() + "."+ meta.getJDBCMinorVersion());
+        LOG.database(meta.getDatabaseProductName(),meta.getDatabaseProductVersion(),meta.getDatabaseMajorVersion(),meta.getDatabaseMinorVersion());
+        LOG.driver(meta.getDriverName(),meta.getDriverVersion(),meta.getDriverMajorVersion(),meta.getDriverMinorVersion());
+        LOG.jdbcVersion(meta.getJDBCMajorVersion(),meta.getJDBCMinorVersion());
         metaSupportsScrollable=meta.supportsResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
         metaSupportsBatchUpdates=meta.supportsBatchUpdates();
         metaReportsDDLCausesTxnCommit=meta.dataDefinitionCausesTransactionCommit();
@@ -39,14 +39,14 @@
         }
       }
  catch (      SQLException sqle) {
-        log.warn("Could not obtain connection metadata",sqle);
+        LOG.unableToObtainConnectionMetadata(sqle.getMessage());
       }
  finally {
         connectionProvider.closeConnection(conn);
       }
     }
  catch (    SQLException sqle) {
-      log.warn("Could not obtain connection to query metadata",sqle);
+      LOG.unableToObtainConnectionToQueryMetadata(sqle.getMessage());
       dialect=dialectFactory.buildDialect(configValues,null);
     }
 catch (    UnsupportedOperationException uoe) {

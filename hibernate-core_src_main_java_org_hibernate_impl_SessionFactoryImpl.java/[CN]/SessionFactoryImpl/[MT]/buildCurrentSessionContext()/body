@@ -7,9 +7,7 @@
     return null;
   }
  else   if ("jta".equals(impl)) {
-    if (settings.getTransactionFactory().areCallbacksLocalToHibernateTransactions()) {
-      log.warn("JTASessionContext being used with JDBCTransactionFactory; auto-flush will not operate correctly with getCurrentSession()");
-    }
+    if (settings.getTransactionFactory().areCallbacksLocalToHibernateTransactions())     LOG.autoFlushWillNotWork();
     return new JTASessionContext(this);
   }
  else   if ("thread".equals(impl)) {
@@ -24,7 +22,7 @@
       return (CurrentSessionContext)implClass.getConstructor(new Class[]{SessionFactoryImplementor.class}).newInstance(new Object[]{this});
     }
  catch (    Throwable t) {
-      log.error("Unable to construct current session context [" + impl + "]",t);
+      LOG.error(LOG.unableToConstructCurrentSessionContext(impl),t);
       return null;
     }
   }

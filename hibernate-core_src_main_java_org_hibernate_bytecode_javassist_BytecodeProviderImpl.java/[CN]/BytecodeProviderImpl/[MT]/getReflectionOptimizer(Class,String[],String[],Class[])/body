@@ -17,14 +17,12 @@
  catch (  Throwable t) {
     fastClass=null;
     bulkAccessor=null;
-    String message="reflection optimizer disabled for: " + clazz.getName() + " ["+ StringHelper.unqualify(t.getClass().getName())+ ": "+ t.getMessage();
-    if (t instanceof BulkAccessorException) {
-      int index=((BulkAccessorException)t).getIndex();
-      if (index >= 0) {
-        message+=" (property " + setterNames[index] + ")";
-      }
+    if (LOG.isDebugEnabled()) {
+      int index=0;
+      if (t instanceof BulkAccessorException)       index=((BulkAccessorException)t).getIndex();
+      if (index >= 0)       LOG.reflectionOptimizerDisabledForBulkException(clazz.getName(),StringHelper.unqualify(t.getClass().getName()),t.getMessage(),setterNames[index]);
+ else       LOG.reflectionOptimizerDisabled(clazz.getName(),StringHelper.unqualify(t.getClass().getName()),t.getMessage());
     }
-    log.debug(message);
   }
   if (fastClass != null && bulkAccessor != null) {
     return new ReflectionOptimizerImpl(new InstantiationOptimizerAdapter(fastClass),new AccessOptimizerAdapter(bulkAccessor,clazz));

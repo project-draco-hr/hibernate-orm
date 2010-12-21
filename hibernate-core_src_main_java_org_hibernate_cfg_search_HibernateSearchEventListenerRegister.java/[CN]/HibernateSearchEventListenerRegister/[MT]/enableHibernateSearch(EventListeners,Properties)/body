@@ -1,12 +1,12 @@
 {
   String enableSearchListeners=properties.getProperty("hibernate.search.autoregister_listeners");
   if ("false".equalsIgnoreCase(enableSearchListeners)) {
-    log.info("Property hibernate.search.autoregister_listeners is set to false." + " No attempt will be made to register Hibernate Search event listeners.");
+    LOG.willNotRegisterListeners();
     return;
   }
   Class searchEventListenerClass=attemptToLoadSearchEventListener();
   if (searchEventListenerClass == null) {
-    log.info("Unable to find {} on the classpath. Hibernate Search is not enabled.",FULL_TEXT_INDEX_EVENT_LISTENER_CLASS);
+    LOG.unableToFindListenerClass(FULL_TEXT_INDEX_EVENT_LISTENER_CLASS);
     return;
   }
   Object searchEventListener=instantiateEventListener(searchEventListenerClass);

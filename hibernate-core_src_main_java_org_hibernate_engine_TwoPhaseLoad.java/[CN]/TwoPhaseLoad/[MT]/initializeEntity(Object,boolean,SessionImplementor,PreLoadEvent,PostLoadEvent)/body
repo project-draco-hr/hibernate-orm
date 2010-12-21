@@ -7,7 +7,7 @@
   EntityPersister persister=entityEntry.getPersister();
   Serializable id=entityEntry.getId();
   Object[] hydratedState=entityEntry.getLoadedState();
-  if (log.isDebugEnabled())   log.debug("resolving associations for " + MessageHelper.infoString(persister,id,session.getFactory()));
+  if (LOG.isDebugEnabled())   LOG.resolvingAssociations(MessageHelper.infoString(persister,id,session.getFactory()));
   Type[] types=persister.getPropertyTypes();
   for (int i=0; i < hydratedState.length; i++) {
     final Object value=hydratedState[i];
@@ -25,7 +25,7 @@
   persister.setPropertyValues(entity,hydratedState,session.getEntityMode());
   final SessionFactoryImplementor factory=session.getFactory();
   if (persister.hasCache() && session.getCacheMode().isPutEnabled()) {
-    if (log.isDebugEnabled())     log.debug("adding entity to second-level cache: " + MessageHelper.infoString(persister,id,session.getFactory()));
+    if (LOG.isDebugEnabled())     LOG.addingEntityToSecondLevelCache(MessageHelper.infoString(persister,id,session.getFactory()));
     Object version=Versioning.getVersion(hydratedState,persister);
     CacheEntry entry=new CacheEntry(hydratedState,persister,entityEntry.isLoadedWithLazyPropertiesUnfetched(),version,session,entity);
     CacheKey cacheKey=new CacheKey(id,persister.getIdentifierType(),persister.getRootEntityName(),session.getEntityMode(),session.getFactory());
@@ -64,7 +64,7 @@
       listeners[i].onPostLoad(postLoadEvent);
     }
   }
-  if (log.isDebugEnabled())   log.debug("done materializing entity " + MessageHelper.infoString(persister,id,session.getFactory()));
+  if (LOG.isDebugEnabled())   LOG.doneMaterializingEntity(MessageHelper.infoString(persister,id,session.getFactory()));
   if (factory.getStatistics().isStatisticsEnabled()) {
     factory.getStatisticsImplementor().loadEntity(persister.getEntityName());
   }

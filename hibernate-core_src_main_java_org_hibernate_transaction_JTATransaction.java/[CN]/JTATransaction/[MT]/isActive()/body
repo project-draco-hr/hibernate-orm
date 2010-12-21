@@ -7,13 +7,9 @@
     status=userTransaction.getStatus();
   }
  catch (  SystemException se) {
-    log.error("Could not determine transaction status",se);
+    LOG.error(LOG.unableToDetermineTransactionStatus(),se);
     throw new TransactionException("Could not determine transaction status: ",se);
   }
-  if (status == Status.STATUS_UNKNOWN) {
-    throw new TransactionException("Could not determine transaction status");
-  }
- else {
-    return status == Status.STATUS_ACTIVE;
-  }
+  if (status == Status.STATUS_UNKNOWN)   throw new TransactionException("Could not determine transaction status");
+  return status == Status.STATUS_ACTIVE;
 }

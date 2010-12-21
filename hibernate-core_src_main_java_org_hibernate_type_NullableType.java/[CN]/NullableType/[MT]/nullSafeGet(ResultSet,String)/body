@@ -2,24 +2,18 @@
   try {
     Object value=get(rs,name);
     if (value == null || rs.wasNull()) {
-      if (IS_VALUE_TRACING_ENABLED) {
-        log().trace("returning null as column: " + name);
-      }
+      if (LOG.isTraceEnabled())       LOG.returningAsColumn(name);
       return null;
     }
- else {
-      if (IS_VALUE_TRACING_ENABLED) {
-        log().trace("returning '" + toString(value) + "' as column: "+ name);
-      }
-      return value;
-    }
+    if (LOG.isTraceEnabled())     LOG.returningAsColumn(toString(value),name);
+    return value;
   }
  catch (  RuntimeException re) {
-    log().info("could not read column value from result set: " + name + "; "+ re.getMessage());
+    LOG.unableToReadColumnValueFromResultSet(name,re.getMessage());
     throw re;
   }
 catch (  SQLException se) {
-    log().info("could not read column value from result set: " + name + "; "+ se.getMessage());
+    LOG.unableToReadColumnValueFromResultSet(name,se.getMessage());
     throw se;
   }
 }

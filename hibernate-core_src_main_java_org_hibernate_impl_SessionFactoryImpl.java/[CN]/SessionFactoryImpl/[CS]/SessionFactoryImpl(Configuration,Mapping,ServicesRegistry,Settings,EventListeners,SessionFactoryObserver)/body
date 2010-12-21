@@ -1,8 +1,8 @@
 {
-  log.info("building session factory");
+  LOG.buildingSessionFactory();
   this.statistics=new ConcurrentStatisticsImpl(this);
   getStatistics().setStatisticsEnabled(settings.isStatisticsEnabled());
-  log.debug("Statistics initialized [enabled={}]}",settings.isStatisticsEnabled());
+  LOG.statisticsInitialized(settings.isStatisticsEnabled());
   this.properties=new Properties();
   this.properties.putAll(cfg.getProperties());
   this.interceptor=cfg.getInterceptor();
@@ -21,12 +21,8 @@
   this.typeHelper=new TypeLocatorImpl(typeResolver);
   this.filters=new HashMap();
   this.filters.putAll(cfg.getFilterDefinitions());
-  if (log.isDebugEnabled()) {
-    log.debug("Session factory constructed with filter configurations : " + filters);
-  }
-  if (log.isDebugEnabled()) {
-    log.debug("instantiating session factory with properties: " + properties);
-  }
+  LOG.sessionFactoryConstructedWithFilterConfigurations(filters);
+  LOG.instantiatingSessionFactory(properties);
   settings.getRegionFactory().start(settings,properties);
   this.queryPlanCache=new QueryPlanCache(this);
   identifierGenerators=new HashMap();
@@ -51,7 +47,7 @@
     if (accessStrategy == null && settings.isSecondLevelCacheEnabled()) {
       final AccessType accessType=AccessType.parse(model.getCacheConcurrencyStrategy());
       if (accessType != null) {
-        log.trace("Building cache for entity data [" + model.getEntityName() + "]");
+        LOG.buildingCacheForEntityData(model.getEntityName());
         EntityRegion entityRegion=settings.getRegionFactory().buildEntityRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
         accessStrategy=entityRegion.buildAccessStrategy(accessType);
         entityAccessStrategies.put(cacheRegionName,accessStrategy);
@@ -72,7 +68,7 @@
     final AccessType accessType=AccessType.parse(model.getCacheConcurrencyStrategy());
     CollectionRegionAccessStrategy accessStrategy=null;
     if (accessType != null && settings.isSecondLevelCacheEnabled()) {
-      log.trace("Building cache for collection data [" + model.getRole() + "]");
+      LOG.buildingCacheForCollectionData(model.getRole());
       CollectionRegion collectionRegion=settings.getRegionFactory().buildCollectionRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
       accessStrategy=collectionRegion.buildAccessStrategy(accessType);
       entityAccessStrategies.put(cacheRegionName,accessStrategy);
@@ -83,7 +79,7 @@
     Type indexType=persister.getIndexType();
     if (indexType != null && indexType.isAssociationType() && !indexType.isAnyType()) {
       String entityName=((AssociationType)indexType).getAssociatedEntityName(this);
-      Set roles=(Set)tmpEntityToCollectionRoleMap.get(entityName);
+      Set roles=tmpEntityToCollectionRoleMap.get(entityName);
       if (roles == null) {
         roles=new HashSet();
         tmpEntityToCollectionRoleMap.put(entityName,roles);
@@ -93,7 +89,7 @@
     Type elementType=persister.getElementType();
     if (elementType.isAssociationType() && !elementType.isAnyType()) {
       String entityName=((AssociationType)elementType).getAssociatedEntityName(this);
-      Set roles=(Set)tmpEntityToCollectionRoleMap.get(entityName);
+      Set roles=tmpEntityToCollectionRoleMap.get(entityName);
       if (roles == null) {
         roles=new HashSet();
         tmpEntityToCollectionRoleMap.put(entityName,roles);
@@ -131,7 +127,7 @@
     throw new AssertionFailure("Could not generate UUID");
   }
   SessionFactoryObjectFactory.addInstance(uuid,name,this,properties);
-  log.debug("instantiated session factory");
+  LOG.instantiatedSessionFactory();
   if (settings.isAutoCreateSchema()) {
     new SchemaExport(getJdbcServices(),cfg).create(false,true);
   }
@@ -145,7 +141,7 @@
     schemaExport=new SchemaExport(getJdbcServices(),cfg);
   }
   if (settings.getTransactionManagerLookup() != null) {
-    log.debug("obtaining JTA TransactionManager");
+    LOG.obtainingJtaTransactionManager();
     transactionManager=settings.getTransactionManagerLookup().getTransactionManager(properties);
   }
  else {
@@ -176,10 +172,8 @@
         String queryName=(String)iterator.next();
         HibernateException e=(HibernateException)errors.get(queryName);
         failingQueries.append(queryName);
-        if (iterator.hasNext()) {
-          failingQueries.append(", ");
-        }
-        log.error("Error in named query: " + queryName,e);
+        if (iterator.hasNext())         failingQueries.append(", ");
+        LOG.error(LOG.namedQueryError(queryName),e);
       }
       throw new HibernateException(failingQueries.toString());
     }

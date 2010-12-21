@@ -4,13 +4,9 @@
   }
  else {
     Long ts=new Long(session.getFactory().getSettings().getRegionFactory().nextTimestamp());
-    if (log.isDebugEnabled()) {
-      log.debug("caching query results in region: " + cacheRegion.getName() + "; timestamp="+ ts);
-    }
+    LOG.cachingQueryResults(cacheRegion.getName(),ts);
     List cacheable=new ArrayList(result.size() + 1);
-    if (log.isTraceEnabled()) {
-      logCachedResultDetails(key,null,returnTypes,cacheable);
-    }
+    logCachedResultDetails(key,null,returnTypes,cacheable);
     cacheable.add(ts);
     for (    Object aResult : result) {
       if (returnTypes.length == 1) {
@@ -19,9 +15,7 @@
  else {
         cacheable.add(TypeHelper.disassemble((Object[])aResult,returnTypes,null,session,null));
       }
-      if (log.isTraceEnabled()) {
-        logCachedResultRowDetails(returnTypes,aResult);
-      }
+      logCachedResultRowDetails(returnTypes,aResult);
     }
     cacheRegion.put(key,cacheable);
     return true;

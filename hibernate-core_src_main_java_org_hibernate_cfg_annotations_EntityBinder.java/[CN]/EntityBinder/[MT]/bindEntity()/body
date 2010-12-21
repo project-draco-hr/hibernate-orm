@@ -39,12 +39,8 @@
     }
   }
  else {
-    if (explicitHibernateEntityAnnotation) {
-      log.warn("@org.hibernate.annotations.Entity used on a non root entity: ignored for {}",annotatedClass.getName());
-    }
-    if (annotatedClass.isAnnotationPresent(Immutable.class)) {
-      log.warn("@Immutable used on a non root entity: ignored for {}",annotatedClass.getName());
-    }
+    if (explicitHibernateEntityAnnotation)     LOG.entityAnnotationOnNonRoot(annotatedClass.getName());
+    if (annotatedClass.isAnnotationPresent(Immutable.class))     LOG.immutableAnnotationOnNonRoot(annotatedClass.getName());
   }
   persistentClass.setOptimisticLockMode(getVersioning(optimisticLockType));
   persistentClass.setSelectBeforeUpdate(selectBeforeUpdate);
@@ -122,12 +118,8 @@
       persistentClass.addFilter(filterName,cond);
     }
   }
- else {
-    if (filters.size() > 0) {
-      log.warn("@Filter not allowed on subclasses (ignored): {}",persistentClass.getEntityName());
-    }
-  }
-  log.debug("Import with entity name {}",name);
+ else   if (filters.size() > 0)   LOG.filterAnnotationOnSubclass(persistentClass.getEntityName());
+  LOG.importWithEntityName(name);
   try {
     mappings.addImport(persistentClass.getEntityName(),name);
     String entityName=persistentClass.getEntityName();

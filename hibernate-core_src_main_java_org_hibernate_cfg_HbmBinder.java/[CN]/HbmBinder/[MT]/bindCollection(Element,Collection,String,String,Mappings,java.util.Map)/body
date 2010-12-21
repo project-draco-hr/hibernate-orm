@@ -15,9 +15,7 @@
     if (Environment.jvmSupportsLinkedHashCollections() || (collection instanceof Bag)) {
       collection.setOrderBy(orderNode.getValue());
     }
- else {
-      log.warn("Attribute \"order-by\" ignored in JDK1.3 or less");
-    }
+ else     LOG.attributeIgnored();
   }
   Attribute whereNode=node.attribute("where");
   if (whereNode != null) {
@@ -90,7 +88,7 @@
     Table table=mappings.addTable(schema,catalog,tableName,getSubselect(node),false);
     collection.setCollectionTable(table);
     bindComment(table,node);
-    log.info("Mapping collection: " + collection.getRole() + " -> "+ collection.getCollectionTable().getName());
+    LOG.mappingCollection(collection.getRole(),collection.getCollectionTable().getName());
   }
   Attribute sortedAtt=node.attribute("sort");
   if (sortedAtt == null || sortedAtt.getValue().equals("unsorted")) {

@@ -4,10 +4,10 @@
     return addCacheableFileStrictly(xmlFile);
   }
  catch (  SerializationException e) {
-    log.warn("Could not deserialize cache file: " + cachedFile.getPath() + " : "+ e);
+    LOG.unableToDeserializeCache(cachedFile.getPath(),e);
   }
 catch (  FileNotFoundException e) {
-    log.warn("I/O reported cached file could not be found : " + cachedFile.getPath() + " : "+ e);
+    LOG.cachedFileNotFound(cachedFile.getPath(),e);
   }
   final String name=xmlFile.getAbsolutePath();
   final InputSource inputSource;
@@ -17,17 +17,14 @@ catch (  FileNotFoundException e) {
  catch (  FileNotFoundException e) {
     throw new MappingNotFoundException("file",xmlFile.toString());
   }
-  log.info("Reading mappings from file: " + xmlFile);
+  LOG.readingMappingsFromFile(xmlFile.getPath());
   XmlDocument metadataXml=add(inputSource,"file",name);
   try {
-    log.debug("Writing cache file for: " + xmlFile + " to: "+ cachedFile);
+    LOG.writingCacheFile(xmlFile,cachedFile);
     SerializationHelper.serialize((Serializable)metadataXml.getDocumentTree(),new FileOutputStream(cachedFile));
   }
- catch (  SerializationException e) {
-    log.warn("Could not write cached file: " + cachedFile,e);
-  }
-catch (  FileNotFoundException e) {
-    log.warn("I/O reported error writing cached file : " + cachedFile.getPath(),e);
+ catch (  Exception e) {
+    LOG.unableToWriteCachedFile(cachedFile.getPath(),e.getMessage());
   }
   return this;
 }

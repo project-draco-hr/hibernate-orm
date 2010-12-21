@@ -1,16 +1,14 @@
 {
   begun=false;
   if (callback) {
-    if (!newTransaction) {
-      log.warn("You should set hibernate.transaction.manager_lookup_class if cache is enabled");
-    }
+    if (!newTransaction)     LOG.managerLookupClassShouldBeSet();
     int status=NULL;
     try {
       status=userTransaction.getStatus();
     }
  catch (    Exception e) {
-      log.error("Could not determine transaction status after commit",e);
-      throw new TransactionException("Could not determine transaction status after commit",e);
+      LOG.error(LOG.unableToDetermineTransactionStatusAfterCommit(),e);
+      throw new TransactionException(LOG.unableToDetermineTransactionStatusAfterCommit(),e);
     }
  finally {
       jdbcContext.afterTransactionCompletion(status == Status.STATUS_COMMITTED,this);

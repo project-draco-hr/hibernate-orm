@@ -1,5 +1,5 @@
 {
-  log.info("Executing import script: " + importFileReader.getName());
+  LOG.executingImportScript(importFileReader.getName());
   BufferedReader reader=new BufferedReader(importFileReader.getReader());
   long lineNo=0;
   for (String sql=reader.readLine(); sql != null; sql=reader.readLine()) {
@@ -9,13 +9,9 @@
       if (trimmedSql.length() == 0 || trimmedSql.startsWith("--") || trimmedSql.startsWith("//") || trimmedSql.startsWith("/*")) {
         continue;
       }
- else {
-        if (trimmedSql.endsWith(";")) {
-          trimmedSql=trimmedSql.substring(0,trimmedSql.length() - 1);
-        }
-        log.debug(trimmedSql);
-        statement.execute(trimmedSql);
-      }
+      if (trimmedSql.endsWith(";"))       trimmedSql=trimmedSql.substring(0,trimmedSql.length() - 1);
+      LOG.debug(trimmedSql);
+      statement.execute(trimmedSql);
     }
  catch (    SQLException e) {
       throw new JDBCException("Error during import script execution at line " + lineNo,e);

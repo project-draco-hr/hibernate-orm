@@ -4,16 +4,14 @@
     reader=new ClassReader(new ByteArrayInputStream(classfileBuffer));
   }
  catch (  IOException e) {
-    log.error("Unable to read class",e);
+    LOG.unableToReadClass(e.getMessage());
     throw new HibernateException("Unable to read class: " + e.getMessage());
   }
   String[] names=ClassNameReader.getClassInfo(reader);
   ClassWriter w=new DebuggingClassWriter(ClassWriter.COMPUTE_MAXS);
   ClassTransformer t=getClassTransformer(names);
   if (t != null) {
-    if (log.isDebugEnabled()) {
-      log.debug("Enhancing " + className);
-    }
+    LOG.enhancingClass(className);
     ByteArrayOutputStream out;
     byte[] result;
     try {
@@ -25,7 +23,7 @@
       out.close();
     }
  catch (    Exception e) {
-      log.error("Unable to transform class",e);
+      LOG.unableToTransformClass(e.getMessage());
       throw new HibernateException("Unable to transform class: " + e.getMessage());
     }
     return result;

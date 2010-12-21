@@ -1,5 +1,5 @@
 {
-  log.info("Running hbm2ddl schema export");
+  LOG.runningHbm2ddlSchemaExport();
   Connection connection=null;
   Writer outputFileWriter=null;
   List<NamedReader> importFileReaders=new ArrayList<NamedReader>();
@@ -13,15 +13,15 @@
         importFileReaders.add(new NamedReader(resourceName,stream));
       }
  catch (      HibernateException e) {
-        log.debug("import file not found: " + currentFile);
+        LOG.importFileNotFound(currentFile);
       }
     }
     if (outputFile != null) {
-      log.info("writing generated schema to file: " + outputFile);
+      LOG.writingGeneratedSchemaToFile(outputFile);
       outputFileWriter=new FileWriter(outputFile);
     }
     if (export) {
-      log.info("exporting generated schema to database");
+      LOG.exportingGeneratedSchemaToDatabase();
       connectionHelper.prepare(true);
       connection=connectionHelper.getConnection();
       statement=connection.createStatement();
@@ -37,11 +37,11 @@
         }
       }
     }
-    log.info("schema export complete");
+    LOG.schemaExportComplete();
   }
  catch (  Exception e) {
     exceptions.add(e);
-    log.error("schema export unsuccessful",e);
+    LOG.error(LOG.schemaExportUnsuccessful(),e);
   }
  finally {
     try {
@@ -54,7 +54,7 @@
     }
  catch (    Exception e) {
       exceptions.add(e);
-      log.error("Could not close connection",e);
+      LOG.error(LOG.unableToCloseConnection(),e);
     }
     try {
       if (outputFileWriter != null) {
@@ -63,7 +63,7 @@
     }
  catch (    IOException ioe) {
       exceptions.add(ioe);
-      log.error("Error closing output file: " + outputFile,ioe);
+      LOG.error(LOG.unableToCloseOutputFile(outputFile),ioe);
     }
     for (    NamedReader reader : importFileReaders) {
       try {
@@ -71,7 +71,7 @@
       }
  catch (      IOException ioe) {
         exceptions.add(ioe);
-        log.error("Error closing imput files: " + reader.getName(),ioe);
+        LOG.error(LOG.unableToCloseInputFiles(reader.getName()),ioe);
       }
     }
   }

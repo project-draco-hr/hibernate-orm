@@ -2,7 +2,7 @@
   if (!begun) {
     throw new TransactionException("Transaction not successfully started");
   }
-  log.debug("commit");
+  LOG.commit();
   boolean flush=!transactionContext.isFlushModeNever() && (callback || !transactionContext.isFlushBeforeCompletionEnabled());
   if (flush) {
     transactionContext.managedFlush();
@@ -15,12 +15,12 @@
     try {
       userTransaction.commit();
       commitSucceeded=true;
-      log.debug("Committed JTA UserTransaction");
+      LOG.commitedJtaUserTransaction();
     }
  catch (    Exception e) {
       commitFailed=true;
-      log.error("JTA commit failed",e);
-      throw new TransactionException("JTA commit failed: ",e);
+      LOG.error(LOG.unableToCommitJta(),e);
+      throw new TransactionException(LOG.unableToCommitJta(),e);
     }
  finally {
       afterCommitRollback();

@@ -2,18 +2,18 @@
   if (!begun && !commitFailed) {
     throw new TransactionException("Transaction not successfully started");
   }
-  log.debug("rollback");
+  LOG.rollback();
   if (!commitFailed) {
     try {
       rollbackAndResetAutoCommit();
-      log.debug("rolled back JDBC Connection");
+      LOG.rolledBackJdbcConnection();
       rolledBack=true;
       notifySynchronizationsAfterTransactionCompletion(Status.STATUS_ROLLEDBACK);
     }
  catch (    SQLException e) {
-      log.error("JDBC rollback failed",e);
+      LOG.error(LOG.jdbcRollbackFailed(),e);
       notifySynchronizationsAfterTransactionCompletion(Status.STATUS_UNKNOWN);
-      throw new TransactionException("JDBC rollback failed",e);
+      throw new TransactionException(LOG.jdbcRollbackFailed(),e);
     }
  finally {
       if (callback) {

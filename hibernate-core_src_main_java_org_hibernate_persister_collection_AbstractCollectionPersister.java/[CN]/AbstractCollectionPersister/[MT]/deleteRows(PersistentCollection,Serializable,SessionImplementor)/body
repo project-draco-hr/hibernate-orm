@@ -1,8 +1,6 @@
 {
   if (!isInverse && isRowDeleteEnabled()) {
-    if (log.isDebugEnabled()) {
-      log.debug("Deleting rows of collection: " + MessageHelper.collectionInfoString(this,id,getFactory()));
-    }
+    if (LOG.isDebugEnabled())     LOG.deletingCollectionRows(MessageHelper.collectionInfoString(this,id,getFactory()));
     boolean deleteByIndex=!isOneToMany() && hasIndex && !indexContainsFormula;
     try {
       Iterator deletes=collection.getDeletes(this,!deleteByIndex);
@@ -56,16 +54,10 @@
               st.close();
             }
           }
-          if (log.isDebugEnabled()) {
-            log.debug("done deleting collection rows: " + count + " deleted");
-          }
+          LOG.deletingCollectionRowsDone(count);
         }
       }
- else {
-        if (log.isDebugEnabled()) {
-          log.debug("no rows to delete");
-        }
-      }
+ else       LOG.noRowsToDelete();
     }
  catch (    SQLException sqle) {
       throw sqlExceptionHelper.convert(sqle,"could not delete collection rows: " + MessageHelper.collectionInfoString(this,id,getFactory()),getSQLDeleteRowString());
