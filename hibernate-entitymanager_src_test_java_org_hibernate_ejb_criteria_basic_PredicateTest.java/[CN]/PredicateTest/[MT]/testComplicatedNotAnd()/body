@@ -1,0 +1,10 @@
+{
+  CriteriaQuery<Order> orderCriteria=builder.createQuery(Order.class);
+  Root<Order> orderRoot=orderCriteria.from(Order.class);
+  orderCriteria.select(orderRoot);
+  Predicate p1=builder.equal(orderRoot.get("id"),"order-1");
+  Predicate p2=builder.equal(orderRoot.get("id"),"order-2");
+  orderCriteria.where(builder.not(builder.and(p1,p2)));
+  List<Order> orders=em.createQuery(orderCriteria).getResultList();
+  assertTrue(orders.size() == 3);
+}

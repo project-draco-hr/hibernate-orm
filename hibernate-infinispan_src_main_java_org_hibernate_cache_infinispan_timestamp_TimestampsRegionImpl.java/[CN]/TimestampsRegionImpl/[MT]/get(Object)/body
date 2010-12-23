@@ -1,7 +1,10 @@
 {
   Object value=localCache.get(key);
+  boolean skipCacheStore=false;
+  if (!isValid())   skipCacheStore=true;
   if (value == null && checkValid()) {
-    value=get(key,null,false);
+    if (skipCacheStore)     value=get(key,false,FlagAdapter.SKIP_CACHE_STORE);
+ else     value=get(key,false);
     if (value != null)     localCache.put(key,value);
   }
   return value;

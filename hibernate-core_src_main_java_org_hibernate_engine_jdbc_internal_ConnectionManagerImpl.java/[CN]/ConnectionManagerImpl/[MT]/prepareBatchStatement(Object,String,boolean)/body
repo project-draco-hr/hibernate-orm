@@ -1,0 +1,24 @@
+{
+  if (key == null) {
+    throw new IllegalArgumentException("batch key must be non-null.");
+  }
+  String actualSQL=getSQL(sql);
+  PreparedStatement batchUpdate=null;
+  if (batch != null) {
+    if (key.equals(batch.getKey())) {
+      batchUpdate=batch.getBatchStatement(key,actualSQL);
+    }
+ else {
+      batch.execute();
+      batch=null;
+    }
+  }
+  if (batch == null) {
+    batch=batchBuilder.buildBatch(key,logicalConnection.getJdbcServices().getSqlStatementLogger(),logicalConnection.getJdbcServices().getSqlExceptionHelper());
+  }
+  if (batchUpdate == null) {
+    batchUpdate=statementPreparer.prepareStatement(actualSQL,isCallable);
+    batch.addBatchStatement(key,actualSQL,batchUpdate);
+  }
+  return batchUpdate;
+}

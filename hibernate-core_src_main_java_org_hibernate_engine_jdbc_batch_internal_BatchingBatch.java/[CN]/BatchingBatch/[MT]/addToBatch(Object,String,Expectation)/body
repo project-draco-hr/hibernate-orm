@@ -1,0 +1,28 @@
+{
+  checkConsistentBatchKey(key);
+  if (sql == null || expectation == null) {
+    throw new AssertionFailure("sql or expection was null.");
+  }
+  if (!expectation.canBeBatched()) {
+    throw new HibernateException("attempting to batch an operation which cannot be batched");
+  }
+  final PreparedStatement statement=getStatements().get(sql);
+  try {
+    statement.addBatch();
+  }
+ catch (  SQLException e) {
+    log.error("sqlexception escaped proxy",e);
+    throw getSqlExceptionHelper().convert(e,"could not perform addBatch",sql);
+  }
+  List<Expectation> expectations=expectationsBySql.get(sql);
+  if (expectations == null) {
+    expectations=new ArrayList<Expectation>(batchSize);
+    expectationsBySql.put(sql,expectations);
+  }
+  expectations.add(expectation);
+  maxBatchPosition=Math.max(maxBatchPosition,expectations.size());
+  if (maxBatchPosition == batchSize) {
+    notifyObserversImplicitExecution();
+    doExecuteBatch();
+  }
+}

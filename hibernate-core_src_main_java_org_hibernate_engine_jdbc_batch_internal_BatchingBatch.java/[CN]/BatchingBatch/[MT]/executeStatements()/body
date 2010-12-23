@@ -1,0 +1,22 @@
+{
+  for (  Map.Entry<String,PreparedStatement> entry : getStatements().entrySet()) {
+    final String sql=entry.getKey();
+    final PreparedStatement statement=entry.getValue();
+    final List<Expectation> expectations=expectationsBySql.get(sql);
+    if (batchSize < expectations.size()) {
+      throw new IllegalStateException("Number of expectations [" + expectations.size() + "] is greater than batch size ["+ batchSize+ "] for statement ["+ sql+ "]");
+    }
+    if (expectations.size() > 0) {
+      if (log.isDebugEnabled()) {
+        log.debug("Executing with batch of size {}: {}",expectations.size(),sql);
+      }
+      executeStatement(sql,statement,expectations);
+      expectations.clear();
+    }
+ else {
+      if (log.isDebugEnabled()) {
+        log.debug("Skipped executing because batch size is 0: ",sql);
+      }
+    }
+  }
+}
