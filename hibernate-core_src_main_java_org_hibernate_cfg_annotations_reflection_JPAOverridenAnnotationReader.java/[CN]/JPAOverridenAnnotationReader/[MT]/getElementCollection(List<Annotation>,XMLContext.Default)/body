@@ -17,11 +17,12 @@
       getTemporal(annotationList,element);
       getEnumerated(annotationList,element);
       getLob(annotationList,element);
-      AttributeOverrides mapKeyAttributeOverridesAnno=getMapKeyAttributeOverrides(element,defaults);
-      AttributeOverrides attributeOverridesAnno=getAttributeOverrides(element,defaults);
-      annotation=mergeAttributeOverridesAnnotations(mapKeyAttributeOverridesAnno,attributeOverridesAnno);
+      List<AttributeOverride> attributes=new ArrayList<AttributeOverride>();
+      attributes.addAll(buildAttributeOverrides(element,"map-key-attribute-override"));
+      attributes.addAll(buildAttributeOverrides(element,"attribute-override"));
+      annotation=mergeAttributeOverrides(defaults,attributes,false);
       addIfNotNull(annotationList,annotation);
-      annotation=getAssociationOverrides(element,defaults);
+      annotation=getAssociationOverrides(element,defaults,false);
       addIfNotNull(annotationList,annotation);
       getCollectionTable(annotationList,element,defaults);
       annotationList.add(AnnotationFactory.create(ad));
