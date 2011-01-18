@@ -2,20 +2,20 @@
   getSession().isOpen();
   if (transactionType == PersistenceUnitTransactionType.JTA) {
     try {
-      log.debug("Looking for a JTA transaction to join");
+      LOG.debug("Looking for a JTA transaction to join");
       final Session session=getSession();
       final Transaction transaction=session.getTransaction();
       if (transaction != null && transaction instanceof JoinableCMTTransaction) {
         final JoinableCMTTransaction joinableCMTTransaction=(JoinableCMTTransaction)transaction;
         if (joinableCMTTransaction.getStatus() == JoinableCMTTransaction.JoinStatus.JOINED) {
-          log.debug("Transaction already joined");
+          LOG.debug("Transaction already joined");
           return;
         }
         joinableCMTTransaction.markForJoined();
         session.isOpen();
         if (joinableCMTTransaction.getStatus() == JoinableCMTTransaction.JoinStatus.NOT_JOINED) {
           if (ignoreNotJoining) {
-            log.debug("No JTA transaction found");
+            LOG.debug("No JTA transaction found");
             return;
           }
  else {
@@ -25,16 +25,14 @@
  else         if (joinableCMTTransaction.getStatus() == JoinableCMTTransaction.JoinStatus.MARKED_FOR_JOINED) {
           throw new AssertionFailure("Transaction MARKED_FOR_JOINED after isOpen() call");
         }
-        log.trace("Adding flush() and close() synchronization");
+        LOG.trace("Adding flush() and close() synchronization");
         CallbackCoordinator callbackCoordinator=((SessionImplementor)getSession()).getJDBCContext().getJtaSynchronizationCallbackCoordinator();
         if (callbackCoordinator == null) {
           throw new AssertionFailure("Expecting CallbackCoordinator to be non-null");
         }
         callbackCoordinator.setBeforeCompletionManagedFlushChecker(new BeforeCompletionManagedFlushChecker(){
           public boolean shouldDoManagedFlush(          TransactionFactory.Context ctx,          javax.transaction.Transaction jtaTransaction) throws SystemException {
-            if (transaction == null) {
-              log.warn("Transaction not available on beforeCompletion: assuming valid");
-            }
+            if (transaction == null)             LOG.transactionNotAvailableOnBeforeCompletion();
             return !ctx.isFlushModeNever() && (jtaTransaction == null || !JTAHelper.isRollback(jtaTransaction.getStatus()));
           }
         }
@@ -73,16 +71,12 @@
 );
       }
  else {
-        log.warn("Cannot join transaction: do not override {}",Environment.TRANSACTION_STRATEGY);
+        LOG.unableToJoinTransaction(Environment.TRANSACTION_STRATEGY);
       }
     }
  catch (    HibernateException he) {
       throw convert(he);
     }
   }
- else {
-    if (!ignoreNotJoining) {
-      log.warn("Calling joinTransaction() on a non JTA EntityManager");
-    }
-  }
+ else   if (!ignoreNotJoining)   LOG.callingJoinTransactionOnNonJtaEntityManager();
 }

@@ -4,7 +4,7 @@
   TimeoutProps.put("javax.persistence.lock.timeout",new Integer(1000));
   final EntityManager em2=createIsolatedEntityManager(TimeoutProps);
   if (!(getDialect() instanceof Oracle10gDialect)) {
-    log.info("skipping testLockTimeoutEMProps");
+    LOG.info("skipping testLockTimeoutEMProps");
     return;
   }
   Lock lock=new Lock();
@@ -22,25 +22,25 @@
     em.lock(lock,LockModeType.PESSIMISTIC_WRITE);
     final Integer id=lock.getId();
     lock.getName();
-    log.info("testLockTimeoutEMProps: got write lock");
+    LOG.info("testLockTimeoutEMProps: got write lock");
     bgTask=new FutureTask<Boolean>(new Callable(){
       public Boolean call(){
         try {
           boolean timedOut=false;
           em2.getTransaction().begin();
-          log.info("testLockTimeoutEMProps: (BG) about to read write-locked entity");
+          LOG.info("testLockTimeoutEMProps: (BG) about to read write-locked entity");
           Lock lock2=em2.getReference(Lock.class,id);
           lock2.getName();
-          log.info("testLockTimeoutEMProps: (BG) read write-locked entity");
+          LOG.info("testLockTimeoutEMProps: (BG) read write-locked entity");
           try {
             em2.lock(lock2,LockModeType.PESSIMISTIC_WRITE);
           }
  catch (          LockTimeoutException e) {
-            log.info("testLockTimeoutEMProps: (BG) got expected timeout exception");
+            LOG.info("testLockTimeoutEMProps: (BG) got expected timeout exception");
             timedOut=true;
           }
 catch (          Throwable e) {
-            log.info("Expected LockTimeoutException but got unexpected exception",e);
+            LOG.info("Expected LockTimeoutException but got unexpected exception",e);
           }
           em2.getTransaction().commit();
           return new Boolean(timedOut);

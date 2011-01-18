@@ -7,7 +7,7 @@
     if (original instanceof HibernateProxy) {
       LazyInitializer li=((HibernateProxy)original).getHibernateLazyInitializer();
       if (li.isUninitialized()) {
-        LOG.ignoringUninitializedProxy();
+        LOG.trace("Ignoring uninitialized proxy");
         event.setResult(source.load(li.getEntityName(),li.getIdentifier()));
         return;
       }
@@ -19,12 +19,12 @@
       entity=original;
     }
     if (copyCache.containsKey(entity) && (copyCache.isOperatedOn(entity))) {
-      LOG.alreadyInMergeProcess();
+      LOG.trace("Already in merge process");
       event.setResult(entity);
     }
  else {
       if (copyCache.containsKey(entity)) {
-        LOG.alreadyInCopyCache();
+        LOG.trace("Already in copyCache; setting in merge process");
         copyCache.setOperatedOn(entity,true);
       }
       event.setEntity(entity);

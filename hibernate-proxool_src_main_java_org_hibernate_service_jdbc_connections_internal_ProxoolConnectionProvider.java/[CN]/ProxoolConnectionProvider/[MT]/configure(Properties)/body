@@ -5,54 +5,52 @@
   proxoolAlias=props.getProperty(Environment.PROXOOL_POOL_ALIAS);
   if ("true".equals(externalConfig)) {
     if (!StringHelper.isNotEmpty(proxoolAlias)) {
-      String msg="Cannot configure Proxool Provider to use an existing in memory pool without the " + Environment.PROXOOL_POOL_ALIAS + " property set.";
-      log.error(msg);
+      String msg=LOG.unableToConfigureProxoolProviderToUseExistingInMemoryPool(Environment.PROXOOL_POOL_ALIAS);
+      LOG.error(msg);
       throw new HibernateException(msg);
     }
     proxoolAlias=PROXOOL_JDBC_STEM + proxoolAlias;
     existingPool=true;
-    log.info("Configuring Proxool Provider using existing pool in memory: " + proxoolAlias);
+    LOG.configuringProxoolProviderUsingExistingPool(proxoolAlias);
   }
  else   if (StringHelper.isNotEmpty(jaxpFile)) {
-    log.info("Configuring Proxool Provider using JAXPConfigurator: " + jaxpFile);
+    LOG.configuringProxoolProviderUsingJaxpConfigurator(jaxpFile);
     if (!StringHelper.isNotEmpty(proxoolAlias)) {
-      String msg="Cannot configure Proxool Provider to use JAXP without the " + Environment.PROXOOL_POOL_ALIAS + " property set.";
-      log.error(msg);
+      String msg=LOG.unableToConfigureProxoolProviderToUseJaxp(Environment.PROXOOL_POOL_ALIAS);
+      LOG.error(msg);
       throw new HibernateException(msg);
     }
     try {
       JAXPConfigurator.configure(ConfigHelper.getConfigStreamReader(jaxpFile),false);
     }
  catch (    ProxoolException e) {
-      String msg="Proxool Provider unable to load JAXP configurator file: " + jaxpFile;
-      log.error(msg,e);
+      String msg=LOG.unableToLoadJaxpConfiguratorFile(jaxpFile);
+      LOG.error(msg,e);
       throw new HibernateException(msg,e);
     }
     proxoolAlias=PROXOOL_JDBC_STEM + proxoolAlias;
-    log.info("Configuring Proxool Provider to use pool alias: " + proxoolAlias);
+    LOG.configuringProxoolProviderToUsePoolAlias(proxoolAlias);
   }
  else   if (StringHelper.isNotEmpty(propFile)) {
-    log.info("Configuring Proxool Provider using Properties File: " + propFile);
+    LOG.configuringProxoolProviderUsingPropertiesFile(propFile);
     if (!StringHelper.isNotEmpty(proxoolAlias)) {
-      String msg="Cannot configure Proxool Provider to use Properties File without the " + Environment.PROXOOL_POOL_ALIAS + " property set.";
-      log.error(msg);
+      String msg=LOG.unableToConfigureProxoolProviderToUsePropertiesFile(Environment.PROXOOL_POOL_ALIAS);
+      LOG.error(msg);
       throw new HibernateException(msg);
     }
     try {
       PropertyConfigurator.configure(ConfigHelper.getConfigProperties(propFile));
     }
  catch (    ProxoolException e) {
-      String msg="Proxool Provider unable to load load Property configurator file: " + propFile;
-      log.error(msg,e);
+      String msg=LOG.unableToLoadPropertyConfiguratorFile(propFile);
+      LOG.error(msg,e);
       throw new HibernateException(msg,e);
     }
     proxoolAlias=PROXOOL_JDBC_STEM + proxoolAlias;
-    log.info("Configuring Proxool Provider to use pool alias: " + proxoolAlias);
+    LOG.configuringProxoolProviderToUsePoolAlias(proxoolAlias);
   }
   isolation=ConfigurationHelper.getInteger(Environment.ISOLATION,props);
-  if (isolation != null) {
-    log.info("JDBC isolation level: " + Environment.isolationLevelToString(isolation.intValue()));
-  }
+  if (isolation != null)   LOG.jdbcIsolationLevel(Environment.isolationLevelToString(isolation.intValue()));
   autocommit=ConfigurationHelper.getBoolean(Environment.AUTOCOMMIT,props);
-  log.info("autocommit mode: " + autocommit);
+  LOG.autoCommmitMode(autocommit);
 }

@@ -1,6 +1,6 @@
 {
-  if (!persister.isMutable())   LOG.immutableInstancePassedToPerformUpdate();
-  if (LOG.isTraceEnabled())   LOG.updating(MessageHelper.infoString(persister,event.getRequestedId(),event.getSession().getFactory()));
+  if (!persister.isMutable())   LOG.trace("Immutable instance passed to performUpdate()");
+  if (LOG.isTraceEnabled())   LOG.trace("Updating " + MessageHelper.infoString(persister,event.getRequestedId(),event.getSession().getFactory()));
   final EventSource source=event.getSession();
   EntityKey key=new EntityKey(event.getRequestedId(),persister,source.getEntityMode());
   source.getPersistenceContext().checkUniqueness(key,entity);
@@ -11,6 +11,6 @@
   new OnUpdateVisitor(source,event.getRequestedId(),entity).process(entity,persister);
   source.getPersistenceContext().addEntity(entity,(persister.isMutable() ? Status.MANAGED : Status.READ_ONLY),null,key,persister.getVersion(entity,source.getEntityMode()),LockMode.NONE,true,persister,false,true);
   persister.afterReassociate(entity,source);
-  if (LOG.isTraceEnabled())   LOG.updating(MessageHelper.infoString(persister,event.getRequestedId(),source.getFactory()));
+  if (LOG.isTraceEnabled())   LOG.trace("Updating " + MessageHelper.infoString(persister,event.getRequestedId(),source.getFactory()));
   cascadeOnUpdate(event,persister,entity);
 }

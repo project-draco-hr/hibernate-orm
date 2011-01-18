@@ -1,16 +1,9 @@
 {
-  LOG.releasingJdbcConnection();
-  if (physicalConnection == null) {
-    return;
-  }
+  LOG.debug("Releasing JDBC connection");
+  if (physicalConnection == null)   return;
   try {
-    if (!physicalConnection.isClosed()) {
-      getJdbcServices().getSqlExceptionHelper().logAndClearWarnings(physicalConnection);
-    }
-    if (!isUserSuppliedConnection) {
-      getJdbcServices().getConnectionProvider().closeConnection(physicalConnection);
-    }
-    LOG.releasedJdbcConnection();
+    if (!physicalConnection.isClosed())     getJdbcServices().getSqlExceptionHelper().logAndClearWarnings(physicalConnection);
+    if (!isUserSuppliedConnection)     getJdbcServices().getConnectionProvider().closeConnection(physicalConnection);
   }
  catch (  SQLException sqle) {
     throw getJdbcServices().getSqlExceptionHelper().convert(sqle,"Could not close connection");
@@ -18,7 +11,7 @@
  finally {
     physicalConnection=null;
   }
-  log.debug("released JDBC connection");
+  LOG.debug("Released JDBC connection");
   for (  ConnectionObserver observer : observers) {
     observer.physicalConnectionReleased();
   }

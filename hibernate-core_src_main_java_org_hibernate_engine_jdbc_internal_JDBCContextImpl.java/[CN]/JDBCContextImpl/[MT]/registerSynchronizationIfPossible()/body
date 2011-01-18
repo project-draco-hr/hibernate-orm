@@ -6,18 +6,18 @@
   if (tm == null)   return false;
   try {
     if (!isTransactionInProgress()) {
-      LOG.noActiveTransaction();
+      LOG.trace("TransactionFactory reported no active transaction; Synchronization not registered");
       return false;
     }
     javax.transaction.Transaction tx=tm.getTransaction();
     if (JTAHelper.isMarkedForRollback(tx)) {
-      LOG.transactionMarkedForRollback();
+      LOG.debug("Transaction is marked for rollback; skipping Synchronization registration");
       return false;
     }
     if (hibernateTransaction == null)     hibernateTransaction=owner.getFactory().getSettings().getTransactionFactory().createTransaction(this,owner);
     tx.registerSynchronization(new HibernateSynchronizationImpl(getJtaSynchronizationCallbackCoordinator(tx)));
     isTransactionCallbackRegistered=true;
-    LOG.successfullyRegisteredSynchronization();
+    LOG.debug("Successfully registered Synchronization");
     return true;
   }
  catch (  HibernateException e) {

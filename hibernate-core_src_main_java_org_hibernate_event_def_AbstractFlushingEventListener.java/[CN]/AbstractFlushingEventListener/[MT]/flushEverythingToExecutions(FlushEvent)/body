@@ -1,5 +1,5 @@
 {
-  LOG.flushingSession();
+  LOG.trace("Flushing session");
   EventSource session=event.getSession();
   final PersistenceContext persistenceContext=session.getPersistenceContext();
   session.getInterceptor().preFlush(new LazyIterator(persistenceContext.getEntitiesByKey()));
@@ -14,8 +14,8 @@
     persistenceContext.setFlushing(false);
   }
   if (LOG.isDebugEnabled()) {
-    LOG.flushedEntities(session.getActionQueue().numberOfInsertions(),session.getActionQueue().numberOfUpdates(),session.getActionQueue().numberOfDeletions(),persistenceContext.getEntityEntries().size());
-    LOG.flushedCollections(session.getActionQueue().numberOfCollectionCreations(),session.getActionQueue().numberOfCollectionUpdates(),session.getActionQueue().numberOfCollectionRemovals(),persistenceContext.getCollectionEntries().size());
+    LOG.debug("Flushed: " + session.getActionQueue().numberOfInsertions() + " insertions, "+ session.getActionQueue().numberOfUpdates()+ " updates, "+ session.getActionQueue().numberOfDeletions()+ " deletions to "+ persistenceContext.getEntityEntries().size()+ " objects");
+    LOG.debug("Flushed: " + session.getActionQueue().numberOfCollectionCreations() + " (re)creations, "+ session.getActionQueue().numberOfCollectionUpdates()+ " updates, "+ session.getActionQueue().numberOfCollectionRemovals()+ " removals to "+ persistenceContext.getCollectionEntries().size()+ " collections");
     new Printer(session.getFactory()).toString(persistenceContext.getEntitiesByKey().values().iterator(),session.getEntityMode());
   }
 }

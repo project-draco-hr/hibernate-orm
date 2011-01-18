@@ -4,14 +4,14 @@
   CollectionEntry ce=source.getPersistenceContext().getCollectionEntry(collection);
   if (ce == null)   throw new HibernateException("collection was evicted");
   if (!collection.wasInitialized()) {
-    if (LOG.isTraceEnabled())     LOG.initializingCollection(MessageHelper.collectionInfoString(ce.getLoadedPersister(),ce.getLoadedKey(),source.getFactory()));
-    LOG.checkingSecondLevelCache();
+    if (LOG.isTraceEnabled())     LOG.trace("Initializing collection " + MessageHelper.collectionInfoString(ce.getLoadedPersister(),ce.getLoadedKey(),source.getFactory()));
+    LOG.trace("Checking second-level cache");
     final boolean foundInCache=initializeCollectionFromCache(ce.getLoadedKey(),ce.getLoadedPersister(),collection,source);
-    if (foundInCache)     LOG.collectionInitializedFromCache();
+    if (foundInCache)     LOG.trace("Collection initialized from cache");
  else {
-      LOG.collectionNotCached();
+      LOG.trace("Collection not cached");
       ce.getLoadedPersister().initialize(ce.getLoadedKey(),source);
-      LOG.collectionInitialized();
+      LOG.trace("Collection initialized");
       if (source.getFactory().getStatistics().isStatisticsEnabled()) {
         source.getFactory().getStatisticsImplementor().fetchCollection(ce.getLoadedPersister().getRole());
       }

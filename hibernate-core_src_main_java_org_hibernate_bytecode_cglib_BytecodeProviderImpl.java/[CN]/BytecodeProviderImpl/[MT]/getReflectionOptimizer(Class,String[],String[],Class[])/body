@@ -20,14 +20,10 @@
     if (LOG.isDebugEnabled()) {
       int index=0;
       if (t instanceof BulkBeanException)       index=((BulkBeanException)t).getIndex();
-      if (index >= 0)       LOG.reflectionOptimizerDisabledForBulkException(clazz.getName(),StringHelper.unqualify(t.getClass().getName()),t.getMessage(),setterNames[index]);
- else       LOG.reflectionOptimizerDisabled(clazz.getName(),StringHelper.unqualify(t.getClass().getName()),t.getMessage());
+      if (index >= 0)       LOG.debug("Reflection optimizer disabled for: " + clazz.getName() + " ["+ StringHelper.unqualify(t.getClass().getName())+ ": "+ t.getMessage()+ " (property "+ setterNames[index]+ ")");
+ else       LOG.debug("Reflection optimizer disabled for: " + clazz.getName() + " ["+ StringHelper.unqualify(t.getClass().getName())+ ": "+ t.getMessage());
     }
   }
-  if (fastClass != null && bulkBean != null) {
-    return new ReflectionOptimizerImpl(new InstantiationOptimizerAdapter(fastClass),new AccessOptimizerAdapter(bulkBean,clazz));
-  }
- else {
-    return null;
-  }
+  if (fastClass != null && bulkBean != null)   return new ReflectionOptimizerImpl(new InstantiationOptimizerAdapter(fastClass),new AccessOptimizerAdapter(bulkBean,clazz));
+  return null;
 }

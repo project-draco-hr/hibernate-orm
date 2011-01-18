@@ -5,7 +5,7 @@
   Cache remoteReplicatedCache=remoteManager.getCache("replicated-entity");
   ClassLoader cl=Thread.currentThread().getContextClassLoader();
   Thread.currentThread().setContextClassLoader(cl.getParent());
-  log.info("TCCL is " + cl.getParent());
+  LOG.info("TCCL is " + cl.getParent());
   Account acct=new Account();
   acct.setAccountHolder(new AccountHolder());
   try {
@@ -15,14 +15,14 @@
   }
  catch (  Exception e) {
     if (e.getCause() instanceof ClassNotFoundException) {
-      log.info("Caught exception as desired",e);
+      LOG.info("Caught exception as desired",e);
     }
  else {
       throw new IllegalStateException("Unexpected exception",e);
     }
   }
   Thread.currentThread().setContextClassLoader(cl);
-  log.info("TCCL is " + cl);
+  LOG.info("TCCL is " + cl);
   localReplicatedCache.put("isolated2",acct);
   assertEquals(acct.getClass().getName(),remoteReplicatedCache.get("isolated2").getClass().getName());
 }

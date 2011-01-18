@@ -1,17 +1,15 @@
 {
-  LOG.startingAfterStatementExecution(connectionReleaseMode);
+  LOG.trace("Starting after statement execution processing [" + connectionReleaseMode + "]");
   if (connectionReleaseMode == ConnectionReleaseMode.AFTER_STATEMENT) {
     if (!releasesEnabled) {
-      LOG.skippingAggressiveReleaseDueToManualDisabling();
+      LOG.debug("Skipping aggressive release due to manual disabling");
       return;
     }
     if (jdbcResourceRegistry.hasRegisteredResources()) {
-      LOG.skippingAggressiveReleaseDueToRegisteredResources();
+      LOG.debug("Skipping aggressive release due to registered resources");
       return;
     }
- else     if (borrowedConnection != null) {
-      log.debug("skipping aggresive-release due to borrowed connection");
-    }
+ else     if (borrowedConnection != null)     LOG.debug("Skipping aggressive release due to borrowed connection");
     releaseConnection();
   }
 }

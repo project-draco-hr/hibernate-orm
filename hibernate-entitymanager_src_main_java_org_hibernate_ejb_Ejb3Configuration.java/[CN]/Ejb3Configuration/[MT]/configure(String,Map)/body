@@ -1,17 +1,15 @@
 {
   try {
-    log.debug("Look up for persistence unit: {}",persistenceUnitName);
+    LOG.debug("Look up for persistence unit: " + persistenceUnitName);
     integration=integration == null ? CollectionHelper.EMPTY_MAP : Collections.unmodifiableMap(integration);
     Enumeration<URL> xmls=Thread.currentThread().getContextClassLoader().getResources("META-INF/persistence.xml");
-    if (!xmls.hasMoreElements()) {
-      log.info("Could not find any META-INF/persistence.xml file in the classpath");
-    }
+    if (!xmls.hasMoreElements())     LOG.unableToFindPersistenceXmlInClasspath();
     while (xmls.hasMoreElements()) {
       URL url=xmls.nextElement();
-      log.trace("Analysing persistence.xml: {}",url);
+      LOG.trace("Analyzing persistence.xml: " + url);
       List<PersistenceMetadata> metadataFiles=PersistenceXmlLoader.deploy(url,integration,cfg.getEntityResolver(),PersistenceUnitTransactionType.RESOURCE_LOCAL);
       for (      PersistenceMetadata metadata : metadataFiles) {
-        log.trace("{}",metadata);
+        LOG.trace(metadata);
         if (metadata.getProvider() == null || IMPLEMENTATION_NAME.equalsIgnoreCase(metadata.getProvider())) {
           Scanner scanner=null;
           URL jarURL=null;

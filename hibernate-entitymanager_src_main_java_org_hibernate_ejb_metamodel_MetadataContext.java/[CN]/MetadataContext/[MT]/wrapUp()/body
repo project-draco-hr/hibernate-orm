@@ -1,14 +1,14 @@
 {
-  log.trace("Wrapping up metadata context...");
+  LOG.trace("Wrapping up metadata context...");
   for (  Object mapping : orderedMappings) {
     if (PersistentClass.class.isAssignableFrom(mapping.getClass())) {
       @SuppressWarnings("unchecked") final PersistentClass safeMapping=(PersistentClass)mapping;
-      log.trace("Starting entity [{}]",safeMapping.getEntityName());
+      LOG.trace("Starting entity [" + safeMapping.getEntityName() + "]");
       try {
         final EntityTypeImpl<?> jpa2Mapping=entityTypesByPersistentClass.get(safeMapping);
         applyIdMetadata(safeMapping,jpa2Mapping);
         applyVersionAttribute(safeMapping,jpa2Mapping);
-        Iterator<Property> properties=(Iterator<Property>)safeMapping.getDeclaredPropertyIterator();
+        Iterator<Property> properties=safeMapping.getDeclaredPropertyIterator();
         while (properties.hasNext()) {
           final Property property=properties.next();
           if (property.getValue() == safeMapping.getIdentifierMapper()) {
@@ -23,17 +23,17 @@
         populateStaticMetamodel(jpa2Mapping);
       }
   finally {
-        log.trace("Completed entity [{}]",safeMapping.getEntityName());
+        LOG.trace("Completed entity [" + safeMapping.getEntityName() + "]");
       }
     }
  else     if (MappedSuperclass.class.isAssignableFrom(mapping.getClass())) {
       @SuppressWarnings("unchecked") final MappedSuperclass safeMapping=(MappedSuperclass)mapping;
-      log.trace("Starting mapped superclass [{}]",safeMapping.getMappedClass().getName());
+      LOG.trace("Starting mapped superclass [" + safeMapping.getMappedClass().getName() + "]");
       try {
         final MappedSuperclassTypeImpl<?> jpa2Mapping=mappedSuperclassByMappedSuperclassMapping.get(safeMapping);
         applyIdMetadata(safeMapping,jpa2Mapping);
         applyVersionAttribute(safeMapping,jpa2Mapping);
-        Iterator<Property> properties=(Iterator<Property>)safeMapping.getDeclaredPropertyIterator();
+        Iterator<Property> properties=safeMapping.getDeclaredPropertyIterator();
         while (properties.hasNext()) {
           final Property property=properties.next();
           final Attribute attribute=attributeFactory.buildAttribute(jpa2Mapping,property);
@@ -45,7 +45,7 @@
         populateStaticMetamodel(jpa2Mapping);
       }
   finally {
-        log.trace("Completed mapped superclass [{}]",safeMapping.getMappedClass().getName());
+        LOG.trace("Completed mapped superclass [" + safeMapping.getMappedClass().getName() + "]");
       }
     }
  else {

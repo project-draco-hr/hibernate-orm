@@ -2,13 +2,11 @@
   String jdbcDriverClass=props.getProperty(Environment.DRIVER);
   String jdbcUrl=props.getProperty(Environment.URL);
   Properties connectionProps=ConnectionProviderInitiator.getConnectionProperties(props);
-  log.info("C3P0 using driver: " + jdbcDriverClass + " at URL: "+ jdbcUrl);
-  log.info("Connection properties: " + ConfigurationHelper.maskOut(connectionProps,"password"));
+  LOG.c3p0UsingDriver(jdbcDriverClass,jdbcUrl);
+  LOG.connectionProperties(ConfigurationHelper.maskOut(connectionProps,"password"));
   autocommit=ConfigurationHelper.getBoolean(Environment.AUTOCOMMIT,props);
-  log.info("autocommit mode: " + autocommit);
-  if (jdbcDriverClass == null) {
-    log.warn("No JDBC Driver class was specified by property " + Environment.DRIVER);
-  }
+  LOG.autoCommitMode(autocommit);
+  if (jdbcDriverClass == null)   LOG.jdbcDriverNotSpecified(Environment.DRIVER);
  else {
     try {
       Class.forName(jdbcDriverClass);
@@ -18,8 +16,8 @@
         ReflectHelper.classForName(jdbcDriverClass);
       }
  catch (      ClassNotFoundException e) {
-        String msg="JDBC Driver class not found: " + jdbcDriverClass;
-        log.error(msg,e);
+        String msg=LOG.jdbcDriverNotFound(jdbcDriverClass);
+        LOG.error(msg,e);
         throw new HibernateException(msg,e);
       }
     }
@@ -58,15 +56,13 @@
     ds=DataSources.pooledDataSource(unpooled,allProps);
   }
  catch (  Exception e) {
-    log.error("could not instantiate C3P0 connection pool",e);
+    LOG.error(LOG.unableToInstantiateC3p0ConnectionPool(),e);
     throw new HibernateException("Could not instantiate C3P0 connection pool",e);
   }
   String i=props.getProperty(Environment.ISOLATION);
-  if (i == null) {
-    isolation=null;
-  }
+  if (i == null)   isolation=null;
  else {
     isolation=new Integer(i);
-    log.info("JDBC isolation level: " + Environment.isolationLevelToString(isolation.intValue()));
+    LOG.jdbcIsolationLevel(Environment.isolationLevelToString(isolation.intValue()));
   }
 }

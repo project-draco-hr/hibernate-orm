@@ -6,7 +6,7 @@
   source.getPersistenceContext().addEntry(entity,Status.SAVING,null,null,id,null,LockMode.WRITE,useIdentityColumn,persister,false,false);
   cascadeBeforeSave(source,persister,entity,anything);
   if (useIdentityColumn && !shouldDelayIdentityInserts) {
-    LOG.executingInsertions();
+    LOG.trace("Executing insertions");
     source.getActionQueue().executeInserts();
   }
   Object[] values=persister.getPropertyValuesToInsert(entity,getMergeMap(anything),source);
@@ -24,14 +24,14 @@
   if (useIdentityColumn) {
     EntityIdentityInsertAction insert=new EntityIdentityInsertAction(values,entity,persister,source,shouldDelayIdentityInserts);
     if (!shouldDelayIdentityInserts) {
-      LOG.executingIdentityInsert();
+      LOG.debug("Executing identity-insert immediately");
       source.getActionQueue().execute(insert);
       id=insert.getGeneratedId();
       key=new EntityKey(id,persister,source.getEntityMode());
       source.getPersistenceContext().checkUniqueness(key,entity);
     }
  else {
-      LOG.delayingIdentityInsert();
+      LOG.debug("Delaying identity-insert due to no transaction in progress");
       source.getActionQueue().addAction(insert);
       key=insert.getDelayedEntityKey();
     }

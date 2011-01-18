@@ -8,7 +8,7 @@
       searchStartupClass=ReflectHelper.classForName(SEARCH_EVENT_LISTENER_REGISTERER_CLASS,getClass());
     }
  catch (    ClassNotFoundException cnfe) {
-      LOG.searchNotFound();
+      LOG.debug("Search not present in classpath, ignoring event listener registration.");
       return;
     }
   }
@@ -18,15 +18,15 @@
     enableSearchMethod.invoke(searchStartupInstance,getEventListeners(),getProperties());
   }
  catch (  InstantiationException e) {
-    LOG.unableToInstantiate(SEARCH_STARTUP_CLASS);
+    LOG.debug("Unable to instantiate " + SEARCH_STARTUP_CLASS + ", ignoring event listener registration.");
   }
 catch (  IllegalAccessException e) {
-    LOG.unableToInstantiate(SEARCH_STARTUP_CLASS);
+    LOG.debug("Unable to instantiate " + SEARCH_STARTUP_CLASS + ", ignoring event listener registration.");
   }
 catch (  NoSuchMethodException e) {
-    LOG.methodNotFound(SEARCH_STARTUP_METHOD,SEARCH_STARTUP_CLASS);
+    LOG.debug("Method " + SEARCH_STARTUP_METHOD + "() not found in "+ SEARCH_STARTUP_CLASS);
   }
 catch (  InvocationTargetException e) {
-    LOG.unableToExecute(SEARCH_STARTUP_METHOD);
+    LOG.debug("Unable to execute " + SEARCH_STARTUP_METHOD + ", ignoring event listener registration.");
   }
 }

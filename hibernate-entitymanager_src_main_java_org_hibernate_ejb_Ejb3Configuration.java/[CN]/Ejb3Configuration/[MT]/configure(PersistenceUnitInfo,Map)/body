@@ -1,17 +1,13 @@
 {
-  if (log.isDebugEnabled()) {
-    log.debug("Processing {}",LogHelper.logPersistenceUnitInfo(info));
-  }
- else {
-    log.info("Processing PersistenceUnitInfo [\n\tname: {}\n\t...]",info.getPersistenceUnitName());
-  }
+  if (LOG.isDebugEnabled())   LOG.debug("Processing " + LogHelper.logPersistenceUnitInfo(info));
+ else   LOG.processingPersistenceUnitInfoName(info.getPersistenceUnitName());
   integration=integration != null ? Collections.unmodifiableMap(integration) : CollectionHelper.EMPTY_MAP;
   String provider=(String)integration.get(AvailableSettings.PROVIDER);
   if (provider == null) {
     provider=info.getPersistenceProviderClassName();
   }
   if (provider != null && !provider.trim().startsWith(IMPLEMENTATION_NAME)) {
-    log.info("Required a different provider: {}",provider);
+    LOG.requiredDifferentProvider(provider);
     return null;
   }
   if (info.getClassLoader() == null) {

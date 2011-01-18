@@ -1,5 +1,5 @@
 {
-  LOG.updating(key);
+  LOG.debug("Updating: " + key);
   try {
     cache.lock(key);
     Lockable lockable=(Lockable)cache.get(key);
@@ -9,16 +9,12 @@
         decrementLock(key,lock);
         return false;
       }
- else {
-        cache.update(key,new Item(value,version,cache.nextTimestamp()));
-        LOG.updated(key);
-        return true;
-      }
+      cache.update(key,new Item(value,version,cache.nextTimestamp()));
+      LOG.debug("Updated: " + key);
+      return true;
     }
- else {
-      handleLockExpiry(key);
-      return false;
-    }
+    handleLockExpiry(key);
+    return false;
   }
   finally {
     cache.unlock(key);

@@ -1,6 +1,6 @@
 {
   String name=element.attributeValue("name");
-  LOG.parsingFilterDefinition(name);
+  LOG.debug("Parsing filter-def [" + name + "]");
   String defaultCondition=element.getTextTrim();
   if (StringHelper.isEmpty(defaultCondition)) {
     defaultCondition=element.attributeValue("condition");
@@ -11,12 +11,12 @@
     final Element param=(Element)params.next();
     final String paramName=param.attributeValue("name");
     final String paramType=param.attributeValue("type");
-    LOG.addingFilterParameter(paramName,paramType);
+    LOG.debug("Adding filter parameter : " + paramName + " -> "+ paramType);
     final Type heuristicType=mappings.getTypeResolver().heuristicType(paramType);
-    LOG.parameterHeuristicType(heuristicType);
+    LOG.debug("Parameter heuristic type : " + heuristicType);
     paramMappings.put(paramName,heuristicType);
   }
-  LOG.parsedFilterDefinition(name);
+  LOG.debug("Parsed filter-def [" + name + "]");
   FilterDefinition def=new FilterDefinition(name,defaultCondition,paramMappings);
   mappings.addFilterDefinition(def);
 }

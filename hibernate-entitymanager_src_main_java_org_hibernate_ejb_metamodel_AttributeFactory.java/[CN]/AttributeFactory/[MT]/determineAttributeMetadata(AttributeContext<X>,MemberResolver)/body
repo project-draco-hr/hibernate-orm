@@ -1,10 +1,10 @@
 {
-  log.trace("Starting attribute metadata determination [{}]",attributeContext.getPropertyMapping().getName());
+  LOG.trace("Starting attribute metadata determination [" + attributeContext.getPropertyMapping().getName() + "]");
   final Member member=memberResolver.resolveMember(attributeContext);
-  log.trace("    Determined member [{}]",member);
+  LOG.trace("    Determined member [" + member + "]");
   final Value value=attributeContext.getPropertyMapping().getValue();
   final org.hibernate.type.Type type=value.getType();
-  log.trace("    determined type [name={}, class={}]",type.getName(),type.getClass().getName());
+  LOG.trace("    Determined type [name=" + type.getName() + ", class="+ type.getClass().getName()+ "]");
   if (type.isAnyType()) {
     throw new UnsupportedOperationException("any not supported yet");
   }
@@ -12,54 +12,42 @@
     if (type.isEntityType()) {
       return new SingularAttributeMetadataImpl<X,Y>(attributeContext.getPropertyMapping(),attributeContext.getOwnerType(),member,determineSingularAssociationAttributeType(member));
     }
- else {
-      if (value instanceof Collection) {
-        final Collection collValue=(Collection)value;
-        final Value elementValue=collValue.getElement();
-        final org.hibernate.type.Type elementType=elementValue.getType();
-        final Attribute.PersistentAttributeType elementPersistentAttributeType;
-        final Attribute.PersistentAttributeType persistentAttributeType;
-        if (elementType.isAnyType()) {
-          throw new UnsupportedOperationException("collection of any not supported yet");
-        }
-        final boolean isManyToMany=isManyToMany(member);
-        if (elementValue instanceof Component) {
-          elementPersistentAttributeType=Attribute.PersistentAttributeType.EMBEDDED;
-          persistentAttributeType=Attribute.PersistentAttributeType.ELEMENT_COLLECTION;
-        }
- else         if (elementType.isAssociationType()) {
-          elementPersistentAttributeType=isManyToMany ? Attribute.PersistentAttributeType.MANY_TO_MANY : Attribute.PersistentAttributeType.ONE_TO_MANY;
-          persistentAttributeType=elementPersistentAttributeType;
-        }
- else {
-          elementPersistentAttributeType=Attribute.PersistentAttributeType.BASIC;
-          persistentAttributeType=Attribute.PersistentAttributeType.ELEMENT_COLLECTION;
-        }
-        final Attribute.PersistentAttributeType keyPersistentAttributeType;
-        if (value instanceof Map) {
-          final Value keyValue=((Map)value).getIndex();
-          final org.hibernate.type.Type keyType=keyValue.getType();
-          if (keyType.isAnyType()) {
-            throw new UnsupportedOperationException("collection of any not supported yet");
-          }
-          if (keyValue instanceof Component) {
-            keyPersistentAttributeType=Attribute.PersistentAttributeType.EMBEDDED;
-          }
- else           if (keyType.isAssociationType()) {
-            keyPersistentAttributeType=Attribute.PersistentAttributeType.MANY_TO_ONE;
-          }
- else {
-            keyPersistentAttributeType=Attribute.PersistentAttributeType.BASIC;
-          }
-        }
- else {
-          keyPersistentAttributeType=null;
-        }
-        return new PluralAttributeMetadataImpl(attributeContext.getPropertyMapping(),attributeContext.getOwnerType(),member,persistentAttributeType,elementPersistentAttributeType,keyPersistentAttributeType);
+    if (value instanceof Collection) {
+      final Collection collValue=(Collection)value;
+      final Value elementValue=collValue.getElement();
+      final org.hibernate.type.Type elementType=elementValue.getType();
+      final Attribute.PersistentAttributeType elementPersistentAttributeType;
+      final Attribute.PersistentAttributeType persistentAttributeType;
+      if (elementType.isAnyType()) {
+        throw new UnsupportedOperationException("collection of any not supported yet");
       }
- else       if (value instanceof OneToMany) {
-        throw new IllegalArgumentException("HUH???");
+      final boolean isManyToMany=isManyToMany(member);
+      if (elementValue instanceof Component) {
+        elementPersistentAttributeType=Attribute.PersistentAttributeType.EMBEDDED;
+        persistentAttributeType=Attribute.PersistentAttributeType.ELEMENT_COLLECTION;
       }
+ else       if (elementType.isAssociationType()) {
+        elementPersistentAttributeType=isManyToMany ? Attribute.PersistentAttributeType.MANY_TO_MANY : Attribute.PersistentAttributeType.ONE_TO_MANY;
+        persistentAttributeType=elementPersistentAttributeType;
+      }
+ else {
+        elementPersistentAttributeType=Attribute.PersistentAttributeType.BASIC;
+        persistentAttributeType=Attribute.PersistentAttributeType.ELEMENT_COLLECTION;
+      }
+      final Attribute.PersistentAttributeType keyPersistentAttributeType;
+      if (value instanceof Map) {
+        final Value keyValue=((Map)value).getIndex();
+        final org.hibernate.type.Type keyType=keyValue.getType();
+        if (keyType.isAnyType())         throw new UnsupportedOperationException("collection of any not supported yet");
+        if (keyValue instanceof Component)         keyPersistentAttributeType=Attribute.PersistentAttributeType.EMBEDDED;
+ else         if (keyType.isAssociationType())         keyPersistentAttributeType=Attribute.PersistentAttributeType.MANY_TO_ONE;
+ else         keyPersistentAttributeType=Attribute.PersistentAttributeType.BASIC;
+      }
+ else       keyPersistentAttributeType=null;
+      return new PluralAttributeMetadataImpl(attributeContext.getPropertyMapping(),attributeContext.getOwnerType(),member,persistentAttributeType,elementPersistentAttributeType,keyPersistentAttributeType);
+    }
+ else     if (value instanceof OneToMany) {
+      throw new IllegalArgumentException("HUH???");
     }
   }
  else   if (attributeContext.getPropertyMapping().isComposite()) {

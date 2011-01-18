@@ -1,19 +1,17 @@
 {
-  LOG.caching(key);
+  LOG.debug("Caching: " + key);
   try {
     cache.lock(key);
     Lockable lockable=(Lockable)cache.get(key);
     boolean puttable=lockable == null || lockable.isPuttable(txTimestamp,version,versionComparator);
     if (puttable) {
       cache.put(key,new Item(value,version,cache.nextTimestamp()));
-      LOG.cached(key);
+      LOG.debug("Cached: " + key);
       return true;
     }
- else {
-      if (lockable.isLock())       LOG.locked(key);
- else       LOG.exists(key);
-      return false;
-    }
+    if (lockable.isLock())     LOG.debug("Cached item was locked: " + key);
+ else     LOG.debug("Item already cached: " + key);
+    return false;
   }
   finally {
     cache.unlock(key);

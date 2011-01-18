@@ -1,6 +1,6 @@
 {
   String methodName=method.getName();
-  LOG.handlingInvocationOfResultSetMethod(methodName);
+  LOG.trace("Handling invocation of ResultSet method [" + methodName + "]");
   if ("close".equals(methodName)) {
     explicitClose((ResultSet)proxy);
     return null;
@@ -27,11 +27,7 @@
   }
  catch (  InvocationTargetException e) {
     Throwable realException=e.getTargetException();
-    if (SQLException.class.isInstance(realException)) {
-      throw getJdbcServices().getSqlExceptionHelper().convert((SQLException)realException,realException.getMessage());
-    }
- else {
-      throw realException;
-    }
+    if (SQLException.class.isInstance(realException))     throw getJdbcServices().getSqlExceptionHelper().convert((SQLException)realException,realException.getMessage());
+    throw realException;
   }
 }

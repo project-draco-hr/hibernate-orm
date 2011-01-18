@@ -1,5 +1,5 @@
 {
-  LOG.endingLoadingCollection(lce);
+  LOG.trace("Ending loading collection [" + lce + "]");
   final SessionImplementor session=getLoadContext().getPersistenceContext().getSession();
   final EntityMode em=session.getEntityMode();
   boolean hasNoQueuedAdds=lce.getCollection().endRead();
@@ -14,11 +14,7 @@
     ce.postInitialize(lce.getCollection());
   }
   boolean addToCache=hasNoQueuedAdds && persister.hasCache() && session.getCacheMode().isPutEnabled()&& !ce.isDoremove();
-  if (addToCache) {
-    addCollectionToCache(lce,persister);
-  }
-  if (LOG.isDebugEnabled())   LOG.collectionInitialized(MessageHelper.collectionInfoString(persister,lce.getKey(),session.getFactory()));
-  if (session.getFactory().getStatistics().isStatisticsEnabled()) {
-    session.getFactory().getStatisticsImplementor().loadCollection(persister.getRole());
-  }
+  if (addToCache)   addCollectionToCache(lce,persister);
+  if (LOG.isDebugEnabled())   LOG.debug("Collection fully initialized: " + MessageHelper.collectionInfoString(persister,lce.getKey(),session.getFactory()));
+  if (session.getFactory().getStatistics().isStatisticsEnabled())   session.getFactory().getStatisticsImplementor().loadCollection(persister.getRole());
 }

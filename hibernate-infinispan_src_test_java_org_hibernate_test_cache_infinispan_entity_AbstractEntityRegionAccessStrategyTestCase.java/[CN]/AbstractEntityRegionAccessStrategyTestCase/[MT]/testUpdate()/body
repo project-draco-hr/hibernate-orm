@@ -7,24 +7,24 @@
   final CountDownLatch commitLatch=new CountDownLatch(1);
   final CountDownLatch completionLatch=new CountDownLatch(2);
   Thread updater=new Thread("testUpdate-updater"){
-    public void run(){
+    @Override public void run(){
       boolean readerUnlocked=false;
       try {
         long txTimestamp=System.currentTimeMillis();
         BatchModeTransactionManager.getInstance().begin();
-        log.debug("Transaction began, get initial value");
+        LOG.debug("Transaction began, get initial value");
         assertEquals("Correct initial value",VALUE1,localAccessStrategy.get(KEY,txTimestamp));
-        log.debug("Now update value");
+        LOG.debug("Now update value");
         localAccessStrategy.update(KEY,VALUE2,new Integer(2),new Integer(1));
-        log.debug("Notify the read latch");
+        LOG.debug("Notify the read latch");
         readLatch.countDown();
         readerUnlocked=true;
-        log.debug("Await commit");
+        LOG.debug("Await commit");
         commitLatch.await();
         BatchModeTransactionManager.getInstance().commit();
       }
  catch (      Exception e) {
-        log.error("node1 caught exception",e);
+        LOG.error("node1 caught exception",e);
         node1Exception=e;
         rollback();
       }
@@ -34,26 +34,26 @@ catch (      AssertionFailedError e) {
       }
  finally {
         if (!readerUnlocked)         readLatch.countDown();
-        log.debug("Completion latch countdown");
+        LOG.debug("Completion latch countdown");
         completionLatch.countDown();
       }
     }
   }
 ;
   Thread reader=new Thread("testUpdate-reader"){
-    public void run(){
+    @Override public void run(){
       try {
         long txTimestamp=System.currentTimeMillis();
         BatchModeTransactionManager.getInstance().begin();
-        log.debug("Transaction began, await read latch");
+        LOG.debug("Transaction began, await read latch");
         readLatch.await();
-        log.debug("Read latch acquired, verify local access strategy");
+        LOG.debug("Read latch acquired, verify local access strategy");
         Object expected=VALUE1;
         assertEquals("Correct value",expected,localAccessStrategy.get(KEY,txTimestamp));
         BatchModeTransactionManager.getInstance().commit();
       }
  catch (      Exception e) {
-        log.error("node1 caught exception",e);
+        LOG.error("node1 caught exception",e);
         node1Exception=e;
         rollback();
       }
@@ -63,7 +63,7 @@ catch (      AssertionFailedError e) {
       }
  finally {
         commitLatch.countDown();
-        log.debug("Completion latch countdown");
+        LOG.debug("Completion latch countdown");
         completionLatch.countDown();
       }
     }

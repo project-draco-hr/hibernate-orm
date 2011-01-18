@@ -1,16 +1,14 @@
 {
-  LOG.inserting(key);
+  LOG.debug("Inserting: " + key);
   try {
     cache.lock(key);
     Lockable lockable=(Lockable)cache.get(key);
     if (lockable == null) {
       cache.update(key,new Item(value,version,cache.nextTimestamp()));
-      LOG.inserted(key);
+      LOG.debug("Inserted: " + key);
       return true;
     }
- else {
-      return false;
-    }
+    return false;
   }
   finally {
     cache.unlock(key);

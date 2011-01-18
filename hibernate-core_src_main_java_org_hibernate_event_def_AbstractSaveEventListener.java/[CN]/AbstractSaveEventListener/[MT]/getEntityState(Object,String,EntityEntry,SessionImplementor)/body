@@ -1,22 +1,16 @@
 {
   if (entry != null) {
     if (entry.getStatus() != Status.DELETED) {
-      if (LOG.isTraceEnabled())       LOG.persistentInstanceOf(getLoggableName(entityName,entity));
+      if (LOG.isTraceEnabled())       LOG.trace("Persistent instance of: " + getLoggableName(entityName,entity));
       return PERSISTENT;
     }
- else {
-      if (LOG.isTraceEnabled())       LOG.deletedInstanceOf(getLoggableName(entityName,entity));
-      return DELETED;
-    }
+    if (LOG.isTraceEnabled())     LOG.trace("Deleted instance of: " + getLoggableName(entityName,entity));
+    return DELETED;
   }
- else {
-    if (ForeignKeys.isTransient(entityName,entity,getAssumedUnsaved(),source)) {
-      if (LOG.isTraceEnabled())       LOG.transientInstanceOf(getLoggableName(entityName,entity));
-      return TRANSIENT;
-    }
- else {
-      if (LOG.isTraceEnabled())       LOG.detachedInstanceOf(getLoggableName(entityName,entity));
-      return DETACHED;
-    }
+  if (ForeignKeys.isTransient(entityName,entity,getAssumedUnsaved(),source)) {
+    if (LOG.isTraceEnabled())     LOG.trace("Transient instance of: " + getLoggableName(entityName,entity));
+    return TRANSIENT;
   }
+  if (LOG.isTraceEnabled())   LOG.trace("Detached instance of: " + getLoggableName(entityName,entity));
+  return DETACHED;
 }

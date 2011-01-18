@@ -1,13 +1,13 @@
 {
   Map errors=new HashMap();
-  LOG.checkingNamedHqlQueries(namedQueries.size());
+  LOG.debug("Checking " + namedQueries.size() + " named HQL queries");
   Iterator itr=namedQueries.entrySet().iterator();
   while (itr.hasNext()) {
     final Map.Entry entry=(Map.Entry)itr.next();
     final String queryName=(String)entry.getKey();
     final NamedQueryDefinition qd=(NamedQueryDefinition)entry.getValue();
     try {
-      LOG.checkingNamedQuery(queryName);
+      LOG.debug("Checking named query: " + queryName);
       queryPlanCache.getHQLQueryPlan(qd.getQueryString(),false,CollectionHelper.EMPTY_MAP);
     }
  catch (    QueryException e) {
@@ -17,14 +17,14 @@ catch (    MappingException e) {
       errors.put(queryName,e);
     }
   }
-  LOG.checkingNamedSqlQueries(namedSqlQueries.size());
+  LOG.debug("Checking " + namedSqlQueries.size() + " named SQL queries");
   itr=namedSqlQueries.entrySet().iterator();
   while (itr.hasNext()) {
     final Map.Entry entry=(Map.Entry)itr.next();
     final String queryName=(String)entry.getKey();
     final NamedSQLQueryDefinition qd=(NamedSQLQueryDefinition)entry.getValue();
     try {
-      LOG.checkingNamedSqlQuery(queryName);
+      LOG.debug("Checking named SQL query: " + queryName);
       NativeSQLQuerySpecification spec;
       if (qd.getResultSetRef() != null) {
         ResultSetMappingDefinition definition=(ResultSetMappingDefinition)sqlResultSetMappings.get(qd.getResultSetRef());

@@ -2,7 +2,7 @@
   LOG.buildingSessionFactory();
   this.statistics=new ConcurrentStatisticsImpl(this);
   getStatistics().setStatisticsEnabled(settings.isStatisticsEnabled());
-  LOG.statisticsInitialized(settings.isStatisticsEnabled());
+  LOG.debug("Statistics initialized [enabled=" + settings.isStatisticsEnabled() + "]}");
   this.properties=new Properties();
   this.properties.putAll(cfg.getProperties());
   this.interceptor=cfg.getInterceptor();
@@ -21,8 +21,8 @@
   this.typeHelper=new TypeLocatorImpl(typeResolver);
   this.filters=new HashMap();
   this.filters.putAll(cfg.getFilterDefinitions());
-  LOG.sessionFactoryConstructedWithFilterConfigurations(filters);
-  LOG.instantiatingSessionFactory(properties);
+  LOG.debug("Session factory constructed with filter configurations : " + filters);
+  LOG.debug("Instantiating session factory with properties: " + properties);
   settings.getRegionFactory().start(settings,properties);
   this.queryPlanCache=new QueryPlanCache(this);
   identifierGenerators=new HashMap();
@@ -47,7 +47,7 @@
     if (accessStrategy == null && settings.isSecondLevelCacheEnabled()) {
       final AccessType accessType=AccessType.parse(model.getCacheConcurrencyStrategy());
       if (accessType != null) {
-        LOG.buildingCacheForEntityData(model.getEntityName());
+        LOG.trace("Building cache for entity data [" + model.getEntityName() + "]");
         EntityRegion entityRegion=settings.getRegionFactory().buildEntityRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
         accessStrategy=entityRegion.buildAccessStrategy(accessType);
         entityAccessStrategies.put(cacheRegionName,accessStrategy);
@@ -68,7 +68,7 @@
     final AccessType accessType=AccessType.parse(model.getCacheConcurrencyStrategy());
     CollectionRegionAccessStrategy accessStrategy=null;
     if (accessType != null && settings.isSecondLevelCacheEnabled()) {
-      LOG.buildingCacheForCollectionData(model.getRole());
+      LOG.trace("Building cache for collection data [" + model.getRole() + "]");
       CollectionRegion collectionRegion=settings.getRegionFactory().buildCollectionRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
       accessStrategy=collectionRegion.buildAccessStrategy(accessType);
       entityAccessStrategies.put(cacheRegionName,accessStrategy);
@@ -127,7 +127,7 @@
     throw new AssertionFailure("Could not generate UUID");
   }
   SessionFactoryObjectFactory.addInstance(uuid,name,this,properties);
-  LOG.instantiatedSessionFactory();
+  LOG.debug("Instantiated session factory");
   if (settings.isAutoCreateSchema()) {
     new SchemaExport(getJdbcServices(),cfg).create(false,true);
   }
@@ -141,7 +141,7 @@
     schemaExport=new SchemaExport(getJdbcServices(),cfg);
   }
   if (settings.getTransactionManagerLookup() != null) {
-    LOG.obtainingJtaTransactionManager();
+    LOG.debug("Obtaining JTA TransactionManager");
     transactionManager=settings.getTransactionManagerLookup().getTransactionManager(properties);
   }
  else {

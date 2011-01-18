@@ -1,17 +1,17 @@
 {
-  LOG.checkingQueryResults(cacheRegion.getName());
+  LOG.debug("Checking cached query results in region: " + cacheRegion.getName());
   List cacheable=(List)cacheRegion.get(key);
   logCachedResultDetails(key,spaces,returnTypes,cacheable);
   if (cacheable == null) {
-    LOG.queryResultsNotFound();
+    LOG.debug("Query results were not found in cache");
     return null;
   }
   Long timestamp=(Long)cacheable.get(0);
   if (!isNaturalKeyLookup && !isUpToDate(spaces,timestamp)) {
-    LOG.queryResultsNotUpToDate();
+    LOG.debug("Cached query results were not up-to-date");
     return null;
   }
-  LOG.returningQueryResults();
+  LOG.debug("Returning cached query results");
   for (int i=1; i < cacheable.size(); i++) {
     if (returnTypes.length == 1) {
       returnTypes[0].beforeAssemble((Serializable)cacheable.get(i),session);
@@ -33,13 +33,11 @@
     }
  catch (    RuntimeException ex) {
       if (isNaturalKeyLookup && (UnresolvableObjectException.class.isInstance(ex) || EntityNotFoundException.class.isInstance(ex))) {
-        LOG.unableToReassembleResultSet();
+        LOG.debug("Unable to reassemble cached result set");
         cacheRegion.evict(key);
         return null;
       }
- else {
-        throw ex;
-      }
+      throw ex;
     }
   }
   return result;

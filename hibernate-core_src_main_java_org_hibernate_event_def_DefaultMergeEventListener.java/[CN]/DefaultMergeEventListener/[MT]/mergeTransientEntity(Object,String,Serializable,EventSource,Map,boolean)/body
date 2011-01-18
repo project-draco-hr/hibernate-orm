@@ -1,5 +1,5 @@
 {
-  LOG.mergingTransientInstance();
+  LOG.trace("Merging transient instance");
   final EntityPersister persister=source.getEntityPersister(entityName,entity);
   final Serializable id=persister.hasIdentifierProperty() ? persister.getIdentifier(entity,source) : null;
   if (copyCache.containsKey(entity)) {
@@ -21,14 +21,11 @@
     Type propertyType=persister.getPropertyType(propertyName);
     EntityEntry copyEntry=source.getPersistenceContext().getEntry(copy);
     if (propertyFromCopy == null || propertyFromEntity == null || !propertyType.isEntityType() || !copyCache.containsKey(propertyFromEntity)) {
-      if (log.isTraceEnabled()) {
-        String fullPropertyName="property '" + copyEntry.getEntityName() + "."+ propertyName;
-        log.trace(fullPropertyName + " in copy is " + (propertyFromCopy == null ? "null" : propertyFromCopy));
-        log.trace(fullPropertyName + " in original is " + (propertyFromCopy == null ? "null" : propertyFromCopy));
-        log.trace(fullPropertyName + (propertyType.isEntityType() ? " is" : " is not") + " an entity type");
-        if (propertyFromEntity != null && !copyCache.containsKey(propertyFromEntity)) {
-          log.trace(fullPropertyName + " is not in copy cache");
-        }
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("Property '" + copyEntry.getEntityName() + "."+ propertyName+ "' in copy is "+ (propertyFromCopy == null ? "null" : propertyFromCopy));
+        LOG.trace("Property '" + copyEntry.getEntityName() + "."+ propertyName+ "' in original is "+ (propertyFromCopy == null ? "null" : propertyFromCopy));
+        LOG.trace("Property '" + copyEntry.getEntityName() + "."+ propertyName+ "' is"+ (propertyType.isEntityType() ? "" : " not")+ " an entity type");
+        if (propertyFromEntity != null && !copyCache.containsKey(propertyFromEntity))         LOG.trace("Property '" + copyEntry.getEntityName() + "."+ propertyName+ "' is not in copy cache");
       }
       if (isNullabilityCheckedGlobal(source)) {
         throw ex;
@@ -37,13 +34,9 @@
         saveTransientEntity(copy,entityName,requestedId,source,copyCache,false);
       }
     }
-    if (log.isTraceEnabled() && propertyFromEntity != null) {
-      if (((EventCache)copyCache).isOperatedOn(propertyFromEntity)) {
-        log.trace("property '" + copyEntry.getEntityName() + "."+ propertyName+ "' from original entity is in copyCache and is in the process of being merged; "+ propertyName+ " =["+ propertyFromEntity+ "]");
-      }
- else {
-        log.trace("property '" + copyEntry.getEntityName() + "."+ propertyName+ "' from original entity is in copyCache and is not in the process of being merged; "+ propertyName+ " =["+ propertyFromEntity+ "]");
-      }
+    if (LOG.isTraceEnabled() && propertyFromEntity != null) {
+      if (((EventCache)copyCache).isOperatedOn(propertyFromEntity))       LOG.trace("Property '" + copyEntry.getEntityName() + "."+ propertyName+ "' from original entity is in copyCache and is in the process of being merged; "+ propertyName+ " =["+ propertyFromEntity+ "]");
+ else       LOG.trace("Property '" + copyEntry.getEntityName() + "."+ propertyName+ "' from original entity is in copyCache and is not in the process of being merged; "+ propertyName+ " =["+ propertyFromEntity+ "]");
     }
   }
   super.cascadeAfterSave(source,persister,entity,copyCache);
