@@ -8,7 +8,19 @@
   }
   final Object version;
   if (persister.isVersioned()) {
-    final Object collectionOwner=getLoadContext().getPersistenceContext().getCollectionOwner(lce.getKey(),persister);
+    Object collectionOwner=getLoadContext().getPersistenceContext().getCollectionOwner(lce.getKey(),persister);
+    if (collectionOwner == null) {
+      if (lce.getCollection() != null) {
+        Object linkedOwner=lce.getCollection().getOwner();
+        if (linkedOwner != null) {
+          final Serializable ownerKey=persister.getOwnerEntityPersister().getIdentifier(linkedOwner,session);
+          collectionOwner=getLoadContext().getPersistenceContext().getCollectionOwner(ownerKey,persister);
+        }
+      }
+      if (collectionOwner == null) {
+        throw new HibernateException("Unable to resolve owner of loading collection [" + MessageHelper.collectionInfoString(persister,lce.getKey(),factory) + "] for second level caching");
+      }
+    }
     version=getLoadContext().getPersistenceContext().getEntry(collectionOwner).getVersion();
   }
  else {
