@@ -1,7 +1,13 @@
 {
-  Long ts=new Long(region.nextTimestamp() + region.getTimeout());
-  for (int i=0; i < spaces.length; i++) {
-    LOG.debugf("Pre-invalidating space [%s]",spaces[i]);
-    region.put(spaces[i],ts);
+  readWriteLock.writeLock().lock();
+  try {
+    Long ts=new Long(region.nextTimestamp() + region.getTimeout());
+    for (    Serializable space : spaces) {
+      LOG.debugf("Pre-invalidating space [%s]",space);
+      region.put(space,ts);
+    }
+  }
+  finally {
+    readWriteLock.writeLock().unlock();
   }
 }
