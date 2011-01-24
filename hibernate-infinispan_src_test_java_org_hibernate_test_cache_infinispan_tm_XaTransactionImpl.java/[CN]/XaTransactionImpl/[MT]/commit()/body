@@ -9,7 +9,12 @@
       Synchronization s=(Synchronization)synchronizations.get(i);
       s.beforeCompletion();
     }
-    runXaResourcePrepare();
+    if (!runXaResourcePrepare()) {
+      status=Status.STATUS_ROLLING_BACK;
+    }
+ else {
+      status=Status.STATUS_PREPARED;
+    }
     status=Status.STATUS_COMMITTING;
     if (connection != null) {
       try {
