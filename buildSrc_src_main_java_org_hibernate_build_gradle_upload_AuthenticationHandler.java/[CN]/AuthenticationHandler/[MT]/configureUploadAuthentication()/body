@@ -1,0 +1,21 @@
+{
+  uploadTask.getRepositories().withType(MavenDeployer.class).allObjects(new Action<MavenDeployer>(){
+    public void execute(    MavenDeployer deployer){
+      final RemoteRepository repository=deployer.getRepository();
+      if (repository != null) {
+        final Authentication authentication=locateAuthenticationDetails(repository);
+        if (authentication != null) {
+          repository.addAuthentication(authentication);
+        }
+      }
+      final RemoteRepository snapshotRepository=deployer.getSnapshotRepository();
+      if (snapshotRepository != null) {
+        final Authentication authentication=locateAuthenticationDetails(snapshotRepository);
+        if (authentication != null) {
+          snapshotRepository.addAuthentication(authentication);
+        }
+      }
+    }
+  }
+);
+}

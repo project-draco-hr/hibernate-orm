@@ -1,0 +1,12 @@
+{
+  final AuthenticationProviderRegistry registry=new AuthenticationProviderRegistry();
+  project.getTasks().withType(Upload.class).allTasks(new Action<Upload>(){
+    @Override public void execute(    final Upload uploadTask){
+      final AuthenticationHandler authenticationHandler=project.getTasks().add("uploadAuthenticationHandler",AuthenticationHandler.class);
+      authenticationHandler.injectUploadTask(uploadTask);
+      authenticationHandler.injectProviderRegistry(registry);
+      uploadTask.getDependsOn().add(authenticationHandler);
+    }
+  }
+);
+}
