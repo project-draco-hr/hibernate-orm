@@ -1,0 +1,32 @@
+{
+  repositoryAuthenticationMap=new ConcurrentHashMap<String,Authentication>();
+  final File settingsFile=determineSettingsFileLocation();
+  try {
+    InputSource inputSource=new InputSource(new FileInputStream(settingsFile));
+    try {
+      final Document document=buildSAXReader().read(inputSource);
+      final Element settingsElement=document.getRootElement();
+      final Element serversElement=settingsElement.element("servers");
+      final Iterator serversIterator=serversElement.elementIterator("server");
+      while (serversIterator.hasNext()) {
+        final Element serverElement=(Element)serversIterator.next();
+        final String id=extractValue(serverElement.element("id"));
+        if (id == null) {
+          continue;
+        }
+        final Authentication authentication=new Authentication();
+        authentication.setUserName(extractValue(serverElement.element("username")));
+        authentication.setPassword(extractValue(serverElement.element("password")));
+        authentication.setPrivateKey(extractValue(serverElement.element("privateKey")));
+        authentication.setPassphrase(extractValue(serverElement.element("passphrase")));
+        repositoryAuthenticationMap.put(id,authentication);
+      }
+    }
+ catch (    DocumentException e) {
+      log.error("Error reading Maven settings.xml",e);
+    }
+  }
+ catch (  FileNotFoundException e) {
+    log.info("Unable to locate Maven settings.xml");
+  }
+}
