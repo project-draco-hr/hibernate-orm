@@ -24,14 +24,14 @@
   if (useIdentityColumn) {
     EntityIdentityInsertAction insert=new EntityIdentityInsertAction(values,entity,persister,source,shouldDelayIdentityInserts);
     if (!shouldDelayIdentityInserts) {
-      LOG.debug("Executing identity-insert immediately");
+      LOG.debugf("Executing identity-insert immediately");
       source.getActionQueue().execute(insert);
       id=insert.getGeneratedId();
       key=new EntityKey(id,persister,source.getEntityMode());
       source.getPersistenceContext().checkUniqueness(key,entity);
     }
  else {
-      LOG.debug("Delaying identity-insert due to no transaction in progress");
+      LOG.debugf("Delaying identity-insert due to no transaction in progress");
       source.getActionQueue().addAction(insert);
       key=insert.getDelayedEntityKey();
     }

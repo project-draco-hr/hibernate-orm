@@ -11,13 +11,13 @@
     }
     javax.transaction.Transaction tx=tm.getTransaction();
     if (JTAHelper.isMarkedForRollback(tx)) {
-      LOG.debug("Transaction is marked for rollback; skipping Synchronization registration");
+      LOG.debugf("Transaction is marked for rollback; skipping Synchronization registration");
       return false;
     }
     if (hibernateTransaction == null)     hibernateTransaction=owner.getFactory().getSettings().getTransactionFactory().createTransaction(this,owner);
     tx.registerSynchronization(new HibernateSynchronizationImpl(getJtaSynchronizationCallbackCoordinator(tx)));
     isTransactionCallbackRegistered=true;
-    LOG.debug("Successfully registered Synchronization");
+    LOG.debugf("Successfully registered Synchronization");
     return true;
   }
  catch (  HibernateException e) {

@@ -2,25 +2,23 @@
   getSession().isOpen();
   if (transactionType == PersistenceUnitTransactionType.JTA) {
     try {
-      LOG.debug("Looking for a JTA transaction to join");
+      LOG.debugf("Looking for a JTA transaction to join");
       final Session session=getSession();
       final Transaction transaction=session.getTransaction();
       if (transaction != null && transaction instanceof JoinableCMTTransaction) {
         final JoinableCMTTransaction joinableCMTTransaction=(JoinableCMTTransaction)transaction;
         if (joinableCMTTransaction.getStatus() == JoinableCMTTransaction.JoinStatus.JOINED) {
-          LOG.debug("Transaction already joined");
+          LOG.debugf("Transaction already joined");
           return;
         }
         joinableCMTTransaction.markForJoined();
         session.isOpen();
         if (joinableCMTTransaction.getStatus() == JoinableCMTTransaction.JoinStatus.NOT_JOINED) {
           if (ignoreNotJoining) {
-            LOG.debug("No JTA transaction found");
+            LOG.debugf("No JTA transaction found");
             return;
           }
- else {
-            throw new TransactionRequiredException("No active JTA transaction on joinTransaction call");
-          }
+          throw new TransactionRequiredException("No active JTA transaction on joinTransaction call");
         }
  else         if (joinableCMTTransaction.getStatus() == JoinableCMTTransaction.JoinStatus.MARKED_FOR_JOINED) {
           throw new AssertionFailure("Transaction MARKED_FOR_JOINED after isOpen() call");

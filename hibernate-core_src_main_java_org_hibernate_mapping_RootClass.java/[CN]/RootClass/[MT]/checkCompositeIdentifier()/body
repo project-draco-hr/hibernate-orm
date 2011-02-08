@@ -3,15 +3,9 @@
     Component id=(Component)getIdentifier();
     if (!id.isDynamic()) {
       Class idClass=id.getComponentClass();
-      if (idClass != null && !ReflectHelper.overridesEquals(idClass)) {
-        LoggerFactory.getLogger(RootClass.class).warn("composite-id class does not override equals(): " + id.getComponentClass().getName());
-      }
-      if (!ReflectHelper.overridesHashCode(idClass)) {
-        LoggerFactory.getLogger(RootClass.class).warn("composite-id class does not override hashCode(): " + id.getComponentClass().getName());
-      }
-      if (!Serializable.class.isAssignableFrom(idClass)) {
-        throw new MappingException("composite-id class must implement Serializable: " + id.getComponentClass().getName());
-      }
+      if (idClass != null && !ReflectHelper.overridesEquals(idClass))       LOG.compositeIdClassDoesNotOverrideEquals(id.getComponentClass().getName());
+      if (!ReflectHelper.overridesHashCode(idClass))       LOG.compositeIdClassDoesNotOverrideHashCode(id.getComponentClass().getName());
+      if (!Serializable.class.isAssignableFrom(idClass))       throw new MappingException("Composite-id class must implement Serializable: " + id.getComponentClass().getName());
     }
   }
 }

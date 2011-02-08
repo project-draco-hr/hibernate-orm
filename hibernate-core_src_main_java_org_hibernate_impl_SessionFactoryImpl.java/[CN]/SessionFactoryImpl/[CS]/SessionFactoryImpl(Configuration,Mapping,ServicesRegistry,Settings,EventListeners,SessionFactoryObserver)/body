@@ -2,7 +2,7 @@
   LOG.buildingSessionFactory();
   this.statistics=new ConcurrentStatisticsImpl(this);
   getStatistics().setStatisticsEnabled(settings.isStatisticsEnabled());
-  LOG.debug("Statistics initialized [enabled=" + settings.isStatisticsEnabled() + "]}");
+  LOG.debugf("Statistics initialized [enabled=%s]",settings.isStatisticsEnabled());
   this.properties=new Properties();
   this.properties.putAll(cfg.getProperties());
   this.interceptor=cfg.getInterceptor();
@@ -21,8 +21,8 @@
   this.typeHelper=new TypeLocatorImpl(typeResolver);
   this.filters=new HashMap();
   this.filters.putAll(cfg.getFilterDefinitions());
-  LOG.debug("Session factory constructed with filter configurations : " + filters);
-  LOG.debug("Instantiating session factory with properties: " + properties);
+  LOG.debugf("Session factory constructed with filter configurations : %s",filters);
+  LOG.debugf("Instantiating session factory with properties: %s",properties);
   settings.getRegionFactory().start(settings,properties);
   this.queryPlanCache=new QueryPlanCache(this);
   identifierGenerators=new HashMap();
@@ -127,7 +127,7 @@
     throw new AssertionFailure("Could not generate UUID");
   }
   SessionFactoryObjectFactory.addInstance(uuid,name,this,properties);
-  LOG.debug("Instantiated session factory");
+  LOG.debugf("Instantiated session factory");
   if (settings.isAutoCreateSchema()) {
     new SchemaExport(getJdbcServices(),cfg).create(false,true);
   }
@@ -141,7 +141,7 @@
     schemaExport=new SchemaExport(getJdbcServices(),cfg);
   }
   if (settings.getTransactionManagerLookup() != null) {
-    LOG.debug("Obtaining JTA TransactionManager");
+    LOG.debugf("Obtaining JTA TransactionManager");
     transactionManager=settings.getTransactionManagerLookup().getTransactionManager(properties);
   }
  else {
