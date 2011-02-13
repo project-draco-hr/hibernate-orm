@@ -1,19 +1,22 @@
 {
-  String types[]=new String[3];
   for (  Element elem : element.getEnclosedElements()) {
-    if (expectedElementKind.equals(elem.getKind())) {
+    if (!expectedElementKind.equals(elem.getKind())) {
       continue;
     }
-    if (!elem.getSimpleName().toString().equals(propertyName)) {
+    if (ElementKind.METHOD.equals(elem.getKind())) {
+      if (!propertyName.equals(determinePropertyName(elem))) {
+        continue;
+      }
+    }
+ else     if (!elem.getSimpleName().toString().equals(propertyName)) {
       continue;
     }
-    DeclaredType type=((DeclaredType)elem.asType());
-    determineTargetType(type,propertyName,explicitTargetEntity,types);
-    determineCollectionType(type,types);
-    if (types[1].equals("javax.persistence.metamodel.MapAttribute")) {
-      determineMapType(type,explicitMapKeyClass,types);
+    DeclaredType type=determineDeclaredType(elem);
+    if (type != null) {
+      String types[]=new String[3];
+      determineTypes(propertyName,explicitTargetEntity,explicitMapKeyClass,type,types);
+      return types;
     }
-    return types;
   }
   return null;
 }
