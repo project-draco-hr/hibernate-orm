@@ -1,0 +1,14 @@
+{
+  Ejb3Configuration conf=new Ejb3Configuration();
+  conf.setPersisterClassProvider(new GoofyPersisterClassProvider());
+  conf.addAnnotatedClass(Bell.class);
+  try {
+    final EntityManagerFactory entityManagerFactory=conf.buildEntityManagerFactory();
+    entityManagerFactory.close();
+  }
+ catch (  PersistenceException e) {
+    assertNotNull(e.getCause());
+    assertNotNull(e.getCause().getCause());
+    assertEquals(GoofyException.class,e.getCause().getCause().getClass());
+  }
+}
