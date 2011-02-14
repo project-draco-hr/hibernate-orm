@@ -3,20 +3,18 @@
     if (!expectedElementKind.equals(elem.getKind())) {
       continue;
     }
-    if (ElementKind.METHOD.equals(elem.getKind())) {
-      if (!propertyName.equals(determinePropertyName(elem))) {
-        continue;
-      }
+    String elementPropertyName=elem.getSimpleName().toString();
+    if (elem.getKind().equals(ElementKind.METHOD)) {
+      elementPropertyName=StringUtil.getPropertyName(elementPropertyName);
     }
- else     if (!elem.getSimpleName().toString().equals(propertyName)) {
+    if (!propertyName.equals(elementPropertyName)) {
       continue;
     }
     DeclaredType type=determineDeclaredType(elem);
-    if (type != null) {
-      String types[]=new String[3];
-      determineTypes(propertyName,explicitTargetEntity,explicitMapKeyClass,type,types);
-      return types;
+    if (type == null) {
+      continue;
     }
+    return determineTypes(propertyName,explicitTargetEntity,explicitMapKeyClass,type);
   }
   return null;
 }
