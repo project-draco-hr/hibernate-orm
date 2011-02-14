@@ -63,8 +63,16 @@
         throw new AnnotationException("Could not find persister class: " + persister);
       }
     }
+ else {
+      final PersisterClassProvider persisterClassProvider=mappings.getPersisterClassProvider();
+      if (persisterClassProvider != null) {
+        persister=persisterClassProvider.getEntityPersisterClass(persistentClass.getEntityName());
+      }
+    }
   }
-  if (persister != null)   persistentClass.setEntityPersisterClass(persister);
+  if (persister != null) {
+    persistentClass.setEntityPersisterClass(persister);
+  }
   persistentClass.setBatchSize(batchSize);
   SQLInsert sqlInsert=annotatedClass.getAnnotation(SQLInsert.class);
   SQLUpdate sqlUpdate=annotatedClass.getAnnotation(SQLUpdate.class);
