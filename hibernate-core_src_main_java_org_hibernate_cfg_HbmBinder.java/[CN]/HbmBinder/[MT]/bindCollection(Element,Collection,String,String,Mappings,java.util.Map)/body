@@ -39,6 +39,15 @@
       throw new MappingException("Could not find collection persister class: " + persisterNode.getValue());
     }
   }
+ else {
+    final PersisterClassProvider persisterClassProvider=mappings.getPersisterClassProvider();
+    if (persisterClassProvider != null) {
+      final Class<? extends CollectionPersister> persister=persisterClassProvider.getCollectionPersisterClass(collection.getRole());
+      if (persister != null) {
+        collection.setCollectionPersisterClass(persister);
+      }
+    }
+  }
   Attribute typeNode=node.attribute("collection-type");
   if (typeNode != null) {
     String typeName=typeNode.getValue();

@@ -16,7 +16,18 @@
   OptimisticLock lockAnn=property.getAnnotation(OptimisticLock.class);
   if (lockAnn != null)   collection.setOptimisticLocked(!lockAnn.excluded());
   Persister persisterAnn=property.getAnnotation(Persister.class);
-  if (persisterAnn != null)   collection.setCollectionPersisterClass(persisterAnn.impl());
+  if (persisterAnn != null) {
+    collection.setCollectionPersisterClass(persisterAnn.impl());
+  }
+ else {
+    final PersisterClassProvider persisterClassProvider=mappings.getPersisterClassProvider();
+    if (persisterClassProvider != null) {
+      final Class<? extends CollectionPersister> persister=persisterClassProvider.getCollectionPersisterClass(collection.getRole());
+      if (persister != null) {
+        collection.setCollectionPersisterClass(persister);
+      }
+    }
+  }
   if (orderBy != null)   collection.setOrderBy(orderBy);
   if (isSorted) {
     collection.setSorted(true);
