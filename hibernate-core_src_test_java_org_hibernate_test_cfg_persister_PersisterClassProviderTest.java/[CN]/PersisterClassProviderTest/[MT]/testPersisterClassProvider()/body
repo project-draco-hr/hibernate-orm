@@ -1,0 +1,31 @@
+{
+  Configuration cfg=new Configuration();
+  cfg.addAnnotatedClass(Gate.class);
+  ServiceRegistryHolder serviceRegistryHolder=new ServiceRegistryHolder(cfg.getProperties());
+  SessionFactory sessionFactory=cfg.buildSessionFactory(serviceRegistryHolder.getServiceRegistry());
+  sessionFactory.close();
+  cfg=new Configuration();
+  cfg.addAnnotatedClass(Gate.class);
+  cfg.setPersisterClassProvider(new GoofyPersisterClassProvider());
+  try {
+    sessionFactory=cfg.buildSessionFactory(serviceRegistryHolder.getServiceRegistry());
+    sessionFactory.close();
+  }
+ catch (  MappingException e) {
+    assertEquals("The entity persister should be overridden",GoofyPersisterClassProvider.NoopEntityPersister.class,((GoofyException)e.getCause()).getValue());
+  }
+  cfg=new Configuration();
+  cfg.addAnnotatedClass(Portal.class);
+  cfg.addAnnotatedClass(Window.class);
+  cfg.setPersisterClassProvider(new GoofyPersisterClassProvider());
+  try {
+    sessionFactory=cfg.buildSessionFactory(serviceRegistryHolder.getServiceRegistry());
+    sessionFactory.close();
+  }
+ catch (  MappingException e) {
+    assertEquals("The collection persister should be overridden but not the entity persister",GoofyPersisterClassProvider.NoopCollectionPersister.class,((GoofyException)e.getCause()).getValue());
+  }
+  if (serviceRegistryHolder != null) {
+    serviceRegistryHolder.destroy();
+  }
+}
