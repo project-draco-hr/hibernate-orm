@@ -1,0 +1,17 @@
+{
+  try {
+    ProxyFactory factory=new ProxyFactory();
+    factory.setFilter(FINALIZE_FILTER);
+    Class[] interfaces=new Class[2];
+    interfaces[0]=serviceRole;
+    interfaces[1]=ServiceProxy.class;
+    factory.setInterfaces(interfaces);
+    Class proxyClass=factory.createClass();
+    ProxyObject proxyObject=(ProxyObject)proxyClass.newInstance();
+    proxyObject.setHandler(new ServiceProxyMethodInterceptor<T>((T)proxyObject,serviceRole,serviceRegistry));
+    return (T)proxyObject;
+  }
+ catch (  Exception e) {
+    throw new ServiceProxyGenerationException("Unable to make service proxy",e);
+  }
+}
