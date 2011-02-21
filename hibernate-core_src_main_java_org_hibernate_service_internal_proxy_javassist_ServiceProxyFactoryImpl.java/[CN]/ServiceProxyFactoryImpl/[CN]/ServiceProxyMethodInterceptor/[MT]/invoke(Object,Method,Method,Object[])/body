@@ -1,0 +1,24 @@
+{
+  String name=method.getName();
+  if ("toString".equals(name)) {
+    return serviceRole.getName() + "_$$_Proxy@" + System.identityHashCode(object);
+  }
+ else   if ("equals".equals(name)) {
+    return proxy == object ? Boolean.TRUE : Boolean.FALSE;
+  }
+ else   if ("hashCode".equals(name)) {
+    return Integer.valueOf(System.identityHashCode(object));
+  }
+ else   if ("getTargetInstance".equals(name) && ServiceProxy.class.equals(method.getDeclaringClass())) {
+    return serviceRegistry.getServiceInternal(serviceRole);
+  }
+ else {
+    try {
+      T target=serviceRegistry.getServiceInternal(serviceRole);
+      return method.invoke(target,args);
+    }
+ catch (    InvocationTargetException e) {
+      throw (Exception)e.getTargetException();
+    }
+  }
+}

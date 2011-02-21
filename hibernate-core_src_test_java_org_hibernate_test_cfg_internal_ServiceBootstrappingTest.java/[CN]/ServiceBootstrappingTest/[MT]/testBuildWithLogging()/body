@@ -1,9 +1,10 @@
 {
   Properties props=ConnectionProviderBuilder.getConnectionProviderProperties();
   props.put(Environment.SHOW_SQL,"true");
-  servicesRegistry.initialize(props);
-  JdbcServices jdbcServices=servicesRegistry.getService(JdbcServices.class);
+  ServiceRegistryImpl serviceRegistry=new ServiceRegistryImpl(props);
+  JdbcServices jdbcServices=serviceRegistry.getService(JdbcServices.class);
   assertTrue(jdbcServices.getDialect() instanceof H2Dialect);
-  assertTrue(jdbcServices.getConnectionProvider() instanceof DriverManagerConnectionProviderImpl);
+  assertTrue(jdbcServices.getConnectionProvider().isUnwrappableAs(DriverManagerConnectionProviderImpl.class));
   assertTrue(jdbcServices.getSqlStatementLogger().isLogToStdout());
+  serviceRegistry.destroy();
 }

@@ -1,7 +1,8 @@
 {
-  servicesRegistry.initialize(ConnectionProviderBuilder.getConnectionProviderProperties());
-  JdbcServices jdbcServices=servicesRegistry.getService(JdbcServices.class);
+  ServiceRegistryImpl serviceRegistry=new ServiceRegistryImpl(ConnectionProviderBuilder.getConnectionProviderProperties());
+  JdbcServices jdbcServices=serviceRegistry.getService(JdbcServices.class);
   assertTrue(jdbcServices.getDialect() instanceof H2Dialect);
-  assertTrue(jdbcServices.getConnectionProvider() instanceof DriverManagerConnectionProviderImpl);
+  assertTrue(jdbcServices.getConnectionProvider().isUnwrappableAs(DriverManagerConnectionProviderImpl.class));
   assertFalse(jdbcServices.getSqlStatementLogger().isLogToStdout());
+  serviceRegistry.destroy();
 }
