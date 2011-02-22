@@ -1,0 +1,34 @@
+{
+  final Session s=openSession();
+  s.getTransaction().begin();
+  final Transaction txn=new Transaction();
+  txn.setDescription("foo");
+  txn.setValue(new MonetoryAmount(new BigDecimal(42),Currency.getInstance("AUD")));
+  txn.setTimestamp(new CompositeDateTime(2014,8,23,14,35,0));
+  s.persist(txn);
+  final Query q=s.createQuery("from Transaction where value = :amount");
+  q.setParameter("amount",new MonetoryAmount(new BigDecimal(42),Currency.getInstance("AUD")));
+  assertEquals(1,q.list().size());
+  q.setParameter("amount",new MonetoryAmount(new BigDecimal(36),Currency.getInstance("AUD")));
+  assertEquals(0,q.list().size());
+  q.setParameter("amount",new MonetoryAmount(new BigDecimal(42),Currency.getInstance("EUR")));
+  assertEquals(0,q.list().size());
+  q.setParameter("amount",new MonetoryAmount(new BigDecimal(76),Currency.getInstance("USD")));
+  assertEquals(0,q.list().size());
+  final Query qTimestamp=s.createQuery("from Transaction where timestamp = :timestamp");
+  qTimestamp.setParameter("timestamp",new CompositeDateTime(2014,8,23,14,35,0));
+  assertEquals(1,qTimestamp.list().size());
+  qTimestamp.setParameter("timestamp",new CompositeDateTime(2013,9,25,12,31,25));
+  assertEquals(0,qTimestamp.list().size());
+  qTimestamp.setParameter("timestamp",new CompositeDateTime(2013,8,23,14,35,0));
+  assertEquals(0,qTimestamp.list().size());
+  qTimestamp.setParameter("timestamp",new CompositeDateTime(2014,9,23,14,35,0));
+  assertEquals(0,qTimestamp.list().size());
+  qTimestamp.setParameter("timestamp",new CompositeDateTime(2014,8,23,14,41,0));
+  assertEquals(0,qTimestamp.list().size());
+  qTimestamp.setParameter("timestamp",new CompositeDateTime(2014,8,23,14,35,28));
+  assertEquals(0,qTimestamp.list().size());
+  s.delete(txn);
+  s.getTransaction().commit();
+  s.close();
+}
