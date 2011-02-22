@@ -7,17 +7,17 @@
   byte[] bytes=SerializationHelper.serialize(cfg);
   cfg=(Configuration)SerializationHelper.deserialize(bytes);
   SessionFactory factory=null;
-  ServiceRegistryHolder serviceRegistryHolder=null;
+  ServiceRegistry serviceRegistry=null;
   try {
-    serviceRegistryHolder=new ServiceRegistryHolder(cfg.getProperties());
-    factory=cfg.buildSessionFactory(serviceRegistryHolder.getServiceRegistry());
+    serviceRegistry=ServiceRegistryBuilder.buildServiceRegistry(cfg.getProperties());
+    factory=cfg.buildSessionFactory(serviceRegistry);
   }
   finally {
     if (factory != null) {
       factory.close();
     }
-    if (serviceRegistryHolder != null) {
-      serviceRegistryHolder.destroy();
+    if (serviceRegistry != null) {
+      ServiceRegistryBuilder.destroy(serviceRegistry);
     }
   }
 }

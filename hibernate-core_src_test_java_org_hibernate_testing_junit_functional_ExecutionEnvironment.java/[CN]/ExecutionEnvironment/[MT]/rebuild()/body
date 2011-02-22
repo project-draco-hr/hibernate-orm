@@ -6,11 +6,10 @@
     sessionFactory.close();
     sessionFactory=null;
   }
-  if (serviceRegistryHolder != null) {
-    serviceRegistryHolder.destroy();
-    serviceRegistryHolder=null;
+  if (serviceRegistry != null) {
+    ServiceRegistryBuilder.destroy(serviceRegistry);
   }
-  serviceRegistryHolder=new ServiceRegistryHolder(getServiceRegistryProperties());
-  sessionFactory=configuration.buildSessionFactory(serviceRegistryHolder.getServiceRegistry());
+  serviceRegistry=ServiceRegistryBuilder.buildServiceRegistry(getServiceRegistryProperties());
+  sessionFactory=configuration.buildSessionFactory(serviceRegistry);
   settings.afterSessionFactoryBuilt((SessionFactoryImplementor)sessionFactory);
 }

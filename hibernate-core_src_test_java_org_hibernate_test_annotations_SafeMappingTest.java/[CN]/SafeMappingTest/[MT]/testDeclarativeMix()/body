@@ -2,17 +2,17 @@
   AnnotationConfiguration cfg=new AnnotationConfiguration();
   cfg.addAnnotatedClass(IncorrectEntity.class);
   cfg.setProperty(Environment.HBM2DDL_AUTO,"create-drop");
-  ServiceRegistryHolder serviceRegistryHolder=null;
+  ServiceRegistry serviceRegistry=null;
   try {
-    serviceRegistryHolder=new ServiceRegistryHolder(cfg.getProperties());
-    SessionFactory sf=cfg.buildSessionFactory(serviceRegistryHolder.getServiceRegistry());
+    serviceRegistry=ServiceRegistryBuilder.buildServiceRegistry(cfg.getProperties());
+    cfg.buildSessionFactory(serviceRegistry);
     fail("Entity wo id should fail");
   }
  catch (  AnnotationException e) {
   }
  finally {
-    if (serviceRegistryHolder != null) {
-      serviceRegistryHolder.destroy();
+    if (serviceRegistry != null) {
+      ServiceRegistryBuilder.destroy(serviceRegistry);
     }
   }
 }
