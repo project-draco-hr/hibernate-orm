@@ -1,9 +1,17 @@
 {
-  if (!Clob.class.isAssignableFrom(type)) {
+  if (!(Clob.class.isAssignableFrom(type) || CharacterStream.class.isAssignableFrom(type))) {
     throw unknownUnwrap(type);
   }
   if (value == null) {
     return null;
+  }
+  if (CharacterStream.class.isAssignableFrom(type)) {
+    try {
+      return (X)new CharacterStreamImpl(DataHelper.extractString(value.getCharacterStream()));
+    }
+ catch (    SQLException e) {
+      throw new HibernateException("Unable to access lob stream",e);
+    }
   }
   final Clob clob=WrappedClob.class.isInstance(value) ? ((WrappedClob)value).getWrappedClob() : value;
   return (X)clob;
