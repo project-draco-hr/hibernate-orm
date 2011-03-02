@@ -1,0 +1,21 @@
+{
+  notifyObserversImplicitExecution();
+  for (  Map.Entry<String,PreparedStatement> entry : getStatements().entrySet()) {
+    try {
+      final PreparedStatement statement=entry.getValue();
+      final int rowCount=statement.executeUpdate();
+      getKey().getExpectation().verifyOutcome(rowCount,statement,0);
+      try {
+        statement.close();
+      }
+ catch (      SQLException e) {
+        log.debug("Unable to close non-batched batch statement",e);
+      }
+    }
+ catch (    SQLException e) {
+      log.debug("sqlexception escaped proxy",e);
+      throw sqlExceptionHelper().convert(e,"could not execute batch statement",entry.getKey());
+    }
+  }
+  getStatements().clear();
+}

@@ -1,0 +1,15 @@
+{
+  if (!valid) {
+    throw new TransactionException("Transaction instance is no longer valid");
+  }
+  if (localStatus == LocalStatus.ACTIVE) {
+    throw new TransactionException("nested transactions not supported");
+  }
+  if (localStatus != LocalStatus.NOT_ACTIVE) {
+    throw new TransactionException("reuse of Transaction instances not supported");
+  }
+  log.debug("begin");
+  doBegin();
+  localStatus=LocalStatus.ACTIVE;
+  afterTransactionBegin();
+}

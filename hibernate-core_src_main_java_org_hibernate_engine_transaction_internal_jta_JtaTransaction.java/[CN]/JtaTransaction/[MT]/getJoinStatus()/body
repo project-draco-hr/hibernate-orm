@@ -1,0 +1,11 @@
+{
+  if (this.userTransaction != null) {
+    return JtaStatusHelper.isActive(this.userTransaction) ? JoinStatus.JOINED : JoinStatus.NOT_JOINED;
+  }
+  TransactionManager transactionManager=jtaPlatform().retrieveTransactionManager();
+  if (transactionManager != null) {
+    return JtaStatusHelper.isActive(transactionManager) ? JoinStatus.JOINED : JoinStatus.NOT_JOINED;
+  }
+  UserTransaction userTransaction=jtaPlatform().retrieveUserTransaction();
+  return userTransaction != null && JtaStatusHelper.isActive(userTransaction) ? JoinStatus.JOINED : JoinStatus.NOT_JOINED;
+}

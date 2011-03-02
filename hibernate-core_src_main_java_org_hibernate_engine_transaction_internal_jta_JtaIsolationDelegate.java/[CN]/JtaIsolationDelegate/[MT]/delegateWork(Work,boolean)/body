@@ -1,0 +1,38 @@
+{
+  TransactionManager transactionManager=transactionManager();
+  try {
+    Transaction surroundingTransaction=transactionManager.suspend();
+    if (log.isDebugEnabled()) {
+      log.debug("surrounding JTA transaction suspended [" + surroundingTransaction + "]");
+    }
+    boolean hadProblems=false;
+    try {
+      if (transacted) {
+        doTheWorkInNewTransaction(work,transactionManager);
+      }
+ else {
+        doTheWorkInNoTransaction(work);
+      }
+    }
+ catch (    HibernateException e) {
+      hadProblems=true;
+      throw e;
+    }
+ finally {
+      try {
+        transactionManager.resume(surroundingTransaction);
+        if (log.isDebugEnabled()) {
+          log.debug("surrounding JTA transaction resumed [" + surroundingTransaction + "]");
+        }
+      }
+ catch (      Throwable t) {
+        if (!hadProblems) {
+          throw new HibernateException("Unable to resume previously suspended transaction",t);
+        }
+      }
+    }
+  }
+ catch (  SystemException e) {
+    throw new HibernateException("Unable to suspend current JTA transaction",e);
+  }
+}

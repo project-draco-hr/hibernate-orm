@@ -1,0 +1,11 @@
+{
+  final JdbcCoordinatorImpl jdbcCoordinator=JdbcCoordinatorImpl.deserialize(ois,transactionContext);
+  final int observerCount=ois.readInt();
+  final List<TransactionObserver> observers=CollectionHelper.arrayList(observerCount);
+  for (int i=0; i < observerCount; i++) {
+    observers.add((TransactionObserver)ois.readObject());
+  }
+  final TransactionCoordinatorImpl transactionCoordinator=new TransactionCoordinatorImpl(transactionContext,jdbcCoordinator,observers);
+  jdbcCoordinator.afterDeserialize(transactionCoordinator);
+  return transactionCoordinator;
+}

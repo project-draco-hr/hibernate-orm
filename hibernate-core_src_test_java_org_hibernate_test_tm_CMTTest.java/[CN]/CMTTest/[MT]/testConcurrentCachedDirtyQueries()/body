@@ -3,7 +3,7 @@
     reportSkip("write locks block readers","concurrent queries");
     return;
   }
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
   Session s=openSession();
   Map foo=new HashMap();
   foo.put("name","Foo");
@@ -13,28 +13,28 @@
   bar.put("name","Bar");
   bar.put("description","a small bar");
   s.persist("Item",bar);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().commit();
 synchronized (this) {
     wait(1000);
   }
   getSessions().getStatistics().clear();
   getSessions().evictEntity("Item");
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
   Session s4=openSession();
-  Transaction tx4=SimpleJtaTransactionManagerImpl.getInstance().suspend();
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  Transaction tx4=sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().suspend();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
   Session s1=openSession();
   List r1=s1.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
   assertEquals(r1.size(),2);
   foo=(Map)r1.get(0);
   foo.put("description","a big red foo");
   s1.flush();
-  Transaction tx1=SimpleJtaTransactionManagerImpl.getInstance().suspend();
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  Transaction tx1=sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().suspend();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
   Session s2=openSession();
   List r2=s2.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
   assertEquals(r2.size(),2);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().commit();
   assertEquals(getSessions().getStatistics().getSecondLevelCacheHitCount(),0);
   assertEquals(getSessions().getStatistics().getSecondLevelCacheMissCount(),0);
   assertEquals(getSessions().getStatistics().getEntityLoadCount(),4);
@@ -43,12 +43,12 @@ synchronized (this) {
   assertEquals(getSessions().getStatistics().getQueryCachePutCount(),2);
   assertEquals(getSessions().getStatistics().getQueryCacheHitCount(),0);
   assertEquals(getSessions().getStatistics().getQueryCacheMissCount(),2);
-  SimpleJtaTransactionManagerImpl.getInstance().resume(tx1);
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().resume(tx1);
   tx1.commit();
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
   Session s3=openSession();
   s3.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().commit();
   assertEquals(getSessions().getStatistics().getSecondLevelCacheHitCount(),0);
   assertEquals(getSessions().getStatistics().getSecondLevelCacheMissCount(),0);
   assertEquals(getSessions().getStatistics().getEntityLoadCount(),6);
@@ -57,7 +57,7 @@ synchronized (this) {
   assertEquals(getSessions().getStatistics().getQueryCachePutCount(),3);
   assertEquals(getSessions().getStatistics().getQueryCacheHitCount(),0);
   assertEquals(getSessions().getStatistics().getQueryCacheMissCount(),3);
-  SimpleJtaTransactionManagerImpl.getInstance().resume(tx4);
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().resume(tx4);
   List r4=s4.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
   assertEquals(r4.size(),2);
   tx4.commit();
@@ -69,8 +69,8 @@ synchronized (this) {
   assertEquals(getSessions().getStatistics().getQueryCachePutCount(),3);
   assertEquals(getSessions().getStatistics().getQueryCacheHitCount(),1);
   assertEquals(getSessions().getStatistics().getQueryCacheMissCount(),3);
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
   s=openSession();
   s.createQuery("delete from Item").executeUpdate();
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().commit();
 }

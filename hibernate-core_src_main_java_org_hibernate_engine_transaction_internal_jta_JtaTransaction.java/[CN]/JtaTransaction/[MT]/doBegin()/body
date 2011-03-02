@@ -1,0 +1,17 @@
+{
+  log.debug("begin");
+  userTransaction=jtaPlatform().retrieveUserTransaction();
+  if (userTransaction == null) {
+    throw new TransactionException("Unable to locate JTA UserTransaction");
+  }
+  try {
+    if (userTransaction.getStatus() == Status.STATUS_NO_TRANSACTION) {
+      userTransaction.begin();
+      isInitiator=true;
+      log.debug("Began a new JTA transaction");
+    }
+  }
+ catch (  Exception e) {
+    throw new TransactionException("JTA transaction begin failed",e);
+  }
+}

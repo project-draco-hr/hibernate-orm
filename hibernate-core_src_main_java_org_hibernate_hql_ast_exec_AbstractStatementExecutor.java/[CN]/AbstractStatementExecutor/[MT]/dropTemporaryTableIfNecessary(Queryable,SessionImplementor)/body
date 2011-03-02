@@ -1,45 +1,20 @@
 {
   if (getFactory().getDialect().dropTemporaryTableAfterUse()) {
-    IsolatedWork work=new IsolatedWork(){
-      public void doWork(      Connection connection) throws HibernateException {
-        final String command=session.getFactory().getDialect().getDropTemporaryTableString() + ' ' + persister.getTemporaryIdTableName();
-        try {
-          Statement statement=connection.createStatement();
-          try {
-            statement=connection.createStatement();
-            statement.executeUpdate(command);
-          }
-  finally {
-            try {
-              statement.close();
-            }
- catch (            Throwable ignore) {
-            }
-          }
-        }
- catch (        Exception e) {
-          log.warn("unable to drop temporary id table after use [" + e.getMessage() + "]");
-        }
-      }
-    }
-;
+    TemporaryTableDropWork work=new TemporaryTableDropWork(persister,session);
     if (shouldIsolateTemporaryTableDDL()) {
-      if (getFactory().getSettings().isDataDefinitionInTransactionSupported()) {
-        Isolater.doIsolatedWork(work,session);
-      }
- else {
-        Isolater.doNonTransactedWork(work,session);
-      }
+      session.getTransactionCoordinator().getTransaction().createIsolationDelegate().delegateWork(work,getFactory().getSettings().isDataDefinitionInTransactionSupported());
     }
  else {
-      work.doWork(session.getJDBCContext().getConnectionManager().getConnection());
-      session.getJDBCContext().getConnectionManager().afterStatement();
+      final Connection connection=session.getTransactionCoordinator().getJdbcCoordinator().getLogicalConnection().getShareableConnectionProxy();
+      work.execute(connection);
+      session.getTransactionCoordinator().getJdbcCoordinator().getLogicalConnection().afterStatementExecution();
     }
   }
  else {
     PreparedStatement ps=null;
     try {
-      ps=session.getJDBCContext().getConnectionManager().prepareStatement("delete from " + persister.getTemporaryIdTableName(),false);
+      final String sql="delete from " + persister.getTemporaryIdTableName();
+      ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,false);
       ps.executeUpdate();
     }
  catch (    Throwable t) {

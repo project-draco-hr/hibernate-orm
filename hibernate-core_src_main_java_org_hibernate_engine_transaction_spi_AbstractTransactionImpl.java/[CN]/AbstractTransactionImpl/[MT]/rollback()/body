@@ -1,0 +1,22 @@
+{
+  if (localStatus != LocalStatus.ACTIVE && localStatus != LocalStatus.FAILED_COMMIT) {
+    throw new TransactionException("Transaction not successfully started");
+  }
+  log.debug("rolling back");
+  beforeTransactionRollBack();
+  if (localStatus != LocalStatus.FAILED_COMMIT || allowFailedCommitToPhysicallyRollback()) {
+    try {
+      doRollback();
+      localStatus=LocalStatus.ROLLED_BACK;
+      afterTransactionCompletion(Status.STATUS_ROLLEDBACK);
+    }
+ catch (    Exception e) {
+      afterTransactionCompletion(Status.STATUS_UNKNOWN);
+      throw new TransactionException("rollback failed",e);
+    }
+ finally {
+      invalidate();
+      afterAfterCompletion();
+    }
+  }
+}

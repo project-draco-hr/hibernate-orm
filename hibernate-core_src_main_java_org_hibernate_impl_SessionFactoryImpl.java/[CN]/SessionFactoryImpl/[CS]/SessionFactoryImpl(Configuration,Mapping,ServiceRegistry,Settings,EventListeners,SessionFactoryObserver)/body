@@ -144,16 +144,6 @@
   if (settings.isAutoDropSchema()) {
     schemaExport=new SchemaExport(getJdbcServices(),cfg);
   }
-  if (settings.getTransactionManagerLookup() != null) {
-    log.debug("obtaining JTA TransactionManager");
-    transactionManager=settings.getTransactionManagerLookup().getTransactionManager(properties);
-  }
- else {
-    if (settings.getTransactionFactory().isTransactionManagerRequired()) {
-      throw new HibernateException("The chosen transaction strategy requires access to the JTA TransactionManager");
-    }
-    transactionManager=null;
-  }
   currentSessionContext=buildCurrentSessionContext();
   if (settings.isQueryCacheEnabled()) {
     updateTimestampsCache=new UpdateTimestampsCache(settings,properties);
@@ -217,5 +207,6 @@
     }
     fetchProfiles.put(fetchProfile.getName(),fetchProfile);
   }
+  this.transactionEnvironment=new TransactionEnvironmentImpl(this);
   this.observer.sessionFactoryCreated(this);
 }

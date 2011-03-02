@@ -1,17 +1,17 @@
 {
-class Work implements IsolatedWork {
+class WorkToDo implements Work {
     Serializable generatedValue;
-    public void doWork(    Connection connection) throws HibernateException {
+    @Override public void execute(    Connection connection) throws SQLException {
       String sql=null;
       try {
         generatedValue=doWorkInCurrentTransaction(connection,sql);
       }
- catch (      SQLException sqle) {
-        throw session.getFactory().getSQLExceptionHelper().convert(sqle,"could not get or update next value",sql);
+ catch (      SQLException e) {
+        throw session.getFactory().getSQLExceptionHelper().convert(e,"could not get or update next value",sql);
       }
     }
   }
-  Work work=new Work();
-  Isolater.doIsolatedWork(work,session);
+  WorkToDo work=new WorkToDo();
+  session.getTransactionCoordinator().getTransaction().createIsolationDelegate().delegateWork(work,true);
   return work.generatedValue;
 }

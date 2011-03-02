@@ -3,7 +3,7 @@
     log.trace("Getting version: " + MessageHelper.infoString(this,id,getFactory()));
   }
   try {
-    PreparedStatement st=session.getJDBCContext().getConnectionManager().prepareSelectStatement(getVersionSelectString());
+    PreparedStatement st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(getVersionSelectString());
     try {
       getIdentifierType().nullSafeSet(st,id,1,session);
       ResultSet rs=st.executeQuery();
@@ -24,7 +24,7 @@
       st.close();
     }
   }
- catch (  SQLException sqle) {
-    throw getFactory().getSQLExceptionHelper().convert(sqle,"could not retrieve version: " + MessageHelper.infoString(this,id,getFactory()),getVersionSelectString());
+ catch (  SQLException e) {
+    throw getFactory().getSQLExceptionHelper().convert(e,"could not retrieve version: " + MessageHelper.infoString(this,id,getFactory()),getVersionSelectString());
   }
 }

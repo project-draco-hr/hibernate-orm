@@ -1,7 +1,7 @@
 {
-  session.getJDBCContext().getConnectionManager().executeBatch();
+  session.getTransactionCoordinator().getJdbcCoordinator().executeBatch();
   try {
-    PreparedStatement ps=session.getJDBCContext().getConnectionManager().prepareSelectStatement(selectionSQL);
+    PreparedStatement ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(selectionSQL);
     try {
       getIdentifierType().nullSafeSet(ps,id,1,session);
       ResultSet rs=ps.executeQuery();
@@ -27,7 +27,7 @@
       ps.close();
     }
   }
- catch (  SQLException sqle) {
-    throw getFactory().getSQLExceptionHelper().convert(sqle,"unable to select generated column values",selectionSQL);
+ catch (  SQLException e) {
+    throw getFactory().getSQLExceptionHelper().convert(e,"unable to select generated column values",selectionSQL);
   }
 }

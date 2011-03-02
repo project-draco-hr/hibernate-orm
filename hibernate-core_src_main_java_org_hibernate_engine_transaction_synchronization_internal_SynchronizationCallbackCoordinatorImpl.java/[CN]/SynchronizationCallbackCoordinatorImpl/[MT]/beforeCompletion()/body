@@ -1,0 +1,26 @@
+{
+  log.trace("transaction before completion callback");
+  boolean flush;
+  try {
+    final int status=transactionCoordinator.getTransactionContext().getTransactionEnvironment().getJtaPlatform().getCurrentStatus();
+    flush=managedFlushChecker.shouldDoManagedFlush(transactionCoordinator,status);
+  }
+ catch (  SystemException se) {
+    setRollbackOnly();
+    throw exceptionMapper.mapStatusCheckFailure("could not determine transaction status in beforeCompletion()",se);
+  }
+  try {
+    if (flush) {
+      log.trace("automatically flushing session");
+      transactionCoordinator.getTransactionContext().managedFlush();
+    }
+  }
+ catch (  RuntimeException re) {
+    setRollbackOnly();
+    throw exceptionMapper.mapManagedFlushFailure("error during managed flush",re);
+  }
+ finally {
+    transactionCoordinator.sendBeforeTransactionCompletionNotifications(null);
+    transactionCoordinator.getTransactionContext().beforeTransactionCompletion(null);
+  }
+}

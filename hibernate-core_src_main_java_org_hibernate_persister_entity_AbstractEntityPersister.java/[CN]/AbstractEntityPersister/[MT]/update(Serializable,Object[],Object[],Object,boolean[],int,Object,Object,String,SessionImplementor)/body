@@ -1,8 +1,11 @@
 {
-  final boolean useVersion=j == 0 && isVersioned();
   final Expectation expectation=Expectations.appropriateExpectation(updateResultCheckStyles[j]);
-  final boolean callable=isUpdateCallable(j);
   final boolean useBatch=j == 0 && expectation.canBeBatched() && isBatchable();
+  if (useBatch && updateBatchKey == null) {
+    updateBatchKey=new BasicBatchKey(getEntityName() + "#UPDATE",expectation);
+  }
+  final boolean callable=isUpdateCallable(j);
+  final boolean useVersion=j == 0 && isVersioned();
   if (log.isTraceEnabled()) {
     log.trace("Updating entity: " + MessageHelper.infoString(this,id,getFactory()));
     if (useVersion) {
@@ -13,10 +16,10 @@
     int index=1;
     final PreparedStatement update;
     if (useBatch) {
-      update=session.getJDBCContext().getConnectionManager().prepareBatchStatement(this,sql,callable);
+      update=session.getTransactionCoordinator().getJdbcCoordinator().getBatch(updateBatchKey).getBatchStatement(sql,callable);
     }
  else {
-      update=session.getJDBCContext().getConnectionManager().prepareStatement(sql,callable);
+      update=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,callable);
     }
     try {
       index+=expectation.prepare(update);
@@ -40,18 +43,18 @@
         }
       }
       if (useBatch) {
-        session.getJDBCContext().getConnectionManager().addToBatch(this,sql,expectation);
+        session.getTransactionCoordinator().getJdbcCoordinator().getBatch(updateBatchKey).addToBatch();
         return true;
       }
  else {
         return check(update.executeUpdate(),id,j,expectation,update);
       }
     }
- catch (    SQLException sqle) {
+ catch (    SQLException e) {
       if (useBatch) {
-        session.getJDBCContext().getConnectionManager().abortBatch();
+        session.getTransactionCoordinator().getJdbcCoordinator().abortBatch();
       }
-      throw sqle;
+      throw e;
     }
  finally {
       if (!useBatch) {
@@ -59,7 +62,7 @@
       }
     }
   }
- catch (  SQLException sqle) {
-    throw getFactory().getSQLExceptionHelper().convert(sqle,"could not update: " + MessageHelper.infoString(this,id,getFactory()),sql);
+ catch (  SQLException e) {
+    throw getFactory().getSQLExceptionHelper().convert(e,"could not update: " + MessageHelper.infoString(this,id,getFactory()),sql);
   }
 }

@@ -1,0 +1,65 @@
+{
+  final TransactionContext transactionContext=new TransactionContextImpl(new TransactionEnvironmentImpl(serviceRegistry));
+  TransactionCoordinatorImpl transactionCoordinator=new TransactionCoordinatorImpl(null,transactionContext);
+  JournalingTransactionObserver observer=new JournalingTransactionObserver();
+  transactionCoordinator.addObserver(observer);
+  LogicalConnectionImplementor logicalConnection=transactionCoordinator.getJdbcCoordinator().getLogicalConnection();
+  Connection connection=logicalConnection.getShareableConnectionProxy();
+  try {
+    Statement statement=connection.createStatement();
+    statement.execute("drop table SANDBOX_JDBC_TST if exists");
+    statement.execute("create table SANDBOX_JDBC_TST ( ID integer, NAME varchar(100) )");
+    assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    assertTrue(logicalConnection.isPhysicallyConnected());
+    statement.close();
+    assertFalse(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    assertFalse(logicalConnection.isPhysicallyConnected());
+  }
+ catch (  SQLException sqle) {
+    fail("incorrect exception type : SQLException");
+  }
+  TransactionImplementor txn=transactionCoordinator.getTransaction();
+  txn.begin();
+  assertEquals(1,observer.getBegins());
+  assertTrue(txn.isInitiator());
+  try {
+    PreparedStatement ps=connection.prepareStatement("insert into SANDBOX_JDBC_TST( ID, NAME ) values ( ?, ? )");
+    ps.setLong(1,1);
+    ps.setString(2,"name");
+    ps.execute();
+    assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    ps.close();
+    assertFalse(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    ps=connection.prepareStatement("select * from SANDBOX_JDBC_TST");
+    ps.executeQuery();
+    connection.prepareStatement("delete from SANDBOX_JDBC_TST").execute();
+    assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    assertTrue(logicalConnection.isPhysicallyConnected());
+    txn.commit();
+    assertFalse(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    assertFalse(logicalConnection.isPhysicallyConnected());
+    assertEquals(1,observer.getBeforeCompletions());
+    assertEquals(1,observer.getAfterCompletions());
+  }
+ catch (  SQLException sqle) {
+    try {
+      JtaPlatform instance=((ServiceProxy)serviceRegistry.getService(JtaPlatform.class)).getTargetInstance();
+      instance.retrieveTransactionManager().rollback();
+    }
+ catch (    Exception ignore) {
+    }
+    fail("incorrect exception type : SQLException");
+  }
+catch (  Throwable reThrowable) {
+    try {
+      JtaPlatform instance=((ServiceProxy)serviceRegistry.getService(JtaPlatform.class)).getTargetInstance();
+      instance.retrieveTransactionManager().rollback();
+    }
+ catch (    Exception ignore) {
+    }
+    throw reThrowable;
+  }
+ finally {
+    logicalConnection.close();
+  }
+}
