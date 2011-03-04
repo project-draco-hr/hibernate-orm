@@ -3,7 +3,7 @@
     log.trace("Getting current persistent state for: " + MessageHelper.infoString(this,id,getFactory()));
   }
   try {
-    PreparedStatement ps=session.getJDBCContext().getConnectionManager().prepareSelectStatement(getSQLSnapshotSelectString());
+    PreparedStatement ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(getSQLSnapshotSelectString());
     try {
       getIdentifierType().nullSafeSet(ps,id,1,session);
       ResultSet rs=ps.executeQuery();
@@ -29,7 +29,7 @@
       ps.close();
     }
   }
- catch (  SQLException sqle) {
-    throw getFactory().getSQLExceptionHelper().convert(sqle,"could not retrieve snapshot: " + MessageHelper.infoString(this,id,getFactory()),getSQLSnapshotSelectString());
+ catch (  SQLException e) {
+    throw getFactory().getSQLExceptionHelper().convert(e,"could not retrieve snapshot: " + MessageHelper.infoString(this,id,getFactory()),getSQLSnapshotSelectString());
   }
 }

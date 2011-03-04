@@ -1,5 +1,6 @@
 {
-  TransactionManager transactionManager=factory.getTransactionManager();
+  final JtaPlatform jtaPlatform=factory.getServiceRegistry().getService(JtaPlatform.class);
+  final TransactionManager transactionManager=jtaPlatform.retrieveTransactionManager();
   if (transactionManager == null) {
     throw new HibernateException("No TransactionManagerLookup specified");
   }
@@ -9,7 +10,7 @@
     if (txn == null) {
       throw new HibernateException("Unable to locate current JTA transaction");
     }
-    if (!JTAHelper.isInProgress(txn.getStatus())) {
+    if (!JtaStatusHelper.isActive(txn.getStatus())) {
       throw new HibernateException("Current transaction is not in progress");
     }
   }
@@ -19,7 +20,7 @@
 catch (  Throwable t) {
     throw new HibernateException("Problem locating/validating JTA transaction",t);
   }
-  final Object txnIdentifier=factory.getSettings().getTransactionManagerLookup() == null ? txn : factory.getSettings().getTransactionManagerLookup().getTransactionIdentifier(txn);
+  final Object txnIdentifier=jtaPlatform.getTransactionIdentifier(txn);
   Session currentSession=(Session)currentSessionMap.get(txnIdentifier);
   if (currentSession == null) {
     currentSession=buildOrObtainSession();

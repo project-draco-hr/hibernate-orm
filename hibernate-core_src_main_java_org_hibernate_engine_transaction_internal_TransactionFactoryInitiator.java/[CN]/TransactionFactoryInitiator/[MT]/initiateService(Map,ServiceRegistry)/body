@@ -1,0 +1,19 @@
+{
+  final Object strategy=configVales.get(Environment.TRANSACTION_STRATEGY);
+  if (TransactionFactory.class.isInstance(strategy)) {
+    return (TransactionFactory)strategy;
+  }
+  if (strategy == null) {
+    log.info("Using default transaction strategy (direct JDBC transactions)");
+    return new JdbcTransactionFactory();
+  }
+  final String strategyClassName=mapLegacyNames(strategy.toString());
+  log.info("Transaction strategy: " + strategyClassName);
+  ClassLoaderService classLoaderService=registry.getService(ClassLoaderService.class);
+  try {
+    return (TransactionFactory)classLoaderService.classForName(strategyClassName).newInstance();
+  }
+ catch (  Exception e) {
+    throw new HibernateException("Unable to instantiate specified TransactionFactory class [" + strategyClassName + "]",e);
+  }
+}

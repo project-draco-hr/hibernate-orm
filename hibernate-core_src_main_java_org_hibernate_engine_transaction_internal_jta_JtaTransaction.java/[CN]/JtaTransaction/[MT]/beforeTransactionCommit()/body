@@ -1,0 +1,11 @@
+{
+  transactionCoordinator().sendBeforeTransactionCompletionNotifications(this);
+  final boolean flush=!transactionCoordinator().getTransactionContext().isFlushModeNever() && (isDriver || !transactionCoordinator().getTransactionContext().isFlushBeforeCompletionEnabled());
+  if (flush) {
+    transactionCoordinator().getTransactionContext().managedFlush();
+  }
+  if (isDriver && isInitiator) {
+    transactionCoordinator().getTransactionContext().beforeTransactionCompletion(this);
+  }
+  closeIfRequired();
+}

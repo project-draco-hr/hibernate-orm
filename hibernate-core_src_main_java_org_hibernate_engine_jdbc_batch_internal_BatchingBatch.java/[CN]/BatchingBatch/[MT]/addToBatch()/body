@@ -1,0 +1,19 @@
+{
+  try {
+    currentStatement.addBatch();
+  }
+ catch (  SQLException e) {
+    log.debug("sqlexception escaped proxy",e);
+    throw sqlExceptionHelper().convert(e,"could not perform addBatch",currentStatementSql);
+  }
+  statementPosition++;
+  if (statementPosition >= getKey().getBatchedStatementCount()) {
+    batchPosition++;
+    if (batchPosition == batchSize) {
+      notifyObserversImplicitExecution();
+      performExecution();
+      batchPosition=0;
+    }
+    statementPosition=0;
+  }
+}

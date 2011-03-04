@@ -11,16 +11,19 @@
       boolean useBatch=expectation.canBeBatched();
       String sql=getSQLDeleteString();
       if (useBatch) {
-        st=session.getJDBCContext().getConnectionManager().prepareBatchStatement(this,sql,callable);
+        if (removeBatchKey == null) {
+          removeBatchKey=new BasicBatchKey(getRole() + "#REMOVE",expectation);
+        }
+        st=session.getTransactionCoordinator().getJdbcCoordinator().getBatch(removeBatchKey).getBatchStatement(sql,callable);
       }
  else {
-        st=session.getJDBCContext().getConnectionManager().prepareStatement(sql,callable);
+        st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,callable);
       }
       try {
         offset+=expectation.prepare(st);
         writeKey(st,id,offset,session);
         if (useBatch) {
-          session.getJDBCContext().getConnectionManager().addToBatch(this,sql,expectation);
+          session.getTransactionCoordinator().getJdbcCoordinator().getBatch(removeBatchKey).addToBatch();
         }
  else {
           expectation.verifyOutcome(st.executeUpdate(),st,-1);
@@ -28,7 +31,7 @@
       }
  catch (      SQLException sqle) {
         if (useBatch) {
-          session.getJDBCContext().getConnectionManager().abortBatch();
+          session.getTransactionCoordinator().getJdbcCoordinator().abortBatch();
         }
         throw sqle;
       }
