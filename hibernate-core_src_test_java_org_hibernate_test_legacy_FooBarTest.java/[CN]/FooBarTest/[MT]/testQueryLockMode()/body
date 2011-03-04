@@ -16,8 +16,6 @@
   Object b=result[0];
   assertTrue(s.getCurrentLockMode(b) == LockMode.WRITE && s.getCurrentLockMode(result[1]) == LockMode.WRITE);
   tx.commit();
-  s.disconnect();
-  s.reconnect();
   tx=s.beginTransaction();
   assertTrue(s.getCurrentLockMode(b) == LockMode.NONE);
   s.createQuery("from Foo foo").list();
@@ -28,8 +26,6 @@
   assertTrue(s.getCurrentLockMode(b) == LockMode.READ);
   s.evict(baz);
   tx.commit();
-  s.disconnect();
-  s.reconnect();
   tx=s.beginTransaction();
   assertTrue(s.getCurrentLockMode(b) == LockMode.NONE);
   s.delete(s.load(Baz.class,baz.getCode()));
