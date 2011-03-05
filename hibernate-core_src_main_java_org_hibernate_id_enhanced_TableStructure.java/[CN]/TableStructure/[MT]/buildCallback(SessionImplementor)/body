@@ -1,7 +1,54 @@
 {
   return new AccessCallback(){
-    public IntegralDataTypeHolder getNextValue(){
-      return (IntegralDataTypeHolder)doWorkInNewTransaction(session);
+    @Override public IntegralDataTypeHolder getNextValue(){
+      return session.getTransactionCoordinator().getTransaction().createIsolationDelegate().delegateWork(new ReturningWork<IntegralDataTypeHolder>(){
+        @Override public IntegralDataTypeHolder execute(        Connection connection) throws SQLException {
+          final SQLStatementLogger statementLogger=session.getFactory().getServiceRegistry().getService(JdbcServices.class).getSqlStatementLogger();
+          IntegralDataTypeHolder value=IdentifierGeneratorHelper.getIntegralDataTypeHolder(numberType);
+          int rows;
+          do {
+            statementLogger.logStatement(selectQuery,FormatStyle.BASIC.getFormatter());
+            PreparedStatement selectStatement=connection.prepareStatement(selectQuery);
+            try {
+              ResultSet selectRS=selectStatement.executeQuery();
+              if (!selectRS.next()) {
+                String err="could not read a hi value - you need to populate the table: " + tableName;
+                log.error(err);
+                throw new IdentifierGenerationException(err);
+              }
+              value.initialize(selectRS,1);
+              selectRS.close();
+            }
+ catch (            SQLException sqle) {
+              log.error("could not read a hi value",sqle);
+              throw sqle;
+            }
+ finally {
+              selectStatement.close();
+            }
+            statementLogger.logStatement(updateQuery,FormatStyle.BASIC.getFormatter());
+            PreparedStatement updatePS=connection.prepareStatement(updateQuery);
+            try {
+              final int increment=applyIncrementSizeToSourceValues ? incrementSize : 1;
+              final IntegralDataTypeHolder updateValue=value.copy().add(increment);
+              updateValue.bind(updatePS,1);
+              value.bind(updatePS,2);
+              rows=updatePS.executeUpdate();
+            }
+ catch (            SQLException e) {
+              log.error("could not updateQuery hi value in: " + tableName,e);
+              throw e;
+            }
+ finally {
+              updatePS.close();
+            }
+          }
+ while (rows == 0);
+          accessCounter++;
+          return value;
+        }
+      }
+,true);
     }
   }
 ;
