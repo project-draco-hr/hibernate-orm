@@ -1,7 +1,8 @@
 {
   SessionFactoryImplementor sfi=(SessionFactoryImplementor)getEntityManagerFactory().getSessionFactory();
+  TransactionManager tm=sfi.getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager();
   Session s;
-  if (!JTAHelper.isTransactionInProgress(sfi)) {
+  if (!JtaStatusHelper.isActive(tm)) {
     s=sfi.openTemporarySession();
     ((SessionImplementor)s).setAutoClear(true);
   }
