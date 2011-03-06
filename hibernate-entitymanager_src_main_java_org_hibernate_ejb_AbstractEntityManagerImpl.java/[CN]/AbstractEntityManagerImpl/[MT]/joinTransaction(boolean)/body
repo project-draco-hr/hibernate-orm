@@ -6,13 +6,15 @@
     return;
   }
   final SessionImplementor session=(SessionImplementor)getSession();
-  session.getTransactionCoordinator().pulse();
+  final TransactionCoordinator transactionCoordinator=session.getTransactionCoordinator();
+  final TransactionImplementor transaction=transactionCoordinator.getTransaction();
+  transaction.markForJoin();
+  transactionCoordinator.pulse();
   log.debug("Looking for a JTA transaction to join");
-  if (!session.getTransactionCoordinator().isTransactionJoinable()) {
+  if (!transactionCoordinator.isTransactionJoinable()) {
     log.warn("Cannot join transaction: do not override {}",Environment.TRANSACTION_STRATEGY);
   }
   try {
-    final TransactionImplementor transaction=session.getTransactionCoordinator().getTransaction();
     if (transaction.getJoinStatus() == JoinStatus.JOINED) {
       log.debug("Transaction already joined");
       return;
@@ -30,7 +32,7 @@
  else     if (transaction.getJoinStatus() == JoinStatus.MARKED_FOR_JOINED) {
       throw new AssertionFailure("Transaction MARKED_FOR_JOINED after isOpen() call");
     }
-    SynchronizationCallbackCoordinator callbackCoordinator=session.getTransactionCoordinator().getSynchronizationCallbackCoordinator();
+    SynchronizationCallbackCoordinator callbackCoordinator=transactionCoordinator.getSynchronizationCallbackCoordinator();
     callbackCoordinator.setManagedFlushChecker(new ManagedFlushCheckerImpl());
     callbackCoordinator.setExceptionMapper(new CallbackExceptionMapperImpl());
     callbackCoordinator.setAfterCompletionAction(new AfterCompletionActionImpl(session,transactionType));
