@@ -1,0 +1,25 @@
+{
+  TestClassCallbackMetadata callbackMetadata=new TestClassCallbackMetadata(getTestClass().getJavaClass());
+  final List<FrameworkMethod> methods=super.computeTestMethods();
+  final List<FrameworkMethod> result=new ArrayList<FrameworkMethod>();
+  final boolean doValidation=Boolean.getBoolean(Helper.VALIDATE_FAILURE_EXPECTED);
+  int testCount=0;
+  for (  FrameworkMethod frameworkMethod : methods) {
+    final FailureExpected failureExpected=Helper.locateFailureExpectedAnnotation(frameworkMethod);
+    if (failureExpected != null && !doValidation) {
+      log.info(Helper.extractIgnoreMessage(failureExpected,frameworkMethod));
+      continue;
+    }
+    final Skip skip=Helper.locateSkipAnnotation(frameworkMethod);
+    if (skip != null) {
+      if (isMatch(skip.condition())) {
+        log.info(Helper.extractIgnoreMessage(skip,frameworkMethod));
+        continue;
+      }
+    }
+    testCount++;
+    log.trace("adding test " + Helper.extractTestName(frameworkMethod) + " [#"+ testCount+ "]");
+    result.add(new ExtendedFrameworkMethod(frameworkMethod,failureExpected,callbackMetadata,this));
+  }
+  return result;
+}

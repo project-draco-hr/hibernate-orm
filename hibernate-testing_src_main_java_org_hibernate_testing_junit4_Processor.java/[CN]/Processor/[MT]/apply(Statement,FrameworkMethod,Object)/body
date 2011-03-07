@@ -1,0 +1,43 @@
+{
+  log.trace("Preparing to start test {}",Helper.extractTestName(frameworkMethod));
+  if (!ExtendedFrameworkMethod.class.isInstance(frameworkMethod)) {
+    throw new IllegalStateException("Use of " + getClass().getName() + " only supported in combination with use of "+ CustomRunner.class.getName());
+  }
+  final ExtendedFrameworkMethod extendedFrameworkMethod=(ExtendedFrameworkMethod)frameworkMethod;
+  runPosition++;
+  final boolean isFirst=runPosition == 1;
+  final boolean isLast=runPosition > extendedFrameworkMethod.getUnitRunner().getNumberOfComputedTestMethods();
+  final FailureExpected failureExpected=extendedFrameworkMethod.getFailureExpectedAnnotation();
+  return new Statement(){
+    @Override public void evaluate() throws Throwable {
+      if (isFirst) {
+        extendedFrameworkMethod.getCallbackMetadata().performBeforeClassCallbacks(target);
+      }
+      try {
+        statement.evaluate();
+        if (failureExpected != null) {
+          throw new FailureExpectedTestPassedException(extendedFrameworkMethod);
+        }
+      }
+ catch (      FailureExpectedTestPassedException e) {
+        throw e;
+      }
+catch (      Throwable e) {
+        if (failureExpected != null) {
+          log.info("Ignoring expected failure [{}] : {}",Helper.extractTestName(frameworkMethod),Helper.extractMessage(failureExpected));
+          extendedFrameworkMethod.getCallbackMetadata().performOnExpectedFailureCallback(target);
+        }
+ else {
+          extendedFrameworkMethod.getCallbackMetadata().performOnFailureCallback(target);
+          throw e;
+        }
+      }
+ finally {
+        if (isLast) {
+          extendedFrameworkMethod.getCallbackMetadata().performAfterClassCallbacks(target);
+        }
+      }
+    }
+  }
+;
+}

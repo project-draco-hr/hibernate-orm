@@ -1,0 +1,20 @@
+{
+  onFailureCount=0;
+  String original=System.getProperty(Helper.VALIDATE_FAILURE_EXPECTED);
+  System.setProperty(Helper.VALIDATE_FAILURE_EXPECTED,"true");
+  try {
+    Result result=JUnitCore.runClasses(FixtureTests.class);
+    assertEquals(5,result.getRunCount());
+    assertEquals(3,result.getFailureCount());
+    assertEquals(3,onFailureCount);
+    assertEquals(0,result.getIgnoreCount());
+  }
+  finally {
+    if (original == null) {
+      System.getProperties().remove(Helper.VALIDATE_FAILURE_EXPECTED);
+    }
+ else {
+      System.setProperty(Helper.VALIDATE_FAILURE_EXPECTED,original);
+    }
+  }
+}
