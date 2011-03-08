@@ -2,6 +2,7 @@
   if (!isInverse && isRowDeleteEnabled()) {
     if (LOG.isDebugEnabled())     LOG.debugf("Deleting rows of collection: %s",MessageHelper.collectionInfoString(this,id,getFactory()));
     boolean deleteByIndex=!isOneToMany() && hasIndex && !indexContainsFormula;
+    final Expectation expectation=Expectations.appropriateExpectation(getDeleteCheckStyle());
     try {
       Iterator deletes=collection.getDeletes(this,!deleteByIndex);
       if (deletes.hasNext()) {
@@ -9,15 +10,17 @@
         int count=0;
         while (deletes.hasNext()) {
           PreparedStatement st=null;
-          Expectation expectation=Expectations.appropriateExpectation(getDeleteCheckStyle());
           boolean callable=isDeleteCallable();
           boolean useBatch=expectation.canBeBatched();
           String sql=getSQLDeleteRowString();
           if (useBatch) {
-            st=session.getJDBCContext().getConnectionManager().prepareBatchStatement(this,sql,callable);
+            if (deleteBatchKey == null) {
+              deleteBatchKey=new BasicBatchKey(getRole() + "#DELETE",expectation);
+            }
+            st=session.getTransactionCoordinator().getJdbcCoordinator().getBatch(deleteBatchKey).getBatchStatement(sql,callable);
           }
  else {
-            st=session.getJDBCContext().getConnectionManager().prepareStatement(sql,callable);
+            st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,callable);
           }
           try {
             expectation.prepare(st);
@@ -36,7 +39,7 @@
               }
             }
             if (useBatch) {
-              session.getJDBCContext().getConnectionManager().addToBatch(this,sql,expectation);
+              session.getTransactionCoordinator().getJdbcCoordinator().getBatch(deleteBatchKey).addToBatch();
             }
  else {
               expectation.verifyOutcome(st.executeUpdate(),st,-1);
@@ -45,7 +48,7 @@
           }
  catch (          SQLException sqle) {
             if (useBatch) {
-              session.getJDBCContext().getConnectionManager().abortBatch();
+              session.getTransactionCoordinator().getJdbcCoordinator().abortBatch();
             }
             throw sqle;
           }

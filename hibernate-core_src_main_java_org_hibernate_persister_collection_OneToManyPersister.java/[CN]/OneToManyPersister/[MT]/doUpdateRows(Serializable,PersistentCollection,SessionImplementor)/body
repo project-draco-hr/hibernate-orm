@@ -2,46 +2,44 @@
   try {
     int count=0;
     if (isRowDeleteEnabled()) {
-      boolean useBatch=true;
+      final Expectation deleteExpectation=Expectations.appropriateExpectation(getDeleteCheckStyle());
+      final boolean useBatch=deleteExpectation.canBeBatched();
+      if (useBatch && deleteRowBatchKey == null) {
+        deleteRowBatchKey=new BasicBatchKey(getRole() + "#DELETEROW",deleteExpectation);
+      }
+      final String sql=getSQLDeleteRowString();
       PreparedStatement st=null;
       try {
         int i=0;
         Iterator entries=collection.entries(this);
         int offset=1;
-        Expectation expectation=Expectations.NONE;
         while (entries.hasNext()) {
           Object entry=entries.next();
           if (collection.needsUpdating(entry,i,elementType)) {
-            String sql=getSQLDeleteRowString();
-            if (st == null) {
-              if (isDeleteCallable()) {
-                expectation=Expectations.appropriateExpectation(getDeleteCheckStyle());
-                useBatch=expectation.canBeBatched();
-                st=useBatch ? session.getJDBCContext().getConnectionManager().prepareBatchStatement(this,sql,true) : session.getJDBCContext().getConnectionManager().prepareStatement(sql,true);
-                offset+=expectation.prepare(st);
-              }
+            if (useBatch) {
+              st=session.getTransactionCoordinator().getJdbcCoordinator().getBatch(deleteRowBatchKey).getBatchStatement(sql,isDeleteCallable());
+            }
  else {
-                st=session.getJDBCContext().getConnectionManager().prepareBatchStatement(this,sql,false);
-              }
+              st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,isDeleteCallable());
             }
             int loc=writeKey(st,id,offset,session);
             writeElementToWhere(st,collection.getSnapshotElement(entry,i),loc,session);
             if (useBatch) {
-              session.getJDBCContext().getConnectionManager().addToBatch(this,sql,expectation);
+              session.getTransactionCoordinator().getJdbcCoordinator().getBatch(deleteRowBatchKey).addToBatch();
             }
  else {
-              expectation.verifyOutcome(st.executeUpdate(),st,-1);
+              deleteExpectation.verifyOutcome(st.executeUpdate(),st,-1);
             }
             count++;
           }
           i++;
         }
       }
- catch (      SQLException sqle) {
+ catch (      SQLException e) {
         if (useBatch) {
-          session.getJDBCContext().getConnectionManager().abortBatch();
+          session.getTransactionCoordinator().getJdbcCoordinator().abortBatch();
         }
-        throw sqle;
+        throw e;
       }
  finally {
         if (!useBatch) {
@@ -50,10 +48,13 @@
       }
     }
     if (isRowInsertEnabled()) {
-      Expectation expectation=Expectations.appropriateExpectation(getInsertCheckStyle());
+      final Expectation insertExpectation=Expectations.appropriateExpectation(getInsertCheckStyle());
+      boolean useBatch=insertExpectation.canBeBatched();
       boolean callable=isInsertCallable();
-      boolean useBatch=expectation.canBeBatched();
-      String sql=getSQLInsertRowString();
+      if (useBatch && insertRowBatchKey == null) {
+        insertRowBatchKey=new BasicBatchKey(getRole() + "#INSERTROW",insertExpectation);
+      }
+      final String sql=getSQLInsertRowString();
       PreparedStatement st=null;
       try {
         int i=0;
@@ -63,24 +64,22 @@
           int offset=1;
           if (collection.needsUpdating(entry,i,elementType)) {
             if (useBatch) {
-              if (st == null) {
-                st=session.getJDBCContext().getConnectionManager().prepareBatchStatement(this,sql,callable);
-              }
+              st=session.getTransactionCoordinator().getJdbcCoordinator().getBatch(insertRowBatchKey).getBatchStatement(sql,callable);
             }
  else {
-              st=session.getJDBCContext().getConnectionManager().prepareStatement(sql,callable);
+              st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,callable);
             }
-            offset+=expectation.prepare(st);
+            offset+=insertExpectation.prepare(st);
             int loc=writeKey(st,id,offset,session);
             if (hasIndex && !indexContainsFormula) {
               loc=writeIndexToWhere(st,collection.getIndex(entry,i,this),loc,session);
             }
             writeElementToWhere(st,collection.getElement(entry),loc,session);
             if (useBatch) {
-              session.getJDBCContext().getConnectionManager().addToBatch(this,sql,expectation);
+              session.getTransactionCoordinator().getJdbcCoordinator().getBatch(insertRowBatchKey).addToBatch();
             }
  else {
-              expectation.verifyOutcome(st.executeUpdate(),st,-1);
+              insertExpectation.verifyOutcome(st.executeUpdate(),st,-1);
             }
             count++;
           }
@@ -89,7 +88,7 @@
       }
  catch (      SQLException sqle) {
         if (useBatch) {
-          session.getJDBCContext().getConnectionManager().abortBatch();
+          session.getTransactionCoordinator().getJdbcCoordinator().abortBatch();
         }
         throw sqle;
       }

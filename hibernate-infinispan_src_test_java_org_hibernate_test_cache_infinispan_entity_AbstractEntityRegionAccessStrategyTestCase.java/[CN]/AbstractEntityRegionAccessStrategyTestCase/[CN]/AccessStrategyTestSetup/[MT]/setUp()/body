@@ -3,14 +3,19 @@
     super.tearDown();
   }
   finally {
-    if (preferIPv4Stack == null)     System.clearProperty(PREFER_IPV4STACK);
- else     System.setProperty(PREFER_IPV4STACK,preferIPv4Stack);
+    if (preferIPv4Stack == null) {
+      System.clearProperty(PREFER_IPV4STACK);
+    }
+ else {
+      System.setProperty(PREFER_IPV4STACK,preferIPv4Stack);
+    }
   }
   preferIPv4Stack=System.getProperty(PREFER_IPV4STACK);
   System.setProperty(PREFER_IPV4STACK,"true");
-  serviceRegistry=ServiceRegistryBuilder.buildServiceRegistry(Environment.getProperties());
   localCfg=createConfiguration(configName);
-  localRegionFactory=CacheTestUtil.startRegionFactory(serviceRegistry.getService(JdbcServices.class),localCfg);
+  localServiceRegistry=ServiceRegistryBuilder.buildServiceRegistry(localCfg.getProperties());
+  localRegionFactory=CacheTestUtil.startRegionFactory(localServiceRegistry,localCfg);
   remoteCfg=createConfiguration(configName);
-  remoteRegionFactory=CacheTestUtil.startRegionFactory(serviceRegistry.getService(JdbcServices.class),remoteCfg);
+  remoteServiceRegistry=ServiceRegistryBuilder.buildServiceRegistry(remoteCfg.getProperties());
+  remoteRegionFactory=CacheTestUtil.startRegionFactory(remoteServiceRegistry,remoteCfg);
 }

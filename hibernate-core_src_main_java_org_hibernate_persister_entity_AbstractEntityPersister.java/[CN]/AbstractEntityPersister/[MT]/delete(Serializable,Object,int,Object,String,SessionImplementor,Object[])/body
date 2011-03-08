@@ -6,6 +6,9 @@
   final boolean callable=isDeleteCallable(j);
   final Expectation expectation=Expectations.appropriateExpectation(deleteResultCheckStyles[j]);
   final boolean useBatch=j == 0 && isBatchable() && expectation.canBeBatched();
+  if (useBatch && deleteBatchKey == null) {
+    deleteBatchKey=new BasicBatchKey(getEntityName() + "#DELETE",expectation);
+  }
   if (LOG.isTraceEnabled()) {
     LOG.trace("Deleting entity: " + MessageHelper.infoString(this,id,getFactory()));
     if (useVersion)     LOG.trace("Version: " + version);
@@ -18,10 +21,10 @@
     PreparedStatement delete;
     int index=1;
     if (useBatch) {
-      delete=session.getJDBCContext().getConnectionManager().prepareBatchStatement(this,sql,callable);
+      delete=session.getTransactionCoordinator().getJdbcCoordinator().getBatch(deleteBatchKey).getBatchStatement(sql,callable);
     }
  else {
-      delete=session.getJDBCContext().getConnectionManager().prepareStatement(sql,callable);
+      delete=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,callable);
     }
     try {
       index+=expectation.prepare(delete);
@@ -42,7 +45,7 @@
         }
       }
       if (useBatch) {
-        session.getJDBCContext().getConnectionManager().addToBatch(this,sql,expectation);
+        session.getTransactionCoordinator().getJdbcCoordinator().getBatch(deleteBatchKey).addToBatch();
       }
  else {
         check(delete.executeUpdate(),id,j,expectation,delete);
@@ -50,7 +53,7 @@
     }
  catch (    SQLException sqle) {
       if (useBatch) {
-        session.getJDBCContext().getConnectionManager().abortBatch();
+        session.getTransactionCoordinator().getJdbcCoordinator().abortBatch();
       }
       throw sqle;
     }

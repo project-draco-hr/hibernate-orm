@@ -1,0 +1,19 @@
+{
+  try {
+    Statement statement=connection.createStatement();
+    try {
+      statement.executeUpdate(persister.getTemporaryIdTableDDL());
+      persister.getFactory().getServiceRegistry().getService(JdbcServices.class).getSqlExceptionHelper().handleAndClearWarnings(statement,CREATION_WARNING_HANDLER);
+    }
+  finally {
+      try {
+        statement.close();
+      }
+ catch (      Throwable ignore) {
+      }
+    }
+  }
+ catch (  Exception e) {
+    LOG.debug("unable to create temporary id table [" + e.getMessage() + "]");
+  }
+}

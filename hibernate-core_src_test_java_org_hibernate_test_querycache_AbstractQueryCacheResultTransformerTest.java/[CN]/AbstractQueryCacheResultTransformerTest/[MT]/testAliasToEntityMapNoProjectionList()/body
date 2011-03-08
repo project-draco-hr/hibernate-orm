@@ -1,12 +1,12 @@
 {
   CriteriaExecutor criteriaExecutor=new CriteriaExecutor(){
-    protected Criteria getCriteria(    Session s){
-      return s.createCriteria(Student.class,"s").createAlias("s.enrolments","e",Criteria.LEFT_JOIN).createAlias("e.course","c",Criteria.LEFT_JOIN).setResultTransformer(Criteria.ALIAS_TO_ENTITY_MAP).addOrder(Order.asc("s.studentNumber"));
+    @Override protected Criteria getCriteria(    Session s){
+      return s.createCriteria(Student.class,"s").createAlias("s.enrolments","e",CriteriaSpecification.LEFT_JOIN).createAlias("e.course","c",CriteriaSpecification.LEFT_JOIN).setResultTransformer(CriteriaSpecification.ALIAS_TO_ENTITY_MAP).addOrder(Order.asc("s.studentNumber"));
     }
   }
 ;
   HqlExecutor hqlExecutor=new HqlExecutor(){
-    public Query getQuery(    Session s){
+    @Override public Query getQuery(    Session s){
       return s.createQuery("from Student s left join s.enrolments e left join e.course c order by s.studentNumber").setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
     }
   }

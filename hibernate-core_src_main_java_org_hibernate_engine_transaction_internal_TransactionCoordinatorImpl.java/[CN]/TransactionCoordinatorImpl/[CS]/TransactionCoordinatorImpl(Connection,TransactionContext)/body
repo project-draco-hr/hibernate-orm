@@ -1,0 +1,11 @@
+{
+  this.transactionContext=transactionContext;
+  this.jdbcCoordinator=new JdbcCoordinatorImpl(userSuppliedConnection,this);
+  this.observers=new ArrayList<TransactionObserver>();
+  this.synchronizationRegistry=new SynchronizationRegistryImpl();
+  reset();
+  final boolean registerSynchronization=transactionContext.isAutoCloseSessionEnabled() || transactionContext.isFlushBeforeCompletionEnabled() || transactionContext.getConnectionReleaseMode() == ConnectionReleaseMode.AFTER_TRANSACTION;
+  if (registerSynchronization) {
+    pulse();
+  }
+}

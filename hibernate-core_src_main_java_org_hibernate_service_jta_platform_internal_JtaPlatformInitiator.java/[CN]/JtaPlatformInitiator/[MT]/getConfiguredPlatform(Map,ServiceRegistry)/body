@@ -1,0 +1,12 @@
+{
+  Object platform=configVales.get(JTA_PLATFORM);
+  if (platform == null) {
+    final String transactionManagerLookupImplName=(String)configVales.get(Environment.TRANSACTION_MANAGER_STRATEGY);
+    if (transactionManagerLookupImplName != null) {
+      log.warn("Using deprecated " + TransactionManagerLookup.class.getName() + " strategy ["+ Environment.TRANSACTION_MANAGER_STRATEGY+ "], use newer "+ JtaPlatform.class.getName()+ " strategy instead ["+ JTA_PLATFORM+ "]");
+      platform=mapLegacyClasses(transactionManagerLookupImplName,configVales,registry);
+      log.debug("Mapped {} -> {}",transactionManagerLookupImplName,platform);
+    }
+  }
+  return platform;
+}

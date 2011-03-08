@@ -1,0 +1,24 @@
+{
+  try {
+    if (transaction != null) {
+      UserTransaction ut=transaction.getUserTransaction();
+      if (ut != null) {
+        return JtaStatusHelper.isActive(ut);
+      }
+    }
+    final JtaPlatform jtaPlatform=transactionCoordinator.getTransactionContext().getTransactionEnvironment().getJtaPlatform();
+    if (jtaPlatform == null) {
+      throw new TransactionException("Unable to check transaction status");
+    }
+    if (jtaPlatform.retrieveTransactionManager() != null) {
+      return JtaStatusHelper.isActive(jtaPlatform.retrieveTransactionManager().getStatus());
+    }
+ else {
+      final UserTransaction ut=jtaPlatform.retrieveUserTransaction();
+      return ut != null && JtaStatusHelper.isActive(ut);
+    }
+  }
+ catch (  SystemException se) {
+    throw new TransactionException("Unable to check transaction status",se);
+  }
+}

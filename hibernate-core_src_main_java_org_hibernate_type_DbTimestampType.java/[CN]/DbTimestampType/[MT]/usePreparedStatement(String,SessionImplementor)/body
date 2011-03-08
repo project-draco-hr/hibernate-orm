@@ -1,15 +1,15 @@
 {
   PreparedStatement ps=null;
   try {
-    ps=session.getJDBCContext().getConnectionManager().prepareStatement(timestampSelectString,false);
+    ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(timestampSelectString,false);
     ResultSet rs=ps.executeQuery();
     rs.next();
     Timestamp ts=rs.getTimestamp(1);
     LOG.trace("Current timestamp retreived from db : " + ts + " (nanos="+ ts.getNanos()+ ", time="+ ts.getTime()+ ")");
     return ts;
   }
- catch (  SQLException sqle) {
-    throw session.getFactory().getSQLExceptionHelper().convert(sqle,"could not select current db timestamp",timestampSelectString);
+ catch (  SQLException e) {
+    throw session.getFactory().getSQLExceptionHelper().convert(e,"could not select current db timestamp",timestampSelectString);
   }
  finally {
     if (ps != null) {

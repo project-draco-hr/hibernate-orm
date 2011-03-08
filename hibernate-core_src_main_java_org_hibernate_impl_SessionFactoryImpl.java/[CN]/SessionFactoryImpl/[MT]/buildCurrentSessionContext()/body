@@ -1,13 +1,17 @@
 {
   String impl=properties.getProperty(Environment.CURRENT_SESSION_CONTEXT_CLASS);
-  if (impl == null && transactionManager != null) {
-    impl="jta";
-  }
   if (impl == null) {
-    return null;
+    if (canAccessTransactionManager()) {
+      impl="jta";
+    }
+ else {
+      return null;
+    }
   }
- else   if ("jta".equals(impl)) {
-    if (settings.getTransactionFactory().areCallbacksLocalToHibernateTransactions())     LOG.autoFlushWillNotWork();
+  if ("jta".equals(impl)) {
+    if (!transactionFactory().compatibleWithJtaSynchronization()) {
+      LOG.autoFlushWillNotWork();
+    }
     return new JTASessionContext(this);
   }
  else   if ("thread".equals(impl)) {
@@ -19,7 +23,7 @@
  else {
     try {
       Class implClass=ReflectHelper.classForName(impl);
-      return (CurrentSessionContext)implClass.getConstructor(new Class[]{SessionFactoryImplementor.class}).newInstance(new Object[]{this});
+      return (CurrentSessionContext)implClass.getConstructor(new Class[]{SessionFactoryImplementor.class}).newInstance(this);
     }
  catch (    Throwable t) {
       LOG.unableToConstructCurrentSessionContext(impl,t);

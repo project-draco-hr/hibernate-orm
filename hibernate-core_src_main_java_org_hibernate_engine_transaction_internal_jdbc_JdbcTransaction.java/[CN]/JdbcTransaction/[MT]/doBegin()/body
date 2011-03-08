@@ -1,0 +1,20 @@
+{
+  try {
+    if (managedConnection != null) {
+      throw new TransactionException("Already have an associated managed connection");
+    }
+    managedConnection=transactionCoordinator().getJdbcCoordinator().getLogicalConnection().getConnection();
+    wasInitiallyAutoCommit=managedConnection.getAutoCommit();
+    if (log.isDebugEnabled()) {
+      log.debug("initial autocommit status: " + wasInitiallyAutoCommit);
+    }
+    if (wasInitiallyAutoCommit) {
+      log.debug("disabling autocommit");
+      managedConnection.setAutoCommit(false);
+    }
+  }
+ catch (  SQLException e) {
+    throw new TransactionException("JDBC begin transaction failed: ",e);
+  }
+  isDriver=transactionCoordinator().takeOwnership();
+}

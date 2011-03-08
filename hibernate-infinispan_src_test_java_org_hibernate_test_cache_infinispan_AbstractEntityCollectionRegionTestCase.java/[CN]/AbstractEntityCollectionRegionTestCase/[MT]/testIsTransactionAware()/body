@@ -1,12 +1,12 @@
 {
   Configuration cfg=CacheTestUtil.buildConfiguration("test",InfinispanRegionFactory.class,true,false);
-  InfinispanRegionFactory regionFactory=CacheTestUtil.startRegionFactory(getJdbcServices(),cfg,getCacheTestSupport());
+  InfinispanRegionFactory regionFactory=CacheTestUtil.startRegionFactory(ServiceRegistryBuilder.buildServiceRegistry(cfg.getProperties()),cfg,getCacheTestSupport());
   TransactionalDataRegion region=(TransactionalDataRegion)createRegion(regionFactory,"test/test",cfg.getProperties(),getCacheDataDescription());
   assertTrue("Region is transaction-aware",region.isTransactionAware());
   CacheTestUtil.stopRegionFactory(regionFactory,getCacheTestSupport());
   cfg=CacheTestUtil.buildConfiguration("test",InfinispanRegionFactory.class,true,false);
-  cfg.getProperties().remove(Environment.TRANSACTION_MANAGER_STRATEGY);
-  regionFactory=CacheTestUtil.startRegionFactory(getJdbcServices(),cfg,getCacheTestSupport());
+  cfg.getProperties().remove(JtaPlatformInitiator.JTA_PLATFORM);
+  regionFactory=CacheTestUtil.startRegionFactory(ServiceRegistryBuilder.buildServiceRegistry(cfg.getProperties()),cfg,getCacheTestSupport());
   region=(TransactionalDataRegion)createRegion(regionFactory,"test/test",cfg.getProperties(),getCacheDataDescription());
   assertFalse("Region is not transaction-aware",region.isTransactionAware());
   CacheTestUtil.stopRegionFactory(regionFactory,getCacheTestSupport());

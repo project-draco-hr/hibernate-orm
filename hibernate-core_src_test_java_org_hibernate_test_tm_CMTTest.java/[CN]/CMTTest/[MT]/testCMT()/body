@@ -1,28 +1,28 @@
 {
   getSessions().getStatistics().clear();
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
   Session s=openSession();
-  SimpleJtaTransactionManagerImpl.getInstance().getTransaction().commit();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().commit();
   assertFalse(s.isOpen());
   assertEquals(getSessions().getStatistics().getFlushCount(),0);
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
   s=openSession();
-  SimpleJtaTransactionManagerImpl.getInstance().getTransaction().rollback();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().rollback();
   assertFalse(s.isOpen());
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
   s=openSession();
   Map item=new HashMap();
   item.put("name","The Item");
   item.put("description","The only item we have");
   s.persist("Item",item);
-  SimpleJtaTransactionManagerImpl.getInstance().getTransaction().commit();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().commit();
   assertFalse(s.isOpen());
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
   s=openSession();
   item=(Map)s.createQuery("from Item").uniqueResult();
   assertNotNull(item);
   s.delete(item);
-  SimpleJtaTransactionManagerImpl.getInstance().getTransaction().commit();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().commit();
   assertFalse(s.isOpen());
   assertEquals(getSessions().getStatistics().getTransactionCount(),4);
   assertEquals(getSessions().getStatistics().getSuccessfulTransactionCount(),3);
@@ -32,8 +32,8 @@
   assertEquals(getSessions().getStatistics().getSessionCloseCount(),4);
   assertEquals(getSessions().getStatistics().getQueryExecutionCount(),1);
   assertEquals(getSessions().getStatistics().getFlushCount(),2);
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
   s=openSession();
   s.createQuery("delete from Item").executeUpdate();
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().commit();
 }

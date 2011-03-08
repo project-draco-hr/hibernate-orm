@@ -1,0 +1,21 @@
+{
+  if (localStatus != LocalStatus.ACTIVE) {
+    throw new TransactionException("Transaction not successfully started");
+  }
+  log.debug("committing");
+  beforeTransactionCommit();
+  try {
+    doCommit();
+    localStatus=LocalStatus.COMMITTED;
+    afterTransactionCompletion(Status.STATUS_COMMITTED);
+  }
+ catch (  Exception e) {
+    localStatus=LocalStatus.FAILED_COMMIT;
+    afterTransactionCompletion(Status.STATUS_UNKNOWN);
+    throw new TransactionException("commit failed",e);
+  }
+ finally {
+    invalidate();
+    afterAfterCompletion();
+  }
+}

@@ -1,0 +1,14 @@
+{
+  assertTrue(StandardBasicTypes.isStandardBasicSqlTypeDescriptor(IntegerTypeDescriptor.INSTANCE));
+  assertSame(IntegerTypeDescriptor.INSTANCE,getResolvedSqlTypeDescriptor(IntegerTypeDescriptor.INSTANCE));
+  assertTrue(StandardBasicTypes.isStandardBasicSqlTypeDescriptor(BlobTypeDescriptor.DEFAULT));
+  if (getDialect().useInputStreamToInsertBlob()) {
+    assertSame(BlobTypeDescriptor.STREAM_BINDING,getDialect().resolveSqlTypeDescriptor(BlobTypeDescriptor.DEFAULT));
+  }
+ else   if (PostgreSQLDialect.class.isInstance(getDialect())) {
+    assertSame(BlobTypeDescriptor.BLOB_BINDING,getDialect().resolveSqlTypeDescriptor(BlobTypeDescriptor.DEFAULT));
+  }
+ else {
+    assertSame(BlobTypeDescriptor.DEFAULT,getDialect().resolveSqlTypeDescriptor(BlobTypeDescriptor.DEFAULT));
+  }
+}

@@ -1,0 +1,16 @@
+{
+  final Object customImpl=configurationValues.get(IMPL_NAME);
+  if (customImpl == null) {
+    return new PersisterFactoryImpl();
+  }
+  if (PersisterFactory.class.isInstance(customImpl)) {
+    return (PersisterFactory)customImpl;
+  }
+  final Class<? extends PersisterFactory> customImplClass=Class.class.isInstance(customImpl) ? (Class<? extends PersisterFactory>)customImpl : registry.getService(ClassLoaderService.class).classForName(customImpl.toString());
+  try {
+    return customImplClass.newInstance();
+  }
+ catch (  Exception e) {
+    throw new ServiceException("Could not initialize custom PersisterFactory impl [" + customImplClass.getName() + "]",e);
+  }
+}

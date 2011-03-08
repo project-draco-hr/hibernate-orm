@@ -14,7 +14,7 @@
   factory=SessionFactoryImpl.deserialize(ois);
   listeners=factory.getEventListeners();
   if (isRootSession) {
-    jdbcContext=JDBCContextImpl.deserialize(ois,this,interceptor);
+    transactionCoordinator=TransactionCoordinatorImpl.deserialize(ois,this);
   }
   persistenceContext=StatefulPersistenceContext.deserialize(ois,this);
   actionQueue=ActionQueue.deserialize(ois,this);
@@ -30,7 +30,7 @@
     while (iter.hasNext()) {
       final SessionImpl child=((SessionImpl)iter.next());
       child.rootSession=this;
-      child.jdbcContext=this.jdbcContext;
+      child.transactionCoordinator=this.transactionCoordinator;
     }
   }
 }

@@ -1,0 +1,25 @@
+{
+  T result=null;
+  try {
+    transactionManager.begin();
+    try {
+      result=doTheWork(work);
+      transactionManager.commit();
+    }
+ catch (    Exception e) {
+      try {
+        transactionManager.rollback();
+      }
+ catch (      Exception ignore) {
+        log.info("Unable to rollback isolated transaction on error [" + e + "] : ["+ ignore+ "]");
+      }
+    }
+  }
+ catch (  SystemException e) {
+    throw new HibernateException("Unable to start isolated transaction",e);
+  }
+catch (  NotSupportedException e) {
+    throw new HibernateException("Unable to start isolated transaction",e);
+  }
+  return result;
+}

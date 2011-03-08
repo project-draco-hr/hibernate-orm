@@ -1,0 +1,11 @@
+{
+  if (session.isClosed()) {
+    LOG.trace("Session was closed; nothing to do");
+    return;
+  }
+  final boolean successful=JtaStatusHelper.isCommitted(status);
+  if (!successful && transactionType == PersistenceUnitTransactionType.JTA) {
+    ((Session)session).clear();
+  }
+  session.getTransactionCoordinator().resetJoinStatus();
+}

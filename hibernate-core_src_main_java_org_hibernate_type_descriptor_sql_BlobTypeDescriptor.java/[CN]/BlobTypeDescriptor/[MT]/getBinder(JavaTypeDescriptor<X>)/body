@@ -1,18 +1,3 @@
 {
-  return new BasicBinder<X>(javaTypeDescriptor,this){
-    @Override protected void doBind(    PreparedStatement st,    X value,    int index,    WrapperOptions options) throws SQLException {
-      if (options.useStreamForLobBinding()) {
-        final BinaryStream binaryStream=javaTypeDescriptor.unwrap(value,BinaryStream.class,options);
-        st.setBinaryStream(index,binaryStream.getInputStream(),binaryStream.getLength());
-      }
- else       if (byte[].class.isInstance(value)) {
-        final byte[] bytes=(byte[])value;
-        st.setBytes(index,bytes);
-      }
- else {
-        st.setBlob(index,javaTypeDescriptor.unwrap(value,Blob.class,options));
-      }
-    }
-  }
-;
+  return getBlobBinder(javaTypeDescriptor);
 }

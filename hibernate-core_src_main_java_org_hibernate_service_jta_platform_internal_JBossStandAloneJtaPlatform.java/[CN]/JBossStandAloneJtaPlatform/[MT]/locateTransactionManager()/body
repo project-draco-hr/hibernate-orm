@@ -1,0 +1,12 @@
+{
+  try {
+    final Class propertyManagerClass=serviceRegistry().getService(ClassLoaderService.class).classForName(PROPERTY_MANAGER_CLASS_NAME);
+    final Method getJTAEnvironmentBeanMethod=propertyManagerClass.getMethod("getJTAEnvironmentBean");
+    final Object jtaEnvironmentBean=getJTAEnvironmentBeanMethod.invoke(null);
+    final Method getTransactionManagerMethod=jtaEnvironmentBean.getClass().getMethod("getTransactionManager");
+    return (TransactionManager)getTransactionManagerMethod.invoke(jtaEnvironmentBean);
+  }
+ catch (  Exception e) {
+    throw new JtaPlatformException("Could not obtain JBoss Transactions transaction manager instance",e);
+  }
+}

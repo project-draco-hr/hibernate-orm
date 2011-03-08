@@ -1,4 +1,14 @@
 {
   oos.writeBoolean(isUserSuppliedConnection);
   oos.writeBoolean(isClosed);
+  List<ConnectionObserver> durableConnectionObservers=new ArrayList<ConnectionObserver>();
+  for (  ConnectionObserver observer : observers) {
+    if (!NonDurableConnectionObserver.class.isInstance(observer)) {
+      durableConnectionObservers.add(observer);
+    }
+  }
+  oos.writeInt(durableConnectionObservers.size());
+  for (  ConnectionObserver observer : durableConnectionObservers) {
+    oos.writeObject(observer);
+  }
 }

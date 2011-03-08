@@ -22,7 +22,7 @@
   String sql=select.setOuterJoins("","").setWhereClause(whereClause).toStatementString();
   Object[] snapshot=new Object[naturalIdPropertyCount];
   try {
-    PreparedStatement ps=session.getJDBCContext().getConnectionManager().prepareSelectStatement(sql);
+    PreparedStatement ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql);
     try {
       getIdentifierType().nullSafeSet(ps,id,1,session);
       ResultSet rs=ps.executeQuery();
@@ -48,7 +48,7 @@
       ps.close();
     }
   }
- catch (  SQLException sqle) {
-    throw getFactory().getSQLExceptionHelper().convert(sqle,"could not retrieve snapshot: " + MessageHelper.infoString(this,id,getFactory()),sql);
+ catch (  SQLException e) {
+    throw getFactory().getSQLExceptionHelper().convert(e,"could not retrieve snapshot: " + MessageHelper.infoString(this,id,getFactory()),sql);
   }
 }

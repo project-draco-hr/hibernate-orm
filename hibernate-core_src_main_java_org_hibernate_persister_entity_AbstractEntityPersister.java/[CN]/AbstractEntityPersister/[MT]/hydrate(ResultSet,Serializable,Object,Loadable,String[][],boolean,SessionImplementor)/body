@@ -9,7 +9,7 @@
     if (hasDeferred) {
       final String sql=rootPersister.getSequentialSelect(getEntityName());
       if (sql != null) {
-        sequentialSelect=session.getJDBCContext().getConnectionManager().prepareSelectStatement(sql);
+        sequentialSelect=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql);
         rootPersister.getIdentifierType().nullSafeSet(sequentialSelect,id,1,session);
         sequentialResultSet=sequentialSelect.executeQuery();
         if (!sequentialResultSet.next()) {

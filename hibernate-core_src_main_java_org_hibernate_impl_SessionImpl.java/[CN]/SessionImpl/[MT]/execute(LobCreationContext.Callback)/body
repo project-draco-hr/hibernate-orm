@@ -1,0 +1,12 @@
+{
+  Connection connection=transactionCoordinator.getJdbcCoordinator().getLogicalConnection().getConnection();
+  try {
+    return callback.executeOnConnection(connection);
+  }
+ catch (  SQLException e) {
+    throw getFactory().getSQLExceptionHelper().convert(e,"Error creating contextual LOB : " + e.getMessage());
+  }
+ finally {
+    transactionCoordinator.getJdbcCoordinator().getLogicalConnection().afterStatementExecution();
+  }
+}

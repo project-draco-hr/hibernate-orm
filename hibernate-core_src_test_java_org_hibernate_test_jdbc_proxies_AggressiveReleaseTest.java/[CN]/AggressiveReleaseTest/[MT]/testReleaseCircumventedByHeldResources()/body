@@ -1,7 +1,7 @@
 {
-  LogicalConnectionImpl logicalConnection=new LogicalConnectionImpl(null,ConnectionReleaseMode.AFTER_STATEMENT,services,null);
+  LogicalConnectionImpl logicalConnection=new LogicalConnectionImpl(null,ConnectionReleaseMode.AFTER_STATEMENT,services);
   Connection proxiedConnection=ProxyBuilder.buildConnection(logicalConnection);
-  ConnectionCounter observer=new ConnectionCounter();
+  JournalingConnectionObserver observer=new JournalingConnectionObserver();
   logicalConnection.addObserver(observer);
   try {
     PreparedStatement ps=proxiedConnection.prepareStatement("insert into SANDBOX_JDBC_TST( ID, NAME ) values ( ?, ? )");
@@ -9,27 +9,26 @@
     ps.setString(2,"name");
     ps.execute();
     assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
-    assertEquals(1,observer.obtainCount);
-    assertEquals(0,observer.releaseCount);
+    assertEquals(1,observer.getPhysicalConnectionObtainedCount());
+    assertEquals(0,observer.getPhysicalConnectionReleasedCount());
     ps.close();
     assertFalse(logicalConnection.getResourceRegistry().hasRegisteredResources());
-    assertEquals(1,observer.obtainCount);
-    assertEquals(1,observer.releaseCount);
+    assertEquals(1,observer.getPhysicalConnectionObtainedCount());
+    assertEquals(1,observer.getPhysicalConnectionReleasedCount());
     ps=proxiedConnection.prepareStatement("select * from SANDBOX_JDBC_TST");
     ps.executeQuery();
     assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
-    assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
-    assertEquals(2,observer.obtainCount);
-    assertEquals(1,observer.releaseCount);
+    assertEquals(2,observer.getPhysicalConnectionObtainedCount());
+    assertEquals(1,observer.getPhysicalConnectionReleasedCount());
     PreparedStatement ps2=proxiedConnection.prepareStatement("select * from SANDBOX_JDBC_TST");
     ps2.execute();
     assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
-    assertEquals(2,observer.obtainCount);
-    assertEquals(1,observer.releaseCount);
+    assertEquals(2,observer.getPhysicalConnectionObtainedCount());
+    assertEquals(1,observer.getPhysicalConnectionReleasedCount());
     ps2.close();
     assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
-    assertEquals(2,observer.obtainCount);
-    assertEquals(1,observer.releaseCount);
+    assertEquals(2,observer.getPhysicalConnectionObtainedCount());
+    assertEquals(1,observer.getPhysicalConnectionReleasedCount());
   }
  catch (  SQLException sqle) {
     fail("incorrect exception type : sqlexception");
@@ -38,6 +37,6 @@
     logicalConnection.close();
   }
   assertFalse(logicalConnection.getResourceRegistry().hasRegisteredResources());
-  assertEquals(2,observer.obtainCount);
-  assertEquals(2,observer.releaseCount);
+  assertEquals(2,observer.getPhysicalConnectionObtainedCount());
+  assertEquals(2,observer.getPhysicalConnectionReleasedCount());
 }

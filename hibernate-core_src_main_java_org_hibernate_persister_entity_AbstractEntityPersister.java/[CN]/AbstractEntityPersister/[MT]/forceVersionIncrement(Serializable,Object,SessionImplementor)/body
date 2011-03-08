@@ -10,8 +10,8 @@
   String versionIncrementString=generateVersionIncrementUpdateString();
   PreparedStatement st=null;
   try {
+    st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(versionIncrementString,false);
     try {
-      st=session.getJDBCContext().getConnectionManager().prepareStatement(versionIncrementString,false);
       getVersionType().nullSafeSet(st,nextVersion,1,session);
       getIdentifierType().nullSafeSet(st,id,2,session);
       getVersionType().nullSafeSet(st,currentVersion,2 + getIdentifierColumnSpan(),session);

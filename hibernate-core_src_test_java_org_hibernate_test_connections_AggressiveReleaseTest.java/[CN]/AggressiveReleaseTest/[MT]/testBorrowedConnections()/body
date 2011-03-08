@@ -2,9 +2,13 @@
   prepare();
   Session s=getSessionUnderTest();
   Connection conn=s.connection();
-  assertTrue(((SessionImpl)s).getJDBCContext().getConnectionManager().hasBorrowedConnection());
+  assertFalse(conn.isClosed());
+  assertFalse(((SessionImpl)s).getTransactionCoordinator().getJdbcCoordinator().getLogicalConnection().isPhysicallyConnected());
+  conn.getCatalog();
+  assertTrue(((SessionImpl)s).getTransactionCoordinator().getJdbcCoordinator().getLogicalConnection().isPhysicallyConnected());
   conn.close();
-  assertFalse(((SessionImpl)s).getJDBCContext().getConnectionManager().hasBorrowedConnection());
+  assertTrue(conn.isClosed());
+  assertTrue(((SessionImpl)s).getTransactionCoordinator().getJdbcCoordinator().getLogicalConnection().isPhysicallyConnected());
   release(s);
   done();
 }

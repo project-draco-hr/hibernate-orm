@@ -1,19 +1,9 @@
 {
-  if (maxBatchPosition == 0)   LOG.debugf("No batched statements to execute");
+  if (batchPosition == 0) {
+    LOG.debugf("No batched statements to execute");
+  }
  else {
-    LOG.debugf("Executing %s statements with maximum batch size %s",getStatements().size(),maxBatchPosition);
-    try {
-      executeStatements();
-    }
- catch (    RuntimeException re) {
-      LOG.unableToExecuteBatch(re.getMessage());
-      throw re;
-    }
- finally {
-      for (      List<Expectation> expectations : expectationsBySql.values()) {
-        expectations.clear();
-      }
-      maxBatchPosition=0;
-    }
+    LOG.debugf("Executing batch size: %s",batchPosition);
+    performExecution();
   }
 }

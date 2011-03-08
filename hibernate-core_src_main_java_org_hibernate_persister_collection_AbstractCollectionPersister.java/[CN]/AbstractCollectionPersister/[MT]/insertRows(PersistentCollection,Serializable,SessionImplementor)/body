@@ -16,12 +16,15 @@
         PreparedStatement st=null;
         if (collection.needsInserting(entry,i,elementType)) {
           if (useBatch) {
+            if (insertBatchKey == null) {
+              insertBatchKey=new BasicBatchKey(getRole() + "#INSERT",expectation);
+            }
             if (st == null) {
-              st=session.getJDBCContext().getConnectionManager().prepareBatchStatement(this,sql,callable);
+              st=session.getTransactionCoordinator().getJdbcCoordinator().getBatch(insertBatchKey).getBatchStatement(sql,callable);
             }
           }
  else {
-            st=session.getJDBCContext().getConnectionManager().prepareStatement(sql,callable);
+            st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,callable);
           }
           try {
             offset+=expectation.prepare(st);
@@ -34,7 +37,7 @@
             }
             writeElement(st,collection.getElement(entry),offset,session);
             if (useBatch) {
-              session.getJDBCContext().getConnectionManager().addToBatch(this,sql,expectation);
+              session.getTransactionCoordinator().getJdbcCoordinator().getBatch(insertBatchKey).addToBatch();
             }
  else {
               expectation.verifyOutcome(st.executeUpdate(),st,-1);
@@ -44,7 +47,7 @@
           }
  catch (          SQLException sqle) {
             if (useBatch) {
-              session.getJDBCContext().getConnectionManager().abortBatch();
+              session.getTransactionCoordinator().getJdbcCoordinator().abortBatch();
             }
             throw sqle;
           }

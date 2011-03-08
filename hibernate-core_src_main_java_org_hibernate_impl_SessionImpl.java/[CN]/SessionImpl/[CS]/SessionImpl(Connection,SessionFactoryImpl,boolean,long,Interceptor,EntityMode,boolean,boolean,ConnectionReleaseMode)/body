@@ -10,7 +10,8 @@
   this.flushBeforeCompletionEnabled=flushBeforeCompletionEnabled;
   this.autoCloseSessionEnabled=autoCloseSessionEnabled;
   this.connectionReleaseMode=connectionReleaseMode;
-  this.jdbcContext=new JDBCContextImpl(this,connection,interceptor);
+  this.transactionCoordinator=new TransactionCoordinatorImpl(connection,this);
+  this.transactionCoordinator.getJdbcCoordinator().getLogicalConnection().addObserver(new ConnectionObserverStatsBridge(factory));
   loadQueryInfluencers=new LoadQueryInfluencers(factory);
   if (factory.getStatistics().isStatisticsEnabled())   factory.getStatisticsImplementor().openSession();
   LOG.debugf("Opened session at timestamp: %s",timestamp);

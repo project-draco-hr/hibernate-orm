@@ -4,6 +4,7 @@
     try {
       Iterator entries=collection.entries(this);
       if (entries.hasNext()) {
+        Expectation expectation=Expectations.appropriateExpectation(getInsertCheckStyle());
         collection.preInsert(this);
         int i=0;
         int count=0;
@@ -12,15 +13,17 @@
           if (collection.entryExists(entry,i)) {
             int offset=1;
             PreparedStatement st=null;
-            Expectation expectation=Expectations.appropriateExpectation(getInsertCheckStyle());
             boolean callable=isInsertCallable();
             boolean useBatch=expectation.canBeBatched();
             String sql=getSQLInsertRowString();
             if (useBatch) {
-              st=session.getJDBCContext().getConnectionManager().prepareBatchStatement(this,sql,callable);
+              if (recreateBatchKey == null) {
+                recreateBatchKey=new BasicBatchKey(getRole() + "#RECREATE",expectation);
+              }
+              st=session.getTransactionCoordinator().getJdbcCoordinator().getBatch(recreateBatchKey).getBatchStatement(sql,callable);
             }
  else {
-              st=session.getJDBCContext().getConnectionManager().prepareStatement(sql,callable);
+              st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,callable);
             }
             try {
               offset+=expectation.prepare(st);
@@ -33,7 +36,7 @@
               }
               loc=writeElement(st,collection.getElement(entry),loc,session);
               if (useBatch) {
-                session.getJDBCContext().getConnectionManager().addToBatch(this,sql,expectation);
+                session.getTransactionCoordinator().getJdbcCoordinator().getBatch(recreateBatchKey).addToBatch();
               }
  else {
                 expectation.verifyOutcome(st.executeUpdate(),st,-1);
@@ -43,7 +46,7 @@
             }
  catch (            SQLException sqle) {
               if (useBatch) {
-                session.getJDBCContext().getConnectionManager().abortBatch();
+                session.getTransactionCoordinator().getJdbcCoordinator().abortBatch();
               }
               throw sqle;
             }

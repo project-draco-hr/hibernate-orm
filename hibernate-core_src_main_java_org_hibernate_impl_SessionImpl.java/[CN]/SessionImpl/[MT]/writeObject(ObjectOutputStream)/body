@@ -1,5 +1,5 @@
 {
-  if (!jdbcContext.isReadyForSerialization()) {
+  if (!transactionCoordinator.getJdbcCoordinator().getLogicalConnection().isReadyForSerialization()) {
     throw new IllegalStateException("Cannot serialize a session while connected");
   }
   LOG.trace("Serializing session");
@@ -15,7 +15,7 @@
   oos.writeObject(interceptor);
   factory.serialize(oos);
   if (rootSession == null) {
-    jdbcContext.serialize(oos);
+    transactionCoordinator.serialize(oos);
   }
   persistenceContext.serialize(oos);
   actionQueue.serialize(oos);

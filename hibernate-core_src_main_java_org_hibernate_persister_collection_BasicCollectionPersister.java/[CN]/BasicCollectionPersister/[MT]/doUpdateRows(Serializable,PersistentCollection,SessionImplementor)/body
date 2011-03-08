@@ -14,12 +14,13 @@
       if (collection.needsUpdating(entry,i,elementType)) {
         int offset=1;
         if (useBatch) {
-          if (st == null) {
-            st=session.getJDBCContext().getConnectionManager().prepareBatchStatement(this,sql,callable);
+          if (updateBatchKey == null) {
+            updateBatchKey=new BasicBatchKey(getRole() + "#UPDATE",expectation);
           }
+          st=session.getTransactionCoordinator().getJdbcCoordinator().getBatch(updateBatchKey).getBatchStatement(sql,callable);
         }
  else {
-          st=session.getJDBCContext().getConnectionManager().prepareStatement(sql,callable);
+          st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,callable);
         }
         try {
           offset+=expectation.prepare(st);
@@ -37,7 +38,7 @@
             }
           }
           if (useBatch) {
-            session.getJDBCContext().getConnectionManager().addToBatch(this,sql,expectation);
+            session.getTransactionCoordinator().getJdbcCoordinator().getBatch(updateBatchKey).addToBatch();
           }
  else {
             expectation.verifyOutcome(st.executeUpdate(),st,-1);
@@ -45,7 +46,7 @@
         }
  catch (        SQLException sqle) {
           if (useBatch) {
-            session.getJDBCContext().getConnectionManager().abortBatch();
+            session.getTransactionCoordinator().getJdbcCoordinator().abortBatch();
           }
           throw sqle;
         }

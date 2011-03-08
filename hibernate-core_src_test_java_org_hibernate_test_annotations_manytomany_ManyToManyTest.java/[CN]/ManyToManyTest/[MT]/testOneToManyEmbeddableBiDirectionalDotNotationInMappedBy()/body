@@ -1,8 +1,7 @@
 {
   Session s;
-  Transaction tx;
   s=openSession();
-  tx=s.beginTransaction();
+  s.getTransaction().begin();
   Employee e=new Employee();
   JobInfo job=new JobInfo();
   job.setJobDescription("Sushi Chef");
@@ -13,12 +12,12 @@
   job.setPm(pm);
   e.setJobInfo(job);
   s.persist(e);
-  s.flush();
-  s.clear();
-  tx.commit();
-  tx.begin();
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.getTransaction().begin();
   e=(Employee)s.get(e.getClass(),e.getId());
   assertEquals("same job in both directions",e.getJobInfo().getJobDescription(),e.getJobInfo().getPm().getManages().iterator().next().getJobInfo().getJobDescription());
-  tx.commit();
+  s.getTransaction().commit();
   s.close();
 }

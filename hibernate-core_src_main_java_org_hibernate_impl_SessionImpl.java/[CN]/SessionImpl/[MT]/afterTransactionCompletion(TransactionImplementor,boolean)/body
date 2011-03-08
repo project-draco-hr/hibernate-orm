@@ -1,0 +1,16 @@
+{
+  LOG.trace("after transaction completion");
+  persistenceContext.afterTransactionCompletion();
+  actionQueue.afterTransactionCompletion(successful);
+  if (rootSession == null && hibernateTransaction != null) {
+    try {
+      interceptor.afterTransactionCompletion(hibernateTransaction);
+    }
+ catch (    Throwable t) {
+      LOG.exceptionInAfterTransactionCompletionInterceptor(t);
+    }
+  }
+  if (autoClear) {
+    clear();
+  }
+}

@@ -9,33 +9,36 @@
     LOG.trace("Inserting entity: " + MessageHelper.infoString(this,id,getFactory()));
     if (j == 0 && isVersioned())     LOG.trace("Version: " + Versioning.getVersion(fields,this));
   }
-  Expectation expectation=Expectations.appropriateExpectation(insertResultCheckStyles[j]);
-  boolean callable=isInsertCallable(j);
+  final Expectation expectation=Expectations.appropriateExpectation(insertResultCheckStyles[j]);
   final boolean useBatch=j == 0 && expectation.canBeBatched();
+  if (useBatch && inserBatchKey == null) {
+    inserBatchKey=new BasicBatchKey(getEntityName() + "#INSERT",expectation);
+  }
+  final boolean callable=isInsertCallable(j);
   try {
     final PreparedStatement insert;
     if (useBatch) {
-      insert=session.getJDBCContext().getConnectionManager().prepareBatchStatement(this,sql,callable);
+      insert=session.getTransactionCoordinator().getJdbcCoordinator().getBatch(inserBatchKey).getBatchStatement(sql,callable);
     }
  else {
-      insert=session.getJDBCContext().getConnectionManager().prepareStatement(sql,callable);
+      insert=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,callable);
     }
     try {
       int index=1;
       index+=expectation.prepare(insert);
       dehydrate(id,fields,null,notNull,propertyColumnInsertable,j,insert,session,index);
       if (useBatch) {
-        session.getJDBCContext().getConnectionManager().addToBatch(this,sql,expectation);
+        session.getTransactionCoordinator().getJdbcCoordinator().getBatch(inserBatchKey).addToBatch();
       }
  else {
         expectation.verifyOutcome(insert.executeUpdate(),insert,-1);
       }
     }
- catch (    SQLException sqle) {
+ catch (    SQLException e) {
       if (useBatch) {
-        session.getJDBCContext().getConnectionManager().abortBatch();
+        session.getTransactionCoordinator().getJdbcCoordinator().abortBatch();
       }
-      throw sqle;
+      throw e;
     }
  finally {
       if (!useBatch) {
@@ -43,7 +46,7 @@
       }
     }
   }
- catch (  SQLException sqle) {
-    throw getFactory().getSQLExceptionHelper().convert(sqle,"could not insert: " + MessageHelper.infoString(this),sql);
+ catch (  SQLException e) {
+    throw getFactory().getSQLExceptionHelper().convert(e,"could not insert: " + MessageHelper.infoString(this),sql);
   }
 }
