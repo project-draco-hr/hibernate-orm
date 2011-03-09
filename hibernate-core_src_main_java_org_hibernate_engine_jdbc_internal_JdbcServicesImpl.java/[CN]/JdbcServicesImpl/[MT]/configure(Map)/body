@@ -1,5 +1,6 @@
 {
   Dialect dialect=null;
+  LobCreatorBuilder lobCreatorBuilder=null;
   boolean metaSupportsScrollable=false;
   boolean metaSupportsGetGeneratedKeys=false;
   boolean metaSupportsBatchUpdates=false;
@@ -37,6 +38,7 @@
         if (schemaNameResolver != null) {
           schemaName=schemaNameResolver.resolveSchemaName(conn);
         }
+        lobCreatorBuilder=new LobCreatorBuilder(configValues,conn);
       }
  catch (      SQLException sqle) {
         LOG.unableToObtainConnectionMetadata(sqle.getMessage());
@@ -59,6 +61,7 @@ catch (    UnsupportedOperationException uoe) {
   final boolean showSQL=ConfigurationHelper.getBoolean(Environment.SHOW_SQL,configValues,false);
   final boolean formatSQL=ConfigurationHelper.getBoolean(Environment.FORMAT_SQL,configValues,false);
   this.dialect=dialect;
+  this.lobCreatorBuilder=(lobCreatorBuilder == null ? new LobCreatorBuilder(configValues,null) : lobCreatorBuilder);
   this.sqlStatementLogger=new SqlStatementLogger(showSQL,formatSQL);
   this.sqlExceptionHelper=new SqlExceptionHelper(dialect.buildSQLExceptionConverter());
   this.extractedMetaDataSupport=new ExtractedDatabaseMetaDataImpl(metaSupportsScrollable,metaSupportsGetGeneratedKeys,metaSupportsBatchUpdates,metaReportsDDLInTxnSupported,metaReportsDDLCausesTxnCommit,parseKeywords(extraKeywordsString),parseSQLStateType(sqlStateType),lobLocatorUpdateCopy,schemaName,catalogName,typeInfoSet);
