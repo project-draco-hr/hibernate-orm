@@ -1,18 +1,18 @@
 {
   boolean isNonContextualLobCreationRequired=ConfigurationHelper.getBoolean(Environment.NON_CONTEXTUAL_LOB_CREATION,configValues);
   if (isNonContextualLobCreationRequired) {
-    log.info("Disabling contextual LOB creation as " + Environment.NON_CONTEXTUAL_LOB_CREATION + " is true");
+    LOG.disablingContextualLOBCreation(Environment.NON_CONTEXTUAL_LOB_CREATION);
     return false;
   }
   if (jdbcConnection == null) {
-    log.info("Disabling contextual LOB creation as connection was null");
+    LOG.disablingContextualLOBCreationSinceConnectionNull();
     return false;
   }
   try {
     try {
       DatabaseMetaData meta=jdbcConnection.getMetaData();
       if (meta.getJDBCMajorVersion() < 4) {
-        log.info("Disabling contextual LOB creation as JDBC driver reported JDBC version [" + meta.getJDBCMajorVersion() + "] less than 4");
+        LOG.disablingContextualLOBCreationSinceOldJdbcVersion(meta.getJDBCMajorVersion());
         return false;
       }
     }
@@ -28,12 +28,12 @@
           freeMethod.invoke(clob,NO_ARGS);
         }
  catch (        Throwable ignore) {
-          log.trace("Unable to free CLOB created to test createClob() implementation : " + ignore);
+          LOG.tracef("Unable to free CLOB created to test createClob() implementation : %s",ignore);
         }
         return true;
       }
  catch (      Throwable t) {
-        log.info("Disabling contextual LOB creation as createClob() method threw error : " + t);
+        LOG.disablingContextualLOBCreationSinceCreateClobFailed(t);
       }
     }
   }
