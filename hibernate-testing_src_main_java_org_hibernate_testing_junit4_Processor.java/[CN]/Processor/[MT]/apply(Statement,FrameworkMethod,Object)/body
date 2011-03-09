@@ -4,13 +4,19 @@
     throw new IllegalStateException("Use of " + getClass().getName() + " only supported in combination with use of "+ CustomRunner.class.getName());
   }
   final ExtendedFrameworkMethod extendedFrameworkMethod=(ExtendedFrameworkMethod)frameworkMethod;
-  runPosition++;
-  final boolean isFirst=runPosition == 1;
-  final boolean isLast=runPosition > extendedFrameworkMethod.getUnitRunner().getNumberOfComputedTestMethods();
+  final SkipMarker skipMarker=extendedFrameworkMethod.getSkipMarker();
+  if (skipMarker != null) {
+    SkipLog.reportSkip(skipMarker);
+    return new Statement(){
+      @Override public void evaluate() throws Throwable {
+      }
+    }
+;
+  }
   final FailureExpected failureExpected=extendedFrameworkMethod.getFailureExpectedAnnotation();
   return new Statement(){
     @Override public void evaluate() throws Throwable {
-      if (isFirst) {
+      if (extendedFrameworkMethod.isFirstInTestClass()) {
         extendedFrameworkMethod.getCallbackMetadata().performBeforeClassCallbacks(target);
       }
       try {
@@ -33,7 +39,7 @@ catch (      Throwable e) {
         }
       }
  finally {
-        if (isLast) {
+        if (extendedFrameworkMethod.isLastInTestClass()) {
           extendedFrameworkMethod.getCallbackMetadata().performAfterClassCallbacks(target);
         }
       }

@@ -14,7 +14,7 @@
   clearCounts();
   s=openSession();
   t=s.beginTransaction();
-  c=(Contract)s.createCriteria(Contract.class).add(Restrictions.idEq(new Long(c.getId()))).uniqueResult();
+  c=(Contract)s.createCriteria(Contract.class).add(Restrictions.idEq(Long.valueOf(c.getId()))).uniqueResult();
   assertEquals(1,c.getParties().size());
   Party party=(Party)c.getParties().iterator().next();
   assertEquals("party",party.getName());
@@ -22,7 +22,7 @@
     assertSame(c,party.getContract());
   }
   c.removeParty(party);
-  c2=(Contract)s.createCriteria(Contract.class).add(Restrictions.idEq(new Long(c2.getId()))).uniqueResult();
+  c2=(Contract)s.createCriteria(Contract.class).add(Restrictions.idEq(Long.valueOf(c2.getId()))).uniqueResult();
   c2.addParty(party);
   t.commit();
   s.close();
@@ -31,8 +31,8 @@
   clearCounts();
   s=openSession();
   t=s.beginTransaction();
-  c=(Contract)s.createCriteria(Contract.class).add(Restrictions.idEq(new Long(c.getId()))).uniqueResult();
-  c2=(Contract)s.createCriteria(Contract.class).add(Restrictions.idEq(new Long(c2.getId()))).uniqueResult();
+  c=(Contract)s.createCriteria(Contract.class).add(Restrictions.idEq(Long.valueOf(c.getId()))).uniqueResult();
+  c2=(Contract)s.createCriteria(Contract.class).add(Restrictions.idEq(Long.valueOf(c2.getId()))).uniqueResult();
   if (isContractPartiesInverse) {
     assertEquals(1,c.getParties().size());
     party=(Party)c.getParties().iterator().next();
@@ -53,8 +53,8 @@
   }
   s.delete(c);
   s.delete(c2);
-  assertEquals(new Long(0),s.createCriteria(Contract.class).setProjection(Projections.rowCount()).uniqueResult());
-  assertEquals(new Long(0),s.createCriteria(Party.class).setProjection(Projections.rowCount()).uniqueResult());
+  assertEquals(Long.valueOf(0),s.createCriteria(Contract.class).setProjection(Projections.rowCount()).uniqueResult());
+  assertEquals(Long.valueOf(0),s.createCriteria(Party.class).setProjection(Projections.rowCount()).uniqueResult());
   t.commit();
   s.close();
   assertUpdateCount(0);

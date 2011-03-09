@@ -24,8 +24,8 @@
   s.save(oss);
   t.commit();
   s.close();
-  s.getSessionFactory().evict(Model.class);
-  s.getSessionFactory().evict(ProductLine.class);
+  s.getSessionFactory().getCache().evictEntityRegion(Model.class);
+  s.getSessionFactory().getCache().evictEntityRegion(ProductLine.class);
   s=openSession();
   t=s.beginTransaction();
   List list=s.createQuery("from ProductLine pl order by pl.description").list();
@@ -40,8 +40,8 @@
   list=s.createQuery("from Model m").list();
   hibernate=(Model)s.get(Model.class,hibernate.getId());
   hibernate.getProductLine().getId();
-  for (Iterator i=list.iterator(); i.hasNext(); ) {
-    assertFalse(Hibernate.isInitialized(((Model)i.next()).getProductLine()));
+  for (  Object aList : list) {
+    assertFalse(Hibernate.isInitialized(((Model)aList).getProductLine()));
   }
   assertEquals(hibernate.getProductLine().getDescription(),"OSS");
   s.clear();

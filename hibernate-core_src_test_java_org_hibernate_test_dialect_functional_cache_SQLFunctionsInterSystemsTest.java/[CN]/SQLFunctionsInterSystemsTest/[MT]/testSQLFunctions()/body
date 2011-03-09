@@ -3,49 +3,37 @@
   Transaction t=s.beginTransaction();
   Simple simple=new Simple();
   simple.setName("Simple 1");
-  s.save(simple,new Long(10));
-  if (getDialect() instanceof Cache71Dialect) {
-    s.createQuery("from Simple s where repeat('foo', 3) = 'foofoofoo'").list();
-    s.createQuery("from Simple s where repeat(s.name, 3) = 'foofoofoo'").list();
-    s.createQuery("from Simple s where repeat( lower(s.name), (3 + (1-1)) / 2) = 'foofoofoo'").list();
-  }
+  s.save(simple,Long.valueOf(10));
+  s.createQuery("from Simple s where repeat('foo', 3) = 'foofoofoo'").list();
+  s.createQuery("from Simple s where repeat(s.name, 3) = 'foofoofoo'").list();
+  s.createQuery("from Simple s where repeat( lower(s.name), (3 + (1-1)) / 2) = 'foofoofoo'").list();
   assertTrue(s.createQuery("from Simple s where upper( s.name ) ='SIMPLE 1'").list().size() == 1);
-  if (!(getDialect() instanceof HSQLDialect)) {
-    assertTrue(s.createQuery("from Simple s where not( upper( s.name ) ='yada' or 1=2 or 'foo'='bar' or not('foo'='foo') or 'foo' like 'bar' )").list().size() == 1);
-  }
-  if (!(getDialect() instanceof MySQLDialect) && !(getDialect() instanceof SybaseDialect) && !(getDialect() instanceof MckoiDialect)&& !(getDialect() instanceof InterbaseDialect)&& !(getDialect() instanceof TimesTenDialect)) {
-    assertTrue(s.createQuery("from Simple s where lower( s.name || ' foo' ) ='simple 1 foo'").list().size() == 1);
-  }
-  if ((getDialect() instanceof Cache71Dialect)) {
-    assertTrue(s.createQuery("from Simple s where lower( concat(s.name, ' foo') ) ='simple 1 foo'").list().size() == 1);
-  }
+  assertTrue(s.createQuery("from Simple s where not( upper( s.name ) ='yada' or 1=2 or 'foo'='bar' or not('foo'='foo') or 'foo' like 'bar' )").list().size() == 1);
+  assertTrue(s.createQuery("from Simple s where lower( s.name || ' foo' ) ='simple 1 foo'").list().size() == 1);
+  assertTrue(s.createQuery("from Simple s where lower( concat(s.name, ' foo') ) ='simple 1 foo'").list().size() == 1);
   Simple other=new Simple();
   other.setName("Simple 2");
   other.setCount(12);
   simple.setOther(other);
-  s.save(other,new Long(20));
+  s.save(other,Long.valueOf(20));
   assertTrue(s.createQuery("from Simple s where upper( s.other.name ) ='SIMPLE 2'").list().size() == 1);
   assertTrue(s.createQuery("from Simple s where not ( upper( s.other.name ) ='SIMPLE 2' )").list().size() == 0);
   assertTrue(s.createQuery("select distinct s from Simple s where ( ( s.other.count + 3 ) = (15*2)/2 and s.count = 69) or ( ( s.other.count + 2 ) / 7 ) = 2").list().size() == 1);
   assertTrue(s.createQuery("select s from Simple s where ( ( s.other.count + 3 ) = (15*2)/2 and s.count = 69) or ( ( s.other.count + 2 ) / 7 ) = 2 order by s.other.count").list().size() == 1);
   Simple min=new Simple();
   min.setCount(-1);
-  s.save(min,new Long(30));
-  if (!(getDialect() instanceof MySQLDialect) && !(getDialect() instanceof HSQLDialect)) {
-    assertTrue(s.createQuery("from Simple s where s.count > ( select min(sim.count) from Simple sim )").list().size() == 2);
-    t.commit();
-    t=s.beginTransaction();
-    assertTrue(s.createQuery("from Simple s where s = some( select sim from Simple sim where sim.count>=0 ) and s.count >= 0").list().size() == 2);
-    assertTrue(s.createQuery("from Simple s where s = some( select sim from Simple sim where sim.other.count=s.other.count ) and s.other.count > 0").list().size() == 1);
-  }
+  s.save(min,Long.valueOf(30));
+  assertTrue(s.createQuery("from Simple s where s.count > ( select min(sim.count) from Simple sim )").list().size() == 2);
+  t.commit();
+  t=s.beginTransaction();
+  assertTrue(s.createQuery("from Simple s where s = some( select sim from Simple sim where sim.count>=0 ) and s.count >= 0").list().size() == 2);
+  assertTrue(s.createQuery("from Simple s where s = some( select sim from Simple sim where sim.other.count=s.other.count ) and s.other.count > 0").list().size() == 1);
   Iterator iter=s.createQuery("select sum(s.count) from Simple s group by s.count having sum(s.count) > 10").iterate();
   assertTrue(iter.hasNext());
-  assertEquals(new Long(12),iter.next());
+  assertEquals(Long.valueOf(12),iter.next());
   assertTrue(!iter.hasNext());
-  if (!(getDialect() instanceof MySQLDialect)) {
-    iter=s.createQuery("select s.count from Simple s group by s.count having s.count = 12").iterate();
-    assertTrue(iter.hasNext());
-  }
+  iter=s.createQuery("select s.count from Simple s group by s.count having s.count = 12").iterate();
+  assertTrue(iter.hasNext());
   s.createQuery("select s.id, s.count, count(t), max(t.date) from Simple s, Simple t where s.count = t.count group by s.id, s.count order by s.count").iterate();
   Query q=s.createQuery("from Simple s");
   q.setMaxResults(10);

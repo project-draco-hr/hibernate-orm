@@ -5,14 +5,14 @@
   Session newSession=openSession();
   ((SessionImplementor)newSession).applyNonFlushedChanges(nfc2);
   oldToNewEntityRefs.clear();
-  for (Iterator it=((SessionImplementor)oldSession).getPersistenceContext().getEntitiesByKey().entrySet().iterator(); it.hasNext(); ) {
-    Map.Entry entry=(Map.Entry)it.next();
+  for (  Object o : ((SessionImplementor)oldSession).getPersistenceContext().getEntitiesByKey().entrySet()) {
+    Map.Entry entry=(Map.Entry)o;
     EntityKey entityKey=(EntityKey)entry.getKey();
     Object oldEntityRef=entry.getValue();
     oldToNewEntityRefs.put(oldEntityRef,((SessionImplementor)newSession).getPersistenceContext().getEntity(entityKey));
   }
-  for (Iterator it=((StatefulPersistenceContext)((SessionImplementor)oldSession).getPersistenceContext()).getProxiesByKey().entrySet().iterator(); it.hasNext(); ) {
-    Map.Entry entry=(Map.Entry)it.next();
+  for (  Object o : ((StatefulPersistenceContext)((SessionImplementor)oldSession).getPersistenceContext()).getProxiesByKey().entrySet()) {
+    Map.Entry entry=(Map.Entry)o;
     EntityKey entityKey=(EntityKey)entry.getKey();
     Object oldProxyRef=entry.getValue();
     oldToNewEntityRefs.put(oldProxyRef,((SessionImplementor)newSession).getPersistenceContext().getProxy(entityKey));

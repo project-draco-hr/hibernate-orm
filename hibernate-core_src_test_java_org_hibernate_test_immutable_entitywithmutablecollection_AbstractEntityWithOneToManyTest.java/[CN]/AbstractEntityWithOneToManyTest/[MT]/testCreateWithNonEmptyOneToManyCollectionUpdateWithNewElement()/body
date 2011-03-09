@@ -25,8 +25,8 @@
   t=s.beginTransaction();
   c=(Contract)s.createCriteria(Contract.class).uniqueResult();
   assertEquals(2,c.getParties().size());
-  for (Iterator it=c.getParties().iterator(); it.hasNext(); ) {
-    Party aParty=(Party)it.next();
+  for (  Object o : c.getParties()) {
+    Party aParty=(Party)o;
     if (aParty.getId() == party.getId()) {
       assertEquals("party",aParty.getName());
     }
@@ -41,8 +41,8 @@
     }
   }
   s.delete(c);
-  assertEquals(new Long(0),s.createCriteria(Contract.class).setProjection(Projections.rowCount()).uniqueResult());
-  assertEquals(new Long(0),s.createCriteria(Party.class).setProjection(Projections.rowCount()).uniqueResult());
+  assertEquals(Long.valueOf(0),s.createCriteria(Contract.class).setProjection(Projections.rowCount()).uniqueResult());
+  assertEquals(Long.valueOf(0),s.createCriteria(Party.class).setProjection(Projections.rowCount()).uniqueResult());
   t.commit();
   s.close();
   assertUpdateCount(0);

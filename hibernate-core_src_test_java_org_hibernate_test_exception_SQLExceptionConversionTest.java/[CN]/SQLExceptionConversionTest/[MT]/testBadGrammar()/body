@@ -1,23 +1,28 @@
 {
-  SQLExceptionConverter converter=getDialect().buildSQLExceptionConverter();
   Session session=openSession();
-  Connection connection=session.connection();
-  PreparedStatement ps=null;
-  try {
-    ps=connection.prepareStatement("SELECT user_id, user_name FROM tbl_no_there");
-    ps.executeQuery();
-    fail("SQL compilation should have failed");
-  }
- catch (  SQLGrammarException expected) {
-  }
- finally {
-    if (ps != null) {
+  session.beginTransaction();
+  session.doWork(new Work(){
+    @Override public void execute(    Connection connection) throws SQLException {
+      PreparedStatement ps=null;
       try {
-        ps.close();
+        ps=connection.prepareStatement("SELECT user_id, user_name FROM tbl_no_there");
+        ps.executeQuery();
+        fail("SQL compilation should have failed");
       }
- catch (      Throwable ignore) {
+ catch (      SQLGrammarException ignored) {
+      }
+ finally {
+        if (ps != null) {
+          try {
+            ps.close();
+          }
+ catch (          Throwable ignore) {
+          }
+        }
       }
     }
   }
+);
+  session.getTransaction().rollback();
   session.close();
 }

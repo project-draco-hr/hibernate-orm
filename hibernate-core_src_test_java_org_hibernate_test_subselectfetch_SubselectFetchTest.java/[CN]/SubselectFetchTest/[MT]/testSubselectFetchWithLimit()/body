@@ -16,7 +16,7 @@
   s.close();
   s=openSession();
   t=s.beginTransaction();
-  getSessions().getStatistics().clear();
+  sessionFactory().getStatistics().clear();
   List parents=s.createQuery("from Parent order by name desc").setMaxResults(2).list();
   p=(Parent)parents.get(0);
   q=(Parent)parents.get(1);
@@ -28,7 +28,7 @@
   assertEquals(p.getChildren().size(),2);
   assertTrue(Hibernate.isInitialized(q.getChildren()));
   assertTrue(Hibernate.isInitialized(q.getMoreChildren()));
-  assertEquals(3,getSessions().getStatistics().getPrepareStatementCount());
+  assertEquals(3,sessionFactory().getStatistics().getPrepareStatementCount());
   r=(Parent)s.get(Parent.class,r.getName());
   assertTrue(Hibernate.isInitialized(r.getChildren()));
   assertFalse(Hibernate.isInitialized(r.getMoreChildren()));

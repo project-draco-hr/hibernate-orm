@@ -1,5 +1,5 @@
 {
-  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
+  sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
   Session s=openSession();
   Map item1=new HashMap();
   item1.put("name","Item - 1");
@@ -9,18 +9,18 @@
   item2.put("name","Item - 2");
   item2.put("description","The second item");
   s.save("Item",item2);
-  sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().commit();
+  sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().commit();
   try {
-    sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
-    s=getSessions().getCurrentSession();
+    sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
+    s=sessionFactory().getCurrentSession();
     s.createQuery("from Item").scroll().next();
     s.connection();
-    sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().commit();
+    sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().commit();
   }
   finally {
-    sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
+    sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
     s=openSession();
     s.createQuery("delete from Item").executeUpdate();
-    sfi().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().commit();
+    sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().commit();
   }
 }

@@ -1,31 +1,30 @@
 {
-  if (getDialect() instanceof MySQLMyISAMDialect) {
-    reportSkip("MySQL (ISAM) does not support FK violation checking","exception conversion");
-    return;
-  }
-  SQLExceptionConverter converter=getDialect().buildSQLExceptionConverter();
   Session session=openSession();
   session.beginTransaction();
-  Connection connection=session.connection();
-  PreparedStatement ps=null;
-  try {
-    ps=connection.prepareStatement("INSERT INTO T_MEMBERSHIP (user_id, group_id) VALUES (?, ?)");
-    ps.setLong(1,52134241);
-    ps.setLong(2,5342);
-    ps.executeUpdate();
-    fail("INSERT should have failed");
-  }
- catch (  ConstraintViolationException expected) {
-  }
- finally {
-    if (ps != null) {
+  session.doWork(new Work(){
+    @Override public void execute(    Connection connection) throws SQLException {
+      PreparedStatement ps=null;
       try {
-        ps.close();
+        ps=connection.prepareStatement("INSERT INTO T_MEMBERSHIP (user_id, group_id) VALUES (?, ?)");
+        ps.setLong(1,52134241);
+        ps.setLong(2,5342);
+        ps.executeUpdate();
+        fail("INSERT should have failed");
       }
- catch (      Throwable ignore) {
+ catch (      ConstraintViolationException ignore) {
+      }
+ finally {
+        if (ps != null) {
+          try {
+            ps.close();
+          }
+ catch (          Throwable ignore) {
+          }
+        }
       }
     }
   }
+);
   session.getTransaction().rollback();
   session.close();
 }

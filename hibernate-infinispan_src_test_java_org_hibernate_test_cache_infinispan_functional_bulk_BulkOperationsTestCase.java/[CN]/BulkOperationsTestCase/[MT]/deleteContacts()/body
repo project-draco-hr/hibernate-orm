@@ -4,13 +4,12 @@
   deleteHQL+=" where customer.name = :cName)";
   tm.begin();
   try {
-    Session session=getSessions().getCurrentSession();
+    Session session=sessionFactory().getCurrentSession();
     int rowsAffected=session.createQuery(deleteHQL).setFlushMode(FlushMode.AUTO).setParameter("cName","Red Hat").executeUpdate();
     tm.commit();
     return rowsAffected;
   }
  catch (  Exception e) {
-    log.error("Unable to delete contac",e);
     tm.setRollbackOnly();
     throw e;
   }

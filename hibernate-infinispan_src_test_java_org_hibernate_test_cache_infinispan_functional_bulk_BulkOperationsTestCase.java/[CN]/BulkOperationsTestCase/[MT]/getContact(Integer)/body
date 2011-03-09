@@ -1,17 +1,19 @@
 {
   tm.begin();
   try {
-    Session session=getSessions().getCurrentSession();
-    Contact contact=(Contact)session.get(Contact.class,id);
-    return contact;
+    Session session=sessionFactory().getCurrentSession();
+    return (Contact)session.get(Contact.class,id);
   }
  catch (  Exception e) {
-    log.error("Unable to get contact",e);
     tm.setRollbackOnly();
     throw e;
   }
  finally {
-    if (tm.getStatus() == Status.STATUS_ACTIVE)     tm.commit();
- else     tm.rollback();
+    if (tm.getStatus() == Status.STATUS_ACTIVE) {
+      tm.commit();
+    }
+ else {
+      tm.rollback();
+    }
   }
 }

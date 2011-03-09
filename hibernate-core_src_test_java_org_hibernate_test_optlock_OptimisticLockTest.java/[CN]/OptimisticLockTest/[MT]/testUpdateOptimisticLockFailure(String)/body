@@ -1,8 +1,4 @@
 {
-  if (getDialect().doesRepeatableReadCauseReadersToBlockWriters()) {
-    reportSkip("deadlock","update optimistic locking");
-    return;
-  }
   Session mainSession=openSession();
   mainSession.beginTransaction();
   Document doc=new Document();
@@ -17,7 +13,7 @@
   mainSession=openSession();
   mainSession.beginTransaction();
   doc=(Document)mainSession.get(entityName,doc.getId());
-  Session otherSession=getSessions().openSession();
+  Session otherSession=sessionFactory().openSession();
   otherSession.beginTransaction();
   Document otherDoc=(Document)otherSession.get(entityName,doc.getId());
   otherDoc.setSummary("A modern classic");

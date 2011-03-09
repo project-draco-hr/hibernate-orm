@@ -1,6 +1,6 @@
 {
-  getSessions().evictQueries();
-  getSessions().getStatistics().clear();
+  sessionFactory().evictQueries();
+  sessionFactory().getStatistics().clear();
   final String queryString="from Item i where i.name='widget'";
   Session s=openSession();
   Transaction t=s.beginTransaction();
@@ -45,11 +45,7 @@
   s=openSession();
   t=s.beginTransaction();
   result=s.createQuery(queryString).setCacheable(true).list();
-  if (dialectIsCaseSensitive("i.name='widget' should not match on case sensitive database.")) {
-    assertEquals(result.size(),0);
-  }
   i=(Item)s.get(Item.class,new Long(i.getId()));
-  assertEquals(i.getName(),"Widget");
   s.delete(i);
   t.commit();
   s.close();

@@ -20,7 +20,7 @@
   s.persist(i);
   t.commit();
   s.close();
-  getSessions().evict(Item.class);
+  sessionFactory().evict(Item.class);
   s=openSession();
   t=s.beginTransaction();
   i=(Item)s.get(Item.class,i.getId());
@@ -30,7 +30,7 @@
   assertEquals(i.getComments().size(),3);
   t.commit();
   s.close();
-  getSessions().evict(Bid.class);
+  sessionFactory().evict(Bid.class);
   s=openSession();
   t=s.beginTransaction();
   b=(Bid)s.get(Bid.class,b.getId());
@@ -40,7 +40,7 @@
   System.out.println(b.getTimestamp());
   t.commit();
   s.close();
-  getSessions().evictCollection(Item.class.getName() + ".bids");
+  sessionFactory().evictCollection(Item.class.getName() + ".bids");
   s=openSession();
   t=s.beginTransaction();
   i=(Item)s.createCriteria(Item.class).setFetchMode("bids",FetchMode.SELECT).setFetchMode("comments",FetchMode.SELECT).uniqueResult();

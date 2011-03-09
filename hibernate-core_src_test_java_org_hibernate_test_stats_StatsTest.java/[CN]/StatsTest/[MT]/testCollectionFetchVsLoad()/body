@@ -31,10 +31,10 @@
   assertEquals("collection should be loaded in the same query as its parent",0,stats.getCollectionFetchCount());
   tx.commit();
   s.close();
-  Collection coll=getCfg().getCollectionMapping(Continent.class.getName() + ".countries");
+  Collection coll=configuration().getCollectionMapping(Continent.class.getName() + ".countries");
   coll.setFetchMode(FetchMode.JOIN);
   coll.setLazy(false);
-  SessionFactory sf=getCfg().buildSessionFactory(getServiceRegistry(getCfg().getProperties()));
+  SessionFactory sf=configuration().buildSessionFactory(serviceRegistry());
   stats=sf.getStatistics();
   stats.clear();
   stats.setStatisticsEnabled(true);
@@ -52,10 +52,10 @@
   tx.commit();
   s.close();
   sf.close();
-  coll=getCfg().getCollectionMapping(Continent.class.getName() + ".countries");
+  coll=configuration().getCollectionMapping(Continent.class.getName() + ".countries");
   coll.setFetchMode(FetchMode.SELECT);
   coll.setLazy(false);
-  sf=getCfg().buildSessionFactory(getServiceRegistry(getCfg().getProperties()));
+  sf=configuration().buildSessionFactory(serviceRegistry());
   stats=sf.getStatistics();
   stats.clear();
   stats.setStatisticsEnabled(true);
@@ -70,9 +70,8 @@
   europe2=(Continent)s.get(Continent.class,europe.getId());
   assertEquals(1,stats.getCollectionLoadCount());
   assertEquals("Should do explicit collection load, not part of the first one",1,stats.getCollectionFetchCount());
-  Iterator countries=europe2.getCountries().iterator();
-  while (countries.hasNext()) {
-    s.delete(countries.next());
+  for (  Object o : europe2.getCountries()) {
+    s.delete(o);
   }
   cleanDb(s);
   tx.commit();

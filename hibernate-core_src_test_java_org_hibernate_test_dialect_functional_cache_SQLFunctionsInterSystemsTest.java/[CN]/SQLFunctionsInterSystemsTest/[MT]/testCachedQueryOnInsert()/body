@@ -3,7 +3,7 @@
   Transaction t=s.beginTransaction();
   Simple simple=new Simple();
   simple.setName("Simple 1");
-  s.save(simple,new Long(10));
+  s.save(simple,Long.valueOf(10));
   t.commit();
   s.close();
   s=openSession();
@@ -24,7 +24,7 @@
   t=s.beginTransaction();
   Simple simple2=new Simple();
   simple2.setCount(133);
-  s.save(simple2,new Long(12));
+  s.save(simple2,Long.valueOf(12));
   t.commit();
   s.close();
   s=openSession();
@@ -39,8 +39,9 @@
   q=s.createQuery("from Simple s");
   list=q.setCacheable(true).list();
   assertTrue(list.size() == 2);
-  Iterator i=list.iterator();
-  while (i.hasNext())   s.delete(i.next());
+  for (  Object o : list) {
+    s.delete(o);
+  }
   t.commit();
   s.close();
 }

@@ -3,19 +3,21 @@
   String updateHQL="update Contact set tlf = :cNewTLF where name = :cName";
   tm.begin();
   try {
-    Session session=getSessions().getCurrentSession();
+    Session session=sessionFactory().getCurrentSession();
     @SuppressWarnings("unchecked") List<Contact> list=session.createQuery(queryHQL).setParameter("cName",name).list();
     list.get(0).setTlf(newTLF);
-    int rowsAffected=session.createQuery(updateHQL).setFlushMode(FlushMode.AUTO).setParameter("cNewTLF",newTLF).setParameter("cName",name).executeUpdate();
-    return rowsAffected;
+    return session.createQuery(updateHQL).setFlushMode(FlushMode.AUTO).setParameter("cNewTLF",newTLF).setParameter("cName",name).executeUpdate();
   }
  catch (  Exception e) {
-    log.error("Unable to update contacts with one manual",e);
     tm.setRollbackOnly();
     throw e;
   }
  finally {
-    if (tm.getStatus() == Status.STATUS_ACTIVE)     tm.commit();
- else     tm.rollback();
+    if (tm.getStatus() == Status.STATUS_ACTIVE) {
+      tm.commit();
+    }
+ else {
+      tm.rollback();
+    }
   }
 }

@@ -2,25 +2,8 @@
   if (!readCommittedIsolationMaintained("ejb3 lock tests")) {
     return;
   }
-  if (getDialect().doesReadCommittedCauseWritersToBlockReaders()) {
-    reportSkip("deadlock","jpa read locking");
-    return;
-  }
-  if (getDialect() instanceof HSQLDialect) {
-    int hsqldbVersion=18;
-    try {
-      Class props=ReflectHelper.classForName("org.hsqldb.persist.HsqlDatabaseProperties");
-      String versionString=(String)props.getDeclaredField("THIS_VERSION").get(null);
-      hsqldbVersion=Integer.parseInt(versionString.substring(0,1)) * 10;
-      hsqldbVersion+=Integer.parseInt(versionString.substring(2,3));
-    }
- catch (    Throwable e) {
-    }
-    if (hsqldbVersion < 20)     reportSkip("hsqldb 1.8.x only supports read uncommitted","lock doesn't work on hsqldb 1.8.x");
-    return;
-  }
   final String initialName="lock test";
-  Session s1=getSessions().openSession();
+  Session s1=sessionFactory().openSession();
   Transaction t1=s1.beginTransaction();
   Item item=new Item();
   item.setName(initialName);
@@ -28,13 +11,13 @@
   t1.commit();
   s1.close();
   Long itemId=item.getId();
-  s1=getSessions().openSession();
+  s1=sessionFactory().openSession();
   t1=s1.beginTransaction();
   item=(Item)s1.get(Item.class,itemId);
   s1.lock(item,LockMode.UPGRADE);
   item.setName("updated");
   s1.flush();
-  Session s2=getSessions().openSession();
+  Session s2=sessionFactory().openSession();
   Transaction t2=s2.beginTransaction();
   Item item2=(Item)s2.get(Item.class,itemId);
   assertEquals("isolation not maintained",initialName,item2.getName());
@@ -44,7 +27,7 @@
   assertEquals("repeatable read not maintained",initialName,item2.getName());
   t2.commit();
   s2.close();
-  s1=getSessions().openSession();
+  s1=sessionFactory().openSession();
   t1=s1.beginTransaction();
   s1.delete(item);
   t1.commit();

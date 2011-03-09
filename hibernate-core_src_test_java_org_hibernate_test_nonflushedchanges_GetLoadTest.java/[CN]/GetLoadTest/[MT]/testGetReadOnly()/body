@@ -34,8 +34,8 @@
   assertTrue(s.isReadOnly(emp));
   assertFalse(Hibernate.isInitialized(node.getChildren()));
   Hibernate.initialize(node.getChildren());
-  for (Iterator it=node.getChildren().iterator(); it.hasNext(); ) {
-    assertFalse(s.isReadOnly(it.next()));
+  for (  Object o : node.getChildren()) {
+    assertFalse(s.isReadOnly(o));
   }
   assertFalse(Hibernate.isInitialized(node.getParent()));
   assertNull(s.get(Node.class,"xyz"));
@@ -65,8 +65,8 @@
   s=openSession();
   s.createQuery("delete from Employer").executeUpdate();
   List list=s.createQuery("from Node").list();
-  for (Iterator it=list.iterator(); it.hasNext(); ) {
-    s.delete(it.next());
+  for (  Object aList : list) {
+    s.delete(aList);
   }
   SimpleJtaTransactionManagerImpl.getInstance().commit();
 }

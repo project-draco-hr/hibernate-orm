@@ -1,20 +1,16 @@
 {
-  if (getDialect().doesReadCommittedCauseWritersToBlockReaders()) {
-    reportSkip("lock blocking","stale versioned instance");
-    return;
-  }
   String check="Lock Modes";
-  Session s1=getSessions().openSession();
+  Session s1=sessionFactory().openSession();
   Transaction t1=s1.beginTransaction();
   Part part=new Part(new Item("EJB3 Specification"),check,"3.3.5.3",new BigDecimal(0.0));
   s1.save(part);
   t1.commit();
   s1.close();
   Long partId=part.getId();
-  s1=getSessions().openSession();
+  s1=sessionFactory().openSession();
   t1=s1.beginTransaction();
   part=(Part)s1.get(Part.class,partId);
-  Session s2=getSessions().openSession();
+  Session s2=sessionFactory().openSession();
   Transaction t2=s2.beginTransaction();
   Part part2=(Part)s2.get(Part.class,partId);
   part2.setName("Lock Mode Types");
@@ -25,7 +21,7 @@
   assertEquals("encountered non-repeatable read",check,part2.getName());
   t1.commit();
   s1.close();
-  s1=getSessions().openSession();
+  s1=sessionFactory().openSession();
   t1=s1.beginTransaction();
   s1.delete(part2);
   s1.delete(part2.getItem());

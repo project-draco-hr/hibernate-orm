@@ -28,16 +28,16 @@
   assertEquals(s.createQuery("from Person p where p.class = Customer").list().size(),1);
   s.clear();
   List customers=s.createQuery("from Customer c left join fetch c.salesperson").list();
-  for (Iterator iter=customers.iterator(); iter.hasNext(); ) {
-    Customer c=(Customer)iter.next();
+  for (  Object customer : customers) {
+    Customer c=(Customer)customer;
     assertTrue(Hibernate.isInitialized(c.getSalesperson()));
     assertEquals(c.getSalesperson().getName(),"Mark");
   }
   assertEquals(customers.size(),1);
   s.clear();
   customers=s.createQuery("from Customer").list();
-  for (Iterator iter=customers.iterator(); iter.hasNext(); ) {
-    Customer c=(Customer)iter.next();
+  for (  Object customer : customers) {
+    Customer c=(Customer)customer;
     assertFalse(Hibernate.isInitialized(c.getSalesperson()));
     assertEquals(c.getSalesperson().getName(),"Mark");
   }

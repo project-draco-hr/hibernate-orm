@@ -1,0 +1,30 @@
+{
+  if (getCacheConcurrencyStrategy() != null) {
+    Iterator itr=configuration.getClassMappings();
+    while (itr.hasNext()) {
+      PersistentClass clazz=(PersistentClass)itr.next();
+      Iterator props=clazz.getPropertyClosureIterator();
+      boolean hasLob=false;
+      while (props.hasNext()) {
+        Property prop=(Property)props.next();
+        if (prop.getValue().isSimpleValue()) {
+          String type=((SimpleValue)prop.getValue()).getTypeName();
+          if ("blob".equals(type) || "clob".equals(type)) {
+            hasLob=true;
+          }
+          if (Blob.class.getName().equals(type) || Clob.class.getName().equals(type)) {
+            hasLob=true;
+          }
+        }
+      }
+      if (!hasLob && !clazz.isInherited() && overrideCacheStrategy()) {
+        configuration.setCacheConcurrencyStrategy(clazz.getEntityName(),getCacheConcurrencyStrategy());
+      }
+    }
+    itr=configuration.getCollectionMappings();
+    while (itr.hasNext()) {
+      Collection coll=(Collection)itr.next();
+      configuration.setCollectionCacheConcurrencyStrategy(coll.getRole(),getCacheConcurrencyStrategy());
+    }
+  }
+}

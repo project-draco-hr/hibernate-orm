@@ -12,11 +12,11 @@
   s=openSession();
   s.beginTransaction();
   entity=(LobHolder)s.get(LobHolder.class,entity.getId());
-  assertEquals(BLOB_SIZE,entity.getBlobLocator().length());
+  Assert.assertEquals(BLOB_SIZE,entity.getBlobLocator().length());
   assertEquals(original,extractData(entity.getBlobLocator()));
   s.getTransaction().commit();
   s.close();
-  if (supportsLobValueChangePropogation()) {
+  if (getDialect().supportsLobValueChangePropogation()) {
     s=openSession();
     s.beginTransaction();
     entity=(LobHolder)s.get(LobHolder.class,entity.getId(),LockMode.UPGRADE);
@@ -28,7 +28,7 @@
     s.beginTransaction();
     entity=(LobHolder)s.get(LobHolder.class,entity.getId(),LockMode.UPGRADE);
     assertNotNull(entity.getBlobLocator());
-    assertEquals(BLOB_SIZE,entity.getBlobLocator().length());
+    Assert.assertEquals(BLOB_SIZE,entity.getBlobLocator().length());
     assertEquals(changed,extractData(entity.getBlobLocator()));
     entity.getBlobLocator().truncate(1);
     entity.getBlobLocator().setBytes(1,original);
@@ -39,7 +39,7 @@
   s.beginTransaction();
   entity=(LobHolder)s.get(LobHolder.class,entity.getId(),LockMode.UPGRADE);
   assertNotNull(entity.getBlobLocator());
-  assertEquals(BLOB_SIZE,entity.getBlobLocator().length());
+  Assert.assertEquals(BLOB_SIZE,entity.getBlobLocator().length());
   assertEquals(original,extractData(entity.getBlobLocator()));
   entity.setBlobLocator(s.getLobHelper().createBlob(changed));
   s.getTransaction().commit();
@@ -47,7 +47,7 @@
   s=openSession();
   s.beginTransaction();
   entity=(LobHolder)s.get(LobHolder.class,entity.getId());
-  assertEquals(BLOB_SIZE,entity.getBlobLocator().length());
+  Assert.assertEquals(BLOB_SIZE,entity.getBlobLocator().length());
   assertEquals(changed,extractData(entity.getBlobLocator()));
   entity.setBlobLocator(s.getLobHelper().createBlob(empty));
   s.getTransaction().commit();
@@ -56,7 +56,7 @@
   s.beginTransaction();
   entity=(LobHolder)s.get(LobHolder.class,entity.getId());
   if (entity.getBlobLocator() != null) {
-    assertEquals(empty.length,entity.getBlobLocator().length());
+    Assert.assertEquals(empty.length,entity.getBlobLocator().length());
     assertEquals(empty,extractData(entity.getBlobLocator()));
   }
   s.delete(entity);

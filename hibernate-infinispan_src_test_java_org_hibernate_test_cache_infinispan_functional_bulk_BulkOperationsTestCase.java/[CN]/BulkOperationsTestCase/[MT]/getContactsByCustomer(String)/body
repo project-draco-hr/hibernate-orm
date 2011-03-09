@@ -1,20 +1,21 @@
 {
   String selectHQL="select contact.id from Contact contact";
   selectHQL+=" where contact.customer.name = :cName";
-  log.debug("Get contacts for customer " + customerName);
   tm.begin();
   try {
-    Session session=getSessions().getCurrentSession();
-    List results=session.createQuery(selectHQL).setFlushMode(FlushMode.AUTO).setParameter("cName",customerName).list();
-    return results;
+    Session session=sessionFactory().getCurrentSession();
+    return session.createQuery(selectHQL).setFlushMode(FlushMode.AUTO).setParameter("cName",customerName).list();
   }
  catch (  Exception e) {
-    log.error("Unable to get contacts by customer",e);
     tm.setRollbackOnly();
     throw e;
   }
  finally {
-    if (tm.getStatus() == Status.STATUS_ACTIVE)     tm.commit();
- else     tm.rollback();
+    if (tm.getStatus() == Status.STATUS_ACTIVE) {
+      tm.commit();
+    }
+ else {
+      tm.rollback();
+    }
   }
 }

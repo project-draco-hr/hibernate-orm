@@ -1,5 +1,4 @@
 {
-  log.info("*** testBulkOperations()");
   boolean cleanedUp=false;
   try {
     tm=getJtaPlatform().retrieveTransactionManager();
@@ -7,7 +6,7 @@
     List<Integer> rhContacts=getContactsByCustomer("Red Hat");
     assertNotNull("Red Hat contacts exist",rhContacts);
     assertEquals("Created expected number of Red Hat contacts",10,rhContacts.size());
-    SecondLevelCacheStatistics contactSlcs=getEnvironment().getSessionFactory().getStatistics().getSecondLevelCacheStatistics(Contact.class.getName());
+    SecondLevelCacheStatistics contactSlcs=sessionFactory().getStatistics().getSecondLevelCacheStatistics(Contact.class.getName());
     assertEquals(20,contactSlcs.getElementCountInMemory());
     assertEquals("Deleted all Red Hat contacts",10,deleteContacts());
     assertEquals(0,contactSlcs.getElementCountInMemory());
@@ -46,13 +45,11 @@
   }
  catch (  Throwable t) {
     cleanedUp=true;
-    log.debug("Exceptional cleanup");
     cleanup(true);
     throw t;
   }
  finally {
     if (!cleanedUp) {
-      log.debug("Non exceptional cleanup");
       cleanup(false);
     }
   }

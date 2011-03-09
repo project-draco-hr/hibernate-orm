@@ -1,8 +1,4 @@
 {
-  if (getDialect().hasSelfReferentialForeignKeyBug()) {
-    reportSkip("self referential FK bug","HQL delete testing");
-    return;
-  }
   TestData data=new TestData();
   data.prepare();
   Session s=openSession();
@@ -11,7 +7,7 @@
   assertEquals("Incorrect delete count",1,count);
   count=s.createQuery("delete Animal where id = :id").setLong("id",data.catepillar.getId().longValue()).executeUpdate();
   assertEquals("incorrect delete count",1,count);
-  if (supportsSubqueryOnMutatingTable()) {
+  if (getDialect().supportsSubqueryOnMutatingTable()) {
     count=s.createQuery("delete from User u where u not in (select u from User u)").executeUpdate();
     assertEquals(0,count);
   }

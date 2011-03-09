@@ -2,17 +2,19 @@
   String updateHQL="update Contact set tlf = :cNewTLF where name = :cName";
   tm.begin();
   try {
-    Session session=getSessions().getCurrentSession();
-    int rowsAffected=session.createQuery(updateHQL).setFlushMode(FlushMode.AUTO).setParameter("cNewTLF",newTLF).setParameter("cName",name).executeUpdate();
-    return rowsAffected;
+    Session session=sessionFactory().getCurrentSession();
+    return session.createQuery(updateHQL).setFlushMode(FlushMode.AUTO).setParameter("cNewTLF",newTLF).setParameter("cName",name).executeUpdate();
   }
  catch (  Exception e) {
-    log.error("Unable to update contacts",e);
     tm.setRollbackOnly();
     throw e;
   }
  finally {
-    if (tm.getStatus() == Status.STATUS_ACTIVE)     tm.commit();
- else     tm.rollback();
+    if (tm.getStatus() == Status.STATUS_ACTIVE) {
+      tm.commit();
+    }
+ else {
+      tm.rollback();
+    }
   }
 }

@@ -17,9 +17,9 @@
   s.save(emp2);
   t.commit();
   s.close();
-  getSessions().evict(Organization.class);
-  getSessions().evict(Person.class);
-  getSessions().evict(Employment.class);
+  getSessions().getCache().evictEntityRegion(Organization.class);
+  getSessions().getCache().evictEntityRegion(Person.class);
+  getSessions().getCache().evictEntityRegion(Employment.class);
   s=openSession();
   t=s.beginTransaction();
   jboss=(Organization)s.get(Organization.class,orgId);
@@ -28,7 +28,7 @@
   emp=(Employment)jboss.getEmployments().iterator().next();
   gavin=emp.getEmployee();
   assertEquals(gavin.getName(),"GAVIN");
-  assertEquals(s.getCurrentLockMode(gavin),LockMode.UPGRADE);
+  assertEquals(s.getCurrentLockMode(gavin),LockMode.PESSIMISTIC_WRITE);
   emp.setEndDate(new Date());
   Employment emp3=new Employment(gavin,jboss,"US");
   s.save(emp3);
@@ -36,22 +36,22 @@
   s.close();
   s=openSession();
   t=s.beginTransaction();
-  Iterator iter=s.getNamedQuery("allOrganizationsWithEmployees").list().iterator();
-  assertTrue(iter.hasNext());
-  Organization o=(Organization)iter.next();
+  Iterator itr=s.getNamedQuery("allOrganizationsWithEmployees").list().iterator();
+  assertTrue(itr.hasNext());
+  Organization o=(Organization)itr.next();
   assertEquals(o.getEmployments().size(),3);
-  Iterator iter2=o.getEmployments().iterator();
-  while (iter2.hasNext()) {
-    Employment e=(Employment)iter2.next();
+  Iterator itr2=o.getEmployments().iterator();
+  while (itr2.hasNext()) {
+    Employment e=(Employment)itr2.next();
     s.delete(e);
   }
-  iter2=o.getEmployments().iterator();
-  while (iter2.hasNext()) {
-    Employment e=(Employment)iter2.next();
+  itr2=o.getEmployments().iterator();
+  while (itr2.hasNext()) {
+    Employment e=(Employment)itr2.next();
     s.delete(e.getEmployee());
   }
   s.delete(o);
-  assertFalse(iter.hasNext());
+  assertFalse(itr.hasNext());
   s.delete(ifa);
   t.commit();
   s.close();

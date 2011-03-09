@@ -1,0 +1,35 @@
+{
+  Item item=new Item("chris","Chris's Item");
+  beginTx();
+  try {
+    Session s=sessionFactory.openSession();
+    s.getTransaction().begin();
+    s.persist(item);
+    s.getTransaction().commit();
+    s.close();
+  }
+ catch (  Exception e) {
+    setRollbackOnlyTx(e);
+  }
+ finally {
+    commitOrRollbackTx();
+  }
+  beginTx();
+  try {
+    Session s=sessionFactory.openSession();
+    Item found=(Item)s.load(Item.class,item.getId());
+    Statistics stats=sessionFactory.getStatistics();
+    log.info(stats.toString());
+    assertEquals(item.getDescription(),found.getDescription());
+    assertEquals(0,stats.getSecondLevelCacheMissCount());
+    assertEquals(1,stats.getSecondLevelCacheHitCount());
+    s.delete(found);
+    s.close();
+  }
+ catch (  Exception e) {
+    setRollbackOnlyTx(e);
+  }
+ finally {
+    commitOrRollbackTx();
+  }
+}

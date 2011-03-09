@@ -12,15 +12,14 @@
   s.save(gavin);
   s.save(x23y4);
   s.flush();
-  List beings=s.createQuery("from Being").list();
-  for (Iterator iter=beings.iterator(); iter.hasNext(); ) {
-    Being b=(Being)iter.next();
-    assertNotNull(b.getLocation());
-    assertNotNull(b.getIdentity());
-    assertNotNull(b.getSpecies());
+  List<Being> beings=(List<Being>)s.createQuery("from Being").list();
+  for (  Being being : beings) {
+    assertNotNull(being.getLocation());
+    assertNotNull(being.getIdentity());
+    assertNotNull(being.getSpecies());
   }
   s.clear();
-  getSessions().evict(Being.class);
+  getSessions().getCache().evictEntityRegion(Being.class);
   Being gav=(Being)s.get(Being.class,gavin.getId());
   assertEquals(gav.getLocation(),gavin.getAddress());
   assertEquals(gav.getSpecies(),"human");

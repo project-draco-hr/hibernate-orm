@@ -2,12 +2,8 @@
   if (!readCommittedIsolationMaintained("ejb3 lock tests")) {
     return;
   }
-  if (getDialect().doesReadCommittedCauseWritersToBlockReaders()) {
-    reportSkip("deadlock","jpa write locking");
-    return;
-  }
   final String initialName="lock test";
-  Session s1=getSessions().openSession();
+  Session s1=sessionFactory().openSession();
   Transaction t1=s1.beginTransaction();
   Item item=new Item();
   item.setName(initialName);
@@ -19,7 +15,7 @@
   s1.close();
   Long itemId=item.getId();
   long initialVersion=item.getVersion();
-  s1=getSessions().openSession();
+  s1=sessionFactory().openSession();
   t1=s1.beginTransaction();
   item=(Item)s1.get(Item.class,itemId);
   s1.lock(item,LockMode.FORCE);
@@ -29,7 +25,7 @@
   assertTrue("LockMode.FORCE on a un-versioned entity should degrade nicely to UPGRADE",true);
   s1.lock(item,LockMode.FORCE);
   assertEquals("subsequent LockMode.FORCE did not no-op",initialVersion + 1,item.getVersion());
-  Session s2=getSessions().openSession();
+  Session s2=sessionFactory().openSession();
   Transaction t2=s2.beginTransaction();
   Item item2=(Item)s2.get(Item.class,itemId);
   assertEquals("isolation not maintained",initialName,item2.getName());
@@ -49,7 +45,7 @@
  finally {
     s2.close();
   }
-  s1=getSessions().openSession();
+  s1=sessionFactory().openSession();
   t1=s1.beginTransaction();
   s1.delete(item);
   s1.delete(myEntity);
