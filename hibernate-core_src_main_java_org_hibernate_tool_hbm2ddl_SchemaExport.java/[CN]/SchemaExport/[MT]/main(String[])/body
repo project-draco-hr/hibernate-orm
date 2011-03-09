@@ -69,11 +69,17 @@
     if (importFile != null) {
       cfg.setProperty(Environment.HBM2DDL_IMPORT_FILES,importFile);
     }
-    SchemaExport se=new SchemaExport(cfg).setHaltOnError(halt).setOutputFile(outFile).setDelimiter(delim);
-    if (format) {
-      se.setFormat(true);
+    ServiceRegistryImpl serviceRegistry=createServiceRegistry(cfg.getProperties());
+    try {
+      SchemaExport se=new SchemaExport(serviceRegistry.getService(JdbcServices.class),cfg).setHaltOnError(halt).setOutputFile(outFile).setDelimiter(delim);
+      if (format) {
+        se.setFormat(true);
+      }
+      se.execute(script,export,drop,create);
     }
-    se.execute(script,export,drop,create);
+  finally {
+      serviceRegistry.destroy();
+    }
   }
  catch (  Exception e) {
     LOG.unableToCreateSchema(e);

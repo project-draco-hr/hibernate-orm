@@ -32,7 +32,13 @@
       props.load(new FileInputStream(propFile));
       cfg.setProperties(props);
     }
-    new SchemaUpdate(cfg).execute(script,doUpdate);
+    ServiceRegistryImpl serviceRegistry=createServiceRegistry(cfg.getProperties());
+    try {
+      new SchemaUpdate(serviceRegistry.getService(JdbcServices.class),cfg).execute(script,doUpdate);
+    }
+  finally {
+      serviceRegistry.destroy();
+    }
   }
  catch (  Exception e) {
     LOG.unableToRunSchemaUpdate(e);

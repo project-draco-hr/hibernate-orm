@@ -24,7 +24,13 @@
       props.load(new FileInputStream(propFile));
       cfg.setProperties(props);
     }
-    new SchemaValidator(cfg).validate();
+    ServiceRegistryImpl serviceRegistry=createServiceRegistry(cfg.getProperties());
+    try {
+      new SchemaValidator(serviceRegistry.getService(JdbcServices.class),cfg).validate();
+    }
+  finally {
+      serviceRegistry.destroy();
+    }
   }
  catch (  Exception e) {
     LOG.unableToRunSchemaUpdate(e);
