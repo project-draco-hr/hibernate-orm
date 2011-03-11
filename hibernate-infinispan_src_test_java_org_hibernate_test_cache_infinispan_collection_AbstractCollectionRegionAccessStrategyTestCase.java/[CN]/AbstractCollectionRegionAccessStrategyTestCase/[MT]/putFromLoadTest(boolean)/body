@@ -4,7 +4,7 @@
   final CountDownLatch writeLatch2=new CountDownLatch(1);
   final CountDownLatch completionLatch=new CountDownLatch(2);
   Thread node1=new Thread(){
-    @Override public void run(){
+    public void run(){
       try {
         long txTimestamp=System.currentTimeMillis();
         BatchModeTransactionManager.getInstance().begin();
@@ -35,7 +35,7 @@ catch (      AssertionFailedError e) {
   }
 ;
   Thread node2=new Thread(){
-    @Override public void run(){
+    public void run(){
       try {
         long txTimestamp=System.currentTimeMillis();
         BatchModeTransactionManager.getInstance().begin();
@@ -71,8 +71,12 @@ catch (      AssertionFailedError e) {
   node1.start();
   node2.start();
   assertTrue("Threads completed",completionLatch.await(2,TimeUnit.SECONDS));
-  if (node1Failure != null)   throw node1Failure;
-  if (node2Failure != null)   throw node2Failure;
+  if (node1Failure != null) {
+    throw node1Failure;
+  }
+  if (node2Failure != null) {
+    throw node2Failure;
+  }
   assertEquals("node1 saw no exceptions",null,node1Exception);
   assertEquals("node2 saw no exceptions",null,node2Exception);
   sleep(100);

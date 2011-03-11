@@ -1,7 +1,7 @@
 {
   final String KEY=KEY_BASE + testCount++;
-  assertEquals(0,getValidKeyCount(localCache.keySet()));
-  assertEquals(0,getValidKeyCount(remoteCache.keySet()));
+  assertEquals(0,getValidKeyCount(localCollectionRegion.getCacheAdapter().keySet()));
+  assertEquals(0,getValidKeyCount(remoteCollectionRegion.getCacheAdapter().keySet()));
   assertNull("local is clean",localAccessStrategy.get(KEY,System.currentTimeMillis()));
   assertNull("remote is clean",remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
   localAccessStrategy.putFromLoad(KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
@@ -9,15 +9,19 @@
   remoteAccessStrategy.putFromLoad(KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
   assertEquals(VALUE1,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
   sleep(250);
-  if (evict)   localAccessStrategy.evictAll();
- else   localAccessStrategy.removeAll();
+  if (evict) {
+    localAccessStrategy.evictAll();
+  }
+ else {
+    localAccessStrategy.removeAll();
+  }
   assertNull(localAccessStrategy.get(KEY,System.currentTimeMillis()));
-  assertEquals(0,getValidKeyCount(localCache.keySet()));
+  assertEquals(0,getValidKeyCount(localCollectionRegion.getCacheAdapter().keySet()));
   assertEquals(null,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
-  assertEquals(0,getValidKeyCount(remoteCache.keySet()));
+  assertEquals(0,getValidKeyCount(remoteCollectionRegion.getCacheAdapter().keySet()));
   remoteAccessStrategy.putFromLoad(KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
   assertEquals(VALUE1,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
-  assertEquals(1,getValidKeyCount(remoteCache.keySet()));
+  assertEquals(1,getValidKeyCount(remoteCollectionRegion.getCacheAdapter().keySet()));
   sleep(250);
   assertEquals("local is correct",(isUsingInvalidation() ? null : VALUE1),localAccessStrategy.get(KEY,System.currentTimeMillis()));
   assertEquals("remote is correct",VALUE1,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
