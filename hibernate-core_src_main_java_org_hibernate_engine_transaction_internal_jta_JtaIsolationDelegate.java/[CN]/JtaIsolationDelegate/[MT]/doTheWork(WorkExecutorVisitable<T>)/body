@@ -1,0 +1,25 @@
+{
+  try {
+    Connection connection=connectionProvider().getConnection();
+    try {
+      return work.accept(new WorkExecutor<T>(),connection);
+    }
+ catch (    HibernateException e) {
+      throw e;
+    }
+catch (    Exception e) {
+      throw new HibernateException("Unable to perform isolated work",e);
+    }
+ finally {
+      try {
+        connectionProvider().closeConnection(connection);
+      }
+ catch (      Throwable ignore) {
+        LOG.unableToReleaseIsolatedConnection(ignore);
+      }
+    }
+  }
+ catch (  SQLException e) {
+    throw sqlExceptionHelper().convert(e,"unable to obtain isolated JDBC connection");
+  }
+}

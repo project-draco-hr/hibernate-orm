@@ -1,3 +1,10 @@
 {
-  transactionCoordinator.getJdbcCoordinator().coordinateWork(work);
+  WorkExecutorVisitable<Void> realWork=new WorkExecutorVisitable<Void>(){
+    @Override public Void accept(    WorkExecutor<Void> workExecutor,    Connection connection) throws SQLException {
+      workExecutor.executeWork(work,connection);
+      return null;
+    }
+  }
+;
+  doWork(realWork);
 }
