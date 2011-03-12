@@ -1,15 +1,15 @@
 {
-  long initialInsertCount=sfi().getStatistics().getEntityInsertCount();
+  long initialInsertCount=sessionFactory().getStatistics().getEntityInsertCount();
   Session s=openSession();
   MyEntity myEntity2=new MyEntity("test-persist-2");
   MyChild child=new MyChild("test-child-persist-inverse");
   myEntity2.getInverseChildren().add(child);
   child.setInverseParent(myEntity2);
   s.persist(myEntity2);
-  assertEquals("persist on identity column not delayed",initialInsertCount,sfi().getStatistics().getEntityInsertCount());
+  assertEquals("persist on identity column not delayed",initialInsertCount,sessionFactory().getStatistics().getEntityInsertCount());
   assertNull(myEntity2.getId());
   s.flush();
-  assertEquals("delayed persist insert not executed on flush",initialInsertCount + 2,sfi().getStatistics().getEntityInsertCount());
+  assertEquals("delayed persist insert not executed on flush",initialInsertCount + 2,sessionFactory().getStatistics().getEntityInsertCount());
   s.close();
   s=openSession();
   s.beginTransaction();

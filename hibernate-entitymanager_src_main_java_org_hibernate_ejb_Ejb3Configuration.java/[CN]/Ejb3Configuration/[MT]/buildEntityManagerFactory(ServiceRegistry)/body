@@ -1,0 +1,22 @@
+{
+  Thread thread=null;
+  ClassLoader contextClassLoader=null;
+  if (overridenClassLoader != null) {
+    thread=Thread.currentThread();
+    contextClassLoader=thread.getContextClassLoader();
+    thread.setContextClassLoader(overridenClassLoader);
+  }
+  try {
+    configure((Properties)null,null);
+    NamingHelper.bind(this);
+    return new EntityManagerFactoryImpl(transactionType,discardOnClose,getSessionInterceptorClass(cfg.getProperties()),cfg,connectionProviderInjectionData,serviceRegistry);
+  }
+ catch (  HibernateException e) {
+    throw new PersistenceException(getExceptionHeader() + "Unable to build EntityManagerFactory",e);
+  }
+ finally {
+    if (thread != null) {
+      thread.setContextClassLoader(contextClassLoader);
+    }
+  }
+}

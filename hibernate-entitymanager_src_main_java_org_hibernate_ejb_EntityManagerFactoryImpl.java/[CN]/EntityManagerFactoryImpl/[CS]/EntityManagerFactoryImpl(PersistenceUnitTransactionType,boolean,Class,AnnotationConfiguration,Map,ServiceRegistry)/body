@@ -1,0 +1,21 @@
+{
+  this.serviceRegistry=serviceRegistry;
+  this.sessionFactory=cfg.buildSessionFactory(serviceRegistry);
+  this.transactionType=transactionType;
+  this.discardOnClose=discardOnClose;
+  this.sessionInterceptorClass=sessionInterceptorClass;
+  final Iterator<PersistentClass> classes=cfg.getClassMappings();
+  if (!"disabled".equalsIgnoreCase(cfg.getProperty("hibernate.ejb.metamodel.generation"))) {
+    this.metamodel=MetamodelImpl.buildMetamodel(classes,(SessionFactoryImplementor)sessionFactory);
+  }
+ else {
+    this.metamodel=null;
+  }
+  this.criteriaBuilder=new CriteriaBuilderImpl(this);
+  this.util=new HibernatePersistenceUnitUtil(this);
+  HashMap<String,Object> props=new HashMap<String,Object>();
+  addAll(props,((SessionFactoryImplementor)sessionFactory).getProperties());
+  addAll(props,cfg.getProperties());
+  this.properties=Collections.unmodifiableMap(props);
+  this.connectionProviderInjectionData=new HashMap();
+}

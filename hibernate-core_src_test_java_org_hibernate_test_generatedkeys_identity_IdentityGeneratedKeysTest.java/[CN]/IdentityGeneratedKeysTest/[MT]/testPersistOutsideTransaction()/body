@@ -4,13 +4,13 @@
   Long id=(Long)s.save(myEntity1);
   assertNotNull("identity column did not force immediate insert",id);
   assertEquals(id,myEntity1.getId());
-  long initialInsertCount=sfi().getStatistics().getEntityInsertCount();
+  long initialInsertCount=sessionFactory().getStatistics().getEntityInsertCount();
   MyEntity myEntity2=new MyEntity("test-persist");
   s.persist(myEntity2);
-  assertEquals("persist on identity column not delayed",initialInsertCount,sfi().getStatistics().getEntityInsertCount());
+  assertEquals("persist on identity column not delayed",initialInsertCount,sessionFactory().getStatistics().getEntityInsertCount());
   assertNull(myEntity2.getId());
   s.flush();
-  assertEquals("delayed persist insert not executed on flush",initialInsertCount + 1,sfi().getStatistics().getEntityInsertCount());
+  assertEquals("delayed persist insert not executed on flush",initialInsertCount + 1,sessionFactory().getStatistics().getEntityInsertCount());
   s.close();
   s=openSession();
   s.beginTransaction();

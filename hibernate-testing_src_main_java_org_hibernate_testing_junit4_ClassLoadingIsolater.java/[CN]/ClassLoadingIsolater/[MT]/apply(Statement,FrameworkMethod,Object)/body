@@ -1,0 +1,17 @@
+{
+  return new Statement(){
+    @Override public void evaluate() throws Throwable {
+      final ClassLoader isolatedClassLoader=provider.buildIsolatedClassLoader();
+      final ClassLoader originalTCCL=Thread.currentThread().getContextClassLoader();
+      Thread.currentThread().setContextClassLoader(isolatedClassLoader);
+      try {
+        base.evaluate();
+      }
+  finally {
+        Thread.currentThread().setContextClassLoader(originalTCCL);
+        provider.releaseIsolatedClassLoader(isolatedClassLoader);
+      }
+    }
+  }
+;
+}

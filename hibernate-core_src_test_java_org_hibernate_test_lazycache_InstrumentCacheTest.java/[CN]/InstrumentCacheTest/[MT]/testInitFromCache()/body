@@ -1,18 +1,18 @@
 {
   Session s;
   Transaction tx;
-  s=getSessions().openSession();
+  s=sessionFactory().openSession();
   tx=s.beginTransaction();
   s.persist(new Document("HiA","Hibernate book","Hibernate is...."));
   tx.commit();
   s.close();
-  s=getSessions().openSession();
+  s=sessionFactory().openSession();
   tx=s.beginTransaction();
   s.createQuery("from Document fetch all properties").uniqueResult();
   tx.commit();
   s.close();
-  getSessions().getStatistics().clear();
-  s=getSessions().openSession();
+  sessionFactory().getStatistics().clear();
+  s=sessionFactory().openSession();
   tx=s.beginTransaction();
   Document d=(Document)s.createCriteria(Document.class).uniqueResult();
   assertFalse(Hibernate.isPropertyInitialized(d,"text"));
@@ -22,8 +22,8 @@
   assertTrue(Hibernate.isPropertyInitialized(d,"summary"));
   tx.commit();
   s.close();
-  assertEquals(2,getSessions().getStatistics().getPrepareStatementCount());
-  s=getSessions().openSession();
+  assertEquals(2,sessionFactory().getStatistics().getPrepareStatementCount());
+  s=sessionFactory().openSession();
   tx=s.beginTransaction();
   d=(Document)s.get(Document.class,d.getId());
   assertFalse(Hibernate.isPropertyInitialized(d,"text"));
