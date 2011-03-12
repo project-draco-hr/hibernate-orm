@@ -1,4 +1,11 @@
 {
+  Statistics stats=sessionFactory().getStatistics();
+  stats.clear();
+  SecondLevelCacheStatistics slcs=stats.getSecondLevelCacheStatistics(Item.class.getName());
+  sessionFactory().getCache().evictEntityRegion(Item.class.getName());
+  assertEquals(0,slcs.getPutCount());
+  assertEquals(0,slcs.getElementCountInMemory());
+  assertEquals(0,slcs.getEntries().size());
   Session s=null;
   Transaction t=null;
   Item i=null;
@@ -19,10 +26,9 @@
  finally {
     commitOrRollbackTx();
   }
-  SecondLevelCacheStatistics slcs=s.getSessionFactory().getStatistics().getSecondLevelCacheStatistics(Item.class.getName());
-  assertEquals(slcs.getPutCount(),1);
-  assertEquals(slcs.getElementCountInMemory(),1);
-  assertEquals(slcs.getEntries().size(),1);
+  assertEquals(1,slcs.getPutCount());
+  assertEquals(1,slcs.getElementCountInMemory());
+  assertEquals(1,slcs.getEntries().size());
   beginTx();
   try {
     s=openSession();
