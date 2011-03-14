@@ -1,7 +1,10 @@
 {
   LOG.trace("Building session factory");
-  Ejb3Configuration ejb3Configuration=buildConfiguration();
+  ejb3Configuration=buildConfiguration();
+  ejb3Configuration.configure(getConfig());
+  afterConfigurationBuilt(ejb3Configuration);
   serviceRegistry=buildServiceRegistry(ejb3Configuration.getHibernateConfiguration());
-  factory=ejb3Configuration.createEntityManagerFactory(getConfig(),serviceRegistry);
+  applyServices(serviceRegistry);
+  entityManagerFactory=ejb3Configuration.buildEntityManagerFactory(serviceRegistry);
   afterEntityManagerFactoryBuilt();
 }
