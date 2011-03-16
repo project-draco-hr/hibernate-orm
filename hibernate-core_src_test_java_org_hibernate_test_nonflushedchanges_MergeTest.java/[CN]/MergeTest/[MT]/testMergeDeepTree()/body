@@ -1,6 +1,6 @@
 {
   clearCounts();
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   Node root=new Node("root");
   Node child=new Node("child");
@@ -9,18 +9,18 @@
   child.addChild(grandchild);
   s.merge(root);
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   assertInsertCount(3);
   assertUpdateCount(0);
   clearCounts();
   grandchild.setDescription("the grand child");
   Node grandchild2=new Node("grandchild2");
   child.addChild(grandchild2);
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.merge(root);
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   assertInsertCount(1);
   assertUpdateCount(1);
   clearCounts();
@@ -28,15 +28,15 @@
   Node grandchild3=new Node("grandchild3");
   child2.addChild(grandchild3);
   root.addChild(child2);
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.merge(root);
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   assertInsertCount(2);
   assertUpdateCount(0);
   clearCounts();
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.delete(grandchild);
   s.delete(grandchild2);
@@ -44,5 +44,5 @@
   s.delete(child);
   s.delete(child2);
   s.delete(root);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
 }

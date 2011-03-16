@@ -8,8 +8,10 @@
   if (auditStrategy != null && !"".equals(auditStrategy)) {
     cfg.setProperty("org.hibernate.envers.audit_strategy",auditStrategy);
   }
-  cfg.setProperty("hibernate.connection.url","jdbc:h2:mem:" + this.getClass().getName());
+  cfg.setProperty(Environment.URL,"jdbc:h2:mem:" + this.getClass().getName());
   configure(cfg);
-  emf=cfg.buildEntityManagerFactory();
+  cfg.configure(cfg.getHibernateConfiguration().getProperties());
+  serviceRegistry=new ServiceRegistryImpl(cfg.getProperties());
+  emf=cfg.buildEntityManagerFactory(serviceRegistry);
   newEntityManager();
 }

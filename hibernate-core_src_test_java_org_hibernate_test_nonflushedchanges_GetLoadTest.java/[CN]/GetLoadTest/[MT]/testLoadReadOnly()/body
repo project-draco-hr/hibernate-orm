@@ -1,6 +1,6 @@
 {
   clearCounts();
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   Employer emp=new Employer();
   s.persist(emp);
@@ -8,8 +8,8 @@
   Node parent=new Node("bar");
   parent.addChild(node);
   s.persist(parent);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   assertFalse(s.isDefaultReadOnly());
   s.setDefaultReadOnly(true);
@@ -22,13 +22,13 @@
   emp=(Employer)getOldToNewEntityRefMap().get(emp);
   assertFalse(Hibernate.isInitialized(emp));
   assertTrue(s.isReadOnly(emp));
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.createQuery("delete from Employer").executeUpdate();
   List list=s.createQuery("from Node").list();
   for (  Object aList : list) {
     s.delete(aList);
   }
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
 }

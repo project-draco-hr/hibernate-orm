@@ -1,5 +1,5 @@
 {
-  sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   Map foo=new HashMap();
   foo.put("name","Foo");
@@ -9,25 +9,25 @@
   bar.put("name","Bar");
   bar.put("description","a small bar");
   s.persist("Item",bar);
-  sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
 synchronized (this) {
     wait(1000);
   }
   sessionFactory().getStatistics().clear();
   sessionFactory().evictEntity("Item");
-  sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s4=openSession();
-  Transaction tx4=sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().suspend();
-  sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
+  Transaction tx4=TestingJtaBootstrap.INSTANCE.getTransactionManager().suspend();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s1=openSession();
   List r1=s1.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
   assertEquals(r1.size(),2);
-  Transaction tx1=sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().suspend();
-  sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
+  Transaction tx1=TestingJtaBootstrap.INSTANCE.getTransactionManager().suspend();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s2=openSession();
   List r2=s2.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
   assertEquals(r2.size(),2);
-  sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   assertEquals(sessionFactory().getStatistics().getSecondLevelCacheHitCount(),2);
   assertEquals(sessionFactory().getStatistics().getSecondLevelCacheMissCount(),0);
   assertEquals(sessionFactory().getStatistics().getEntityLoadCount(),2);
@@ -36,12 +36,12 @@ synchronized (this) {
   assertEquals(sessionFactory().getStatistics().getQueryCachePutCount(),1);
   assertEquals(sessionFactory().getStatistics().getQueryCacheHitCount(),1);
   assertEquals(sessionFactory().getStatistics().getQueryCacheMissCount(),1);
-  sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().resume(tx1);
-  tx1.commit();
-  sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().resume(tx1);
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s3=openSession();
   s3.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
-  sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   assertEquals(sessionFactory().getStatistics().getSecondLevelCacheHitCount(),4);
   assertEquals(sessionFactory().getStatistics().getSecondLevelCacheMissCount(),0);
   assertEquals(sessionFactory().getStatistics().getEntityLoadCount(),2);
@@ -50,10 +50,10 @@ synchronized (this) {
   assertEquals(sessionFactory().getStatistics().getQueryCachePutCount(),1);
   assertEquals(sessionFactory().getStatistics().getQueryCacheHitCount(),2);
   assertEquals(sessionFactory().getStatistics().getQueryCacheMissCount(),1);
-  sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().resume(tx4);
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().resume(tx4);
   List r4=s4.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
   assertEquals(r4.size(),2);
-  tx4.commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   assertEquals(sessionFactory().getStatistics().getSecondLevelCacheHitCount(),6);
   assertEquals(sessionFactory().getStatistics().getSecondLevelCacheMissCount(),0);
   assertEquals(sessionFactory().getStatistics().getEntityLoadCount(),2);
@@ -62,8 +62,8 @@ synchronized (this) {
   assertEquals(sessionFactory().getStatistics().getQueryCachePutCount(),1);
   assertEquals(sessionFactory().getStatistics().getQueryCacheHitCount(),3);
   assertEquals(sessionFactory().getStatistics().getQueryCacheMissCount(),1);
-  sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.createQuery("delete from Item").executeUpdate();
-  sessionFactory().getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
 }

@@ -1,14 +1,14 @@
 {
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   NumberedNode root=new NumberedNode("root");
   root.addChild(new NumberedNode("child"));
   s.persist(root);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   clearCounts();
   NumberedNode newRoot=new NumberedNode("root");
   newRoot.setId(root.getId());
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   root=(NumberedNode)s.get(NumberedNode.class,root.getId());
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
@@ -22,13 +22,13 @@
   assertSame(root,s.merge(newRoot));
   assertSame(managedChildren,root.getChildren());
   assertFalse(Hibernate.isInitialized(managedChildren));
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   assertInsertCount(0);
   assertUpdateCount(0);
   assertDeleteCount(0);
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   assertEquals(Long.valueOf(2),s.createCriteria(NumberedNode.class).setProjection(Projections.rowCount()).uniqueResult());
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   cleanup();
 }

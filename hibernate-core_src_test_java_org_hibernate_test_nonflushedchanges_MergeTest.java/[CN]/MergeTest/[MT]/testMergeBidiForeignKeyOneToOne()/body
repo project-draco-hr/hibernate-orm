@@ -1,24 +1,24 @@
 {
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   Person p=new Person("steve");
   Address a=new Address("123 Main","Austin","US",p);
   s.persist(a);
   s.persist(p);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   clearCounts();
   p.getAddress().setStreetAddress("321 Main");
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   p=(Person)s.merge(p);
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   assertInsertCount(0);
   assertUpdateCount(0);
   assertDeleteCount(0);
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.delete(a);
   s.delete(p);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
 }

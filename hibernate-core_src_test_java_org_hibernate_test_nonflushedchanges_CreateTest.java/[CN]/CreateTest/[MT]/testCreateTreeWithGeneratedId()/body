@@ -1,6 +1,6 @@
 {
   clearCounts();
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   NumberedNode root=new NumberedNode("root");
   NumberedNode child=new NumberedNode("child");
@@ -8,10 +8,10 @@
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   s.persist(root);
   applyNonFlushedChangesToNewSessionCloseOldSession(s);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   assertInsertCount(2);
   assertUpdateCount(0);
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   root=(NumberedNode)s.get(NumberedNode.class,Long.valueOf(root.getId()));
@@ -20,7 +20,7 @@
   root=(NumberedNode)getOldToNewEntityRefMap().get(root);
   root.addChild(child2);
   applyNonFlushedChangesToNewSessionCloseOldSession(s);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   assertInsertCount(3);
   assertUpdateCount(0);
 }

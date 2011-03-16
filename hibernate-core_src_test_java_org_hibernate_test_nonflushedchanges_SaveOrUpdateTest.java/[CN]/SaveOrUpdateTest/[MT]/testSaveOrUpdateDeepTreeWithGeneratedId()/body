@@ -1,7 +1,7 @@
 {
   boolean instrumented=FieldInterceptionHelper.isInstrumented(new NumberedNode());
   clearCounts();
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   NumberedNode root=new NumberedNode("root");
   NumberedNode child=new NumberedNode("child");
@@ -13,7 +13,7 @@
   root=(NumberedNode)getOldToNewEntityRefMap().get(root);
   child=(NumberedNode)getOldToNewEntityRefMap().get(child);
   grandchild=(NumberedNode)getOldToNewEntityRefMap().get(grandchild);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   assertInsertCount(3);
   assertUpdateCount(0);
   clearCounts();
@@ -22,12 +22,12 @@
   grandchild.setDescription("the grand child");
   NumberedNode grandchild2=new NumberedNode("grandchild2");
   child.addChild(grandchild2);
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.saveOrUpdate(root);
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   root=(NumberedNode)getOldToNewEntityRefMap().get(root);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   assertInsertCount(1);
   assertUpdateCount(instrumented ? 1 : 3);
   clearCounts();
@@ -35,18 +35,18 @@
   NumberedNode grandchild3=new NumberedNode("grandchild3");
   child2.addChild(grandchild3);
   root.addChild(child2);
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.saveOrUpdate(root);
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   assertInsertCount(2);
   assertUpdateCount(instrumented ? 0 : 4);
   clearCounts();
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.createQuery("delete from NumberedNode where name like 'grand%'").executeUpdate();
   s.createQuery("delete from NumberedNode where name like 'child%'").executeUpdate();
   s.createQuery("delete from NumberedNode").executeUpdate();
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
 }

@@ -1,21 +1,21 @@
 {
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   VersionedEntity c=new VersionedEntity("c1","child-1");
   VersionedEntity p=new VersionedEntity("root","root");
   p.getChildren().add(c);
   c.setParent(p);
   s.save(p);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   clearCounts();
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   VersionedEntity loadedParent=(VersionedEntity)s.get(VersionedEntity.class,"root");
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   loadedParent=(VersionedEntity)getOldToNewEntityRefMap().get(loadedParent);
   s.delete(loadedParent);
   applyNonFlushedChangesToNewSessionCloseOldSession(s);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   assertInsertCount(0);
   assertUpdateCount(0);
   assertDeleteCount(2);

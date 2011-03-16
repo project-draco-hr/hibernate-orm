@@ -1,5 +1,5 @@
 {
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   Node parent=new Node("1:parent");
   Node child=new Node("2:child");
@@ -8,8 +8,8 @@
   child.addChild(grandchild);
   s.saveOrUpdate(parent);
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s1=openSession();
   child=(Node)s1.load(Node.class,"2:child");
   s1=applyNonFlushedChangesToNewSessionCloseOldSession(s1);
@@ -26,8 +26,8 @@
   s1.evict(child);
   assertFalse(s1.contains(child));
   assertTrue(s1.contains(child.getParent()));
-  javax.transaction.Transaction tx1=SimpleJtaTransactionManagerImpl.getInstance().suspend();
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  javax.transaction.Transaction tx1=TestingJtaBootstrap.INSTANCE.getTransactionManager().suspend();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s2=openSession();
   try {
     s2.getTransaction().begin();
@@ -37,11 +37,11 @@
  catch (  HibernateException ex) {
   }
  finally {
-    SimpleJtaTransactionManagerImpl.getInstance().rollback();
+    TestingJtaBootstrap.INSTANCE.getTransactionManager().rollback();
   }
   s1.evict(child.getParent());
   assertFalse(s1.contains(child.getParent()));
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s2=openSession();
   s2.saveOrUpdate(child);
   s2=applyNonFlushedChangesToNewSessionCloseOldSession(s2);
@@ -60,15 +60,13 @@
   assertTrue(Hibernate.isInitialized(child.getParent()));
   s1=applyNonFlushedChangesToNewSessionCloseOldSession(s1);
   s2=applyNonFlushedChangesToNewSessionCloseOldSession(s2);
-  javax.transaction.Transaction tx2=SimpleJtaTransactionManagerImpl.getInstance().suspend();
-  SimpleJtaTransactionManagerImpl.getInstance().resume(tx1);
-  tx1.commit();
-  SimpleJtaTransactionManagerImpl.getInstance().resume(tx2);
-  tx2.commit();
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().resume(tx1);
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.delete(s.get(Node.class,"3:grandchild"));
   s.delete(s.get(Node.class,"2:child"));
   s.delete(s.get(Node.class,"1:parent"));
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
 }

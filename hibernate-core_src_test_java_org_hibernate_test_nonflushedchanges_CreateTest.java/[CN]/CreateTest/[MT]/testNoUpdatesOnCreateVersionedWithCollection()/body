@@ -1,6 +1,6 @@
 {
   clearCounts();
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   VersionedEntity root=new VersionedEntity("root","root");
@@ -13,15 +13,15 @@
   root=(VersionedEntity)getOldToNewEntityRefMap().get(root);
   applyNonFlushedChangesToNewSessionCloseOldSession(s);
   root=(VersionedEntity)getOldToNewEntityRefMap().get(root);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   assertInsertCount(2);
   assertUpdateCount(0);
   assertDeleteCount(0);
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.delete(root);
   applyNonFlushedChangesToNewSessionCloseOldSession(s);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   assertUpdateCount(0);
   assertDeleteCount(2);
 }

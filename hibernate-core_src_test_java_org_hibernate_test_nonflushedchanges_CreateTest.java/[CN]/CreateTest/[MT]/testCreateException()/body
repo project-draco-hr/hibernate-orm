@@ -1,5 +1,5 @@
 {
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   Node dupe=new Node("dupe");
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
@@ -8,31 +8,45 @@
   dupe=(Node)getOldToNewEntityRefMap().get(dupe);
   s.persist(dupe);
   applyNonFlushedChangesToNewSessionCloseOldSession(s);
-  SimpleJtaTransactionManagerImpl.getInstance().commit();
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   s.persist(dupe);
   applyNonFlushedChangesToNewSessionCloseOldSession(s);
   try {
-    SimpleJtaTransactionManagerImpl.getInstance().commit();
-    assertFalse(true);
+    TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+    Assert.fail();
   }
  catch (  ConstraintViolationException cve) {
   }
-  SimpleJtaTransactionManagerImpl.getInstance().rollback();
+catch (  RollbackException e) {
+    if (!ConstraintViolationException.class.isInstance(e.getCause())) {
+      throw (Exception)e.getCause();
+    }
+  }
+  if (JtaStatusHelper.isActive(TestingJtaBootstrap.INSTANCE.getTransactionManager())) {
+    TestingJtaBootstrap.INSTANCE.getTransactionManager().rollback();
+  }
   Node nondupe=new Node("nondupe");
   nondupe.addChild(dupe);
-  SimpleJtaTransactionManagerImpl.getInstance().begin();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   s.persist(nondupe);
   applyNonFlushedChangesToNewSessionCloseOldSession(s);
   try {
-    SimpleJtaTransactionManagerImpl.getInstance().commit();
-    assertFalse(true);
+    TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+    Assert.fail();
   }
  catch (  ConstraintViolationException cve) {
   }
-  SimpleJtaTransactionManagerImpl.getInstance().rollback();
+catch (  RollbackException e) {
+    if (!ConstraintViolationException.class.isInstance(e.getCause())) {
+      throw (Exception)e.getCause();
+    }
+  }
+  if (JtaStatusHelper.isActive(TestingJtaBootstrap.INSTANCE.getTransactionManager())) {
+    TestingJtaBootstrap.INSTANCE.getTransactionManager().rollback();
+  }
 }
