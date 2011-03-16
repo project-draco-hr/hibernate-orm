@@ -1,7 +1,9 @@
 {
-  originalTCCL=Thread.currentThread().getContextClassLoader();
   final String packageName=IsolatedClassLoaderTest.class.getPackage().getName();
-  final String[] isolatedClassNames=new String[]{packageName + "Account",packageName + "AccountHolder"};
-  final SelectedClassnameClassLoader visible=new SelectedClassnameClassLoader(isolatedClassNames,null,null,originalTCCL);
+  final String[] classes=new String[]{packageName + ".Account",packageName + ".AccountHolder"};
+  originalTCCL=Thread.currentThread().getContextClassLoader();
+  ClassLoader parent=originalTCCL == null ? IsolatedClassLoaderTest.class.getClassLoader() : originalTCCL;
+  ClassLoader selectedTCCL=new SelectedClassnameClassLoader(null,null,classes,parent);
+  SelectedClassnameClassLoader visible=new SelectedClassnameClassLoader(classes,null,null,selectedTCCL);
   Thread.currentThread().setContextClassLoader(visible);
 }
