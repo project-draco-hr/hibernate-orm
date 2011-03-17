@@ -1,0 +1,22 @@
+{
+  final FailureExpected failureExpected=extendedFrameworkMethod.getFailureExpectedAnnotation();
+  try {
+    realInvoker.evaluate();
+    if (failureExpected != null) {
+      throw new CustomRunner.FailureExpectedTestPassedException(extendedFrameworkMethod);
+    }
+  }
+ catch (  CustomRunner.FailureExpectedTestPassedException e) {
+    throw e;
+  }
+catch (  Throwable e) {
+    if (failureExpected != null) {
+      TestLogger.LOG.infof("Ignoring expected failure [{}] : {}",Helper.extractTestName(extendedFrameworkMethod),Helper.extractMessage(failureExpected));
+      testClassMetadata.performOnExpectedFailureCallback(testInstance);
+    }
+ else {
+      testClassMetadata.performOnFailureCallback(testInstance);
+      throw e;
+    }
+  }
+}

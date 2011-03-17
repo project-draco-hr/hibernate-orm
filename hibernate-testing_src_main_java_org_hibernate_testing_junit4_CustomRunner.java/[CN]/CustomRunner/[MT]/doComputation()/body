@@ -1,24 +1,20 @@
 {
-  TestClassCallbackMetadata callbackMetadata=new TestClassCallbackMetadata(getTestClass().getJavaClass());
   final List<FrameworkMethod> methods=super.computeTestMethods();
-  hadAnyTests=methods.size() > 0;
   final List<FrameworkMethod> result=new ArrayList<FrameworkMethod>();
   final boolean doValidation=Boolean.getBoolean(Helper.VALIDATE_FAILURE_EXPECTED);
   int testCount=0;
+  Ignore virtualIgnore;
   for (  FrameworkMethod frameworkMethod : methods) {
     final FailureExpected failureExpected=Helper.locateAnnotation(FailureExpected.class,frameworkMethod,getTestClass());
     if (failureExpected != null && !doValidation) {
-      log.info(Helper.extractIgnoreMessage(failureExpected,frameworkMethod));
-      continue;
+      virtualIgnore=new IgnoreImpl(Helper.extractIgnoreMessage(failureExpected,frameworkMethod));
     }
-    final SkipMarker skipMarker=getSkipInfoIfSkipped(frameworkMethod);
-    if (skipMarker != null) {
-      SkipLog.reportSkip(skipMarker);
-      continue;
+ else {
+      virtualIgnore=convertSkipToIgnore(frameworkMethod);
     }
     testCount++;
     log.trace("adding test " + Helper.extractTestName(frameworkMethod) + " [#"+ testCount+ "]");
-    result.add(new ExtendedFrameworkMethod(frameworkMethod,testCount,skipMarker,failureExpected,callbackMetadata,this));
+    result.add(new ExtendedFrameworkMethod(frameworkMethod,virtualIgnore,failureExpected));
   }
   return result;
 }
