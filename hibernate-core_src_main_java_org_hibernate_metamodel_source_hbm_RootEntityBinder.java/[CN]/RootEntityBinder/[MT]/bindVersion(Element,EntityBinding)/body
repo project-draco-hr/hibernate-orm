@@ -1,0 +1,37 @@
+{
+  Element versioningElement=entityElement.element("version");
+  if (versioningElement == null) {
+    versioningElement=entityElement.element("timestamp");
+  }
+  if (versioningElement == null) {
+    return;
+  }
+  boolean isVersion="version".equals(versioningElement.getName());
+  final String explicitName=versioningElement.attributeValue("name");
+  if (explicitName == null) {
+    throw new MappingException("Mising property name for version/timestamp mapping [" + entityBinding.getEntity().getName() + "]");
+  }
+  entityBinding.getEntity().getOrCreateSingularAttribute(explicitName);
+  SimpleAttributeBinding versionBinding=entityBinding.makeSimpleAttributeBinding(explicitName);
+  basicAttributeBinding(versioningElement,versionBinding);
+  if (versionBinding.getHibernateTypeDescriptor().getTypeName() == null) {
+    if (isVersion) {
+      versionBinding.getHibernateTypeDescriptor().setTypeName("integer");
+    }
+ else {
+      final String tsSource=versioningElement.attributeValue("source");
+      if ("db".equals(tsSource)) {
+        versionBinding.getHibernateTypeDescriptor().setTypeName("dbtimestamp");
+      }
+ else {
+        versionBinding.getHibernateTypeDescriptor().setTypeName("timestamp");
+      }
+    }
+  }
+  Value discriminatorValue=processValues(versioningElement,entityBinding.getBaseTable(),explicitName);
+  versionBinding.setValue(discriminatorValue);
+  if (versionBinding.getGeneration() == PropertyGeneration.INSERT) {
+    throw new MappingException("'generated' attribute cannot be 'insert' for versioning property");
+  }
+  entityBinding.setVersioningValueBinding(versionBinding);
+}

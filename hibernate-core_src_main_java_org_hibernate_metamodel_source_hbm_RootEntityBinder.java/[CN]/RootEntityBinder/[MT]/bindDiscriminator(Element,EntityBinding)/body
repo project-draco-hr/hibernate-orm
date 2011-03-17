@@ -1,0 +1,24 @@
+{
+  Element discriminatorElement=entityElement.element("discriminator");
+  if (discriminatorElement == null) {
+    return;
+  }
+  final String explicitName=discriminatorElement.attributeValue("name");
+  final String attributeName=explicitName == null ? RootClass.DEFAULT_DISCRIMINATOR_COLUMN_NAME : explicitName;
+  entityBinding.getEntity().getOrCreateSingularAttribute(attributeName);
+  SimpleAttributeBinding discriminatorBinding=entityBinding.makeSimpleAttributeBinding(attributeName);
+  basicAttributeBinding(discriminatorElement,discriminatorBinding);
+  if (discriminatorBinding.getHibernateTypeDescriptor().getTypeName() == null) {
+    discriminatorBinding.getHibernateTypeDescriptor().setTypeName("string");
+  }
+  Value discriminatorValue=processValues(discriminatorElement,entityBinding.getBaseTable(),attributeName);
+  discriminatorBinding.setValue(discriminatorValue);
+  entityBinding.makeEntityDiscriminator();
+  entityBinding.getEntityDiscriminator().setValueBinding(discriminatorBinding);
+  if ("true".equals(discriminatorElement.attributeValue("force"))) {
+    entityBinding.getEntityDiscriminator().setForced(true);
+  }
+  if ("false".equals(discriminatorElement.attributeValue("insert"))) {
+    entityBinding.getEntityDiscriminator().setInserted(false);
+  }
+}

@@ -1,0 +1,57 @@
+{
+  Attribute typeAttribute=propertyElement.attribute("type");
+  if (typeAttribute != null) {
+    valueBinding.getHibernateTypeDescriptor().setTypeName(typeAttribute.getValue());
+  }
+  valueBinding.setMetaAttributes(HbmHelper.extractMetas(propertyElement,entityMetas));
+  final String propertyName=valueBinding.getAttribute().getName();
+  final String explicitNodename=propertyElement.attributeValue("node");
+  final String nodeName=explicitNodename != null ? explicitNodename : propertyName;
+  valueBinding.setNodeName(nodeName);
+  final Attribute accessNode=propertyElement.attribute("access");
+  if (accessNode != null) {
+    valueBinding.setPropertyAccessorName(accessNode.getValue());
+  }
+ else   if (propertyElement.getName().equals("properties")) {
+    valueBinding.setPropertyAccessorName("embedded");
+  }
+ else {
+    valueBinding.setPropertyAccessorName(hibernateMappingBinder.getDefaultAccess());
+  }
+  final String explicitCascade=propertyElement.attributeValue("cascade");
+  final String cascade=StringHelper.isNotEmpty(explicitCascade) ? explicitCascade : hibernateMappingBinder.getDefaultCascade();
+  valueBinding.setCascade(cascade);
+  final Attribute updateAttribute=propertyElement.attribute("update");
+  valueBinding.setUpdateable(updateAttribute == null || "true".equals(updateAttribute.getValue()));
+  final Attribute insertAttribute=propertyElement.attribute("insert");
+  valueBinding.setInsertable(insertAttribute == null || "true".equals(insertAttribute.getValue()));
+  final Attribute optimisticLockAttribute=propertyElement.attribute("optimistic-lock");
+  valueBinding.setOptimisticLockable(optimisticLockAttribute == null || "true".equals(optimisticLockAttribute.getValue()));
+  final Attribute generatedAttribute=propertyElement.attribute("generated");
+  final String generationName=generatedAttribute == null ? null : generatedAttribute.getValue();
+  final PropertyGeneration generation=PropertyGeneration.parse(generationName);
+  valueBinding.setGeneration(generation);
+  if (generation == PropertyGeneration.ALWAYS || generation == PropertyGeneration.INSERT) {
+    if (valueBinding.isInsertable()) {
+      if (insertAttribute == null) {
+        valueBinding.setInsertable(false);
+      }
+ else {
+        throw new MappingException("cannot specify both insert=\"true\" and generated=\"" + generation.getName() + "\" for property: "+ propertyName);
+      }
+    }
+    if (valueBinding.isUpdateable() && generation == PropertyGeneration.ALWAYS) {
+      if (updateAttribute == null) {
+        valueBinding.setUpdateable(false);
+      }
+ else {
+        throw new MappingException("cannot specify both update=\"true\" and generated=\"" + generation.getName() + "\" for property: "+ propertyName);
+      }
+    }
+  }
+  boolean isLazyable="property".equals(propertyElement.getName()) || "component".equals(propertyElement.getName()) || "many-to-one".equals(propertyElement.getName())|| "one-to-one".equals(propertyElement.getName())|| "any".equals(propertyElement.getName());
+  if (isLazyable) {
+    Attribute lazyNode=propertyElement.attribute("lazy");
+    valueBinding.setLazy(lazyNode != null && "true".equals(lazyNode.getValue()));
+  }
+}

@@ -1,0 +1,55 @@
+{
+  entityBinding.setMetaAttributes(entityMetas);
+  Attribute lazyNode=node.attribute("lazy");
+  boolean lazy=(lazyNode == null) ? hibernateMappingBinder.isDefaultLazy() : Boolean.valueOf(lazyNode.getValue());
+  entityBinding.setLazy(lazy);
+  String entityName=hibernateMappingBinder.extractEntityName(node);
+  if (entityName == null) {
+    throw new MappingException("Unable to determine entity name");
+  }
+  entityBinding.setEntity(new Entity(entityName,superType));
+  bindPojoRepresentation(node,entityBinding);
+  bindDom4jRepresentation(node,entityBinding);
+  bindMapRepresentation(node,entityBinding);
+  Iterator itr=node.elementIterator("fetch-profile");
+  while (itr.hasNext()) {
+    final Element profileElement=(Element)itr.next();
+    hibernateMappingBinder.parseFetchProfile(profileElement,entityName);
+  }
+  entityBinding.setDiscriminatorValue(DomHelper.extractAttributeValue(node,"discriminator-value",entityName));
+  entityBinding.setDynamicUpdate(DomHelper.extractBooleanAttributeValue(node,"dynamic-update",false));
+  entityBinding.setDynamicInsert(DomHelper.extractBooleanAttributeValue(node,"dynamic-insert",false));
+  getMetadata().addImport(entityName,entityName);
+  if (hibernateMappingBinder.isAutoImport()) {
+    if (entityName.indexOf('.') > 0) {
+      getMetadata().addImport(StringHelper.unqualify(entityName),entityName);
+    }
+  }
+  final Attribute batchNode=node.attribute("batch-size");
+  if (batchNode != null) {
+    entityBinding.setBatchSize(Integer.parseInt(batchNode.getValue()));
+  }
+  final Attribute sbuNode=node.attribute("select-before-update");
+  if (sbuNode != null) {
+    entityBinding.setSelectBeforeUpdate(Boolean.valueOf(sbuNode.getValue()));
+  }
+  Attribute olNode=node.attribute("optimistic-lock");
+  entityBinding.setOptimisticLockMode(getOptimisticLockMode(olNode));
+  Attribute persisterNode=node.attribute("persister");
+  if (persisterNode != null) {
+    try {
+      entityBinding.setEntityPersisterClass(ReflectHelper.classForName(persisterNode.getValue()));
+    }
+ catch (    ClassNotFoundException cnfe) {
+      throw new MappingException("Could not find persister class: " + persisterNode.getValue());
+    }
+  }
+  handleCustomSQL(node,entityBinding);
+  Iterator tables=node.elementIterator("synchronize");
+  while (tables.hasNext()) {
+    entityBinding.addSynchronizedTable(((Element)tables.next()).attributeValue("table"));
+  }
+  Attribute abstractNode=node.attribute("abstract");
+  Boolean isAbstract=abstractNode == null ? null : "true".equals(abstractNode.getValue()) ? Boolean.TRUE : "false".equals(abstractNode.getValue()) ? Boolean.FALSE : null;
+  entityBinding.setAbstract(isAbstract);
+}

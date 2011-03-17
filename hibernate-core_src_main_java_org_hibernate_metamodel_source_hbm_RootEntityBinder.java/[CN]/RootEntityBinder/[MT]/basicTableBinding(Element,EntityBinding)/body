@@ -1,0 +1,28 @@
+{
+  final Schema schema=getHibernateXmlBinder().getMetadata().getDatabase().getSchema(schemaName);
+  final String subSelect=HbmHelper.getSubselect(entityElement);
+  if (subSelect != null) {
+    final String logicalName=entityBinding.getEntity().getName();
+    InLineView inLineView=schema.getInLineView(logicalName);
+    if (inLineView == null) {
+      inLineView=schema.createInLineView(logicalName,subSelect);
+    }
+    entityBinding.setBaseTable(inLineView);
+  }
+ else {
+    final Identifier tableName=Identifier.toIdentifier(getClassTableName(entityElement,entityBinding,null));
+    org.hibernate.metamodel.relational.Table table=schema.getTable(tableName);
+    if (table == null) {
+      table=schema.createTable(tableName);
+    }
+    entityBinding.setBaseTable(table);
+    Element comment=entityElement.element("comment");
+    if (comment != null) {
+      table.addComment(comment.getTextTrim());
+    }
+    Attribute checkAttribute=entityElement.attribute("check");
+    if (checkAttribute != null) {
+      table.addCheckConstraint(checkAttribute.getValue());
+    }
+  }
+}

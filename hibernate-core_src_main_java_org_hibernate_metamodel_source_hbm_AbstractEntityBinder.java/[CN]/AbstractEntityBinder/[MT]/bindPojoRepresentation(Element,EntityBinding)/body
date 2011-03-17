@@ -1,0 +1,16 @@
+{
+  String className=hibernateMappingBinder.getClassName(node.attribute("name"));
+  String proxyName=hibernateMappingBinder.getClassName(node.attribute("proxy"));
+  entityBinding.getEntity().getPojoEntitySpecifics().setClassName(className);
+  if (proxyName != null) {
+    entityBinding.getEntity().getPojoEntitySpecifics().setProxyInterfaceName(proxyName);
+    entityBinding.setLazy(true);
+  }
+ else   if (entityBinding.isLazy()) {
+    entityBinding.getEntity().getPojoEntitySpecifics().setProxyInterfaceName(className);
+  }
+  Element tuplizer=locateTuplizerDefinition(node,EntityMode.POJO);
+  if (tuplizer != null) {
+    entityBinding.getEntity().getPojoEntitySpecifics().setTuplizerClassName(tuplizer.attributeValue("class"));
+  }
+}

@@ -1,0 +1,18 @@
+{
+  String profileName=element.attributeValue("name");
+  FetchProfile profile=hibernateXmlBinder.getMetadata().findOrCreateFetchProfile(profileName,MetadataSource.HBM);
+  Iterator itr=element.elementIterator("fetch");
+  while (itr.hasNext()) {
+    final Element fetchElement=(Element)itr.next();
+    final String association=fetchElement.attributeValue("association");
+    final String style=fetchElement.attributeValue("style");
+    String entityName=fetchElement.attributeValue("entity");
+    if (entityName == null) {
+      entityName=containingEntityName;
+    }
+    if (entityName == null) {
+      throw new MappingException("could not determine entity for fetch-profile fetch [" + profileName + "]:["+ association+ "]");
+    }
+    profile.addFetch(entityName,association,style);
+  }
+}

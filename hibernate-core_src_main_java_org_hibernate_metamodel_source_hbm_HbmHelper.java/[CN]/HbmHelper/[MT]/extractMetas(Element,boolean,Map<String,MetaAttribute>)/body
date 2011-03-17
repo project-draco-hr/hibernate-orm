@@ -1,0 +1,21 @@
+{
+  Map<String,MetaAttribute> extractedMetas=new HashMap<String,MetaAttribute>();
+  extractedMetas.putAll(baseline);
+  Iterator iter=node.elementIterator("meta");
+  while (iter.hasNext()) {
+    Element metaNode=(Element)iter.next();
+    boolean inheritable=Boolean.valueOf(metaNode.attributeValue("inherit")).booleanValue();
+    if (onlyInheritable & !inheritable) {
+      continue;
+    }
+    final String name=metaNode.attributeValue("attribute");
+    final MetaAttribute inheritedMetaAttribute=(MetaAttribute)baseline.get(name);
+    MetaAttribute metaAttribute=(MetaAttribute)extractedMetas.get(name);
+    if (metaAttribute == null || metaAttribute == inheritedMetaAttribute) {
+      metaAttribute=new MetaAttribute(name);
+      extractedMetas.put(name,metaAttribute);
+    }
+    metaAttribute.addValue(metaNode.getText());
+  }
+  return extractedMetas;
+}

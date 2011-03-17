@@ -1,0 +1,18 @@
+{
+  Table table=new Table(new Schema(null,null),"the_table");
+  Entity entity=new Entity("TheEntity",null);
+  EntityBinding entityBinding=new EntityBinding();
+  entityBinding.setEntity(entity);
+  entityBinding.setBaseTable(table);
+  SingularAttribute idAttribute=entity.getOrCreateSingularAttribute("id");
+  SimpleAttributeBinding attributeBinding=entityBinding.makeSimpleAttributeBinding("id");
+  attributeBinding.getHibernateTypeDescriptor().setTypeName("long");
+  assertSame(idAttribute,attributeBinding.getAttribute());
+  entityBinding.getEntityIdentifier().setValueBinding(attributeBinding);
+  Column idColumn=table.createColumn("id");
+  idColumn.setDatatype(BIGINT);
+  idColumn.setSize(Column.Size.precision(18,0));
+  table.getPrimaryKey().addColumn(idColumn);
+  table.getPrimaryKey().setName("my_table_pk");
+  attributeBinding.setValue(idColumn);
+}
