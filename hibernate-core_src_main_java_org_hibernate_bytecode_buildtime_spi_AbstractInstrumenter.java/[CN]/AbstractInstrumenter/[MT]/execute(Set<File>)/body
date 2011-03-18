@@ -1,0 +1,30 @@
+{
+  Set<String> classNames=new HashSet<String>();
+  if (options.performExtendedInstrumentation()) {
+    logger.debug("collecting class names for extended instrumentation determination");
+    try {
+      for (      Object file1 : files) {
+        final File file=(File)file1;
+        collectClassNames(file,classNames);
+      }
+    }
+ catch (    ExecutionException ee) {
+      throw ee;
+    }
+catch (    Exception e) {
+      throw new ExecutionException(e);
+    }
+  }
+  logger.info("starting instrumentation");
+  try {
+    for (    File file : files) {
+      processFile(file,classNames);
+    }
+  }
+ catch (  ExecutionException ee) {
+    throw ee;
+  }
+catch (  Exception e) {
+    throw new ExecutionException(e);
+  }
+}
