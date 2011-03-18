@@ -1,0 +1,17 @@
+{
+  return new AfterTransactionCompletionProcess(){
+    @Override public void doAfterTransactionCompletion(    boolean success,    SessionImplementor session){
+      Iterator itr=entityCleanups.iterator();
+      while (itr.hasNext()) {
+        final EntityCleanup cleanup=(EntityCleanup)itr.next();
+        cleanup.release();
+      }
+      itr=collectionCleanups.iterator();
+      while (itr.hasNext()) {
+        final CollectionCleanup cleanup=(CollectionCleanup)itr.next();
+        cleanup.release();
+      }
+    }
+  }
+;
+}

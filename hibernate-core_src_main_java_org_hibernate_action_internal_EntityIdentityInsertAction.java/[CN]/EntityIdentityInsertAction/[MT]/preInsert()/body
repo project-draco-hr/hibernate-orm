@@ -1,0 +1,11 @@
+{
+  PreInsertEventListener[] preListeners=getSession().getListeners().getPreInsertEventListeners();
+  boolean veto=false;
+  if (preListeners.length > 0) {
+    PreInsertEvent preEvent=new PreInsertEvent(getInstance(),null,state,getPersister(),(EventSource)getSession());
+    for (    PreInsertEventListener preListener : preListeners) {
+      veto=preListener.onPreInsert(preEvent) || veto;
+    }
+  }
+  return veto;
+}
