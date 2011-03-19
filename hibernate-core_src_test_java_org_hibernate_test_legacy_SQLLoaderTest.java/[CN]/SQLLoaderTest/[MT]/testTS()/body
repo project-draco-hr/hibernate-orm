@@ -1,10 +1,10 @@
 {
   Session session=openSession();
   Transaction txn=session.beginTransaction();
-  Simple sim=new Simple();
+  Simple sim=new Simple(Long.valueOf(1));
   sim.setDate(new Date());
-  session.save(sim,new Long(1));
-  Query q=session.createSQLQuery("select {sim.*} from Simple {sim} where {sim}.date_ = ?","sim",Simple.class);
+  session.save(sim);
+  Query q=session.createSQLQuery("select {sim.*} from Simple {sim} where {sim}.date_ = ?").addEntity("sim",Simple.class);
   q.setTimestamp(0,sim.getDate());
   assertTrue(q.list().size() == 1);
   session.delete(sim);

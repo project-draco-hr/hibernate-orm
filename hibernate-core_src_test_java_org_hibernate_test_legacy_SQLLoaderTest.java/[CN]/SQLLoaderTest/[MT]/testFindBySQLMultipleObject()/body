@@ -1,7 +1,11 @@
 {
   Session s=openSession();
-  s.delete("from Assignable");
-  s.delete("from Category");
+  for (  Object entity : s.createQuery("from Assignable").list()) {
+    s.delete(entity);
+  }
+  for (  Object entity : s.createQuery("from Category").list()) {
+    s.delete(entity);
+  }
   s.flush();
   s.connection().commit();
   s.close();
@@ -34,7 +38,8 @@
   s.close();
   if (getDialect() instanceof MySQLDialect)   return;
   s=openSession();
-  List list=s.createSQLQuery("select {category.*}, {assignable.*} from category {category}, \"assign-able\" {assignable}",new String[]{"category","assignable"},new Class[]{Category.class,Assignable.class}).list();
+  String sql="select {category.*}, {assignable.*} from category {category}, \"assign-able\" {assignable}";
+  List list=s.createSQLQuery(sql).addEntity("category",Category.class).addEntity("assignable",Assignable.class).list();
   assertTrue(list.size() == 6);
   assertTrue(list.get(0) instanceof Object[]);
   s.connection().commit();

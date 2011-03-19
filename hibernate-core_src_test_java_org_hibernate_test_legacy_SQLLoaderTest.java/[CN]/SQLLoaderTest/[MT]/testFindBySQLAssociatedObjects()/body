@@ -1,7 +1,11 @@
 {
   Session s=openSession();
-  s.delete("from Assignable");
-  s.delete("from Category");
+  for (  Object entity : s.createQuery("from Assignable").list()) {
+    s.delete(entity);
+  }
+  for (  Object entity : s.createQuery("from Category").list()) {
+    s.delete(entity);
+  }
   Category c=new Category();
   c.setName("NAME");
   Assignable assn=new Assignable();
@@ -15,7 +19,7 @@
   s.connection().commit();
   s.close();
   s=openSession();
-  List list=s.createSQLQuery("select {category.*} from category {category}","category",Category.class).list();
+  List list=s.createSQLQuery("select {category.*} from category {category}").addEntity("category",Category.class).list();
   list.get(0);
   s.connection().commit();
   s.close();

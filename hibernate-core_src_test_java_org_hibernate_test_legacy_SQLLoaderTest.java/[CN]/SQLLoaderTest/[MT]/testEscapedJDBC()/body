@@ -1,6 +1,8 @@
 {
   Session session=openSession();
-  session.delete("from A");
+  for (  Object entity : session.createQuery("from A").list()) {
+    session.delete(entity);
+  }
   A savedA=new A();
   savedA.setName("Max");
   session.save(savedA);
@@ -12,10 +14,10 @@
   session=openSession();
   Query query;
   if (getDialect() instanceof TimesTenDialect) {
-    query=session.createSQLQuery("select identifier_column as {a.id}, clazz_discriminata as {a.class}, count_ as {a.count}, name as {a.name} from TA where {fn ucase(name)} like 'MAX'","a",A.class);
+    query=session.createSQLQuery("select identifier_column as {a.id}, clazz_discriminata as {a.class}, count_ as {a.count}, name as {a.name} from TA where {fn ucase(name)} like 'MAX'").addEntity("a",A.class);
   }
  else {
-    query=session.createSQLQuery("select identifier_column as {a.id}, clazz_discriminata as {a.class}, count_ as {a.count}, name as {a.name} from TA where {fn ucase(name)} like {fn ucase('max')}","a",A.class);
+    query=session.createSQLQuery("select identifier_column as {a.id}, clazz_discriminata as {a.class}, count_ as {a.count}, name as {a.name} from TA where {fn ucase(name)} like {fn ucase('max')}").addEntity("a",A.class);
   }
   List list=query.list();
   assertNotNull(list);

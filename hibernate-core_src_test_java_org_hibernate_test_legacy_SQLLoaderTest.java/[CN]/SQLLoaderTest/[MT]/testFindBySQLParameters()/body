@@ -1,7 +1,11 @@
 {
   Session s=openSession();
-  s.delete("from Assignable");
-  s.delete("from Category");
+  for (  Object entity : s.createQuery("from Assignable").list()) {
+    s.delete(entity);
+  }
+  for (  Object entity : s.createQuery("from Category").list()) {
+    s.delete(entity);
+  }
   s.flush();
   s.connection().commit();
   s.close();
@@ -43,15 +47,15 @@
   s.connection().commit();
   s.close();
   s=openSession();
-  Query basicParam=s.createSQLQuery("select {category.*} from category {category} where {category}.name = 'Best'","category",Category.class);
+  Query basicParam=s.createSQLQuery("select {category.*} from category {category} where {category}.name = 'Best'").addEntity("category",Category.class);
   List list=basicParam.list();
   assertEquals(1,list.size());
-  Query unnamedParam=s.createSQLQuery("select {category.*} from category {category} where {category}.name = ? or {category}.name = ?","category",Category.class);
+  Query unnamedParam=s.createSQLQuery("select {category.*} from category {category} where {category}.name = ? or {category}.name = ?").addEntity("category",Category.class);
   unnamedParam.setString(0,"Good");
   unnamedParam.setString(1,"Best");
   list=unnamedParam.list();
   assertEquals(2,list.size());
-  Query namedParam=s.createSQLQuery("select {category.*} from category {category} where ({category}.name=:firstCat or {category}.name=:secondCat)","category",Category.class);
+  Query namedParam=s.createSQLQuery("select {category.*} from category {category} where ({category}.name=:firstCat or {category}.name=:secondCat)").addEntity("category",Category.class);
   namedParam.setString("firstCat","Better");
   namedParam.setString("secondCat","Best");
   list=namedParam.list();

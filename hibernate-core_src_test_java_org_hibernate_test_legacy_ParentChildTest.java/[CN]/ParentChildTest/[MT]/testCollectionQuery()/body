@@ -1,16 +1,16 @@
 {
   Session s=openSession();
   Transaction t=s.beginTransaction();
-  Simple s1=new Simple();
+  Simple s1=new Simple(Long.valueOf(1));
   s1.setName("s");
   s1.setCount(0);
-  Simple s2=new Simple();
+  Simple s2=new Simple(Long.valueOf(2));
   s2.setCount(2);
-  Simple s3=new Simple();
+  Simple s3=new Simple(Long.valueOf(3));
   s3.setCount(3);
-  s.save(s1,new Long(1));
-  s.save(s2,new Long(2));
-  s.save(s3,new Long(3));
+  s.save(s1);
+  s.save(s2);
+  s.save(s3);
   Container c=new Container();
   Contained cd=new Contained();
   List bag=new ArrayList();
@@ -29,10 +29,10 @@
   s.save(c);
   Container cx=new Container();
   s.save(cx);
-  Simple sx=new Simple();
+  Simple sx=new Simple(Long.valueOf(5));
   sx.setCount(5);
   sx.setName("s");
-  s.save(sx,new Long(5));
+  s.save(sx);
   assertTrue(s.createQuery("select c from ContainerX c, Simple s where c.oneToMany[2] = s").list().size() == 1);
   assertTrue(s.createQuery("select c from ContainerX c, Simple s where c.manyToMany[2] = s").list().size() == 1);
   assertTrue(s.createQuery("select c from ContainerX c, Simple s where s = c.oneToMany[2]").list().size() == 1);

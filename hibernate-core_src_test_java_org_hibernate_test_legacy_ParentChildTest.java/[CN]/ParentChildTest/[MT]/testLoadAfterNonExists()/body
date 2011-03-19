@@ -12,18 +12,18 @@
   }
   Session anotherSession=sessionFactory().openSession();
   anotherSession.beginTransaction();
-  Simple myNewSimple=new Simple();
+  Simple myNewSimple=new Simple(Long.valueOf(-1));
   myNewSimple.setName("My under the radar Simple entity");
   myNewSimple.setAddress("SessionCacheTest.testLoadAfterNonExists");
   myNewSimple.setCount(1);
   myNewSimple.setDate(new Date());
-  myNewSimple.setPay(new Float(100000000));
-  anotherSession.save(myNewSimple,new Long(-1));
+  myNewSimple.setPay(Float.valueOf(100000000));
+  anotherSession.save(myNewSimple);
   anotherSession.getTransaction().commit();
   anotherSession.close();
   session.clear();
   try {
-    Simple dummy=(Simple)session.get(Simple.class,new Long(-1));
+    Simple dummy=(Simple)session.get(Simple.class,Long.valueOf(-1));
     assertNotNull("Unable to locate entity Simple with id = -1",dummy);
     session.delete(dummy);
   }

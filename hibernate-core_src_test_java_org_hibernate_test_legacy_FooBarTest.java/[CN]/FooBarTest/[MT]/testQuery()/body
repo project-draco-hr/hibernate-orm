@@ -258,7 +258,9 @@
   s.createQuery("select foo.formula from Foo foo where foo.formula > 0").list();
   int len=s.createQuery("from Foo as foo join foo.foo as foo2 where foo2.id >'a' or foo2.id <'a'").list().size();
   assertTrue(len == 2);
-  s.delete("from Holder");
+  for (  Object entity : s.createQuery("from Holder").list()) {
+    s.delete(entity);
+  }
   txn.commit();
   s.close();
   s=openSession();

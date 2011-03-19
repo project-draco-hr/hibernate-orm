@@ -1,9 +1,9 @@
 {
   Session s=openSession();
   Transaction t=s.beginTransaction();
-  Simple simple=new Simple();
+  Simple simple=new Simple(Long.valueOf(10));
   simple.setName("Simple 1");
-  s.save(simple,new Long(10));
+  s.save(simple);
   if (getDialect() instanceof DB2Dialect) {
     s.createQuery("from Simple s where repeat('foo', 3) = 'foofoofoo'").list();
     s.createQuery("from Simple s where repeat(s.name, 3) = 'foofoofoo'").list();
@@ -22,18 +22,18 @@
   if ((getDialect() instanceof MckoiDialect) || (getDialect() instanceof TimesTenDialect)) {
     assertTrue(s.createQuery("from Simple s where lower( concat(s.name, ' foo') ) ='simple 1 foo'").list().size() == 1);
   }
-  Simple other=new Simple();
+  Simple other=new Simple(Long.valueOf(20));
   other.setName("Simple 2");
   other.setCount(12);
   simple.setOther(other);
-  s.save(other,new Long(20));
+  s.save(other);
   assertTrue(s.createQuery("from Simple s where upper( s.other.name ) ='SIMPLE 2'").list().size() == 1);
   assertTrue(s.createQuery("from Simple s where not ( upper( s.other.name ) ='SIMPLE 2' )").list().size() == 0);
   assertTrue(s.createQuery("select distinct s from Simple s where ( ( s.other.count + 3 ) = (15*2)/2 and s.count = 69) or ( ( s.other.count + 2 ) / 7 ) = 2").list().size() == 1);
   assertTrue(s.createQuery("select s from Simple s where ( ( s.other.count + 3 ) = (15*2)/2 and s.count = 69) or ( ( s.other.count + 2 ) / 7 ) = 2 order by s.other.count").list().size() == 1);
-  Simple min=new Simple();
+  Simple min=new Simple(Long.valueOf(30));
   min.setCount(-1);
-  s.save(min,new Long(30));
+  s.save(min);
   if (!(getDialect() instanceof MySQLDialect) && !(getDialect() instanceof HSQLDialect)) {
     assertTrue(s.createQuery("from Simple s where s.count > ( select min(sim.count) from Simple sim )").list().size() == 2);
     t.commit();
@@ -43,7 +43,7 @@
   }
   Iterator iter=s.createQuery("select sum(s.count) from Simple s group by s.count having sum(s.count) > 10").iterate();
   assertTrue(iter.hasNext());
-  assertEquals(new Long(12),iter.next());
+  assertEquals(Long.valueOf(12),iter.next());
   assertTrue(!iter.hasNext());
   if (!(getDialect() instanceof MySQLDialect)) {
     iter=s.createQuery("select s.count from Simple s group by s.count having s.count = 12").iterate();
@@ -90,7 +90,7 @@
   set.add("Simple 1");
   set.add("foo");
   q.setParameterList("name_list",set);
-  q.setParameter("count",new Integer(-1));
+  q.setParameter("count",Integer.valueOf(-1));
   assertTrue(q.list().size() == 1);
   ScrollableResults sr=s.createQuery("from Simple s").scroll();
   sr.next();

@@ -60,7 +60,12 @@
   assertTrue(iter.last());
   assertTrue(iter.get(0) == f4);
   assertTrue(iter.previous());
-  assertTrue(s.delete("from Foo") == 4);
+  int i=0;
+  for (  Object entity : s.createQuery("from Foo").list()) {
+    i++;
+    s.delete(entity);
+  }
+  assertEquals(4,i);
   s.flush();
   assertTrue(s.createQuery("from java.lang.Object").list().size() == 0);
   txn.commit();

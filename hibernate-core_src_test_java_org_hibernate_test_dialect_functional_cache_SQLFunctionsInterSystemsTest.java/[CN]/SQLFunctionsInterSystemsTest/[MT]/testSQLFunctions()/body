@@ -1,9 +1,9 @@
 {
   Session s=openSession();
   Transaction t=s.beginTransaction();
-  Simple simple=new Simple();
+  Simple simple=new Simple(Long.valueOf(10));
   simple.setName("Simple 1");
-  s.save(simple,Long.valueOf(10));
+  s.save(simple);
   s.createQuery("from Simple s where repeat('foo', 3) = 'foofoofoo'").list();
   s.createQuery("from Simple s where repeat(s.name, 3) = 'foofoofoo'").list();
   s.createQuery("from Simple s where repeat( lower(s.name), (3 + (1-1)) / 2) = 'foofoofoo'").list();
@@ -11,18 +11,18 @@
   assertTrue(s.createQuery("from Simple s where not( upper( s.name ) ='yada' or 1=2 or 'foo'='bar' or not('foo'='foo') or 'foo' like 'bar' )").list().size() == 1);
   assertTrue(s.createQuery("from Simple s where lower( s.name || ' foo' ) ='simple 1 foo'").list().size() == 1);
   assertTrue(s.createQuery("from Simple s where lower( concat(s.name, ' foo') ) ='simple 1 foo'").list().size() == 1);
-  Simple other=new Simple();
+  Simple other=new Simple(Long.valueOf(20));
   other.setName("Simple 2");
   other.setCount(12);
   simple.setOther(other);
-  s.save(other,Long.valueOf(20));
+  s.save(other);
   assertTrue(s.createQuery("from Simple s where upper( s.other.name ) ='SIMPLE 2'").list().size() == 1);
   assertTrue(s.createQuery("from Simple s where not ( upper( s.other.name ) ='SIMPLE 2' )").list().size() == 0);
   assertTrue(s.createQuery("select distinct s from Simple s where ( ( s.other.count + 3 ) = (15*2)/2 and s.count = 69) or ( ( s.other.count + 2 ) / 7 ) = 2").list().size() == 1);
   assertTrue(s.createQuery("select s from Simple s where ( ( s.other.count + 3 ) = (15*2)/2 and s.count = 69) or ( ( s.other.count + 2 ) / 7 ) = 2 order by s.other.count").list().size() == 1);
-  Simple min=new Simple();
+  Simple min=new Simple(Long.valueOf(30));
   min.setCount(-1);
-  s.save(min,Long.valueOf(30));
+  s.save(min);
   assertTrue(s.createQuery("from Simple s where s.count > ( select min(sim.count) from Simple sim )").list().size() == 2);
   t.commit();
   t=s.beginTransaction();

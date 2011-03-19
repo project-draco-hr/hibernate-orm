@@ -1,12 +1,14 @@
 {
   Session session=openSession();
-  session.delete("from A");
+  for (  Object entity : session.createQuery("from A").list()) {
+    session.delete(entity);
+  }
   A savedA=new A();
   session.save(savedA);
   B savedB=new B();
   session.save(savedB);
   session.flush();
-  Query query=session.createSQLQuery("select identifier_column as {a.id}, clazz_discriminata as {a.class}, name as {a.name}, count_ as {a.count} from TA {a}","a",A.class);
+  Query query=session.createSQLQuery("select identifier_column as {a.id}, clazz_discriminata as {a.class}, name as {a.name}, count_ as {a.count} from TA {a}").addEntity("a",A.class);
   List list=query.list();
   assertNotNull(list);
   assertEquals(2,list.size());

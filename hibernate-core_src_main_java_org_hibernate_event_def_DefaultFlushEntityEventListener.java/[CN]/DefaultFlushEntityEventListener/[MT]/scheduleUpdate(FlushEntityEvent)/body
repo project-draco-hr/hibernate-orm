@@ -14,14 +14,7 @@
     }
  else     LOG.trace("Updating entity: " + MessageHelper.infoString(persister,entry.getId(),session.getFactory()));
   }
-  final boolean intercepted;
-  if (!entry.isBeingReplicated()) {
-    intercepted=handleInterception(event);
-  }
- else {
-    intercepted=false;
-  }
-  validate(entity,persister,status,entityMode);
+  final boolean intercepted=!entry.isBeingReplicated() && handleInterception(event);
   final Object nextVersion=getNextVersion(event);
   int[] dirtyProperties=event.getDirtyProperties();
   if (event.isDirtyCheckPossible() && dirtyProperties == null) {

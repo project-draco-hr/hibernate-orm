@@ -25,7 +25,7 @@
   newSubCat.setName("new sub");
   newCat.getSubcategories().add(newSubCat);
   s=openSession();
-  Category copiedCat=(Category)s.saveOrUpdateCopy(cat);
+  Category copiedCat=(Category)s.merge(cat);
   s.flush();
   s.connection().commit();
   s.close();
@@ -39,12 +39,6 @@
   newSubCat.getSubcategories().add(cat);
   cat.setName("new new foo");
   s=openSession();
-  newSubCat=(Category)s.saveOrUpdateCopy(newSubCat,new Long(newSubCat.getId()));
-  assertTrue(newSubCat.getName().equals("new sub"));
-  assertTrue(newSubCat.getSubcategories().size() == 1);
-  cat=(Category)newSubCat.getSubcategories().get(0);
-  assertTrue(cat.getName().equals("new new foo"));
-  newSubCat.getSubcategories().remove(cat);
   s.delete(cat);
   s.delete(subCatBaz);
   s.delete(catWA);
