@@ -1,11 +1,12 @@
 {
-  PreDeleteEventListener[] preListeners=getSession().getListeners().getPreDeleteEventListeners();
   boolean veto=false;
-  if (preListeners.length > 0) {
-    PreDeleteEvent preEvent=new PreDeleteEvent(getInstance(),getId(),state,getPersister(),(EventSource)getSession());
-    for (    PreDeleteEventListener preListener : preListeners) {
-      veto=preListener.onPreDelete(preEvent) || veto;
-    }
+  EventListenerGroup<PreDeleteEventListener> listenerGroup=listenerGroup(EventType.PRE_DELETE);
+  if (listenerGroup.isEmpty()) {
+    return veto;
+  }
+  final PreDeleteEvent event=new PreDeleteEvent(getInstance(),getId(),state,getPersister(),eventSource());
+  for (  PreDeleteEventListener listener : listenerGroup.listeners()) {
+    veto|=listener.onPreDelete(event);
   }
   return veto;
 }

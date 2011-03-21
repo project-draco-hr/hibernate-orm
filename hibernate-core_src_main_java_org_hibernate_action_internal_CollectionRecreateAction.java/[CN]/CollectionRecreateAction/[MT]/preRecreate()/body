@@ -1,9 +1,10 @@
 {
-  PreCollectionRecreateEventListener[] preListeners=getSession().getListeners().getPreCollectionRecreateEventListeners();
-  if (preListeners.length > 0) {
-    PreCollectionRecreateEvent preEvent=new PreCollectionRecreateEvent(getPersister(),getCollection(),(EventSource)getSession());
-    for (    PreCollectionRecreateEventListener preListener : preListeners) {
-      preListener.onPreRecreateCollection(preEvent);
-    }
+  EventListenerGroup<PreCollectionRecreateEventListener> listenerGroup=listenerGroup(EventType.PRE_COLLECTION_RECREATE);
+  if (listenerGroup.isEmpty()) {
+    return;
+  }
+  final PreCollectionRecreateEvent event=new PreCollectionRecreateEvent(getPersister(),getCollection(),eventSource());
+  for (  PreCollectionRecreateEventListener listener : listenerGroup.listeners()) {
+    listener.onPreRecreateCollection(event);
   }
 }

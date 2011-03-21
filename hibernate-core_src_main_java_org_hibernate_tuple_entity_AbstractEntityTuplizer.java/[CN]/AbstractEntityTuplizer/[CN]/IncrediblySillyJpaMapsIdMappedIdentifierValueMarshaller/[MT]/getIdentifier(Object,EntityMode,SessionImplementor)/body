@@ -24,8 +24,8 @@
  else {
           LOG.debugf("Performing implicit derived identity cascade");
           final PersistEvent event=new PersistEvent(null,propertyValues[i],(EventSource)session);
-          for (int x=0; x < session.getListeners().getPersistEventListeners().length; x++) {
-            session.getListeners().getPersistEventListeners()[x].onPersist(event);
+          for (          PersistEventListener listener : persistEventListeners(session)) {
+            listener.onPersist(event);
           }
           pcEntry=session.getPersistenceContext().getEntry(propertyValues[i]);
           if (pcEntry == null || pcEntry.getId() == null) {

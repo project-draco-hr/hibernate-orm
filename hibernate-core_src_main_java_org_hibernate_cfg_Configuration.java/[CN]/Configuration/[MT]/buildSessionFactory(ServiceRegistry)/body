@@ -2,14 +2,13 @@
   LOG.debugf("Preparing to build session factory with filters : %s",filterDefinitions);
   secondPassCompile();
   if (!metadataSourceQueue.isEmpty())   LOG.incompleteMappingMetadataCacheProcessing();
-  enableLegacyHibernateValidator();
-  enableBeanValidation();
-  enableHibernateSearch();
+  enableLegacyHibernateValidator(serviceRegistry);
+  enableBeanValidation(serviceRegistry);
   validate();
   Environment.verifyProperties(properties);
   Properties copy=new Properties();
   copy.putAll(properties);
   ConfigurationHelper.resolvePlaceHolders(copy);
   Settings settings=buildSettings(copy,serviceRegistry);
-  return new SessionFactoryImpl(this,mapping,serviceRegistry,settings,getInitializedEventListeners(),sessionFactoryObserver);
+  return new SessionFactoryImpl(this,mapping,serviceRegistry,settings,sessionFactoryObserver);
 }

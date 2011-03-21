@@ -1,11 +1,12 @@
 {
-  PreInsertEventListener[] preListeners=getSession().getListeners().getPreInsertEventListeners();
   boolean veto=false;
-  if (preListeners.length > 0) {
-    PreInsertEvent preEvent=new PreInsertEvent(getInstance(),getId(),state,getPersister(),(EventSource)getSession());
-    for (    PreInsertEventListener preListener : preListeners) {
-      veto=preListener.onPreInsert(preEvent) || veto;
-    }
+  EventListenerGroup<PreInsertEventListener> listenerGroup=listenerGroup(EventType.PRE_INSERT);
+  if (listenerGroup.isEmpty()) {
+    return veto;
+  }
+  final PreInsertEvent event=new PreInsertEvent(getInstance(),getId(),state,getPersister(),eventSource());
+  for (  PreInsertEventListener listener : listenerGroup.listeners()) {
+    veto|=listener.onPreInsert(event);
   }
   return veto;
 }

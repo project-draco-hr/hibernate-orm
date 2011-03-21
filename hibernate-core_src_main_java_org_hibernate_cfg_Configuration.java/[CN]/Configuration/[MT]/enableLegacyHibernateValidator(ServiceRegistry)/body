@@ -1,0 +1,23 @@
+{
+  boolean loadLegacyValidator=ConfigurationHelper.getBoolean("hibernate.validator.autoregister_listeners",properties,false);
+  Class validateEventListenerClass=null;
+  try {
+    validateEventListenerClass=serviceRegistry.getService(ClassLoaderService.class).classForName(LEGACY_VALIDATOR_EVENT_LISTENER);
+  }
+ catch (  Exception ignored) {
+  }
+  if (!loadLegacyValidator || validateEventListenerClass == null) {
+    LOG.debugf("Skipping legacy validator loading");
+    return;
+  }
+  final Object validateEventListener;
+  try {
+    validateEventListener=validateEventListenerClass.newInstance();
+  }
+ catch (  Exception e) {
+    throw new AnnotationException("Unable to load Validator event listener",e);
+  }
+  EventListenerRegistry listenerRegistry=serviceRegistry.getService(EventListenerRegistry.class);
+  listenerRegistry.appendListeners(EventType.PRE_INSERT,(PreInsertEventListener)validateEventListener);
+  listenerRegistry.appendListeners(EventType.PRE_UPDATE,(PreUpdateEventListener)validateEventListener);
+}

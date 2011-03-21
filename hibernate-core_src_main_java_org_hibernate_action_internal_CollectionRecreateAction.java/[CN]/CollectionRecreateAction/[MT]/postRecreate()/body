@@ -1,9 +1,10 @@
 {
-  PostCollectionRecreateEventListener[] postListeners=getSession().getListeners().getPostCollectionRecreateEventListeners();
-  if (postListeners.length > 0) {
-    PostCollectionRecreateEvent postEvent=new PostCollectionRecreateEvent(getPersister(),getCollection(),(EventSource)getSession());
-    for (    PostCollectionRecreateEventListener postListener : postListeners) {
-      postListener.onPostRecreateCollection(postEvent);
-    }
+  EventListenerGroup<PostCollectionRecreateEventListener> listenerGroup=listenerGroup(EventType.POST_COLLECTION_RECREATE);
+  if (listenerGroup.isEmpty()) {
+    return;
+  }
+  final PostCollectionRecreateEvent event=new PostCollectionRecreateEvent(getPersister(),getCollection(),eventSource());
+  for (  PostCollectionRecreateEventListener listener : listenerGroup.listeners()) {
+    listener.onPostRecreateCollection(event);
   }
 }

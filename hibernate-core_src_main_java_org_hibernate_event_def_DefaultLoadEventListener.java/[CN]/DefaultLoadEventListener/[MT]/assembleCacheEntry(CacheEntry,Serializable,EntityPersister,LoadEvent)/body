@@ -27,9 +27,8 @@
   subclassPersister.afterInitialize(result,entry.areLazyPropertiesUnfetched(),session);
   persistenceContext.initializeNonLazyCollections();
   PostLoadEvent postLoadEvent=new PostLoadEvent(session).setEntity(result).setId(id).setPersister(persister);
-  PostLoadEventListener[] listeners=session.getListeners().getPostLoadEventListeners();
-  for (int i=0; i < listeners.length; i++) {
-    listeners[i].onPostLoad(postLoadEvent);
+  for (  PostLoadEventListener listener : postLoadEventListeners(session)) {
+    listener.onPostLoad(postLoadEvent);
   }
   return result;
 }

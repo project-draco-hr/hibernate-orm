@@ -1,9 +1,10 @@
 {
-  PostUpdateEventListener[] postListeners=getSession().getListeners().getPostCommitUpdateEventListeners();
-  if (postListeners.length > 0) {
-    PostUpdateEvent postEvent=new PostUpdateEvent(getInstance(),getId(),state,previousState,dirtyFields,getPersister(),(EventSource)getSession());
-    for (int i=0; i < postListeners.length; i++) {
-      postListeners[i].onPostUpdate(postEvent);
-    }
+  EventListenerGroup<PostUpdateEventListener> listenerGroup=listenerGroup(EventType.POST_COMMIT_UPDATE);
+  if (listenerGroup.isEmpty()) {
+    return;
+  }
+  final PostUpdateEvent event=new PostUpdateEvent(getInstance(),getId(),state,previousState,dirtyFields,getPersister(),eventSource());
+  for (  PostUpdateEventListener listener : listenerGroup.listeners()) {
+    listener.onPostUpdate(event);
   }
 }

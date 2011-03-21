@@ -1,8 +1,8 @@
 {
   Object[] assembledProps=TypeHelper.assemble(values,persister.getPropertyTypes(),session,result);
-  PreLoadEvent preLoadEvent=new PreLoadEvent(session).setEntity(result).setState(assembledProps).setId(id).setPersister(persister);
-  PreLoadEventListener[] listeners=session.getListeners().getPreLoadEventListeners();
-  for (  PreLoadEventListener listener : listeners) {
+  final PreLoadEvent preLoadEvent=new PreLoadEvent(session).setEntity(result).setState(assembledProps).setId(id).setPersister(persister);
+  final EventListenerGroup<PreLoadEventListener> listenerGroup=session.getFactory().getServiceRegistry().getService(EventListenerRegistry.class).getEventListenerGroup(EventType.PRE_LOAD);
+  for (  PreLoadEventListener listener : listenerGroup.listeners()) {
     listener.onPreLoad(preLoadEvent);
   }
   persister.setPropertyValues(result,assembledProps,session.getEntityMode());

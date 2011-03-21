@@ -17,9 +17,9 @@
   }
   if (session.isEventSource()) {
     preLoadEvent.setEntity(entity).setState(hydratedState).setId(id).setPersister(persister);
-    PreLoadEventListener[] listeners=session.getListeners().getPreLoadEventListeners();
-    for (int i=0; i < listeners.length; i++) {
-      listeners[i].onPreLoad(preLoadEvent);
+    final EventListenerGroup<PreLoadEventListener> listenerGroup=session.getFactory().getServiceRegistry().getService(EventListenerRegistry.class).getEventListenerGroup(EventType.PRE_LOAD);
+    for (    PreLoadEventListener listener : listenerGroup.listeners()) {
+      listener.onPreLoad(preLoadEvent);
     }
   }
   persister.setPropertyValues(entity,hydratedState,session.getEntityMode());
@@ -59,12 +59,14 @@
   persister.afterInitialize(entity,entityEntry.isLoadedWithLazyPropertiesUnfetched(),session);
   if (session.isEventSource()) {
     postLoadEvent.setEntity(entity).setId(id).setPersister(persister);
-    PostLoadEventListener[] listeners=session.getListeners().getPostLoadEventListeners();
-    for (int i=0; i < listeners.length; i++) {
-      listeners[i].onPostLoad(postLoadEvent);
+    final EventListenerGroup<PostLoadEventListener> listenerGroup=session.getFactory().getServiceRegistry().getService(EventListenerRegistry.class).getEventListenerGroup(EventType.POST_LOAD);
+    for (    PostLoadEventListener listener : listenerGroup.listeners()) {
+      listener.onPostLoad(postLoadEvent);
     }
   }
-  if (LOG.isDebugEnabled())   LOG.debugf("Done materializing entity %s",MessageHelper.infoString(persister,id,session.getFactory()));
+  if (LOG.isDebugEnabled()) {
+    LOG.debugf("Done materializing entity %s",MessageHelper.infoString(persister,id,session.getFactory()));
+  }
   if (factory.getStatistics().isStatisticsEnabled()) {
     factory.getStatisticsImplementor().loadEntity(persister.getEntityName());
   }

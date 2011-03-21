@@ -1,0 +1,23 @@
+{
+  String entityName=event.getAffectedOwnerEntityName();
+  if (!enversConfiguration().getGlobalCfg().isGenerateRevisionsForCollections()) {
+    return;
+  }
+  if (enversConfiguration().getEntCfg().isVersioned(entityName)) {
+    AuditProcess auditProcess=enversConfiguration().getSyncManager().get(event.getSession());
+    String ownerEntityName=((AbstractCollectionPersister)collectionEntry.getLoadedPersister()).getOwnerEntityName();
+    String referencingPropertyName=collectionEntry.getRole().substring(ownerEntityName.length() + 1);
+    RelationDescription rd=searchForRelationDescription(entityName,referencingPropertyName);
+    if (rd != null && rd.getMappedByPropertyName() != null) {
+      generateFakeBidirecationalRelationWorkUnits(auditProcess,newColl,oldColl,entityName,referencingPropertyName,event,rd);
+    }
+ else {
+      PersistentCollectionChangeWorkUnit workUnit=new PersistentCollectionChangeWorkUnit(event.getSession(),entityName,enversConfiguration(),newColl,collectionEntry,oldColl,event.getAffectedOwnerIdOrNull(),referencingPropertyName);
+      auditProcess.addWorkUnit(workUnit);
+      if (workUnit.containsWork()) {
+        auditProcess.addWorkUnit(new CollectionChangeWorkUnit(event.getSession(),event.getAffectedOwnerEntityName(),enversConfiguration(),event.getAffectedOwnerIdOrNull(),event.getAffectedOwnerOrNull()));
+        generateBidirectionalCollectionChangeWorkUnits(auditProcess,event,workUnit,rd);
+      }
+    }
+  }
+}

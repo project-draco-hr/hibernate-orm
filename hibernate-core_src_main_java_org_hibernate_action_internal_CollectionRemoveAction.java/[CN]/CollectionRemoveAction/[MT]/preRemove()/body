@@ -1,9 +1,10 @@
 {
-  PreCollectionRemoveEventListener[] preListeners=getSession().getListeners().getPreCollectionRemoveEventListeners();
-  if (preListeners.length > 0) {
-    PreCollectionRemoveEvent preEvent=new PreCollectionRemoveEvent(getPersister(),getCollection(),(EventSource)getSession(),affectedOwner);
-    for (    PreCollectionRemoveEventListener preListener : preListeners) {
-      preListener.onPreRemoveCollection(preEvent);
-    }
+  EventListenerGroup<PreCollectionRemoveEventListener> listenerGroup=listenerGroup(EventType.PRE_COLLECTION_REMOVE);
+  if (listenerGroup.isEmpty()) {
+    return;
+  }
+  final PreCollectionRemoveEvent event=new PreCollectionRemoveEvent(getPersister(),getCollection(),eventSource(),affectedOwner);
+  for (  PreCollectionRemoveEventListener listener : listenerGroup.listeners()) {
+    listener.onPreRemoveCollection(event);
   }
 }

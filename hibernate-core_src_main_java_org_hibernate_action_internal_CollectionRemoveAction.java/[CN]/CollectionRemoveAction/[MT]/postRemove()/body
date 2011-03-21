@@ -1,9 +1,10 @@
 {
-  PostCollectionRemoveEventListener[] postListeners=getSession().getListeners().getPostCollectionRemoveEventListeners();
-  if (postListeners.length > 0) {
-    PostCollectionRemoveEvent postEvent=new PostCollectionRemoveEvent(getPersister(),getCollection(),(EventSource)getSession(),affectedOwner);
-    for (    PostCollectionRemoveEventListener postListener : postListeners) {
-      postListener.onPostRemoveCollection(postEvent);
-    }
+  EventListenerGroup<PostCollectionRemoveEventListener> listenerGroup=listenerGroup(EventType.POST_COLLECTION_REMOVE);
+  if (listenerGroup.isEmpty()) {
+    return;
+  }
+  final PostCollectionRemoveEvent event=new PostCollectionRemoveEvent(getPersister(),getCollection(),eventSource(),affectedOwner);
+  for (  PostCollectionRemoveEventListener listener : listenerGroup.listeners()) {
+    listener.onPostRemoveCollection(event);
   }
 }

@@ -8,10 +8,10 @@
     EntityEntry entry=(EntityEntry)me.getValue();
     Status status=entry.getStatus();
     if (status != Status.LOADING && status != Status.GONE) {
-      FlushEntityEvent entityEvent=new FlushEntityEvent(source,me.getKey(),entry);
-      FlushEntityEventListener[] listeners=source.getListeners().getFlushEntityEventListeners();
-      for (int j=0; j < listeners.length; j++) {
-        listeners[j].onFlushEntity(entityEvent);
+      final FlushEntityEvent entityEvent=new FlushEntityEvent(source,me.getKey(),entry);
+      final EventListenerGroup<FlushEntityEventListener> listenerGroup=source.getFactory().getServiceRegistry().getService(EventListenerRegistry.class).getEventListenerGroup(EventType.FLUSH_ENTITY);
+      for (      FlushEntityEventListener listener : listenerGroup.listeners()) {
+        listener.onFlushEntity(entityEvent);
       }
     }
   }

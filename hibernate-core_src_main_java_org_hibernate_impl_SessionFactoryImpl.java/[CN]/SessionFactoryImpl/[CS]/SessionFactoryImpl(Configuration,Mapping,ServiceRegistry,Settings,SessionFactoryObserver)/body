@@ -1,0 +1,202 @@
+{
+  LOG.buildingSessionFactory();
+  this.statistics=buildStatistics(settings,serviceRegistry);
+  this.properties=new Properties();
+  this.properties.putAll(cfg.getProperties());
+  this.interceptor=cfg.getInterceptor();
+  this.serviceRegistry=serviceRegistry.getService(SessionFactoryServiceRegistryFactory.class).buildServiceRegistry(this,cfg);
+  this.settings=settings;
+  this.sqlFunctionRegistry=new SQLFunctionRegistry(getDialect(),cfg.getSqlFunctions());
+  if (observer != null) {
+    this.observer.addObserver(observer);
+  }
+  this.typeResolver=cfg.getTypeResolver().scope(this);
+  this.typeHelper=new TypeLocatorImpl(typeResolver);
+  this.filters=new HashMap();
+  this.filters.putAll(cfg.getFilterDefinitions());
+  LOG.debugf("Session factory constructed with filter configurations : %s",filters);
+  LOG.debugf("Instantiating session factory with properties: %s",properties);
+  settings.getRegionFactory().start(settings,properties);
+  this.queryPlanCache=new QueryPlanCache(this);
+  for (  Integrator integrator : locateIntegrators(this.serviceRegistry)) {
+    integrator.integrate(cfg,this,(SessionFactoryServiceRegistry)this.serviceRegistry);
+  }
+  identifierGenerators=new HashMap();
+  Iterator classes=cfg.getClassMappings();
+  while (classes.hasNext()) {
+    PersistentClass model=(PersistentClass)classes.next();
+    if (!model.isInherited()) {
+      IdentifierGenerator generator=model.getIdentifier().createIdentifierGenerator(cfg.getIdentifierGeneratorFactory(),getDialect(),settings.getDefaultCatalogName(),settings.getDefaultSchemaName(),(RootClass)model);
+      identifierGenerators.put(model.getEntityName(),generator);
+    }
+  }
+  final String cacheRegionPrefix=settings.getCacheRegionPrefix() == null ? "" : settings.getCacheRegionPrefix() + ".";
+  entityPersisters=new HashMap();
+  Map entityAccessStrategies=new HashMap();
+  Map<String,ClassMetadata> classMeta=new HashMap<String,ClassMetadata>();
+  classes=cfg.getClassMappings();
+  while (classes.hasNext()) {
+    final PersistentClass model=(PersistentClass)classes.next();
+    model.prepareTemporaryTables(mapping,getDialect());
+    final String cacheRegionName=cacheRegionPrefix + model.getRootClass().getCacheRegionName();
+    EntityRegionAccessStrategy accessStrategy=(EntityRegionAccessStrategy)entityAccessStrategies.get(cacheRegionName);
+    if (accessStrategy == null && settings.isSecondLevelCacheEnabled()) {
+      final AccessType accessType=AccessType.parse(model.getCacheConcurrencyStrategy());
+      if (accessType != null) {
+        LOG.trace("Building cache for entity data [" + model.getEntityName() + "]");
+        EntityRegion entityRegion=settings.getRegionFactory().buildEntityRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
+        accessStrategy=entityRegion.buildAccessStrategy(accessType);
+        entityAccessStrategies.put(cacheRegionName,accessStrategy);
+        allCacheRegions.put(cacheRegionName,entityRegion);
+      }
+    }
+    EntityPersister cp=serviceRegistry.getService(PersisterFactory.class).createEntityPersister(model,accessStrategy,this,mapping);
+    entityPersisters.put(model.getEntityName(),cp);
+    classMeta.put(model.getEntityName(),cp.getClassMetadata());
+  }
+  this.classMetadata=Collections.unmodifiableMap(classMeta);
+  Map<String,Set<String>> tmpEntityToCollectionRoleMap=new HashMap<String,Set<String>>();
+  collectionPersisters=new HashMap();
+  Iterator collections=cfg.getCollectionMappings();
+  while (collections.hasNext()) {
+    Collection model=(Collection)collections.next();
+    final String cacheRegionName=cacheRegionPrefix + model.getCacheRegionName();
+    final AccessType accessType=AccessType.parse(model.getCacheConcurrencyStrategy());
+    CollectionRegionAccessStrategy accessStrategy=null;
+    if (accessType != null && settings.isSecondLevelCacheEnabled()) {
+      LOG.trace("Building cache for collection data [" + model.getRole() + "]");
+      CollectionRegion collectionRegion=settings.getRegionFactory().buildCollectionRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
+      accessStrategy=collectionRegion.buildAccessStrategy(accessType);
+      entityAccessStrategies.put(cacheRegionName,accessStrategy);
+      allCacheRegions.put(cacheRegionName,collectionRegion);
+    }
+    CollectionPersister persister=serviceRegistry.getService(PersisterFactory.class).createCollectionPersister(cfg,model,accessStrategy,this);
+    collectionPersisters.put(model.getRole(),persister.getCollectionMetadata());
+    Type indexType=persister.getIndexType();
+    if (indexType != null && indexType.isAssociationType() && !indexType.isAnyType()) {
+      String entityName=((AssociationType)indexType).getAssociatedEntityName(this);
+      Set roles=tmpEntityToCollectionRoleMap.get(entityName);
+      if (roles == null) {
+        roles=new HashSet();
+        tmpEntityToCollectionRoleMap.put(entityName,roles);
+      }
+      roles.add(persister.getRole());
+    }
+    Type elementType=persister.getElementType();
+    if (elementType.isAssociationType() && !elementType.isAnyType()) {
+      String entityName=((AssociationType)elementType).getAssociatedEntityName(this);
+      Set roles=tmpEntityToCollectionRoleMap.get(entityName);
+      if (roles == null) {
+        roles=new HashSet();
+        tmpEntityToCollectionRoleMap.put(entityName,roles);
+      }
+      roles.add(persister.getRole());
+    }
+  }
+  collectionMetadata=Collections.unmodifiableMap(collectionPersisters);
+  Iterator itr=tmpEntityToCollectionRoleMap.entrySet().iterator();
+  while (itr.hasNext()) {
+    final Map.Entry entry=(Map.Entry)itr.next();
+    entry.setValue(Collections.unmodifiableSet((Set)entry.getValue()));
+  }
+  collectionRolesByEntityParticipant=Collections.unmodifiableMap(tmpEntityToCollectionRoleMap);
+  namedQueries=new HashMap(cfg.getNamedQueries());
+  namedSqlQueries=new HashMap(cfg.getNamedSQLQueries());
+  sqlResultSetMappings=new HashMap(cfg.getSqlResultSetMappings());
+  imports=new HashMap(cfg.getImports());
+  Iterator iter=entityPersisters.values().iterator();
+  while (iter.hasNext()) {
+    final EntityPersister persister=((EntityPersister)iter.next());
+    persister.postInstantiate();
+    registerEntityNameResolvers(persister);
+  }
+  iter=collectionPersisters.values().iterator();
+  while (iter.hasNext()) {
+    final CollectionPersister persister=((CollectionPersister)iter.next());
+    persister.postInstantiate();
+  }
+  name=settings.getSessionFactoryName();
+  try {
+    uuid=(String)UUID_GENERATOR.generate(null,null);
+  }
+ catch (  Exception e) {
+    throw new AssertionFailure("Could not generate UUID");
+  }
+  SessionFactoryObjectFactory.addInstance(uuid,name,this,properties);
+  LOG.debugf("Instantiated session factory");
+  if (settings.isAutoCreateSchema()) {
+    new SchemaExport(getJdbcServices(),cfg).create(false,true);
+  }
+  if (settings.isAutoUpdateSchema()) {
+    new SchemaUpdate(getJdbcServices(),cfg).execute(false,true);
+  }
+  if (settings.isAutoValidateSchema()) {
+    new SchemaValidator(getJdbcServices(),cfg).validate();
+  }
+  if (settings.isAutoDropSchema()) {
+    schemaExport=new SchemaExport(getJdbcServices(),cfg);
+  }
+  currentSessionContext=buildCurrentSessionContext();
+  if (settings.isQueryCacheEnabled()) {
+    updateTimestampsCache=new UpdateTimestampsCache(settings,properties);
+    queryCache=settings.getQueryCacheFactory().getQueryCache(null,updateTimestampsCache,settings,properties);
+    queryCaches=new HashMap<String,QueryCache>();
+    allCacheRegions.put(updateTimestampsCache.getRegion().getName(),updateTimestampsCache.getRegion());
+    allCacheRegions.put(queryCache.getRegion().getName(),queryCache.getRegion());
+  }
+ else {
+    updateTimestampsCache=null;
+    queryCache=null;
+    queryCaches=null;
+  }
+  if (settings.isNamedQueryStartupCheckingEnabled()) {
+    Map errors=checkNamedQueries();
+    if (!errors.isEmpty()) {
+      Set keys=errors.keySet();
+      StringBuffer failingQueries=new StringBuffer("Errors in named queries: ");
+      for (Iterator iterator=keys.iterator(); iterator.hasNext(); ) {
+        String queryName=(String)iterator.next();
+        HibernateException e=(HibernateException)errors.get(queryName);
+        failingQueries.append(queryName);
+        if (iterator.hasNext())         failingQueries.append(", ");
+        LOG.namedQueryError(queryName,e);
+      }
+      throw new HibernateException(failingQueries.toString());
+    }
+  }
+  EntityNotFoundDelegate entityNotFoundDelegate=cfg.getEntityNotFoundDelegate();
+  if (entityNotFoundDelegate == null) {
+    entityNotFoundDelegate=new EntityNotFoundDelegate(){
+      public void handleEntityNotFound(      String entityName,      Serializable id){
+        throw new ObjectNotFoundException(id,entityName);
+      }
+    }
+;
+  }
+  this.entityNotFoundDelegate=entityNotFoundDelegate;
+  this.fetchProfiles=new HashMap();
+  itr=cfg.iterateFetchProfiles();
+  while (itr.hasNext()) {
+    final org.hibernate.mapping.FetchProfile mappingProfile=(org.hibernate.mapping.FetchProfile)itr.next();
+    final FetchProfile fetchProfile=new FetchProfile(mappingProfile.getName());
+    Iterator fetches=mappingProfile.getFetches().iterator();
+    while (fetches.hasNext()) {
+      final org.hibernate.mapping.FetchProfile.Fetch mappingFetch=(org.hibernate.mapping.FetchProfile.Fetch)fetches.next();
+      final String entityName=getImportedClassName(mappingFetch.getEntity());
+      final EntityPersister owner=(EntityPersister)(entityName == null ? null : entityPersisters.get(entityName));
+      if (owner == null) {
+        throw new HibernateException("Unable to resolve entity reference [" + mappingFetch.getEntity() + "] in fetch profile ["+ fetchProfile.getName()+ "]");
+      }
+      Type associationType=owner.getPropertyType(mappingFetch.getAssociation());
+      if (associationType == null || !associationType.isAssociationType()) {
+        throw new HibernateException("Fetch profile [" + fetchProfile.getName() + "] specified an invalid association");
+      }
+      final Fetch.Style fetchStyle=Fetch.Style.parse(mappingFetch.getStyle());
+      fetchProfile.addFetch(new Association(owner,mappingFetch.getAssociation()),fetchStyle);
+      ((Loadable)owner).registerAffectingFetchProfile(fetchProfile.getName());
+    }
+    fetchProfiles.put(fetchProfile.getName(),fetchProfile);
+  }
+  this.transactionEnvironment=new TransactionEnvironmentImpl(this);
+  this.observer.sessionFactoryCreated(this);
+}

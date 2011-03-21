@@ -1,9 +1,10 @@
 {
-  PostInsertEventListener[] postListeners=getSession().getListeners().getPostInsertEventListeners();
-  if (postListeners.length > 0) {
-    PostInsertEvent postEvent=new PostInsertEvent(getInstance(),getId(),state,getPersister(),(EventSource)getSession());
-    for (int i=0; i < postListeners.length; i++) {
-      postListeners[i].onPostInsert(postEvent);
-    }
+  EventListenerGroup<PostInsertEventListener> listenerGroup=listenerGroup(EventType.POST_INSERT);
+  if (listenerGroup.isEmpty()) {
+    return;
+  }
+  final PostInsertEvent event=new PostInsertEvent(getInstance(),getId(),state,getPersister(),eventSource());
+  for (  PostInsertEventListener listener : listenerGroup.listeners()) {
+    listener.onPostInsert(event);
   }
 }
