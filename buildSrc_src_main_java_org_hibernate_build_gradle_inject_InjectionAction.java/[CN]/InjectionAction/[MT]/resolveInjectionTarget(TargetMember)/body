@@ -1,0 +1,20 @@
+{
+  try {
+    final CtClass ctClass=classPool.get(targetMember.getClassName());
+    try {
+      CtField field=ctClass.getField(targetMember.getMemberName());
+      return new FieldInjectionTarget(targetMember,ctClass,field);
+    }
+ catch (    NotFoundException ignore) {
+    }
+    for (    CtMethod method : ctClass.getMethods()) {
+      if (method.getName().equals(targetMember.getMemberName())) {
+        return new MethodInjectionTarget(targetMember,ctClass,method);
+      }
+    }
+    throw new InjectionException("Unknown member [" + targetMember.getQualifiedName() + "]");
+  }
+ catch (  Throwable e) {
+    throw new InjectionException("Unable to resolve class [" + targetMember.getClassName() + "]",e);
+  }
+}
