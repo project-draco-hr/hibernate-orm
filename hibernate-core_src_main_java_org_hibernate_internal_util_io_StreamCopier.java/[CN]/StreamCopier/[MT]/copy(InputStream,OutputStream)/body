@@ -1,0 +1,22 @@
+{
+  try {
+    long totalRead=0;
+    while (true) {
+synchronized (BUFFER) {
+        int amountRead=from.read(BUFFER);
+        if (amountRead == -1) {
+          break;
+        }
+        into.write(BUFFER,0,amountRead);
+        totalRead+=amountRead;
+        if (amountRead < BUFFER_SIZE) {
+          break;
+        }
+      }
+    }
+    return totalRead;
+  }
+ catch (  IOException e) {
+    throw new HibernateException("Unable to copy stream content",e);
+  }
+}

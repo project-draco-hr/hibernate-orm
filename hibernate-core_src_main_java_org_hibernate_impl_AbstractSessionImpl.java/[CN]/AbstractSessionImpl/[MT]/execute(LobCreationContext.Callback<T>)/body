@@ -1,0 +1,13 @@
+{
+  return getTransactionCoordinator().getJdbcCoordinator().coordinateWork(new WorkExecutorVisitable<T>(){
+    @Override public T accept(    WorkExecutor<T> workExecutor,    Connection connection) throws SQLException {
+      try {
+        return callback.executeOnConnection(connection);
+      }
+ catch (      SQLException e) {
+        throw getFactory().getSQLExceptionHelper().convert(e,"Error creating contextual LOB : " + e.getMessage());
+      }
+    }
+  }
+);
+}
