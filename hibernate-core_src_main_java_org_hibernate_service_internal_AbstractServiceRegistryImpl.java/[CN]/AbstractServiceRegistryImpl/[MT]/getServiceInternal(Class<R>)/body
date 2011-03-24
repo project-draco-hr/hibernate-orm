@@ -1,0 +1,15 @@
+{
+  ServiceBinding<R> serviceBinding=locateServiceBinding(serviceRole,false);
+  if (serviceBinding == null) {
+    throw new HibernateException("Only proxies should invoke #getServiceInternal");
+  }
+  R service=serviceBinding.getTarget();
+  if (service == null) {
+    service=initializeService(serviceRole);
+    serviceBinding.setTarget(service);
+  }
+  if (service == null) {
+    throw new UnknownServiceException(serviceRole);
+  }
+  return service;
+}

@@ -1,0 +1,29 @@
+{
+  final Object platform=getConfiguredPlatform(configurationValues,registry);
+  if (platform == null) {
+    return new NoJtaPlatform();
+  }
+  if (JtaPlatform.class.isInstance(platform)) {
+    return (JtaPlatform)platform;
+  }
+  final Class<JtaPlatform> jtaPlatformImplClass;
+  if (Class.class.isInstance(platform)) {
+    jtaPlatformImplClass=(Class<JtaPlatform>)platform;
+  }
+ else {
+    final String platformImplName=platform.toString();
+    final ClassLoaderService classLoaderService=registry.getService(ClassLoaderService.class);
+    try {
+      jtaPlatformImplClass=classLoaderService.classForName(platformImplName);
+    }
+ catch (    Exception e) {
+      throw new HibernateException("Unable to locate specified JtaPlatform class [" + platformImplName + "]",e);
+    }
+  }
+  try {
+    return jtaPlatformImplClass.newInstance();
+  }
+ catch (  Exception e) {
+    throw new HibernateException("Unable to create specified JtaPlatform class [" + jtaPlatformImplClass.getName() + "]",e);
+  }
+}
