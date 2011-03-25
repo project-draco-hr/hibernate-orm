@@ -4,17 +4,13 @@
   this.properties=new Properties();
   this.properties.putAll(cfg.getProperties());
   this.interceptor=cfg.getInterceptor();
-  this.serviceRegistry=serviceRegistry;
+  this.serviceRegistry=serviceRegistry.getService(SessionFactoryServiceRegistryFactory.class).buildServiceRegistry(this,cfg);
   this.settings=settings;
   this.sqlFunctionRegistry=new SQLFunctionRegistry(getDialect(),cfg.getSqlFunctions());
   this.eventListeners=listeners;
-  this.observer=observer != null ? observer : new SessionFactoryObserver(){
-    public void sessionFactoryCreated(    SessionFactory factory){
-    }
-    public void sessionFactoryClosed(    SessionFactory factory){
-    }
+  if (observer != null) {
+    this.observer.addObserver(observer);
   }
-;
   this.typeResolver=cfg.getTypeResolver().scope(this);
   this.typeHelper=new TypeLocatorImpl(typeResolver);
   this.filters=new HashMap();
