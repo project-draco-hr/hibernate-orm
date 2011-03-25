@@ -1,4 +1,6 @@
 {
+  final JdbcConnectionAccess jdbcConnectionAccess=buildJdbcConnectionAccess(configValues);
+  final DialectFactory dialectFactory=serviceRegistry.getService(DialectFactory.class);
   Dialect dialect=null;
   LobCreatorBuilder lobCreatorBuilder=null;
   boolean metaSupportsScrollable=false;
@@ -15,9 +17,9 @@
   boolean useJdbcMetadata=ConfigurationHelper.getBoolean("hibernate.temp.use_jdbc_metadata_defaults",configValues,true);
   if (useJdbcMetadata) {
     try {
-      Connection conn=connectionProvider.getConnection();
+      Connection connection=jdbcConnectionAccess.obtainConnection();
       try {
-        DatabaseMetaData meta=conn.getMetaData();
+        DatabaseMetaData meta=connection.getMetaData();
         LOG.database(meta.getDatabaseProductName(),meta.getDatabaseProductVersion(),meta.getDatabaseMajorVersion(),meta.getDatabaseMinorVersion());
         LOG.driver(meta.getDriverName(),meta.getDriverVersion(),meta.getDriverMajorVersion(),meta.getDriverMinorVersion());
         LOG.jdbcVersion(meta.getJDBCMajorVersion(),meta.getJDBCMinorVersion());
@@ -30,22 +32,22 @@
         sqlStateType=meta.getSQLStateType();
         lobLocatorUpdateCopy=meta.locatorsUpdateCopy();
         typeInfoSet.addAll(TypeInfoExtracter.extractTypeInfo(meta));
-        dialect=dialectFactory.buildDialect(configValues,conn);
-        catalogName=conn.getCatalog();
+        dialect=dialectFactory.buildDialect(configValues,connection);
+        catalogName=connection.getCatalog();
         SchemaNameResolver schemaNameResolver=determineExplicitSchemaNameResolver(configValues);
         if (schemaNameResolver == null) {
         }
         if (schemaNameResolver != null) {
-          schemaName=schemaNameResolver.resolveSchemaName(conn);
+          schemaName=schemaNameResolver.resolveSchemaName(connection);
         }
-        lobCreatorBuilder=new LobCreatorBuilder(configValues,conn);
+        lobCreatorBuilder=new LobCreatorBuilder(configValues,connection);
       }
  catch (      SQLException sqle) {
         LOG.unableToObtainConnectionMetadata(sqle.getMessage());
       }
  finally {
-        if (conn != null) {
-          connectionProvider.closeConnection(conn);
+        if (connection != null) {
+          jdbcConnectionAccess.releaseConnection(connection);
         }
       }
     }

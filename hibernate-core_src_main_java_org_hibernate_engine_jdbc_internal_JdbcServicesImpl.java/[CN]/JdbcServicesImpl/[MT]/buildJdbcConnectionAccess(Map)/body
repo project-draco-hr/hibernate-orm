@@ -1,0 +1,12 @@
+{
+  final MultiTenancyStrategy multiTenancyStrategy=MultiTenancyStrategy.determineMultiTenancyStrategy(configValues);
+  if (MultiTenancyStrategy.NONE == multiTenancyStrategy) {
+    connectionProvider=serviceRegistry.getService(ConnectionProvider.class);
+    return new ConnectionProviderJdbcConnectionAccess(connectionProvider);
+  }
+ else {
+    connectionProvider=null;
+    final MultiTenantConnectionProvider multiTenantConnectionProvider=serviceRegistry.getService(MultiTenantConnectionProvider.class);
+    return new MultiTenantConnectionProviderJdbcConnectionAccess(multiTenantConnectionProvider);
+  }
+}
