@@ -3,7 +3,7 @@
   final boolean useCache=persister.hasCache() && source.getCacheMode().isGetEnabled() && event.getLockMode().lessThan(LockMode.READ);
   if (useCache) {
     final SessionFactoryImplementor factory=source.getFactory();
-    final CacheKey ck=new CacheKey(event.getEntityId(),persister.getIdentifierType(),persister.getRootEntityName(),source.getEntityMode(),source.getFactory());
+    final CacheKey ck=source.generateCacheKey(event.getEntityId(),persister.getIdentifierType(),persister.getRootEntityName());
     Object ce=persister.getCacheAccessStrategy().get(ck,source.getTimestamp());
     if (factory.getStatistics().isStatisticsEnabled()) {
       if (ce == null) {

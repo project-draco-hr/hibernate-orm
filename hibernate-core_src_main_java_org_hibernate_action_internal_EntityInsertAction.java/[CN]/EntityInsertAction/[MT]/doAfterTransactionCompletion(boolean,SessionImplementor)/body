@@ -1,7 +1,7 @@
 {
   EntityPersister persister=getPersister();
   if (success && isCachePutEnabled(persister,getSession())) {
-    final CacheKey ck=new CacheKey(getId(),persister.getIdentifierType(),persister.getRootEntityName(),getSession().getEntityMode(),getSession().getFactory());
+    final CacheKey ck=getSession().generateCacheKey(getId(),persister.getIdentifierType(),persister.getRootEntityName());
     boolean put=persister.getCacheAccessStrategy().afterInsert(ck,cacheEntry,version);
     if (put && getSession().getFactory().getStatistics().isStatisticsEnabled()) {
       getSession().getFactory().getStatisticsImplementor().secondLevelCachePut(getPersister().getCacheAccessStrategy().getRegion().getName());

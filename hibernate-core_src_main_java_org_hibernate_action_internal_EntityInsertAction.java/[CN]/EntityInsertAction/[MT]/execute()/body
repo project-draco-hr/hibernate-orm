@@ -24,7 +24,7 @@
   if (isCachePutEnabled(persister,session)) {
     CacheEntry ce=new CacheEntry(state,persister,persister.hasUninitializedLazyProperties(instance,session.getEntityMode()),version,session,instance);
     cacheEntry=persister.getCacheEntryStructure().structure(ce);
-    final CacheKey ck=new CacheKey(id,persister.getIdentifierType(),persister.getRootEntityName(),session.getEntityMode(),session.getFactory());
+    final CacheKey ck=session.generateCacheKey(id,persister.getIdentifierType(),persister.getRootEntityName());
     boolean put=persister.getCacheAccessStrategy().insert(ck,cacheEntry,version);
     if (put && factory.getStatistics().isStatisticsEnabled()) {
       factory.getStatisticsImplementor().secondLevelCachePut(getPersister().getCacheAccessStrategy().getRegion().getName());

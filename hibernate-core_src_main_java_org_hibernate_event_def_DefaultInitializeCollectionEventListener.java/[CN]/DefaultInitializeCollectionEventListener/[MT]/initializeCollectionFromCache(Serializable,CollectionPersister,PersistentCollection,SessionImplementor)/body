@@ -6,7 +6,7 @@
   final boolean useCache=persister.hasCache() && source.getCacheMode().isGetEnabled();
   if (!useCache)   return false;
   final SessionFactoryImplementor factory=source.getFactory();
-  final CacheKey ck=new CacheKey(id,persister.getKeyType(),persister.getRole(),source.getEntityMode(),source.getFactory());
+  final CacheKey ck=source.generateCacheKey(id,persister.getKeyType(),persister.getRole());
   Object ce=persister.getCacheAccessStrategy().get(ck,source.getTimestamp());
   if (factory.getStatistics().isStatisticsEnabled()) {
     if (ce == null) {
@@ -16,7 +16,9 @@
       factory.getStatisticsImplementor().secondLevelCacheHit(persister.getCacheAccessStrategy().getRegion().getName());
     }
   }
-  if (ce == null)   return false;
+  if (ce == null) {
+    return false;
+  }
   CollectionCacheEntry cacheEntry=(CollectionCacheEntry)persister.getCacheEntryStructure().destructure(ce,factory);
   final PersistenceContext persistenceContext=source.getPersistenceContext();
   cacheEntry.assemble(collection,persister,persistenceContext.getCollectionOwner(id,persister));
