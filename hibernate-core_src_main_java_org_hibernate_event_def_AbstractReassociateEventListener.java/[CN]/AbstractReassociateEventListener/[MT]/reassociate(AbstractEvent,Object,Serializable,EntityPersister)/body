@@ -1,7 +1,7 @@
 {
   if (LOG.isTraceEnabled())   LOG.trace("Reassociating transient instance: " + MessageHelper.infoString(persister,id,event.getSession().getFactory()));
-  EventSource source=event.getSession();
-  EntityKey key=new EntityKey(id,persister,source.getEntityMode());
+  final EventSource source=event.getSession();
+  final EntityKey key=source.generateEntityKey(id,persister);
   source.getPersistenceContext().checkUniqueness(key,object);
   Object[] values=persister.getPropertyValues(object,source.getEntityMode());
   TypeHelper.deepCopy(values,persister.getPropertyTypes(),persister.getPropertyUpdateability(),values,source);

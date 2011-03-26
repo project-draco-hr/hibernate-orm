@@ -1,8 +1,10 @@
 {
-  if (LOG.isTraceEnabled())   LOG.trace("Saving " + MessageHelper.infoString(persister,id,source.getFactory()));
-  EntityKey key;
+  if (LOG.isTraceEnabled()) {
+    LOG.trace("Saving " + MessageHelper.infoString(persister,id,source.getFactory()));
+  }
+  final EntityKey key;
   if (!useIdentityColumn) {
-    key=new EntityKey(id,persister,source.getEntityMode());
+    key=source.generateEntityKey(id,persister);
     Object old=source.getPersistenceContext().getEntity(key);
     if (old != null) {
       if (source.getPersistenceContext().getEntry(old).getStatus() == Status.DELETED) {

@@ -3,7 +3,7 @@
   final int numberOfPersistersToProcess;
   final Serializable optionalId=queryParameters.getOptionalId();
   if (isSingleRowLoader() && optionalId != null) {
-    keys[entitySpan - 1]=new EntityKey(optionalId,persisters[entitySpan - 1],session.getEntityMode());
+    keys[entitySpan - 1]=session.generateEntityKey(optionalId,persisters[entitySpan - 1]);
     numberOfPersistersToProcess=entitySpan - 1;
   }
  else {
@@ -23,19 +23,19 @@
           if (targetIndex < numberOfPersistersToProcess) {
             final Type targetIdType=persisters[targetIndex].getIdentifierType();
             final Serializable targetId=(Serializable)targetIdType.resolve(hydratedKeyState[targetIndex],session,null);
-            keys[targetIndex]=new EntityKey(targetId,persisters[targetIndex],session.getEntityMode());
+            keys[targetIndex]=session.generateEntityKey(targetId,persisters[targetIndex]);
           }
           Object object=session.getEntityUsingInterceptor(keys[targetIndex]);
           if (object != null) {
             instanceAlreadyLoaded(resultSet,targetIndex,persisters[targetIndex],keys[targetIndex],object,lockModes[targetIndex],session);
           }
  else {
-            object=instanceNotYetLoaded(resultSet,targetIndex,persisters[targetIndex],getEntityAliases()[targetIndex].getRowIdAlias(),keys[targetIndex],lockModes[targetIndex],getOptionalObjectKey(queryParameters,session),queryParameters.getOptionalObject(),hydratedObjects,session);
+            instanceNotYetLoaded(resultSet,targetIndex,persisters[targetIndex],getEntityAliases()[targetIndex].getRowIdAlias(),keys[targetIndex],lockModes[targetIndex],getOptionalObjectKey(queryParameters,session),queryParameters.getOptionalObject(),hydratedObjects,session);
           }
         }
       }
     }
     final Serializable resolvedId=(Serializable)idType.resolve(hydratedKeyState[i],session,null);
-    keys[i]=resolvedId == null ? null : new EntityKey(resolvedId,persisters[i],session.getEntityMode());
+    keys[i]=resolvedId == null ? null : session.generateEntityKey(resolvedId,persisters[i]);
   }
 }

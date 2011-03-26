@@ -2,7 +2,7 @@
   if (!persister.isMutable())   LOG.trace("Immutable instance passed to performUpdate()");
   if (LOG.isTraceEnabled())   LOG.trace("Updating " + MessageHelper.infoString(persister,event.getRequestedId(),event.getSession().getFactory()));
   final EventSource source=event.getSession();
-  EntityKey key=new EntityKey(event.getRequestedId(),persister,source.getEntityMode());
+  final EntityKey key=source.generateEntityKey(event.getRequestedId(),persister);
   source.getPersistenceContext().checkUniqueness(key,entity);
   if (invokeUpdateLifecycle(entity,persister,source)) {
     reassociate(event,event.getObject(),event.getRequestedId(),persister);

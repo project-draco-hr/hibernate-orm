@@ -5,7 +5,7 @@
   if (LOG.isTraceEnabled())   LOG.trace("Assembling entity from second-level cache: " + MessageHelper.infoString(persister,id,factory));
   EntityPersister subclassPersister=factory.getEntityPersister(entry.getSubclass());
   Object result=optionalObject == null ? session.instantiate(subclassPersister,id) : optionalObject;
-  EntityKey entityKey=new EntityKey(id,subclassPersister,session.getEntityMode());
+  final EntityKey entityKey=session.generateEntityKey(id,subclassPersister);
   TwoPhaseLoad.addUninitializedCachedEntity(entityKey,result,subclassPersister,LockMode.NONE,entry.areLazyPropertiesUnfetched(),entry.getVersion(),session);
   Type[] types=subclassPersister.getPropertyTypes();
   Object[] values=entry.assemble(result,id,subclassPersister,session.getInterceptor(),session);

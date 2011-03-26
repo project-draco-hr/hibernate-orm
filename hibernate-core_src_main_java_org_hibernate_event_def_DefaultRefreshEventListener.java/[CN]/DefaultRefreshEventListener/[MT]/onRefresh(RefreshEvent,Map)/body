@@ -19,7 +19,7 @@
     persister=source.getEntityPersister(null,object);
     id=persister.getIdentifier(object,event.getSession());
     if (LOG.isTraceEnabled())     LOG.trace("Refreshing transient " + MessageHelper.infoString(persister,id,source.getFactory()));
-    EntityKey key=new EntityKey(id,persister,source.getEntityMode());
+    final EntityKey key=source.generateEntityKey(id,persister);
     if (source.getPersistenceContext().getEntry(key) != null) {
       throw new PersistentObjectException("attempted to refresh transient instance when persistent instance was already associated with the Session: " + MessageHelper.infoString(persister,id,source.getFactory()));
     }
@@ -35,7 +35,7 @@
   refreshedAlready.put(object,object);
   new Cascade(CascadingAction.REFRESH,Cascade.BEFORE_REFRESH,source).cascade(persister,object,refreshedAlready);
   if (e != null) {
-    EntityKey key=new EntityKey(id,persister,source.getEntityMode());
+    final EntityKey key=source.generateEntityKey(id,persister);
     source.getPersistenceContext().removeEntity(key);
     if (persister.hasCollections())     new EvictVisitor(source).process(object,persister);
   }

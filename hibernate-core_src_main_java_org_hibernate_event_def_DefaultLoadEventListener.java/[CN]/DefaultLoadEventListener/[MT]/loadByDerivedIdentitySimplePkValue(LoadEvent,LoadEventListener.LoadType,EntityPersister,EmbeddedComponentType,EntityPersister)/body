@@ -1,10 +1,9 @@
 {
-  final EntityKey parentEntityKey=new EntityKey(event.getEntityId(),parentPersister,event.getSession().getEntityMode());
+  final EntityKey parentEntityKey=event.getSession().generateEntityKey(event.getEntityId(),parentPersister);
   final Object parent=doLoad(event,parentPersister,parentEntityKey,options);
-  Serializable dependent=(Serializable)dependentIdType.instantiate(parent,event.getSession());
+  final Serializable dependent=(Serializable)dependentIdType.instantiate(parent,event.getSession());
   dependentIdType.setPropertyValues(dependent,new Object[]{parent},event.getSession().getEntityMode());
-  final EntityKey dependentEntityKey=new EntityKey(dependent,dependentPersister,event.getSession().getEntityMode());
+  final EntityKey dependentEntityKey=event.getSession().generateEntityKey(dependent,dependentPersister);
   event.setEntityId(dependent);
-  dependent=(Serializable)doLoad(event,dependentPersister,dependentEntityKey,options);
-  event.setResult(dependent);
+  event.setResult(doLoad(event,dependentPersister,dependentEntityKey,options));
 }
