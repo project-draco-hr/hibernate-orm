@@ -1,7 +1,9 @@
 {
+  super.applyServices(serviceRegistry);
   serviceRegistry.getService(StandardServiceInitiators.EventListenerRegistrationService.class).attachEventListenerRegistration(new EventListenerRegistration(){
     @Override public void apply(    ServiceRegistryImplementor serviceRegistry,    Configuration configuration,    Map<?,?> configValues){
-      BeanValidationActivator.activateBeanValidation(serviceRegistry.getService(EventListenerRegistry.class),getProperties());
+      EventListenerRegistry eventListenerRegistry=serviceRegistry.getService(EventListenerRegistry.class);
+      eventListenerRegistry.prependListeners(EventType.LOAD,new CustomLoadListener());
     }
   }
 );
