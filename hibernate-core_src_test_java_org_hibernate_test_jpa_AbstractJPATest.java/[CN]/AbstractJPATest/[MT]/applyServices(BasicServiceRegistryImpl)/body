@@ -1,9 +1,14 @@
 {
   super.applyServices(serviceRegistry);
-  EventListenerRegistry eventListenerRegistry=serviceRegistry.getService(EventListenerRegistry.class);
-  eventListenerRegistry.setListeners(EventType.PERSIST,buildPersistEventListeners());
-  eventListenerRegistry.setListeners(EventType.PERSIST_ONFLUSH,buildPersisOnFlushEventListeners());
-  eventListenerRegistry.setListeners(EventType.AUTO_FLUSH,buildAutoFlushEventListeners());
-  eventListenerRegistry.setListeners(EventType.FLUSH,buildFlushEventListeners());
-  eventListenerRegistry.setListeners(EventType.FLUSH_ENTITY,buildFlushEntityEventListeners());
+  serviceRegistry.getService(StandardServiceInitiators.EventListenerRegistrationService.class).attachEventListenerRegistration(new EventListenerRegistration(){
+    @Override public void apply(    ServiceRegistryImplementor serviceRegistry,    Configuration configuration,    Map<?,?> configValues){
+      EventListenerRegistry eventListenerRegistry=serviceRegistry.getService(EventListenerRegistry.class);
+      eventListenerRegistry.setListeners(EventType.PERSIST,buildPersistEventListeners());
+      eventListenerRegistry.setListeners(EventType.PERSIST_ONFLUSH,buildPersisOnFlushEventListeners());
+      eventListenerRegistry.setListeners(EventType.AUTO_FLUSH,buildAutoFlushEventListeners());
+      eventListenerRegistry.setListeners(EventType.FLUSH,buildFlushEventListeners());
+      eventListenerRegistry.setListeners(EventType.FLUSH_ENTITY,buildFlushEntityEventListeners());
+    }
+  }
+);
 }
