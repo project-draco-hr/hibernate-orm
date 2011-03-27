@@ -1,0 +1,34 @@
+{
+  List<Integrator> integrators=new ArrayList<Integrator>();
+  final Properties properties=new Properties();
+  ClassLoaderService classLoader=serviceRegistry.getService(ClassLoaderService.class);
+  List<URL> urls=classLoader.locateResources("META-INF/hibernate/org.hibernate.impl.Integrator");
+  for (  URL url : urls) {
+    try {
+      final InputStream propertyStream=url.openStream();
+      try {
+        properties.clear();
+        properties.load(propertyStream);
+        final String implClass=properties.getProperty("implClass");
+        Class integratorClass=classLoader.classForName(implClass);
+        try {
+          integrators.add((Integrator)integratorClass.newInstance());
+        }
+ catch (        Exception e) {
+          throw new HibernateException("Unable to instantiate specified Integrator class [" + implClass + "]",e);
+        }
+      }
+  finally {
+        try {
+          propertyStream.close();
+        }
+ catch (        IOException ignore) {
+        }
+      }
+    }
+ catch (    IOException ioe) {
+      LOG.debugf(ioe,"Unable to process Integrator service file [%s], skipping",url.toExternalForm());
+    }
+  }
+  return integrators;
+}

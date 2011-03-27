@@ -19,6 +19,9 @@
   LOG.debugf("Instantiating session factory with properties: %s",properties);
   settings.getRegionFactory().start(settings,properties);
   this.queryPlanCache=new QueryPlanCache(this);
+  for (  Integrator integrator : locateIntegrators(this.serviceRegistry)) {
+    integrator.integrate(cfg,this,(SessionFactoryServiceRegistry)this.serviceRegistry);
+  }
   identifierGenerators=new HashMap();
   Iterator classes=cfg.getClassMappings();
   while (classes.hasNext()) {
