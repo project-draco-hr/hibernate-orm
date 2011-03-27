@@ -1,0 +1,22 @@
+{
+  final boolean registerListeners=ConfigurationHelper.getBoolean(AUTO_REGISTER,configuration.getProperties(),false);
+  if (!registerListeners) {
+    LOG.debug("Skipping legacy validator auto registration");
+    return;
+  }
+  final Class listenerClass=loadListenerClass(serviceRegistry);
+  if (listenerClass == null) {
+    LOG.debug("Skipping legacy validator auto registration - could not locate listener");
+    return;
+  }
+  final Object validateEventListener;
+  try {
+    validateEventListener=listenerClass.newInstance();
+  }
+ catch (  Exception e) {
+    throw new AnnotationException("Unable to instantiate Validator event listener",e);
+  }
+  EventListenerRegistry listenerRegistry=serviceRegistry.getService(EventListenerRegistry.class);
+  listenerRegistry.appendListeners(EventType.PRE_INSERT,(PreInsertEventListener)validateEventListener);
+  listenerRegistry.appendListeners(EventType.PRE_UPDATE,(PreUpdateEventListener)validateEventListener);
+}

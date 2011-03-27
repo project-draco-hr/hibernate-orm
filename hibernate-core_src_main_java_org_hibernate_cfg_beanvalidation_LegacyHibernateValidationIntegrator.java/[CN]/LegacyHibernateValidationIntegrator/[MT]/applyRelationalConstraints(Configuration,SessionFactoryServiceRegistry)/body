@@ -1,0 +1,36 @@
+{
+  if (!ConfigurationHelper.getBoolean(APPLY_CONSTRAINTS,configuration.getProperties(),true)) {
+    LOG.debug("Skipping application of relational constraints from legacy Hibernate Validator");
+    return;
+  }
+  Constructor validatorCtr=null;
+  Method applyMethod=null;
+  try {
+    final ClassLoaderService classLoaderService=serviceRegistry.getService(ClassLoaderService.class);
+    final Class classValidator=classLoaderService.classForName(CLASS_VALIDATOR_CLASS);
+    final Class messageInterpolator=classLoaderService.classForName(MSG_INTERPOLATOR_CLASS);
+    validatorCtr=classValidator.getDeclaredConstructor(Class.class,ResourceBundle.class,messageInterpolator,Map.class,ReflectionManager.class);
+    applyMethod=classValidator.getMethod("apply",PersistentClass.class);
+  }
+ catch (  NoSuchMethodException e) {
+    throw new AnnotationException(e);
+  }
+catch (  Exception e) {
+    LOG.debug("Legacy Hibernate Validator classes not found, ignoring");
+  }
+  if (applyMethod != null) {
+    Iterable<PersistentClass> persistentClasses=((Map<String,PersistentClass>)configuration.createMappings().getClasses()).values();
+    for (    PersistentClass persistentClass : persistentClasses) {
+      String className=persistentClass.getClassName();
+      if (StringHelper.isNotEmpty(className)) {
+        try {
+          Object validator=validatorCtr.newInstance(ReflectHelper.classForName(className),null,null,null,configuration.getReflectionManager());
+          applyMethod.invoke(validator,persistentClass);
+        }
+ catch (        Exception e) {
+          LOG.unableToApplyConstraints(className,e);
+        }
+      }
+    }
+  }
+}

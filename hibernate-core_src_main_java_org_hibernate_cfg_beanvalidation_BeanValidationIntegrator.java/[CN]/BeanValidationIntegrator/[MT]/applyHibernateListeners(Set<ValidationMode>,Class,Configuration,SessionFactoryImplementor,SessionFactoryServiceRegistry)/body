@@ -1,0 +1,34 @@
+{
+  if (configuration.getProperty(Environment.CHECK_NULLABILITY) == null) {
+    sessionFactory.getSettings().setCheckNullability(false);
+  }
+  if (!(modes.contains(ValidationMode.CALLBACK) || modes.contains(ValidationMode.AUTO))) {
+    return;
+  }
+  if (typeSafeActivatorClass == null) {
+    if (modes.contains(ValidationMode.CALLBACK)) {
+      throw new HibernateException("Bean Validation not available in the class path but required in " + MODE_PROPERTY);
+    }
+ else     if (modes.contains(ValidationMode.AUTO)) {
+      return;
+    }
+  }
+  try {
+    Method activateMethod=typeSafeActivatorClass.getMethod(ACTIVATE_METHOD,EventListenerRegistry.class,Properties.class);
+    try {
+      activateMethod.invoke(null,serviceRegistry.getService(EventListenerRegistry.class),configuration.getProperties());
+    }
+ catch (    HibernateException e) {
+      throw e;
+    }
+catch (    Exception e) {
+      throw new HibernateException("Error applying BeanValidation relational constraints",e);
+    }
+  }
+ catch (  HibernateException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    throw new HibernateException("Unable to locate TypeSafeActivator#applyDDL method",e);
+  }
+}

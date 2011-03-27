@@ -1,0 +1,35 @@
+{
+  if (!ConfigurationHelper.getBoolean(LegacyHibernateValidationIntegrator.APPLY_CONSTRAINTS,configuration.getProperties(),true)) {
+    LOG.debug("Skipping application of relational constraints from legacy Hibernate Validator");
+    return;
+  }
+  if (!(modes.contains(ValidationMode.DDL) || modes.contains(ValidationMode.AUTO))) {
+    return;
+  }
+  if (typeSafeActivatorClass == null) {
+    if (modes.contains(ValidationMode.DDL)) {
+      throw new HibernateException("Bean Validation not available in the class path but required in " + MODE_PROPERTY);
+    }
+ else     if (modes.contains(ValidationMode.AUTO)) {
+      return;
+    }
+  }
+  try {
+    Method applyDDLMethod=typeSafeActivatorClass.getMethod(DDL_METHOD,Collection.class,Properties.class);
+    try {
+      applyDDLMethod.invoke(null,configuration.createMappings().getClasses().values(),configuration.getProperties());
+    }
+ catch (    HibernateException e) {
+      throw e;
+    }
+catch (    Exception e) {
+      throw new HibernateException("Error applying BeanValidation relational constraints",e);
+    }
+  }
+ catch (  HibernateException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    throw new HibernateException("Unable to locate TypeSafeActivator#applyDDL method",e);
+  }
+}
