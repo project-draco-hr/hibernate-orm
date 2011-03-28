@@ -1,6 +1,15 @@
 {
   final Set<ValidationMode> modes=ValidationMode.getModes(configuration.getProperties().get(MODE_PROPERTY));
+  final ClassLoaderService classLoaderService=serviceRegistry.getService(ClassLoaderService.class);
+  boolean isBeanValidationAvailable;
+  try {
+    classLoaderService.classForName(BV_CHECK_CLASS);
+    isBeanValidationAvailable=true;
+  }
+ catch (  Exception e) {
+    isBeanValidationAvailable=false;
+  }
   final Class typeSafeActivatorClass=loadTypeSafeActivatorClass(serviceRegistry);
-  applyRelationalConstraints(modes,typeSafeActivatorClass,configuration);
-  applyHibernateListeners(modes,typeSafeActivatorClass,configuration,sessionFactory,serviceRegistry);
+  applyRelationalConstraints(modes,isBeanValidationAvailable,typeSafeActivatorClass,configuration);
+  applyHibernateListeners(modes,isBeanValidationAvailable,typeSafeActivatorClass,configuration,sessionFactory,serviceRegistry);
 }
