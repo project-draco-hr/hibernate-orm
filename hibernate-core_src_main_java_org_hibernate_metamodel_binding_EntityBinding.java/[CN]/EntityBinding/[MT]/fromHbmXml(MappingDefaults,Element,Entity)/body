@@ -1,0 +1,43 @@
+{
+  this.entity=entity;
+  metaAttributes=HbmHelper.extractMetas(node,true,defaults.getMappingMetas());
+  lazy=DomHelper.extractBooleanAttributeValue(node,"lazy",defaults.isDefaultLazy());
+  discriminatorValue=DomHelper.extractAttributeValue(node,"discriminator-value",entity.getName());
+  dynamicUpdate=DomHelper.extractBooleanAttributeValue(node,"dynamic-update",false);
+  dynamicInsert=DomHelper.extractBooleanAttributeValue(node,"dynamic-insert",false);
+  batchSize=DomHelper.extractIntAttributeValue(node,"batch-size",0);
+  selectBeforeUpdate=DomHelper.extractBooleanAttributeValue(node,"select-before-update",false);
+  String optimisticLockModeString=DomHelper.extractAttributeValue(node,"optimistic-lock","version");
+  if ("version".equals(optimisticLockModeString)) {
+    optimisticLockMode=Versioning.OPTIMISTIC_LOCK_VERSION;
+  }
+ else   if ("dirty".equals(optimisticLockModeString)) {
+    optimisticLockMode=Versioning.OPTIMISTIC_LOCK_DIRTY;
+  }
+ else   if ("all".equals(optimisticLockModeString)) {
+    optimisticLockMode=Versioning.OPTIMISTIC_LOCK_ALL;
+  }
+ else   if ("none".equals(optimisticLockModeString)) {
+    optimisticLockMode=Versioning.OPTIMISTIC_LOCK_NONE;
+  }
+ else {
+    throw new MappingException("Unsupported optimistic-lock style: " + optimisticLockModeString);
+  }
+  Attribute persisterNode=node.attribute("persister");
+  if (persisterNode != null) {
+    try {
+      entityPersisterClass=ReflectHelper.classForName(persisterNode.getValue());
+    }
+ catch (    ClassNotFoundException cnfe) {
+      throw new MappingException("Could not find persister class: " + persisterNode.getValue());
+    }
+  }
+  customInsert=HbmHelper.getCustomSql(node.element("sql-insert"));
+  customDelete=HbmHelper.getCustomSql(node.element("sql-delete"));
+  customUpdate=HbmHelper.getCustomSql(node.element("sql-update"));
+  Iterator tables=node.elementIterator("synchronize");
+  while (tables.hasNext()) {
+    addSynchronizedTable(((Element)tables.next()).attributeValue("table"));
+  }
+  isAbstract=DomHelper.extractBooleanAttributeValue(node,"abstract",false);
+}

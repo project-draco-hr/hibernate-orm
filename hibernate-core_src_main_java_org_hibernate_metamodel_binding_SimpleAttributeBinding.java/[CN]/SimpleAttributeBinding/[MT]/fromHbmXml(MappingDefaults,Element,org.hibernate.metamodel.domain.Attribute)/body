@@ -1,0 +1,25 @@
+{
+  super.fromHbmXml(defaults,element,attribute);
+  this.isLazy=DomHelper.extractBooleanAttributeValue(element,"lazy",false);
+  this.generation=PropertyGeneration.parse(DomHelper.extractAttributeValue(element,"generated",null));
+  if (generation == PropertyGeneration.ALWAYS || generation == PropertyGeneration.INSERT) {
+    if (isInsertable()) {
+      final Attribute insertAttribute=element.attribute("insert");
+      if (insertAttribute == null) {
+        setInsertable(false);
+      }
+ else {
+        throw new MappingException("cannot specify both insert=\"true\" and generated=\"" + generation.getName() + "\" for property: "+ getAttribute().getName());
+      }
+    }
+    if (isUpdateable() && generation == PropertyGeneration.ALWAYS) {
+      final Attribute updateAttribute=element.attribute("update");
+      if (updateAttribute == null) {
+        setUpdateable(false);
+      }
+ else {
+        throw new MappingException("cannot specify both update=\"true\" and generated=\"" + generation.getName() + "\" for property: "+ getAttribute().getName());
+      }
+    }
+  }
+}
