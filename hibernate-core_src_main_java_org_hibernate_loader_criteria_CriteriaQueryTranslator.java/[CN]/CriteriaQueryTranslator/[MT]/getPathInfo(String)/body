@@ -1,0 +1,31 @@
+{
+  StringTokenizer tokens=new StringTokenizer(path,".");
+  String componentPath="";
+  CriteriaInfoProvider provider=(CriteriaInfoProvider)nameCriteriaInfoMap.get(rootEntityName);
+  while (tokens.hasMoreTokens()) {
+    componentPath+=tokens.nextToken();
+    Type type=provider.getType(componentPath);
+    if (type.isAssociationType()) {
+      AssociationType atype=(AssociationType)type;
+      CollectionType ctype=type.isCollectionType() ? (CollectionType)type : null;
+      Type elementType=(ctype != null) ? ctype.getElementType(sessionFactory) : null;
+      if (ctype != null && elementType.isComponentType()) {
+        provider=new ComponentCollectionCriteriaInfoProvider(helper.getCollectionPersister(ctype.getRole()));
+      }
+ else       if (ctype != null && !elementType.isEntityType()) {
+        provider=new ScalarCollectionCriteriaInfoProvider(helper,ctype.getRole());
+      }
+ else {
+        provider=new EntityCriteriaInfoProvider((Queryable)sessionFactory.getEntityPersister(atype.getAssociatedEntityName(sessionFactory)));
+      }
+      componentPath="";
+    }
+ else     if (type.isComponentType()) {
+      componentPath+='.';
+    }
+ else {
+      throw new QueryException("not an association: " + componentPath);
+    }
+  }
+  return provider;
+}

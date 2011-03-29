@@ -1,8 +1,12 @@
 {
-  criteriaEntityNames.put(rootCriteria,rootEntityName);
+  CriteriaInfoProvider rootProvider=new EntityCriteriaInfoProvider((Queryable)sessionFactory.getEntityPersister(rootEntityName));
+  criteriaInfoMap.put(rootCriteria,rootProvider);
+  nameCriteriaInfoMap.put(rootProvider.getName(),rootProvider);
   Iterator iter=associationPathCriteriaMap.entrySet().iterator();
   while (iter.hasNext()) {
     Map.Entry me=(Map.Entry)iter.next();
-    criteriaEntityNames.put(me.getValue(),getPathEntityName((String)me.getKey()));
+    CriteriaInfoProvider info=getPathInfo((String)me.getKey());
+    criteriaInfoMap.put(me.getValue(),info);
+    nameCriteriaInfoMap.put(info.getName(),info);
   }
 }
