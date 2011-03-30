@@ -1,8 +1,10 @@
 {
   this.connectionHelper=new SuppliedConnectionHelper(connection);
-  dialect=Dialect.getDialect(cfg.getProperties());
-  dropSQL=cfg.generateDropSchemaScript(dialect);
-  createSQL=cfg.generateSchemaCreationScript(dialect);
-  formatter=(ConfigurationHelper.getBoolean(Environment.FORMAT_SQL,cfg.getProperties()) ? FormatStyle.DDL : FormatStyle.NONE).getFormatter();
-  importFiles=ConfigurationHelper.getString(Environment.HBM2DDL_IMPORT_FILES,cfg.getProperties(),DEFAULT_IMPORT_FILE);
+  this.sqlStatementLogger=new SqlStatementLogger(false,true);
+  this.formatter=FormatStyle.DDL.getFormatter();
+  this.sqlExceptionHelper=new SqlExceptionHelper();
+  this.importFiles=ConfigurationHelper.getString(Environment.HBM2DDL_IMPORT_FILES,configuration.getProperties(),DEFAULT_IMPORT_FILE);
+  final Dialect dialect=Dialect.getDialect(configuration.getProperties());
+  this.dropSQL=configuration.generateDropSchemaScript(dialect);
+  this.createSQL=configuration.generateSchemaCreationScript(dialect);
 }

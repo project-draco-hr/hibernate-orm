@@ -1,0 +1,25 @@
+{
+  BufferedReader reader=new BufferedReader(namedReader.getReader());
+  long lineNo=0;
+  for (String sql=reader.readLine(); sql != null; sql=reader.readLine()) {
+    try {
+      lineNo++;
+      String trimmedSql=sql.trim();
+      if (trimmedSql.length() == 0 || trimmedSql.startsWith("--") || trimmedSql.startsWith("//") || trimmedSql.startsWith("/*")) {
+        continue;
+      }
+      if (trimmedSql.endsWith(";")) {
+        trimmedSql=trimmedSql.substring(0,trimmedSql.length() - 1);
+      }
+      LOG.debugf(trimmedSql);
+      for (      Exporter exporter : exporters) {
+        if (exporter.acceptsImportScripts()) {
+          exporter.export(trimmedSql);
+        }
+      }
+    }
+ catch (    Exception e) {
+      throw new ImportScriptException("Error during import script execution at line " + lineNo,e);
+    }
+  }
+}

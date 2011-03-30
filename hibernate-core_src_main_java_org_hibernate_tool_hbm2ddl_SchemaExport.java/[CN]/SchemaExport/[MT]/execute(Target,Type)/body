@@ -1,0 +1,62 @@
+{
+  if (output == Target.NONE || type == SchemaExport.Type.NONE) {
+    return;
+  }
+  exceptions.clear();
+  LOG.runningHbm2ddlSchemaExport();
+  final List<NamedReader> importFileReaders=new ArrayList<NamedReader>();
+  for (  String currentFile : importFiles.split(",")) {
+    try {
+      final String resourceName=currentFile.trim();
+      InputStream stream=ConfigHelper.getResourceAsStream(resourceName);
+      importFileReaders.add(new NamedReader(resourceName,stream));
+    }
+ catch (    HibernateException e) {
+      LOG.debugf("Import file not found: %s",currentFile);
+    }
+  }
+  final List<Exporter> exporters=new ArrayList<Exporter>();
+  try {
+    if (output.doScript()) {
+      exporters.add(new ScriptExporter());
+    }
+    if (outputFile != null) {
+      exporters.add(new FileExporter(outputFile));
+    }
+    if (output.doExport()) {
+      exporters.add(new DatabaseExporter(connectionHelper,sqlExceptionHelper));
+    }
+    if (type.doDrop()) {
+      perform(dropSQL,exporters);
+    }
+    if (type.doCreate()) {
+      perform(createSQL,exporters);
+      if (!importFileReaders.isEmpty()) {
+        for (        NamedReader namedReader : importFileReaders) {
+          importScript(namedReader,exporters);
+        }
+      }
+    }
+  }
+ catch (  Exception e) {
+    exceptions.add(e);
+    LOG.schemaExportUnsuccessful(e);
+  }
+ finally {
+    for (    Exporter exporter : exporters) {
+      try {
+        exporter.release();
+      }
+ catch (      Exception ignore) {
+      }
+    }
+    for (    NamedReader namedReader : importFileReaders) {
+      try {
+        namedReader.getReader().close();
+      }
+ catch (      Exception ignore) {
+      }
+    }
+    LOG.schemaExportComplete();
+  }
+}

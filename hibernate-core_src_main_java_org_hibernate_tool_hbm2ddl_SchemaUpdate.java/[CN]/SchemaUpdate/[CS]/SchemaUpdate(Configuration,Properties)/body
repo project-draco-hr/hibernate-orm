@@ -1,10 +1,11 @@
 {
-  this.configuration=cfg;
-  dialect=Dialect.getDialect(connectionProperties);
+  this.configuration=configuration;
+  this.dialect=Dialect.getDialect(properties);
   Properties props=new Properties();
   props.putAll(dialect.getDefaultProperties());
-  props.putAll(connectionProperties);
-  connectionHelper=new ManagedProviderConnectionHelper(props);
-  exceptions=new ArrayList();
-  formatter=(ConfigurationHelper.getBoolean(Environment.FORMAT_SQL,props) ? FormatStyle.DDL : FormatStyle.NONE).getFormatter();
+  props.putAll(properties);
+  this.connectionHelper=new ManagedProviderConnectionHelper(props);
+  this.sqlExceptionHelper=new SqlExceptionHelper();
+  this.sqlStatementLogger=new SqlStatementLogger(false,true);
+  this.formatter=FormatStyle.DDL.getFormatter();
 }

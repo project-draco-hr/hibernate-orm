@@ -1,0 +1,22 @@
+{
+  for (  String sqlCommand : sqlCommands) {
+    String formatted=formatter.format(sqlCommand);
+    if (delimiter != null) {
+      formatted+=delimiter;
+    }
+    sqlStatementLogger.logStatement(formatted);
+    for (    Exporter exporter : exporters) {
+      try {
+        exporter.export(formatted);
+      }
+ catch (      Exception e) {
+        if (haltOnError) {
+          throw new HibernateException("Error during DDL export",e);
+        }
+        exceptions.add(e);
+        LOG.unsuccessfulCreate(sqlCommand);
+        LOG.error(e.getMessage());
+      }
+    }
+  }
+}

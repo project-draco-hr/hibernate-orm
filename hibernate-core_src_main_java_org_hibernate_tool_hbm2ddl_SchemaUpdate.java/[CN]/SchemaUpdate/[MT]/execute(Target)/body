@@ -1,0 +1,80 @@
+{
+  LOG.runningHbm2ddlSchemaUpdate();
+  Connection connection=null;
+  Statement stmt=null;
+  Writer outputFileWriter=null;
+  exceptions.clear();
+  try {
+    DatabaseMetadata meta;
+    try {
+      LOG.fetchingDatabaseMetadata();
+      connectionHelper.prepare(true);
+      connection=connectionHelper.getConnection();
+      meta=new DatabaseMetadata(connection,dialect);
+      stmt=connection.createStatement();
+    }
+ catch (    SQLException sqle) {
+      exceptions.add(sqle);
+      LOG.unableToGetDatabaseMetadata(sqle);
+      throw sqle;
+    }
+    LOG.updatingSchema();
+    if (outputFile != null) {
+      LOG.writingGeneratedSchemaToFile(outputFile);
+      outputFileWriter=new FileWriter(outputFile);
+    }
+    String[] sqlStrings=configuration.generateSchemaUpdateScript(dialect,meta);
+    for (    String sql : sqlStrings) {
+      String formatted=formatter.format(sql);
+      try {
+        if (delimiter != null) {
+          formatted+=delimiter;
+        }
+        if (target.doScript()) {
+          System.out.println(formatted);
+        }
+        if (outputFile != null) {
+          outputFileWriter.write(formatted + "\n");
+        }
+        if (target.doExport()) {
+          LOG.debugf(sql);
+          stmt.executeUpdate(formatted);
+        }
+      }
+ catch (      SQLException e) {
+        if (haltOnError) {
+          throw new JDBCException("Error during DDL export",e);
+        }
+        exceptions.add(e);
+        LOG.unsuccessful(sql);
+        LOG.error(e.getMessage());
+      }
+    }
+    LOG.schemaUpdateComplete();
+  }
+ catch (  Exception e) {
+    exceptions.add(e);
+    LOG.unableToCompleteSchemaUpdate(e);
+  }
+ finally {
+    try {
+      if (stmt != null) {
+        stmt.close();
+      }
+      connectionHelper.release();
+    }
+ catch (    Exception e) {
+      exceptions.add(e);
+      LOG.unableToCloseConnection(e);
+    }
+    try {
+      if (outputFileWriter != null) {
+        outputFileWriter.close();
+      }
+    }
+ catch (    Exception e) {
+      exceptions.add(e);
+      LOG.unableToCloseConnection(e);
+    }
+  }
+}
