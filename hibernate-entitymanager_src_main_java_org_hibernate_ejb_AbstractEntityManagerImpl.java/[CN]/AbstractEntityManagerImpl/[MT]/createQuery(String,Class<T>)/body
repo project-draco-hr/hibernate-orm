@@ -1,11 +1,28 @@
 {
   try {
     org.hibernate.Query hqlQuery=getSession().createQuery(jpaqlString);
-    if (hqlQuery.getReturnTypes().length != 1) {
-      throw new IllegalArgumentException("Cannot create TypedQuery for query with more than one return");
+    if (Object[].class.equals(resultClass)) {
     }
-    if (!resultClass.isAssignableFrom(hqlQuery.getReturnTypes()[0].getReturnedClass())) {
-      throw new IllegalArgumentException("Type specified for TypedQuery [" + resultClass.getName() + "] is incompatible with query return type ["+ hqlQuery.getReturnTypes()[0].getReturnedClass()+ "]");
+ else     if (Tuple.class.equals(resultClass)) {
+      TupleBuilderTransformer tupleTransformer=new TupleBuilderTransformer(hqlQuery);
+      hqlQuery.setResultTransformer(tupleTransformer);
+    }
+ else {
+      final HQLQueryPlan queryPlan=unwrap(SessionImplementor.class).getFactory().getQueryPlanCache().getHQLQueryPlan(jpaqlString,false,null);
+      final Class dynamicInstantiationClass=queryPlan.getDynamicInstantiationResultType();
+      if (dynamicInstantiationClass != null) {
+        if (!resultClass.isAssignableFrom(dynamicInstantiationClass)) {
+          throw new IllegalArgumentException("Mismatch in requested result type [" + resultClass.getName() + "] and actual result type ["+ dynamicInstantiationClass.getName()+ "]");
+        }
+      }
+ else       if (hqlQuery.getReturnTypes().length == 1) {
+        if (!resultClass.isAssignableFrom(hqlQuery.getReturnTypes()[0].getReturnedClass())) {
+          throw new IllegalArgumentException("Type specified for TypedQuery [" + resultClass.getName() + "] is incompatible with query return type ["+ hqlQuery.getReturnTypes()[0].getReturnedClass()+ "]");
+        }
+      }
+ else {
+        throw new IllegalArgumentException("Cannot create TypedQuery for query with more than one return using requested result type [" + resultClass.getName() + "]");
+      }
     }
     return new QueryImpl<T>(hqlQuery,this);
   }
