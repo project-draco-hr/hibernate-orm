@@ -15,12 +15,11 @@ catch (      ClassCastException e) {
         throw new PersistenceException("Session interceptor does not implement Interceptor: " + sessionInterceptorClass,e);
       }
     }
-    session=getEntityManagerFactory().getSessionFactory().openSession(interceptor);
+    final boolean autoJoinTransactions=(getTransactionType() != PersistenceUnitTransactionType.JTA);
+    final SessionFactoryImplementor sfi=((SessionFactoryImplementor)getEntityManagerFactory().getSessionFactory());
+    session=sfi.openSession(interceptor,autoJoinTransactions);
     if (persistenceContextType == PersistenceContextType.TRANSACTION) {
       ((SessionImplementor)session).setAutoClear(true);
-    }
-    if (getTransactionType() == PersistenceUnitTransactionType.JTA) {
-      ((SessionImplementor)session).disableTransactionAutoJoin();
     }
   }
   return session;

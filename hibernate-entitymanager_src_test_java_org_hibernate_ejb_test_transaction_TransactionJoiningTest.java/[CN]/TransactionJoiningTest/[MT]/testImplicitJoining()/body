@@ -1,0 +1,12 @@
+{
+  assertFalse(JtaStatusHelper.isActive(TestingJtaBootstrap.INSTANCE.getTransactionManager()));
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  EntityManager entityManager=entityManagerFactory().createEntityManager();
+  SessionImplementor session=entityManager.unwrap(SessionImplementor.class);
+  Transaction hibernateTransaction=((Session)session).getTransaction();
+  assertTrue(CMTTransaction.class.isInstance(hibernateTransaction));
+  assertTrue(session.getTransactionCoordinator().isSynchronizationRegistered());
+  assertTrue(hibernateTransaction.isParticipating());
+  entityManager.close();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+}

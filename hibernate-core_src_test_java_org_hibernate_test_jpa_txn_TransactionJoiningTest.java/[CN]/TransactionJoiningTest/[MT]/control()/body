@@ -1,0 +1,11 @@
+{
+  assertFalse(JtaStatusHelper.isActive(TestingJtaBootstrap.INSTANCE.getTransactionManager()));
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  assertTrue(JtaStatusHelper.isActive(TestingJtaBootstrap.INSTANCE.getTransactionManager()));
+  SessionImplementor session=(SessionImplementor)sessionFactory().openSession();
+  TransactionImplementor transaction=(TransactionImplementor)((Session)session).getTransaction();
+  assertTrue(session.getTransactionCoordinator().isSynchronizationRegistered());
+  assertTrue(transaction.isParticipating());
+  ((Session)session).close();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+}

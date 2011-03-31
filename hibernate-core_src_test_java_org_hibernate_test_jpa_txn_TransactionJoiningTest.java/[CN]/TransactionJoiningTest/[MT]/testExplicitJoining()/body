@@ -1,0 +1,29 @@
+{
+  assertFalse(JtaStatusHelper.isActive(TestingJtaBootstrap.INSTANCE.getTransactionManager()));
+  SessionImplementor session=(SessionImplementor)sessionFactory().openSession(false);
+  TransactionImplementor transaction=(TransactionImplementor)((Session)session).getTransaction();
+  assertFalse(session.getTransactionCoordinator().isSynchronizationRegistered());
+  assertFalse(transaction.isParticipating());
+  session.getFlushMode();
+  assertFalse(session.getTransactionCoordinator().isSynchronizationRegistered());
+  assertFalse(transaction.isParticipating());
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  assertTrue(JtaStatusHelper.isActive(TestingJtaBootstrap.INSTANCE.getTransactionManager()));
+  assertTrue(transaction.isActive());
+  assertFalse(transaction.isParticipating());
+  assertFalse(session.getTransactionCoordinator().isSynchronizationRegistered());
+  session.getFlushMode();
+  assertTrue(JtaStatusHelper.isActive(TestingJtaBootstrap.INSTANCE.getTransactionManager()));
+  assertTrue(transaction.isActive());
+  assertFalse(session.getTransactionCoordinator().isSynchronizationRegistered());
+  assertFalse(transaction.isParticipating());
+  transaction.markForJoin();
+  transaction.join();
+  session.getFlushMode();
+  assertTrue(JtaStatusHelper.isActive(TestingJtaBootstrap.INSTANCE.getTransactionManager()));
+  assertTrue(transaction.isActive());
+  assertTrue(session.getTransactionCoordinator().isSynchronizationRegistered());
+  assertTrue(transaction.isParticipating());
+  ((Session)session).close();
+  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+}
