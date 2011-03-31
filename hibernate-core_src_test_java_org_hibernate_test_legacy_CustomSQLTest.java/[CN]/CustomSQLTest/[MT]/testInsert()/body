@@ -3,21 +3,21 @@
     SkipLog.reportSkip("hand sql expecting non-identity id gen","Custom SQL");
     return;
   }
+  Session s=openSession();
+  s.beginTransaction();
   Role p=new Role();
   p.setName("Patient");
-  Session s=openSession();
   s.save(p);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
-  sessionFactory().evict(Role.class);
+  sessionFactory().getCache().evictEntityRegion(Role.class);
   s=openSession();
-  Role p2=(Role)s.get(Role.class,new Long(p.getId()));
+  s.beginTransaction();
+  Role p2=(Role)s.get(Role.class,Long.valueOf(p.getId()));
   assertNotSame(p,p2);
   assertEquals(p2.getId(),p.getId());
   assertTrue(p2.getName().equalsIgnoreCase(p.getName()));
   s.delete(p2);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

@@ -1,12 +1,13 @@
 {
   Session session=openSession();
+  session.beginTransaction();
   Single s=new Single();
   s.setId("my id");
   s.setString("string 1");
   session.save(s);
-  session.flush();
-  session.connection().commit();
-  session.clear();
+  session.getTransaction().commit();
+  session=openSession();
+  session.beginTransaction();
   SQLQuery query=session.createSQLQuery("select {sing.*} from Single {sing}").addEntity("sing",Single.class);
   List list=query.list();
   assertTrue(list.size() == 1);
@@ -25,6 +26,6 @@
   query.setString(0,"my id");
   list=query.list();
   assertTrue(list.size() == 1);
-  session.connection().commit();
+  session.getTransaction().commit();
   session.close();
 }

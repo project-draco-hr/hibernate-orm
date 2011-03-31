@@ -1,5 +1,6 @@
 {
   Session s=openSession().getSession(EntityMode.MAP);
+  s.beginTransaction();
   Map map=new HashMap();
   map.put("$type$","TestMap");
   map.put("name","foo");
@@ -9,18 +10,19 @@
   cmp.put("b",new Float(1.0));
   map.put("cmp",cmp);
   s.save(map);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession().getSession(EntityMode.MAP);
+  s.beginTransaction();
   map=(Map)s.get("TestMap",(Serializable)map.get("id"));
   assertTrue(map != null && "foo".equals(map.get("name")));
   assertTrue(map.get("$type$").equals("TestMap"));
   int size=s.createCriteria("TestMap").add(Example.create(map)).list().size();
   assertTrue(size == 1);
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession().getSession(EntityMode.MAP);
+  s.beginTransaction();
   List list=s.createQuery("from TestMap").list();
   map=(Map)list.get(0);
   assertTrue("foo".equals(map.get("name")));
@@ -32,10 +34,10 @@
   map.put("parent",map);
   List bag=(List)map.get("children");
   bag.add(map);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   list=s.createQuery("from TestMap tm where tm.address = 'bar'").list();
   map=(Map)list.get(0);
   assertTrue("foobar".equals(map.get("name")));
@@ -46,7 +48,6 @@
   size=s.createCriteria("TestMap").add(Restrictions.eq("address","bar")).createCriteria("parent").add(Restrictions.eq("name","foobar")).list().size();
   assertTrue(size == 1);
   s.delete(map);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

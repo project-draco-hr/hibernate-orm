@@ -1,0 +1,26 @@
+{
+  super(factory);
+  this.rootSession=null;
+  this.timestamp=timestamp;
+  this.entityMode=entityMode;
+  this.interceptor=interceptor;
+  this.actionQueue=new ActionQueue(this);
+  this.persistenceContext=new StatefulPersistenceContext(this);
+  this.flushBeforeCompletionEnabled=flushBeforeCompletionEnabled;
+  this.autoCloseSessionEnabled=autoCloseSessionEnabled;
+  this.connectionReleaseMode=connectionReleaseMode;
+  this.autoJoinTransactions=autoJoinTransactions;
+  if (transactionCoordinator == null) {
+    this.transactionCoordinator=new TransactionCoordinatorImpl(connection,this);
+    this.transactionCoordinator.getJdbcCoordinator().getLogicalConnection().addObserver(new ConnectionObserverStatsBridge(factory));
+  }
+ else {
+    if (connection != null) {
+      throw new SessionException("Cannot simultaneously share transaction context and specify connection");
+    }
+    this.transactionCoordinator=transactionCoordinator;
+  }
+  loadQueryInfluencers=new LoadQueryInfluencers(factory);
+  if (factory.getStatistics().isStatisticsEnabled())   factory.getStatisticsImplementor().openSession();
+  LOG.debugf("Opened session at timestamp: %s",timestamp);
+}

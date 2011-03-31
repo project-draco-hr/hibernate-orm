@@ -1,5 +1,6 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   for (  Object entity : s.createQuery("from Assignable").list()) {
     s.delete(entity);
   }
@@ -15,16 +16,19 @@
   assn.setCategories(l);
   c.setAssignable(assn);
   s.save(assn);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   List list=s.createSQLQuery("select {category.*} from category {category}").addEntity("category",Category.class).list();
   list.get(0);
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
-  if (getDialect() instanceof MySQLDialect)   return;
+  if (getDialect() instanceof MySQLDialect) {
+    return;
+  }
   s=openSession();
+  s.beginTransaction();
   Query query=s.getNamedQuery("namedsql");
   assertNotNull(query);
   list=query.list();
@@ -34,6 +38,6 @@
   assertNotNull(values[1]);
   assertTrue("wrong type: " + values[0].getClass(),values[0] instanceof Category);
   assertTrue("wrong type: " + values[1].getClass(),values[1] instanceof Assignable);
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

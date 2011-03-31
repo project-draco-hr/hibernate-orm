@@ -1,7 +1,12 @@
 {
   Session session=openSession();
   if ((getDialect() instanceof MySQLDialect) || (getDialect() instanceof IngresDialect)) {
-    session.connection().setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+    session.doWork(new AbstractWork(){
+      @Override public void execute(      Connection connection) throws SQLException {
+        connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+      }
+    }
+);
   }
   session.getTransaction().begin();
   try {

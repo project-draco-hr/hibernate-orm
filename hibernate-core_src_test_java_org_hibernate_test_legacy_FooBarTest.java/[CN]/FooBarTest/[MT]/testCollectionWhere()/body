@@ -21,9 +21,14 @@
   assertTrue(s.createQuery("from Foo foo").list().size() == 2);
   assertTrue(s.createFilter(baz.getFooArray(),"").list().size() == 1);
   doDelete(s,"from Foo foo");
-  String bazid=baz.getCode();
+  final String bazid=baz.getCode();
   s.delete(baz);
-  int rows=s.connection().createStatement().executeUpdate("delete from FOO_ARRAY where id_='" + bazid + "' and i>=8");
+  int rows=s.doReturningWork(new AbstractReturningWork<Integer>(){
+    @Override public Integer execute(    Connection connection) throws SQLException {
+      return connection.createStatement().executeUpdate("delete from FOO_ARRAY where id_='" + bazid + "' and i>=8");
+    }
+  }
+);
   assertTrue(rows == 1);
   s.getTransaction().commit();
   s.close();

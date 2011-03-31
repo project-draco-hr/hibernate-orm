@@ -9,12 +9,13 @@
   p.setNationalID("110974XYZ???");
   p.setAddress("P. P. Street 8");
   Session s=openSession();
+  s.beginTransaction();
   s.save(p);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
-  sessionFactory().evict(Person.class);
+  sessionFactory().getCache().evictEntityRegion(Person.class);
   s=openSession();
+  s.beginTransaction();
   Person p2=(Person)s.get(Person.class,p.getId());
   assertNotSame(p,p2);
   assertEquals(p2.getId(),p.getId());
@@ -22,9 +23,10 @@
   s.flush();
   List list=s.createQuery("select p from Party as p").list();
   assertTrue(list.size() == 1);
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   list=s.createQuery("select p from Person as p where p.address = 'L???rkev???nget 1'").list();
   assertTrue(list.size() == 0);
   p.setAddress("L???rkev???nget 1");
@@ -36,6 +38,6 @@
   s.delete(p);
   list=s.createQuery("select p from Person as p").list();
   assertTrue(list.size() == 0);
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

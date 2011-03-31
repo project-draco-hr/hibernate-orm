@@ -1,5 +1,6 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Category c=new Category();
   c.setName(Category.ROOT_CATEGORY);
   Category c1=new Category();
@@ -10,11 +11,10 @@
   c2.getSubcategories().add(null);
   c2.getSubcategories().add(c3);
   s.save(c);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
-  Transaction tx=s.beginTransaction();
+  s.beginTransaction();
   s.lock(c,LockMode.UPGRADE);
   Category loaded=(Category)s.load(Category.class,new Long(c3.getId()));
   assertTrue(s.contains(c3));
@@ -22,19 +22,22 @@
   assertTrue(s.getCurrentLockMode(c3) == LockMode.NONE);
   assertTrue(s.getCurrentLockMode(c) == LockMode.UPGRADE);
   s.flush();
-  tx.commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   loaded=(Category)s.load(Category.class,new Long(c.getId()));
   assertFalse(Hibernate.isInitialized(loaded.getSubcategories()));
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   s.lock(loaded,LockMode.NONE);
   assertTrue(loaded.getSubcategories().size() == 2);
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   c=(Category)s.load(Category.class,new Long(c.getId()));
   System.out.println(c.getSubcategories());
   assertTrue(c.getSubcategories().get(0) != null && c.getSubcategories().get(1) != null);
@@ -42,7 +45,6 @@
   assertTrue(list.get(1) != null && list.get(0) == null);
   assertTrue(s.createQuery("from Category c where c.name = org.hibernate.test.legacy.Category.ROOT_CATEGORY").iterate().hasNext());
   s.delete(c);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

@@ -1,15 +1,16 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   for (  Object entity : s.createQuery("from Assignable").list()) {
     s.delete(entity);
   }
   for (  Object entity : s.createQuery("from Category").list()) {
     s.delete(entity);
   }
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   Category c=new Category();
   c.setName("Good");
   Assignable assn=new Assignable();
@@ -43,10 +44,10 @@
   assn=new Assignable();
   assn.setId("i.d.3");
   s.save(assn);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   Query basicParam=s.createSQLQuery("select {category.*} from category {category} where {category}.name = 'Best'").addEntity("category",Category.class);
   List list=basicParam.list();
   assertEquals(1,list.size());
@@ -60,6 +61,6 @@
   namedParam.setString("secondCat","Best");
   list=namedParam.list();
   assertEquals(2,list.size());
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

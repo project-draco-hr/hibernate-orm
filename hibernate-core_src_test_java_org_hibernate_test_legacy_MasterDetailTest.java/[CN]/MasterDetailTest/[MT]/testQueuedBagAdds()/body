@@ -1,5 +1,6 @@
 {
   Session s=openSession();
+  s.beginTransaction();
   Assignable a=new Assignable();
   a.setId("foo");
   a.setCategories(new ArrayList());
@@ -7,22 +8,22 @@
   c.setAssignable(a);
   a.getCategories().add(c);
   s.save(a);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
-  sessionFactory().evictCollection("org.hibernate.test.legacy.Assignable.categories");
+  sessionFactory().getCache().evictCollectionRegion("org.hibernate.test.legacy.Assignable.categories");
   s=openSession();
+  s.beginTransaction();
   a=(Assignable)s.get(Assignable.class,"foo");
   c=new Category();
   c.setAssignable(a);
   a.getCategories().add(c);
   assertFalse(Hibernate.isInitialized(a.getCategories()));
   assertTrue(a.getCategories().size() == 2);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
-  sessionFactory().evictCollection("org.hibernate.test.legacy.Assignable.categories");
+  sessionFactory().getCache().evictCollectionRegion("org.hibernate.test.legacy.Assignable.categories");
   s=openSession();
+  s.beginTransaction();
   a=(Assignable)s.get(Assignable.class,"foo");
   c=new Category();
   c.setAssignable(a);
@@ -31,14 +32,14 @@
   s.flush();
   assertFalse(Hibernate.isInitialized(a.getCategories()));
   assertTrue(a.getCategories().size() == 3);
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
-  sessionFactory().evictCollection("org.hibernate.test.legacy.Assignable.categories");
+  sessionFactory().getCache().evictCollectionRegion("org.hibernate.test.legacy.Assignable.categories");
   s=openSession();
+  s.beginTransaction();
   a=(Assignable)s.get(Assignable.class,"foo");
   assertTrue(a.getCategories().size() == 3);
   s.delete(a);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

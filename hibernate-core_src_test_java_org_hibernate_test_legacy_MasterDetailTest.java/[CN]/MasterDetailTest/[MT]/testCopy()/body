@@ -10,10 +10,10 @@
   cat.getSubcategories().add(subCatBar);
   cat.getSubcategories().add(subCatBaz);
   Session s=openSession();
+  s.beginTransaction();
   s.save(catWA);
   s.save(cat);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   cat.setName("new foo");
   subCatBar.setName("new bar");
@@ -25,9 +25,9 @@
   newSubCat.setName("new sub");
   newCat.getSubcategories().add(newSubCat);
   s=openSession();
+  s.beginTransaction();
   Category copiedCat=(Category)s.merge(cat);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   assertFalse(copiedCat == cat);
   assertTrue(cat.getSubcategories().contains(newCat));
@@ -39,10 +39,10 @@
   newSubCat.getSubcategories().add(cat);
   cat.setName("new new foo");
   s=openSession();
+  s.beginTransaction();
   s.delete(cat);
   s.delete(subCatBaz);
   s.delete(catWA);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

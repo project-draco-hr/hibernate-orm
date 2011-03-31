@@ -1,5 +1,6 @@
 {
   Session session=openSession();
+  session.beginTransaction();
   for (  Object entity : session.createQuery("from A").list()) {
     session.delete(entity);
   }
@@ -10,8 +11,10 @@
   session.save(savedB);
   session.flush();
   int count=session.createQuery("from A").list().size();
+  session.getTransaction().commit();
   session.close();
   session=openSession();
+  session.beginTransaction();
   Query query;
   if (getDialect() instanceof TimesTenDialect) {
     query=session.createSQLQuery("select identifier_column as {a.id}, clazz_discriminata as {a.class}, count_ as {a.count}, name as {a.name} from TA where {fn ucase(name)} like 'MAX'").addEntity("a",A.class);
@@ -22,6 +25,6 @@
   List list=query.list();
   assertNotNull(list);
   assertEquals(1,list.size());
-  session.connection().commit();
+  session.getTransaction().commit();
   session.close();
 }

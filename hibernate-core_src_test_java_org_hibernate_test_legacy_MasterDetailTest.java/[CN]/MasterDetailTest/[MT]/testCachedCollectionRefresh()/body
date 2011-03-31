@@ -4,52 +4,58 @@
     return;
   }
   Session s=openSession();
+  s.beginTransaction();
   Category c=new Category();
   List list=new ArrayList();
   c.setSubcategories(list);
   list.add(new Category());
   c.setName("root");
   Serializable id=s.save(c);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   c=(Category)s.load(Category.class,id);
   c.getSubcategories().size();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
   if ((getDialect() instanceof MySQLDialect)) {
-    s.connection().setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+    s.doWork(new AbstractWork(){
+      @Override public void execute(      Connection connection) throws SQLException {
+        connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+      }
+    }
+);
   }
+  s.beginTransaction();
   c=(Category)s.load(Category.class,id);
   c.getSubcategories().size();
   Session ss=openSession();
+  ss.beginTransaction();
   Category c2=(Category)ss.load(Category.class,id);
   ss.delete(c2.getSubcategories().get(0));
   c2.getSubcategories().clear();
-  ss.flush();
-  ss.connection().commit();
+  ss.getTransaction().commit();
   ss.close();
   s.refresh(c);
   assertTrue(c.getSubcategories().size() == 0);
   ss=openSession();
+  ss.beginTransaction();
   c2=(Category)ss.load(Category.class,id);
   c2.getSubcategories().add(new Category());
   c2.getSubcategories().add(new Category());
-  ss.flush();
-  ss.connection().commit();
+  ss.getTransaction().commit();
   ss.close();
   s.refresh(c);
   assertEquals(2,c.getSubcategories().size());
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
   s=openSession();
+  s.beginTransaction();
   c=(Category)s.load(Category.class,id);
   assertEquals(2,c.getSubcategories().size());
   s.delete(c);
-  s.flush();
-  s.connection().commit();
+  s.getTransaction().commit();
   s.close();
 }

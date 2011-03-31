@@ -1,5 +1,6 @@
 {
   Session session=openSession();
+  session.beginTransaction();
   for (  Object entity : session.createQuery("from Category").list()) {
     session.delete(entity);
   }
@@ -26,6 +27,6 @@
   query=session.createSQLQuery("select {category.*} from category {category} where {category}.name in :names").addEntity("category",Category.class);
   query.setParameterList("names",str);
   query.uniqueResult();
-  session.connection().commit();
+  session.getTransaction().commit();
   session.close();
 }

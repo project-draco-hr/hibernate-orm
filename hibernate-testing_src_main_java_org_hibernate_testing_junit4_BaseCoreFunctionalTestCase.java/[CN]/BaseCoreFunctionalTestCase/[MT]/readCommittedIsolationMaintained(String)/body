@@ -3,7 +3,12 @@
   Session testSession=null;
   try {
     testSession=openSession();
-    isolation=testSession.connection().getTransactionIsolation();
+    isolation=testSession.doReturningWork(new AbstractReturningWork<Integer>(){
+      @Override public Integer execute(      Connection connection) throws SQLException {
+        return connection.getTransactionIsolation();
+      }
+    }
+);
   }
  catch (  Throwable ignore) {
   }

@@ -19,7 +19,7 @@
   s.close();
   s=openSession();
   txn=s.beginTransaction();
-  assertTrue(((Long)s.createQuery("select count(*) from Bar").iterate().next()).longValue() == 1);
+  assertEquals(1L,((Long)s.createQuery("select count(*) from Bar").iterate().next()).longValue());
   baz=(Baz)((Object[])s.createQuery("select baz, baz from Baz baz").list().get(0))[1];
   assertTrue(baz.getCascadingBars().size() == 1);
   Foo foo=new Foo();
@@ -49,7 +49,7 @@
   s.close();
   s=openSession();
   txn=s.beginTransaction();
-  assertTrue(((Long)s.createQuery("select count(*) from Bar").iterate().next()).longValue() == 1);
+  assertEquals(1,((Long)s.createQuery("select count(*) from Bar").iterate().next()).longValue());
   baz=(Baz)s.createQuery("select baz from Baz baz order by baz").list().get(0);
   assertTrue("collection of custom types - added element",baz.getCustoms().size() == 4 && baz.getCustoms().get(0) != null);
   assertTrue("component of component in collection",baz.getComponents()[1].getSubcomponent() != null);
@@ -78,7 +78,7 @@
   s.close();
   s=openSession();
   txn=s.beginTransaction();
-  assertTrue(((Long)s.createQuery("select count(*) from Bar").iterate().next()).longValue() == 1);
+  assertEquals(1,((Long)s.createQuery("select count(*) from Bar").iterate().next()).longValue());
   baz=(Baz)s.load(Baz.class,baz.getCode());
   assertTrue(baz.getCascadingBars().size() == 1);
   Bar bar=new Bar();
@@ -112,7 +112,7 @@
   assertTrue(baz.getCascadingBars().size() == 1);
   Session s2=openSession();
   Transaction txn2=s2.beginTransaction();
-  assertTrue(((Long)s2.createQuery("select count(*) from Bar").iterate().next()).longValue() == 3);
+  assertEquals(3,((Long)s2.createQuery("select count(*) from Bar").iterate().next()).longValue());
   Baz baz2=(Baz)s2.createQuery("select baz from Baz baz order by baz").list().get(0);
   Object o=baz2.getFooComponentToFoo().get(new FooComponent("name",123,null,null));
   assertTrue(o == baz2.getFooComponentToFoo().get(new FooComponent("nameName",12,null,null)) && o != null);
@@ -147,7 +147,7 @@
   s.close();
   s=openSession();
   txn=s.beginTransaction();
-  assertTrue(((Long)s.createQuery("select count(*) from Bar").iterate().next()).longValue() == 3);
+  assertEquals(3,((Long)s.createQuery("select count(*) from Bar").iterate().next()).longValue());
   baz=(Baz)s.createQuery("select baz from Baz baz order by baz").list().get(0);
   assertTrue(baz.getTopGlarchez().size() == 2);
   assertTrue(baz.getCascadingBars().size() == 1);
@@ -156,11 +156,17 @@
   s.close();
   txn2=s2.beginTransaction();
   baz=(Baz)s2.load(Baz.class,baz.getCode());
-  assertTrue(((Long)s2.createQuery("select count(*) from Bar").iterate().next()).longValue() == 3);
+  assertEquals(3,((Long)s2.createQuery("select count(*) from Bar").iterate().next()).longValue());
   s2.delete(baz);
-  s2.delete(baz.getTopGlarchez().get(new Character('G')));
-  s2.delete(baz.getTopGlarchez().get(new Character('H')));
-  int rows=s2.connection().createStatement().executeUpdate("update " + getDialect().openQuote() + "glarchez"+ getDialect().closeQuote()+ " set baz_map_id=null where baz_map_index='a'");
+  s2.delete(baz.getTopGlarchez().get(Character.valueOf('G')));
+  s2.delete(baz.getTopGlarchez().get(Character.valueOf('H')));
+  int rows=s2.doReturningWork(new AbstractReturningWork<Integer>(){
+    @Override public Integer execute(    Connection connection) throws SQLException {
+      final String sql="update " + getDialect().openQuote() + "glarchez"+ getDialect().closeQuote()+ " set baz_map_id=null where baz_map_index='a'";
+      return connection.createStatement().executeUpdate(sql);
+    }
+  }
+);
   assertTrue(rows == 1);
   assertEquals(2,doDelete(s2,"from Bar bar"));
   FooProxy[] arr=baz.getFooArray();
