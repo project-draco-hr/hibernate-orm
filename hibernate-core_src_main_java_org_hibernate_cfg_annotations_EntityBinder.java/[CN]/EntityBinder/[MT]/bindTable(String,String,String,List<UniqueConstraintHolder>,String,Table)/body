@@ -2,7 +2,10 @@
   EntityTableObjectNameSource tableNameContext=new EntityTableObjectNameSource(tableName,name);
   EntityTableNamingStrategyHelper namingStrategyHelper=new EntityTableNamingStrategyHelper(name);
   final Table table=TableBinder.buildAndFillTable(schema,catalog,tableNameContext,namingStrategyHelper,persistentClass.isAbstract(),uniqueConstraints,constraints,denormalizedSuperclassTable,mappings,this.subselect);
-  table.setRowId(rowId);
+  final RowId rowId=annotatedClass.getAnnotation(RowId.class);
+  if (rowId != null) {
+    table.setRowId(rowId.value());
+  }
   if (persistentClass instanceof TableOwner) {
     LOG.bindEntityOnTable(persistentClass.getEntityName(),table.getName());
     ((TableOwner)persistentClass).setTable(table);
