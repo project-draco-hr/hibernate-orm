@@ -14,6 +14,16 @@
     return new PostgreSQLDialect();
   }
   if ("Apache Derby".equals(databaseName)) {
+    int driverVersionMajor=metaData.getDriverMajorVersion();
+    int driverVersionMinor=metaData.getDriverMinorVersion();
+    if (driverVersionMajor > 10 || (driverVersionMajor == 10 && driverVersionMinor >= 5)) {
+      if (driverVersionMinor >= 6) {
+        return new DerbyTenSixDialect();
+      }
+ else {
+        return new DerbyTenFiveDialect();
+      }
+    }
     return new DerbyDialect();
   }
   if ("ingres".equalsIgnoreCase(databaseName)) {
