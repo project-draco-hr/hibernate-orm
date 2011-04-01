@@ -1,0 +1,39 @@
+{
+  Map<ClassInfo,List<ClassInfo>> processedClassInfos=new HashMap<ClassInfo,List<ClassInfo>>();
+  for (  ClassInfo info : index.getKnownClasses()) {
+    if (processedClassInfos.containsKey(info)) {
+      continue;
+    }
+    List<ClassInfo> configuredClassList=new ArrayList<ClassInfo>();
+    ClassInfo tmpClassInfo=info;
+    Class<?> clazz=classForName(tmpClassInfo);
+    while (clazz != null && !clazz.equals(Object.class)) {
+      tmpClassInfo=index.getClassByName(DotName.createSimple(clazz.getName()));
+      clazz=clazz.getSuperclass();
+      if (tmpClassInfo == null) {
+        continue;
+      }
+      if (existsHierarchyWithClassInfoAsLeaf(processedClassInfos,tmpClassInfo)) {
+        List<ClassInfo> classInfoList=processedClassInfos.get(tmpClassInfo);
+        for (        ClassInfo tmpInfo : configuredClassList) {
+          classInfoList.add(tmpInfo);
+          processedClassInfos.put(tmpInfo,classInfoList);
+        }
+        break;
+      }
+ else {
+        configuredClassList.add(0,tmpClassInfo);
+        processedClassInfos.put(tmpClassInfo,configuredClassList);
+      }
+    }
+  }
+  Set<ConfiguredClassHierarchy> hierarchies=new HashSet<ConfiguredClassHierarchy>();
+  List<List<ClassInfo>> processedList=new ArrayList<List<ClassInfo>>();
+  for (  List<ClassInfo> classInfoList : processedClassInfos.values()) {
+    if (!processedList.contains(classInfoList)) {
+      hierarchies.add(new ConfiguredClassHierarchy(classInfoList));
+      processedList.add(classInfoList);
+    }
+  }
+  return hierarchies;
+}
