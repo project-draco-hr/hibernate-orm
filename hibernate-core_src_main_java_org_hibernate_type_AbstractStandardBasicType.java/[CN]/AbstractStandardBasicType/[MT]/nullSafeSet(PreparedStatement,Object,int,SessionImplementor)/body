@@ -6,8 +6,9 @@
     public LobCreator getLobCreator(){
       return Hibernate.getLobCreator(session);
     }
-    public SqlTypeDescriptor resolveSqlTypeDescriptor(    SqlTypeDescriptor sqlTypeDescriptor){
-      return session.getFactory().getTypeResolver().resolveSqlTypeDescriptor(sqlTypeDescriptor);
+    public SqlTypeDescriptor remapSqlTypeDescriptor(    SqlTypeDescriptor sqlTypeDescriptor){
+      final SqlTypeDescriptor remapped=sqlTypeDescriptor.canBeRemapped() ? session.getFactory().getDialect().remapSqlTypeDescriptor(sqlTypeDescriptor) : sqlTypeDescriptor;
+      return remapped == null ? sqlTypeDescriptor : remapped;
     }
   }
 ;

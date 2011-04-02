@@ -1,15 +1,6 @@
 {
   assertNotSame(VarcharTypeDescriptor.INSTANCE,StoredPrefixedStringType.INSTANCE.getSqlTypeDescriptor());
-  if (H2DialectOverridePrefixedVarcharSqlTypeDesc.class.isInstance(getDialect())) {
-    assertSame(VarcharTypeDescriptor.INSTANCE,getResolvedSqlTypeDescriptor(StoredPrefixedStringType.INSTANCE.getSqlTypeDescriptor()));
-  }
- else {
-    assertSame(StoredPrefixedStringType.INSTANCE.getSqlTypeDescriptor(),getResolvedSqlTypeDescriptor(StoredPrefixedStringType.INSTANCE.getSqlTypeDescriptor()));
-  }
-  if (H2DialectOverrideVarcharSqlCode.class.isInstance(getDialect())) {
-    assertSame(StoredPrefixedStringType.INSTANCE.getSqlTypeDescriptor(),getResolvedSqlTypeDescriptor(VarcharTypeDescriptor.INSTANCE));
-  }
- else {
-    assertSame(VarcharTypeDescriptor.INSTANCE,getResolvedSqlTypeDescriptor(VarcharTypeDescriptor.INSTANCE));
-  }
+  final Dialect dialect=new H2DialectOverridePrefixedVarcharSqlTypeDesc();
+  final SqlTypeDescriptor remapped=remapSqlTypeDescriptor(dialect,StoredPrefixedStringType.PREFIXED_VARCHAR_TYPE_DESCRIPTOR);
+  assertSame(VarcharTypeDescriptor.INSTANCE,remapped);
 }

@@ -14,17 +14,6 @@
   s.close();
   s=openSession();
   s.getTransaction().begin();
-  String trimmedName=(String)s.createQuery("select trim( TRAILING from e.name ) from Entity e").uniqueResult();
-  assertNotSame(VarcharTypeDescriptor.INSTANCE,StoredPrefixedStringType.INSTANCE.getSqlTypeDescriptor());
-  if (getDialect().resolveSqlTypeDescriptor(VarcharTypeDescriptor.INSTANCE) == StoredPrefixedStringType.INSTANCE.getSqlTypeDescriptor() || getDialect().resolveSqlTypeDescriptor(StoredPrefixedStringType.INSTANCE.getSqlTypeDescriptor()) == VarcharTypeDescriptor.INSTANCE) {
-    assertFalse(trimmedName.startsWith(StoredPrefixedStringType.PREFIX));
-    assertEquals("name",trimmedName);
-  }
- else {
-    assertSame(VarcharTypeDescriptor.INSTANCE,((SessionFactoryImplementor)sessionFactory()).getTypeResolver().resolveSqlTypeDescriptor(VarcharTypeDescriptor.INSTANCE));
-    assertTrue(trimmedName.startsWith(StoredPrefixedStringType.PREFIX));
-    assertEquals(StoredPrefixedStringType.PREFIX + "name",trimmedName);
-  }
   s.delete(e);
   s.getTransaction().commit();
   s.close();
