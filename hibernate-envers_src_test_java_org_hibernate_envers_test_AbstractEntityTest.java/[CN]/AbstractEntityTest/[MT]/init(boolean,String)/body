@@ -1,16 +1,20 @@
 {
   this.audited=audited;
   cfg=new Ejb3Configuration();
+  Properties configValues=cfg.getProperties();
   if (!audited) {
-    cfg.setProperty(EnversIntegrator.AUTO_REGISTER,"false");
+    configValues.setProperty(EnversIntegrator.AUTO_REGISTER,"false");
   }
-  cfg.configure("hibernate.test.cfg.xml");
+  configValues.setProperty(Environment.HBM2DDL_AUTO,"create-drop");
+  configValues.setProperty(Environment.DIALECT,"org.hibernate.dialect.H2Dialect");
+  configValues.setProperty(Environment.DRIVER,"org.h2.Driver");
+  configValues.setProperty(Environment.USER,"sa");
+  configValues.setProperty(Environment.URL,"jdbc:h2:mem:" + this.getClass().getName());
   if (auditStrategy != null && !"".equals(auditStrategy)) {
     cfg.setProperty("org.hibernate.envers.audit_strategy",auditStrategy);
   }
-  cfg.setProperty(Environment.URL,"jdbc:h2:mem:" + this.getClass().getName());
   configure(cfg);
-  serviceRegistry=new BasicServiceRegistryImpl(cfg.getProperties());
+  serviceRegistry=new BasicServiceRegistryImpl(configValues);
   emf=cfg.buildEntityManagerFactory(serviceRegistry);
   newEntityManager();
 }
