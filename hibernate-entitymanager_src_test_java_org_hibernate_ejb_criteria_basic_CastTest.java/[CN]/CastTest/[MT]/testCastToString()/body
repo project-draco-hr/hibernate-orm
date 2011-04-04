@@ -1,0 +1,11 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  CriteriaQuery<Product> criteria=builder.createQuery(Product.class);
+  Root<Product> root=criteria.from(Product.class);
+  criteria.where(builder.equal(root.get(Product_.quantity).as(String.class),builder.literal(String.valueOf(QUANTITY))));
+  List<Product> result=em.createQuery(criteria).getResultList();
+  Assert.assertEquals(1,result.size());
+  em.getTransaction().commit();
+  em.close();
+}
