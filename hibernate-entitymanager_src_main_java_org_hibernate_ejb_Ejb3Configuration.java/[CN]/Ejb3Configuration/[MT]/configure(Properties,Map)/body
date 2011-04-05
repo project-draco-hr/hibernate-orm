@@ -40,6 +40,13 @@
   if (observer != null) {
     cfg.setSessionFactoryObserver(observer);
   }
+  final IdentifierGeneratorStrategyProvider strategyProvider=instantiateCustomClassFromConfiguration(preparedProperties,null,null,AvailableSettings.IDENTIFIER_GENERATOR_STRATEGY_PROVIDER,"Identifier generator strategy provider",IdentifierGeneratorStrategyProvider.class);
+  if (strategyProvider != null) {
+    final MutableIdentifierGeneratorFactory identifierGeneratorFactory=cfg.getIdentifierGeneratorFactory();
+    for (    Map.Entry<String,Class<?>> entry : strategyProvider.getStrategies().entrySet()) {
+      identifierGeneratorFactory.register(entry.getKey(),entry.getValue());
+    }
+  }
   if (jaccKeys.size() > 0) {
     addSecurity(jaccKeys,preparedProperties,workingVars);
   }
