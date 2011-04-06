@@ -1,0 +1,16 @@
+{
+  Ejb3Configuration conf=new Ejb3Configuration();
+  conf.setProperty(AvailableSettings.IDENTIFIER_GENERATOR_STRATEGY_PROVIDER,FunkyIdentifierGeneratorProvider.class.getName());
+  conf.addAnnotatedClass(Cable.class);
+  final EntityManagerFactory entityManagerFactory=conf.buildEntityManagerFactory();
+  final EntityManager entityManager=entityManagerFactory.createEntityManager();
+  try {
+    entityManager.persist(new Cable());
+    entityManager.flush();
+    fail("FunkyException should have been thrown when the id is generated");
+  }
+ catch (  FunkyException e) {
+    entityManager.close();
+    entityManagerFactory.close();
+  }
+}
