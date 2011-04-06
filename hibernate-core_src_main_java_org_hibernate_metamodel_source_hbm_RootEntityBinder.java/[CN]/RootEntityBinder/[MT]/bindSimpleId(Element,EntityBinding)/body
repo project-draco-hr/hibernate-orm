@@ -2,13 +2,10 @@
   final String explicitName=identifierElement.attributeValue("name");
   final String attributeName=explicitName == null ? RootClass.DEFAULT_IDENTIFIER_COLUMN_NAME : explicitName;
   entityBinding.getEntity().getOrCreateSingularAttribute(attributeName);
-  SimpleAttributeBinding idBinding=entityBinding.makeSimpleAttributeBinding(attributeName);
+  SimpleAttributeBinding idBinding=entityBinding.makeSimplePrimaryKeyAttributeBinding(attributeName);
   bindSimpleAttribute(identifierElement,idBinding,entityBinding,attributeName);
-  Value idValue=processValues(identifierElement,entityBinding.getBaseTable(),attributeName);
-  idBinding.setValue(idValue);
-  entityBinding.getEntityIdentifier().setValueBinding(idBinding);
-  if (idValue instanceof Tuple) {
+  if (!Column.class.isInstance(idBinding.getValue())) {
     throw new MappingException("Unanticipated situation");
   }
-  entityBinding.getBaseTable().getPrimaryKey().addColumn((Column)idValue);
+  entityBinding.getBaseTable().getPrimaryKey().addColumn(Column.class.cast(idBinding.getValue()));
 }

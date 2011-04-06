@@ -12,7 +12,7 @@
     throw new MappingException("Mising property name for version/timestamp mapping [" + entityBinding.getEntity().getName() + "]");
   }
   entityBinding.getEntity().getOrCreateSingularAttribute(explicitName);
-  SimpleAttributeBinding versionBinding=entityBinding.makeSimpleAttributeBinding(explicitName);
+  SimpleAttributeBinding versionBinding=entityBinding.makeVersionBinding(explicitName);
   bindSimpleAttribute(versioningElement,versionBinding,entityBinding,explicitName);
   if (versionBinding.getHibernateTypeDescriptor().getTypeName() == null) {
     if (isVersion) {
@@ -28,10 +28,7 @@
       }
     }
   }
-  Value discriminatorValue=processValues(versioningElement,entityBinding.getBaseTable(),explicitName);
-  versionBinding.setValue(discriminatorValue);
   if (versionBinding.getGeneration() == PropertyGeneration.INSERT) {
     throw new MappingException("'generated' attribute cannot be 'insert' for versioning property");
   }
-  entityBinding.setVersioningValueBinding(versionBinding);
 }

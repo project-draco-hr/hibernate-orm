@@ -1,0 +1,15 @@
+{
+  if (state.getSingleValueRelationalStates().size() == 0) {
+    throw new MappingException("Tuple state does not contain any values.");
+  }
+  if (state.getSingleValueRelationalStates().size() == 1) {
+    setValue(createSingleValue(state.getSingleValueRelationalStates().iterator().next()));
+  }
+ else {
+    Tuple tuple=getEntityBinding().getBaseTable().createTuple("[" + getAttribute().getName() + "]");
+    for (    SingleValueRelationalState singleValueState : state.getSingleValueRelationalStates()) {
+      tuple.addValue(createSingleValue(singleValueState));
+    }
+    setValue(tuple);
+  }
+}
