@@ -5,13 +5,13 @@
   final RowSelection selection=queryParameters.getRowSelection();
   boolean useLimit=useLimit(selection,dialect);
   boolean hasFirstRow=getFirstRow(selection) > 0;
-  boolean useOffset=hasFirstRow && useLimit && dialect.supportsLimitOffset();
+  boolean useLimitOffset=hasFirstRow && useLimit && dialect.supportsLimitOffset();
   boolean callable=queryParameters.isCallable();
   final boolean canScroll=getFactory().getSettings().isScrollableResultSetsEnabled();
-  final boolean useScrollableResultSetToSkip=hasFirstRow && !useOffset && getFactory().getSettings().isScrollableResultSetsEnabled();
-  final ScrollMode scrollMode=canScroll ? scroll || useScrollableResultSetToSkip ? queryParameters.getScrollMode() : ScrollMode.SCROLL_INSENSITIVE : null;
+  final boolean useScrollableResultSetToSkip=hasFirstRow && !useLimitOffset && canScroll;
+  ScrollMode scrollMode=getScrollMode(scroll,queryParameters,hasFirstRow,useLimit);
   if (useLimit) {
-    sql=dialect.getLimitString(sql.trim(),useOffset ? getFirstRow(selection) : 0,getMaxOrLimit(selection,dialect));
+    sql=dialect.getLimitString(sql.trim(),useLimitOffset ? getFirstRow(selection) : 0,getMaxOrLimit(selection,dialect));
   }
   sql=preprocessSQL(sql,queryParameters,dialect);
   PreparedStatement st=null;
