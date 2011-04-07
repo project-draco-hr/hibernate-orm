@@ -14,7 +14,16 @@
     return new PostgreSQLDialect();
   }
   if ("Apache Derby".equals(databaseName)) {
-    return new DerbyDialect();
+    final int databaseMinorVersion=metaData.getDatabaseMinorVersion();
+    if (databaseMajorVersion > 10 || (databaseMajorVersion == 10 && databaseMinorVersion >= 6)) {
+      return new DerbyTenSixDialect();
+    }
+ else     if (databaseMajorVersion == 10 && databaseMinorVersion == 5) {
+      return new DerbyTenFiveDialect();
+    }
+ else {
+      return new DerbyDialect();
+    }
   }
   if ("ingres".equalsIgnoreCase(databaseName)) {
 switch (databaseMajorVersion) {
