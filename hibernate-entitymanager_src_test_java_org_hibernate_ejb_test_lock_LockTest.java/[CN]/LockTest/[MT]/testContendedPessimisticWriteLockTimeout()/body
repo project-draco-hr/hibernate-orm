@@ -2,7 +2,7 @@
   EntityManager em=getOrCreateEntityManager();
   final EntityManager em2=createIsolatedEntityManager();
   if (!(getDialect() instanceof Oracle10gDialect)) {
-    LOG.info("skipping testContendedPessimisticWriteLockTimeout");
+    log.info("skipping testContendedPessimisticWriteLockTimeout");
     return;
   }
   Lock lock=new Lock();
@@ -20,27 +20,27 @@
     em.lock(lock,LockModeType.PESSIMISTIC_WRITE);
     final Integer id=lock.getId();
     lock.getName();
-    LOG.info("testContendedPessimisticWriteLockTimeout: got write lock");
+    log.info("testContendedPessimisticWriteLockTimeout: got write lock");
     bgTask=new FutureTask<Boolean>(new Callable(){
       public Boolean call(){
         try {
           boolean timedOut=false;
           em2.getTransaction().begin();
-          LOG.info("testContendedPessimisticWriteLockTimeout: (BG) about to read write-locked entity");
+          log.info("testContendedPessimisticWriteLockTimeout: (BG) about to read write-locked entity");
           Lock lock2=em2.getReference(Lock.class,id);
           lock2.getName();
-          LOG.info("testContendedPessimisticWriteLockTimeout: (BG) read write-locked entity");
+          log.info("testContendedPessimisticWriteLockTimeout: (BG) read write-locked entity");
           Map<String,Object> props=new HashMap<String,Object>();
           props.put("javax.persistence.lock.timeout",new Integer(1000));
           try {
             em2.lock(lock2,LockModeType.PESSIMISTIC_WRITE,props);
           }
  catch (          LockTimeoutException e) {
-            LOG.info("testContendedPessimisticWriteLockTimeout: (BG) got expected timeout exception");
+            log.info("testContendedPessimisticWriteLockTimeout: (BG) got expected timeout exception");
             timedOut=true;
           }
 catch (          Throwable e) {
-            LOG.info("Expected LockTimeoutException but got unexpected exception",e);
+            log.info("Expected LockTimeoutException but got unexpected exception",e);
           }
           em2.getTransaction().commit();
           return new Boolean(timedOut);

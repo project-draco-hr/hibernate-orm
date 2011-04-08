@@ -12,19 +12,19 @@
       try {
         long txTimestamp=System.currentTimeMillis();
         BatchModeTransactionManager.getInstance().begin();
-        LOG.debug("Transaction began, get initial value");
+        log.debug("Transaction began, get initial value");
         assertEquals("Correct initial value",VALUE1,localAccessStrategy.get(KEY,txTimestamp));
-        LOG.debug("Now update value");
+        log.debug("Now update value");
         localAccessStrategy.update(KEY,VALUE2,new Integer(2),new Integer(1));
-        LOG.debug("Notify the read latch");
+        log.debug("Notify the read latch");
         readLatch.countDown();
         readerUnlocked=true;
-        LOG.debug("Await commit");
+        log.debug("Await commit");
         commitLatch.await();
         BatchModeTransactionManager.getInstance().commit();
       }
  catch (      Exception e) {
-        LOG.error("node1 caught exception",e);
+        log.error("node1 caught exception",e);
         node1Exception=e;
         rollback();
       }
@@ -36,7 +36,7 @@ catch (      AssertionFailedError e) {
         if (!readerUnlocked) {
           readLatch.countDown();
         }
-        LOG.debug("Completion latch countdown");
+        log.debug("Completion latch countdown");
         completionLatch.countDown();
       }
     }
@@ -47,15 +47,15 @@ catch (      AssertionFailedError e) {
       try {
         long txTimestamp=System.currentTimeMillis();
         BatchModeTransactionManager.getInstance().begin();
-        LOG.debug("Transaction began, await read latch");
+        log.debug("Transaction began, await read latch");
         readLatch.await();
-        LOG.debug("Read latch acquired, verify local access strategy");
+        log.debug("Read latch acquired, verify local access strategy");
         Object expected=VALUE1;
         assertEquals("Correct value",expected,localAccessStrategy.get(KEY,txTimestamp));
         BatchModeTransactionManager.getInstance().commit();
       }
  catch (      Exception e) {
-        LOG.error("node1 caught exception",e);
+        log.error("node1 caught exception",e);
         node1Exception=e;
         rollback();
       }
@@ -65,7 +65,7 @@ catch (      AssertionFailedError e) {
       }
  finally {
         commitLatch.countDown();
-        LOG.debug("Completion latch countdown");
+        log.debug("Completion latch countdown");
         completionLatch.countDown();
       }
     }
