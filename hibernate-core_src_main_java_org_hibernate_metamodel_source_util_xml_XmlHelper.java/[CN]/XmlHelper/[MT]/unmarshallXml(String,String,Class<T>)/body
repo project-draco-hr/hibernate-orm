@@ -1,0 +1,11 @@
+{
+  Schema schema=getMappingSchema(schemaName);
+  InputStream in=getInputStreamForPath(fileName);
+  JAXBContext jc=JAXBContext.newInstance(clazz);
+  Unmarshaller unmarshaller=jc.createUnmarshaller();
+  unmarshaller.setSchema(schema);
+  StreamSource stream=new StreamSource(in);
+  JAXBElement<T> elem=unmarshaller.unmarshal(stream,clazz);
+  Origin origin=new OriginImpl("",fileName);
+  return new JaxbRootImpl<T>(elem.getValue(),origin);
+}

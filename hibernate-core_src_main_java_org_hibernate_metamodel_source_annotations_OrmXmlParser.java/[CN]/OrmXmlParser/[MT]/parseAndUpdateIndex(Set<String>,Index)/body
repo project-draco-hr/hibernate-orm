@@ -1,22 +1,19 @@
 {
   Set<InputStream> mappingStreams=new HashSet<InputStream>();
   for (  String fileName : mappingFileNames) {
-    Schema schema=getMappingSchema(ORM2_MAPPING_XSD);
-    InputStream in=getInputStreamForPath(fileName);
     EntityMappings entityMappings;
     try {
-      entityMappings=unmarshallXml(in,schema);
+      entityMappings=XmlHelper.unmarshallXml(fileName,ORM2_MAPPING_XSD,EntityMappings.class).getRoot();
     }
  catch (    JAXBException orm2Exception) {
       try {
-        schema=getMappingSchema(ORM1_MAPPING_XSD);
-        in=getInputStreamForPath(fileName);
-        entityMappings=unmarshallXml(in,schema);
+        entityMappings=XmlHelper.unmarshallXml(fileName,ORM1_MAPPING_XSD,EntityMappings.class).getRoot();
       }
  catch (      JAXBException orm1Exception) {
         throw new AnnotationException("Unable to parse xml configuration.",orm1Exception);
       }
     }
+    entityMappings.toString();
   }
   return null;
 }
