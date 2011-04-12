@@ -9,13 +9,13 @@
   if (regionFactoryClassName == null) {
     regionFactoryClassName=DEF_CACHE_REG_FACTORY;
   }
-  LOG.cacheRegionFactory(regionFactoryClassName);
+  LOG.debugf("Cache region factory : %s",regionFactoryClassName);
   try {
     try {
       return (RegionFactory)ReflectHelper.classForName(regionFactoryClassName).getConstructor(Properties.class).newInstance(properties);
     }
- catch (    NoSuchMethodException nsme) {
-      LOG.constructorWithPropertiesNotFound(regionFactoryClassName);
+ catch (    NoSuchMethodException e) {
+      LOG.debugf("%s did not provide constructor accepting java.util.Properties; attempting no-arg constructor.",regionFactoryClassName);
       return (RegionFactory)ReflectHelper.classForName(regionFactoryClassName).newInstance();
     }
   }
