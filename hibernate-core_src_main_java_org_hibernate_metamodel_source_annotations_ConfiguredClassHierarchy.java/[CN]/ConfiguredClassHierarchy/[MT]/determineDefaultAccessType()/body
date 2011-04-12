@@ -1,3 +1,36 @@
 {
-  return null;
+  Iterator<ConfiguredClass> iter=iterator();
+  AccessType accessType=null;
+  while (iter.hasNext()) {
+    ConfiguredClass configuredClass=iter.next();
+    ClassInfo info=configuredClass.getClassInfo();
+    List<AnnotationInstance> idAnnotations=info.annotations().get(JPADotNames.ID);
+    if (idAnnotations == null || idAnnotations.size() == 0) {
+      continue;
+    }
+    for (    AnnotationInstance annotation : idAnnotations) {
+      AccessType tmpAccessType;
+      if (annotation.target() instanceof FieldInfo) {
+        tmpAccessType=AccessType.FIELD;
+      }
+ else       if (annotation.target() instanceof MethodInfo) {
+        tmpAccessType=AccessType.PROPERTY;
+      }
+ else {
+        throw new AnnotationException("Invalid placement of @Id annotation");
+      }
+      if (accessType == null) {
+        accessType=tmpAccessType;
+      }
+ else {
+        if (!accessType.equals(tmpAccessType)) {
+          throw new AnnotationException("Inconsistent placement of @Id annotation within hierarchy " + hierarchyListString());
+        }
+      }
+    }
+  }
+  if (accessType == null) {
+    return throwIdNotFoundAnnotationException();
+  }
+  return accessType;
 }
