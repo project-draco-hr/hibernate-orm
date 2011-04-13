@@ -1,3 +1,28 @@
 {
-  return null;
+  Iterator<ConfiguredClass> iter=iterator();
+  InheritanceType inheritanceType=null;
+  while (iter.hasNext()) {
+    ConfiguredClass configuredClass=iter.next();
+    ClassInfo info=configuredClass.getClassInfo();
+    AnnotationInstance inheritanceAnnotation=JandexHelper.getSingleAnnotation(info,JPADotNames.INHERITANCE);
+    if (inheritanceAnnotation == null) {
+      continue;
+    }
+    InheritanceType tmpInheritanceType=Enum.valueOf(InheritanceType.class,inheritanceAnnotation.value("strategy").asEnum());
+    if (tmpInheritanceType == null) {
+      inheritanceType=InheritanceType.SINGLE_TABLE;
+    }
+    if (inheritanceType == null) {
+      inheritanceType=tmpInheritanceType;
+    }
+ else {
+      if (!inheritanceType.equals(tmpInheritanceType)) {
+        throw new AnnotationException("Multiple incompatible instances of @Inheritance specified within hierarchy " + hierarchyListString());
+      }
+    }
+  }
+  if (inheritanceType == null) {
+    inheritanceType=InheritanceType.SINGLE_TABLE;
+  }
+  return inheritanceType;
 }

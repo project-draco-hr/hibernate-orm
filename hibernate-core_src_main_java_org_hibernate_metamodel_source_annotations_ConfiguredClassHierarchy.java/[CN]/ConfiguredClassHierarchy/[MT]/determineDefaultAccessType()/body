@@ -8,26 +8,7 @@
     if (idAnnotations == null || idAnnotations.size() == 0) {
       continue;
     }
-    for (    AnnotationInstance annotation : idAnnotations) {
-      AccessType tmpAccessType;
-      if (annotation.target() instanceof FieldInfo) {
-        tmpAccessType=AccessType.FIELD;
-      }
- else       if (annotation.target() instanceof MethodInfo) {
-        tmpAccessType=AccessType.PROPERTY;
-      }
- else {
-        throw new AnnotationException("Invalid placement of @Id annotation");
-      }
-      if (accessType == null) {
-        accessType=tmpAccessType;
-      }
- else {
-        if (!accessType.equals(tmpAccessType)) {
-          throw new AnnotationException("Inconsistent placement of @Id annotation within hierarchy " + hierarchyListString());
-        }
-      }
-    }
+    accessType=processIdAnnotations(idAnnotations);
   }
   if (accessType == null) {
     return throwIdNotFoundAnnotationException();
