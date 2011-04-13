@@ -1,0 +1,36 @@
+{
+  Element rootElement=document.getDocumentElement();
+  if (rootElement == null) {
+    throw new MappingException("No root element found",origin);
+  }
+  final Schema validationSchema;
+  final Class jaxbTarget;
+  if ("entity-mappings".equals(rootElement.getLocalName())) {
+    final String explicitVersion=rootElement.getAttribute("version");
+    validationSchema=resolveSupportedOrmXsd(explicitVersion);
+    jaxbTarget=EntityMappings.class;
+  }
+ else {
+    validationSchema=hbmSchema();
+    jaxbTarget=HibernateMapping.class;
+  }
+  try {
+    validationSchema.newValidator().validate(new DOMSource(rootElement.getOwnerDocument()));
+  }
+ catch (  SAXException e) {
+    throw new MappingException("Validation problem",e,origin);
+  }
+catch (  IOException e) {
+    throw new MappingException("Validation problem",e,origin);
+  }
+  final Object target;
+  try {
+    JAXBContext jaxbContext=JAXBContext.newInstance(jaxbTarget);
+    Unmarshaller unmarshaller=jaxbContext.createUnmarshaller();
+    target=unmarshaller.unmarshal(document);
+  }
+ catch (  JAXBException e) {
+    throw new MappingException("Unable to perform unmarshalling",e,origin);
+  }
+  return new JaxbRoot(target,origin);
+}

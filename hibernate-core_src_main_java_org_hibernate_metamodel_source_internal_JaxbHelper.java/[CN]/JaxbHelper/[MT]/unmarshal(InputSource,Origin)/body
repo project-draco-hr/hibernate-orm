@@ -1,0 +1,17 @@
+{
+  ErrorLogger errorHandler=new ErrorLogger();
+  DocumentBuilderFactory factory=DocumentBuilderFactory.newInstance();
+  factory.setValidating(false);
+  try {
+    DocumentBuilder builder=factory.newDocumentBuilder();
+    builder.setEntityResolver(metadata.getEntityResolver());
+    builder.setErrorHandler(errorHandler);
+    return unmarshal(builder.parse(source),origin);
+  }
+ catch (  HibernateException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    throw new MappingException("Unable to read DOM via JAXP",e,origin);
+  }
+}
