@@ -1,0 +1,40 @@
+{
+  XMLEvent event;
+  try {
+    event=staxEventReader.peek();
+    while (event != null && !event.isStartElement()) {
+      staxEventReader.nextEvent();
+      event=staxEventReader.peek();
+    }
+  }
+ catch (  Exception e) {
+    throw new MappingException("Error accessing stax stream",e,origin);
+  }
+  if (event == null) {
+    throw new MappingException("Could not locate root element",origin);
+  }
+  final Schema validationSchema;
+  final Class jaxbTarget;
+  final String elementName=event.asStartElement().getName().getLocalPart();
+  if ("entity-mappings".equals(elementName)) {
+    final Attribute attribute=event.asStartElement().getAttributeByName(ORM_VERSION_ATTRIBUTE_QNAME);
+    final String explicitVersion=attribute == null ? null : attribute.getValue();
+    validationSchema=resolveSupportedOrmXsd(explicitVersion);
+    jaxbTarget=EntityMappings.class;
+  }
+ else {
+    validationSchema=hbmSchema();
+    jaxbTarget=HibernateMapping.class;
+  }
+  final Object target;
+  try {
+    JAXBContext jaxbContext=JAXBContext.newInstance(jaxbTarget);
+    Unmarshaller unmarshaller=jaxbContext.createUnmarshaller();
+    unmarshaller.setSchema(validationSchema);
+    target=unmarshaller.unmarshal(staxEventReader);
+  }
+ catch (  JAXBException e) {
+    throw new MappingException("Unable to perform unmarshalling",e,origin);
+  }
+  return new JaxbRoot(target,origin);
+}
