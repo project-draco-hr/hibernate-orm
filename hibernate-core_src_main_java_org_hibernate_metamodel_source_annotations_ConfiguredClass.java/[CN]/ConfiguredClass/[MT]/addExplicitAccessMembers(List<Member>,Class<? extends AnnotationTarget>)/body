@@ -1,0 +1,45 @@
+{
+  Set<String> explicitAccessMembers=new HashSet<String>();
+  List<AnnotationInstance> accessAnnotations=classInfo.annotations().get(JPADotNames.ACCESS);
+  if (accessAnnotations == null) {
+    return explicitAccessMembers;
+  }
+  for (  AnnotationInstance accessAnnotation : accessAnnotations) {
+    AnnotationTarget target=accessAnnotation.target();
+    if (!target.getClass().equals(targetClass)) {
+      continue;
+    }
+    AccessType accessType=Enum.valueOf(AccessType.class,accessAnnotation.value().asEnum());
+    if (target instanceof MethodInfo && MethodInfo.class.equals(targetClass)) {
+      if (!AccessType.PROPERTY.equals(accessType)) {
+        continue;
+      }
+      Method m;
+      try {
+        m=clazz.getMethod(((MethodInfo)target).name());
+      }
+ catch (      NoSuchMethodException e) {
+        throw new HibernateException("Unable to load method " + ((MethodInfo)target).name() + " of class "+ clazz.getName());
+      }
+      classMembers.add(m);
+      explicitAccessMembers.add(ReflectionHelper.getPropertyName(m));
+      continue;
+    }
+    if (target instanceof FieldInfo && FieldInfo.class.equals(targetClass)) {
+      if (!AccessType.FIELD.equals(accessType)) {
+        continue;
+      }
+      Field f;
+      try {
+        f=clazz.getField(((FieldInfo)target).name());
+      }
+ catch (      NoSuchFieldException e) {
+        throw new HibernateException("Unable to load field " + ((FieldInfo)target).name() + " of class "+ clazz.getName());
+      }
+      classMembers.add(f);
+      explicitAccessMembers.add(f.getName());
+      continue;
+    }
+  }
+  return explicitAccessMembers;
+}

@@ -1,0 +1,38 @@
+{
+  parentAudit=getCfg().getClassMapping("org.hibernate.envers.test.integration.inheritance.single.discriminatorformula.ParentEntity_AUD");
+  EntityManager em=getEntityManager();
+  em.getTransaction().begin();
+  ClassTypeEntity childType=new ClassTypeEntity();
+  childType.setType(ClassTypeEntity.CHILD_TYPE);
+  em.persist(childType);
+  Long childTypeId=childType.getId();
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  ClassTypeEntity parentType=new ClassTypeEntity();
+  parentType.setType(ClassTypeEntity.PARENT_TYPE);
+  em.persist(parentType);
+  Long parentTypeId=parentType.getId();
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  ChildEntity child=new ChildEntity(childTypeId,"Child data","Child specific data");
+  em.persist(child);
+  Long childId=child.getId();
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  ParentEntity parent=new ParentEntity(parentTypeId,"Parent data");
+  em.persist(parent);
+  Long parentId=parent.getId();
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  child=em.find(ChildEntity.class,childId);
+  child.setData("Child data modified");
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  parent=em.find(ParentEntity.class,parentId);
+  parent.setData("Parent data modified");
+  em.getTransaction().commit();
+  childVer1=new ChildEntity(childId,childTypeId,"Child data","Child specific data");
+  childVer2=new ChildEntity(childId,childTypeId,"Child data modified","Child specific data");
+  parentVer1=new ParentEntity(parentId,parentTypeId,"Parent data");
+  parentVer2=new ParentEntity(parentId,parentTypeId,"Parent data modified");
+}
