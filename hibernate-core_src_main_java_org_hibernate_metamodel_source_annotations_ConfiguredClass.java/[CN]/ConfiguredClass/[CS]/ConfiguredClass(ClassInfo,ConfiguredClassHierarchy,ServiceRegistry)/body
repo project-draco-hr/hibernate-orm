@@ -1,0 +1,14 @@
+{
+  this.classInfo=info;
+  this.hierarchy=hierarchy;
+  AnnotationInstance jpaEntityAnnotation=JandexHelper.getSingleAnnotation(classInfo,JPADotNames.ENTITY);
+  AnnotationInstance mappedSuperClassAnnotation=JandexHelper.getSingleAnnotation(classInfo,JPADotNames.MAPPED_SUPER_CLASS);
+  if (jpaEntityAnnotation != null && mappedSuperClassAnnotation != null) {
+    throw new AnnotationException("An entity cannot be annotated with both @Entity and @MappedSuperclass: " + classInfo.name().toString());
+  }
+  this.clazz=serviceRegistry.getService(ClassLoaderService.class).classForName(info.toString());
+  isMappedSuperClass=mappedSuperClassAnnotation != null;
+  classAccessType=determineClassAccessType(hierarchy.getDefaultAccessType());
+  mappedProperties=collectMappedProperties();
+  Collections.sort(mappedProperties);
+}

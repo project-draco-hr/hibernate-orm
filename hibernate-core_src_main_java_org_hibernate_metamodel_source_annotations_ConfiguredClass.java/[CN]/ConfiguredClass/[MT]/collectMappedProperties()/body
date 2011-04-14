@@ -1,3 +1,29 @@
 {
-  return null;
+  Set<String> transientFieldNames=new HashSet<String>();
+  Set<String> transientMethodNames=new HashSet<String>();
+  populateTransientFieldAndMethodLists(transientFieldNames,transientMethodNames);
+  List<Member> classMembers=new ArrayList<Member>();
+  Set<String> explicitlyConfiguredAccessMemberNames;
+  if (AccessType.FIELD.equals(classAccessType)) {
+    explicitlyConfiguredAccessMemberNames=addExplicitAccessMembers(classMembers,MethodInfo.class);
+    Field fields[]=clazz.getDeclaredFields();
+    Field.setAccessible(fields,true);
+    for (    Field field : fields) {
+      if (!transientFieldNames.contains(field.getName()) && !explicitlyConfiguredAccessMemberNames.contains(field.getName())) {
+        classMembers.add(field);
+      }
+    }
+  }
+ else {
+    explicitlyConfiguredAccessMemberNames=addExplicitAccessMembers(classMembers,FieldInfo.class);
+    Method[] methods=clazz.getDeclaredMethods();
+    Method.setAccessible(methods,true);
+    for (    Method method : methods) {
+      if (!transientMethodNames.contains(method.getName()) && !explicitlyConfiguredAccessMemberNames.contains(ReflectionHelper.getPropertyName(method))) {
+        classMembers.add(method);
+      }
+    }
+  }
+  List<MappedProperty> properties=new ArrayList<MappedProperty>();
+  return properties;
 }
