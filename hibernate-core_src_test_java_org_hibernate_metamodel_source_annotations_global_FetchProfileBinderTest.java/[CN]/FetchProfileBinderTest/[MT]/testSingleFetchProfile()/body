@@ -1,0 +1,13 @@
+{
+@FetchProfile(name="foo",fetchOverrides={@FetchProfile.FetchOverride(entity=Foo.class,association="bar",mode=FetchMode.JOIN)}) class Foo {
+  }
+  Index index=JandexHelper.indexForClass(service,Foo.class);
+  FetchProfileBinder.bindFetchProfiles(meta,index);
+  Iterator<org.hibernate.mapping.FetchProfile> mappedFetchProfiles=meta.getFetchProfiles().iterator();
+  assertTrue(mappedFetchProfiles.hasNext());
+  org.hibernate.mapping.FetchProfile profile=mappedFetchProfiles.next();
+  assertEquals("Wrong fetch profile name","foo",profile.getName());
+  org.hibernate.mapping.FetchProfile.Fetch fetch=profile.getFetches().iterator().next();
+  assertEquals("Wrong association name","bar",fetch.getAssociation());
+  assertEquals("Wrong association type",Foo.class.getName(),fetch.getEntity());
+}
