@@ -1,0 +1,24 @@
+{
+  Indexer indexer=new Indexer();
+  for (  Class<?> clazz : classes) {
+    InputStream stream=classLoaderService.locateResourceStream(clazz.getName().replace('.','/') + ".class");
+    try {
+      indexer.index(stream);
+    }
+ catch (    IOException e) {
+      StringBuilder builder=new StringBuilder();
+      builder.append("[");
+      int count=0;
+      for (      Class<?> c : classes) {
+        builder.append(c.getName());
+        if (count < classes.length - 1) {
+          builder.append(",");
+        }
+        count++;
+      }
+      builder.append("]");
+      throw new HibernateException("Unable to create annotation index for " + builder.toString());
+    }
+  }
+  return indexer.complete();
+}

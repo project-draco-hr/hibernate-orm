@@ -1,0 +1,18 @@
+{
+@Entity class A {
+    String id;
+    @Id public String getId(){
+      return id;
+    }
+    public void setId(    String id){
+      this.id=id;
+    }
+  }
+@Entity class B extends A {
+  }
+  Index index=JandexHelper.indexForClass(service,B.class,A.class);
+  Set<ConfiguredClassHierarchy> hierarchies=ConfiguredClassHierarchyBuilder.createEntityHierarchies(index,serviceRegistry);
+  assertTrue(hierarchies.size() == 1);
+  ConfiguredClassHierarchy hierarchy=hierarchies.iterator().next();
+  assertEquals("Wrong default access type",AccessType.PROPERTY,hierarchy.getDefaultAccessType());
+}
