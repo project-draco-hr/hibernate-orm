@@ -10,7 +10,7 @@
   Foo foof=(Foo)list.get(0);
   assertTrue(Hibernate.isInitialized(foof.getFoo()));
   s.createQuery("from Baz baz left outer join fetch baz.fooToGlarch").list();
-  list=s.createQuery("select foo, bar from Foo foo left outer join foo.foo bar where foo = ?").setParameter(0,foo,Hibernate.entity(Foo.class)).list();
+  list=s.createQuery("select foo, bar from Foo foo left outer join foo.foo bar where foo = ?").setParameter(0,foo,s.getTypeHelper().entity(Foo.class)).list();
   Object[] row1=(Object[])list.get(0);
   assertTrue(row1[0] == foo && row1[1] == foo2);
   s.createQuery("select foo.foo.foo.string from Foo foo where foo.foo = 'bar'").list();
@@ -54,7 +54,7 @@
   foo.setString("fizard");
   if (!(getDialect() instanceof MySQLDialect) && !(getDialect() instanceof HSQLDialect) && !(getDialect() instanceof MckoiDialect)&& !(getDialect() instanceof SAPDBDialect)&& !(getDialect() instanceof PointbaseDialect)&& !(getDialect() instanceof DerbyDialect)) {
     if (!(getDialect() instanceof InterbaseDialect)) {
-      list=s.createQuery("from Foo foo where ? = some elements(foo.component.importantDates)").setParameter(0,new Date(),Hibernate.DATE).list();
+      list=s.createQuery("from Foo foo where ? = some elements(foo.component.importantDates)").setParameter(0,new Date(),StandardBasicTypes.DATE).list();
       assertTrue("component query",list.size() == 2);
     }
     if (!(getDialect() instanceof TimesTenDialect)) {
@@ -86,9 +86,9 @@
   assertTrue("component query",list.size() == 2);
   list=s.createQuery("select foo.foo from Foo foo").list();
   assertTrue("query",list.size() == 2);
-  list=s.createQuery("from Foo foo where foo.id=?").setParameter(0,foo.getKey(),Hibernate.STRING).list();
+  list=s.createQuery("from Foo foo where foo.id=?").setParameter(0,foo.getKey(),StandardBasicTypes.STRING).list();
   assertTrue("id query",list.size() == 1);
-  list=s.createQuery("from Foo foo where foo.key=?").setParameter(0,foo.getKey(),Hibernate.STRING).list();
+  list=s.createQuery("from Foo foo where foo.key=?").setParameter(0,foo.getKey(),StandardBasicTypes.STRING).list();
   assertTrue("named id query",list.size() == 1);
   assertTrue("id query",list.get(0) == foo);
   list=s.createQuery("select foo.foo from Foo foo where foo.string='fizard'").list();
@@ -96,12 +96,12 @@
   assertTrue("returned object",list.get(0) == foo.getFoo());
   list=s.createQuery("from Foo foo where foo.component.subcomponent.name='bar'").list();
   assertTrue("components of components",list.size() == 2);
-  list=s.createQuery("select foo.foo from Foo foo where foo.foo.id=?").setParameter(0,foo.getFoo().getKey(),Hibernate.STRING).list();
+  list=s.createQuery("select foo.foo from Foo foo where foo.foo.id=?").setParameter(0,foo.getFoo().getKey(),StandardBasicTypes.STRING).list();
   assertTrue("by id query",list.size() == 1);
   assertTrue("by id returned object",list.get(0) == foo.getFoo());
-  s.createQuery("from Foo foo where foo.foo = ?").setParameter(0,foo.getFoo(),Hibernate.entity(Foo.class)).list();
+  s.createQuery("from Foo foo where foo.foo = ?").setParameter(0,foo.getFoo(),s.getTypeHelper().entity(Foo.class)).list();
   assertTrue(!s.createQuery("from Bar bar where bar.string='a string' or bar.string='a string'").iterate().hasNext());
-  iter=s.createQuery("select foo.component.name, elements(foo.component.importantDates) from Foo foo where foo.foo.id=?").setParameter(0,foo.getFoo().getKey(),Hibernate.STRING).iterate();
+  iter=s.createQuery("select foo.component.name, elements(foo.component.importantDates) from Foo foo where foo.foo.id=?").setParameter(0,foo.getFoo().getKey(),StandardBasicTypes.STRING).iterate();
   int i=0;
   while (iter.hasNext()) {
     i++;
@@ -146,10 +146,10 @@
   rs=s.createQuery("select sum(foo.foo.int) from Foo foo").iterate();
   assertTrue("sum",((Long)rs.next()).longValue() == 4);
   assertTrue(!rs.hasNext());
-  rs=s.createQuery("select count(foo) from Foo foo where foo.id=?").setParameter(0,foo.getKey(),Hibernate.STRING).iterate();
+  rs=s.createQuery("select count(foo) from Foo foo where foo.id=?").setParameter(0,foo.getKey(),StandardBasicTypes.STRING).iterate();
   assertTrue("id query count",((Long)rs.next()).longValue() == 1);
   assertTrue(!rs.hasNext());
-  s.createQuery("from Foo foo where foo.boolean = ?").setParameter(0,new Boolean(true),Hibernate.BOOLEAN).list();
+  s.createQuery("from Foo foo where foo.boolean = ?").setParameter(0,new Boolean(true),StandardBasicTypes.BOOLEAN).list();
   s.createQuery("select new Foo(fo.x) from Fo fo").list();
   s.createQuery("select new Foo(fo.integer) from Foo fo").list();
   list=s.createQuery("select new Foo(fo.x) from Foo fo").setCacheable(true).list();
@@ -228,7 +228,7 @@
   }
   assertTrue(c == 16);
   s.createQuery("select baz.code, min(baz.count) from Baz baz group by baz.code").iterate();
-  iter=s.createQuery("selecT baz from Baz baz where baz.stringDateMap['foo'] is not null or baz.stringDateMap['bar'] = ?").setParameter(0,new Date(),Hibernate.DATE).iterate();
+  iter=s.createQuery("selecT baz from Baz baz where baz.stringDateMap['foo'] is not null or baz.stringDateMap['bar'] = ?").setParameter(0,new Date(),StandardBasicTypes.DATE).iterate();
   assertFalse(iter.hasNext());
   list=s.createQuery("select baz from Baz baz where baz.stringDateMap['now'] is not null").list();
   assertTrue(list.size() == 1);

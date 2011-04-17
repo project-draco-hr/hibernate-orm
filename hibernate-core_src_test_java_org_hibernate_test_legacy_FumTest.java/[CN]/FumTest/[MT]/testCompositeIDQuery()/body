@@ -22,11 +22,11 @@
   assertTrue("find by composite key query (find fo object)",vList.size() == 1);
   fum=(Fum)vList.get(0);
   assertTrue("find by composite key query (check fo object)",fum.getId().getString().equals("fo"));
-  vList=s.createQuery("from Fum fum where fum.id.short = ?").setParameter(0,new Short(fiShort),Hibernate.SHORT).list();
+  vList=s.createQuery("from Fum fum where fum.id.short = ?").setParameter(0,new Short(fiShort),StandardBasicTypes.SHORT).list();
   assertEquals("find by composite key query (find fi object)",1,vList.size());
   fi=(Fum)vList.get(0);
   assertEquals("find by composite key query (check fi object)","fi",fi.getId().getString());
-  vList=s.createQuery("from Fum fum where fum.id.date <= ? and not fum.fum='FRIEND'").setParameter(0,new Date(),Hibernate.DATE).list();
+  vList=s.createQuery("from Fum fum where fum.id.date <= ? and not fum.fum='FRIEND'").setParameter(0,new Date(),StandardBasicTypes.DATE).list();
   assertEquals("find by composite key query with arguments",4,vList.size());
   s.getTransaction().commit();
   s.close();
@@ -53,7 +53,7 @@
   assertTrue("iterate on composite key",j == 8);
   fum=(Fum)s.load(Fum.class,fum.getId());
   s.createFilter(fum.getQuxArray(),"where this.foo is null").list();
-  s.createFilter(fum.getQuxArray(),"where this.foo.id = ?").setParameter(0,"fooid",Hibernate.STRING).list();
+  s.createFilter(fum.getQuxArray(),"where this.foo.id = ?").setParameter(0,"fooid",StandardBasicTypes.STRING).list();
   Query f=s.createFilter(fum.getQuxArray(),"where this.foo.id = :fooId");
   f.setString("fooId","abc");
   assertFalse(f.iterate().hasNext());

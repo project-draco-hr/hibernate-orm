@@ -61,7 +61,7 @@
   assertNotNull(dto.getName());
   s.createCriteria(Student.class).add(Restrictions.like("name","Gavin",MatchMode.START)).addOrder(Order.asc("name")).createCriteria("enrolments","e").addOrder(Order.desc("year")).addOrder(Order.desc("semester")).createCriteria("course","c").addOrder(Order.asc("description")).setProjection(Projections.projectionList().add(Projections.property("this.name")).add(Projections.property("e.year")).add(Projections.property("e.semester")).add(Projections.property("c.courseCode")).add(Projections.property("c.description"))).uniqueResult();
   Projection p1=Projections.projectionList().add(Projections.count("studentNumber")).add(Projections.max("studentNumber")).add(Projections.rowCount());
-  Projection p2=Projections.projectionList().add(Projections.min("studentNumber")).add(Projections.avg("studentNumber")).add(Projections.sqlProjection("1 as constOne, count(*) as countStar",new String[]{"constOne","countStar"},new Type[]{Hibernate.INTEGER,Hibernate.INTEGER}));
+  Projection p2=Projections.projectionList().add(Projections.min("studentNumber")).add(Projections.avg("studentNumber")).add(Projections.sqlProjection("1 as constOne, count(*) as countStar",new String[]{"constOne","countStar"},new Type[]{StandardBasicTypes.INTEGER,StandardBasicTypes.INTEGER}));
   Object[] array=(Object[])s.createCriteria(Enrolment.class).setProjection(Projections.projectionList().add(p1).add(p2)).uniqueResult();
   assertEquals(array.length,7);
   List list=s.createCriteria(Enrolment.class).createAlias("student","st").createAlias("course","co").setProjection(Projections.projectionList().add(Projections.groupProperty("co.courseCode")).add(Projections.count("st.studentNumber").setDistinct()).add(Projections.groupProperty("year"))).list();

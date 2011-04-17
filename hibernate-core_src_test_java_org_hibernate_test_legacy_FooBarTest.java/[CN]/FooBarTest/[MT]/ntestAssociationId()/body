@@ -19,9 +19,9 @@
   s.close();
   s=openSession();
   t=s.beginTransaction();
-  List results=s.createQuery("from Stuff as s where s.foo.id = ? and s.id.id = ? and s.moreStuff.id.intId = ? and s.moreStuff.id.stringId = ?").setParameter(0,bar,Hibernate.entity(Foo.class)).setParameter(1,new Long(1234),Hibernate.LONG).setParameter(2,new Integer(12),Hibernate.INTEGER).setParameter(3,"id",Hibernate.STRING).list();
+  List results=s.createQuery("from Stuff as s where s.foo.id = ? and s.id.id = ? and s.moreStuff.id.intId = ? and s.moreStuff.id.stringId = ?").setParameter(0,bar,s.getTypeHelper().entity(Foo.class)).setParameter(1,new Long(1234),StandardBasicTypes.LONG).setParameter(2,new Integer(12),StandardBasicTypes.INTEGER).setParameter(3,"id",StandardBasicTypes.STRING).list();
   assertEquals(1,results.size());
-  results=s.createQuery("from Stuff as s where s.foo.id = ? and s.id.id = ? and s.moreStuff.name = ?").setParameter(0,bar,Hibernate.entity(Foo.class)).setParameter(1,new Long(1234),Hibernate.LONG).setParameter(2,"More Stuff",Hibernate.STRING).list();
+  results=s.createQuery("from Stuff as s where s.foo.id = ? and s.id.id = ? and s.moreStuff.name = ?").setParameter(0,bar,s.getTypeHelper().entity(Foo.class)).setParameter(1,new Long(1234),StandardBasicTypes.LONG).setParameter(2,"More Stuff",StandardBasicTypes.STRING).list();
   assertEquals(1,results.size());
   s.createQuery("from Stuff as s where s.foo.string is not null").list();
   assertTrue(s.createQuery("from Stuff as s where s.foo > '0' order by s.foo").list().size() == 1);
