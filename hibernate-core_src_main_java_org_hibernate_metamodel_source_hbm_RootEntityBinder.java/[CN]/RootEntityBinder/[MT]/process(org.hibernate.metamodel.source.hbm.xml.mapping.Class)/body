@@ -1,0 +1,27 @@
+{
+  String entityName=getHibernateMappingBinder().extractEntityName(xmlClazz);
+  if (entityName == null) {
+    throw new MappingException("Unable to determine entity name");
+  }
+  EntityBinding entityBinding=new EntityBinding();
+  basicEntityBinding(xmlClazz,entityBinding,null);
+  basicTableBinding(xmlClazz,entityBinding);
+  if (xmlClazz.getMutable() != null) {
+    entityBinding.setMutable(Boolean.valueOf(xmlClazz.getMutable()));
+  }
+  if (xmlClazz.getWhere() != null) {
+    entityBinding.setWhereFilter(xmlClazz.getWhere());
+  }
+  if (xmlClazz.getPolymorphism() != null) {
+    entityBinding.setExplicitPolymorphism("explicit".equals(xmlClazz.getPolymorphism()));
+  }
+  if (xmlClazz.getRowid() != null) {
+    entityBinding.setRowId(xmlClazz.getRowid());
+  }
+  bindIdentifier(xmlClazz,entityBinding);
+  bindDiscriminator(xmlClazz,entityBinding);
+  bindVersion(xmlClazz,entityBinding);
+  bindCaching(xmlClazz,entityBinding);
+  buildAttributeBindings(xmlClazz,entityBinding);
+  getHibernateXmlBinder().getMetadata().addEntity(entityBinding);
+}

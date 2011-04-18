@@ -1,0 +1,28 @@
+{
+  final Schema schema=getHibernateXmlBinder().getMetadata().getDatabase().getSchema(getSchemaName());
+  final String subSelect=xmlClazz.getSubselect() == null ? xmlClazz.getSubselectElement() : xmlClazz.getSubselect();
+  if (subSelect != null) {
+    final String logicalName=entityBinding.getEntity().getName();
+    InLineView inLineView=schema.getInLineView(logicalName);
+    if (inLineView == null) {
+      inLineView=schema.createInLineView(logicalName,subSelect);
+    }
+    entityBinding.setBaseTable(inLineView);
+  }
+ else {
+    final Identifier tableName=Identifier.toIdentifier(getClassTableName(xmlClazz,entityBinding,null));
+    org.hibernate.metamodel.relational.Table table=schema.getTable(tableName);
+    if (table == null) {
+      table=schema.createTable(tableName);
+    }
+    entityBinding.setBaseTable(table);
+    String comment=xmlClazz.getComment();
+    if (comment != null) {
+      table.addComment(comment.trim());
+    }
+    String check=xmlClazz.getCheck();
+    if (check != null) {
+      table.addCheckConstraint(check);
+    }
+  }
+}

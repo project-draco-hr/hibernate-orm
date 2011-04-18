@@ -1,0 +1,13 @@
+{
+  for (  org.hibernate.metamodel.source.hbm.xml.mapping.FetchProfile fetchProfile : fetchProfiles) {
+    String profileName=fetchProfile.getName();
+    org.hibernate.metamodel.binding.FetchProfile profile=hibernateXmlBinder.getMetadata().findOrCreateFetchProfile(profileName,MetadataSource.HBM);
+    for (    org.hibernate.metamodel.source.hbm.xml.mapping.Fetch fetch : fetchProfile.getFetch()) {
+      String entityName=fetch.getEntity() == null ? containingEntityName : fetch.getEntity();
+      if (entityName == null) {
+        throw new MappingException("could not determine entity for fetch-profile fetch [" + profileName + "]:["+ fetch.getAssociation()+ "]");
+      }
+      profile.addFetch(entityName,fetch.getAssociation(),fetch.getStyle());
+    }
+  }
+}

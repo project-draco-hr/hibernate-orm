@@ -1,0 +1,24 @@
+{
+  super(defaults,attribute,entityMetaAttributes,property);
+  this.isLazy=MappingHelper.getBooleanValue(property.getLazy(),false);
+  ;
+  this.propertyGeneration=PropertyGeneration.parse(property.getGenerated());
+  if (propertyGeneration == PropertyGeneration.ALWAYS || propertyGeneration == PropertyGeneration.INSERT) {
+    if (property.getInsert() != null && Boolean.parseBoolean(property.getInsert())) {
+      throw new MappingException("cannot specify both insert=\"true\" and generated=\"" + propertyGeneration.getName() + "\" for property: "+ getAttribute().getName());
+    }
+    isInsertable=false;
+  }
+ else {
+    isInsertable=MappingHelper.getBooleanValue(property.getInsert(),true);
+  }
+  if (propertyGeneration == PropertyGeneration.ALWAYS) {
+    if (property.getUpdate() != null && Boolean.parseBoolean(property.getUpdate())) {
+      throw new MappingException("cannot specify both update=\"true\" and generated=\"" + propertyGeneration.getName() + "\" for property: "+ getAttribute().getName());
+    }
+    isUpdateable=false;
+  }
+ else {
+    isUpdateable=MappingHelper.getBooleanValue(property.getUpdate(),true);
+  }
+}

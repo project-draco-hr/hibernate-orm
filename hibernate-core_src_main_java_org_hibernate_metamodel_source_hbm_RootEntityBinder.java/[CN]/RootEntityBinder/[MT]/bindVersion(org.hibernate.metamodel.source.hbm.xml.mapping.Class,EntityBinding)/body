@@ -1,0 +1,17 @@
+{
+  if (xmlEntityClazz.getVersion() == null && xmlEntityClazz.getTimestamp() == null) {
+    return;
+  }
+  boolean isVersion=xmlEntityClazz.getVersion() != null;
+  String explicitName=isVersion ? xmlEntityClazz.getVersion().getName() : xmlEntityClazz.getTimestamp().getName();
+  if (explicitName == null) {
+    throw new MappingException("Mising property name for version/timestamp mapping [" + entityBinding.getEntity().getName() + "]");
+  }
+  SimpleAttributeBinding versionBinding=entityBinding.makeVersionBinding(explicitName);
+  if (isVersion) {
+    bindSimpleAttribute(xmlEntityClazz.getVersion(),versionBinding,entityBinding,explicitName);
+  }
+ else {
+    bindSimpleAttribute(xmlEntityClazz.getTimestamp(),versionBinding,entityBinding,explicitName);
+  }
+}
