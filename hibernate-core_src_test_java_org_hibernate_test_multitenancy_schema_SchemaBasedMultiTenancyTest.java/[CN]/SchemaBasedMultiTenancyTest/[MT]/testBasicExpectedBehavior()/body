@@ -1,14 +1,12 @@
 {
-  Session session=openSession();
-  session.setTenantIdentifier("jboss");
+  Session session=sessionFactory.withOptions().tenantIdentifier("jboss").openSession();
   session.beginTransaction();
   Customer steve=new Customer(1L,"steve");
   session.save(steve);
   session.getTransaction().commit();
   session.close();
-  session=openSession();
+  session=sessionFactory.withOptions().tenantIdentifier("acme").openSession();
   try {
-    session.setTenantIdentifier("acme");
     session.beginTransaction();
     Customer check=(Customer)session.get(Customer.class,steve.getId());
     Assert.assertNull("tenancy not properly isolated",check);
@@ -17,8 +15,7 @@
     session.getTransaction().commit();
     session.close();
   }
-  session=openSession();
-  session.setTenantIdentifier("jboss");
+  session=sessionFactory.withOptions().tenantIdentifier("jboss").openSession();
   session.beginTransaction();
   session.delete(steve);
   session.getTransaction().commit();

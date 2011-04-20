@@ -1,13 +1,11 @@
 {
-  Session session=openSession();
-  session.setTenantIdentifier("jboss");
+  Session session=sessionFactory.withOptions().tenantIdentifier("jboss").openSession();
   session.beginTransaction();
   Customer steve=new Customer(1L,"steve");
   session.save(steve);
   session.getTransaction().commit();
   session.close();
-  session=openSession();
-  session.setTenantIdentifier("acme");
+  session=sessionFactory.withOptions().tenantIdentifier("acme").openSession();
   session.beginTransaction();
   Customer john=new Customer(1L,"john");
   session.save(john);
@@ -15,8 +13,7 @@
   session.close();
   sessionFactory.getStatisticsImplementor().clear();
 {
-    session=openSession();
-    session.setTenantIdentifier("jboss");
+    session=sessionFactory.withOptions().tenantIdentifier("jboss").openSession();
     session.beginTransaction();
     Customer customer=(Customer)session.load(Customer.class,1L);
     Assert.assertEquals("steve",customer.getName());
@@ -26,8 +23,7 @@
   }
   sessionFactory.getStatisticsImplementor().clear();
 {
-    session=openSession();
-    session.setTenantIdentifier("acme");
+    session=sessionFactory.withOptions().tenantIdentifier("acme").openSession();
     session.beginTransaction();
     Customer customer=(Customer)session.load(Customer.class,1L);
     Assert.assertEquals("john",customer.getName());
@@ -38,8 +34,7 @@
   sessionFactory.getStatisticsImplementor().clear();
   sessionFactory.getCache().evictEntityRegions();
 {
-    session=openSession();
-    session.setTenantIdentifier("jboss");
+    session=sessionFactory.withOptions().tenantIdentifier("jboss").openSession();
     session.beginTransaction();
     Customer customer=(Customer)session.load(Customer.class,1L);
     Assert.assertEquals("steve",customer.getName());
@@ -49,8 +44,7 @@
   }
   sessionFactory.getStatisticsImplementor().clear();
 {
-    session=openSession();
-    session.setTenantIdentifier("acme");
+    session=sessionFactory.withOptions().tenantIdentifier("acme").openSession();
     session.beginTransaction();
     Customer customer=(Customer)session.load(Customer.class,1L);
     Assert.assertEquals("john",customer.getName());
@@ -58,14 +52,12 @@
     session.getTransaction().commit();
     session.close();
   }
-  session=openSession();
-  session.setTenantIdentifier("jboss");
+  session=sessionFactory.withOptions().tenantIdentifier("jboss").openSession();
   session.beginTransaction();
   session.delete(steve);
   session.getTransaction().commit();
   session.close();
-  session=openSession();
-  session.setTenantIdentifier("acme");
+  session=sessionFactory.withOptions().tenantIdentifier("acme").openSession();
   session.beginTransaction();
   session.delete(john);
   session.getTransaction().commit();
