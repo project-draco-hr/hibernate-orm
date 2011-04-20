@@ -1,12 +1,15 @@
 {
   super.applyServices(serviceRegistry);
-  serviceRegistry.getService(StandardServiceInitiators.EventListenerRegistrationService.class).attachEventListenerRegistration(new EventListenerRegistration(){
-    @Override public void apply(    EventListenerRegistry eventListenerRegistry,    Configuration configuration,    Map<?,?> configValues,    ServiceRegistryImplementor serviceRegistry){
+  serviceRegistry.getService(IntegratorService.class).addIntegrator(new Integrator(){
+    @Override public void integrate(    Configuration configuration,    SessionFactoryImplementor sessionFactory,    SessionFactoryServiceRegistry serviceRegistry){
+      EventListenerRegistry eventListenerRegistry=serviceRegistry.getService(EventListenerRegistry.class);
       eventListenerRegistry.setListeners(EventType.PERSIST,buildPersistEventListeners());
       eventListenerRegistry.setListeners(EventType.PERSIST_ONFLUSH,buildPersisOnFlushEventListeners());
       eventListenerRegistry.setListeners(EventType.AUTO_FLUSH,buildAutoFlushEventListeners());
       eventListenerRegistry.setListeners(EventType.FLUSH,buildFlushEventListeners());
       eventListenerRegistry.setListeners(EventType.FLUSH_ENTITY,buildFlushEntityEventListeners());
+    }
+    @Override public void disintegrate(    SessionFactoryImplementor sessionFactory,    SessionFactoryServiceRegistry serviceRegistry){
     }
   }
 );
