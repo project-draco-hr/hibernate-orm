@@ -1,10 +1,13 @@
 {
   defaultAccessType=determineDefaultAccessType(classes);
   inheritanceType=determineInheritanceType(classes);
+  ClassLoaderService classLoaderService=serviceRegistry.getService(ClassLoaderService.class);
+  Class<?> clazz=classLoaderService.classForName(classes.get(classes.size() - 1).name().toString());
+  ResolvedTypeWithMembers resolvedMembers=ReflectionHelper.resolveMemberTypes(clazz);
   configuredClasses=new ArrayList<ConfiguredClass>();
   ConfiguredClass parent=null;
   for (  ClassInfo info : classes) {
-    ConfiguredClass configuredClass=new ConfiguredClass(info,parent,defaultAccessType,serviceRegistry);
+    ConfiguredClass configuredClass=new ConfiguredClass(info,parent,defaultAccessType,serviceRegistry,resolvedMembers);
     configuredClasses.add(configuredClass);
     parent=configuredClass;
   }
