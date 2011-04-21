@@ -2,6 +2,11 @@
   List<QueryParameterData> paramDatas=mapToQueryParametersFromId(id);
   Parameters parametersToUse=getParametersToUse(parameters,paramDatas);
   for (  QueryParameterData paramData : paramDatas) {
-    parametersToUse.addWhereWithParam(paramData.getProperty(prefix),equals ? "=" : "<>",paramData.getValue());
+    if (paramData.getValue() == null) {
+      handleNullValue(parametersToUse,paramData.getProperty(prefix),equals);
+    }
+ else {
+      parametersToUse.addWhereWithParam(paramData.getProperty(prefix),equals ? "=" : "<>",paramData.getValue());
+    }
   }
 }
