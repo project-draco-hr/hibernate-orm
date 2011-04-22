@@ -1,0 +1,10 @@
+{
+  String queryCacheFactoryClassName=ConfigurationHelper.getString(Environment.QUERY_CACHE_FACTORY,properties,"org.hibernate.cache.StandardQueryCacheFactory");
+  LOG.debugf("Query cache factory: %s",queryCacheFactoryClassName);
+  try {
+    return (QueryCacheFactory)serviceRegistry.getService(ClassLoaderService.class).classForName(queryCacheFactoryClassName).newInstance();
+  }
+ catch (  Exception e) {
+    throw new HibernateException("could not instantiate QueryCacheFactory: " + queryCacheFactoryClassName,e);
+  }
+}

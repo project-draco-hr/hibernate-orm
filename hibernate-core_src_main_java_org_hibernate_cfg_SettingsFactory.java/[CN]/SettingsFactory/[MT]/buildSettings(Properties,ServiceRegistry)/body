@@ -84,7 +84,7 @@
   boolean orderInserts=ConfigurationHelper.getBoolean(Environment.ORDER_INSERTS,properties);
   LOG.debugf("Order SQL inserts for batching: %s",enabledDisabled(orderInserts));
   settings.setOrderInsertsEnabled(orderInserts);
-  settings.setQueryTranslatorFactory(createQueryTranslatorFactory(properties));
+  settings.setQueryTranslatorFactory(createQueryTranslatorFactory(properties,serviceRegistry));
   Map querySubstitutions=ConfigurationHelper.toMap(Environment.QUERY_SUBSTITUTIONS," ,=;:\n\t\r\f",properties);
   LOG.debugf("Query language substitutions: %s",querySubstitutions);
   settings.setQuerySubstitutions(querySubstitutions);
@@ -98,9 +98,9 @@
   LOG.debugf("Query cache: %s",enabledDisabled(useQueryCache));
   settings.setQueryCacheEnabled(useQueryCache);
   if (useQueryCache) {
-    settings.setQueryCacheFactory(createQueryCacheFactory(properties));
+    settings.setQueryCacheFactory(createQueryCacheFactory(properties,serviceRegistry));
   }
-  settings.setRegionFactory(createRegionFactory(properties,(useSecondLevelCache || useQueryCache)));
+  settings.setRegionFactory(createRegionFactory(properties,(useSecondLevelCache || useQueryCache),serviceRegistry));
   boolean useMinimalPuts=ConfigurationHelper.getBoolean(Environment.USE_MINIMAL_PUTS,properties,settings.getRegionFactory().isMinimalPutsEnabledByDefault());
   LOG.debugf("Optimize cache for minimal puts: %s",enabledDisabled(useMinimalPuts));
   settings.setMinimalPutsEnabled(useMinimalPuts);
