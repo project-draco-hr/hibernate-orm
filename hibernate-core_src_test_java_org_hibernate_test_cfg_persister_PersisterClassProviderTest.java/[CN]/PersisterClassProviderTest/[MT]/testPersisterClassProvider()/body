@@ -1,12 +1,11 @@
 {
   Configuration cfg=new Configuration();
   cfg.addAnnotatedClass(Gate.class);
-  ServiceRegistry serviceRegistry=ServiceRegistryBuilder.buildServiceRegistry(cfg.getProperties());
+  BasicServiceRegistry serviceRegistry=new ServiceRegistryBuilder(cfg.getProperties()).buildServiceRegistry();
   SessionFactory sessionFactory=cfg.buildSessionFactory(serviceRegistry);
   sessionFactory.close();
   ServiceRegistryBuilder.destroy(serviceRegistry);
-  serviceRegistry=ServiceRegistryBuilder.buildServiceRegistry(cfg.getProperties());
-  serviceRegistry.registerService(PersisterClassResolver.class,new GoofyPersisterClassProvider());
+  serviceRegistry=new ServiceRegistryBuilder(cfg.getProperties()).addService(PersisterClassResolver.class,new GoofyPersisterClassProvider()).buildServiceRegistry();
   cfg=new Configuration();
   cfg.addAnnotatedClass(Gate.class);
   try {
@@ -22,8 +21,7 @@
   cfg=new Configuration();
   cfg.addAnnotatedClass(Portal.class);
   cfg.addAnnotatedClass(Window.class);
-  serviceRegistry=ServiceRegistryBuilder.buildServiceRegistry(cfg.getProperties());
-  serviceRegistry.registerService(PersisterClassResolver.class,new GoofyPersisterClassProvider());
+  serviceRegistry=new ServiceRegistryBuilder(cfg.getProperties()).addService(PersisterClassResolver.class,new GoofyPersisterClassProvider()).buildServiceRegistry();
   try {
     sessionFactory=cfg.buildSessionFactory(serviceRegistry);
     sessionFactory.close();
