@@ -1,11 +1,15 @@
 {
   LOG.trace("Resolving serialized SessionFactory");
-  Object result=SessionFactoryObjectFactory.getInstance(uuid);
+  Object result=SessionFactoryRegistry.INSTANCE.getSessionFactory(uuid);
   if (result == null) {
-    result=SessionFactoryObjectFactory.getNamedInstance(name);
-    if (result == null)     throw new InvalidObjectException("Could not find a SessionFactory named: " + name);
+    result=SessionFactoryRegistry.INSTANCE.getNamedSessionFactory(name);
+    if (result == null) {
+      throw new InvalidObjectException("Could not find a SessionFactory [uuid=" + uuid + ",name="+ name+ "]");
+    }
     LOG.debugf("Resolved SessionFactory by name");
   }
- else   LOG.debugf("Resolved SessionFactory by UID");
+ else {
+    LOG.debugf("Resolved SessionFactory by UUID");
+  }
   return result;
 }

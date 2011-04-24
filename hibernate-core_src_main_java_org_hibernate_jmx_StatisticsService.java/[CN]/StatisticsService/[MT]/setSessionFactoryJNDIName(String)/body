@@ -1,14 +1,16 @@
 {
   this.sfJNDIName=sfJNDIName;
   try {
-    Object obj=new InitialContext().lookup(sfJNDIName);
-    if (obj instanceof Reference) {
-      Reference ref=(Reference)obj;
-      setSessionFactory((SessionFactory)SessionFactoryObjectFactory.getInstance((String)ref.get(0).getContent()));
+    final SessionFactory sessionFactory;
+    final Object jndiValue=new InitialContext().lookup(sfJNDIName);
+    if (jndiValue instanceof Reference) {
+      final String uuid=(String)((Reference)jndiValue).get(0).getContent();
+      sessionFactory=SessionFactoryRegistry.INSTANCE.getSessionFactory(uuid);
     }
  else {
-      setSessionFactory((SessionFactory)obj);
+      sessionFactory=(SessionFactory)jndiValue;
     }
+    setSessionFactory(sessionFactory);
   }
  catch (  NameNotFoundException e) {
     LOG.noSessionFactoryWithJndiName(sfJNDIName,e);

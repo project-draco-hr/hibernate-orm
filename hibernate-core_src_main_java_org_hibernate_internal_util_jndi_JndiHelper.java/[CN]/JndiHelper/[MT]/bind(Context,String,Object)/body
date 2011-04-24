@@ -1,6 +1,5 @@
 {
   try {
-    LOG.trace("Binding : " + name);
     ctx.rebind(name,val);
   }
  catch (  Exception e) {
@@ -9,23 +8,18 @@
       String ctxName=n.get(0);
       Context subctx=null;
       try {
-        LOG.trace("Lookup: " + ctxName);
         subctx=(Context)ctx.lookup(ctxName);
       }
- catch (      NameNotFoundException nfe) {
+ catch (      NameNotFoundException ignore) {
       }
       if (subctx != null) {
-        LOG.debugf("Found subcontext: %s",ctxName);
         ctx=subctx;
       }
  else {
-        LOG.creatingSubcontextInfo(ctxName);
         ctx=ctx.createSubcontext(ctxName);
       }
       n=n.getSuffix(1);
     }
-    LOG.trace("Binding : " + n);
     ctx.rebind(n,val);
   }
-  LOG.debugf("Bound name: %s",name);
 }

@@ -1,0 +1,26 @@
+{
+  LOG.debugf("Registering SessionFactory: %s (%s)",uuid,name == null ? "<unnamed>" : name);
+  sessionFactoryMap.put(uuid,instance);
+  if (name == null) {
+    LOG.debug("Not binding factory to JNDI, no JNDI name configured");
+    return;
+  }
+  nameUuidXref.put(name,uuid);
+  LOG.debugf("SessionFactory name : %s, attempting to bind to JNDI",name);
+  try {
+    jndiService.bind(name,instance);
+    LOG.factoryBoundToJndiName(name);
+    try {
+      jndiService.addListener(name,LISTENER);
+    }
+ catch (    Exception e) {
+      LOG.couldNotBindJndiListener();
+    }
+  }
+ catch (  JndiNameException e) {
+    LOG.invalidJndiName(name,e);
+  }
+catch (  JndiException e) {
+    LOG.unableToBindFactoryToJndi(e);
+  }
+}
