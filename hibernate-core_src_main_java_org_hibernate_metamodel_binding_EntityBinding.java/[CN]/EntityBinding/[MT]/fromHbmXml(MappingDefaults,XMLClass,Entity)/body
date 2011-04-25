@@ -1,12 +1,12 @@
 {
   this.entity=entity;
   metaAttributes=HbmHelper.extractMetas(entityClazz.getMeta(),true,defaults.getMappingMetas());
-  lazy=MappingHelper.getBooleanValue(entityClazz.getLazy(),defaults.isDefaultLazy());
+  lazy=MappingHelper.getBooleanValue(entityClazz.isLazy(),defaults.isDefaultLazy());
   discriminatorValue=MappingHelper.getStringValue(entityClazz.getDiscriminatorValue(),entity.getName());
-  dynamicUpdate=MappingHelper.getBooleanValue(entityClazz.getDynamicUpdate(),false);
-  dynamicInsert=MappingHelper.getBooleanValue(entityClazz.getDynamicInsert(),false);
+  dynamicUpdate=entityClazz.isDynamicUpdate();
+  dynamicInsert=entityClazz.isDynamicInsert();
   batchSize=MappingHelper.getIntValue(entityClazz.getBatchSize(),0);
-  selectBeforeUpdate=MappingHelper.getBooleanValue(entityClazz.getSelectBeforeUpdate(),false);
+  selectBeforeUpdate=entityClazz.isSelectBeforeUpdate();
   String optimisticLockModeString=MappingHelper.getStringValue(entityClazz.getOptimisticLock(),"version");
   if ("version".equals(optimisticLockModeString)) {
     optimisticLockMode=Versioning.OPTIMISTIC_LOCK_VERSION;
@@ -31,22 +31,22 @@
       throw new MappingException("Could not find persister class: " + entityClazz.getPersister());
     }
   }
-  XMLSqlInsert sqlInsert=entityClazz.getSqlInsert();
+  XMLSqlInsertElement sqlInsert=entityClazz.getSqlInsert();
   if (sqlInsert != null) {
-    customInsert=HbmHelper.getCustomSql(sqlInsert.getContent(),MappingHelper.getBooleanValue(sqlInsert.getCallable(),false),sqlInsert.getCheck());
+    customInsert=HbmHelper.getCustomSql(sqlInsert.getValue(),sqlInsert.isCallable(),sqlInsert.getCheck().value());
   }
-  XMLSqlDelete sqlDelete=entityClazz.getSqlDelete();
+  XMLSqlDeleteElement sqlDelete=entityClazz.getSqlDelete();
   if (sqlDelete != null) {
-    customDelete=HbmHelper.getCustomSql(sqlDelete.getContent(),MappingHelper.getBooleanValue(sqlDelete.getCallable(),false),sqlDelete.getCheck());
+    customDelete=HbmHelper.getCustomSql(sqlDelete.getValue(),sqlDelete.isCallable(),sqlDelete.getCheck().value());
   }
-  XMLSqlUpdate sqlUpdate=entityClazz.getSqlUpdate();
+  XMLSqlUpdateElement sqlUpdate=entityClazz.getSqlUpdate();
   if (sqlUpdate != null) {
-    customUpdate=HbmHelper.getCustomSql(sqlUpdate.getContent(),MappingHelper.getBooleanValue(sqlUpdate.getCallable(),false),sqlUpdate.getCheck());
+    customUpdate=HbmHelper.getCustomSql(sqlUpdate.getValue(),sqlUpdate.isCallable(),sqlUpdate.getCheck().value());
   }
   if (entityClazz.getSynchronize() != null) {
-    for (    XMLSynchronize synchronize : entityClazz.getSynchronize()) {
+    for (    XMLSynchronizeElement synchronize : entityClazz.getSynchronize()) {
       addSynchronizedTable(synchronize.getTable());
     }
   }
-  isAbstract=MappingHelper.getBooleanValue(entityClazz.getAbstract(),false);
+  isAbstract=entityClazz.isAbstract();
 }
