@@ -1,0 +1,24 @@
+{
+  ForeignKey foreignKey=getTable().createForeignKey(referencedAttributeBinding.getTable(),foreignKeyName);
+  Iterator<SimpleValue> referencingValueIterator=getValues().iterator();
+  Iterator<SimpleValue> targetValueIterator=referencedAttributeBinding.getValues().iterator();
+  while (referencingValueIterator.hasNext()) {
+    if (!targetValueIterator.hasNext()) {
+      throw new MappingException("number of values in many-to-one reference is greater than number of values in target");
+    }
+    SimpleValue referencingValue=referencingValueIterator.next();
+    SimpleValue targetValue=targetValueIterator.next();
+    if (Column.class.isInstance(referencingValue)) {
+      if (!Column.class.isInstance(targetValue)) {
+        throw new MappingException("referencing value is a column, but target is not a column");
+      }
+      foreignKey.addColumnMapping(Column.class.cast(referencingValue),Column.class.cast(targetValue));
+    }
+ else     if (Column.class.isInstance(targetValue)) {
+      throw new MappingException("referencing value is not a column, but target is a column.");
+    }
+  }
+  if (targetValueIterator.hasNext()) {
+    throw new MappingException("target value has more simple values than referencing value");
+  }
+}
