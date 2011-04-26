@@ -27,14 +27,23 @@
     jaxbTarget=XMLHibernateMapping.class;
   }
   final Object target;
+  final ContextProvidingValidationEventHandler handler=new ContextProvidingValidationEventHandler();
   try {
     JAXBContext jaxbContext=JAXBContext.newInstance(jaxbTarget);
     Unmarshaller unmarshaller=jaxbContext.createUnmarshaller();
     unmarshaller.setSchema(validationSchema);
+    unmarshaller.setEventHandler(handler);
     target=unmarshaller.unmarshal(staxEventReader);
   }
  catch (  JAXBException e) {
-    throw new MappingException("Unable to perform unmarshalling",e,origin);
+    StringBuilder builder=new StringBuilder();
+    builder.append("Unable to perform unmarshalling at line number ");
+    builder.append(handler.getLineNumber());
+    builder.append(" and column ");
+    builder.append(handler.getColumnNumber());
+    builder.append(". Message: ");
+    builder.append(handler.getMessage());
+    throw new MappingException(builder.toString(),e,origin);
   }
   return new JaxbRoot(target,origin);
 }

@@ -1,2 +1,23 @@
 {
+  Indexer indexer=new Indexer();
+  for (  Class<?> clazz : metadataSources.getAnnotatedClasses()) {
+    InputStream stream=getClass().getClassLoader().getResourceAsStream(clazz.getName().replace('.','/') + ".class");
+    try {
+      indexer.index(stream);
+    }
+ catch (    IOException e) {
+      throw new HibernateException("Unable to index");
+    }
+  }
+  Index index=indexer.complete();
+  final OrmXmlParser ormParser=new OrmXmlParser(this);
+  List<JaxbRoot<XMLEntityMappings>> mappings=new ArrayList<JaxbRoot<XMLEntityMappings>>();
+  for (  JaxbRoot<?> root : metadataSources.getJaxbRootList()) {
+    if (root.getRoot() instanceof XMLEntityMappings) {
+      mappings.add((JaxbRoot<XMLEntityMappings>)root);
+    }
+  }
+  index=ormParser.parseAndUpdateIndex(mappings,index);
+  final AnnotationBinder annotationBinder=new AnnotationBinder(this);
+  annotationBinder.bindMappedClasses(index);
 }
