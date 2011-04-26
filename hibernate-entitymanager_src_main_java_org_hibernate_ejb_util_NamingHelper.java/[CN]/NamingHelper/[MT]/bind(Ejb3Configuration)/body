@@ -1,22 +1,26 @@
 {
   String name=cfg.getHibernateConfiguration().getProperty(AvailableSettings.CONFIGURATION_JNDI_NAME);
-  if (name == null)   LOG.debugf("No JNDI name configured for binding Ejb3Configuration");
+  if (name == null) {
+    LOG.debug("No JNDI name configured for binding Ejb3Configuration");
+  }
  else {
     LOG.ejb3ConfigurationName(name);
+    JndiServiceImpl jndiService=new JndiServiceImpl(cfg.getProperties());
     try {
-      Context ctx=JndiHelper.getInitialContext(cfg.getProperties());
-      JndiHelper.bind(ctx,name,cfg);
+      jndiService.bind(name,cfg);
       LOG.boundEjb3ConfigurationToJndiName(name);
-      ((EventContext)ctx).addNamingListener(name,EventContext.OBJECT_SCOPE,LISTENER);
+      try {
+        jndiService.addListener(name,LISTENER);
+      }
+ catch (      Exception e) {
+        LOG.couldNotBindJndiListener();
+      }
     }
- catch (    InvalidNameException ine) {
-      LOG.invalidJndiName(name,ine);
+ catch (    JndiNameException e) {
+      LOG.invalidJndiName(name,e);
     }
-catch (    NamingException ne) {
-      LOG.unableToBindEjb3ConfigurationToJndi(ne);
-    }
-catch (    ClassCastException cce) {
-      LOG.initialContextDoesNotImplementEventContext();
+catch (    JndiException e) {
+      LOG.unableToBindEjb3ConfigurationToJndi(e);
     }
   }
 }
