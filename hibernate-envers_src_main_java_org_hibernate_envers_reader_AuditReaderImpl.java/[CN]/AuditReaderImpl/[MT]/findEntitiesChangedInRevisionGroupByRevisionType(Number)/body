@@ -1,0 +1,12 @@
+{
+  List<Class> clazz=findEntityTypesChangedInRevision(revision);
+  Map<RevisionType,List> result=new HashMap<RevisionType,List>();
+  for (  RevisionType revisionType : RevisionType.values()) {
+    result.put(revisionType,new ArrayList());
+    for (    Class c : clazz) {
+      List list=createQuery().forEntitiesAtRevision(c,revision,true).add(new RevisionTypeAuditExpression(revisionType,"=")).getResultList();
+      result.get(revisionType).addAll(list);
+    }
+  }
+  return result;
+}

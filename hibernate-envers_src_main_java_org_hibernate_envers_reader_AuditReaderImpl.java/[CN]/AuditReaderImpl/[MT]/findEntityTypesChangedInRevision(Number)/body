@@ -1,0 +1,20 @@
+{
+  checkNotNull(revision,"Entity revision");
+  checkPositive(revision,"Entity revision");
+  checkSession();
+  if (!verCfg.getGlobalCfg().isTrackEntitiesChangedInRevisionEnabled()) {
+    throw new AuditException("This query is designed for Envers default mechanism of tracking entities modified in a given revision." + " Extend DefaultTrackingModifiedTypesRevisionEntity, utilize @ModifiedEntityNames annotation or set " + "'org.hibernate.envers.track_entities_changed_in_revision' parameter to true.");
+  }
+  Query query=verCfg.getRevisionInfoQueryCreator().getEntitiesChangedInRevisionQuery(session,revision);
+  Set<String> modifiedEntityNames=new HashSet<String>(query.list());
+  List<Class> result=new ArrayList<Class>(modifiedEntityNames.size());
+  for (  String entityName : modifiedEntityNames) {
+    try {
+      result.add(Class.forName(entityName));
+    }
+ catch (    ClassNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  return result;
+}
