@@ -1,13 +1,10 @@
 {
   Indexer indexer=new Indexer();
   for (  Class<?> clazz : metadataSources.getAnnotatedClasses()) {
-    InputStream stream=getClass().getClassLoader().getResourceAsStream(clazz.getName().replace('.','/') + ".class");
-    try {
-      indexer.index(stream);
-    }
- catch (    IOException e) {
-      throw new HibernateException("Unable to index");
-    }
+    indexClass(indexer,clazz.getName().replace('.','/') + ".class");
+  }
+  for (  String packageName : metadataSources.getAnnotatedPackages()) {
+    indexClass(indexer,packageName.replace('.','/') + "/package-info.class");
   }
   Index index=indexer.complete();
   final OrmXmlParser ormParser=new OrmXmlParser(this);
@@ -19,5 +16,6 @@
   }
   index=ormParser.parseAndUpdateIndex(mappings,index);
   final AnnotationBinder annotationBinder=new AnnotationBinder(this);
+  annotationBinder.bindGlobalAnnotations(index);
   annotationBinder.bindMappedClasses(index);
 }
