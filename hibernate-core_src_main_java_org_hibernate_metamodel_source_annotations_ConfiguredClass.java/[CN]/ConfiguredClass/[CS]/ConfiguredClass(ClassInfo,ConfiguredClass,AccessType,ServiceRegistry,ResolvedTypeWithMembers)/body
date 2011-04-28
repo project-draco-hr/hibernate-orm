@@ -7,7 +7,11 @@
   this.clazz=serviceRegistry.getService(ClassLoaderService.class).classForName(info.toString());
   isMappedSuperClass=mappedSuperClassAnnotation != null;
   classAccessType=determineClassAccessType();
-  List<MappedProperty> tmpProperties=collectMappedProperties(resolvedType);
-  Collections.sort(tmpProperties);
-  mappedProperties=Collections.unmodifiableList(tmpProperties);
+  List<MappedProperty> properties=collectMappedProperties(resolvedType);
+  Collections.sort(properties);
+  Map<String,MappedProperty> tmpMap=new LinkedHashMap<String,MappedProperty>();
+  for (  MappedProperty property : properties) {
+    tmpMap.put(property.getName(),property);
+  }
+  mappedProperties=Collections.unmodifiableMap(tmpMap);
 }

@@ -3,7 +3,19 @@
   String idName=JandexHelper.getPropertyName(idAnnotation.target());
   entityBinding.getEntity().getOrCreateSingularAttribute(idName);
   SimpleAttributeBinding idBinding=entityBinding.makeSimplePrimaryKeyAttributeBinding(idName);
+  MappedProperty idProperty=entity.getMappedProperty(idName);
   AnnotationSimpleAttributeDomainState domainState=new AnnotationSimpleAttributeDomainState();
+  HibernateTypeDescriptor typeDescriptor=new HibernateTypeDescriptor();
+  typeDescriptor.setTypeName(idProperty.getType().getName());
+  domainState.typeDescriptor=typeDescriptor;
+  domainState.attribute=entityBinding.getEntity().getOrCreateSingularAttribute(idProperty.getName());
   idBinding.initialize(domainState);
-  idBinding.initializeTupleValue(new AnnotationSimpleAttributeRelationalState());
+  AnnotationColumnRelationalState columnRelationsState=new AnnotationColumnRelationalState();
+  columnRelationsState.namingStrategy=meta.getNamingStrategy();
+  columnRelationsState.columnName=idProperty.getColumnName();
+  columnRelationsState.unique=true;
+  columnRelationsState.nullable=false;
+  AnnotationSimpleAttributeRelationalState relationalState=new AnnotationSimpleAttributeRelationalState();
+  relationalState.valueStates.add(columnRelationsState);
+  idBinding.initializeTupleValue(relationalState);
 }
