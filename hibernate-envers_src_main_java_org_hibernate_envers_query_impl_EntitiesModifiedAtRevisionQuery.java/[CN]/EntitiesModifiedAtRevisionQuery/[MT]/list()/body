@@ -1,0 +1,18 @@
+{
+  AuditEntitiesConfiguration verEntCfg=verCfg.getAuditEntCfg();
+  String revisionPropertyPath=verEntCfg.getRevisionNumberPath();
+  qb.getRootParameters().addWhereWithParam(revisionPropertyPath,"=",revision);
+  for (  AuditCriterion criterion : criterions) {
+    criterion.addToQuery(verCfg,entityName,qb,qb.getRootParameters());
+  }
+  Query query=buildQuery();
+  List queryResult=query.list();
+  if (hasProjection) {
+    return queryResult;
+  }
+ else {
+    List result=new ArrayList();
+    entityInstantiator.addInstancesFromVersionsEntities(entityName,result,queryResult,revision);
+    return result;
+  }
+}
