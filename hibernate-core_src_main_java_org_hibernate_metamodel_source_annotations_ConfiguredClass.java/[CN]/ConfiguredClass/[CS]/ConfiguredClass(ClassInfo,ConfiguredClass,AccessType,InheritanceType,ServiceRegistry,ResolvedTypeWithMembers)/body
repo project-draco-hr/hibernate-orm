@@ -3,10 +3,16 @@
   this.parent=parent;
   this.isRoot=parent == null;
   this.hierarchyAccessType=hierarchyAccessType;
-  AnnotationInstance mappedSuperClassAnnotation=assertNotEntityAndMappedSuperClass();
+  this.inheritanceType=inheritanceType;
   this.clazz=serviceRegistry.getService(ClassLoaderService.class).classForName(info.toString());
+  AnnotationInstance mappedSuperClassAnnotation=JandexHelper.getSingleAnnotation(classInfo,JPADotNames.MAPPED_SUPER_CLASS);
   isMappedSuperClass=mappedSuperClassAnnotation != null;
+  AnnotationInstance embeddableAnnotation=JandexHelper.getSingleAnnotation(classInfo,JPADotNames.MAPPED_SUPER_CLASS);
+  isEmbeddable=embeddableAnnotation != null;
+  tableAnnotation=JandexHelper.getSingleAnnotation(classInfo,JPADotNames.TABLE);
   classAccessType=determineClassAccessType();
+  hasOwnTable=definesItsOwnTable();
+  primaryTableName=determinePrimaryTableName();
   List<MappedProperty> properties=collectMappedProperties(resolvedType);
   Collections.sort(properties);
   Map<String,MappedProperty> tmpMap=new LinkedHashMap<String,MappedProperty>();

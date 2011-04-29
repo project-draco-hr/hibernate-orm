@@ -1,0 +1,25 @@
+{
+@Entity @Inheritance(strategy=InheritanceType.JOINED) @Table(name="FOO") class A {
+    @Id @GeneratedValue private int id;
+  }
+@Entity class B extends A {
+  }
+  Index index=JandexHelper.indexForClass(service,B.class,A.class);
+  Set<ConfiguredClassHierarchy> hierarchies=ConfiguredClassHierarchyBuilder.createEntityHierarchies(index,serviceRegistry);
+  assertEquals("There should be only one hierarchy",1,hierarchies.size());
+  Iterator<ConfiguredClass> iter=hierarchies.iterator().next().iterator();
+  ConfiguredClass configuredClass=iter.next();
+  ClassInfo info=configuredClass.getClassInfo();
+  assertEquals("wrong class",DotName.createSimple(A.class.getName()),info.name());
+  assertTrue(configuredClass.hasOwnTable());
+  Assert.assertEquals("wrong inheritance type",InheritanceType.JOINED,configuredClass.getInheritanceType());
+  Assert.assertEquals("wrong table name","FOO",configuredClass.getPrimaryTableName());
+  assertTrue(iter.hasNext());
+  configuredClass=iter.next();
+  info=configuredClass.getClassInfo();
+  assertEquals("wrong class",DotName.createSimple(B.class.getName()),info.name());
+  assertTrue(configuredClass.hasOwnTable());
+  Assert.assertEquals("wrong inheritance type",InheritanceType.JOINED,configuredClass.getInheritanceType());
+  Assert.assertEquals("wrong table name","B",configuredClass.getPrimaryTableName());
+  assertFalse(iter.hasNext());
+}

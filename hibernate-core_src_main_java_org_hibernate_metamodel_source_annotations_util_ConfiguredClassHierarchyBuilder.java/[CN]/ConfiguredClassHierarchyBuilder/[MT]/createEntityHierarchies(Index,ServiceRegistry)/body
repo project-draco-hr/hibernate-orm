@@ -2,9 +2,7 @@
   ClassLoaderService classLoaderService=serviceRegistry.getService(ClassLoaderService.class);
   Map<ClassInfo,List<ClassInfo>> processedClassInfos=new HashMap<ClassInfo,List<ClassInfo>>();
   for (  ClassInfo info : index.getKnownClasses()) {
-    AnnotationInstance jpaEntityAnnotation=JandexHelper.getSingleAnnotation(info,JPADotNames.ENTITY);
-    AnnotationInstance mappedSuperClassAnnotation=JandexHelper.getSingleAnnotation(info,JPADotNames.MAPPED_SUPER_CLASS);
-    if (jpaEntityAnnotation == null && mappedSuperClassAnnotation == null) {
+    if (!isConfiguredClass(info)) {
       continue;
     }
     if (processedClassInfos.containsKey(info)) {
