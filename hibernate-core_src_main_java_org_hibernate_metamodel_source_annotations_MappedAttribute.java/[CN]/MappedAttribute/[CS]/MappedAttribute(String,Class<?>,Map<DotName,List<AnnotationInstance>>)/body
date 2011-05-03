@@ -2,4 +2,10 @@
   this.name=name;
   this.type=type;
   this.annotations=annotations;
+  List<AnnotationInstance> columnAnnotations=annotations.get(JPADotNames.COLUMN);
+  if (columnAnnotations != null && columnAnnotations.size() > 1) {
+    throw new AssertionFailure("There can only be one @Column annotation per mapped attribute");
+  }
+  AnnotationInstance columnAnnotation=columnAnnotations == null ? null : columnAnnotations.get(0);
+  columnValues=new ColumnValues(columnAnnotation);
 }

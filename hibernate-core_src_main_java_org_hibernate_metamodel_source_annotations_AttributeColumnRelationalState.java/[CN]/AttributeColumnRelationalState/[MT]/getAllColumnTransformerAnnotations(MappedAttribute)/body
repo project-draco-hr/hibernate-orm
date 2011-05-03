@@ -1,0 +1,19 @@
+{
+  List<AnnotationInstance> allColumnTransformerAnnotations=new ArrayList<AnnotationInstance>();
+  List<AnnotationInstance> columnTransformersAnnotations=attribute.annotations(HibernateDotNames.COLUMN_TRANSFORMERS);
+  if (columnTransformersAnnotations.size() > 1) {
+    throw new AssertionFailure("There cannot be more than one @ColumnTransformers annotation per mapped attribute");
+  }
+  if (columnTransformersAnnotations.size() == 1) {
+    AnnotationInstance[] annotationInstances=allColumnTransformerAnnotations.get(0).value().asNestedArray();
+    allColumnTransformerAnnotations.addAll(Arrays.asList(annotationInstances));
+  }
+  List<AnnotationInstance> columnTransformerAnnotations=attribute.annotations(HibernateDotNames.COLUMN_TRANSFORMER);
+  if (columnTransformerAnnotations.size() > 1) {
+    throw new AssertionFailure("There cannot be more than one @ColumnTransformer annotation per mapped attribute");
+  }
+  if (columnTransformerAnnotations.size() == 1) {
+    allColumnTransformerAnnotations.add(columnTransformerAnnotations.get(0));
+  }
+  return allColumnTransformerAnnotations;
+}
