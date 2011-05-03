@@ -1,5 +1,5 @@
 {
-  String name=ReflectionHelper.getPropertyName(member);
+  final String name=ReflectionHelper.getPropertyName(member);
   ResolvedMember[] resolvedMembers;
   if (member instanceof Field) {
     resolvedMembers=resolvedType.getMemberFields();
@@ -7,6 +7,7 @@
  else {
     resolvedMembers=resolvedType.getMemberMethods();
   }
-  Type type=findResolvedType(member.getName(),resolvedMembers);
-  return new MappedProperty(name,(Class)type);
+  final Type type=findResolvedType(member.getName(),resolvedMembers);
+  final Map<DotName,List<AnnotationInstance>> annotations=JandexHelper.getMemberAnnotations(classInfo,member.getName());
+  return new MappedAttribute(name,(Class)type,annotations);
 }

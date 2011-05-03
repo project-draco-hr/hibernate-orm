@@ -1,0 +1,13 @@
+{
+class Foo {
+    @Column @Basic private String bar;
+    private String fubar;
+  }
+  Index index=JandexHelper.indexForClass(classLoaderService,Foo.class);
+  ClassInfo classInfo=index.getClassByName(DotName.createSimple(Foo.class.getName()));
+  Map<DotName,List<AnnotationInstance>> memberAnnotations=JandexHelper.getMemberAnnotations(classInfo,"bar");
+  assertTrue("property bar should defines @Column annotation",memberAnnotations.containsKey(DotName.createSimple(Column.class.getName())));
+  assertTrue("property bar should defines @Basic annotation",memberAnnotations.containsKey(DotName.createSimple(Basic.class.getName())));
+  memberAnnotations=JandexHelper.getMemberAnnotations(classInfo,"fubar");
+  assertTrue("there should be no annotations in fubar",memberAnnotations.isEmpty());
+}

@@ -1,3 +1,17 @@
 {
-  final Schema schema=meta.getDatabase().getSchema(null);
+  final Schema schema=meta.getDatabase().getSchema(schemaName);
+  final Identifier tableName=Identifier.toIdentifier(configuredClass.getPrimaryTableName());
+  org.hibernate.metamodel.relational.Table table=schema.getTable(tableName);
+  if (table == null) {
+    table=schema.createTable(tableName);
+  }
+  entityBinding.setBaseTable(table);
+  AnnotationInstance hibernateTableAnnotation=JandexHelper.getSingleAnnotation(configuredClass.getClassInfo(),HibernateDotNames.TABLE);
+  if (hibernateTableAnnotation != null && hibernateTableAnnotation.value("comment") != null) {
+    table.addComment(hibernateTableAnnotation.value("comment").asString().trim());
+  }
+  AnnotationInstance checkAnnotation=JandexHelper.getSingleAnnotation(configuredClass.getClassInfo(),HibernateDotNames.CHECK);
+  if (checkAnnotation != null) {
+    table.addCheckConstraint(checkAnnotation.value("constraints").asString());
+  }
 }

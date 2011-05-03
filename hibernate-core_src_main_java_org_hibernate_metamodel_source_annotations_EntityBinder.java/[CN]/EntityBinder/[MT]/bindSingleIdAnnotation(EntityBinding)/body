@@ -1,18 +1,18 @@
 {
-  AnnotationInstance idAnnotation=JandexHelper.getSingleAnnotation(entity.getClassInfo(),JPADotNames.ID);
+  AnnotationInstance idAnnotation=JandexHelper.getSingleAnnotation(configuredClass.getClassInfo(),JPADotNames.ID);
   String idName=JandexHelper.getPropertyName(idAnnotation.target());
   entityBinding.getEntity().getOrCreateSingularAttribute(idName);
   SimpleAttributeBinding idBinding=entityBinding.makeSimplePrimaryKeyAttributeBinding(idName);
-  MappedProperty idProperty=entity.getMappedProperty(idName);
+  MappedAttribute idAttribute=configuredClass.getMappedProperty(idName);
   AnnotationSimpleAttributeDomainState domainState=new AnnotationSimpleAttributeDomainState();
   HibernateTypeDescriptor typeDescriptor=new HibernateTypeDescriptor();
-  typeDescriptor.setTypeName(idProperty.getType().getName());
+  typeDescriptor.setTypeName(idAttribute.getType().getName());
   domainState.typeDescriptor=typeDescriptor;
-  domainState.attribute=entityBinding.getEntity().getOrCreateSingularAttribute(idProperty.getName());
+  domainState.attribute=entityBinding.getEntity().getOrCreateSingularAttribute(idAttribute.getName());
   idBinding.initialize(domainState);
   AnnotationColumnRelationalState columnRelationsState=new AnnotationColumnRelationalState();
   columnRelationsState.namingStrategy=meta.getNamingStrategy();
-  columnRelationsState.columnName=idProperty.getColumnName();
+  columnRelationsState.columnName=idAttribute.getColumnName();
   columnRelationsState.unique=true;
   columnRelationsState.nullable=false;
   AnnotationSimpleAttributeRelationalState relationalState=new AnnotationSimpleAttributeRelationalState();
