@@ -1,0 +1,23 @@
+{
+  Session s=openSession();
+  s.getTransaction().begin();
+  Criteria rootCriteria=s.createCriteria(Order.class);
+  assertSame(rootCriteria,rootCriteria.createAlias("orderLines","ol",JoinFragment.LEFT_OUTER_JOIN));
+  assertSame(rootCriteria,rootCriteria.add(Restrictions.or(Restrictions.isNull("ol.articleId"),Restrictions.eq("ol.articleId","1000"))));
+  List orders=rootCriteria.list();
+  assertEquals(2,orders.size());
+  for (  Object order : orders) {
+    Order o=(Order)order;
+    if (order1.getOrderId() == o.getOrderId()) {
+      assertEquals("1000",((OrderLine)o.getLines().iterator().next()).getArticleId());
+    }
+ else     if (order2.getOrderId() == o.getOrderId()) {
+      assertEquals(0,o.getLines().size());
+    }
+ else {
+      fail("unknown order");
+    }
+  }
+  s.getTransaction().commit();
+  s.close();
+}
