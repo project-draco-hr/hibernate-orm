@@ -4,14 +4,10 @@
   entityBinding.getEntity().getOrCreateSingularAttribute(idName);
   SimpleAttributeBinding idBinding=entityBinding.makeSimplePrimaryKeyAttributeBinding(idName);
   MappedAttribute idAttribute=configuredClass.getMappedProperty(idName);
-  AnnotationSimpleAttributeDomainState domainState=new AnnotationSimpleAttributeDomainState();
-  HibernateTypeDescriptor typeDescriptor=new HibernateTypeDescriptor();
-  typeDescriptor.setTypeName(idAttribute.getType().getName());
-  domainState.typeDescriptor=typeDescriptor;
-  domainState.attribute=entityBinding.getEntity().getOrCreateSingularAttribute(idAttribute.getName());
+  AttributeDomainState domainState=new AttributeDomainState(entityBinding,idAttribute);
   idBinding.initialize(domainState);
   AttributeColumnRelationalState columnRelationsState=new AttributeColumnRelationalState(idAttribute,meta);
-  AnnotationSimpleAttributeRelationalState relationalState=new AnnotationSimpleAttributeRelationalState();
-  relationalState.valueStates.add(columnRelationsState);
+  AttributeTupleRelationalState relationalState=new AttributeTupleRelationalState();
+  relationalState.addValueState(columnRelationsState);
   idBinding.initializeSimpleTupleValue(relationalState);
 }

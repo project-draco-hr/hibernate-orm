@@ -5,16 +5,18 @@
     }
     String attributeName=mappedAttribute.getName();
     entityBinding.getEntity().getOrCreateSingularAttribute(attributeName);
-    SimpleAttributeBinding simpleBinding=entityBinding.makeSimpleAttributeBinding(attributeName);
-    AnnotationSimpleAttributeDomainState domainState=new AnnotationSimpleAttributeDomainState();
-    HibernateTypeDescriptor typeDescriptor=new HibernateTypeDescriptor();
-    typeDescriptor.setTypeName(mappedAttribute.getType().getName());
-    domainState.typeDescriptor=typeDescriptor;
-    domainState.attribute=entityBinding.getEntity().getOrCreateSingularAttribute(attributeName);
-    simpleBinding.initialize(domainState);
+    SimpleAttributeBinding attributeBinding;
+    if (mappedAttribute.isVersioned()) {
+      attributeBinding=entityBinding.makeVersionBinding(attributeName);
+    }
+ else {
+      attributeBinding=entityBinding.makeSimpleAttributeBinding(attributeName);
+    }
+    AttributeDomainState domainState=new AttributeDomainState(entityBinding,mappedAttribute);
+    attributeBinding.initialize(domainState);
     AttributeColumnRelationalState columnRelationsState=new AttributeColumnRelationalState(mappedAttribute,meta);
-    AnnotationSimpleAttributeRelationalState relationalState=new AnnotationSimpleAttributeRelationalState();
-    relationalState.valueStates.add(columnRelationsState);
-    simpleBinding.initializeSimpleTupleValue(relationalState);
+    AttributeTupleRelationalState relationalState=new AttributeTupleRelationalState();
+    relationalState.addValueState(columnRelationsState);
+    attributeBinding.initializeSimpleTupleValue(relationalState);
   }
 }
