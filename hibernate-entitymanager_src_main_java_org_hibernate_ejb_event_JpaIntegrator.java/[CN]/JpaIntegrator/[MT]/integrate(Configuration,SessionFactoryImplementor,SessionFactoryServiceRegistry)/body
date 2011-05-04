@@ -13,10 +13,11 @@
   eventListenerRegistry.setListeners(EventType.SAVE,new EJB3SaveEventListener());
   eventListenerRegistry.setListeners(EventType.SAVE_UPDATE,new EJB3SaveOrUpdateEventListener());
   if (isSecurityEnabled) {
-    eventListenerRegistry.prependListeners(EventType.PRE_DELETE,new JACCPreDeleteEventListener());
-    eventListenerRegistry.prependListeners(EventType.PRE_INSERT,new JACCPreInsertEventListener());
-    eventListenerRegistry.prependListeners(EventType.PRE_UPDATE,new JACCPreUpdateEventListener());
-    eventListenerRegistry.prependListeners(EventType.PRE_LOAD,new JACCPreLoadEventListener());
+    final String jaccContextId=configuration.getProperty(Environment.JACC_CONTEXTID);
+    eventListenerRegistry.prependListeners(EventType.PRE_DELETE,new JACCPreDeleteEventListener(jaccContextId));
+    eventListenerRegistry.prependListeners(EventType.PRE_INSERT,new JACCPreInsertEventListener(jaccContextId));
+    eventListenerRegistry.prependListeners(EventType.PRE_UPDATE,new JACCPreUpdateEventListener(jaccContextId));
+    eventListenerRegistry.prependListeners(EventType.PRE_LOAD,new JACCPreLoadEventListener(jaccContextId));
   }
   eventListenerRegistry.prependListeners(EventType.POST_DELETE,new EJB3PostDeleteEventListener());
   eventListenerRegistry.prependListeners(EventType.POST_INSERT,new EJB3PostInsertEventListener());
