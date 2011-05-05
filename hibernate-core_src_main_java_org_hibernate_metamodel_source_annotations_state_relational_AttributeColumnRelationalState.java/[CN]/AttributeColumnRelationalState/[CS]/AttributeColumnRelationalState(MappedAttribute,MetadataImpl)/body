@@ -5,16 +5,8 @@
   unique=columnValues.isUnique();
   nullable=columnValues.isNullable();
   size=createSize(columnValues.getLength(),columnValues.getScale(),columnValues.getPrecision());
-  List<AnnotationInstance> checkAnnotations=attribute.annotations(HibernateDotNames.CHECK);
-  if (checkAnnotations.size() > 1) {
-    throw new AssertionFailure("There cannot be more than one @Check annotation per mapped attribute");
-  }
-  if (checkAnnotations.size() == 1) {
-    checkCondition=checkAnnotations.get(0).value("constraints").toString();
-  }
- else {
-    checkCondition=null;
-  }
+  checkCondition=parseCheckAnnotation(attribute);
+  indexes=parseIndexAnnotation(attribute);
   String[] readWrite;
   List<AnnotationInstance> columnTransformerAnnotations=getAllColumnTransformerAnnotations(attribute);
   readWrite=createCustomReadWrite(columnTransformerAnnotations);

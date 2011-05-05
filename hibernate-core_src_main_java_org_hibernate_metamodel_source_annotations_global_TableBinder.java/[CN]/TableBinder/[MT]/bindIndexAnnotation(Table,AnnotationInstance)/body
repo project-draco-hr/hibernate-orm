@@ -1,0 +1,16 @@
+{
+  String indexName=indexAnnotation.value("name").asString();
+  if (indexAnnotation.value("columnNames") == null) {
+    LOG.noColumnsSpecifiedForIndex(indexName,table.toLoggableString());
+    return;
+  }
+  org.hibernate.metamodel.relational.Index index=table.getOrCreateIndex(indexName);
+  String[] columnNames=indexAnnotation.value("columnNames").asStringArray();
+  for (  String columnName : columnNames) {
+    Column column=findColumn(table,columnName);
+    if (column == null) {
+      throw new AnnotationException("@Index references a unknown column: " + columnName);
+    }
+    index.addColumn(column);
+  }
+}

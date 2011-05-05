@@ -1,0 +1,12 @@
+{
+  for (  AnnotationInstance tableAnnotation : tableAnnotations) {
+    String tableName=tableAnnotation.value("appliesTo").asString();
+    ObjectName objectName=new ObjectName(tableName);
+    Schema schema=meta.getDatabase().getSchema(objectName.getSchema(),objectName.getCatalog());
+    Table table=schema.getTable(objectName.getName());
+    if (table == null) {
+      continue;
+    }
+    bindHibernateTableAnnotation(table,tableAnnotation);
+  }
+}
