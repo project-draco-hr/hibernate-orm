@@ -3,10 +3,12 @@
   AuditWorkUnit vwu;
   while ((vwu=undoQueue.poll()) != null) {
     vwu.undo(session);
-    revisionInfoGenerator.removeEntityFromRevision(vwu.getEntityName(),currentRevisionData);
   }
   while ((vwu=workUnits.poll()) != null) {
     vwu.perform(session,revisionData);
-    revisionInfoGenerator.addEntityToRevision(vwu.getEntityName(),currentRevisionData);
+    if (!(vwu instanceof PersistentCollectionChangeWorkUnit)) {
+      Class entityClass=getEntityClass(this.session,session,vwu.getEntityName());
+      revisionInfoGenerator.entityChanged(entityClass,vwu.getEntityName(),vwu.getEntityId(),vwu.getRevisionType(),currentRevisionData);
+    }
   }
 }
