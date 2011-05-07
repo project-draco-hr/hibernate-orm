@@ -1,3 +1,45 @@
 {
+  boolean mutable=true;
+  boolean dynamicInsert=false;
+  boolean dynamicUpdate=false;
+  boolean selectBeforeUpdate=false;
+  PolymorphismType polymorphism=PolymorphismType.IMPLICIT;
+  OptimisticLockType optimisticLock=OptimisticLockType.VERSION;
   AnnotationInstance hibernateEntityAnnotation=JandexHelper.getSingleAnnotation(configuredClass.getClassInfo(),HibernateDotNames.ENTITY);
+  if (hibernateEntityAnnotation != null) {
+    if (hibernateEntityAnnotation.value("mutable") != null) {
+      mutable=hibernateEntityAnnotation.value("mutable").asBoolean();
+    }
+    if (hibernateEntityAnnotation.value("dynamicInsert") != null) {
+      dynamicInsert=hibernateEntityAnnotation.value("dynamicInsert").asBoolean();
+    }
+    if (hibernateEntityAnnotation.value("dynamicUpdate") != null) {
+      dynamicUpdate=hibernateEntityAnnotation.value("dynamicUpdate").asBoolean();
+    }
+    if (hibernateEntityAnnotation.value("selectBeforeUpdate") != null) {
+      selectBeforeUpdate=hibernateEntityAnnotation.value("selectBeforeUpdate").asBoolean();
+    }
+    if (hibernateEntityAnnotation.value("polymorphism") != null) {
+      polymorphism=PolymorphismType.valueOf(hibernateEntityAnnotation.value("polymorphism").asEnum());
+    }
+    if (hibernateEntityAnnotation.value("optimisticLock") != null) {
+      optimisticLock=OptimisticLockType.valueOf(hibernateEntityAnnotation.value("optimisticLock").asEnum());
+    }
+    if (hibernateEntityAnnotation.value("persister") != null) {
+      String persister=(hibernateEntityAnnotation.value("persister").toString());
+      ClassLoaderService classLoaderService=meta.getServiceRegistry().getService(ClassLoaderService.class);
+      Class<?> persisterClass=classLoaderService.classForName(persister);
+      entityBinding.setEntityPersisterClass(persisterClass);
+    }
+  }
+  AnnotationInstance immutableAnnotation=JandexHelper.getSingleAnnotation(configuredClass.getClassInfo(),HibernateDotNames.IMMUTABLE);
+  if (immutableAnnotation != null) {
+    mutable=false;
+  }
+  entityBinding.setMutable(mutable);
+  entityBinding.setDynamicInsert(dynamicInsert);
+  entityBinding.setDynamicUpdate(dynamicUpdate);
+  entityBinding.setSelectBeforeUpdate(selectBeforeUpdate);
+  entityBinding.setExplicitPolymorphism(PolymorphismType.EXPLICIT.equals(polymorphism));
+  entityBinding.setOptimisticLockMode(optimisticLock.ordinal());
 }
