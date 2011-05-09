@@ -1,9 +1,10 @@
 {
-  List<AnnotationInstance> fetchProfilesAnnotations=index.getAnnotations(HibernateDotNames.FETCH_PROFILES);
-  for (  AnnotationInstance fetchProfilesAnnotation : fetchProfilesAnnotations) {
-    AnnotationInstance fetchProfiles[]=fetchProfilesAnnotation.value().asNestedArray();
-    bindFetchProfileAnnotations(meta,Arrays.asList(fetchProfiles));
+  for (  AnnotationInstance fetchProfile : jandex.getAnnotations(HibernateDotNames.FETCH_PROFILE)) {
+    bind(metadata,jandex,fetchProfile);
   }
-  List<AnnotationInstance> fetchProfileAnnotations=index.getAnnotations(HibernateDotNames.FETCH_PROFILE);
-  bindFetchProfileAnnotations(meta,fetchProfileAnnotations);
+  for (  AnnotationInstance fetchProfiles : jandex.getAnnotations(HibernateDotNames.FETCH_PROFILES)) {
+    for (    AnnotationInstance fetchProfile : JandexHelper.getValueAsArray(fetchProfiles,"value")) {
+      bind(metadata,jandex,fetchProfile);
+    }
+  }
 }

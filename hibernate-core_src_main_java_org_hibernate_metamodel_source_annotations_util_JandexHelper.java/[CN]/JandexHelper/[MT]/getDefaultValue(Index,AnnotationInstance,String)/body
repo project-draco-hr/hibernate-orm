@@ -1,0 +1,17 @@
+{
+  String name=annotation.name().toString();
+  String fqElement=name + '.' + element;
+  Object val=DEFAULT_VALUES_BY_ELEMENT.get(fqElement);
+  if (val != null)   return val;
+  try {
+    val=Index.class.getClassLoader().loadClass(name).getMethod(element).getDefaultValue();
+    DEFAULT_VALUES_BY_ELEMENT.put(fqElement,val);
+    return val == null ? null : val;
+  }
+ catch (  RuntimeException error) {
+    throw error;
+  }
+catch (  Exception error) {
+    throw new AnnotationException(error);
+  }
+}

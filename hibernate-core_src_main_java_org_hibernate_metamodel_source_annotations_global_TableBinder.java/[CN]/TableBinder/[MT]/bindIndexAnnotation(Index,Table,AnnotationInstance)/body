@@ -1,0 +1,14 @@
+{
+  String indexName=JandexHelper.getValueAsString(jandex,indexAnnotation,"appliesTo");
+  String[] columnNames=(String[])JandexHelper.getValue(jandex,indexAnnotation,"columnNames");
+  if (columnNames == null) {
+    LOG.noColumnsSpecifiedForIndex(indexName,table.toLoggableString());
+    return;
+  }
+  org.hibernate.metamodel.relational.Index index=table.getOrCreateIndex(indexName);
+  for (  String columnName : columnNames) {
+    Column column=findColumn(table,columnName);
+    if (column == null)     throw new AnnotationException("@Index references a unknown column: " + columnName);
+    index.addColumn(column);
+  }
+}

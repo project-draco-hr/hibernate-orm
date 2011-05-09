@@ -1,0 +1,29 @@
+{
+  String name=JandexHelper.getValueAsString(jandex,annotation,"name");
+  if (StringHelper.isEmpty(name))   throw new AnnotationException("A named native query must have a name when used in class or package level");
+  String query=JandexHelper.getValueAsString(jandex,annotation,"query");
+  String resultSetMapping=JandexHelper.getValueAsString(jandex,annotation,"resultSetMapping");
+  AnnotationInstance[] hints=JandexHelper.getValueAsArray(annotation,"hints");
+  boolean cacheable=getBoolean(jandex,hints,"org.hibernate.cacheable",name);
+  String cacheRegion=getString(jandex,hints,QueryHints.CACHE_REGION);
+  if (StringHelper.isEmpty(cacheRegion))   cacheRegion=null;
+  Integer timeout=getTimeout(jandex,hints,query);
+  if (timeout != null && timeout < 0)   timeout=null;
+  Integer fetchSize=getInteger(jandex,hints,QueryHints.FETCH_SIZE,name);
+  if (fetchSize != null && fetchSize < 0)   fetchSize=null;
+  FlushMode flushMode=getFlushMode(jandex,hints,QueryHints.FLUSH_MODE,name);
+  CacheMode cacheMode=getCacheMode(jandex,hints,QueryHints.CACHE_MODE,name);
+  boolean readOnly=getBoolean(jandex,hints,QueryHints.READ_ONLY,name);
+  String comment=getString(jandex,hints,QueryHints.COMMENT);
+  if (StringHelper.isEmpty(comment))   comment=null;
+  boolean callable=getBoolean(jandex,hints,QueryHints.CALLABLE,name);
+  NamedSQLQueryDefinition def;
+  if (StringHelper.isNotEmpty(resultSetMapping))   def=new NamedSQLQueryDefinition(query,resultSetMapping,null,cacheable,cacheRegion,timeout,fetchSize,flushMode,cacheMode,readOnly,comment,null,callable);
+ else {
+    String resultClass=JandexHelper.getValueAsString(jandex,annotation,"resultClass");
+    if (void.class.equals(resultClass))     throw new NotYetImplementedException("Pure native scalar queries are not yet supported");
+    def=new NamedSQLQueryDefinition(query,new NativeSQLQueryRootReturn[]{new NativeSQLQueryRootReturn("alias1",resultClass,new HashMap(),LockMode.READ)},null,cacheable,cacheRegion,timeout,fetchSize,flushMode,cacheMode,readOnly,comment,null,callable);
+  }
+  metadata.addNamedNativeQuery(name,def);
+  LOG.debugf("Binding named native query: %s => %s",name,query);
+}

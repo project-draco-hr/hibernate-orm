@@ -1,13 +1,14 @@
 {
   for (  XMLFetchProfileElement fetchProfile : fetchProfiles) {
     String profileName=fetchProfile.getName();
-    org.hibernate.metamodel.binding.FetchProfile profile=hibernateXmlBinder.getMetadata().findOrCreateFetchProfile(profileName,MetadataSource.HBM);
+    Set<Fetch> fetches=new HashSet<Fetch>();
     for (    XMLFetch fetch : fetchProfile.getFetch()) {
       String entityName=fetch.getEntity() == null ? containingEntityName : fetch.getEntity();
       if (entityName == null) {
         throw new MappingException("could not determine entity for fetch-profile fetch [" + profileName + "]:["+ fetch.getAssociation()+ "]");
       }
-      profile.addFetch(entityName,fetch.getAssociation(),fetch.getStyle());
+      fetches.add(new Fetch(entityName,fetch.getAssociation(),fetch.getStyle()));
     }
+    hibernateXmlBinder.getMetadata().addFetchProfile(new FetchProfile(profileName,fetches));
   }
 }

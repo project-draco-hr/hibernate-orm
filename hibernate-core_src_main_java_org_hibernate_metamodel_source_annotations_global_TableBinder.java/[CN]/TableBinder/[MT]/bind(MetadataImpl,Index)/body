@@ -1,9 +1,10 @@
 {
-  List<AnnotationInstance> tablesAnnotations=index.getAnnotations(HibernateDotNames.TABLES);
-  for (  AnnotationInstance tableAnnotation : tablesAnnotations) {
-    AnnotationInstance tables[]=tableAnnotation.value().asNestedArray();
-    bindTablesAnnotation(meta,Arrays.asList(tables));
+  for (  AnnotationInstance tableAnnotation : jandex.getAnnotations(HibernateDotNames.TABLE)) {
+    bind(metadata,jandex,tableAnnotation);
   }
-  List<AnnotationInstance> tableAnnotations=index.getAnnotations(HibernateDotNames.TABLE);
-  bindTablesAnnotation(meta,tableAnnotations);
+  for (  AnnotationInstance tables : jandex.getAnnotations(HibernateDotNames.TABLES)) {
+    for (    AnnotationInstance table : JandexHelper.getValueAsArray(tables,"value")) {
+      bind(metadata,jandex,table);
+    }
+  }
 }
