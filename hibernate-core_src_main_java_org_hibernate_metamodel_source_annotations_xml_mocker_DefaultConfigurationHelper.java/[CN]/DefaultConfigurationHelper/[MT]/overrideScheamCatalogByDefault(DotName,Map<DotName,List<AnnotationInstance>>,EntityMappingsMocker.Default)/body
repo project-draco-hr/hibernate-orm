@@ -1,0 +1,22 @@
+{
+  List<AnnotationInstance> annotationInstanceList=indexedAnnotationMap.get(annName);
+  if (annotationInstanceList == null || annotationInstanceList.isEmpty()) {
+    return;
+  }
+  List<AnnotationInstance> newAnnotationInstanceList=new ArrayList<AnnotationInstance>(annotationInstanceList.size());
+  for (  AnnotationInstance annotationInstance : annotationInstanceList) {
+    if (annName.equals(IndexedAnnotationFilter.SECONDARY_TABLES)) {
+      AnnotationInstance[] secondaryTableAnnotationInstanceArray=annotationInstance.value().asNestedArray();
+      AnnotationValue[] newAnnotationValueArray=new AnnotationValue[secondaryTableAnnotationInstanceArray.length];
+      for (int i=0; i < secondaryTableAnnotationInstanceArray.length; i++) {
+        newAnnotationValueArray[i]=AnnotationValue.createNestedAnnotationValue("",overrideScheamCatalogByDefault(secondaryTableAnnotationInstanceArray[i],defaults));
+      }
+      AnnotationInstance secondaryTablesAnnotationInstance=AnnotationInstance.create(annName,annotationInstance.target(),new AnnotationValue[]{AnnotationValue.createArrayValue("value",newAnnotationValueArray)});
+      newAnnotationInstanceList.add(secondaryTablesAnnotationInstance);
+    }
+ else {
+      newAnnotationInstanceList.add(overrideScheamCatalogByDefault(annotationInstance,defaults));
+    }
+  }
+  indexedAnnotationMap.put(annName,newAnnotationInstanceList);
+}

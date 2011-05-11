@@ -1,0 +1,27 @@
+{
+  Index index=getMockedIndex("AttributeOverride.xml");
+  DotName className=DotName.createSimple(Book.class.getName());
+  index.printAnnotations();
+  assertHasNoAnnotation(index,className,JPADotNames.ATTRIBUTE_OVERRIDE);
+  assertAnnotationValue(index,className,JPADotNames.ATTRIBUTE_OVERRIDES,2,new AnnotationValueChecker(){
+    @Override public void check(    AnnotationInstance annotationInstance){
+      AnnotationValue value=annotationInstance.value();
+      assertNotNull(value);
+      AnnotationInstance[] annotationInstances=value.asNestedArray();
+      assertEquals(2,annotationInstances.length);
+      AnnotationInstance ai=annotationInstances[0];
+      String name=ai.value("name").asString();
+      AnnotationValue columnValue=ai.value("column").asNested().value("name");
+      if (name.equals("title")) {
+        assertEquals("TOC_TITLE",columnValue.asString());
+      }
+ else       if (name.equals("summary")) {
+        assertEquals("TOPIC_SUMMARY",columnValue.asString());
+      }
+ else {
+        fail("AttributeOverride's name is " + name + ", should be either 'title' or 'summary'");
+      }
+    }
+  }
+);
+}

@@ -1,0 +1,19 @@
+{
+  Map<DotName,List<AnnotationInstance>> map=indexedClassInfoAnnotationsMap.get(name);
+  if (map == null) {
+    ClassInfo ci=index.getClassByName(name);
+    if (ci == null || ci.annotations() == null) {
+      map=Collections.emptyMap();
+    }
+ else {
+      map=new HashMap<DotName,List<AnnotationInstance>>(ci.annotations());
+      for (      DotName globalAnnotationName : IndexedAnnotationFilter.GLOBAL_ANNOTATIONS) {
+        if (map.containsKey(globalAnnotationName)) {
+          map.put(globalAnnotationName,Collections.<AnnotationInstance>emptyList());
+        }
+      }
+    }
+    indexedClassInfoAnnotationsMap.put(name,map);
+  }
+  return map;
+}

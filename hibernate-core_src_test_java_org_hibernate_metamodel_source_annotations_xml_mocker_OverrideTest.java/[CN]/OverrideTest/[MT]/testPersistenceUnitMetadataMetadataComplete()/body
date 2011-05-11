@@ -1,0 +1,14 @@
+{
+  XMLEntity author=new XMLEntity();
+  author.setClazz(Author.class.getName());
+  IndexBuilder indexBuilder=getIndexBuilder();
+  EntityMappingsMocker.Default defaults=new EntityMappingsMocker.Default();
+  defaults.setMetadataComplete(true);
+  EntityMocker entityMocker=new EntityMocker(indexBuilder,author,defaults);
+  entityMocker.process();
+  Index index=indexBuilder.build(new EntityMappingsMocker.Default());
+  DotName className=DotName.createSimple(Author.class.getName());
+  ClassInfo classInfo=index.getClassByName(className);
+  assertEquals(1,classInfo.annotations().size());
+  assertHasAnnotation(index,className,JPADotNames.ENTITY);
+}

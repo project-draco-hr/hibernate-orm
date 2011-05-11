@@ -1,0 +1,26 @@
+{
+  if (annotationsMap == null || annotationsMap.isEmpty() || defaults == null) {
+    return;
+  }
+  if (MockHelper.hasSchemaOrCatalogDefined(defaults)) {
+    for (    DotName annName : IndexedAnnotationFilter.SCHEMAAWARE_ANNOTATIONS) {
+      if (annName.equals(JPADotNames.TABLE) && !annotationsMap.containsKey(JPADotNames.TABLE) && annotationsMap.containsKey(JPADotNames.ENTITY)) {
+        AnnotationInstance entity=annotationsMap.get(JPADotNames.ENTITY).get(0);
+        AnnotationInstance table=AnnotationInstance.create(JPADotNames.TABLE,entity.target(),MockHelper.EMPTY_ANNOTATION_VALUE_ARRAY);
+        List<AnnotationInstance> tableList=new ArrayList<AnnotationInstance>(1);
+        tableList.add(table);
+        annotationsMap.put(JPADotNames.TABLE,tableList);
+      }
+      if (annotationsMap.containsKey(annName)) {
+        overrideScheamCatalogByDefault(annName,annotationsMap,defaults);
+      }
+    }
+  }
+  if (defaults.getCascadePersist() != null && defaults.getCascadePersist()) {
+    for (    DotName annName : IndexedAnnotationFilter.ASSOCIATION_ANNOTATIONS) {
+      if (annotationsMap.containsKey(annName)) {
+        addCascadePersistIfNotExist(annName,annotationsMap);
+      }
+    }
+  }
+}

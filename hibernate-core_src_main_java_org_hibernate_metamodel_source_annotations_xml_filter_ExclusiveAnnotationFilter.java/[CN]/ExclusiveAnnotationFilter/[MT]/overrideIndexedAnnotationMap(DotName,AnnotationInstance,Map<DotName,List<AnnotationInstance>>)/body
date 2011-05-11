@@ -1,0 +1,27 @@
+{
+  ExclusiveGroup group=getExclusiveGroup(annName);
+  if (group == null) {
+    return;
+  }
+  AnnotationTarget target=annotationInstance.target();
+  for (  DotName entityAnnName : group) {
+    if (!map.containsKey(entityAnnName)) {
+      continue;
+    }
+switch (group.scope) {
+case TYPE:
+      map.put(entityAnnName,Collections.<AnnotationInstance>emptyList());
+    break;
+case ATTRIBUTE:
+  List<AnnotationInstance> indexedAnnotationInstanceList=map.get(entityAnnName);
+Iterator<AnnotationInstance> iter=indexedAnnotationInstanceList.iterator();
+while (iter.hasNext()) {
+AnnotationInstance ann=iter.next();
+if (MockHelper.targetEquals(target,ann.target(),true)) {
+  iter.remove();
+}
+}
+break;
+}
+}
+}

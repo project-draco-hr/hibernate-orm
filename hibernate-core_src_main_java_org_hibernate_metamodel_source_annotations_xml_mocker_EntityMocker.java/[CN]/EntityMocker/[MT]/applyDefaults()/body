@@ -1,0 +1,22 @@
+{
+  if (getDefaults() == null) {
+    return;
+  }
+  if (MockHelper.hasSchemaOrCatalogDefined(getDefaults())) {
+    XMLTable table=entity.getTable();
+    if (table == null) {
+      table=new XMLTable();
+      entity.setTable(table);
+    }
+    MockHelper.updateSchema(new SchemaAware.TableSchemaAware(table),getDefaults());
+  }
+  String className=MockHelper.buildSafeClassName(entity.getClazz(),getDefaults().getPackageName());
+  entity.setClazz(className);
+  if (entity.isMetadataComplete() == null) {
+    entity.setMetadataComplete(getDefaults().getMetadataComplete());
+  }
+  if (entity.getAccess() != null) {
+    entity.setAccess(getDefaults().getAccess());
+  }
+  LOG.debugf("Adding XML overriding information for %s",className);
+}

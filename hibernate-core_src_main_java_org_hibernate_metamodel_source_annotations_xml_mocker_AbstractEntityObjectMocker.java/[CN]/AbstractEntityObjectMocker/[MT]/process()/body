@@ -1,0 +1,29 @@
+{
+  applyDefaults();
+  classInfo=indexBuilder.createClassInfo(getClassName());
+  DotName classDotName=classInfo.name();
+  indexBuilder.metadataComplete(classDotName,isMetadataComplete());
+  processExtra();
+  if (isExcludeDefaultListeners()) {
+    create(EXCLUDE_DEFAULT_LISTENERS);
+  }
+  if (isExcludeSuperclassListeners()) {
+    create(EXCLUDE_SUPERCLASS_LISTENERS);
+  }
+  parserIdClass(getIdClass());
+  parserAccessType(getAccessType(),getTarget());
+  if (getAttributes() != null) {
+    getAttributesBuilder().parser();
+  }
+  if (getEntityListeners() != null) {
+    getListenerParser().parser(getEntityListeners());
+  }
+  getListenerParser().parser(getPrePersist());
+  getListenerParser().parser(getPreRemove());
+  getListenerParser().parser(getPreUpdate());
+  getListenerParser().parser(getPostPersist());
+  getListenerParser().parser(getPostUpdate());
+  getListenerParser().parser(getPostRemove());
+  getListenerParser().parser(getPostLoad());
+  indexBuilder.finishEntityObject(getTargetName(),getDefaults());
+}

@@ -1,0 +1,15 @@
+{
+  if (attributeOverride == null) {
+    return null;
+  }
+  List<AnnotationValue> annotationValueList=new ArrayList<AnnotationValue>();
+  MockHelper.stringValue("name",attributeOverride.getName(),annotationValueList);
+  if (attributeOverride instanceof XMLAttributeOverrideProxy) {
+    XMLAttributeOverrideProxy proxy=(XMLAttributeOverrideProxy)attributeOverride;
+    MockHelper.addToCollectionIfNotNull(annotationValueList,proxy.getColumnAnnotationValue());
+  }
+ else {
+    MockHelper.nestedAnnotationValue("column",parserColumn(attributeOverride.getColumn(),null),annotationValueList);
+  }
+  return create(ATTRIBUTE_OVERRIDE,target,annotationValueList);
+}

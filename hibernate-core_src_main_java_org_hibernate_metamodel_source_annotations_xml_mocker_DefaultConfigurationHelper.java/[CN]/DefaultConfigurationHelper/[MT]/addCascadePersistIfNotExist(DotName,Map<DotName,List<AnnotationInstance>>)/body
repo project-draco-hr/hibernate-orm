@@ -1,0 +1,42 @@
+{
+  List<AnnotationInstance> annotationInstanceList=indexedAnnotationMap.get(annName);
+  if (annotationInstanceList == null || annotationInstanceList.isEmpty()) {
+    return;
+  }
+  List<AnnotationInstance> newAnnotationInstanceList=new ArrayList<AnnotationInstance>(annotationInstanceList.size());
+  for (  AnnotationInstance annotationInstance : annotationInstanceList) {
+    AnnotationValue cascadeValue=annotationInstance.value("cascade");
+    List<AnnotationValue> newAnnotationValueList=new ArrayList<AnnotationValue>();
+    newAnnotationValueList.addAll(annotationInstance.values());
+    if (cascadeValue == null) {
+      AnnotationValue temp=AnnotationValue.createEnumValue("",JPADotNames.CASCADE_TYPE,"PERSIST");
+      cascadeValue=AnnotationValue.createArrayValue("cascade",new AnnotationValue[]{temp});
+    }
+ else {
+      newAnnotationValueList.remove(cascadeValue);
+      String[] cascadeTypes=cascadeValue.asEnumArray();
+      boolean hasPersistDefined=false;
+      for (      String type : cascadeTypes) {
+        if ("PERSIST".equals(type)) {
+          hasPersistDefined=true;
+          break;
+        }
+      }
+      if (hasPersistDefined) {
+        break;
+      }
+      String[] newCascadeTypes=new String[cascadeTypes.length + 1];
+      newCascadeTypes[0]="PERSIST";
+      System.arraycopy(cascadeTypes,0,newCascadeTypes,1,cascadeTypes.length);
+      AnnotationValue[] cascades=new AnnotationValue[newCascadeTypes.length];
+      for (int i=0; i < newCascadeTypes.length; i++) {
+        cascades[i]=AnnotationValue.createEnumValue("",JPADotNames.CASCADE_TYPE,newCascadeTypes[i]);
+      }
+      cascadeValue=AnnotationValue.createArrayValue("cascade",cascades);
+    }
+    newAnnotationValueList.add(cascadeValue);
+    AnnotationInstance newAnnotationInstance=AnnotationInstance.create(annotationInstance.name(),annotationInstance.target(),MockHelper.toArray(newAnnotationValueList));
+    newAnnotationInstanceList.add(newAnnotationInstance);
+  }
+  indexedAnnotationMap.put(annName,newAnnotationInstanceList);
+}

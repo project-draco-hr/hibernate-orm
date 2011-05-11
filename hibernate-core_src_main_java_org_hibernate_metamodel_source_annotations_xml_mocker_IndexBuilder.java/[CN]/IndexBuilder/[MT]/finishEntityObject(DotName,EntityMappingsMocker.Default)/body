@@ -1,0 +1,13 @@
+{
+  if (indexedClassInfoAnnotationsMap.containsKey(name)) {
+    Map<DotName,List<AnnotationInstance>> tmp=getIndexedAnnotations(name);
+    DefaultConfigurationHelper.INSTANCE.apply(tmp,defaults);
+    mergeAnnotationMap(tmp,classInfoAnnotationsMap.get(name));
+    tmp.clear();
+  }
+  Map<DotName,List<AnnotationInstance>> map=classInfoAnnotationsMap.remove(name);
+  if (map == null) {
+    throw new AssertionFailure("Calling finish entity object " + name.toString() + " before create it.");
+  }
+  mergeAnnotationMap(map,annotations);
+}

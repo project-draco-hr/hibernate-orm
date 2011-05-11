@@ -1,0 +1,17 @@
+{
+  if (associationOverride == null) {
+    return null;
+  }
+  List<AnnotationValue> annotationValueList=new ArrayList<AnnotationValue>();
+  MockHelper.stringValue("name",associationOverride.getName(),annotationValueList);
+  if (associationOverride instanceof XMLAssociationOverrideProxy) {
+    XMLAssociationOverrideProxy proxy=(XMLAssociationOverrideProxy)associationOverride;
+    MockHelper.addToCollectionIfNotNull(annotationValueList,proxy.getJoinColumnsAnnotationValue());
+    MockHelper.addToCollectionIfNotNull(annotationValueList,proxy.getJoinTableAnnotationValue());
+  }
+ else {
+    nestedJoinColumnList("joinColumns",associationOverride.getJoinColumn(),annotationValueList);
+    MockHelper.nestedAnnotationValue("joinTable",parserJoinTable(associationOverride.getJoinTable(),null),annotationValueList);
+  }
+  return create(ASSOCIATION_OVERRIDE,target,annotationValueList);
+}

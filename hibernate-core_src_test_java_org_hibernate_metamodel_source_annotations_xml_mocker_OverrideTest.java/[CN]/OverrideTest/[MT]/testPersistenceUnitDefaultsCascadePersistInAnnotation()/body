@@ -1,0 +1,12 @@
+{
+  XMLEntity author=new XMLEntity();
+  author.setClazz(Author.class.getName());
+  IndexBuilder indexBuilder=getIndexBuilder();
+  EntityMappingsMocker.Default defaults=new EntityMappingsMocker.Default();
+  defaults.setCascadePersist(true);
+  EntityMocker entityMocker=new EntityMocker(indexBuilder,author,defaults);
+  entityMocker.process();
+  Index index=indexBuilder.build(new EntityMappingsMocker.Default());
+  DotName className=DotName.createSimple(Author.class.getName());
+  assertAnnotationValue(index,className,JPADotNames.ONE_TO_MANY,new CascadeAnnotationValueChecker("PERSIST","MERGE"));
+}

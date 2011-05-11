@@ -1,0 +1,32 @@
+{
+  for (  XMLNamedQuery namedQuery : entity.getNamedQuery()) {
+    put(namedQuery.getName(),namedQuery);
+  }
+  for (  XMLNamedNativeQuery namedNativeQuery : entity.getNamedNativeQuery()) {
+    put(namedNativeQuery.getName(),namedNativeQuery);
+  }
+  for (  XMLSqlResultSetMapping sqlResultSetMapping : entity.getSqlResultSetMapping()) {
+    put(sqlResultSetMapping.getName(),sqlResultSetMapping);
+  }
+  XMLSequenceGenerator sequenceGenerator=entity.getSequenceGenerator();
+  if (sequenceGenerator != null) {
+    put(sequenceGenerator.getName(),overrideGenerator(sequenceGenerator,defaults));
+  }
+  XMLTableGenerator tableGenerator=entity.getTableGenerator();
+  if (tableGenerator != null) {
+    put(tableGenerator.getName(),overrideGenerator(tableGenerator,defaults));
+  }
+  XMLAttributes attributes=entity.getAttributes();
+  if (attributes != null) {
+    for (    XMLId id : attributes.getId()) {
+      sequenceGenerator=id.getSequenceGenerator();
+      if (sequenceGenerator != null) {
+        put(sequenceGenerator.getName(),overrideGenerator(sequenceGenerator,defaults));
+      }
+      tableGenerator=id.getTableGenerator();
+      if (tableGenerator != null) {
+        put(tableGenerator.getName(),overrideGenerator(tableGenerator,defaults));
+      }
+    }
+  }
+}

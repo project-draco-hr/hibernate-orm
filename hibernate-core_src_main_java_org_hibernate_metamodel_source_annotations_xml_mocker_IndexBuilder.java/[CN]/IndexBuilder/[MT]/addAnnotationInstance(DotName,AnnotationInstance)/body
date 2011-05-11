@@ -1,0 +1,18 @@
+{
+  if (annotationInstance == null) {
+    return;
+  }
+  for (  IndexedAnnotationFilter indexedAnnotationFilter : IndexedAnnotationFilter.filters) {
+    indexedAnnotationFilter.beforePush(this,targetClassName,annotationInstance);
+  }
+  Map<DotName,List<AnnotationInstance>> map=classInfoAnnotationsMap.get(targetClassName);
+  if (map == null) {
+    throw new AssertionFailure("Can't find " + targetClassName + " in internal cache, should call createClassInfo first");
+  }
+  List<AnnotationInstance> annotationInstanceList=map.get(annotationInstance.name());
+  if (annotationInstanceList == null) {
+    annotationInstanceList=new ArrayList<AnnotationInstance>();
+    map.put(annotationInstance.name(),annotationInstanceList);
+  }
+  annotationInstanceList.add(annotationInstance);
+}

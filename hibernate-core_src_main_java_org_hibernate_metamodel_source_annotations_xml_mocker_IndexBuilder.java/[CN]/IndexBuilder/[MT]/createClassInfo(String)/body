@@ -1,0 +1,41 @@
+{
+  if (StringHelper.isEmpty(className)) {
+    throw new AssertionFailure("Class Name used to create ClassInfo is empty.");
+  }
+  DotName classDotName=DotName.createSimple(className);
+  if (classes.containsKey(classDotName)) {
+    LOG.warnf("Class %s has already been processed by IndexBuilder, ignoring this call and return previous created ClassInfo object");
+    return classes.get(classDotName);
+  }
+  Class clazz=serviceRegistry.getService(ClassLoaderService.class).classForName(className);
+  DotName superName=null;
+  DotName[] interfaces=null;
+  short access_flag;
+  ClassInfo annClassInfo=index.getClassByName(classDotName);
+  if (annClassInfo != null) {
+    superName=annClassInfo.superName();
+    interfaces=annClassInfo.interfaces();
+    access_flag=annClassInfo.flags();
+  }
+ else {
+    Class superClass=clazz.getSuperclass();
+    if (superClass != null) {
+      superName=DotName.createSimple(superClass.getName());
+    }
+    Class[] classInterfaces=clazz.getInterfaces();
+    if (classInterfaces != null && classInterfaces.length > 0) {
+      interfaces=new DotName[classInterfaces.length];
+      for (int i=0; i < classInterfaces.length; i++) {
+        interfaces[i]=DotName.createSimple(classInterfaces[i].getName());
+      }
+    }
+    access_flag=0x0001;
+  }
+  Map<DotName,List<AnnotationInstance>> map=new HashMap<DotName,List<AnnotationInstance>>();
+  classInfoAnnotationsMap.put(classDotName,map);
+  ClassInfo classInfo=ClassInfo.create(classDotName,superName,access_flag,interfaces,map);
+  classes.put(classDotName,classInfo);
+  addSubClasses(superName,classInfo);
+  addImplementors(interfaces,classInfo);
+  return classInfo;
+}

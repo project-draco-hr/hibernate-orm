@@ -1,0 +1,25 @@
+{
+  Index index=getMockedIndex("default-schema.xml");
+  List<AnnotationInstance> annotationInstanceList=index.getAnnotations(JPADotNames.TABLE_GENERATOR);
+  assertNotNull(annotationInstanceList);
+  assertEquals(1,annotationInstanceList.size());
+  AnnotationInstance generator=annotationInstanceList.get(0);
+  assertEquals("TABLE_GEN",generator.value("name").asString());
+  assertEquals("ANNOTATION_CATALOG",generator.value("catalog").asString());
+  assertEquals("ANNOTATION_SCHEMA",generator.value("schema").asString());
+  annotationInstanceList=index.getAnnotations(JPADotNames.SEQUENCE_GENERATOR);
+  assertNotNull(annotationInstanceList);
+  assertEquals(1,annotationInstanceList.size());
+  generator=annotationInstanceList.get(0);
+  assertEquals("SEQ_GEN",generator.value("name").asString());
+  assertEquals("XML_CATALOG",generator.value("catalog").asString());
+  assertEquals("XML_SCHEMA",generator.value("schema").asString());
+  assertEquals(123,generator.value("initialValue").asInt());
+  annotationInstanceList=index.getAnnotations(JPADotNames.TABLE);
+  assertNotNull(annotationInstanceList);
+  assertEquals(2,annotationInstanceList.size());
+  for (  AnnotationInstance table : annotationInstanceList) {
+    assertEquals("XML_CATALOG",table.value("catalog").asString());
+    assertEquals("XML_SCHEMA",table.value("schema").asString());
+  }
+}

@@ -1,0 +1,16 @@
+{
+  for (  XMLEntityMappings entityMappings : entityMappingsList) {
+    final Default defaults=getEntityMappingsDefaults(entityMappings);
+    globalAnnotations.collectGlobalMappings(entityMappings,defaults);
+    for (    XMLMappedSuperclass mappedSuperclass : entityMappings.getMappedSuperclass()) {
+      new MappedSuperclassMocker(indexBuilder,mappedSuperclass,defaults).process();
+    }
+    for (    XMLEmbeddable embeddable : entityMappings.getEmbeddable()) {
+      new EmbeddableMocker(indexBuilder,embeddable,defaults).process();
+    }
+    for (    XMLEntity entity : entityMappings.getEntity()) {
+      globalAnnotations.collectGlobalMappings(entity,defaults);
+      new EntityMocker(indexBuilder,entity,defaults).process();
+    }
+  }
+}
