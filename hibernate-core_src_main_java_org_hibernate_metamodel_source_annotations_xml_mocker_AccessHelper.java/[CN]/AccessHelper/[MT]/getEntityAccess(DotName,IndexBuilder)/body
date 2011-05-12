@@ -1,0 +1,19 @@
+{
+  Map<DotName,List<AnnotationInstance>> indexedAnnotations=indexBuilder.getIndexedAnnotations(className);
+  Map<DotName,List<AnnotationInstance>> ormAnnotations=indexBuilder.getClassInfoAnnotationsMap(className);
+  XMLAccessType accessType=getAccess(ormAnnotations);
+  if (accessType == null) {
+    accessType=getAccess(indexedAnnotations);
+  }
+  if (accessType == null) {
+    ClassInfo parent=indexBuilder.getClassInfo(className);
+    if (parent == null) {
+      parent=indexBuilder.getIndexedClassInfo(className);
+    }
+    if (parent != null) {
+      DotName parentClassName=parent.superName();
+      accessType=getEntityAccess(parentClassName,indexBuilder);
+    }
+  }
+  return accessType;
+}

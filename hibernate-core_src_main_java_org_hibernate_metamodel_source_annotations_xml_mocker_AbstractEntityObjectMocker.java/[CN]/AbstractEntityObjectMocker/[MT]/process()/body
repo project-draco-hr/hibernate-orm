@@ -1,8 +1,14 @@
 {
-  applyDefaults();
-  classInfo=indexBuilder.createClassInfo(getClassName());
-  DotName classDotName=classInfo.name();
-  indexBuilder.metadataComplete(classDotName,isMetadataComplete());
+  if (!isPreProcessCalled) {
+    throw new AssertionFailure("preProcess should be called before process");
+  }
+  if (getAccessType() == null) {
+    XMLAccessType accessType=AccessHelper.getEntityAccess(getTargetName(),indexBuilder);
+    if (accessType == null) {
+      accessType=getDefaults().getAccess();
+    }
+    parserAccessType(accessType,getTarget());
+  }
   processExtra();
   if (isExcludeDefaultListeners()) {
     create(EXCLUDE_DEFAULT_LISTENERS);
@@ -11,7 +17,6 @@
     create(EXCLUDE_SUPERCLASS_LISTENERS);
   }
   parserIdClass(getIdClass());
-  parserAccessType(getAccessType(),getTarget());
   if (getAttributes() != null) {
     getAttributesBuilder().parser();
   }

@@ -1,0 +1,22 @@
+{
+  Map<DotName,List<AnnotationInstance>> indexedAnnotations=indexBuilder.getIndexedAnnotations(className);
+  if (indexedAnnotations != null && indexedAnnotations.containsKey(ACCESS)) {
+    List<AnnotationInstance> annotationInstances=indexedAnnotations.get(ACCESS);
+    if (MockHelper.isNotEmpty(annotationInstances)) {
+      for (      AnnotationInstance annotationInstance : annotationInstances) {
+        AnnotationTarget indexedPropertyTarget=annotationInstance.target();
+        if (indexedPropertyTarget == null) {
+          continue;
+        }
+        if (JandexHelper.getPropertyName(indexedPropertyTarget).equals(attributeName)) {
+          XMLAccessType accessType=XMLAccessType.valueOf(annotationInstance.value().asEnum());
+          XMLAccessType targetAccessType=(indexedPropertyTarget instanceof MethodInfo) ? XMLAccessType.PROPERTY : XMLAccessType.FIELD;
+          if (accessType == targetAccessType) {
+            return targetAccessType;
+          }
+        }
+      }
+    }
+  }
+  return null;
+}

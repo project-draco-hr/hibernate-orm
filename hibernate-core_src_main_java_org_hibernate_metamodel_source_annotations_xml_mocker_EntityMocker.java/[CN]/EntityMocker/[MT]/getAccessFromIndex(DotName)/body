@@ -1,0 +1,15 @@
+{
+  Map<DotName,List<AnnotationInstance>> indexedAnnotations=indexBuilder.getIndexedAnnotations(className);
+  List<AnnotationInstance> accessAnnotationInstances=indexedAnnotations.get(ACCESS);
+  if (MockHelper.isNotEmpty(accessAnnotationInstances)) {
+    for (    AnnotationInstance annotationInstance : accessAnnotationInstances) {
+      if (annotationInstance.target() != null && annotationInstance.target() instanceof ClassInfo) {
+        ClassInfo ci=(ClassInfo)(annotationInstance.target());
+        if (className.equals(ci.name())) {
+          return AccessType.valueOf(annotationInstance.value().asEnum());
+        }
+      }
+    }
+  }
+  return null;
+}
