@@ -1,8 +1,10 @@
 {
+  String className=collection.getPersister();
+  ClassLoaderService classLoaderService=getMetadata().getServiceRegistry().getService(ClassLoaderService.class);
   try {
-    return MappingHelper.getClassValue(collection.getPersister());
+    return classLoaderService.classForName(className);
   }
- catch (  ClassNotFoundException cnfe) {
+ catch (  ClassLoadingException e) {
     throw new MappingException("Could not find collection persister class: " + collection.getPersister());
   }
 }
