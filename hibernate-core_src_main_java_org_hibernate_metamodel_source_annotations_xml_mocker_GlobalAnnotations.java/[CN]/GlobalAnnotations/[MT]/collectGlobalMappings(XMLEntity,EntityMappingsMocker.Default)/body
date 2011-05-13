@@ -1,31 +1,47 @@
 {
   for (  XMLNamedQuery namedQuery : entity.getNamedQuery()) {
-    put(namedQuery.getName(),namedQuery);
+    if (!defaultNamedQueryNames.contains(namedQuery.getName())) {
+      put(namedQuery);
+    }
+ else {
+      LOG.warn("Named Query [" + namedQuery.getName() + "] duplicated.");
+    }
   }
   for (  XMLNamedNativeQuery namedNativeQuery : entity.getNamedNativeQuery()) {
-    put(namedNativeQuery.getName(),namedNativeQuery);
+    if (!defaultNamedNativeQueryNames.contains(namedNativeQuery.getName())) {
+      put(namedNativeQuery);
+    }
+ else {
+      LOG.warn("Named native Query [" + namedNativeQuery.getName() + "] duplicated.");
+    }
   }
   for (  XMLSqlResultSetMapping sqlResultSetMapping : entity.getSqlResultSetMapping()) {
-    put(sqlResultSetMapping.getName(),sqlResultSetMapping);
+    if (!defaultSqlResultSetMappingNames.contains(sqlResultSetMapping.getName())) {
+      put(sqlResultSetMapping);
+    }
   }
   XMLSequenceGenerator sequenceGenerator=entity.getSequenceGenerator();
   if (sequenceGenerator != null) {
-    put(sequenceGenerator.getName(),overrideGenerator(sequenceGenerator,defaults));
+    if (!defaultNamedGenerators.contains(sequenceGenerator.getName())) {
+      put(sequenceGenerator,defaults);
+    }
   }
   XMLTableGenerator tableGenerator=entity.getTableGenerator();
   if (tableGenerator != null) {
-    put(tableGenerator.getName(),overrideGenerator(tableGenerator,defaults));
+    if (!defaultNamedGenerators.contains(tableGenerator.getName())) {
+      put(tableGenerator,defaults);
+    }
   }
   XMLAttributes attributes=entity.getAttributes();
   if (attributes != null) {
     for (    XMLId id : attributes.getId()) {
       sequenceGenerator=id.getSequenceGenerator();
       if (sequenceGenerator != null) {
-        put(sequenceGenerator.getName(),overrideGenerator(sequenceGenerator,defaults));
+        put(sequenceGenerator,defaults);
       }
       tableGenerator=id.getTableGenerator();
       if (tableGenerator != null) {
-        put(tableGenerator.getName(),overrideGenerator(tableGenerator,defaults));
+        put(tableGenerator,defaults);
       }
     }
   }
