@@ -1,0 +1,21 @@
+{
+  try {
+    Set<Field> annotatedFields=new HashSet<Field>();
+    Set<Method> annotatedMethods=new HashSet<Method>();
+    doGetAnnotatedFields(object.getClass(),annotation,annotatedFields);
+    doGetAnnotatedMethods(object.getClass(),annotation,annotatedMethods);
+    Map<Member,Object> result=new HashMap<Member,Object>(annotatedFields.size() + annotatedMethods.size());
+    for (    Field field : annotatedFields) {
+      field.setAccessible(true);
+      result.put(field,field.get(object));
+    }
+    for (    Method method : annotatedMethods) {
+      method.setAccessible(true);
+      result.put(method,method.invoke(object));
+    }
+    return result;
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(e);
+  }
+}

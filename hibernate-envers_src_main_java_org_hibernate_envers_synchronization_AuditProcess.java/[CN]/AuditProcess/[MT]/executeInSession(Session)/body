@@ -6,11 +6,6 @@
   }
   while ((vwu=workUnits.poll()) != null) {
     vwu.perform(session,revisionData);
-    Serializable entityId=vwu.getEntityId();
-    if (entityId instanceof PersistentCollectionChangeWorkUnit.PersistentCollectionChangeWorkUnitId) {
-      entityId=((PersistentCollectionChangeWorkUnit.PersistentCollectionChangeWorkUnitId)entityId).getOwnerId();
-    }
-    Class entityClass=getEntityClass(this.session,session,vwu.getEntityName());
-    revisionInfoGenerator.entityChanged(entityClass,vwu.getEntityName(),entityId,vwu.getRevisionType(),currentRevisionData);
+    entityChangeNotifier.entityChanged(session,currentRevisionData,vwu);
   }
 }
