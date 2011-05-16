@@ -1,22 +1,5 @@
 {
   for (  MappedAttribute mappedAttribute : configuredClass.getMappedAttributes()) {
-    if (mappedAttribute.isId()) {
-      continue;
-    }
-    String attributeName=mappedAttribute.getName();
-    entityBinding.getEntity().getOrCreateSingularAttribute(attributeName);
-    SimpleAttributeBinding attributeBinding;
-    if (mappedAttribute.isVersioned()) {
-      attributeBinding=entityBinding.makeVersionBinding(attributeName);
-    }
- else {
-      attributeBinding=entityBinding.makeSimpleAttributeBinding(attributeName);
-    }
-    AttributeDomainState domainState=new AttributeDomainState(entityBinding,mappedAttribute);
-    attributeBinding.initialize(domainState);
-    AttributeColumnRelationalState columnRelationsState=new AttributeColumnRelationalState(mappedAttribute,meta);
-    AttributeTupleRelationalState relationalState=new AttributeTupleRelationalState();
-    relationalState.addValueState(columnRelationsState);
-    attributeBinding.initializeTupleValue(relationalState);
+    bindSingleMappedAttribute(entityBinding,mappedAttribute);
   }
 }
