@@ -3,18 +3,18 @@
   checkPositive(revision,"Entity revision");
   checkSession();
   if (!verCfg.getGlobalCfg().isTrackEntitiesChangedInRevisionEnabled()) {
-    throw new AuditException("This query is designed for Envers default mechanism of tracking entities modified in a given revision." + " Extend DefaultTrackingModifiedTypesRevisionEntity, utilize @ModifiedEntityNames annotation or set " + "'org.hibernate.envers.track_entities_changed_in_revision' parameter to true.");
+    throw new AuditException("This query is designed for Envers default mechanism of tracking entities modified in a given revision." + " Extend DefaultTrackingModifiedTypesRevisionEntity, utilize @ModifiedEntityTypes annotation or set " + "'org.hibernate.envers.track_entities_changed_in_revision' parameter to true.");
   }
   Set<Number> revisions=new HashSet<Number>(1);
   revisions.add(revision);
   Criteria query=verCfg.getRevisionInfoQueryCreator().getRevisionsQuery(session,revisions);
   Object revisionInfo=query.uniqueResult();
   if (revisionInfo != null) {
-    Set<String> modifiedEntityNames=(Set<String>)ReflectionTools.getAnnotatedMembersValues(revisionInfo,ModifiedEntityNames.class).values().toArray()[0];
-    Set<Class> result=new HashSet<Class>(modifiedEntityNames.size());
-    for (    String entityName : modifiedEntityNames) {
+    Set<String> modifiedEntityTypes=(Set<String>)ReflectionTools.getAnnotatedMembersValues(revisionInfo,ModifiedEntityTypes.class).values().toArray()[0];
+    Set<Class> result=new HashSet<Class>(modifiedEntityTypes.size());
+    for (    String entityClassName : modifiedEntityTypes) {
       try {
-        result.add(Class.forName(entityName));
+        result.add(Class.forName(entityClassName));
       }
  catch (      ClassNotFoundException e) {
         throw new RuntimeException(e);
