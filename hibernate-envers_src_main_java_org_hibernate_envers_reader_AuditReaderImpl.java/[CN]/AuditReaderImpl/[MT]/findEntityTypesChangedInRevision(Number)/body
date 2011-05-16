@@ -10,7 +10,10 @@
   Criteria query=verCfg.getRevisionInfoQueryCreator().getRevisionsQuery(session,revisions);
   Object revisionInfo=query.uniqueResult();
   if (revisionInfo != null) {
-    Set<String> modifiedEntityTypes=(Set<String>)ReflectionTools.getAnnotatedMembersValues(revisionInfo,ModifiedEntityTypes.class).values().toArray()[0];
+    if (modifiedEntityTypesProperty == null) {
+      modifiedEntityTypesProperty=(Member)ReflectionTools.getAnnotatedMembers(revisionInfo.getClass(),ModifiedEntityTypes.class).toArray()[0];
+    }
+    Set<String> modifiedEntityTypes=(Set<String>)ReflectionTools.getPropertyValue(modifiedEntityTypesProperty,revisionInfo);
     Set<Class> result=new HashSet<Class>(modifiedEntityTypes.size());
     for (    String entityClassName : modifiedEntityTypes) {
       try {

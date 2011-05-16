@@ -2,16 +2,16 @@
   try {
     Set<Field> annotatedFields=new HashSet<Field>();
     Set<Method> annotatedMethods=new HashSet<Method>();
-    doGetAnnotatedFields(object.getClass(),annotation,annotatedFields);
-    doGetAnnotatedMethods(object.getClass(),annotation,annotatedMethods);
-    Map<Member,Object> result=new HashMap<Member,Object>(annotatedFields.size() + annotatedMethods.size());
+    doGetAnnotatedFields(clazz,annotation,annotatedFields);
+    doGetAnnotatedMethods(clazz,annotation,annotatedMethods);
+    Set<Member> result=new HashSet<Member>(annotatedFields.size() + annotatedMethods.size());
     for (    Field field : annotatedFields) {
       field.setAccessible(true);
-      result.put(field,field.get(object));
+      result.add(field);
     }
     for (    Method method : annotatedMethods) {
       method.setAccessible(true);
-      result.put(method,method.invoke(object));
+      result.add(method);
     }
     return result;
   }
