@@ -1,0 +1,29 @@
+{
+  NormalActivity normalActivity=new NormalActivity();
+  normalActivity.setId(1);
+  normalActivity.setSequenceNumber(1);
+  getEntityManager().getTransaction().begin();
+  getEntityManager().persist(normalActivity);
+  getEntityManager().getTransaction().commit();
+  getEntityManager().getTransaction().begin();
+  normalActivity=getEntityManager().find(NormalActivity.class,1);
+  CheckInActivity checkInActivity=new CheckInActivity();
+  checkInActivity.setId(2);
+  checkInActivity.setSequenceNumber(0);
+  checkInActivity.setDurationInMinutes(30);
+  checkInActivity.setRelatedActivity(normalActivity);
+  getEntityManager().persist(checkInActivity);
+  getEntityManager().getTransaction().commit();
+  normalActivity=new NormalActivity();
+  normalActivity.setId(3);
+  normalActivity.setSequenceNumber(2);
+  getEntityManager().getTransaction().begin();
+  getEntityManager().persist(normalActivity);
+  getEntityManager().getTransaction().commit();
+  getEntityManager().getTransaction().begin();
+  normalActivity=getEntityManager().find(NormalActivity.class,3);
+  checkInActivity=getEntityManager().find(CheckInActivity.class,2);
+  checkInActivity.setRelatedActivity(normalActivity);
+  getEntityManager().merge(checkInActivity);
+  getEntityManager().getTransaction().commit();
+}
