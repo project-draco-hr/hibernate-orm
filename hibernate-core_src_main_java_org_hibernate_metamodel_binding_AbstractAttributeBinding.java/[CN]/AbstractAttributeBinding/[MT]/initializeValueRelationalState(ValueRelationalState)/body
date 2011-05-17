@@ -1,0 +1,18 @@
+{
+  value=ValueCreator.createValue(getEntityBinding().getBaseTable(),getAttribute().getName(),state,forceNonNullable(),forceUnique());
+  if (isPrimaryKey()) {
+    if (SimpleValue.class.isInstance(value)) {
+      if (!Column.class.isInstance(value)) {
+        throw new MappingException("Simple ID is not a column.");
+      }
+      entityBinding.getBaseTable().getPrimaryKey().addColumn(Column.class.cast(value));
+    }
+ else {
+      for (      SimpleValueRelationalState val : TupleRelationalState.class.cast(state).getRelationalStates()) {
+        if (Column.class.isInstance(val)) {
+          entityBinding.getBaseTable().getPrimaryKey().addColumn(Column.class.cast(val));
+        }
+      }
+    }
+  }
+}
