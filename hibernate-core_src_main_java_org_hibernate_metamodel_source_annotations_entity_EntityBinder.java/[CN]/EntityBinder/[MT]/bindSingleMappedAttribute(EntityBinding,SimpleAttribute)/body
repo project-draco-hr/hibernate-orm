@@ -5,20 +5,19 @@
   String attributeName=simpleAttribute.getName();
   entityBinding.getEntity().getOrCreateSingularAttribute(attributeName);
   SimpleAttributeBinding attributeBinding;
-  SimpleAttributeBindingState bindingState;
   if (simpleAttribute.isDiscriminator()) {
-    attributeBinding=entityBinding.makeEntityDiscriminator(attributeName).getValueBinding();
-    bindingState=new DiscriminatorBindingStateImpl(simpleAttribute);
+    EntityDiscriminator entityDiscriminator=entityBinding.makeEntityDiscriminator(attributeName);
+    entityDiscriminator.initialize(new DiscriminatorBindingStateImpl(simpleAttribute));
+    attributeBinding=entityDiscriminator.getValueBinding();
   }
  else   if (simpleAttribute.isVersioned()) {
     attributeBinding=entityBinding.makeVersionBinding(attributeName);
-    bindingState=new AttributeBindingStateImpl(simpleAttribute);
+    attributeBinding.initialize(new AttributeBindingStateImpl(simpleAttribute));
   }
  else {
     attributeBinding=entityBinding.makeSimpleAttributeBinding(attributeName);
-    bindingState=new AttributeBindingStateImpl(simpleAttribute);
+    attributeBinding.initialize(new AttributeBindingStateImpl(simpleAttribute));
   }
-  attributeBinding.initialize(bindingState);
   if (configuredClass.hasOwnTable()) {
     ColumnRelationalStateImpl columnRelationsState=new ColumnRelationalStateImpl(simpleAttribute,meta);
     TupleRelationalStateImpl relationalState=new TupleRelationalStateImpl();
