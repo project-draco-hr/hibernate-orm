@@ -1,0 +1,16 @@
+{
+  Set<String> modifiedEntityClassNames=(Set<String>)modifiedEntityTypesGetter.get(revisionEntity);
+  if (modifiedEntityClassNames != null) {
+    Set<Class> result=new HashSet<Class>(modifiedEntityClassNames.size());
+    for (    String entityClassName : modifiedEntityClassNames) {
+      try {
+        result.add(Thread.currentThread().getContextClassLoader().loadClass(entityClassName));
+      }
+ catch (      ClassNotFoundException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return result;
+  }
+  return Collections.EMPTY_SET;
+}
