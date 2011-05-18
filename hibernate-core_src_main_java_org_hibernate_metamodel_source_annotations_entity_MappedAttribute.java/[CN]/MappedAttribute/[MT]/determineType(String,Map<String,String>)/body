@@ -1,3 +1,14 @@
 {
-  return type;
+  AnnotationInstance typeAnnotation=getIfExists(HibernateDotNames.TYPE);
+  if (typeAnnotation == null) {
+    return type;
+  }
+  AnnotationValue parameterAnnotationValue=typeAnnotation.value("parameters");
+  if (parameterAnnotationValue != null) {
+    AnnotationInstance[] parameterAnnotations=parameterAnnotationValue.asNestedArray();
+    for (    AnnotationInstance parameterAnnotationInstance : parameterAnnotations) {
+      typeParameters.put(parameterAnnotationInstance.value("name").asString(),parameterAnnotationInstance.value("value").asString());
+    }
+  }
+  return typeAnnotation.value("type").asString();
 }
