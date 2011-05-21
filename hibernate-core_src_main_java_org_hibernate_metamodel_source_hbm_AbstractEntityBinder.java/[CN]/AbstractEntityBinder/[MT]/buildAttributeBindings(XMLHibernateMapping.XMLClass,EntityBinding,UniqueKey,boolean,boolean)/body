@@ -6,8 +6,7 @@
   for (  Object attribute : entityClazz.getPropertyOrManyToOneOrOneToOne()) {
     if (XMLBagElement.class.isInstance(attribute)) {
       XMLBagElement collection=XMLBagElement.class.cast(attribute);
-      BagBinding collectionBinding=entityBinding.makeBagAttributeBinding(collection.getName());
-      bindBag(collection,collectionBinding,entityBinding);
+      BagBinding collectionBinding=makeBagAttributeBinding(collection,entityBinding);
       hibernateMappingBinder.getHibernateXmlBinder().getMetadata().addCollection(collectionBinding);
       attributeBinding=collectionBinding;
     }
@@ -25,9 +24,7 @@
     }
  else     if (XMLManyToOneElement.class.isInstance(attribute)) {
       XMLManyToOneElement manyToOne=XMLManyToOneElement.class.cast(attribute);
-      ManyToOneAttributeBinding manyToOneBinding=entityBinding.makeManyToOneAttributeBinding(manyToOne.getName());
-      bindManyToOne(manyToOne,manyToOneBinding,entityBinding);
-      attributeBinding=manyToOneBinding;
+      attributeBinding=makeManyToOneAttributeBinding(manyToOne,entityBinding);
     }
  else     if (XMLAnyElement.class.isInstance(attribute)) {
     }
@@ -35,9 +32,7 @@
     }
  else     if (XMLPropertyElement.class.isInstance(attribute)) {
       XMLPropertyElement property=XMLPropertyElement.class.cast(attribute);
-      SimpleAttributeBinding binding=entityBinding.makeSimpleAttributeBinding(property.getName());
-      bindSimpleAttribute(property,binding,entityBinding);
-      attributeBinding=binding;
+      attributeBinding=bindProperty(property,entityBinding);
     }
  else     if (XMLComponentElement.class.isInstance(attribute) || XMLDynamicComponentElement.class.isInstance(attribute) || XMLPropertiesElement.class.isInstance(attribute)) {
     }

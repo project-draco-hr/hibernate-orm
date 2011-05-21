@@ -1,0 +1,28 @@
+{
+  if (mappedAttribute.isId()) {
+    return;
+  }
+  String attributeName=mappedAttribute.getName();
+  entityBinding.getEntity().getOrCreateSingularAttribute(attributeName);
+  SimpleAttributeBinding attributeBinding;
+  SimpleAttributeBindingState bindingState;
+  if (mappedAttribute.isDiscriminator()) {
+    attributeBinding=entityBinding.makeEntityDiscriminator(attributeName).getValueBinding();
+    bindingState=new DiscriminatorBindingStateImpl(mappedAttribute);
+  }
+ else   if (mappedAttribute.isVersioned()) {
+    attributeBinding=entityBinding.makeVersionBinding(attributeName);
+    bindingState=new AttributeBindingStateImpl(mappedAttribute);
+  }
+ else {
+    attributeBinding=entityBinding.makeSimpleAttributeBinding(attributeName);
+    bindingState=new AttributeBindingStateImpl(mappedAttribute);
+  }
+  attributeBinding.initialize(bindingState);
+  if (configuredClass.hasOwnTable()) {
+    ColumnRelationalStateImpl columnRelationsState=new ColumnRelationalStateImpl(mappedAttribute,meta);
+    TupleRelationalStateImpl relationalState=new TupleRelationalStateImpl();
+    relationalState.addValueState(columnRelationsState);
+    attributeBinding.initialize(relationalState);
+  }
+}

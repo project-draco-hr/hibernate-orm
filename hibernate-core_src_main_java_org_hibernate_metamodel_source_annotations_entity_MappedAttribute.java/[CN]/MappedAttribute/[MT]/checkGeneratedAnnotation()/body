@@ -1,0 +1,14 @@
+{
+  AnnotationInstance generatedAnnotation=getIfExists(HibernateDotNames.GENERATED);
+  if (generatedAnnotation != null) {
+    this.isInsertable=false;
+    AnnotationValue generationTimeValue=generatedAnnotation.value();
+    if (generationTimeValue != null) {
+      GenerationTime genTime=Enum.valueOf(GenerationTime.class,generationTimeValue.asEnum());
+      if (GenerationTime.ALWAYS.equals(genTime)) {
+        this.isUpdatable=false;
+        this.propertyGeneration=PropertyGeneration.parse(genTime.toString().toLowerCase());
+      }
+    }
+  }
+}

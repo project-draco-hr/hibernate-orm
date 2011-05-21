@@ -1,10 +1,9 @@
 {
-  final String explicitName=id.getName();
-  final String attributeName=explicitName == null ? RootClass.DEFAULT_IDENTIFIER_COLUMN_NAME : explicitName;
-  SimpleAttributeBinding idBinding=entityBinding.makeSimplePrimaryKeyAttributeBinding(attributeName);
-  bindSimpleAttribute(id,idBinding,entityBinding,attributeName);
-  if (!Column.class.isInstance(idBinding.getValue())) {
-    throw new MappingException("Unanticipated situation");
+  SimpleAttributeBindingState bindingState=new HbmSimpleAttributeBindingState(entityBinding.getEntity().getPojoEntitySpecifics().getClassName(),getHibernateMappingBinder(),entityBinding.getMetaAttributes(),id);
+  HbmSimpleValueRelationalStateContainer relationalStateContainer=new HbmSimpleValueRelationalStateContainer(getHibernateMappingBinder(),true,id);
+  if (relationalStateContainer.getRelationalStates().size() > 1) {
+    throw new MappingException("ID is expected to be a single column, but has more than 1 value");
   }
-  entityBinding.getBaseTable().getPrimaryKey().addColumn(Column.class.cast(idBinding.getValue()));
+  entityBinding.getEntity().getOrCreateSingularAttribute(bindingState.getAttributeName());
+  entityBinding.makeSimpleIdAttributeBinding(bindingState.getAttributeName()).initialize(bindingState).initialize(relationalStateContainer.getRelationalStates().get(0));
 }

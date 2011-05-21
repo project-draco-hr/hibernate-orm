@@ -1,0 +1,31 @@
+{
+  AnnotationInstance discriminatorOptionsAnnotation=JandexHelper.getSingleAnnotation(annotations,JPADotNames.DISCRIMINATOR_COLUMN);
+  String name=DiscriminatorColumnValues.DEFAULT_DISCRIMINATOR_COLUMN_NAME;
+  String type=String.class.toString();
+  if (discriminatorOptionsAnnotation != null) {
+    name=discriminatorOptionsAnnotation.value("name").asString();
+    DiscriminatorType discriminatorType=Enum.valueOf(DiscriminatorType.class,discriminatorOptionsAnnotation.value("discriminatorType").asEnum());
+switch (discriminatorType) {
+case STRING:
+{
+        type=String.class.toString();
+        break;
+      }
+case CHAR:
+{
+      type=Character.class.toString();
+      break;
+    }
+case INTEGER:
+{
+    type=Integer.class.toString();
+    break;
+  }
+default :
+{
+  throw new AnnotationException("Unsupported discriminator type: " + discriminatorType);
+}
+}
+}
+return new MappedAttribute(name,type,annotations,true);
+}

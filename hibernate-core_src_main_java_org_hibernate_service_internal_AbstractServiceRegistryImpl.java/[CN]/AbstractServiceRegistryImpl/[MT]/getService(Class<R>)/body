@@ -1,3 +1,11 @@
 {
-  return locateOrCreateServiceBinding(serviceRole,true).getProxy();
+  final ServiceBinding<R> serviceBinding=locateServiceBinding(serviceRole);
+  if (serviceBinding == null) {
+    throw new UnknownServiceException(serviceRole);
+  }
+  R service=serviceBinding.getService();
+  if (service == null) {
+    service=initializeService(serviceBinding);
+  }
+  return service;
 }

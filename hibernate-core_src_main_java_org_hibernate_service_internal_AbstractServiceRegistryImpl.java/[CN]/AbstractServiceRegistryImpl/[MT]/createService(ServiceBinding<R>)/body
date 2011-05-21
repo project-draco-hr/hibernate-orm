@@ -1,0 +1,17 @@
+{
+  final ServiceInitiator<R> serviceInitiator=serviceBinding.getServiceInitiator();
+  if (serviceInitiator == null) {
+    throw new UnknownServiceException(serviceBinding.getServiceRole());
+  }
+  try {
+    R service=serviceBinding.getServiceRegistry().initiateService(serviceInitiator);
+    registerService(serviceBinding,service);
+    return service;
+  }
+ catch (  ServiceException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    throw new ServiceException("Unable to create requested service [" + serviceBinding.getServiceRole().getName() + "]",e);
+  }
+}
