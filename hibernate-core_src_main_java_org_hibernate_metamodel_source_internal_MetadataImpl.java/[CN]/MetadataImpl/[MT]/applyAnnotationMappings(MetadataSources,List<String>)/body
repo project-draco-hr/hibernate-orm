@@ -7,14 +7,16 @@
     indexClass(indexer,packageName.replace('.','/') + "/package-info.class");
   }
   Index index=indexer.complete();
-  final OrmXmlParser ormParser=new OrmXmlParser(this);
   List<JaxbRoot<XMLEntityMappings>> mappings=new ArrayList<JaxbRoot<XMLEntityMappings>>();
   for (  JaxbRoot<?> root : metadataSources.getJaxbRootList()) {
     if (root.getRoot() instanceof XMLEntityMappings) {
       mappings.add((JaxbRoot<XMLEntityMappings>)root);
     }
   }
-  index=ormParser.parseAndUpdateIndex(mappings,index);
+  if (!mappings.isEmpty()) {
+    final OrmXmlParser ormParser=new OrmXmlParser(this);
+    index=ormParser.parseAndUpdateIndex(mappings,index);
+  }
   final AnnotationBinder annotationBinder=new AnnotationBinder(this,index);
   annotationBinder.bind();
 }

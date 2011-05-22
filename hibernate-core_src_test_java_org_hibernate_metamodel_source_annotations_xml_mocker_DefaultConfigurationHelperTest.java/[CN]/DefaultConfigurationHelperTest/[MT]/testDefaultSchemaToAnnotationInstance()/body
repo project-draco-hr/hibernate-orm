@@ -1,0 +1,40 @@
+{
+  EntityMappingsMocker.Default defaults=new EntityMappingsMocker.Default();
+  defaults.setSchema("hib_schema");
+  defaults.setCatalog("hib_catalog");
+  Index index=getIndex();
+  Map<DotName,List<AnnotationInstance>> annotations=new HashMap<DotName,List<AnnotationInstance>>();
+  annotations.putAll(index.getClassByName(DotName.createSimple(Parent.class.getName())).annotations());
+  assertEquals(4,annotations.size());
+  assertEquals(1,annotations.get(JPADotNames.ENTITY).size());
+  assertEquals(1,annotations.get(JPADotNames.ID).size());
+  assertEquals(1,annotations.get(JPADotNames.ONE_TO_MANY).size());
+  assertEquals(1,annotations.get(JPADotNames.MANY_TO_ONE).size());
+  DefaultConfigurationHelper.INSTANCE.applyDefaults(annotations,defaults);
+  assertEquals(5,annotations.size());
+  assertEquals(1,annotations.get(JPADotNames.ENTITY).size());
+  assertEquals(1,annotations.get(JPADotNames.ID).size());
+  assertEquals(1,annotations.get(JPADotNames.ONE_TO_MANY).size());
+  assertEquals(1,annotations.get(JPADotNames.MANY_TO_ONE).size());
+  assertEquals(1,annotations.get(JPADotNames.TABLE).size());
+  AnnotationInstance table=annotations.get(JPADotNames.TABLE).get(0);
+  assertEquals("hib_schema",table.value("schema").asString());
+  assertEquals("hib_catalog",table.value("catalog").asString());
+  annotations.clear();
+  annotations.putAll(index.getClassByName(DotName.createSimple(Name.class.getName())).annotations());
+  DefaultConfigurationHelper.INSTANCE.applyDefaults(annotations,defaults);
+  assertEquals(1,annotations.size());
+  assertEquals(1,annotations.get(JPADotNames.SECONDARY_TABLES).size());
+  AnnotationInstance[] secondaryTables=annotations.get(JPADotNames.SECONDARY_TABLES).get(0).value().asNestedArray();
+  assertEquals(2,secondaryTables.length);
+  AnnotationInstance secondaryTable=secondaryTables[0];
+  String name=secondaryTable.value("name").asString();
+  if (name.equals("sec1")) {
+    assertSt1(secondaryTable);
+    assertSt2(secondaryTables[1]);
+  }
+ else {
+    assertSt1(secondaryTables[1]);
+    assertSt2(secondaryTable);
+  }
+}

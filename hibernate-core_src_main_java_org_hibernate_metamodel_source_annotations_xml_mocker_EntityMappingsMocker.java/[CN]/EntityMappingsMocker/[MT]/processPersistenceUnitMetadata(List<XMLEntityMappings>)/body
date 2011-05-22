@@ -1,27 +1,26 @@
 {
   for (  XMLEntityMappings entityMappings : entityMappingsList) {
     XMLPersistenceUnitMetadata pum=entityMappings.getPersistenceUnitMetadata();
+    if (globalDefaults != null) {
+      LOG.duplicateMetadata();
+      return;
+    }
     if (pum == null) {
       continue;
     }
-    if (globalDefaults == null) {
-      globalDefaults=new Default();
-      globalDefaults.setMetadataComplete(pum.getXmlMappingMetadataComplete() != null);
-      indexBuilder.mappingMetadataComplete(globalDefaults);
-      XMLPersistenceUnitDefaults pud=pum.getPersistenceUnitDefaults();
-      if (pud == null) {
-        return;
-      }
-      globalDefaults.setSchema(pud.getSchema());
-      globalDefaults.setCatalog(pud.getCatalog());
-      globalDefaults.setAccess(pud.getAccess());
-      globalDefaults.setCascadePersist(pud.getCascadePersist() != null);
-      globalDefaults.setDelimitedIdentifiers(pud.getDelimitedIdentifiers() != null);
-      defaultEntityListeners=pud.getEntityListeners();
-      new PersistenceMetadataMocker(indexBuilder,pud).process();
+    globalDefaults=new Default();
+    if (pum.getXmlMappingMetadataComplete() != null) {
+      globalDefaults.setMetadataComplete(true);
+      indexBuilder.mappingMetadataComplete();
     }
- else {
-      LOG.duplicateMetadata();
+    XMLPersistenceUnitDefaults pud=pum.getPersistenceUnitDefaults();
+    if (pud == null) {
+      return;
     }
+    globalDefaults.setSchema(pud.getSchema());
+    globalDefaults.setCatalog(pud.getCatalog());
+    globalDefaults.setAccess(pud.getAccess());
+    globalDefaults.setCascadePersist(pud.getCascadePersist() != null);
+    new PersistenceMetadataMocker(indexBuilder,pud).process();
   }
 }

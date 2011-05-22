@@ -1,29 +1,21 @@
 {
-  if (!classInfoAnnotationsMap.isEmpty()) {
-    throw new AssertionFailure("IndexBuilder.finishEntityObject must be called after processing each entity.");
-  }
   for (  ClassInfo ci : index.getKnownClasses()) {
     DotName name=ci.name();
-    if (!indexedClassInfoAnnotationsMap.containsKey(name)) {
-      if (ci.annotations() != null && !ci.annotations().isEmpty()) {
-        Map<DotName,List<AnnotationInstance>> tmp=new HashMap<DotName,List<AnnotationInstance>>(ci.annotations());
-        DefaultConfigurationHelper.INSTANCE.apply(tmp,globalDefaults);
-        mergeAnnotationMap(tmp,annotations);
-        tmp.clear();
-        classes.put(name,ci);
-        if (ci.superName() != null) {
-          addSubClasses(ci.superName(),ci);
-        }
-        if (ci.interfaces() != null && ci.interfaces().length > 0) {
-          addImplementors(ci.interfaces(),ci);
-        }
+    if (indexedClassInfoAnnotationsMap.containsKey(name)) {
+      continue;
+    }
+    if (ci.annotations() != null && !ci.annotations().isEmpty()) {
+      Map<DotName,List<AnnotationInstance>> tmp=new HashMap<DotName,List<AnnotationInstance>>(ci.annotations());
+      DefaultConfigurationHelper.INSTANCE.applyDefaults(tmp,globalDefaults);
+      mergeAnnotationMap(tmp,annotations);
+      classes.put(name,ci);
+      if (ci.superName() != null) {
+        addSubClasses(ci.superName(),ci);
+      }
+      if (ci.interfaces() != null && ci.interfaces().length > 0) {
+        addImplementors(ci.interfaces(),ci);
       }
     }
   }
-  Index newIndex=Index.create(annotations,subclasses,implementors,classes);
-  if (LOG.isTraceEnabled()) {
-    LOG.trace("Annotations from new build Index:");
-    newIndex.printAnnotations();
-  }
-  return newIndex;
+  return Index.create(annotations,subclasses,implementors,classes);
 }

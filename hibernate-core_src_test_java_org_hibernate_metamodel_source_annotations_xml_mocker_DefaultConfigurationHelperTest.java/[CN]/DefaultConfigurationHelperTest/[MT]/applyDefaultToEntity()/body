@@ -1,0 +1,17 @@
+{
+  EntityMappingsMocker.Default defaults=new EntityMappingsMocker.Default();
+  defaults.setPackageName("org.test");
+  defaults.setSchema("schema");
+  defaults.setMetadataComplete(true);
+  XMLEntity entity=new XMLEntity();
+  entity.setClazz("Entity");
+  DefaultConfigurationHelper.INSTANCE.applyDefaults(entity,defaults);
+  assertNotNull(entity.getTable());
+  assertNull(entity.getTable().getSchema());
+  assertNull(entity.getTable().getCatalog());
+  assertTrue(entity.isMetadataComplete());
+  assertEquals("org.test.Entity",entity.getClazz());
+  DefaultConfigurationHelper.INSTANCE.applyDefaults(new SchemaAware.TableSchemaAware(entity.getTable()),defaults);
+  assertEquals("schema",entity.getTable().getSchema());
+  assertNull(entity.getTable().getCatalog());
+}

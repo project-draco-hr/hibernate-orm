@@ -1,0 +1,38 @@
+{
+  EntityMappingsMocker.Default defaults=new EntityMappingsMocker.Default();
+  defaults.setCascadePersist(true);
+  Index index=getIndex();
+  Map<DotName,List<AnnotationInstance>> annotations=new HashMap<DotName,List<AnnotationInstance>>();
+  annotations.putAll(index.getClassByName(DotName.createSimple(Parent.class.getName())).annotations());
+  assertEquals(4,annotations.size());
+  assertEquals(1,annotations.get(JPADotNames.ENTITY).size());
+  assertEquals(1,annotations.get(JPADotNames.ID).size());
+  assertEquals(1,annotations.get(JPADotNames.ONE_TO_MANY).size());
+  assertEquals(1,annotations.get(JPADotNames.MANY_TO_ONE).size());
+  DefaultConfigurationHelper.INSTANCE.applyDefaults(annotations,defaults);
+  assertEquals(4,annotations.size());
+  assertEquals(1,annotations.get(JPADotNames.ENTITY).size());
+  assertEquals(1,annotations.get(JPADotNames.ID).size());
+  assertEquals(1,annotations.get(JPADotNames.ONE_TO_MANY).size());
+  assertEquals(1,annotations.get(JPADotNames.MANY_TO_ONE).size());
+  AnnotationInstance oneToMany=annotations.get(JPADotNames.ONE_TO_MANY).get(0);
+  String[] cascadeTypes=oneToMany.value("cascade").asEnumArray();
+  assertArrayEquals(new String[]{"ALL","DETACH","PERSIST"},cascadeTypes);
+  AnnotationInstance manyToOne=annotations.get(JPADotNames.MANY_TO_ONE).get(0);
+  cascadeTypes=manyToOne.value("cascade").asEnumArray();
+  assertArrayEquals(new String[]{"PERSIST"},cascadeTypes);
+  annotations.clear();
+  annotations.putAll(index.getClassByName(DotName.createSimple(Child.class.getName())).annotations());
+  assertEquals(3,annotations.size());
+  assertEquals(1,annotations.get(JPADotNames.ENTITY).size());
+  assertEquals(1,annotations.get(JPADotNames.ID).size());
+  assertEquals(1,annotations.get(JPADotNames.MANY_TO_ONE).size());
+  DefaultConfigurationHelper.INSTANCE.applyDefaults(annotations,defaults);
+  assertEquals(3,annotations.size());
+  assertEquals(1,annotations.get(JPADotNames.ENTITY).size());
+  assertEquals(1,annotations.get(JPADotNames.ID).size());
+  assertEquals(1,annotations.get(JPADotNames.MANY_TO_ONE).size());
+  manyToOne=annotations.get(JPADotNames.MANY_TO_ONE).get(0);
+  cascadeTypes=manyToOne.value("cascade").asEnumArray();
+  assertArrayEquals(new String[]{"PERSIST","ALL","DETACH"},cascadeTypes);
+}

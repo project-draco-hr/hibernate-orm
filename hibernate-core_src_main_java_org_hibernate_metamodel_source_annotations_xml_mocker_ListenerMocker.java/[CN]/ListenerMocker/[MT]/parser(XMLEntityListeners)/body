@@ -1,12 +1,12 @@
 {
-  if (entityListeners == null) {
-    return null;
+  if (entityListeners.getEntityListener().isEmpty()) {
+    throw new MappingException("No child element of <entity-listener> found under <entity-listeners>.");
   }
-  List<AnnotationValue> annotationValueList=new ArrayList<AnnotationValue>();
-  List<String> clazzNameList=new ArrayList<String>();
+  List<AnnotationValue> annotationValueList=new ArrayList<AnnotationValue>(1);
+  List<String> clazzNameList=new ArrayList<String>(entityListeners.getEntityListener().size());
   for (  XMLEntityListener listener : entityListeners.getEntityListener()) {
     MockHelper.addToCollectionIfNotNull(clazzNameList,listener.getClazz());
-    parser(listener);
+    parserEntityListener(listener);
   }
   MockHelper.classArrayValue("value",clazzNameList,annotationValueList,indexBuilder.getServiceRegistry());
   return create(ENTITY_LISTENERS,classInfo,annotationValueList);

@@ -19,11 +19,12 @@
       for (      String type : cascadeTypes) {
         if ("PERSIST".equals(type)) {
           hasPersistDefined=true;
-          break;
+          continue;
         }
       }
       if (hasPersistDefined) {
-        break;
+        newAnnotationInstanceList.add(annotationInstance);
+        continue;
       }
       String[] newCascadeTypes=new String[cascadeTypes.length + 1];
       newCascadeTypes[0]="PERSIST";
@@ -35,7 +36,7 @@
       cascadeValue=AnnotationValue.createArrayValue("cascade",cascades);
     }
     newAnnotationValueList.add(cascadeValue);
-    AnnotationInstance newAnnotationInstance=AnnotationInstance.create(annotationInstance.name(),annotationInstance.target(),MockHelper.toArray(newAnnotationValueList));
+    AnnotationInstance newAnnotationInstance=MockHelper.create(annotationInstance.name(),annotationInstance.target(),MockHelper.toArray(newAnnotationValueList));
     newAnnotationInstanceList.add(newAnnotationInstance);
   }
   indexedAnnotationMap.put(annName,newAnnotationInstanceList);
