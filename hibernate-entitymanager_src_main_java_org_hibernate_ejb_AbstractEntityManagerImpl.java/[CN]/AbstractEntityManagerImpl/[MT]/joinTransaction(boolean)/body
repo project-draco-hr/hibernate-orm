@@ -1,6 +1,6 @@
 {
   if (transactionType != PersistenceUnitTransactionType.JTA) {
-    if (!ignoreNotJoining) {
+    if (explicitRequest) {
       LOG.callingJoinTransactionOnNonJtaEntityManager();
     }
     return;
@@ -12,7 +12,9 @@
   transactionCoordinator.pulse();
   LOG.debug("Looking for a JTA transaction to join");
   if (!transactionCoordinator.isTransactionJoinable()) {
-    LOG.unableToJoinTransaction(Environment.TRANSACTION_STRATEGY);
+    if (explicitRequest) {
+      LOG.unableToJoinTransaction(Environment.TRANSACTION_STRATEGY);
+    }
   }
   try {
     if (transaction.getJoinStatus() == JoinStatus.JOINED) {
@@ -21,12 +23,12 @@
     }
     transaction.join();
     if (transaction.getJoinStatus() == JoinStatus.NOT_JOINED) {
-      if (ignoreNotJoining) {
-        LOG.debug("No JTA transaction found");
-        return;
+      if (explicitRequest) {
+        throw new TransactionRequiredException("No active JTA transaction on joinTransaction call");
       }
  else {
-        throw new TransactionRequiredException("No active JTA transaction on joinTransaction call");
+        LOG.debug("Unable to join JTA transaction");
+        return;
       }
     }
  else     if (transaction.getJoinStatus() == JoinStatus.MARKED_FOR_JOINED) {
