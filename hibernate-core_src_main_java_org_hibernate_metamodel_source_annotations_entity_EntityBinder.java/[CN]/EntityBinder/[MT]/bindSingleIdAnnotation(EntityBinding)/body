@@ -2,8 +2,11 @@
   AnnotationInstance idAnnotation=JandexHelper.getSingleAnnotation(configuredClass.getClassInfo(),JPADotNames.ID);
   String idName=JandexHelper.getPropertyName(idAnnotation.target());
   MappedAttribute idAttribute=configuredClass.getMappedProperty(idName);
+  if (!(idAttribute instanceof SimpleAttribute)) {
+    throw new AssertionFailure("Unexpected attribute type for id attribute");
+  }
   entityBinding.getEntity().getOrCreateSingularAttribute(idName);
   SimpleAttributeBinding attributeBinding=entityBinding.makeSimpleIdAttributeBinding(idName);
-  attributeBinding.initialize(new AttributeBindingStateImpl(idAttribute));
-  attributeBinding.initialize(new ColumnRelationalStateImpl(idAttribute,meta));
+  attributeBinding.initialize(new AttributeBindingStateImpl((SimpleAttribute)idAttribute));
+  attributeBinding.initialize(new ColumnRelationalStateImpl((SimpleAttribute)idAttribute,meta));
 }

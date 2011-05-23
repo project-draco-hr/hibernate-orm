@@ -9,5 +9,18 @@
   }
   final Type type=findResolvedType(member.getName(),resolvedMembers);
   final Map<DotName,List<AnnotationInstance>> annotations=JandexHelper.getMemberAnnotations(classInfo,member.getName());
-  return MappedAttribute.createMappedAttribute(name,((Class)type).getName(),annotations);
+  MappedAttribute attribute;
+  AssociationType associationType=determineAssociationType(annotations);
+switch (associationType) {
+case NO_ASSOCIATION:
+{
+      attribute=SimpleAttribute.createSimpleAttribute(name,((Class)type).getName(),annotations);
+      break;
+    }
+default :
+{
+    attribute=AssociationAttribute.createAssociationAttribute(name,((Class)type).getName(),associationType,annotations);
+  }
+}
+return attribute;
 }
