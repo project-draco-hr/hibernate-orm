@@ -1,0 +1,20 @@
+{
+  String name=JandexHelper.getValueAsString(generator,"name");
+  String strategy;
+  Map<String,String> prms=new HashMap<String,String>();
+  addStringParameter(generator,"sequenceName",prms,SequenceStyleGenerator.SEQUENCE_PARAM);
+  if (metadata.getOptions().useNewIdentifierGenerators()) {
+    strategy=SequenceStyleGenerator.class.getName();
+    addStringParameter(generator,"catalog",prms,PersistentIdentifierGenerator.CATALOG);
+    addStringParameter(generator,"schema",prms,PersistentIdentifierGenerator.SCHEMA);
+    prms.put(SequenceStyleGenerator.INCREMENT_PARAM,String.valueOf(JandexHelper.getValueAsInt(generator,"allocationSize")));
+    prms.put(SequenceStyleGenerator.INITIAL_PARAM,String.valueOf(JandexHelper.getValueAsInt(generator,"initialValue")));
+  }
+ else {
+    strategy="seqhilo";
+    if (JandexHelper.getValueAsInt(generator,"initialValue") != 1)     LOG.unsupportedInitialValue(AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS);
+    prms.put(SequenceHiLoGenerator.MAX_LO,String.valueOf(JandexHelper.getValueAsInt(generator,"allocationSize") - 1));
+  }
+  metadata.addIdGenerator(new IdGenerator(name,strategy,prms));
+  LOG.tracef("Add sequence generator with name: %s",name);
+}

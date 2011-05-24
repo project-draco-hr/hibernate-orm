@@ -1,0 +1,16 @@
+{
+  String name=JandexHelper.getValueAsString(annotation,"name");
+  if (StringHelper.isEmpty(name))   throw new AnnotationException("A named query must have a name when used in class or package level");
+  String query=JandexHelper.getValueAsString(annotation,"query");
+  AnnotationInstance[] hints=JandexHelper.getValueAsArray(annotation,"hints");
+  String cacheRegion=getString(hints,QueryHints.CACHE_REGION);
+  if (StringHelper.isEmpty(cacheRegion))   cacheRegion=null;
+  Integer timeout=getTimeout(hints,query);
+  if (timeout != null && timeout < 0)   timeout=null;
+  Integer fetchSize=getInteger(hints,QueryHints.FETCH_SIZE,name);
+  if (fetchSize != null && fetchSize < 0)   fetchSize=null;
+  String comment=getString(hints,QueryHints.COMMENT);
+  if (StringHelper.isEmpty(comment))   comment=null;
+  metadata.addNamedQuery(name,new NamedQueryDefinition(query,getBoolean(hints,QueryHints.CACHEABLE,name),cacheRegion,timeout,fetchSize,getFlushMode(hints,QueryHints.FLUSH_MODE,name),getCacheMode(hints,QueryHints.CACHE_MODE,name),getBoolean(hints,QueryHints.READ_ONLY,name),comment,null));
+  LOG.debugf("Binding named query: %s => %s",name,query);
+}
