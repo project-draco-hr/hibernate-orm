@@ -1,26 +1,26 @@
 {
-  if (mappedAttribute.isId()) {
+  if (simpleAttribute.isId()) {
     return;
   }
-  String attributeName=mappedAttribute.getName();
+  String attributeName=simpleAttribute.getName();
   entityBinding.getEntity().getOrCreateSingularAttribute(attributeName);
   SimpleAttributeBinding attributeBinding;
   SimpleAttributeBindingState bindingState;
-  if (mappedAttribute.isDiscriminator()) {
+  if (simpleAttribute.isDiscriminator()) {
     attributeBinding=entityBinding.makeEntityDiscriminator(attributeName).getValueBinding();
-    bindingState=new DiscriminatorBindingStateImpl(mappedAttribute);
+    bindingState=new DiscriminatorBindingStateImpl(simpleAttribute);
   }
- else   if (mappedAttribute.isVersioned()) {
+ else   if (simpleAttribute.isVersioned()) {
     attributeBinding=entityBinding.makeVersionBinding(attributeName);
-    bindingState=new AttributeBindingStateImpl(mappedAttribute);
+    bindingState=new AttributeBindingStateImpl(simpleAttribute);
   }
  else {
     attributeBinding=entityBinding.makeSimpleAttributeBinding(attributeName);
-    bindingState=new AttributeBindingStateImpl(mappedAttribute);
+    bindingState=new AttributeBindingStateImpl(simpleAttribute);
   }
   attributeBinding.initialize(bindingState);
   if (configuredClass.hasOwnTable()) {
-    ColumnRelationalStateImpl columnRelationsState=new ColumnRelationalStateImpl(mappedAttribute,meta);
+    ColumnRelationalStateImpl columnRelationsState=new ColumnRelationalStateImpl(simpleAttribute,meta);
     TupleRelationalStateImpl relationalState=new TupleRelationalStateImpl();
     relationalState.addValueState(columnRelationsState);
     attributeBinding.initialize(relationalState);
