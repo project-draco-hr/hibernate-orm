@@ -1,5 +1,23 @@
 {
-  if (getRevisionType(auditCfg,persistentCollectionChangeData.getData()) != RevisionType.ADD) {
+  final boolean lastRevisionCanBeUpdated;
+  if (getRevisionType(auditCfg,persistentCollectionChangeData.getData()) == RevisionType.ADD) {
+    final QueryBuilder qb=new QueryBuilder(persistentCollectionChangeData.getEntityName(),"e");
+    String originalIdPropName=auditCfg.getAuditEntCfg().getOriginalIdPropName();
+    Map<String,Object> originalId=(Map<String,Object>)persistentCollectionChangeData.getData().get(originalIdPropName);
+    for (    Map.Entry<String,Object> originalIdEntry : originalId.entrySet()) {
+      if (!auditCfg.getAuditEntCfg().getRevisionFieldName().equals(originalIdEntry.getKey())) {
+        qb.getRootParameters().addWhereWithParam(originalIdPropName + "." + originalIdEntry.getKey(),true,"=",originalIdEntry.getValue());
+      }
+    }
+    String revisionEndFieldName=auditCfg.getAuditEntCfg().getRevisionEndFieldName();
+    qb.getRootParameters().addWhere(revisionEndFieldName,true,"is","null",false);
+    final List<Object> l=qb.toQuery(session).list();
+    lastRevisionCanBeUpdated=l.size() > 0;
+  }
+ else {
+    lastRevisionCanBeUpdated=true;
+  }
+  if (lastRevisionCanBeUpdated) {
     QueryBuilder qb=new QueryBuilder(persistentCollectionChangeData.getEntityName(),"e");
     String originalIdPropName=auditCfg.getAuditEntCfg().getOriginalIdPropName();
     Map<String,Object> originalId=(Map<String,Object>)persistentCollectionChangeData.getData().get(originalIdPropName);
