@@ -3,7 +3,9 @@
   Set<Fetch> fetches=new HashSet<Fetch>();
   for (  AnnotationInstance override : JandexHelper.getValueAsArray(fetchProfile,"fetchOverrides")) {
     FetchMode fetchMode=JandexHelper.getValueAsEnum(override,"mode",FetchMode.class);
-    if (!fetchMode.equals(org.hibernate.annotations.FetchMode.JOIN))     throw new MappingException("Only FetchMode.JOIN is currently supported");
+    if (!fetchMode.equals(org.hibernate.annotations.FetchMode.JOIN)) {
+      throw new MappingException("Only FetchMode.JOIN is currently supported");
+    }
     fetches.add(new Fetch(JandexHelper.getValueAsString(override,"entity"),JandexHelper.getValueAsString(override,"association"),fetchMode.toString().toLowerCase()));
   }
   metadata.addFetchProfile(new FetchProfile(name,fetches));
