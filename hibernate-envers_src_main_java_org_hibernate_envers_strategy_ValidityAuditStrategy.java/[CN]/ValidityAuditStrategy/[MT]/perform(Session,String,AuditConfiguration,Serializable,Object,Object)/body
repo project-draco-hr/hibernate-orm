@@ -5,7 +5,9 @@
     QueryBuilder qb=new QueryBuilder(auditedEntityName,"e");
     IdMapper idMapper=auditCfg.getEntCfg().get(entityName).getIdMapper();
     idMapper.addIdEqualsToQuery(qb.getRootParameters(),id,auditCfg.getAuditEntCfg().getOriginalIdPropName(),true);
-    updateLastRevision(session,auditCfg,qb,id,auditedEntityName,revision);
+    qb.getRootParameters().addWhere(auditCfg.getAuditEntCfg().getRevisionEndFieldName(),true,"is","null",false);
+    @SuppressWarnings({"unchecked"}) List<Object> l=qb.toQuery(session).list();
+    updateLastRevision(session,auditCfg,l,id,auditedEntityName,revision);
   }
   session.save(auditedEntityName,data);
 }
