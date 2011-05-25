@@ -1,0 +1,13 @@
+{
+  String sql="select t.table_name as {t.tableName}, sysdate() as {t.daysOld} from all_tables t  where t.table_name = 'AUDIT_ACTIONS' ";
+  String sql2="select table_name as t_name, sysdate() as t_time from all_tables   where table_name = 'AUDIT_ACTIONS' ";
+  Session s=openSession();
+  s.beginTransaction();
+  s.createSQLQuery(sql).addEntity("t",AllTables.class).list();
+  s.createSQLQuery(sql2).setResultSetMapping("all").list();
+  SQLQuery q=s.createSQLQuery(sql2);
+  q.addRoot("t",AllTables.class).addProperty("tableName","t_name").addProperty("daysOld","t_time");
+  q.list();
+  s.getTransaction().commit();
+  s.close();
+}
