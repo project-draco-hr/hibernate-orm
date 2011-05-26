@@ -11,13 +11,9 @@
   this.namedQueries=null;
   this.namedSqlQueries=null;
   this.sqlResultSetMappings=null;
-  this.filters=null;
   this.fetchProfiles=null;
   this.imports=null;
   this.interceptor=null;
-  this.serviceRegistry=null;
-  this.settings=null;
-  this.properties=null;
   this.queryCache=null;
   this.updateTimestampsCache=null;
   this.queryCaches=null;
@@ -25,7 +21,18 @@
   this.entityNotFoundDelegate=null;
   this.sqlFunctionRegistry=null;
   this.queryPlanCache=null;
-  this.typeResolver=null;
-  this.typeHelper=null;
   this.transactionEnvironment=null;
+  ConfigurationService configurationService=serviceRegistry.getService(ConfigurationService.class);
+  this.settings=null;
+  this.serviceRegistry=serviceRegistry.getService(SessionFactoryServiceRegistryFactory.class).buildServiceRegistry(this,metadata);
+  this.properties=null;
+  if (observer != null) {
+    this.observer.addObserver(observer);
+  }
+  this.typeResolver=metadata.getTypeResolver().scope(this);
+  this.typeHelper=new TypeLocatorImpl(typeResolver);
+  this.filters=new HashMap();
+  this.filters.putAll(metadata.getFilterDefinitions());
+  LOG.debugf("Session factory constructed with filter configurations : %s",filters);
+  LOG.debugf("Instantiating session factory with properties: %s",configurationService.getSettings());
 }
