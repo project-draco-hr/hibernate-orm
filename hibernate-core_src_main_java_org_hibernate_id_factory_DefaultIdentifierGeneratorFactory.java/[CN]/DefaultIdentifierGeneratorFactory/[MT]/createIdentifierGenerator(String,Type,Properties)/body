@@ -1,14 +1,14 @@
 {
   try {
     Class clazz=getIdentifierGeneratorClass(strategy);
-    IdentifierGenerator idgen=(IdentifierGenerator)clazz.newInstance();
-    if (idgen instanceof Configurable) {
-      ((Configurable)idgen).configure(type,config,dialect);
+    IdentifierGenerator identifierGenerator=(IdentifierGenerator)clazz.newInstance();
+    if (identifierGenerator instanceof Configurable) {
+      ((Configurable)identifierGenerator).configure(type,config,dialect);
     }
-    return idgen;
+    return identifierGenerator;
   }
  catch (  Exception e) {
-    String msg="Could not instantiate id generator [entity-name=" + config.get(IdentifierGenerator.ENTITY_NAME) + "]";
-    throw new MappingException(msg,e);
+    final String entityName=config.getProperty(IdentifierGenerator.ENTITY_NAME);
+    throw new MappingException(String.format("Could not instantiate id generator [entity-name=%s]",entityName),e);
   }
 }
