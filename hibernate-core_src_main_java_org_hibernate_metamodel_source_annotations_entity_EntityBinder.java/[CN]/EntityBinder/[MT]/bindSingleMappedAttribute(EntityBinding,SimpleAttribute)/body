@@ -7,16 +7,19 @@
   SimpleAttributeBinding attributeBinding;
   if (simpleAttribute.isDiscriminator()) {
     EntityDiscriminator entityDiscriminator=entityBinding.makeEntityDiscriminator(attributeName);
-    entityDiscriminator.initialize(new DiscriminatorBindingStateImpl(simpleAttribute));
+    DiscriminatorBindingState bindingState=new DiscriminatorBindingStateImpl(simpleAttribute);
+    entityDiscriminator.initialize(bindingState);
     attributeBinding=entityDiscriminator.getValueBinding();
   }
  else   if (simpleAttribute.isVersioned()) {
     attributeBinding=entityBinding.makeVersionBinding(attributeName);
-    attributeBinding.initialize(new AttributeBindingStateImpl(simpleAttribute));
+    SimpleAttributeBindingState bindingState=new AttributeBindingStateImpl(simpleAttribute);
+    attributeBinding.initialize(bindingState);
   }
  else {
     attributeBinding=entityBinding.makeSimpleAttributeBinding(attributeName);
-    attributeBinding.initialize(new AttributeBindingStateImpl(simpleAttribute));
+    SimpleAttributeBindingState bindingState=new AttributeBindingStateImpl(simpleAttribute);
+    attributeBinding.initialize(bindingState);
   }
   if (configuredClass.hasOwnTable()) {
     ColumnRelationalStateImpl columnRelationsState=new ColumnRelationalStateImpl(simpleAttribute,meta);
