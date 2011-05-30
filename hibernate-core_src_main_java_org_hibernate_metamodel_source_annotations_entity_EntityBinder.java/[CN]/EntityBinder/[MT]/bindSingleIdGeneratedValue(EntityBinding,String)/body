@@ -1,0 +1,20 @@
+{
+  AnnotationInstance generatedValueAnn=JandexHelper.getSingleAnnotation(configuredClass.getClassInfo(),JPADotNames.GENERATED_VALUE);
+  if (generatedValueAnn == null) {
+    return;
+  }
+  String idName=JandexHelper.getPropertyName(generatedValueAnn.target());
+  if (!idPropertyName.equals(idName)) {
+    throw new AssertionFailure(String.format("Attribute[%s.%s] with @GeneratedValue doesn't have a @Id.",configuredClass.getName(),idPropertyName));
+  }
+  String generator=JandexHelper.getValueAsString(generatedValueAnn,"generator");
+  if (StringHelper.isNotEmpty(generator)) {
+    IdGenerator idGenerator=((MetadataImpl)meta).getIdGenerator(generator);
+    if (idGenerator == null) {
+      throw new MappingException(String.format("@GeneratedValue on %s.%s refering an undefined generator [%s]",configuredClass.getName(),idName,generator));
+    }
+    entityBinding.getEntityIdentifier().setIdGenerator(idGenerator);
+  }
+  GenerationType strategy=JandexHelper.getValueAsEnum(generatedValueAnn,"strategy",GenerationType.class);
+  entityBinding.getEntityIdentifier().setGenerationType(strategy);
+}
