@@ -8,13 +8,21 @@
     throw new AssertionFailure(String.format("Attribute[%s.%s] with @GeneratedValue doesn't have a @Id.",configuredClass.getName(),idPropertyName));
   }
   String generator=JandexHelper.getValueAsString(generatedValueAnn,"generator");
+  IdGenerator idGenerator=null;
   if (StringHelper.isNotEmpty(generator)) {
-    IdGenerator idGenerator=((MetadataImpl)meta).getIdGenerator(generator);
+    idGenerator=((MetadataImpl)meta).getIdGenerator(generator);
     if (idGenerator == null) {
       throw new MappingException(String.format("@GeneratedValue on %s.%s refering an undefined generator [%s]",configuredClass.getName(),idName,generator));
     }
     entityBinding.getEntityIdentifier().setIdGenerator(idGenerator);
   }
-  GenerationType strategy=JandexHelper.getValueAsEnum(generatedValueAnn,"strategy",GenerationType.class);
-  entityBinding.getEntityIdentifier().setGenerationType(strategy);
+  GenerationType generationType=JandexHelper.getValueAsEnum(generatedValueAnn,"strategy",GenerationType.class);
+  String strategy=DefaultIdentifierGeneratorFactory.generatorType(generationType,meta.getOptions().useNewIdentifierGenerators());
+  if (idGenerator != null && !strategy.equals(idGenerator.getStrategy())) {
+    throw new MappingException(String.format("Inconsistent Id Generation strategy of @GeneratedValue on %s.%s",configuredClass.getName(),idName));
+  }
+ else {
+    idGenerator=new IdGenerator("NAME",strategy,new HashMap<String,String>());
+    entityBinding.getEntityIdentifier().setIdGenerator(idGenerator);
+  }
 }

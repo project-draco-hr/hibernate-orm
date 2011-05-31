@@ -4,8 +4,9 @@
   Map<String,String> prms=new HashMap<String,String>();
   addStringParameter(generator,"catalog",prms,PersistentIdentifierGenerator.CATALOG);
   addStringParameter(generator,"schema",prms,PersistentIdentifierGenerator.SCHEMA);
-  if (metadata.getOptions().useNewIdentifierGenerators()) {
-    strategy=TableGenerator.class.getName();
+  boolean useNewIdentifierGenerators=metadata.getOptions().useNewIdentifierGenerators();
+  strategy=DefaultIdentifierGeneratorFactory.generatorType(GenerationType.TABLE,useNewIdentifierGenerators);
+  if (useNewIdentifierGenerators) {
     prms.put(TableGenerator.CONFIG_PREFER_SEGMENT_PER_ENTITY,"true");
     addStringParameter(generator,"table",prms,TableGenerator.TABLE_PARAM);
     addStringParameter(generator,"pkColumnName",prms,TableGenerator.SEGMENT_COLUMN_PARAM);
@@ -15,7 +16,6 @@
     prms.put(TableGenerator.INITIAL_PARAM,String.valueOf(JandexHelper.getValueAsInt(generator,"initialValue") + 1));
   }
  else {
-    strategy=MultipleHiLoPerTableGenerator.class.getName();
     addStringParameter(generator,"table",prms,MultipleHiLoPerTableGenerator.ID_TABLE);
     addStringParameter(generator,"pkColumnName",prms,MultipleHiLoPerTableGenerator.PK_COLUMN_NAME);
     addStringParameter(generator,"pkColumnValue",prms,MultipleHiLoPerTableGenerator.PK_VALUE_NAME);
