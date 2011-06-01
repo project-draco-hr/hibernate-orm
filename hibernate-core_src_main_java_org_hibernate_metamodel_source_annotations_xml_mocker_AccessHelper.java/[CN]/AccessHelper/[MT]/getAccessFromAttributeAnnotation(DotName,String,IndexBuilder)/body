@@ -9,10 +9,13 @@
           continue;
         }
         if (JandexHelper.getPropertyName(indexedPropertyTarget).equals(attributeName)) {
-          XMLAccessType accessType=XMLAccessType.valueOf(annotationInstance.value().asEnum());
-          XMLAccessType targetAccessType=(indexedPropertyTarget instanceof MethodInfo) ? XMLAccessType.PROPERTY : XMLAccessType.FIELD;
-          if (accessType == targetAccessType) {
+          XMLAccessType accessType=JandexHelper.getValueAsEnum(annotationInstance,"value",XMLAccessType.class);
+          XMLAccessType targetAccessType=annotationTargetToAccessType(indexedPropertyTarget);
+          if (accessType.equals(targetAccessType)) {
             return targetAccessType;
+          }
+ else {
+            LOG.warn(String.format("%s.%s has @Access on %s, but it tries to assign the access type to %s, this is not allowed by JPA spec, and will be ignored.",className,attributeName,targetAccessType,accessType));
           }
         }
       }
