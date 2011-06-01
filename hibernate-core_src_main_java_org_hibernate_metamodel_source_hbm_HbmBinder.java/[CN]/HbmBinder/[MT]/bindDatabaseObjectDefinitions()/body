@@ -1,0 +1,30 @@
+{
+  if (hibernateMapping.getDatabaseObject() == null) {
+    return;
+  }
+  for (  XMLHibernateMapping.XMLDatabaseObject databaseObjectElement : hibernateMapping.getDatabaseObject()) {
+    final AuxiliaryDatabaseObject auxiliaryDatabaseObject;
+    if (databaseObjectElement.getDefinition() != null) {
+      final String className=databaseObjectElement.getDefinition().getClazz();
+      try {
+        auxiliaryDatabaseObject=(AuxiliaryDatabaseObject)classLoaderService().classForName(className).newInstance();
+      }
+ catch (      ClassLoadingException e) {
+        throw e;
+      }
+catch (      Exception e) {
+        throw new MappingException("could not instantiate custom database object class [" + className + "]",jaxbRoot.getOrigin());
+      }
+    }
+ else {
+      Set<String> dialectScopes=new HashSet<String>();
+      if (databaseObjectElement.getDialectScope() != null) {
+        for (        XMLHibernateMapping.XMLDatabaseObject.XMLDialectScope dialectScope : databaseObjectElement.getDialectScope()) {
+          dialectScopes.add(dialectScope.getName());
+        }
+      }
+      auxiliaryDatabaseObject=new BasicAuxiliaryDatabaseObjectImpl(databaseObjectElement.getCreate(),databaseObjectElement.getDrop(),dialectScopes);
+    }
+    metadata.addAuxiliaryDatabaseObject(auxiliaryDatabaseObject);
+  }
+}
