@@ -1,10 +1,11 @@
 {
-  getCurrentRevisionData(session,true);
+  Object currentRevisionData=getCurrentRevisionData(session,true);
   AuditWorkUnit vwu;
   while ((vwu=undoQueue.poll()) != null) {
     vwu.undo(session);
   }
   while ((vwu=workUnits.poll()) != null) {
     vwu.perform(session,revisionData);
+    entityChangeNotifier.entityChanged(session,currentRevisionData,vwu);
   }
 }

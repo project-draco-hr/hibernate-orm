@@ -1,0 +1,55 @@
+{
+  for (  XProperty property : clazz.getDeclaredProperties(accessType)) {
+    RevisionNumber revisionNumber=property.getAnnotation(RevisionNumber.class);
+    RevisionTimestamp revisionTimestamp=property.getAnnotation(RevisionTimestamp.class);
+    ModifiedEntityTypes modifiedEntityTypes=property.getAnnotation(ModifiedEntityTypes.class);
+    if (revisionNumber != null) {
+      if (revisionNumberFound.isSet()) {
+        throw new MappingException("Only one property may be annotated with @RevisionNumber!");
+      }
+      XClass revisionNumberClass=property.getType();
+      if (reflectionManager.equals(revisionNumberClass,Integer.class) || reflectionManager.equals(revisionNumberClass,Integer.TYPE)) {
+        revisionInfoIdData=new PropertyData(property.getName(),property.getName(),accessType,null);
+        revisionNumberFound.set();
+      }
+ else       if (reflectionManager.equals(revisionNumberClass,Long.class) || reflectionManager.equals(revisionNumberClass,Long.TYPE)) {
+        revisionInfoIdData=new PropertyData(property.getName(),property.getName(),accessType,null);
+        revisionNumberFound.set();
+        revisionPropType="long";
+      }
+ else {
+        throw new MappingException("The field annotated with @RevisionNumber must be of type " + "int, Integer, long or Long");
+      }
+      Column revisionPropColumn=property.getAnnotation(Column.class);
+      if (revisionPropColumn != null) {
+        revisionPropSqlType=revisionPropColumn.columnDefinition();
+      }
+    }
+    if (revisionTimestamp != null) {
+      if (revisionTimestampFound.isSet()) {
+        throw new MappingException("Only one property may be annotated with @RevisionTimestamp!");
+      }
+      XClass revisionTimestampClass=property.getType();
+      if (reflectionManager.equals(revisionTimestampClass,Long.class) || reflectionManager.equals(revisionTimestampClass,Long.TYPE) || reflectionManager.equals(revisionTimestampClass,Date.class)|| reflectionManager.equals(revisionTimestampClass,java.sql.Date.class)) {
+        revisionInfoTimestampData=new PropertyData(property.getName(),property.getName(),accessType,null);
+        revisionTimestampFound.set();
+      }
+ else {
+        throw new MappingException("The field annotated with @RevisionTimestamp must be of type " + "long, Long, java.util.Date or java.sql.Date");
+      }
+    }
+    if (modifiedEntityTypes != null) {
+      if (modifiedEntityTypesFound.isSet()) {
+        throw new MappingException("Only one property may be annotated with @ModifiedEntityTypes!");
+      }
+      XClass modifiedEntityTypesClass=property.getType();
+      if (reflectionManager.equals(modifiedEntityTypesClass,Set.class) && reflectionManager.equals(property.getElementClass(),String.class)) {
+        modifiedEntityTypesData=new PropertyData(property.getName(),property.getName(),accessType,null);
+        modifiedEntityTypesFound.set();
+      }
+ else {
+        throw new MappingException("The field annotated with @ModifiedEntityTypes must be of Set<String> type.");
+      }
+    }
+  }
+}
