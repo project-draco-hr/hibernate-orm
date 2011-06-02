@@ -1,2 +1,30 @@
 {
+  final EntityManager em=getEntityManager();
+  em.getTransaction().begin();
+  SetOwningEntity owningEntity=getEntityManager().find(SetOwningEntity.class,ing_id);
+  SetOwnedEntity ownedEntity=getEntityManager().find(SetOwnedEntity.class,ed_id);
+  owningEntity.setReferences(new HashSet<SetOwnedEntity>());
+  owningEntity.getReferences().add(ownedEntity);
+  em.getTransaction().commit();
+  em.clear();
+  em.getTransaction().begin();
+  owningEntity=getEntityManager().find(SetOwningEntity.class,ing_id);
+  ownedEntity=getEntityManager().find(SetOwnedEntity.class,ed_id);
+  owningEntity.getReferences().remove(ownedEntity);
+  em.getTransaction().commit();
+  em.clear();
+  em.getTransaction().begin();
+  owningEntity=getEntityManager().find(SetOwningEntity.class,ing_id);
+  ownedEntity=getEntityManager().find(SetOwnedEntity.class,ed_id);
+  owningEntity.getReferences().add(ownedEntity);
+  em.getTransaction().commit();
+  em.clear();
+  em.getTransaction().begin();
+  owningEntity=getEntityManager().find(SetOwningEntity.class,ing_id);
+  ownedEntity=getEntityManager().find(SetOwnedEntity.class,ed_id);
+  owningEntity.getReferences().remove(ownedEntity);
+  em.getTransaction().commit();
+  em.clear();
+  owningEntity=getEntityManager().find(SetOwningEntity.class,ing_id);
+  assertEquals(owningEntity.getReferences().size(),0);
 }
