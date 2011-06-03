@@ -1,0 +1,13 @@
+{
+  this(bindingContext,discriminator.getFormula(),discriminator.getColumn());
+  if (simpleValueStates.isEmpty()) {
+    if (discriminator.getColumn() == null && discriminator.getFormula() == null && !autoColumnCreation) {
+      throw new MappingException("No column or formula to map and auto column creation is disabled.");
+    }
+    simpleValueStates.add(new HbmColumnRelationalState(discriminator,this));
+  }
+ else   if (discriminator.getColumn() != null || discriminator.getFormula() != null) {
+    throw new MappingException("column/formula attribute may not be used together with <column>/<formula> subelement");
+  }
+  this.hibernateTypeDescriptor.setTypeName(discriminator.getType() == null ? "string" : discriminator.getType());
+}
