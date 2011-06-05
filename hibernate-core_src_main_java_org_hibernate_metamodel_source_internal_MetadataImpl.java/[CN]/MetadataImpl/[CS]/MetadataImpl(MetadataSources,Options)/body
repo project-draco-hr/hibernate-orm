@@ -4,24 +4,16 @@
   this.mappingDefaults=new MappingDefaultsImpl();
   final Binder[] binders;
   if (options.getSourceProcessingOrder() == SourceProcessingOrder.HBM_FIRST) {
-    binders=new Binder[]{new HibernateMappingBinder(this),new JpaBinder(this)};
+    binders=new Binder[]{new HbmBinder(this),new AnnotationBinder(this)};
   }
  else {
-    binders=new Binder[]{new JpaBinder(this),new HibernateMappingBinder(this)};
+    binders=new Binder[]{new AnnotationBinder(this),new HbmBinder(this)};
   }
+  final ArrayList<String> processedEntityNames=new ArrayList<String>();
   prepare(binders,metadataSources);
   bindIndependentMetadata(binders,metadataSources);
   bindTypeDependentMetadata(binders,metadataSources);
-  bindMappingMetadata(binders,metadataSources);
+  bindMappingMetadata(binders,metadataSources,processedEntityNames);
   bindMappingDependentMetadata(binders,metadataSources);
-  final ArrayList<String> processedEntityNames=new ArrayList<String>();
-  if (options.getSourceProcessingOrder() == SourceProcessingOrder.HBM_FIRST) {
-    applyHibernateMappings(metadataSources,processedEntityNames);
-    applyAnnotationMappings(metadataSources,processedEntityNames);
-  }
- else {
-    applyAnnotationMappings(metadataSources,processedEntityNames);
-    applyHibernateMappings(metadataSources,processedEntityNames);
-  }
   new EntityReferenceResolver(this).resolve();
 }
