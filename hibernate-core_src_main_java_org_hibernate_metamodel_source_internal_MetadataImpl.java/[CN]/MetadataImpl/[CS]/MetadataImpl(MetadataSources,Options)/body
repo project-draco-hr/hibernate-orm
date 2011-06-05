@@ -2,7 +2,18 @@
   this.serviceRegistry=metadataSources.getServiceRegistry();
   this.options=options;
   this.mappingDefaults=new MappingDefaultsImpl();
-  applyIndependentMetadata();
+  final Binder[] binders;
+  if (options.getSourceProcessingOrder() == SourceProcessingOrder.HBM_FIRST) {
+    binders=new Binder[]{new HibernateMappingBinder(this),new JpaBinder(this)};
+  }
+ else {
+    binders=new Binder[]{new JpaBinder(this),new HibernateMappingBinder(this)};
+  }
+  prepare(binders,metadataSources);
+  bindIndependentMetadata(binders,metadataSources);
+  bindTypeDependentMetadata(binders,metadataSources);
+  bindMappingMetadata(binders,metadataSources);
+  bindMappingDependentMetadata(binders,metadataSources);
   final ArrayList<String> processedEntityNames=new ArrayList<String>();
   if (options.getSourceProcessingOrder() == SourceProcessingOrder.HBM_FIRST) {
     applyHibernateMappings(metadataSources,processedEntityNames);
