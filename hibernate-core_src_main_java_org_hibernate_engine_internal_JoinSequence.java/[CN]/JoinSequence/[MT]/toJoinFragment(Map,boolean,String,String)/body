@@ -9,8 +9,7 @@
     }
   }
   Joinable last=rootJoinable;
-  for (int i=0; i < joins.size(); i++) {
-    Join join=(Join)joins.get(i);
+  for (  Join join : joins) {
     String on=join.getAssociationType().getOnCondition(join.getAlias(),factory,enabledFilters);
     String condition=null;
     if (last != null && isManyToManyRoot(last) && ((QueryableCollection)last).getElementType() == join.getAssociationType()) {
@@ -27,7 +26,7 @@
     }
     joinFragment.addJoin(join.getJoinable().getTableName(),join.getAlias(),join.getLHSColumns(),JoinHelper.getRHSColumnNames(join.getAssociationType(),factory),join.joinType,condition);
     if (includeExtraJoins) {
-      addExtraJoins(joinFragment,join.getAlias(),join.getJoinable(),join.joinType == JoinFragment.INNER_JOIN);
+      addExtraJoins(joinFragment,join.getAlias(),join.getJoinable(),join.joinType == JoinType.INNER_JOIN);
     }
     last=join.getJoinable();
   }
