@@ -1,7 +1,29 @@
 {
   LOG.debug("Building session factory");
+  sessionFactoryOptions=new SessionFactoryOptions(){
+    private EntityNotFoundDelegate entityNotFoundDelegate;
+    @Override public Interceptor getInterceptor(){
+      return cfg.getInterceptor();
+    }
+    @Override public EntityNotFoundDelegate getEntityNotFoundDelegate(){
+      if (entityNotFoundDelegate == null) {
+        if (cfg.getEntityNotFoundDelegate() != null) {
+          entityNotFoundDelegate=cfg.getEntityNotFoundDelegate();
+        }
+ else {
+          entityNotFoundDelegate=new EntityNotFoundDelegate(){
+            public void handleEntityNotFound(            String entityName,            Serializable id){
+              throw new ObjectNotFoundException(id,entityName);
+            }
+          }
+;
+        }
+      }
+      return entityNotFoundDelegate;
+    }
+  }
+;
   this.settings=settings;
-  this.interceptor=cfg.getInterceptor();
   this.properties=new Properties();
   this.properties.putAll(cfg.getProperties());
   this.serviceRegistry=serviceRegistry.getService(SessionFactoryServiceRegistryFactory.class).buildServiceRegistry(this,cfg);
@@ -176,16 +198,6 @@ class IntegratorObserver implements SessionFactoryObserver {
       throw new HibernateException(failingQueries.toString());
     }
   }
-  EntityNotFoundDelegate entityNotFoundDelegate=cfg.getEntityNotFoundDelegate();
-  if (entityNotFoundDelegate == null) {
-    entityNotFoundDelegate=new EntityNotFoundDelegate(){
-      public void handleEntityNotFound(      String entityName,      Serializable id){
-        throw new ObjectNotFoundException(id,entityName);
-      }
-    }
-;
-  }
-  this.entityNotFoundDelegate=entityNotFoundDelegate;
   this.fetchProfiles=new HashMap();
   itr=cfg.iterateFetchProfiles();
   while (itr.hasNext()) {

@@ -1,0 +1,15 @@
+{
+  SessionFactoryBuilder sessionFactoryBuilder=getSessionFactoryBuilder();
+  Interceptor interceptor=new AnInterceptor();
+  EntityNotFoundDelegate entityNotFoundDelegate=new EntityNotFoundDelegate(){
+    @Override public void handleEntityNotFound(    String entityName,    Serializable id){
+      throw new ObjectNotFoundException(id,entityName);
+    }
+  }
+;
+  sessionFactoryBuilder.with(interceptor);
+  sessionFactoryBuilder.with(entityNotFoundDelegate);
+  SessionFactory sessionFactory=sessionFactoryBuilder.buildSessionFactory();
+  assertSame(interceptor,sessionFactory.getSessionFactoryOptions().getInterceptor());
+  assertSame(entityNotFoundDelegate,sessionFactory.getSessionFactoryOptions().getEntityNotFoundDelegate());
+}

@@ -1,0 +1,20 @@
+{
+  EntityBinding rootEntityBinding=rootEntityBindingMap.get(entityName);
+  if (rootEntityBinding == null) {
+    EntityBinding entityBinding=entityBindingMap.get(entityName);
+    if (entityBinding == null) {
+      throw new IllegalStateException("Unknown entity binding: " + entityName);
+    }
+    if (entityBinding.isRoot()) {
+      rootEntityBinding=entityBinding;
+    }
+ else {
+      if (entityBinding.getEntity().getSuperType() == null) {
+        throw new IllegalStateException("Entity binding has no root: " + entityName);
+      }
+      rootEntityBinding=getRootEntityBinding(entityBinding.getEntity().getSuperType().getName());
+    }
+    rootEntityBindingMap.put(entityName,rootEntityBinding);
+  }
+  return rootEntityBinding;
+}

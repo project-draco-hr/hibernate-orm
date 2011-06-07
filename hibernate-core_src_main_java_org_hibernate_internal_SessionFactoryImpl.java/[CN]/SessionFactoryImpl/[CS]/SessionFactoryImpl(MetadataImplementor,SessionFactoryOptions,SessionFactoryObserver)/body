@@ -1,0 +1,86 @@
+{
+  LOG.debug("Building session factory");
+  this.name=null;
+  this.uuid=null;
+  this.collectionPersisters=null;
+  this.collectionMetadata=null;
+  this.collectionRolesByEntityParticipant=null;
+  this.namedQueries=null;
+  this.namedSqlQueries=null;
+  this.sqlResultSetMappings=null;
+  this.fetchProfiles=null;
+  this.imports=null;
+  this.queryCache=null;
+  this.updateTimestampsCache=null;
+  this.queryCaches=null;
+  this.currentSessionContext=null;
+  this.sqlFunctionRegistry=null;
+  this.transactionEnvironment=null;
+  this.sessionFactoryOptions=sessionFactoryOptions;
+  this.properties=createPropertiesFromMap(metadata.getServiceRegistry().getService(ConfigurationService.class).getSettings());
+  this.settings=new SettingsFactory().buildSettings(properties,metadata.getServiceRegistry());
+  this.serviceRegistry=metadata.getServiceRegistry().getService(SessionFactoryServiceRegistryFactory.class).buildServiceRegistry(this,metadata);
+  if (observer != null) {
+    this.observer.addObserver(observer);
+  }
+  this.typeResolver=metadata.getTypeResolver().scope(this);
+  this.typeHelper=new TypeLocatorImpl(typeResolver);
+  this.filters=new HashMap<String,FilterDefinition>();
+  for (  FilterDefinition filterDefinition : metadata.getFilterDefinitions()) {
+    filters.put(filterDefinition.getFilterName(),filterDefinition);
+  }
+  LOG.debugf("Session factory constructed with filter configurations : %s",filters);
+  LOG.debugf("Instantiating session factory with properties: %s",properties);
+  settings.getRegionFactory().start(settings,properties);
+  this.queryPlanCache=new QueryPlanCache(this);
+class IntegratorObserver implements SessionFactoryObserver {
+    private ArrayList<Integrator> integrators=new ArrayList<Integrator>();
+    @Override public void sessionFactoryCreated(    SessionFactory factory){
+    }
+    @Override public void sessionFactoryClosed(    SessionFactory factory){
+      for (      Integrator integrator : integrators) {
+        integrator.disintegrate(SessionFactoryImpl.this,SessionFactoryImpl.this.serviceRegistry);
+      }
+    }
+  }
+  final IntegratorObserver integratorObserver=new IntegratorObserver();
+  this.observer.addObserver(integratorObserver);
+  for (  Integrator integrator : serviceRegistry.getService(IntegratorService.class).getIntegrators()) {
+    integratorObserver.integrators.add(integrator);
+  }
+  identifierGenerators=new HashMap();
+  for (  EntityBinding entityBinding : metadata.getEntityBindings()) {
+    if (entityBinding.isRoot()) {
+      IdentifierGenerator generator=entityBinding.getEntityIdentifier().createIdentifierGenerator(metadata.getIdentifierGeneratorFactory());
+      identifierGenerators.put(entityBinding.getEntity().getName(),generator);
+    }
+  }
+  StringBuilder stringBuilder=new StringBuilder();
+  if (settings.getCacheRegionPrefix() != null) {
+    stringBuilder.append(settings.getCacheRegionPrefix()).append('.');
+  }
+  final String cacheRegionPrefix=stringBuilder.toString();
+  entityPersisters=new HashMap();
+  Map<String,EntityRegionAccessStrategy> entityAccessStrategies=new HashMap<String,EntityRegionAccessStrategy>();
+  Map<String,ClassMetadata> classMeta=new HashMap<String,ClassMetadata>();
+  for (  EntityBinding model : metadata.getEntityBindings()) {
+    EntityBinding rootEntityBinding=metadata.getRootEntityBinding(model.getEntity().getName());
+    EntityRegionAccessStrategy accessStrategy=null;
+    if (settings.isSecondLevelCacheEnabled() && rootEntityBinding.getCaching() != null && model.getCaching() != null && model.getCaching().getAccessType() != null) {
+      final String cacheRegionName=cacheRegionPrefix + rootEntityBinding.getCaching().getRegion();
+      accessStrategy=entityAccessStrategies.get(cacheRegionName);
+      if (accessStrategy == null) {
+        final AccessType accessType=model.getCaching().getAccessType();
+        LOG.trace("Building cache for entity data [" + model.getEntity().getName() + "]");
+        EntityRegion entityRegion=settings.getRegionFactory().buildEntityRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
+        accessStrategy=entityRegion.buildAccessStrategy(accessType);
+        entityAccessStrategies.put(cacheRegionName,accessStrategy);
+        allCacheRegions.put(cacheRegionName,entityRegion);
+      }
+    }
+    EntityPersister cp=serviceRegistry.getService(PersisterFactory.class).createEntityPersister(model,accessStrategy,this,metadata);
+    entityPersisters.put(model.getEntity().getName(),cp);
+    classMeta.put(model.getEntity().getName(),cp.getClassMetadata());
+  }
+  this.classMetadata=Collections.unmodifiableMap(classMeta);
+}
