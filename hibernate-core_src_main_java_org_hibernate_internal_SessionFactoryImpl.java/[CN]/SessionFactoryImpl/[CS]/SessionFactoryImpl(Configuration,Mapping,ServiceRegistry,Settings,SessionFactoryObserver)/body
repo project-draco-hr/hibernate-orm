@@ -1,7 +1,29 @@
 {
   LOG.debug("Building session factory");
+  sessionFactoryOptions=new SessionFactoryOptions(){
+    private EntityNotFoundDelegate entityNotFoundDelegate;
+    @Override public Interceptor getInterceptor(){
+      return cfg.getInterceptor();
+    }
+    @Override public EntityNotFoundDelegate getEntityNotFoundDelegate(){
+      if (entityNotFoundDelegate == null) {
+        if (cfg.getEntityNotFoundDelegate() != null) {
+          entityNotFoundDelegate=cfg.getEntityNotFoundDelegate();
+        }
+ else {
+          entityNotFoundDelegate=new EntityNotFoundDelegate(){
+            public void handleEntityNotFound(            String entityName,            Serializable id){
+              throw new ObjectNotFoundException(id,entityName);
+            }
+          }
+;
+        }
+      }
+      return entityNotFoundDelegate;
+    }
+  }
+;
   this.settings=settings;
-  this.interceptor=cfg.getInterceptor();
   this.properties=new Properties();
   this.properties.putAll(cfg.getProperties());
   this.serviceRegistry=serviceRegistry.getService(SessionFactoryServiceRegistryFactory.class).buildServiceRegistry(this,cfg);
@@ -112,10 +134,10 @@ class IntegratorObserver implements SessionFactoryObserver {
     entry.setValue(Collections.unmodifiableSet((Set)entry.getValue()));
   }
   collectionRolesByEntityParticipant=Collections.unmodifiableMap(tmpEntityToCollectionRoleMap);
-  namedQueries=new HashMap(cfg.getNamedQueries());
-  namedSqlQueries=new HashMap(cfg.getNamedSQLQueries());
-  sqlResultSetMappings=new HashMap(cfg.getSqlResultSetMappings());
-  imports=new HashMap(cfg.getImports());
+  namedQueries=new HashMap<String,NamedQueryDefinition>(cfg.getNamedQueries());
+  namedSqlQueries=new HashMap<String,NamedSQLQueryDefinition>(cfg.getNamedSQLQueries());
+  sqlResultSetMappings=new HashMap<String,ResultSetMappingDefinition>(cfg.getSqlResultSetMappings());
+  imports=new HashMap<String,String>(cfg.getImports());
   Iterator iter=entityPersisters.values().iterator();
   while (iter.hasNext()) {
     final EntityPersister persister=((EntityPersister)iter.next());
@@ -176,16 +198,6 @@ class IntegratorObserver implements SessionFactoryObserver {
       throw new HibernateException(failingQueries.toString());
     }
   }
-  EntityNotFoundDelegate entityNotFoundDelegate=cfg.getEntityNotFoundDelegate();
-  if (entityNotFoundDelegate == null) {
-    entityNotFoundDelegate=new EntityNotFoundDelegate(){
-      public void handleEntityNotFound(      String entityName,      Serializable id){
-        throw new ObjectNotFoundException(id,entityName);
-      }
-    }
-;
-  }
-  this.entityNotFoundDelegate=entityNotFoundDelegate;
   this.fetchProfiles=new HashMap();
   itr=cfg.iterateFetchProfiles();
   while (itr.hasNext()) {
