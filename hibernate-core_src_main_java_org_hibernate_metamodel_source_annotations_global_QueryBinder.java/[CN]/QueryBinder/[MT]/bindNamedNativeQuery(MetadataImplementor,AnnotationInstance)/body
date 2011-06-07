@@ -29,15 +29,15 @@
   boolean callable=getBoolean(hints,QueryHints.CALLABLE,name);
   NamedSQLQueryDefinition def;
   if (StringHelper.isNotEmpty(resultSetMapping)) {
-    def=new NamedSQLQueryDefinition(query,resultSetMapping,null,cacheable,cacheRegion,timeout,fetchSize,flushMode,cacheMode,readOnly,comment,null,callable);
+    def=new NamedSQLQueryDefinition(name,query,resultSetMapping,null,cacheable,cacheRegion,timeout,fetchSize,flushMode,cacheMode,readOnly,comment,null,callable);
   }
  else {
     String resultClass=JandexHelper.getValueAsString(annotation,"resultClass");
     if (void.class.equals(resultClass)) {
       throw new NotYetImplementedException("Pure native scalar queries are not yet supported");
     }
-    def=new NamedSQLQueryDefinition(query,new NativeSQLQueryRootReturn[]{new NativeSQLQueryRootReturn("alias1",resultClass,new HashMap(),LockMode.READ)},null,cacheable,cacheRegion,timeout,fetchSize,flushMode,cacheMode,readOnly,comment,null,callable);
+    def=new NamedSQLQueryDefinition(name,query,new NativeSQLQueryRootReturn[]{new NativeSQLQueryRootReturn("alias1",resultClass,new HashMap(),LockMode.READ)},null,cacheable,cacheRegion,timeout,fetchSize,flushMode,cacheMode,readOnly,comment,null,callable);
   }
-  metadata.addNamedNativeQuery(name,def);
+  metadata.addNamedNativeQuery(def);
   LOG.debugf("Binding named native query: %s => %s",name,query);
 }

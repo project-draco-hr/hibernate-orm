@@ -3,12 +3,12 @@
   if (BinderHelper.isEmptyAnnotationValue(queryAnn.name()))   throw new AnnotationException("A named query must have a name when used in class or package level");
   QueryHint[] hints=queryAnn.hints();
   String queryName=queryAnn.query();
-  NamedQueryDefinition query=new NamedQueryDefinition(queryName,getBoolean(queryName,"org.hibernate.cacheable",hints),getString(queryName,"org.hibernate.cacheRegion",hints),getTimeout(queryName,hints),getInteger(queryName,"org.hibernate.fetchSize",hints),getFlushMode(queryName,hints),getCacheMode(queryName,hints),getBoolean(queryName,"org.hibernate.readOnly",hints),getString(queryName,"org.hibernate.comment",hints),null);
+  NamedQueryDefinition query=new NamedQueryDefinition(queryAnn.name(),queryName,getBoolean(queryName,"org.hibernate.cacheable",hints),getString(queryName,"org.hibernate.cacheRegion",hints),getTimeout(queryName,hints),getInteger(queryName,"org.hibernate.fetchSize",hints),getFlushMode(queryName,hints),getCacheMode(queryName,hints),getBoolean(queryName,"org.hibernate.readOnly",hints),getString(queryName,"org.hibernate.comment",hints),null);
   if (isDefault) {
-    mappings.addDefaultQuery(queryAnn.name(),query);
+    mappings.addDefaultQuery(query.getName(),query);
   }
  else {
-    mappings.addQuery(queryAnn.name(),query);
+    mappings.addQuery(query.getName(),query);
   }
-  LOG.debugf("Binding named query: %s => %s",queryAnn.name(),queryAnn.query());
+  LOG.debugf("Binding named query: %s => %s",query.getName(),query.getQueryString());
 }
