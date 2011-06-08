@@ -1,0 +1,13 @@
+{
+  try {
+    writeLock.lock();
+    Lockable item=(Lockable)getInternalRegion().get(key);
+    long timeout=getInternalRegion().nextTimestamp() + getInternalRegion().getTimeout();
+    final Lock lock=(item == null) ? new Lock(timeout,uuid,nextLockId(),version) : item.lock(timeout,uuid,nextLockId());
+    getInternalRegion().put(key,lock);
+    return lock;
+  }
+  finally {
+    writeLock.unlock();
+  }
+}

@@ -1,0 +1,15 @@
+{
+  try {
+    writeLock.lock();
+    Lockable item=(Lockable)getInternalRegion().get(key);
+    if ((item != null) && item.isUnlockable(lock)) {
+      decrementLock(key,(Lock)item);
+    }
+ else {
+      handleLockExpiry(key,item);
+    }
+  }
+  finally {
+    writeLock.unlock();
+  }
+}

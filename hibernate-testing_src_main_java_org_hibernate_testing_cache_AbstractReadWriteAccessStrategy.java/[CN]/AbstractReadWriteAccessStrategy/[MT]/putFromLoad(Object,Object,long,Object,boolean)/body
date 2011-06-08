@@ -1,0 +1,17 @@
+{
+  try {
+    writeLock.lock();
+    Lockable item=(Lockable)getInternalRegion().get(key);
+    boolean writeable=item == null || item.isWriteable(txTimestamp,version,getVersionComparator());
+    if (writeable) {
+      getInternalRegion().put(key,new Item(value,version,getInternalRegion().nextTimestamp()));
+      return true;
+    }
+ else {
+      return false;
+    }
+  }
+  finally {
+    writeLock.unlock();
+  }
+}
