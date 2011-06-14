@@ -19,4 +19,34 @@
   processCustomSqlAnnotations();
   processProxyGeneration();
   processDiscriminator();
+  if (JandexHelper.getSingleAnnotation(classInfo,JPADotNames.EXCLUDE_DEFAULT_LISTENERS) == null) {
+    for (    AnnotationInstance callbackClasses : context.getIndex().getAnnotations(PseudoJpaDotNames.DEFAULT_ENTITY_LISTENERS)) {
+      for (      Type callbackClass : callbackClasses.value().asClassArray()) {
+        String callbackClassName=callbackClass.name().toString();
+        try {
+          processDefaultJpaCallbacks(callbackClassName,context.getClassInfo(callbackClassName),context);
+        }
+ catch (        PersistenceException error) {
+          throw new PersistenceException(error.getMessage() + "default entity listener " + callbackClassName);
+        }
+      }
+    }
+  }
+  for (  AnnotationInstance callbackClasses : classInfo.annotations().get(JPADotNames.ENTITY_LISTENERS)) {
+    for (    Type callbackClass : callbackClasses.value().asClassArray()) {
+      String callbackClassName=callbackClass.name().toString();
+      try {
+        processJpaCallbacks(callbackClassName,context.getClassInfo(callbackClassName),true,context);
+      }
+ catch (      PersistenceException error) {
+        throw new PersistenceException(error.getMessage() + "entity listener " + callbackClassName);
+      }
+    }
+  }
+  try {
+    processJpaCallbacks(getName(),classInfo,false,context);
+  }
+ catch (  PersistenceException error) {
+    throw new PersistenceException(error.getMessage() + "entity/mapped superclass " + classInfo.name().toString());
+  }
 }

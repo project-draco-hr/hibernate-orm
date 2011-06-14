@@ -1,0 +1,12 @@
+{
+  if (methodInfo.returnType().kind() != Kind.VOID)   throw new PersistenceException("Callback method " + methodInfo.name() + " must have a void return type in ");
+  if (Modifier.isStatic(methodInfo.flags()) || Modifier.isFinal(methodInfo.flags()))   throw new PersistenceException("Callback method " + methodInfo.name() + " must not be static or final in ");
+  Type[] argTypes=methodInfo.args();
+  if (isListener) {
+    if (argTypes.length != 1)     throw new PersistenceException("Callback method " + methodInfo.name() + " must have exactly one argument in ");
+    String argTypeName=argTypes[0].name().toString();
+    if (!argTypeName.equals(Object.class.getName()) && !argTypeName.equals(getName()))     throw new PersistenceException("The argument for callback method " + methodInfo.name() + " must be defined as either Object or "+ getEntityName()+ " in ");
+  }
+ else   if (argTypes.length != 0)   throw new PersistenceException("Callback method " + methodInfo.name() + " must have no arguments in ");
+  if (callbacksByClass.containsKey(callbackTypeClass))   throw new PersistenceException("Only one method may be annotated as a " + callbackTypeClass.getSimpleName() + " callback method in ");
+}

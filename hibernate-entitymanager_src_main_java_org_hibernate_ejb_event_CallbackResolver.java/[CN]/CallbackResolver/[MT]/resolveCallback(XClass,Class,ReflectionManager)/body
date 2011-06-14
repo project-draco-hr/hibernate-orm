@@ -58,43 +58,39 @@
     if (listener != null) {
       XClass xListener=reflectionManager.toXClass(listener);
       callbacksMethodNames=new ArrayList<String>();
-      do {
-        List<XMethod> methods=xListener.getDeclaredMethods();
-        final int size=methods.size();
-        for (int i=0; i < size; i++) {
-          final XMethod xMethod=methods.get(i);
-          if (xMethod.isAnnotationPresent(annotation)) {
-            final Method method=reflectionManager.toMethod(xMethod);
-            final String methodName=method.getName();
-            if (!callbacksMethodNames.contains(methodName)) {
-              if (callback == null) {
-                try {
-                  callback=new ListenerCallback(method,listener.newInstance());
-                }
- catch (                IllegalAccessException e) {
-                  throw new PersistenceException("Unable to create instance of " + listener.getName() + " as a listener of beanClass",e);
-                }
-catch (                InstantiationException e) {
-                  throw new PersistenceException("Unable to create instance of " + listener.getName() + " as a listener of beanClass",e);
-                }
-                Class returnType=method.getReturnType();
-                Class[] args=method.getParameterTypes();
-                if (returnType != Void.TYPE || args.length != 1) {
-                  throw new PersistenceException("Callback methods annotated in a listener bean class must return void and take one argument: " + annotation.getName() + " - "+ method);
-                }
-                if (!method.isAccessible())                 method.setAccessible(true);
-                LOG.debugf("Adding %s as %s callback for entity %s",methodName,annotation.getSimpleName(),beanClass.getName());
-                callbacks.add(0,callback);
+      List<XMethod> methods=xListener.getDeclaredMethods();
+      final int size=methods.size();
+      for (int i=0; i < size; i++) {
+        final XMethod xMethod=methods.get(i);
+        if (xMethod.isAnnotationPresent(annotation)) {
+          final Method method=reflectionManager.toMethod(xMethod);
+          final String methodName=method.getName();
+          if (!callbacksMethodNames.contains(methodName)) {
+            if (callback == null) {
+              try {
+                callback=new ListenerCallback(method,listener.newInstance());
               }
+ catch (              IllegalAccessException e) {
+                throw new PersistenceException("Unable to create instance of " + listener.getName() + " as a listener of beanClass",e);
+              }
+catch (              InstantiationException e) {
+                throw new PersistenceException("Unable to create instance of " + listener.getName() + " as a listener of beanClass",e);
+              }
+              Class returnType=method.getReturnType();
+              Class[] args=method.getParameterTypes();
+              if (returnType != Void.TYPE || args.length != 1) {
+                throw new PersistenceException("Callback methods annotated in a listener bean class must return void and take one argument: " + annotation.getName() + " - "+ method);
+              }
+              if (!method.isAccessible())               method.setAccessible(true);
+              LOG.debugf("Adding %s as %s callback for entity %s",methodName,annotation.getSimpleName(),beanClass.getName());
+              callbacks.add(0,callback);
+            }
  else {
-                throw new PersistenceException("You can only annotate one callback method with " + annotation.getName() + " in bean class: "+ beanClass.getName()+ " and callback listener: "+ listener.getName());
-              }
+              throw new PersistenceException("You can only annotate one callback method with " + annotation.getName() + " in bean class: "+ beanClass.getName()+ " and callback listener: "+ listener.getName());
             }
           }
         }
-        xListener=null;
       }
- while (xListener != null);
     }
   }
   return callbacks.toArray(new Callback[callbacks.size()]);

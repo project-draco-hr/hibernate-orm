@@ -1,0 +1,15 @@
+{
+  if (JandexHelper.getSingleAnnotation(callbackClassInfo,JPADotNames.EXCLUDE_SUPERCLASS_LISTENERS) != null) {
+    DotName superName=callbackClassInfo.superName();
+    if (superName != null)     processJpaCallbacks(instanceCallbackClassName,context.getClassInfo(superName.toString()),isListener,context);
+  }
+  Map<Class<?>,String> callbacksByType=new HashMap<Class<?>,String>();
+  createCallback(PrePersist.class,JPADotNames.PRE_PERSIST,callbacksByType,callbackClassInfo,isListener);
+  createCallback(PreRemove.class,JPADotNames.PRE_REMOVE,callbacksByType,callbackClassInfo,isListener);
+  createCallback(PreUpdate.class,JPADotNames.PRE_UPDATE,callbacksByType,callbackClassInfo,isListener);
+  createCallback(PostLoad.class,JPADotNames.POST_LOAD,callbacksByType,callbackClassInfo,isListener);
+  createCallback(PostPersist.class,JPADotNames.POST_PERSIST,callbacksByType,callbackClassInfo,isListener);
+  createCallback(PostRemove.class,JPADotNames.POST_REMOVE,callbacksByType,callbackClassInfo,isListener);
+  createCallback(PostUpdate.class,JPADotNames.POST_UPDATE,callbacksByType,callbackClassInfo,isListener);
+  if (!callbacksByType.isEmpty())   jpaCallbackClasses.add(new JpaCallbackClassImpl(instanceCallbackClassName,callbacksByType,isListener));
+}
