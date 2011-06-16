@@ -1,0 +1,32 @@
+{
+  EnumMap<AttributeType,AnnotationInstance> discoveredAttributeTypes=new EnumMap<AttributeType,AnnotationInstance>(AttributeType.class);
+  AnnotationInstance oneToOne=JandexHelper.getSingleAnnotation(annotations,JPADotNames.ONE_TO_ONE);
+  if (oneToOne != null) {
+    discoveredAttributeTypes.put(AttributeType.ONE_TO_ONE,oneToOne);
+  }
+  AnnotationInstance oneToMany=JandexHelper.getSingleAnnotation(annotations,JPADotNames.ONE_TO_MANY);
+  if (oneToMany != null) {
+    discoveredAttributeTypes.put(AttributeType.ONE_TO_MANY,oneToMany);
+  }
+  AnnotationInstance manyToOne=JandexHelper.getSingleAnnotation(annotations,JPADotNames.MANY_TO_ONE);
+  if (manyToOne != null) {
+    discoveredAttributeTypes.put(AttributeType.MANY_TO_ONE,manyToOne);
+  }
+  AnnotationInstance manyToMany=JandexHelper.getSingleAnnotation(annotations,JPADotNames.MANY_TO_MANY);
+  if (manyToMany != null) {
+    discoveredAttributeTypes.put(AttributeType.MANY_TO_MANY,manyToMany);
+  }
+  AnnotationInstance embedded=JandexHelper.getSingleAnnotation(annotations,JPADotNames.EMBEDDED);
+  if (embedded != null) {
+    discoveredAttributeTypes.put(AttributeType.EMBEDDED,embedded);
+  }
+  if (discoveredAttributeTypes.size() == 0) {
+    return AttributeType.BASIC;
+  }
+ else   if (discoveredAttributeTypes.size() == 1) {
+    return discoveredAttributeTypes.keySet().iterator().next();
+  }
+ else {
+    throw new AnnotationException("More than one association type configured for property  " + getName() + " of class "+ getName());
+  }
+}

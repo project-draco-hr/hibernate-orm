@@ -10,17 +10,21 @@
   final Type type=findResolvedType(member.getName(),resolvedMembers);
   final Map<DotName,List<AnnotationInstance>> annotations=JandexHelper.getMemberAnnotations(classInfo,member.getName());
   MappedAttribute attribute;
-  AssociationType associationType=determineAssociationType(annotations);
-switch (associationType) {
-case NO_ASSOCIATION:
+  AttributeType attributeType=determineAttributeType(annotations);
+switch (attributeType) {
+case BASIC:
 {
       attribute=SimpleAttribute.createSimpleAttribute(name,((Class)type).getName(),annotations);
       break;
     }
+case EMBEDDED:
+{
+    throw new HibernateException("foo");
+  }
 default :
 {
-    attribute=AssociationAttribute.createAssociationAttribute(name,((Class)type).getName(),associationType,annotations);
-  }
+  attribute=AssociationAttribute.createAssociationAttribute(name,((Class)type).getName(),attributeType,annotations);
+}
 }
 return attribute;
 }
