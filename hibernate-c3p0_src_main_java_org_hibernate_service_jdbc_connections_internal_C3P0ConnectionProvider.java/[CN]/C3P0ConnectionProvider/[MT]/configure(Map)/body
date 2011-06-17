@@ -1,6 +1,6 @@
 {
-  String jdbcDriverClass=props.getProperty(Environment.DRIVER);
-  String jdbcUrl=props.getProperty(Environment.URL);
+  String jdbcDriverClass=(String)props.get(Environment.DRIVER);
+  String jdbcUrl=(String)props.get(Environment.URL);
   Properties connectionProps=ConnectionProviderInitiator.getConnectionProperties(props);
   LOG.c3p0UsingDriver(jdbcDriverClass,jdbcUrl);
   LOG.connectionProperties(ConfigurationHelper.maskOut(connectionProps,"password"));
@@ -51,7 +51,8 @@
       c3props.put(C3P0_STYLE_INITIAL_POOL_SIZE,String.valueOf(minPoolSize).trim());
     }
     DataSource unpooled=DataSources.unpooledDataSource(jdbcUrl,connectionProps);
-    Properties allProps=(Properties)props.clone();
+    Map allProps=new HashMap();
+    allProps.putAll(props);
     allProps.putAll(c3props);
     ds=DataSources.pooledDataSource(unpooled,allProps);
   }
@@ -59,7 +60,7 @@
     LOG.error(LOG.unableToInstantiateC3p0ConnectionPool(),e);
     throw new HibernateException(LOG.unableToInstantiateC3p0ConnectionPool(),e);
   }
-  String i=props.getProperty(Environment.ISOLATION);
+  String i=(String)props.get(Environment.ISOLATION);
   if (i == null)   isolation=null;
  else {
     isolation=new Integer(i);
