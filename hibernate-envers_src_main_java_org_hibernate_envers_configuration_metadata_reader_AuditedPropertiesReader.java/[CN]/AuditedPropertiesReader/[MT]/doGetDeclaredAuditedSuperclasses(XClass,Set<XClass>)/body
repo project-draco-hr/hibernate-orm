@@ -1,0 +1,14 @@
+{
+  Audited allClassAudited=clazz.getAnnotation(Audited.class);
+  if (allClassAudited != null && allClassAudited.auditParents().length > 0) {
+    for (    Class c : allClassAudited.auditParents()) {
+      XClass parentClass=reflectionManager.toXClass(c);
+      checkSuperclass(clazz,parentClass);
+      declaredAuditedSuperclasses.add(parentClass);
+    }
+  }
+  XClass superclass=clazz.getSuperclass();
+  if (!clazz.isInterface() && !Object.class.getName().equals(superclass.getName())) {
+    doGetDeclaredAuditedSuperclasses(superclass,declaredAuditedSuperclasses);
+  }
+}
