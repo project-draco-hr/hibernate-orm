@@ -6,17 +6,14 @@
     types[i]=queryParameters.getPositionalParameterTypes()[i];
     values[i]=types[i].disassemble(queryParameters.getPositionalParameterValues()[i],session,null);
   }
-  final Map namedParameters;
+  final Map<String,TypedValue> namedParameters;
   if (queryParameters.getNamedParameters() == null) {
     namedParameters=null;
   }
  else {
     namedParameters=CollectionHelper.mapOfSize(queryParameters.getNamedParameters().size());
-    Iterator itr=queryParameters.getNamedParameters().entrySet().iterator();
-    while (itr.hasNext()) {
-      final Map.Entry namedParameterEntry=(Map.Entry)itr.next();
-      final TypedValue original=(TypedValue)namedParameterEntry.getValue();
-      namedParameters.put(namedParameterEntry.getKey(),new TypedValue(original.getType(),original.getType().disassemble(original.getValue(),session,null),session.getEntityMode()));
+    for (    Map.Entry<String,TypedValue> namedParameterEntry : queryParameters.getNamedParameters().entrySet()) {
+      namedParameters.put(namedParameterEntry.getKey(),new TypedValue(namedParameterEntry.getValue().getType(),namedParameterEntry.getValue().getType().disassemble(namedParameterEntry.getValue().getValue(),session,null)));
     }
   }
   final RowSelection selection=queryParameters.getRowSelection();
@@ -30,5 +27,5 @@
     firstRow=null;
     maxRows=null;
   }
-  return new QueryKey(queryString,types,values,namedParameters,firstRow,maxRows,filterKeys,session.getEntityMode(),session.getTenantIdentifier(),customTransformer);
+  return new QueryKey(queryString,types,values,namedParameters,firstRow,maxRows,filterKeys,session.getTenantIdentifier(),customTransformer);
 }

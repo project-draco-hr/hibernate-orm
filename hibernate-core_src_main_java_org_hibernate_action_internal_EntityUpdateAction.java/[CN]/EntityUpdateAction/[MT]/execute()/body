@@ -7,7 +7,7 @@
   final SessionFactoryImplementor factory=getSession().getFactory();
   Object previousVersion=this.previousVersion;
   if (persister.isVersionPropertyGenerated()) {
-    previousVersion=persister.getVersion(instance,session.getEntityMode());
+    previousVersion=persister.getVersion(instance);
   }
   final CacheKey ck;
   if (persister.hasCache()) {
@@ -39,7 +39,7 @@
       persister.getCacheAccessStrategy().remove(ck);
     }
  else {
-      CacheEntry ce=new CacheEntry(state,persister,persister.hasUninitializedLazyProperties(instance,session.getEntityMode()),nextVersion,getSession(),instance);
+      CacheEntry ce=new CacheEntry(state,persister,persister.hasUninitializedLazyProperties(instance),nextVersion,getSession(),instance);
       cacheEntry=persister.getCacheEntryStructure().structure(ce);
       boolean put=persister.getCacheAccessStrategy().update(ck,cacheEntry,nextVersion,previousVersion);
       if (put && factory.getStatistics().isStatisticsEnabled()) {

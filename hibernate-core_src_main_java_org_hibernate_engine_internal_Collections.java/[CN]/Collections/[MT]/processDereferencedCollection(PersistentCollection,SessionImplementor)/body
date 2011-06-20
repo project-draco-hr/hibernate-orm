@@ -2,7 +2,9 @@
   final PersistenceContext persistenceContext=session.getPersistenceContext();
   CollectionEntry entry=persistenceContext.getCollectionEntry(coll);
   final CollectionPersister loadedPersister=entry.getLoadedPersister();
-  if (LOG.isDebugEnabled() && loadedPersister != null)   LOG.debugf("Collection dereferenced: %s",MessageHelper.collectionInfoString(loadedPersister,entry.getLoadedKey(),session.getFactory()));
+  if (LOG.isDebugEnabled() && loadedPersister != null) {
+    LOG.debugf("Collection dereferenced: %s",MessageHelper.collectionInfoString(loadedPersister,entry.getLoadedKey(),session.getFactory()));
+  }
   boolean hasOrphanDelete=loadedPersister != null && loadedPersister.hasOrphanDelete();
   if (hasOrphanDelete) {
     Serializable ownerId=loadedPersister.getOwnerEntityPersister().getIdentifier(coll.getOwner(),session);
@@ -29,5 +31,5 @@
   }
   entry.setCurrentPersister(null);
   entry.setCurrentKey(null);
-  prepareCollectionForUpdate(coll,entry,session.getEntityMode(),session.getFactory());
+  prepareCollectionForUpdate(coll,entry,session.getFactory());
 }

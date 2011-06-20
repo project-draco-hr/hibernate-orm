@@ -1,12 +1,16 @@
 {
-  if (currentElements.size() == 0)   return oldElements;
-  if (oldElements.size() == 0)   return oldElements;
-  Type idType=session.getFactory().getEntityPersister(entityName).getIdentifierType();
+  if (currentElements.size() == 0) {
+    return oldElements;
+  }
+  if (oldElements.size() == 0) {
+    return oldElements;
+  }
+  final EntityPersister entityPersister=session.getFactory().getEntityPersister(entityName);
+  final Type idType=entityPersister.getIdentifierType();
   Collection res=new ArrayList();
   java.util.Set currentIds=new HashSet();
   java.util.Set currentSaving=new IdentitySet();
-  for (Iterator it=currentElements.iterator(); it.hasNext(); ) {
-    Object current=it.next();
+  for (  Object current : currentElements) {
     if (current != null && ForeignKeys.isNotTransient(entityName,current,null,session)) {
       EntityEntry ee=session.getPersistenceContext().getEntry(current);
       if (ee != null && ee.getStatus() == Status.SAVING) {
@@ -14,15 +18,14 @@
       }
  else {
         Serializable currentId=ForeignKeys.getEntityIdentifierIfNotUnsaved(entityName,current,session);
-        currentIds.add(new TypedValue(idType,currentId,session.getEntityMode()));
+        currentIds.add(new TypedValue(idType,currentId,entityPersister.getEntityMode()));
       }
     }
   }
-  for (Iterator it=oldElements.iterator(); it.hasNext(); ) {
-    Object old=it.next();
+  for (  Object old : oldElements) {
     if (!currentSaving.contains(old)) {
       Serializable oldId=ForeignKeys.getEntityIdentifierIfNotUnsaved(entityName,old,session);
-      if (!currentIds.contains(new TypedValue(idType,oldId,session.getEntityMode()))) {
+      if (!currentIds.contains(new TypedValue(idType,oldId,entityPersister.getEntityMode()))) {
         res.add(old);
       }
     }

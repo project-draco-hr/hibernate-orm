@@ -1,5 +1,5 @@
 {
-  final EntityMode em=loadContexts.getPersistenceContext().getSession().getEntityMode();
+  final EntityMode em=persister.getOwnerEntityPersister().getEntityMetamodel().getEntityMode();
   final CollectionKey collectionKey=new CollectionKey(persister,key,em);
   if (LOG.isTraceEnabled())   LOG.trace("Starting attempt to find loading collection [" + MessageHelper.collectionInfoString(persister.getRole(),key) + "]");
   final LoadingCollectionEntry loadingCollectionEntry=loadContexts.locateLoadingCollectionEntry(collectionKey);
@@ -14,7 +14,7 @@
     }
  else {
       Object owner=loadContexts.getPersistenceContext().getCollectionOwner(key,persister);
-      final boolean newlySavedEntity=owner != null && loadContexts.getPersistenceContext().getEntry(owner).getStatus() != Status.LOADING && em != EntityMode.DOM4J;
+      final boolean newlySavedEntity=owner != null && loadContexts.getPersistenceContext().getEntry(owner).getStatus() != Status.LOADING;
       if (newlySavedEntity) {
         LOG.trace("Owning entity already loaded; ignoring");
         return null;

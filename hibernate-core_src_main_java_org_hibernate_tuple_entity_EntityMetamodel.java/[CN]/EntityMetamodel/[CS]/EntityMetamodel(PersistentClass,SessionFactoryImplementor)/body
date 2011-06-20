@@ -141,5 +141,13 @@
       entityNameByInheritenceClassMap.put(pc.getMappedClass(),pc.getEntityName());
     }
   }
-  tuplizerMapping=new EntityEntityModeToTuplizerMapping(persistentClass,this);
+  entityMode=persistentClass.hasPojoRepresentation() ? EntityMode.POJO : EntityMode.MAP;
+  final EntityTuplizerFactory entityTuplizerFactory=sessionFactory.getSettings().getEntityTuplizerFactory();
+  final String tuplizerClassName=persistentClass.getTuplizerImplClassName(entityMode);
+  if (tuplizerClassName == null) {
+    entityTuplizer=entityTuplizerFactory.constructDefaultTuplizer(entityMode,this,persistentClass);
+  }
+ else {
+    entityTuplizer=entityTuplizerFactory.constructTuplizer(tuplizerClassName,this,persistentClass);
+  }
 }

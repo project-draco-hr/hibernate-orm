@@ -2,9 +2,7 @@
   LOG.trace("Deserializing session");
   ois.defaultReadObject();
   entityNameResolver=new CoordinatingEntityNameResolver();
-  boolean isRootSession=ois.readBoolean();
   connectionReleaseMode=ConnectionReleaseMode.parse((String)ois.readObject());
-  entityMode=EntityMode.parse((String)ois.readObject());
   autoClear=ois.readBoolean();
   autoJoinTransactions=ois.readBoolean();
   flushMode=FlushMode.valueOf((String)ois.readObject());
@@ -13,24 +11,11 @@
   autoCloseSessionEnabled=ois.readBoolean();
   interceptor=(Interceptor)ois.readObject();
   factory=SessionFactoryImpl.deserialize(ois);
-  if (isRootSession) {
-    transactionCoordinator=TransactionCoordinatorImpl.deserialize(ois,this);
-  }
+  transactionCoordinator=TransactionCoordinatorImpl.deserialize(ois,this);
   persistenceContext=StatefulPersistenceContext.deserialize(ois,this);
   actionQueue=ActionQueue.deserialize(ois,this);
   loadQueryInfluencers=(LoadQueryInfluencers)ois.readObject();
-  childSessionsByEntityMode=(Map)ois.readObject();
-  Iterator iter=loadQueryInfluencers.getEnabledFilterNames().iterator();
-  while (iter.hasNext()) {
-    String filterName=(String)iter.next();
+  for (  String filterName : loadQueryInfluencers.getEnabledFilterNames()) {
     ((FilterImpl)loadQueryInfluencers.getEnabledFilter(filterName)).afterDeserialize(factory);
-  }
-  if (isRootSession && childSessionsByEntityMode != null) {
-    iter=childSessionsByEntityMode.values().iterator();
-    while (iter.hasNext()) {
-      final SessionImpl child=((SessionImpl)iter.next());
-      child.rootSession=this;
-      child.transactionCoordinator=this.transactionCoordinator;
-    }
   }
 }

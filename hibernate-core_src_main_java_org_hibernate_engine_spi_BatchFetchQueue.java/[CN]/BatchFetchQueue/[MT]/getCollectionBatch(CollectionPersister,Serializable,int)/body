@@ -1,0 +1,32 @@
+{
+  Serializable[] keys=new Serializable[batchSize];
+  keys[0]=id;
+  int i=1;
+  int end=-1;
+  boolean checkForEnd=false;
+  Iterator iter=context.getCollectionEntries().entrySet().iterator();
+  while (iter.hasNext()) {
+    Map.Entry me=(Map.Entry)iter.next();
+    CollectionEntry ce=(CollectionEntry)me.getValue();
+    PersistentCollection collection=(PersistentCollection)me.getKey();
+    if (!collection.wasInitialized() && ce.getLoadedPersister() == collectionPersister) {
+      if (checkForEnd && i == end) {
+        return keys;
+      }
+      final boolean isEqual=collectionPersister.getKeyType().isEqual(id,ce.getLoadedKey(),collectionPersister.getFactory());
+      if (isEqual) {
+        end=i;
+      }
+ else       if (!isCached(ce.getLoadedKey(),collectionPersister)) {
+        keys[i++]=ce.getLoadedKey();
+      }
+      if (i == batchSize) {
+        i=1;
+        if (end != -1) {
+          checkForEnd=true;
+        }
+      }
+    }
+  }
+  return keys;
+}

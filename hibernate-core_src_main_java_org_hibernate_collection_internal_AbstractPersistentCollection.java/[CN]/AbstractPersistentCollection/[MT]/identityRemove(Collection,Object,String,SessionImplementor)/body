@@ -1,12 +1,13 @@
 {
   if (object != null && ForeignKeys.isNotTransient(entityName,object,null,session)) {
-    Type idType=session.getFactory().getEntityPersister(entityName).getIdentifierType();
+    final EntityPersister entityPersister=session.getFactory().getEntityPersister(entityName);
+    Type idType=entityPersister.getIdentifierType();
     Serializable idOfCurrent=ForeignKeys.getEntityIdentifierIfNotUnsaved(entityName,object,session);
-    Iterator iter=list.iterator();
-    while (iter.hasNext()) {
-      Serializable idOfOld=ForeignKeys.getEntityIdentifierIfNotUnsaved(entityName,iter.next(),session);
-      if (idType.isEqual(idOfCurrent,idOfOld,session.getEntityMode(),session.getFactory())) {
-        iter.remove();
+    Iterator itr=list.iterator();
+    while (itr.hasNext()) {
+      Serializable idOfOld=ForeignKeys.getEntityIdentifierIfNotUnsaved(entityName,itr.next(),session);
+      if (idType.isEqual(idOfCurrent,idOfOld,session.getFactory())) {
+        itr.remove();
         break;
       }
     }

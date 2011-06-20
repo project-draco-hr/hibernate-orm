@@ -11,5 +11,13 @@
     propertyIndexes.put(property.getName(),i);
     i++;
   }
-  tuplizerMapping=new ComponentEntityModeToTuplizerMapping(component);
+  entityMode=component.hasPojoRepresentation() ? EntityMode.POJO : EntityMode.MAP;
+  final ComponentTuplizerFactory componentTuplizerFactory=new ComponentTuplizerFactory();
+  final String tuplizerClassName=component.getTuplizerImplClassName(entityMode);
+  if (tuplizerClassName == null) {
+    componentTuplizer=componentTuplizerFactory.constructDefaultTuplizer(entityMode,component);
+  }
+ else {
+    componentTuplizer=componentTuplizerFactory.constructTuplizer(tuplizerClassName,component);
+  }
 }

@@ -4,17 +4,16 @@
   final EventSource session=event.getSession();
   final EntityPersister persister=entry.getPersister();
   final Status status=entry.getStatus();
-  final EntityMode entityMode=session.getEntityMode();
   final Type[] types=persister.getPropertyTypes();
   final boolean mightBeDirty=entry.requiresDirtyCheck(entity);
-  final Object[] values=getValues(entity,entry,entityMode,mightBeDirty,session);
+  final Object[] values=getValues(entity,entry,mightBeDirty,session);
   event.setPropertyValues(values);
   boolean substitute=wrapCollections(session,persister,types,values);
   if (isUpdateNecessary(event,mightBeDirty)) {
     substitute=scheduleUpdate(event) || substitute;
   }
   if (status != Status.DELETED) {
-    if (substitute)     persister.setPropertyValues(entity,values,entityMode);
+    if (substitute)     persister.setPropertyValues(entity,values);
     if (persister.hasCollections()) {
       new FlushVisitor(session,entity).processEntityPropertyValues(values,types);
     }

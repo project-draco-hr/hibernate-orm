@@ -1,0 +1,30 @@
+{
+  if (entry.isProcessed()) {
+    throw new AssertionFailure("collection was processed twice by flush()");
+  }
+  entry.setProcessed(true);
+  final CollectionPersister loadedPersister=entry.getLoadedPersister();
+  final CollectionPersister currentPersister=entry.getCurrentPersister();
+  if (loadedPersister != null || currentPersister != null) {
+    boolean ownerChanged=loadedPersister != currentPersister || !currentPersister.getKeyType().isEqual(entry.getLoadedKey(),entry.getCurrentKey(),factory);
+    if (ownerChanged) {
+      final boolean orphanDeleteAndRoleChanged=loadedPersister != null && currentPersister != null && loadedPersister.hasOrphanDelete();
+      if (orphanDeleteAndRoleChanged) {
+        throw new HibernateException("Don't change the reference to a collection with cascade=\"all-delete-orphan\": " + loadedPersister.getRole());
+      }
+      if (currentPersister != null) {
+        entry.setDorecreate(true);
+      }
+      if (loadedPersister != null) {
+        entry.setDoremove(true);
+        if (entry.isDorecreate()) {
+          LOG.trace("Forcing collection initialization");
+          collection.forceInitialization();
+        }
+      }
+    }
+ else     if (collection.isDirty()) {
+      entry.setDoupdate(true);
+    }
+  }
+}

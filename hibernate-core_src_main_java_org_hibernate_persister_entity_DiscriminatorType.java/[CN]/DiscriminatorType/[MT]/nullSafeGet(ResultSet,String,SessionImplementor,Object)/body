@@ -4,8 +4,9 @@
   if (entityName == null) {
     throw new HibernateException("Unable to resolve discriminator value [" + discriminatorValue + "] to entity name");
   }
-  if (EntityMode.POJO.equals(session.getEntityMode())) {
-    return session.getEntityPersister(entityName,null).getMappedClass(session.getEntityMode());
+  final EntityPersister entityPersister=session.getEntityPersister(entityName,null);
+  if (EntityMode.POJO == entityPersister.getEntityMode()) {
+    return entityPersister.getMappedClass();
   }
  else {
     return entityName;

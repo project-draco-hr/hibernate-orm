@@ -3,8 +3,7 @@
     LOG.trace("Processing cascade " + action + " for: "+ persister.getEntityName());
     Type[] types=persister.getPropertyTypes();
     CascadeStyle[] cascadeStyles=persister.getPropertyCascadeStyles();
-    EntityMode entityMode=eventSource.getEntityMode();
-    boolean hasUninitializedLazyProperties=persister.hasUninitializedLazyProperties(parent,entityMode);
+    boolean hasUninitializedLazyProperties=persister.hasUninitializedLazyProperties(parent);
     for (int i=0; i < types.length; i++) {
       final CascadeStyle style=cascadeStyles[i];
       final String propertyName=persister.getPropertyNames()[i];
@@ -12,10 +11,10 @@
         continue;
       }
       if (style.doCascade(action)) {
-        cascadeProperty(parent,persister.getPropertyValue(parent,i,entityMode),types[i],style,propertyName,anything,false);
+        cascadeProperty(parent,persister.getPropertyValue(parent,i),types[i],style,propertyName,anything,false);
       }
  else       if (action.requiresNoCascadeChecking()) {
-        action.noCascade(eventSource,persister.getPropertyValue(parent,i,entityMode),parent,persister,i);
+        action.noCascade(eventSource,persister.getPropertyValue(parent,i),parent,persister,i);
       }
     }
     LOG.trace("Done processing cascade " + action + " for: "+ persister.getEntityName());

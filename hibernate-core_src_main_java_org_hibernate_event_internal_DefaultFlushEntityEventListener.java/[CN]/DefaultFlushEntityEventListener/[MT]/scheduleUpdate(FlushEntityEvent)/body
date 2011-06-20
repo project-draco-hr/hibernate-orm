@@ -3,7 +3,6 @@
   final EventSource session=event.getSession();
   final Object entity=event.getEntity();
   final Status status=entry.getStatus();
-  final EntityMode entityMode=session.getEntityMode();
   final EntityPersister persister=entry.getPersister();
   final Object[] values=event.getPropertyValues();
   if (LOG.isTraceEnabled()) {
@@ -24,6 +23,6 @@
     dirtyProperties=ArrayHelper.EMPTY_INT_ARRAY;
   }
   new Nullability(session).checkNullability(values,persister,true);
-  session.getActionQueue().addAction(new EntityUpdateAction(entry.getId(),values,dirtyProperties,event.hasDirtyCollection(),(status == Status.DELETED && !entry.isModifiableEntity() ? persister.getPropertyValues(entity,entityMode) : entry.getLoadedState()),entry.getVersion(),nextVersion,entity,entry.getRowId(),persister,session));
+  session.getActionQueue().addAction(new EntityUpdateAction(entry.getId(),values,dirtyProperties,event.hasDirtyCollection(),(status == Status.DELETED && !entry.isModifiableEntity() ? persister.getPropertyValues(entity) : entry.getLoadedState()),entry.getVersion(),nextVersion,entity,entry.getRowId(),persister,session));
   return intercepted;
 }

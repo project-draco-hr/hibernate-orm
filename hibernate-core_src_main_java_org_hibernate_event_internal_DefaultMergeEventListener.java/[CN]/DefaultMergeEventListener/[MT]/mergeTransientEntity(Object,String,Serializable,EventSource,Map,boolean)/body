@@ -16,8 +16,8 @@
   }
  catch (  PropertyValueException ex) {
     String propertyName=ex.getPropertyName();
-    Object propertyFromCopy=persister.getPropertyValue(copy,propertyName,source.getEntityMode());
-    Object propertyFromEntity=persister.getPropertyValue(entity,propertyName,source.getEntityMode());
+    Object propertyFromCopy=persister.getPropertyValue(copy,propertyName);
+    Object propertyFromEntity=persister.getPropertyValue(entity,propertyName);
     Type propertyType=persister.getPropertyType(propertyName);
     EntityEntry copyEntry=source.getPersistenceContext().getEntry(copy);
     if (propertyFromCopy == null || propertyFromEntity == null || !propertyType.isEntityType() || !copyCache.containsKey(propertyFromEntity)) {
@@ -25,7 +25,9 @@
         LOG.trace("Property '" + copyEntry.getEntityName() + "."+ propertyName+ "' in copy is "+ (propertyFromCopy == null ? "null" : propertyFromCopy));
         LOG.trace("Property '" + copyEntry.getEntityName() + "."+ propertyName+ "' in original is "+ (propertyFromCopy == null ? "null" : propertyFromCopy));
         LOG.trace("Property '" + copyEntry.getEntityName() + "."+ propertyName+ "' is"+ (propertyType.isEntityType() ? "" : " not")+ " an entity type");
-        if (propertyFromEntity != null && !copyCache.containsKey(propertyFromEntity))         LOG.trace("Property '" + copyEntry.getEntityName() + "."+ propertyName+ "' is not in copy cache");
+        if (propertyFromEntity != null && !copyCache.containsKey(propertyFromEntity)) {
+          LOG.tracef("Property '%s.%s' is not in copy cache",copyEntry.getEntityName(),propertyName);
+        }
       }
       if (isNullabilityCheckedGlobal(source)) {
         throw ex;
