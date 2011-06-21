@@ -1,5 +1,5 @@
 {
-  final String name=ReflectionHelper.getPropertyName(member);
+  final String attributeName=ReflectionHelper.getPropertyName(member);
   ResolvedMember[] resolvedMembers;
   if (member instanceof Field) {
     resolvedMembers=resolvedType.getMemberFields();
@@ -7,23 +7,29 @@
  else {
     resolvedMembers=resolvedType.getMemberMethods();
   }
-  final Type type=findResolvedType(member.getName(),resolvedMembers);
+  final Class<?> type=(Class<?>)findResolvedType(member.getName(),resolvedMembers);
   final Map<DotName,List<AnnotationInstance>> annotations=JandexHelper.getMemberAnnotations(classInfo,member.getName());
   MappedAttribute attribute;
   AttributeType attributeType=determineAttributeType(annotations);
 switch (attributeType) {
 case BASIC:
 {
-      attribute=SimpleAttribute.createSimpleAttribute(name,((Class)type).getName(),annotations);
+      attribute=SimpleAttribute.createSimpleAttribute(attributeName,type.getName(),annotations);
       break;
     }
 case EMBEDDED:
 {
-    throw new HibernateException("foo");
+    ClassInfo embeddableClassInfo=context.getClassInfo(type.getName());
+    if (classInfo == null) {
+      String msg=String.format("Attribute %s of entity %s is annotated with @Embedded, but no embeddable configuration for type %s can be found.",attributeName,getName(),type.getName());
+      throw new AnnotationException(msg);
+    }
+    EmbeddedClass embeddedClass=new EmbeddedClass(embeddableClassInfo,classAccessType,context.resolveType(type.getName()),context);
+    embeddedClasses.put(attributeName,embeddedClass);
   }
 default :
 {
-  attribute=AssociationAttribute.createAssociationAttribute(name,((Class)type).getName(),attributeType,annotations);
+  attribute=AssociationAttribute.createAssociationAttribute(attributeName,((Class)type).getName(),attributeType,annotations);
 }
 }
 return attribute;

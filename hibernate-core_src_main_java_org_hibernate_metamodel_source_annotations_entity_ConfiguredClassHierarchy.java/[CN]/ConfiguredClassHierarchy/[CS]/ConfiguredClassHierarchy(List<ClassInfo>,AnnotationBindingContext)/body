@@ -1,13 +1,12 @@
 {
   defaultAccessType=determineDefaultAccessType(classes);
   inheritanceType=determineInheritanceType(classes);
-  Class<?> clazz=context.classLoaderService().classForName(classes.get(classes.size() - 1).name().toString());
-  ResolvedTypeWithMembers resolvedType=ReflectionHelper.resolveMemberTypes(clazz);
-  configuredClasses=new ArrayList<ConfiguredClass>();
-  ConfiguredClass parent=null;
+  ResolvedTypeWithMembers resolvedType=context.resolveType(classes.get(classes.size() - 1).name().toString());
+  entityClasses=new ArrayList<EntityClass>();
+  EntityClass parent=null;
   for (  ClassInfo info : classes) {
-    ConfiguredClass configuredClass=new ConfiguredClass(info,parent,defaultAccessType,inheritanceType,resolvedType,context);
-    configuredClasses.add(configuredClass);
-    parent=configuredClass;
+    EntityClass entityClass=new EntityClass(info,parent,defaultAccessType,inheritanceType,resolvedType,context);
+    entityClasses.add(entityClass);
+    parent=entityClass;
   }
 }
