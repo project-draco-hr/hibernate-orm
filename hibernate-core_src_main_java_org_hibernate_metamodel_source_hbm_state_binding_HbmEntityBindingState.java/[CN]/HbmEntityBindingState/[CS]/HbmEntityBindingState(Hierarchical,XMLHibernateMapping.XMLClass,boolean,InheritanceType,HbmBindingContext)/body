@@ -1,0 +1,62 @@
+{
+  this.superType=superType;
+  this.entityName=bindingContext.extractEntityName(entityClazz);
+  final String verbatimClassName=entityClazz.getName();
+  this.entityMode=verbatimClassName == null ? EntityMode.MAP : EntityMode.POJO;
+  if (this.entityMode == EntityMode.POJO) {
+    this.className=bindingContext.getClassName(verbatimClassName);
+    this.proxyInterfaceName=entityClazz.getProxy();
+  }
+ else {
+    this.className=null;
+    this.proxyInterfaceName=null;
+  }
+  final String customTuplizerClassName=extractCustomTuplizerClassName(entityClazz,entityMode);
+  tuplizerClass=customTuplizerClassName != null ? bindingContext.<EntityTuplizer>locateClassByName(customTuplizerClassName) : null;
+  this.isRoot=isRoot;
+  this.entityInheritanceType=inheritanceType;
+  this.caching=createCaching(entityClazz,bindingContext.extractEntityName(entityClazz));
+  metaAttributeContext=HbmHelper.extractMetaAttributeContext(entityClazz.getMeta(),true,bindingContext.getMetaAttributeContext());
+  lazy=MappingHelper.getBooleanValue(entityClazz.isLazy(),bindingContext.getMappingDefaults().areAssociationsLazy());
+  mutable=entityClazz.isMutable();
+  explicitPolymorphism="explicit".equals(entityClazz.getPolymorphism());
+  whereFilter=entityClazz.getWhere();
+  rowId=entityClazz.getRowid();
+  dynamicUpdate=entityClazz.isDynamicUpdate();
+  dynamicInsert=entityClazz.isDynamicInsert();
+  batchSize=MappingHelper.getIntValue(entityClazz.getBatchSize(),0);
+  selectBeforeUpdate=entityClazz.isSelectBeforeUpdate();
+  optimisticLockMode=getOptimisticLockMode();
+  entityPersisterClass=entityClazz.getPersister() == null ? null : bindingContext.<EntityPersister>locateClassByName(entityClazz.getPersister());
+  XMLSqlInsertElement sqlInsert=entityClazz.getSqlInsert();
+  if (sqlInsert != null) {
+    customInsert=HbmHelper.getCustomSql(sqlInsert.getValue(),sqlInsert.isCallable(),sqlInsert.getCheck().value());
+  }
+ else {
+    customInsert=null;
+  }
+  XMLSqlDeleteElement sqlDelete=entityClazz.getSqlDelete();
+  if (sqlDelete != null) {
+    customDelete=HbmHelper.getCustomSql(sqlDelete.getValue(),sqlDelete.isCallable(),sqlDelete.getCheck().value());
+  }
+ else {
+    customDelete=null;
+  }
+  XMLSqlUpdateElement sqlUpdate=entityClazz.getSqlUpdate();
+  if (sqlUpdate != null) {
+    customUpdate=HbmHelper.getCustomSql(sqlUpdate.getValue(),sqlUpdate.isCallable(),sqlUpdate.getCheck().value());
+  }
+ else {
+    customUpdate=null;
+  }
+  if (entityClazz.getSynchronize() != null) {
+    synchronizedTableNames=new HashSet<String>(entityClazz.getSynchronize().size());
+    for (    XMLSynchronizeElement synchronize : entityClazz.getSynchronize()) {
+      synchronizedTableNames.add(synchronize.getTable());
+    }
+  }
+ else {
+    synchronizedTableNames=null;
+  }
+  isAbstract=entityClazz.isAbstract();
+}

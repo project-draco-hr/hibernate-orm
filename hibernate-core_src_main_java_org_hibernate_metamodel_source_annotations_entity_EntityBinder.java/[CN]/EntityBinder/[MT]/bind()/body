@@ -1,11 +1,10 @@
 {
   EntityBinding entityBinding=new EntityBinding();
-  EntityBindingStateImpl entityBindingState=new EntityBindingStateImpl(configuredClass);
-  bindJpaEntityAnnotation(entityBinding,entityBindingState);
+  EntityBindingStateImpl entityBindingState=new EntityBindingStateImpl(getSuperType(),configuredClass);
+  bindJpaEntityAnnotation(entityBindingState);
   bindHibernateEntityAnnotation(entityBindingState);
   schemaName=createSchemaName();
   bindTable(entityBinding);
-  bindInheritance(entityBinding);
   bindWhereFilter(entityBindingState);
   bindJpaCaching(entityBindingState);
   bindHibernateCaching(entityBindingState);
@@ -14,11 +13,12 @@
   bindCustomSQL(entityBindingState);
   bindRowId(entityBindingState);
   bindBatchSize(entityBindingState);
+  entityBinding.initialize(meta,entityBindingState);
+  bindInheritance(entityBinding);
   if (configuredClass.isRoot()) {
     bindId(entityBinding);
   }
   bindAttributes(entityBinding);
   bindTableUniqueConstraints(entityBinding);
-  entityBinding.initialize(entityBindingState);
   meta.addEntity(entityBinding);
 }

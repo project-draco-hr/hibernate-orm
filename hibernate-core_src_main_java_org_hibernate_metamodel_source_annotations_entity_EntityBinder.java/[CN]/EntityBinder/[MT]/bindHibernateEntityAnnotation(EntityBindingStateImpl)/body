@@ -26,10 +26,8 @@
       optimisticLock=OptimisticLockType.valueOf(hibernateEntityAnnotation.value("optimisticLock").asEnum());
     }
     if (hibernateEntityAnnotation.value("persister") != null) {
-      String persister=(hibernateEntityAnnotation.value("persister").toString());
-      ClassLoaderService classLoaderService=meta.getServiceRegistry().getService(ClassLoaderService.class);
-      Class<?> persisterClass=classLoaderService.classForName(persister);
-      entityBindingState.setPersisterClass(persisterClass);
+      final String persisterClassName=(hibernateEntityAnnotation.value("persister").toString());
+      entityBindingState.setPersisterClass(meta.<EntityPersister>locateClassByName(persisterClassName));
     }
   }
   AnnotationInstance immutableAnnotation=JandexHelper.getSingleAnnotation(configuredClass.getClassInfo(),HibernateDotNames.IMMUTABLE);
