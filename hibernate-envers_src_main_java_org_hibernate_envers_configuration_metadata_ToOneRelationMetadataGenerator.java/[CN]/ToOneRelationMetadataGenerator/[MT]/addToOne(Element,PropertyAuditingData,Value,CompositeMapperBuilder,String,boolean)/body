@@ -15,7 +15,11 @@
   Element properties=(Element)idMapping.getXmlRelationMapping().clone();
   properties.addAttribute("name",propertyAuditingData.getName());
   MetadataTools.prefixNamesInPropertyElement(properties,lastPropertyPrefix,MetadataTools.getColumnNameIterator(value.getColumnIterator()),false,insertable);
-  parent.add(properties);
+  for (  Object o : properties.content()) {
+    Element element=(Element)o;
+    element.setParent(null);
+    parent.add(element);
+  }
   PropertyData propertyData=propertyAuditingData.getPropertyData();
   mapper.addComposite(propertyData,new ToOneIdMapper(relMapper,propertyData,referencedEntityName,nonInsertableFake));
 }
