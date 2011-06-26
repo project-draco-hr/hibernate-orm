@@ -1,10 +1,10 @@
 {
-  Set<Pair<String,Class>> entityTypes=findEntityTypesChangedInRevision(revision);
+  Set<Pair<String,Class>> entityTypes=findEntityTypes(revision);
   Map<RevisionType,List<Object>> result=new HashMap<RevisionType,List<Object>>();
   for (  RevisionType revisionType : RevisionType.values()) {
     result.put(revisionType,new ArrayList<Object>());
     for (    Pair<String,Class> type : entityTypes) {
-      List<Object> list=createQuery().forEntitiesModifiedAtRevision(type.getSecond(),type.getFirst(),revision).add(new RevisionTypeAuditExpression(revisionType,"=")).getResultList();
+      List<Object> list=auditReaderImplementor.createQuery().forEntitiesModifiedAtRevision(type.getSecond(),type.getFirst(),revision).add(new RevisionTypeAuditExpression(revisionType,"=")).getResultList();
       result.get(revisionType).addAll(list);
     }
   }
