@@ -118,11 +118,10 @@
       }
       bindAny(getCascadeStrategy(null,hibernateCascade,false,forcePersist),joinColumns,onDeleteCascade,nullability,propertyHolder,inferredData,entityBinder,isIdentifierMapper,mappings);
     }
- else     if (property.isAnnotationPresent(OneToMany.class) || property.isAnnotationPresent(ManyToMany.class) || property.isAnnotationPresent(CollectionOfElements.class)|| property.isAnnotationPresent(ElementCollection.class)|| property.isAnnotationPresent(ManyToAny.class)) {
+ else     if (property.isAnnotationPresent(OneToMany.class) || property.isAnnotationPresent(ManyToMany.class) || property.isAnnotationPresent(ElementCollection.class)|| property.isAnnotationPresent(ManyToAny.class)) {
       OneToMany oneToManyAnn=property.getAnnotation(OneToMany.class);
       ManyToMany manyToManyAnn=property.getAnnotation(ManyToMany.class);
       ElementCollection elementCollectionAnn=property.getAnnotation(ElementCollection.class);
-      CollectionOfElements collectionOfElementsAnn=property.getAnnotation(CollectionOfElements.class);
       final IndexColumn indexColumn;
       if (property.isAnnotationPresent(OrderColumn.class)) {
         indexColumn=IndexColumn.buildColumnFromAnnotation(property.getAnnotation(OrderColumn.class),propertyHolder,inferredData,entityBinder.getSecondaryTables(),mappings);
@@ -130,7 +129,7 @@
  else {
         indexColumn=IndexColumn.buildColumnFromAnnotation(property.getAnnotation(org.hibernate.annotations.IndexColumn.class),propertyHolder,inferredData,mappings);
       }
-      CollectionBinder collectionBinder=CollectionBinder.getCollectionBinder(propertyHolder.getEntityName(),property,!indexColumn.isImplicit(),property.isAnnotationPresent(CollectionOfElements.class) || property.isAnnotationPresent(org.hibernate.annotations.MapKey.class) || property.isAnnotationPresent(MapKeyType.class));
+      CollectionBinder collectionBinder=CollectionBinder.getCollectionBinder(propertyHolder.getEntityName(),property,!indexColumn.isImplicit(),property.isAnnotationPresent(MapKeyType.class));
       collectionBinder.setIndexColumn(indexColumn);
       collectionBinder.setMapKey(property.getAnnotation(MapKey.class));
       collectionBinder.setPropertyName(inferredData.getPropertyName());
@@ -174,12 +173,6 @@
           isJPA2=Boolean.TRUE;
           keyColumns=new Column[]{new MapKeyColumnDelegator(property.getAnnotation(MapKeyColumn.class))};
         }
- else         if (property.isAnnotationPresent(org.hibernate.annotations.MapKey.class)) {
-          if (isJPA2 == null) {
-            isJPA2=Boolean.FALSE;
-          }
-          keyColumns=property.getAnnotation(org.hibernate.annotations.MapKey.class).columns();
-        }
         if (isJPA2 == null) {
           isJPA2=Boolean.TRUE;
         }
@@ -208,12 +201,6 @@
           isJPA2=Boolean.TRUE;
           joinKeyColumns=new JoinColumn[]{new MapKeyJoinColumnDelegator(property.getAnnotation(MapKeyJoinColumn.class))};
         }
- else         if (property.isAnnotationPresent(org.hibernate.annotations.MapKeyManyToMany.class)) {
-          if (isJPA2 == null) {
-            isJPA2=Boolean.FALSE;
-          }
-          joinKeyColumns=property.getAnnotation(org.hibernate.annotations.MapKeyManyToMany.class).joinColumns();
-        }
         if (isJPA2 == null) {
           isJPA2=Boolean.TRUE;
         }
@@ -240,7 +227,7 @@
         collectionBinder.setCascadeStrategy(getCascadeStrategy(oneToManyAnn.cascade(),hibernateCascade,oneToManyAnn.orphanRemoval(),false));
         collectionBinder.setOneToMany(true);
       }
- else       if (elementCollectionAnn != null || collectionOfElementsAnn != null) {
+ else       if (elementCollectionAnn != null) {
         for (        Ejb3JoinColumn column : joinColumns) {
           if (column.isSecondary()) {
             throw new NotYetImplementedException("Collections having FK in secondary table");
@@ -248,7 +235,7 @@
         }
         collectionBinder.setFkJoinColumns(joinColumns);
         mappedBy="";
-        final Class<?> targetElement=elementCollectionAnn != null ? elementCollectionAnn.targetClass() : collectionOfElementsAnn.targetElement();
+        final Class<?> targetElement=elementCollectionAnn.targetClass();
         collectionBinder.setTargetEntity(mappings.getReflectionManager().toXClass(targetElement));
         collectionBinder.setOneToMany(true);
       }
