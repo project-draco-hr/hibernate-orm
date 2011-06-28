@@ -1,0 +1,116 @@
+{
+  EntityManager em;
+  MultipleCollectionEntity mce;
+  MultipleCollectionRefEntity1 re1_1, updatedRe1_1, re1_2, re1_3;
+  MultipleCollectionRefEntity2 re2_1, updatedRe2_1, re2_2, re2_3;
+  tm.begin();
+  try {
+    newEntityManager();
+    em=getEntityManager();
+    em.joinTransaction();
+    mce=new MultipleCollectionEntity();
+    mce.setText("MultipleCollectionEntity-1");
+    em.persist(mce);
+    mceId1=mce.getId();
+  }
+  finally {
+    tryCommit(tm);
+  }
+  assertNotNull(mceId1);
+  tm.begin();
+  try {
+    newEntityManager();
+    em=getEntityManager();
+    em.joinTransaction();
+    re1_1=new MultipleCollectionRefEntity1();
+    re1_1.setText("MultipleCollectionRefEntity1-1");
+    re1_1.setMultipleCollectionEntity(mce);
+    re1_2=new MultipleCollectionRefEntity1();
+    re1_2.setText("MultipleCollectionRefEntity1-2");
+    re1_2.setMultipleCollectionEntity(mce);
+    mce.addRefEntity1(re1_1);
+    mce.addRefEntity1(re1_2);
+    re2_1=new MultipleCollectionRefEntity2();
+    re2_1.setText("MultipleCollectionRefEntity2-1");
+    re2_1.setMultipleCollectionEntity(mce);
+    re2_2=new MultipleCollectionRefEntity2();
+    re2_2.setText("MultipleCollectionRefEntity2-2");
+    re2_2.setMultipleCollectionEntity(mce);
+    mce.addRefEntity2(re2_1);
+    mce.addRefEntity2(re2_2);
+    mce=em.merge(mce);
+  }
+  finally {
+    tryCommit(tm);
+  }
+  for (  MultipleCollectionRefEntity1 refEnt1 : mce.getRefEntities1()) {
+    if (refEnt1.equals(re1_1)) {
+      re1Id1=refEnt1.getId();
+    }
+ else     if (refEnt1.equals(re1_2)) {
+      re1Id2=refEnt1.getId();
+    }
+ else {
+      throw new IllegalStateException("unexpected instance");
+    }
+  }
+  for (  MultipleCollectionRefEntity2 refEnt2 : mce.getRefEntities2()) {
+    if (refEnt2.equals(re2_1)) {
+      re2Id1=refEnt2.getId();
+    }
+ else     if (refEnt2.equals(re2_2)) {
+      re2Id2=refEnt2.getId();
+    }
+ else {
+      throw new IllegalStateException("unexpected instance");
+    }
+  }
+  assertNotNull(re1Id1);
+  assertNotNull(re1Id2);
+  assertNotNull(re2Id1);
+  assertNotNull(re2Id2);
+  tm.begin();
+  try {
+    newEntityManager();
+    em=getEntityManager();
+    em.joinTransaction();
+    assertEquals(2,mce.getRefEntities1().size());
+    mce.removeRefEntity1(re1_2);
+    assertEquals(1,mce.getRefEntities1().size());
+    updatedRe1_1=mce.getRefEntities1().get(0);
+    assertEquals(re1_1,updatedRe1_1);
+    updatedRe1_1.setText("MultipleCollectionRefEntity1-1-updated");
+    re1_3=new MultipleCollectionRefEntity1();
+    re1_3.setText("MultipleCollectionRefEntity1-3");
+    re1_3.setMultipleCollectionEntity(mce);
+    mce.addRefEntity1(re1_3);
+    assertEquals(2,mce.getRefEntities1().size());
+    assertEquals(2,mce.getRefEntities2().size());
+    mce.removeRefEntity2(re2_2);
+    assertEquals(1,mce.getRefEntities2().size());
+    updatedRe2_1=mce.getRefEntities2().get(0);
+    assertEquals(re2_1,updatedRe2_1);
+    updatedRe2_1.setText("MultipleCollectionRefEntity2-1-updated");
+    re2_3=new MultipleCollectionRefEntity2();
+    re2_3.setText("MultipleCollectionRefEntity2-3");
+    re2_3.setMultipleCollectionEntity(mce);
+    mce.addRefEntity2(re2_3);
+    assertEquals(2,mce.getRefEntities2().size());
+    mce=em.merge(mce);
+  }
+  finally {
+    tryCommit(tm);
+  }
+  for (  MultipleCollectionRefEntity1 adres : mce.getRefEntities1()) {
+    if (adres.equals(re1_3)) {
+      re1Id3=adres.getId();
+    }
+  }
+  for (  MultipleCollectionRefEntity2 partner : mce.getRefEntities2()) {
+    if (partner.equals(re2_3)) {
+      re2Id3=partner.getId();
+    }
+  }
+  assertNotNull(re1Id3);
+  assertNotNull(re2Id3);
+}
