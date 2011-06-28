@@ -1,17 +1,20 @@
 {
   if (attributeBinding.getHibernateTypeDescriptor().getExplicitType() != null) {
-    return;
+    return attributeBinding.getHibernateTypeDescriptor().getExplicitType();
   }
   HibernateTypeDescriptor typeDescriptor=attributeBinding.getHibernateTypeDescriptor();
   if (typeDescriptor == null || typeDescriptor.getTypeName() == null) {
     throw new MappingException("Hibernate type name has not been defined for attribute: " + getQualifiedAttributeName(attributeBinding));
   }
+  Type type=null;
   if (typeDescriptor.getTypeName() != null) {
     Properties typeParameters=null;
     if (typeDescriptor.getTypeParameters() != null) {
       typeParameters=new Properties();
       typeParameters.putAll(typeDescriptor.getTypeParameters());
     }
-    typeDescriptor.setExplicitType(metadata.getTypeResolver().heuristicType(typeDescriptor.getTypeName(),typeParameters));
+    type=metadata.getTypeResolver().heuristicType(typeDescriptor.getTypeName(),typeParameters);
+    typeDescriptor.setExplicitType(type);
   }
+  return type;
 }

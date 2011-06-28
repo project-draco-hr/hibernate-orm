@@ -1,7 +1,10 @@
 {
   for (  EntityBinding entityBinding : metadata.getEntityBindings()) {
     for (    AttributeBinding attributeBinding : entityBinding.getAttributeBindings()) {
-      resolve(attributeBinding);
+      Type type=resolveHibernateType(attributeBinding);
+      if (type != null && !type.isAssociationType() && !type.isCollectionType() && !type.isComponentType()) {
+        resolveJavaType(attributeBinding.getAttribute(),type);
+      }
     }
   }
 }
