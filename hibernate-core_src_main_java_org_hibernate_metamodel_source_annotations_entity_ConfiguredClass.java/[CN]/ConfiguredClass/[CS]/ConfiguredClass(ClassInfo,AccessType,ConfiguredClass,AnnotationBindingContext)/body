@@ -1,0 +1,18 @@
+{
+  this.parent=parent;
+  this.context=context;
+  this.classInfo=classInfo;
+  this.clazz=context.classLoaderService().classForName(classInfo.toString());
+  this.configuredClassType=determineType();
+  this.classAccessType=determineClassAccessType(defaultAccessType);
+  this.attributeOverrides=findAttributeOverrides();
+  this.associationOverrides=findAssociationOverrides();
+  findTransientFieldAndMethodNames();
+  List<MappedAttribute> simpleAttributes=collectAttributes();
+  Collections.sort(simpleAttributes);
+  Map<String,MappedAttribute> tmpMap=new LinkedHashMap<String,MappedAttribute>();
+  for (  MappedAttribute property : simpleAttributes) {
+    tmpMap.put(property.getName(),property);
+  }
+  this.mappedAttributes=Collections.unmodifiableMap(tmpMap);
+}

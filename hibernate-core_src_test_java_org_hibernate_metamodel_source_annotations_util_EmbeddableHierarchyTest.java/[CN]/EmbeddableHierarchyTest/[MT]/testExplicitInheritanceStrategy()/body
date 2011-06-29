@@ -1,0 +1,13 @@
+{
+@MappedSuperclass class MappedSuperClass {
+  }
+@Entity @Inheritance(strategy=javax.persistence.InheritanceType.JOINED) class A extends MappedSuperClass {
+    @Id String id;
+  }
+@Entity class B extends A {
+  }
+  Set<ConfiguredClassHierarchy<EntityClass>> hierarchies=createEntityHierarchies(B.class,MappedSuperClass.class,A.class);
+  assertTrue(hierarchies.size() == 1);
+  ConfiguredClassHierarchy hierarchy=hierarchies.iterator().next();
+  assertEquals("Wrong inheritance type",InheritanceType.JOINED,hierarchy.getInheritanceType());
+}
