@@ -3,7 +3,7 @@
   name=entityBinding.getEntity().getName();
   rootName=name;
   entityType=sessionFactory.getTypeResolver().getTypeFactory().manyToOne(name);
-  identifierProperty=null;
+  identifierProperty=PropertyFactory.buildIdentifierProperty(entityBinding,sessionFactory.getIdentifierGenerator(rootName));
   versioned=entityBinding.isVersioned();
   boolean hasPojoRepresentation=false;
   Class<?> mappedClass=null;
@@ -44,6 +44,13 @@
   for (  AttributeBinding attributeBinding : entityBinding.getAttributeBindingClosure()) {
     if (attributeBinding == rootEntityIdentifier) {
       continue;
+    }
+    if (attributeBinding == entityBinding.getVersioningValueBinding()) {
+      tempVersionProperty=i;
+      properties[i]=PropertyFactory.buildVersionProperty(entityBinding.getVersioningValueBinding(),lazyAvailable);
+    }
+ else {
+      properties[i]=PropertyFactory.buildStandardProperty(attributeBinding,lazyAvailable);
     }
     if ("id".equals(attributeBinding.getAttribute().getName())) {
       foundNonIdentifierPropertyNamedId=true;
