@@ -1,0 +1,29 @@
+{
+  final Schema schema=getMetadata().getDatabase().getSchema(getSchemaName());
+  final String subSelect=xmlClazz.getSubselectAttribute() == null ? xmlClazz.getSubselect() : xmlClazz.getSubselectAttribute();
+  if (subSelect != null) {
+    final String logicalName=entityBinding.getEntity().getName();
+    InLineView inLineView=schema.getInLineView(logicalName);
+    if (inLineView == null) {
+      inLineView=schema.createInLineView(logicalName,subSelect);
+    }
+    entityBinding.setBaseTable(inLineView);
+  }
+ else {
+    String classTableName=getClassTableName(xmlClazz,entityBinding,null);
+    if (getBindingContext().isGloballyQuotedIdentifiers()) {
+      classTableName=StringHelper.quote(classTableName);
+    }
+    final Identifier tableName=Identifier.toIdentifier(classTableName);
+    final Table table=schema.locateOrCreateTable(tableName);
+    entityBinding.setBaseTable(table);
+    String comment=xmlClazz.getComment();
+    if (comment != null) {
+      table.addComment(comment.trim());
+    }
+    String check=xmlClazz.getCheck();
+    if (check != null) {
+      table.addCheckConstraint(check);
+    }
+  }
+}
