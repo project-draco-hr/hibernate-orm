@@ -21,8 +21,9 @@
   if (idGenerator != null && !strategy.equals(idGenerator.getStrategy())) {
     throw new MappingException(String.format("Inconsistent Id Generation strategy of @GeneratedValue on %s.%s",entityClass.getName(),idName));
   }
- else {
+  if (idGenerator == null) {
     idGenerator=new IdGenerator("NAME",strategy,new HashMap<String,String>());
     entityBinding.getEntityIdentifier().setIdGenerator(idGenerator);
   }
+  entityBinding.getEntityIdentifier().createIdentifierGenerator(meta.getIdentifierGeneratorFactory());
 }

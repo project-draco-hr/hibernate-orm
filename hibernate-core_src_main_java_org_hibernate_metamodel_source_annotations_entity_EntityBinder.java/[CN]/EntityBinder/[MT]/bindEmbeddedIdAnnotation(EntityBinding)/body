@@ -1,0 +1,22 @@
+{
+  AnnotationInstance idAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),JPADotNames.EMBEDDED_ID);
+  String idName=JandexHelper.getPropertyName(idAnnotation.target());
+  MappedAttribute idAttribute=entityClass.getMappedAttribute(idName);
+  if (!(idAttribute instanceof SimpleAttribute)) {
+    throw new AssertionFailure("Unexpected attribute type for id attribute");
+  }
+  SingularAttribute attribute=entityBinding.getEntity().getOrCreateComponentAttribute(idName);
+  SimpleAttributeBinding attributeBinding=entityBinding.makeSimpleIdAttributeBinding(attribute);
+  attributeBinding.initialize(new AttributeBindingStateImpl((SimpleAttribute)idAttribute));
+  TupleRelationalStateImpl state=new TupleRelationalStateImpl();
+  EmbeddableClass embeddableClass=entityClass.getEmbeddedClasses().get(idName);
+  for (  MappedAttribute attr : embeddableClass.getMappedAttributes()) {
+    state.addValueState(new ColumnRelationalStateImpl((SimpleAttribute)attr,meta));
+  }
+  attributeBinding.initialize(state);
+  Map<String,String> parms=new HashMap<String,String>(1);
+  parms.put(IdentifierGenerator.ENTITY_NAME,entityBinding.getEntity().getName());
+  IdGenerator generator=new IdGenerator("NAME","assigned",parms);
+  entityBinding.getEntityIdentifier().setIdGenerator(generator);
+  entityBinding.getEntityIdentifier().createIdentifierGenerator(meta.getIdentifierGeneratorFactory());
+}

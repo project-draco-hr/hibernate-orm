@@ -17,20 +17,15 @@ case BASIC:
       attribute=SimpleAttribute.createSimpleAttribute(attributeName,type.getName(),annotations);
       break;
     }
+case ELEMENT_COLLECTION:
+case EMBEDDED_ID:
 case EMBEDDED:
 {
-    ClassInfo embeddableClassInfo=context.getClassInfo(type.getName());
-    if (classInfo == null) {
-      String msg=String.format("Attribute %s of entity %s is annotated with @Embedded, but no embeddable configuration for type %s can be found.",attributeName,getName(),type.getName());
-      throw new AnnotationException(msg);
-    }
-    context.resolveAllTypes(type.getName());
-    ConfiguredClassHierarchy<EmbeddableClass> hierarchy=ConfiguredClassHierarchyBuilder.createEmbeddableHierarchy(context.loadClass(embeddableClassInfo.toString()),classAccessType,context);
-    embeddedClasses.put(attributeName,hierarchy.getLeaf());
+    resolveEmbeddable(attributeName,type);
   }
 default :
 {
-  attribute=AssociationAttribute.createAssociationAttribute(attributeName,((Class)type).getName(),attributeType,annotations);
+  attribute=AssociationAttribute.createAssociationAttribute(attributeName,type.getName(),attributeType,annotations);
 }
 }
 return attribute;
