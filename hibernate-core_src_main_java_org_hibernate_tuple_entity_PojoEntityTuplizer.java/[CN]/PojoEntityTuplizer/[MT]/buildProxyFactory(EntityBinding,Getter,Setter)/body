@@ -1,0 +1,38 @@
+{
+  HashSet<Class> proxyInterfaces=new HashSet<Class>();
+  proxyInterfaces.add(HibernateProxy.class);
+  Class mappedClass=entityBinding.getEntity().getJavaType().getClassReference();
+  Class proxyInterface=entityBinding.getProxyInterfaceType().getClassReference();
+  if (proxyInterface != null && !mappedClass.equals(proxyInterface)) {
+    if (!proxyInterface.isInterface()) {
+      throw new MappingException("proxy must be either an interface, or the class itself: " + getEntityName());
+    }
+    proxyInterfaces.add(proxyInterface);
+  }
+  if (mappedClass.isInterface()) {
+    proxyInterfaces.add(mappedClass);
+  }
+  for (  AttributeBinding property : entityBinding.getAttributeBindings()) {
+    Method method=getGetter(property).getMethod();
+    if (method != null && Modifier.isFinal(method.getModifiers())) {
+      LOG.gettersOfLazyClassesCannotBeFinal(entityBinding.getEntity().getName(),property.getAttribute().getName());
+    }
+    method=getSetter(property).getMethod();
+    if (method != null && Modifier.isFinal(method.getModifiers())) {
+      LOG.settersOfLazyClassesCannotBeFinal(entityBinding.getEntity().getName(),property.getAttribute().getName());
+    }
+  }
+  Method idGetterMethod=idGetter == null ? null : idGetter.getMethod();
+  Method idSetterMethod=idSetter == null ? null : idSetter.getMethod();
+  Method proxyGetIdentifierMethod=idGetterMethod == null || proxyInterface == null ? null : ReflectHelper.getMethod(proxyInterface,idGetterMethod);
+  Method proxySetIdentifierMethod=idSetterMethod == null || proxyInterface == null ? null : ReflectHelper.getMethod(proxyInterface,idSetterMethod);
+  ProxyFactory pf=buildProxyFactoryInternal(entityBinding,idGetter,idSetter);
+  try {
+    pf.postInstantiate(getEntityName(),mappedClass,proxyInterfaces,proxyGetIdentifierMethod,proxySetIdentifierMethod,entityBinding.getEntityIdentifier().isEmbedded() ? (CompositeType)entityBinding.getEntityIdentifier().getValueBinding().getHibernateTypeDescriptor().getExplicitType() : null);
+  }
+ catch (  HibernateException he) {
+    LOG.unableToCreateProxyFactory(getEntityName(),he);
+    pf=null;
+  }
+  return pf;
+}
