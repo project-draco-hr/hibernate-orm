@@ -2,9 +2,8 @@
   checkNotNull(revision,"Entity revision");
   checkPositive(revision,"Entity revision");
   checkSession();
-  if (!verCfg.getGlobalCfg().isTrackEntitiesChangedInRevisionEnabled()) {
-    throw new AuditException("This query is designed for Envers default mechanism of tracking entities modified in a given revision." + " Extend DefaultTrackingModifiedEntitiesRevisionEntity, utilize @ModifiedEntityNames annotation or set " + "'org.hibernate.envers.track_entities_changed_in_revision' parameter to true.");
-  }
+  Session session=auditReaderImplementor.getSession();
+  SessionImplementor sessionImplementor=auditReaderImplementor.getSessionImplementor();
   Set<Number> revisions=new HashSet<Number>(1);
   revisions.add(revision);
   Criteria query=verCfg.getRevisionInfoQueryCreator().getRevisionsQuery(session,revisions);
