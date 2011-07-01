@@ -1,0 +1,14 @@
+{
+  if (!XMLHibernateMapping.XMLClass.class.isInstance(entityMapping)) {
+    return null;
+  }
+  final XMLHibernateMapping.XMLClass rootEntityMapping=(XMLHibernateMapping.XMLClass)entityMapping;
+  XMLCacheElement cache=rootEntityMapping.getCache();
+  if (cache == null) {
+    return null;
+  }
+  final String region=cache.getRegion() != null ? cache.getRegion() : entityName;
+  final AccessType accessType=Enum.valueOf(AccessType.class,cache.getUsage());
+  final boolean cacheLazyProps=!"non-lazy".equals(cache.getInclude());
+  return new Caching(region,accessType,cacheLazyProps);
+}

@@ -1,0 +1,65 @@
+{
+  this.bindingContext=bindingContext;
+  this.superType=superType;
+  this.entityName=bindingContext.determineEntityName(entityClazz);
+  final String verbatimClassName=entityClazz.getName();
+  this.entityMode=verbatimClassName == null ? EntityMode.MAP : EntityMode.POJO;
+  if (this.entityMode == EntityMode.POJO) {
+    this.className=bindingContext.getClassName(verbatimClassName);
+    this.proxyInterfaceName=entityClazz.getProxy();
+  }
+ else {
+    this.className=null;
+    this.proxyInterfaceName=null;
+  }
+  final String customTuplizerClassName=extractCustomTuplizerClassName(entityClazz,entityMode);
+  this.tuplizerClass=customTuplizerClassName != null ? bindingContext.<EntityTuplizer>locateClassByName(customTuplizerClassName) : null;
+  this.entityPersisterClass=entityClazz.getPersister() == null ? null : bindingContext.<EntityPersister>locateClassByName(entityClazz.getPersister());
+  this.isRoot=isRoot;
+  this.entityInheritanceType=inheritanceType;
+  this.caching=isRoot ? createCaching(entityClazz,this.entityName) : null;
+  this.metaAttributeContext=HbmHelper.extractMetaAttributeContext(entityClazz.getMeta(),true,bindingContext.getMetaAttributeContext());
+  this.lazy=MappingHelper.getBooleanValue(entityClazz.isLazy(),bindingContext.getMappingDefaults().areAssociationsLazy());
+  this.mutable=entityClazz.isMutable();
+  this.explicitPolymorphism="explicit".equals(entityClazz.getPolymorphism());
+  this.whereFilter=entityClazz.getWhere();
+  this.rowId=entityClazz.getRowid();
+  this.dynamicUpdate=entityClazz.isDynamicUpdate();
+  this.dynamicInsert=entityClazz.isDynamicInsert();
+  this.batchSize=MappingHelper.getIntValue(entityClazz.getBatchSize(),0);
+  this.selectBeforeUpdate=entityClazz.isSelectBeforeUpdate();
+  this.optimisticLockMode=getOptimisticLockMode();
+  this.customLoaderName=entityClazz.getLoader().getQueryRef();
+  XMLSqlInsertElement sqlInsert=entityClazz.getSqlInsert();
+  if (sqlInsert != null) {
+    this.customInsert=HbmHelper.getCustomSql(sqlInsert.getValue(),sqlInsert.isCallable(),sqlInsert.getCheck().value());
+  }
+ else {
+    this.customInsert=null;
+  }
+  XMLSqlDeleteElement sqlDelete=entityClazz.getSqlDelete();
+  if (sqlDelete != null) {
+    this.customDelete=HbmHelper.getCustomSql(sqlDelete.getValue(),sqlDelete.isCallable(),sqlDelete.getCheck().value());
+  }
+ else {
+    this.customDelete=null;
+  }
+  XMLSqlUpdateElement sqlUpdate=entityClazz.getSqlUpdate();
+  if (sqlUpdate != null) {
+    this.customUpdate=HbmHelper.getCustomSql(sqlUpdate.getValue(),sqlUpdate.isCallable(),sqlUpdate.getCheck().value());
+  }
+ else {
+    this.customUpdate=null;
+  }
+  if (entityClazz.getSynchronize() != null) {
+    this.synchronizedTableNames=new HashSet<String>(entityClazz.getSynchronize().size());
+    for (    XMLSynchronizeElement synchronize : entityClazz.getSynchronize()) {
+      this.synchronizedTableNames.add(synchronize.getTable());
+    }
+  }
+ else {
+    this.synchronizedTableNames=null;
+  }
+  this.isAbstract=entityClazz.isAbstract();
+  this.baseTableView=new TableViewImpl(entityClazz.getSchema(),entityClazz.getCatalog(),entityClazz.getTable(),this,bindingContext);
+}
