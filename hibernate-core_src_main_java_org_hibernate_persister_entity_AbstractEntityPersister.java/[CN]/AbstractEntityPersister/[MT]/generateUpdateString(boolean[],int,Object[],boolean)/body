@@ -13,14 +13,14 @@
       hasColumns=hasColumns || getPropertyColumnSpan(i) > 0;
     }
   }
-  if (j == 0 && isVersioned() && entityMetamodel.getOptimisticLockMode() == Versioning.OPTIMISTIC_LOCK_VERSION) {
+  if (j == 0 && isVersioned() && entityMetamodel.getOptimisticLockStyle() == OptimisticLockStyle.VERSION) {
     if (checkVersion(includeProperty)) {
       update.setVersionColumnName(getVersionColumnName());
       hasColumns=true;
     }
   }
- else   if (entityMetamodel.getOptimisticLockMode() > Versioning.OPTIMISTIC_LOCK_VERSION && oldFields != null) {
-    boolean[] includeInWhere=entityMetamodel.getOptimisticLockMode() == Versioning.OPTIMISTIC_LOCK_ALL ? getPropertyUpdateability() : includeProperty;
+ else   if (isAllOrDirtyOptLocking() && oldFields != null) {
+    boolean[] includeInWhere=entityMetamodel.getOptimisticLockStyle() == OptimisticLockStyle.ALL ? getPropertyUpdateability() : includeProperty;
     boolean[] versionability=getPropertyVersionability();
     Type[] types=getPropertyTypes();
     for (int i=0; i < entityMetamodel.getPropertySpan(); i++) {

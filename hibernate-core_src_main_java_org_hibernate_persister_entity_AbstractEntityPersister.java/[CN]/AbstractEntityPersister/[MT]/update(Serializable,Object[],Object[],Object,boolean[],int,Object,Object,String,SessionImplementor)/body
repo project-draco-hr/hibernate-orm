@@ -22,14 +22,14 @@
     try {
       index+=expectation.prepare(update);
       index=dehydrate(id,fields,rowId,includeProperty,propertyColumnUpdateable,j,update,session,index);
-      if (useVersion && Versioning.OPTIMISTIC_LOCK_VERSION == entityMetamodel.getOptimisticLockMode()) {
+      if (useVersion && entityMetamodel.getOptimisticLockStyle() == OptimisticLockStyle.VERSION) {
         if (checkVersion(includeProperty)) {
           getVersionType().nullSafeSet(update,oldVersion,index,session);
         }
       }
- else       if (entityMetamodel.getOptimisticLockMode() > Versioning.OPTIMISTIC_LOCK_VERSION && oldFields != null) {
+ else       if (isAllOrDirtyOptLocking() && oldFields != null) {
         boolean[] versionability=getPropertyVersionability();
-        boolean[] includeOldField=entityMetamodel.getOptimisticLockMode() == Versioning.OPTIMISTIC_LOCK_ALL ? getPropertyUpdateability() : includeProperty;
+        boolean[] includeOldField=entityMetamodel.getOptimisticLockStyle() == OptimisticLockStyle.ALL ? getPropertyUpdateability() : includeProperty;
         Type[] types=getPropertyTypes();
         for (int i=0; i < entityMetamodel.getPropertySpan(); i++) {
           boolean include=includeOldField[i] && isPropertyOfTable(i,j) && versionability[i];

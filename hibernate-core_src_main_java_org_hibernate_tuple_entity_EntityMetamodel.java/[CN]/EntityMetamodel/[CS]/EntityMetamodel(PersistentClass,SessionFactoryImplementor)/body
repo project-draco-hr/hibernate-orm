@@ -119,11 +119,12 @@
   inherited=persistentClass.isInherited();
   superclass=inherited ? persistentClass.getSuperclass().getEntityName() : null;
   hasSubclasses=persistentClass.hasSubclasses();
-  optimisticLockMode=persistentClass.getOptimisticLockMode();
-  if (optimisticLockMode > Versioning.OPTIMISTIC_LOCK_VERSION && !dynamicUpdate) {
+  optimisticLockStyle=interpretOptLockMode(persistentClass.getOptimisticLockMode());
+  final boolean isAllOrDirty=optimisticLockStyle == OptimisticLockStyle.ALL || optimisticLockStyle == OptimisticLockStyle.DIRTY;
+  if (isAllOrDirty && !dynamicUpdate) {
     throw new MappingException("optimistic-lock=all|dirty requires dynamic-update=\"true\": " + name);
   }
-  if (versionPropertyIndex != NO_VERSION_INDX && optimisticLockMode > Versioning.OPTIMISTIC_LOCK_VERSION) {
+  if (versionPropertyIndex != NO_VERSION_INDX && isAllOrDirty) {
     throw new MappingException("version and optimistic-lock=all|dirty are not a valid combination : " + name);
   }
   hasCollections=foundCollection;

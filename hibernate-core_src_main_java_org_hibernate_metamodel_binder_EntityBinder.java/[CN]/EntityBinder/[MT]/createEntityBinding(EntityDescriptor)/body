@@ -1,0 +1,23 @@
+{
+  final InheritanceType inheritanceType=entityDescriptor.getEntityInheritanceType();
+  if (inheritanceType == InheritanceType.NO_INHERITANCE) {
+    return makeEntityBinding((RootEntityDescriptor)entityDescriptor);
+  }
+ else {
+    if (entityDescriptor.getSuperEntityName() == null) {
+      throw new MappingException("Encountered inheritance strategy, but no super type found",entityDescriptor.getOrigin());
+    }
+    if (inheritanceType == InheritanceType.SINGLE_TABLE) {
+      return makeEntityBinding((DiscriminatorSubClassEntityDescriptor)entityDescriptor);
+    }
+ else     if (inheritanceType == InheritanceType.JOINED) {
+      return makeEntityBinding((JoinedSubClassEntityDescriptor)entityDescriptor);
+    }
+ else     if (inheritanceType == InheritanceType.TABLE_PER_CLASS) {
+      return makeEntityBinding((UnionSubClassEntityDescriptor)entityDescriptor);
+    }
+ else {
+      throw new IllegalStateException("Unexpected inheritance type [" + inheritanceType + "]");
+    }
+  }
+}

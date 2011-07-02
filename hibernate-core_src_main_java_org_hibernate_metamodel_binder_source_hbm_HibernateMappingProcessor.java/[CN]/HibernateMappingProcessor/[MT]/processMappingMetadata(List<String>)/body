@@ -1,0 +1,30 @@
+{
+  if (hibernateMapping.getClazzOrSubclassOrJoinedSubclass() == null) {
+    return;
+  }
+  for (  Object entityElementO : hibernateMapping.getClazzOrSubclassOrJoinedSubclass()) {
+    final EntityElement entityElement=(EntityElement)entityElementO;
+    final EntityDescriptor entityDescriptor;
+    if (XMLHibernateMapping.XMLClass.class.isInstance(entityElement)) {
+      entityDescriptor=new RootEntityDescriptorImpl(entityElement,this);
+    }
+ else     if (XMLSubclassElement.class.isInstance(entityElement)) {
+      entityDescriptor=new DiscriminatedSubClassEntityDescriptorImpl(entityElement,this);
+    }
+ else     if (XMLJoinedSubclassElement.class.isInstance(entityElement)) {
+      entityDescriptor=new JoinedSubClassEntityDescriptorImpl(entityElement,this);
+    }
+ else     if (XMLUnionSubclassElement.class.isInstance(entityElement)) {
+      entityDescriptor=new UnionSubClassEntityDescriptorImpl(entityElement,this);
+    }
+ else {
+      throw new MappingException("unknown type of class or subclass: " + entityElement.getClass().getName(),jaxbRoot.getOrigin());
+    }
+    if (processedEntityNames.contains(entityDescriptor.getEntityName())) {
+      continue;
+    }
+    final EntityBinding entityBinding=entityBinder.createEntityBinding(entityDescriptor);
+    metadata.addEntity(entityBinding);
+    processedEntityNames.add(entityBinding.getEntity().getName());
+  }
+}
