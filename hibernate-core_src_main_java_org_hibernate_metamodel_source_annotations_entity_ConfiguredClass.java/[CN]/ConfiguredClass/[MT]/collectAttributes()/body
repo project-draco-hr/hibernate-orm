@@ -9,14 +9,13 @@
   if (resolvedType == null) {
     throw new AssertionFailure("Unable to resolve types for " + clazz.getName());
   }
-  List<MappedAttribute> properties=new ArrayList<MappedAttribute>();
-  Set<String> explicitlyConfiguredMemberNames=createExplicitlyConfiguredAccessProperties(properties,resolvedType);
+  Set<String> explicitlyConfiguredMemberNames=createExplicitlyConfiguredAccessProperties(resolvedType);
   if (AccessType.FIELD.equals(classAccessType)) {
     Field fields[]=clazz.getDeclaredFields();
     Field.setAccessible(fields,true);
     for (    Field field : fields) {
       if (isPersistentMember(transientFieldNames,explicitlyConfiguredMemberNames,field)) {
-        properties.add(createMappedProperty(field,resolvedType));
+        createMappedProperty(field,resolvedType);
       }
     }
   }
@@ -25,9 +24,8 @@
     Method.setAccessible(methods,true);
     for (    Method method : methods) {
       if (isPersistentMember(transientMethodNames,explicitlyConfiguredMemberNames,method)) {
-        properties.add(createMappedProperty(method,resolvedType));
+        createMappedProperty(method,resolvedType);
       }
     }
   }
-  return properties;
 }

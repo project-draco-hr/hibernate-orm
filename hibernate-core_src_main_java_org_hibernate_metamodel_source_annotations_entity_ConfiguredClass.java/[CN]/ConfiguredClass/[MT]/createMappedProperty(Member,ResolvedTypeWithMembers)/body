@@ -9,12 +9,17 @@
   }
   final Class<?> type=(Class<?>)findResolvedType(member.getName(),resolvedMembers);
   final Map<DotName,List<AnnotationInstance>> annotations=JandexHelper.getMemberAnnotations(classInfo,member.getName());
-  MappedAttribute attribute;
   AttributeType attributeType=determineAttributeType(annotations);
 switch (attributeType) {
 case BASIC:
 {
-      attribute=SimpleAttribute.createSimpleAttribute(attributeName,type.getName(),annotations);
+      SimpleAttribute attribute=SimpleAttribute.createSimpleAttribute(attributeName,type.getName(),annotations);
+      if (attribute.isId()) {
+        idAttributeMap.put(attributeName,attribute);
+      }
+ else {
+        simpleAttributeMap.put(attributeName,attribute);
+      }
       break;
     }
 case ELEMENT_COLLECTION:
@@ -25,8 +30,8 @@ case EMBEDDED:
   }
 default :
 {
-  attribute=AssociationAttribute.createAssociationAttribute(attributeName,type.getName(),attributeType,annotations);
+  AssociationAttribute attribute=AssociationAttribute.createAssociationAttribute(attributeName,type.getName(),attributeType,annotations);
+  associationAttributeMap.put(attributeName,attribute);
 }
 }
-return attribute;
 }
