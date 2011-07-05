@@ -42,8 +42,14 @@
   s.beginTransaction();
   entity=(LongStringHolder)s.get(LongStringHolder.class,entity.getId());
   if (entity.getLongString() != null) {
-    assertEquals(empty.length(),entity.getLongString().length());
-    assertEquals(empty,entity.getLongString());
+    if (getDialect() instanceof SybaseASE15Dialect) {
+      assertEquals(empty.length(),entity.getLongString().trim().length());
+      assertEquals(empty,entity.getLongString().trim());
+    }
+ else {
+      assertEquals(empty.length(),entity.getLongString().length());
+      assertEquals(empty,entity.getLongString());
+    }
   }
   s.delete(entity);
   s.getTransaction().commit();
