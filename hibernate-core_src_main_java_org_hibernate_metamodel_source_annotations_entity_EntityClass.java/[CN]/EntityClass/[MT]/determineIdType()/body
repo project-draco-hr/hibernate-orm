@@ -1,10 +1,10 @@
 {
-  List<AnnotationInstance> idAnnotations=getClassInfo().annotations().get(JPADotNames.ID);
-  List<AnnotationInstance> embeddedIdAnnotations=getClassInfo().annotations().get(JPADotNames.EMBEDDED_ID);
-  if (idAnnotations != null && embeddedIdAnnotations != null) {
+  List<AnnotationInstance> idAnnotations=findIdAnnotations(JPADotNames.ID);
+  List<AnnotationInstance> embeddedIdAnnotations=findIdAnnotations(JPADotNames.EMBEDDED_ID);
+  if (!idAnnotations.isEmpty() && !embeddedIdAnnotations.isEmpty()) {
     throw new MappingException("@EmbeddedId and @Id cannot be used together. Check the configuration for " + getName() + ".");
   }
-  if (embeddedIdAnnotations != null) {
+  if (!embeddedIdAnnotations.isEmpty()) {
     if (embeddedIdAnnotations.size() == 1) {
       return IdType.EMBEDDED;
     }
@@ -12,7 +12,7 @@
       throw new AnnotationException("Multiple @EmbeddedId annotations are not allowed");
     }
   }
-  if (idAnnotations != null) {
+  if (!idAnnotations.isEmpty()) {
     if (idAnnotations.size() == 1) {
       return IdType.SIMPLE;
     }

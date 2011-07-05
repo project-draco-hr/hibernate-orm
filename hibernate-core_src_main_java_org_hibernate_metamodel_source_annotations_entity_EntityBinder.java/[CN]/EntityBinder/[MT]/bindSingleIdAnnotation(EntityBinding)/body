@@ -1,13 +1,23 @@
 {
-  AnnotationInstance idAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),JPADotNames.ID);
-  String idName=JandexHelper.getPropertyName(idAnnotation.target());
-  MappedAttribute idAttribute=entityClass.getMappedAttribute(idName);
-  if (!(idAttribute instanceof SimpleAttribute)) {
-    throw new AssertionFailure("Unexpected attribute type for id attribute");
+  ConfiguredClass configuredClass=entityClass;
+  EntityClass superEntity=entityClass.getEntityParent();
+  Hierarchical container=entityBinding.getEntity();
+  Iterator<SimpleAttribute> iter=null;
+  while (configuredClass != null && configuredClass != superEntity) {
+    iter=configuredClass.getIdAttributes().iterator();
+    if (iter.hasNext()) {
+      break;
+    }
+    configuredClass=configuredClass.getParent();
+    container=container.getSuperType();
   }
-  Attribute attribute=entityBinding.getEntity().getOrCreateSingularAttribute(idName);
+  if (iter == null || !iter.hasNext()) {
+    throw new AnnotationException(String.format("Unable to find id attribute for class %s",entityClass.getName()));
+  }
+  MappedAttribute idAttribute=iter.next();
+  Attribute attribute=container.getOrCreateSingularAttribute(idAttribute.getName());
   SimpleAttributeBinding attributeBinding=entityBinding.makeSimpleIdAttributeBinding(attribute);
   attributeBinding.initialize(new AttributeBindingStateImpl((SimpleAttribute)idAttribute));
   attributeBinding.initialize(new ColumnRelationalStateImpl((SimpleAttribute)idAttribute,meta));
-  bindSingleIdGeneratedValue(entityBinding,idName);
+  bindSingleIdGeneratedValue(entityBinding,idAttribute.getName());
 }

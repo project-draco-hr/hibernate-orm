@@ -1,15 +1,11 @@
 {
-  for (  Map.Entry<String,EmbeddableClass> entry : entityClass.getEmbeddedClasses().entrySet()) {
-    String attributeName=entry.getKey();
-    EmbeddableClass embeddedClass=entry.getValue();
-    SingularAttribute component=entityBinding.getEntity().getOrCreateComponentAttribute(attributeName);
-    for (    MappedAttribute mappedAttribute : embeddedClass.getMappedAttributes()) {
-      if (mappedAttribute instanceof AssociationAttribute) {
-        bindAssociationAttribute(entityBinding,component.getAttributeContainer(),(AssociationAttribute)mappedAttribute);
-      }
- else {
-        bindSingleMappedAttribute(entityBinding,component.getAttributeContainer(),(SimpleAttribute)mappedAttribute);
-      }
-    }
+  AttributeContainer entity=entityBinding.getEntity();
+  bindEmbeddedAttributes(entityBinding,entity,entityClass);
+  ConfiguredClass parent=entityClass.getParent();
+  Hierarchical superTypeContainer=entityBinding.getEntity().getSuperType();
+  while (containsPotentialMappedSuperclassAttributes(parent)) {
+    bindEmbeddedAttributes(entityBinding,superTypeContainer,parent);
+    parent=parent.getParent();
+    superTypeContainer=superTypeContainer.getSuperType();
   }
 }
