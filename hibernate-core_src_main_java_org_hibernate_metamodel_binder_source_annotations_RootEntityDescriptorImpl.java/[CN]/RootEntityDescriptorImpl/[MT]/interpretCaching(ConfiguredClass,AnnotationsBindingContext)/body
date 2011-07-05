@@ -1,0 +1,39 @@
+{
+  final AnnotationInstance hibernateCacheAnnotation=JandexHelper.getSingleAnnotation(configuredClass.getClassInfo(),HibernateDotNames.CACHE);
+  if (hibernateCacheAnnotation != null) {
+    final AccessType accessType=hibernateCacheAnnotation.value("usage") == null ? bindingContext.getMappingDefaults().getCacheAccessType() : CacheConcurrencyStrategy.parse(hibernateCacheAnnotation.value("usage").asEnum()).toAccessType();
+    return new Caching(hibernateCacheAnnotation.value("region") == null ? configuredClass.getName() : hibernateCacheAnnotation.value("region").asString(),accessType,hibernateCacheAnnotation.value("include") != null && "all".equals(hibernateCacheAnnotation.value("include").asString()));
+  }
+  final AnnotationInstance jpaCacheableAnnotation=JandexHelper.getSingleAnnotation(configuredClass.getClassInfo(),JPADotNames.CACHEABLE);
+  boolean cacheable=true;
+  if (jpaCacheableAnnotation != null && jpaCacheableAnnotation.value() != null) {
+    cacheable=jpaCacheableAnnotation.value().asBoolean();
+  }
+  final boolean doCaching;
+switch (bindingContext.getMetadataImplementor().getOptions().getSharedCacheMode()) {
+case ALL:
+{
+      doCaching=true;
+      break;
+    }
+case ENABLE_SELECTIVE:
+{
+    doCaching=cacheable;
+    break;
+  }
+case DISABLE_SELECTIVE:
+{
+  doCaching=jpaCacheableAnnotation == null || cacheable;
+  break;
+}
+default :
+{
+doCaching=false;
+break;
+}
+}
+if (!doCaching) {
+return null;
+}
+return new Caching(configuredClass.getName(),bindingContext.getMappingDefaults().getCacheAccessType(),true);
+}
