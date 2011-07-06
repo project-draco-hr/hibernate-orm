@@ -1,0 +1,19 @@
+{
+  String alias=columnName.getName();
+  int lastLetter=StringHelper.lastIndexOfLetter(columnName.getName());
+  if (lastLetter == -1) {
+    alias="column";
+  }
+  boolean useRawName=columnName.getName().equals(alias) && alias.length() <= dialect.getMaxAliasLength() && !columnName.isQuoted() && !columnName.getName().toLowerCase().equals("rowid");
+  if (!useRawName) {
+    String unique=new StringBuilder().append(getPosition()).append('_').append(getTable().getTableNumber()).append('_').toString();
+    if (unique.length() >= dialect.getMaxAliasLength()) {
+      throw new MappingException("Unique suffix [" + unique + "] length must be less than maximum ["+ dialect.getMaxAliasLength()+ "]");
+    }
+    if (alias.length() + unique.length() > dialect.getMaxAliasLength()) {
+      alias=alias.substring(0,dialect.getMaxAliasLength() - unique.length());
+    }
+    alias=alias + unique;
+  }
+  return alias;
+}
