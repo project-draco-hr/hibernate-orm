@@ -1,35 +1,170 @@
 {
   super(entityBinding,cacheAccessStrategy,factory);
-  joinSpan=-1;
-  qualifiedTableNames=null;
-  isInverseTable=null;
-  isNullableTable=null;
-  keyColumnNames=null;
-  cascadeDeleteEnabled=null;
-  hasSequentialSelects=false;
-  spaces=null;
-  subclassClosure=null;
-  subclassTableNameClosure=null;
-  subclassTableIsLazyClosure=null;
-  isInverseSubclassTable=null;
-  isNullableSubclassTable=null;
-  subclassTableSequentialSelect=null;
-  subclassTableKeyColumnClosure=null;
-  isClassOrSuperclassTable=null;
-  propertyTableNumbers=null;
-  subclassPropertyTableNumberClosure=null;
-  subclassColumnTableNumberClosure=null;
-  subclassFormulaTableNumberClosure=null;
-  forceDiscriminator=false;
-  discriminatorColumnName=null;
-  discriminatorColumnReaders=null;
-  discriminatorColumnReaderTemplate=null;
-  discriminatorFormula=null;
-  discriminatorFormulaTemplate=null;
-  discriminatorAlias=null;
-  discriminatorType=null;
-  discriminatorSQLValue=null;
-  discriminatorInsertable=false;
-  constraintOrderedTableNames=null;
-  constraintOrderedKeyColumnNames=null;
+  joinSpan=1;
+  qualifiedTableNames=new String[joinSpan];
+  isInverseTable=new boolean[joinSpan];
+  isNullableTable=new boolean[joinSpan];
+  keyColumnNames=new String[joinSpan][];
+  final TableSpecification table=entityBinding.getBaseTable();
+  qualifiedTableNames[0]=table.getQualifiedName(factory.getDialect());
+  isInverseTable[0]=false;
+  isNullableTable[0]=false;
+  keyColumnNames[0]=getIdentifierColumnNames();
+  cascadeDeleteEnabled=new boolean[joinSpan];
+  customSQLInsert=new String[joinSpan];
+  customSQLUpdate=new String[joinSpan];
+  customSQLDelete=new String[joinSpan];
+  insertCallable=new boolean[joinSpan];
+  updateCallable=new boolean[joinSpan];
+  deleteCallable=new boolean[joinSpan];
+  insertResultCheckStyles=new ExecuteUpdateResultCheckStyle[joinSpan];
+  updateResultCheckStyles=new ExecuteUpdateResultCheckStyle[joinSpan];
+  deleteResultCheckStyles=new ExecuteUpdateResultCheckStyle[joinSpan];
+  initializeCustomSql(entityBinding.getCustomInsert(),0,customSQLInsert,insertCallable,insertResultCheckStyles);
+  initializeCustomSql(entityBinding.getCustomUpdate(),0,customSQLUpdate,updateCallable,updateResultCheckStyles);
+  initializeCustomSql(entityBinding.getCustomDelete(),0,customSQLDelete,deleteCallable,deleteResultCheckStyles);
+  constraintOrderedTableNames=new String[qualifiedTableNames.length];
+  constraintOrderedKeyColumnNames=new String[qualifiedTableNames.length][];
+  for (int i=qualifiedTableNames.length - 1, position=0; i >= 0; i--, position++) {
+    constraintOrderedTableNames[position]=qualifiedTableNames[i];
+    constraintOrderedKeyColumnNames[position]=keyColumnNames[i];
+  }
+  spaces=ArrayHelper.join(qualifiedTableNames,ArrayHelper.toStringArray(entityBinding.getSynchronizedTableNames()));
+  final boolean lazyAvailable=isInstrumented();
+  boolean hasDeferred=false;
+  ArrayList subclassTables=new ArrayList();
+  ArrayList joinKeyColumns=new ArrayList();
+  ArrayList<Boolean> isConcretes=new ArrayList<Boolean>();
+  ArrayList<Boolean> isDeferreds=new ArrayList<Boolean>();
+  ArrayList<Boolean> isInverses=new ArrayList<Boolean>();
+  ArrayList<Boolean> isNullables=new ArrayList<Boolean>();
+  ArrayList<Boolean> isLazies=new ArrayList<Boolean>();
+  subclassTables.add(qualifiedTableNames[0]);
+  joinKeyColumns.add(getIdentifierColumnNames());
+  isConcretes.add(Boolean.TRUE);
+  isDeferreds.add(Boolean.FALSE);
+  isInverses.add(Boolean.FALSE);
+  isNullables.add(Boolean.FALSE);
+  isLazies.add(Boolean.FALSE);
+  subclassTableSequentialSelect=ArrayHelper.toBooleanArray(isDeferreds);
+  subclassTableNameClosure=ArrayHelper.toStringArray(subclassTables);
+  subclassTableIsLazyClosure=ArrayHelper.toBooleanArray(isLazies);
+  subclassTableKeyColumnClosure=ArrayHelper.to2DStringArray(joinKeyColumns);
+  isClassOrSuperclassTable=ArrayHelper.toBooleanArray(isConcretes);
+  isInverseSubclassTable=ArrayHelper.toBooleanArray(isInverses);
+  isNullableSubclassTable=ArrayHelper.toBooleanArray(isNullables);
+  hasSequentialSelects=hasDeferred;
+  boolean hasSubclasses=false;
+  boolean isPolymorphic=!entityBinding.isRoot() || hasSubclasses;
+  final Object discriminatorValue;
+  if (isPolymorphic) {
+    org.hibernate.metamodel.relational.Value discrimValue=entityBinding.getEntityDiscriminator().getValueBinding().getValue();
+    if (discrimValue == null) {
+      throw new MappingException("discriminator mapping required for single table polymorphic persistence");
+    }
+    forceDiscriminator=entityBinding.getEntityDiscriminator().isForced();
+    if (!SimpleValue.class.isInstance(discrimValue)) {
+      throw new MappingException("discriminator must be mapped to a single column or formula.");
+    }
+    if (DerivedValue.class.isInstance(discrimValue)) {
+      DerivedValue formula=(DerivedValue)discrimValue;
+      discriminatorFormula=formula.getExpression();
+      discriminatorFormulaTemplate=getTemplateFromString(formula.getExpression(),factory);
+      discriminatorColumnName=null;
+      discriminatorColumnReaders=null;
+      discriminatorColumnReaderTemplate=null;
+      discriminatorAlias="clazz_";
+    }
+ else     if (org.hibernate.metamodel.relational.Column.class.isInstance(discrimValue)) {
+      org.hibernate.metamodel.relational.Column column=(org.hibernate.metamodel.relational.Column)discrimValue;
+      discriminatorColumnName=column.getColumnName().encloseInQuotesIfQuoted(factory.getDialect());
+      discriminatorColumnReaders=column.getReadFragment() == null ? column.getColumnName().encloseInQuotesIfQuoted(factory.getDialect()) : column.getReadFragment();
+      discriminatorColumnReaderTemplate=getTemplateFromColumn(column,factory);
+      discriminatorAlias=column.getAlias(factory.getDialect());
+      discriminatorFormula=null;
+      discriminatorFormulaTemplate=null;
+    }
+ else {
+      throw new MappingException("Unknown discriminator value type:" + discrimValue.toLoggableString());
+    }
+    discriminatorType=entityBinding.getEntityDiscriminator().getValueBinding().getHibernateTypeDescriptor().getExplicitType();
+    if (entityBinding.getDiscriminatorValue() == null) {
+      discriminatorValue=NULL_DISCRIMINATOR;
+      discriminatorSQLValue=InFragment.NULL;
+      discriminatorInsertable=false;
+    }
+ else     if (entityBinding.getDiscriminatorValue().equals(NULL_STRING)) {
+      discriminatorValue=NOT_NULL_DISCRIMINATOR;
+      discriminatorSQLValue=InFragment.NOT_NULL;
+      discriminatorInsertable=false;
+    }
+ else     if (entityBinding.getDiscriminatorValue().equals(NOT_NULL_STRING)) {
+      discriminatorValue=NOT_NULL_DISCRIMINATOR;
+      discriminatorSQLValue=InFragment.NOT_NULL;
+      discriminatorInsertable=false;
+    }
+ else {
+      discriminatorInsertable=entityBinding.getEntityDiscriminator().isInserted() && !DerivedValue.class.isInstance(discrimValue);
+      try {
+        DiscriminatorType dtype=(DiscriminatorType)discriminatorType;
+        discriminatorValue=dtype.stringToObject(entityBinding.getDiscriminatorValue());
+        discriminatorSQLValue=dtype.objectToSQLString(discriminatorValue,factory.getDialect());
+      }
+ catch (      ClassCastException cce) {
+        throw new MappingException("Illegal discriminator type: " + discriminatorType.getName());
+      }
+catch (      Exception e) {
+        throw new MappingException("Could not format discriminator value to SQL string",e);
+      }
+    }
+  }
+ else {
+    forceDiscriminator=false;
+    discriminatorInsertable=false;
+    discriminatorColumnName=null;
+    discriminatorColumnReaders=null;
+    discriminatorColumnReaderTemplate=null;
+    discriminatorAlias=null;
+    discriminatorType=null;
+    discriminatorValue=null;
+    discriminatorSQLValue=null;
+    discriminatorFormula=null;
+    discriminatorFormulaTemplate=null;
+  }
+  propertyTableNumbers=new int[getPropertySpan()];
+  int i=0;
+  for (  AttributeBinding attributeBinding : entityBinding.getAttributeBindingClosure()) {
+    if (attributeBinding == entityBinding.getEntityIdentifier().getValueBinding()) {
+      continue;
+    }
+    propertyTableNumbers[i++]=0;
+  }
+  ArrayList columnJoinNumbers=new ArrayList();
+  ArrayList formulaJoinedNumbers=new ArrayList();
+  ArrayList propertyJoinNumbers=new ArrayList();
+  for (  AttributeBinding prop : entityBinding.getAttributeBindingClosure()) {
+    int join=0;
+    propertyJoinNumbers.add(join);
+    propertyTableNumbersByNameAndSubclass.put(prop.getEntityBinding().getEntity().getName() + '.' + prop.getAttribute().getName(),join);
+    for (    SimpleValue simpleValue : prop.getValues()) {
+      if (DerivedValue.class.isInstance(simpleValue)) {
+        formulaJoinedNumbers.add(join);
+      }
+ else {
+        columnJoinNumbers.add(join);
+      }
+    }
+  }
+  subclassColumnTableNumberClosure=ArrayHelper.toIntArray(columnJoinNumbers);
+  subclassFormulaTableNumberClosure=ArrayHelper.toIntArray(formulaJoinedNumbers);
+  subclassPropertyTableNumberClosure=ArrayHelper.toIntArray(propertyJoinNumbers);
+  int subclassSpan=1;
+  subclassClosure=new String[subclassSpan];
+  subclassClosure[0]=getEntityName();
+  if (isPolymorphic) {
+    subclassesByDiscriminatorValue.put(discriminatorValue,getEntityName());
+  }
+  initLockers();
+  initSubclassPropertyAliasesMap(entityBinding);
+  postConstruct(mapping);
 }

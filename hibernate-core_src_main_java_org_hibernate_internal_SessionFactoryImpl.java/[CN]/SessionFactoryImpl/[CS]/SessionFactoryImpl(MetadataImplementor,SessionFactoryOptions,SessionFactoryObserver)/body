@@ -9,12 +9,12 @@
   this.currentSessionContext=null;
   this.sqlFunctionRegistry=null;
   this.transactionEnvironment=null;
-  this.jdbcServices=null;
-  this.dialect=null;
   this.sessionFactoryOptions=sessionFactoryOptions;
   this.properties=createPropertiesFromMap(metadata.getServiceRegistry().getService(ConfigurationService.class).getSettings());
   this.settings=new SettingsFactory().buildSettings(properties,metadata.getServiceRegistry());
   this.serviceRegistry=metadata.getServiceRegistry().getService(SessionFactoryServiceRegistryFactory.class).buildServiceRegistry(this,metadata);
+  this.jdbcServices=this.serviceRegistry.getService(JdbcServices.class);
+  this.dialect=this.jdbcServices.getDialect();
   if (observer != null) {
     this.observer.addObserver(observer);
   }
@@ -144,6 +144,7 @@ class IntegratorObserver implements SessionFactoryObserver {
   Iterator iter=entityPersisters.values().iterator();
   while (iter.hasNext()) {
     final EntityPersister persister=((EntityPersister)iter.next());
+    persister.postInstantiate();
     registerEntityNameResolvers(persister);
   }
   iter=collectionPersisters.values().iterator();
