@@ -1,9 +1,12 @@
 {
   final String explicitName=state.getExplicitColumnName();
   final String logicalColumnName=state.getNamingStrategy().logicalColumnName(explicitName,attributeName);
-  final String columnName=explicitName == null ? state.getNamingStrategy().propertyToColumnName(attributeName) : state.getNamingStrategy().columnName(explicitName);
+  String columnName=explicitName == null ? state.getNamingStrategy().propertyToColumnName(attributeName) : state.getNamingStrategy().columnName(explicitName);
   if (columnName == null) {
     throw new IllegalArgumentException("columnName must be non-null.");
+  }
+  if (state.isGloballyQuotedIdentifiers()) {
+    columnName=StringHelper.quote(columnName);
   }
   Column value=table.getOrCreateColumn(columnName);
   value.initialize(state,forceNonNullable,forceUnique);
