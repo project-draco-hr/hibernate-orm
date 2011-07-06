@@ -1,0 +1,13 @@
+{
+@NamedNativeQuery(name="fubar",query="SELECT * FROM FOO",resultClass=Foo.class) class Foo {
+  }
+  Index index=JandexHelper.indexForClass(service,Foo.class);
+  QueryBinder.bind(meta,index);
+  NamedSQLQueryDefinition namedQuery=meta.getNamedNativeQuery("fubar");
+  assertNotNull(namedQuery);
+  NativeSQLQueryReturn queryReturns[]=namedQuery.getQueryReturns();
+  assertTrue("Wrong number of returns",queryReturns.length == 1);
+  assertTrue("Wrong query return type",queryReturns[0] instanceof NativeSQLQueryRootReturn);
+  NativeSQLQueryRootReturn rootReturn=(NativeSQLQueryRootReturn)queryReturns[0];
+  assertEquals("Wrong result class",Foo.class.getName(),rootReturn.getReturnEntityName());
+}
