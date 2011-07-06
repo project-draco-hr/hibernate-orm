@@ -1,0 +1,50 @@
+{
+  entityBinding.setJpaEntityName(null);
+  final String proxy=entityElement.getProxy();
+  final Boolean isLazy=entityElement.isLazy();
+  if (entityBinding.getEntityMode() == EntityMode.POJO) {
+    if (proxy != null) {
+      entityBinding.setProxyInterfaceType(bindingContext.makeClassReference(bindingContext.qualifyClassName(proxy)));
+      entityBinding.setLazy(true);
+    }
+ else     if (isLazy) {
+      entityBinding.setProxyInterfaceType(entityBinding.getEntity().getClassReferenceUnresolved());
+      entityBinding.setLazy(true);
+    }
+  }
+ else {
+    entityBinding.setProxyInterfaceType(new Value(Map.class));
+    entityBinding.setLazy(isLazy);
+  }
+  final String customTuplizerClassName=extractCustomTuplizerClassName(entityElement,entityBinding.getEntityMode());
+  if (customTuplizerClassName != null) {
+    entityBinding.setCustomEntityTuplizerClass(bindingContext.<EntityTuplizer>locateClassByName(customTuplizerClassName));
+  }
+  if (entityElement.getPersister() != null) {
+    entityBinding.setCustomEntityPersisterClass(bindingContext.<EntityPersister>locateClassByName(entityElement.getPersister()));
+  }
+  entityBinding.setMetaAttributeContext(HbmHelper.extractMetaAttributeContext(entityElement.getMeta(),true,bindingContext.getMetaAttributeContext()));
+  entityBinding.setDynamicUpdate(entityElement.isDynamicUpdate());
+  entityBinding.setDynamicInsert(entityElement.isDynamicInsert());
+  entityBinding.setBatchSize(MappingHelper.getIntValue(entityElement.getBatchSize(),0));
+  entityBinding.setSelectBeforeUpdate(entityElement.isSelectBeforeUpdate());
+  entityBinding.setAbstract(entityElement.isAbstract());
+  entityBinding.setCustomLoaderName(entityElement.getLoader().getQueryRef());
+  final XMLSqlInsertElement sqlInsert=entityElement.getSqlInsert();
+  if (sqlInsert != null) {
+    entityBinding.setCustomInsert(HbmHelper.getCustomSql(sqlInsert.getValue(),sqlInsert.isCallable(),sqlInsert.getCheck().value()));
+  }
+  final XMLSqlDeleteElement sqlDelete=entityElement.getSqlDelete();
+  if (sqlDelete != null) {
+    entityBinding.setCustomDelete(HbmHelper.getCustomSql(sqlDelete.getValue(),sqlDelete.isCallable(),sqlDelete.getCheck().value()));
+  }
+  final XMLSqlUpdateElement sqlUpdate=entityElement.getSqlUpdate();
+  if (sqlUpdate != null) {
+    entityBinding.setCustomUpdate(HbmHelper.getCustomSql(sqlUpdate.getValue(),sqlUpdate.isCallable(),sqlUpdate.getCheck().value()));
+  }
+  if (entityElement.getSynchronize() != null) {
+    for (    XMLSynchronizeElement synchronize : entityElement.getSynchronize()) {
+      entityBinding.addSynchronizedTable(synchronize.getTable());
+    }
+  }
+}

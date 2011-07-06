@@ -1,0 +1,25 @@
+{
+  final EntityBinding entityBinding=new EntityBinding();
+  entityBinding.setInheritanceType(InheritanceType.NO_INHERITANCE);
+  final String entityName=bindingContext.determineEntityName(xmlClass);
+  final String verbatimClassName=xmlClass.getName();
+  final EntityMode entityMode=verbatimClassName == null ? EntityMode.MAP : EntityMode.POJO;
+  entityBinding.setEntityMode(entityMode);
+  final String className;
+  if (entityMode == EntityMode.POJO) {
+    className=bindingContext.qualifyClassName(verbatimClassName);
+  }
+ else {
+    className=null;
+  }
+  Entity entity=new Entity(entityName,className,bindingContext.makeClassReference(className),null);
+  entityBinding.setEntity(entity);
+  performBasicEntityBind(entityBinding,xmlClass);
+  entityBinding.setMutable(xmlClass.isMutable());
+  entityBinding.setExplicitPolymorphism("explicit".equals(xmlClass.getPolymorphism()));
+  entityBinding.setWhereFilter(xmlClass.getWhere());
+  entityBinding.setRowId(xmlClass.getRowid());
+  entityBinding.setOptimisticLockStyle(interpretOptimisticLockStyle(xmlClass));
+  entityBinding.setCaching(interpretCaching(xmlClass,entityName));
+  return entityBinding;
+}
