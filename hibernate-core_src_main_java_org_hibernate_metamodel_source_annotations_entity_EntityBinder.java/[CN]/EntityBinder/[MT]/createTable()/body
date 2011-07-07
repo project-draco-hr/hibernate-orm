@@ -1,26 +1,26 @@
 {
-  String schmaName=null;
+  String schemaName=null;
   String catalogName=null;
   String tableName=null;
   AnnotationInstance tableAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),JPADotNames.TABLE);
   if (tableAnnotation != null) {
-    schmaName=JandexHelper.getValueAsString(tableAnnotation,"schema");
+    schemaName=JandexHelper.getValueAsString(tableAnnotation,"schema");
     catalogName=JandexHelper.getValueAsString(tableAnnotation,"catalog");
-    tableName=JandexHelper.getValueAsString(tableAnnotation,"name");
+    String explicitTableName=JandexHelper.getValueAsString(tableAnnotation,"name");
+    if (StringHelper.isNotEmpty(explicitTableName)) {
+      tableName=meta.getNamingStrategy().tableName(explicitTableName);
+    }
   }
   if (StringHelper.isEmpty(tableName)) {
-    tableName=meta.getNamingStrategy().classToTableName(entityClass.getPrimaryTableName());
-  }
- else {
-    tableName=meta.getNamingStrategy().tableName(tableName);
+    tableName=meta.getNamingStrategy().classToTableName(entityClass.getClassNameForTable());
   }
   if (meta.isGloballyQuotedIdentifiers()) {
-    schmaName=StringHelper.quote(schmaName);
+    schemaName=StringHelper.quote(schemaName);
     catalogName=StringHelper.quote(catalogName);
     tableName=StringHelper.quote(tableName);
   }
   final Identifier tableNameIdentifier=Identifier.toIdentifier(tableName);
-  final Schema schema=meta.getDatabase().getSchema(new Schema.Name(schmaName,catalogName));
+  final Schema schema=meta.getDatabase().getSchema(new Schema.Name(schemaName,catalogName));
   Table table=schema.getTable(tableNameIdentifier);
   if (table == null) {
     table=schema.createTable(tableNameIdentifier);
