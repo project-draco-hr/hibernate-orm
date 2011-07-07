@@ -2,14 +2,9 @@
   if (hibernateMapping.getClazzOrSubclassOrJoinedSubclass() == null) {
     return;
   }
+  final BindingCreator bindingCreator=new BindingCreator(this,processedEntityNames);
   for (  Object entityElementO : hibernateMapping.getClazzOrSubclassOrJoinedSubclass()) {
     final EntityElement entityElement=(EntityElement)entityElementO;
-    final String entityName=this.determineEntityName(entityElement);
-    if (processedEntityNames.contains(entityName)) {
-      continue;
-    }
-    final EntityBinding entityBinding=bindingCreator.createEntityBinding(entityElement,null);
-    getMetadataImplementor().addEntity(entityBinding);
-    processedEntityNames.add(entityBinding.getEntity().getName());
+    bindingCreator.createEntityBinding(entityElement,null);
   }
 }

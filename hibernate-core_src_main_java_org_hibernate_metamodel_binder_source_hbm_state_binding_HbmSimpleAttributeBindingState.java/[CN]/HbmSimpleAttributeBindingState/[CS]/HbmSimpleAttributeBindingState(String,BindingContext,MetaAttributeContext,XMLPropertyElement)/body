@@ -1,0 +1,35 @@
+{
+  super(ownerClassName,property.getName(),bindingContext,property.getNode(),Helper.extractMetaAttributeContext(property.getMeta(),parentMetaAttributeContext),Helper.getPropertyAccessorName(property.getAccess(),false,bindingContext.getMappingDefaults().getPropertyAccessorName()),property.isOptimisticLock());
+  this.isLazy=property.isLazy();
+  this.propertyGeneration=PropertyGeneration.parse(property.getGenerated());
+  if (propertyGeneration == PropertyGeneration.ALWAYS || propertyGeneration == PropertyGeneration.INSERT) {
+    if (property.isInsert() != null && property.isInsert()) {
+      throw new MappingException("cannot specify both insert=\"true\" and generated=\"" + propertyGeneration.getName() + "\" for property: "+ property.getName());
+    }
+    isInsertable=false;
+  }
+ else {
+    isInsertable=Helper.getBooleanValue(property.isInsert(),true);
+  }
+  if (propertyGeneration == PropertyGeneration.ALWAYS) {
+    if (property.isUpdate() != null && property.isUpdate()) {
+      throw new MappingException("cannot specify both update=\"true\" and generated=\"" + propertyGeneration.getName() + "\" for property: "+ property.getName());
+    }
+    isUpdatable=false;
+  }
+ else {
+    isUpdatable=Helper.getBooleanValue(property.isUpdate(),true);
+  }
+  if (property.getTypeAttribute() != null) {
+    typeName=maybeConvertToTypeDefName(property.getTypeAttribute(),bindingContext.getMappingDefaults());
+  }
+ else   if (property.getType() != null) {
+    typeName=maybeConvertToTypeDefName(property.getType().getName(),bindingContext.getMappingDefaults());
+    for (    XMLParamElement typeParameter : property.getType().getParam()) {
+      typeParameters.put(typeParameter.getName(),typeParameter.getValue().trim());
+    }
+  }
+ else {
+    typeName=getTypeNameByReflection();
+  }
+}

@@ -1,0 +1,27 @@
+{
+  if (XMLHibernateMapping.XMLClass.class.isInstance(entityElement)) {
+    return makeEntityBinding((XMLHibernateMapping.XMLClass)entityElement);
+  }
+ else {
+    String superEntityName=containingSuperEntityName;
+    if (superEntityName == null) {
+      final SubclassEntityElement subclass=(SubclassEntityElement)entityElement;
+      superEntityName=bindingContext.qualifyClassName(subclass.getExtends());
+    }
+    if (superEntityName == null) {
+      throw new MappingException("Encountered inheritance strategy, but no super type found",bindingContext.getOrigin());
+    }
+    if (XMLSubclassElement.class.isInstance(entityElement)) {
+      return makeEntityBinding((XMLSubclassElement)entityElement,superEntityName);
+    }
+ else     if (XMLJoinedSubclassElement.class.isInstance(entityElement)) {
+      return makeEntityBinding((XMLJoinedSubclassElement)entityElement,superEntityName);
+    }
+ else     if (XMLUnionSubclassElement.class.isInstance(entityElement)) {
+      return makeEntityBinding((XMLUnionSubclassElement)entityElement,superEntityName);
+    }
+ else {
+      throw new MappingException("unknown type of class or subclass: " + entityElement.getClass().getName(),bindingContext.getOrigin());
+    }
+  }
+}

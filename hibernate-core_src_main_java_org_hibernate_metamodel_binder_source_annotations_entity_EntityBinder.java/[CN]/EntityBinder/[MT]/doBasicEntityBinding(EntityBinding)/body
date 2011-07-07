@@ -1,0 +1,74 @@
+{
+  entityBinding.setEntityMode(EntityMode.POJO);
+  final Entity entity=new Entity(entityClass.getName(),entityClass.getName(),bindingContext.makeClassReference(entityClass.getName()),superType);
+  entityBinding.setEntity(entity);
+  final AnnotationInstance jpaEntityAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),JPADotNames.ENTITY);
+  final AnnotationValue explicitJpaEntityName=jpaEntityAnnotation.value("name");
+  if (explicitJpaEntityName == null) {
+    entityBinding.setJpaEntityName(entityClass.getName());
+  }
+ else {
+    entityBinding.setJpaEntityName(explicitJpaEntityName.asString());
+  }
+  final AnnotationInstance hibernateEntityAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),HibernateDotNames.ENTITY);
+  entityBinding.setDynamicInsert(hibernateEntityAnnotation != null && hibernateEntityAnnotation.value("dynamicInsert") != null && hibernateEntityAnnotation.value("dynamicInsert").asBoolean());
+  entityBinding.setDynamicUpdate(hibernateEntityAnnotation != null && hibernateEntityAnnotation.value("dynamicUpdate") != null && hibernateEntityAnnotation.value("dynamicUpdate").asBoolean());
+  entityBinding.setSelectBeforeUpdate(hibernateEntityAnnotation != null && hibernateEntityAnnotation.value("selectBeforeUpdate") != null && hibernateEntityAnnotation.value("selectBeforeUpdate").asBoolean());
+  final AnnotationInstance sqlLoaderAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),HibernateDotNames.LOADER);
+  if (sqlLoaderAnnotation != null) {
+    entityBinding.setCustomLoaderName(sqlLoaderAnnotation.value("namedQuery").asString());
+  }
+  final AnnotationInstance sqlInsertAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),HibernateDotNames.SQL_INSERT);
+  entityBinding.setCustomInsert(createCustomSQL(sqlInsertAnnotation));
+  final AnnotationInstance sqlUpdateAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),HibernateDotNames.SQL_UPDATE);
+  entityBinding.setCustomInsert(createCustomSQL(sqlUpdateAnnotation));
+  final AnnotationInstance sqlDeleteAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),HibernateDotNames.SQL_DELETE);
+  entityBinding.setCustomInsert(createCustomSQL(sqlDeleteAnnotation));
+  final AnnotationInstance batchSizeAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),HibernateDotNames.BATCH_SIZE);
+  entityBinding.setBatchSize(batchSizeAnnotation == null ? -1 : batchSizeAnnotation.value("size").asInt());
+  final boolean lazy;
+  final Value<Class<?>> proxyInterfaceType;
+  final AnnotationInstance hibernateProxyAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),HibernateDotNames.PROXY);
+  if (hibernateProxyAnnotation != null) {
+    lazy=hibernateProxyAnnotation.value("lazy") == null || hibernateProxyAnnotation.value("lazy").asBoolean();
+    final AnnotationValue proxyClassValue=hibernateProxyAnnotation.value("proxyClass");
+    if (proxyClassValue == null) {
+      proxyInterfaceType=entity.getClassReferenceUnresolved();
+    }
+ else {
+      proxyInterfaceType=bindingContext.makeClassReference(proxyClassValue.asString());
+    }
+  }
+ else {
+    lazy=true;
+    proxyInterfaceType=entity.getClassReferenceUnresolved();
+  }
+  entityBinding.setLazy(lazy);
+  entityBinding.setProxyInterfaceType(proxyInterfaceType);
+  final Class<? extends EntityPersister> entityPersisterClass;
+  final AnnotationInstance persisterAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),HibernateDotNames.PERSISTER);
+  if (persisterAnnotation == null || persisterAnnotation.value("impl") == null) {
+    if (hibernateEntityAnnotation != null && hibernateEntityAnnotation.value("persister") != null) {
+      entityPersisterClass=bindingContext.locateClassByName(hibernateEntityAnnotation.value("persister").asString());
+    }
+ else {
+      entityPersisterClass=null;
+    }
+  }
+ else {
+    if (hibernateEntityAnnotation != null && hibernateEntityAnnotation.value("persister") != null) {
+    }
+    entityPersisterClass=bindingContext.locateClassByName(persisterAnnotation.value("impl").asString());
+  }
+  entityBinding.setCustomEntityPersisterClass(entityPersisterClass);
+  final AnnotationInstance pojoTuplizerAnnotation=locatePojoTuplizerAnnotation();
+  if (pojoTuplizerAnnotation != null) {
+    final Class<? extends EntityTuplizer> tuplizerClass=bindingContext.locateClassByName(pojoTuplizerAnnotation.value("impl").asString());
+    entityBinding.setCustomEntityTuplizerClass(tuplizerClass);
+  }
+  final AnnotationInstance synchronizeAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),HibernateDotNames.SYNCHRONIZE);
+  if (synchronizeAnnotation != null) {
+    final String[] tableNames=synchronizeAnnotation.value().asStringArray();
+    entityBinding.addSynchronizedTableNames(Arrays.asList(tableNames));
+  }
+}

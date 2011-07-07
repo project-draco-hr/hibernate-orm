@@ -10,14 +10,14 @@
   String generator=JandexHelper.getValue(generatedValueAnn,"generator",String.class);
   IdGenerator idGenerator=null;
   if (StringHelper.isNotEmpty(generator)) {
-    idGenerator=meta.getIdGenerator(generator);
+    idGenerator=bindingContext.getMetadataImplementor().getIdGenerator(generator);
     if (idGenerator == null) {
       throw new MappingException(String.format("@GeneratedValue on %s.%s referring an undefined generator [%s]",entityClass.getName(),idName,generator));
     }
     entityBinding.getEntityIdentifier().setIdGenerator(idGenerator);
   }
   GenerationType generationType=JandexHelper.getValueAsEnum(generatedValueAnn,"strategy",GenerationType.class);
-  String strategy=IdGeneratorBinder.generatorType(generationType,meta.getOptions().useNewIdentifierGenerators());
+  String strategy=IdGeneratorBinder.generatorType(generationType,bindingContext.getMetadataImplementor().getOptions().useNewIdentifierGenerators());
   if (idGenerator != null && !strategy.equals(idGenerator.getStrategy())) {
     throw new MappingException(String.format("Inconsistent Id Generation strategy of @GeneratedValue on %s.%s",entityClass.getName(),idName));
   }

@@ -1,17 +1,9 @@
 {
-  if (customSQLAnnotation == null) {
+  if (customSqlAnnotation == null) {
     return null;
   }
-  String sql=customSQLAnnotation.value("sql").asString();
-  boolean isCallable=false;
-  AnnotationValue callableValue=customSQLAnnotation.value("callable");
-  if (callableValue != null) {
-    isCallable=callableValue.asBoolean();
-  }
-  ResultCheckStyle checkStyle=ResultCheckStyle.NONE;
-  AnnotationValue checkStyleValue=customSQLAnnotation.value("check");
-  if (checkStyleValue != null) {
-    checkStyle=Enum.valueOf(ResultCheckStyle.class,checkStyleValue.asEnum());
-  }
-  return new CustomSQL(sql,isCallable,Enum.valueOf(ExecuteUpdateResultCheckStyle.class,checkStyle.toString()));
+  final String sql=customSqlAnnotation.value("sql").asString();
+  final boolean isCallable=customSqlAnnotation.value("callable") != null && customSqlAnnotation.value("callable").asBoolean();
+  final ExecuteUpdateResultCheckStyle checkStyle=customSqlAnnotation.value("check") == null ? isCallable ? ExecuteUpdateResultCheckStyle.NONE : ExecuteUpdateResultCheckStyle.COUNT : ExecuteUpdateResultCheckStyle.valueOf(customSqlAnnotation.value("check").asEnum());
+  return new CustomSQL(sql,isCallable,checkStyle);
 }

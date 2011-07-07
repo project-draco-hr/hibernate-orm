@@ -8,10 +8,12 @@
   SingularAttribute attribute=entityBinding.getEntity().getOrCreateComponentAttribute(idName);
   SimpleAttributeBinding attributeBinding=entityBinding.makeSimpleIdAttributeBinding(attribute);
   attributeBinding.initialize(new AttributeBindingStateImpl((SimpleAttribute)idAttribute));
+  attributeBinding.initialize(new ColumnRelationalStateImpl((SimpleAttribute)idAttribute,bindingContext.getMetadataImplementor()));
+  bindSingleIdGeneratedValue(entityBinding,idName);
   TupleRelationalStateImpl state=new TupleRelationalStateImpl();
   EmbeddableClass embeddableClass=entityClass.getEmbeddedClasses().get(idName);
   for (  SimpleAttribute attr : embeddableClass.getSimpleAttributes()) {
-    state.addValueState(new ColumnRelationalStateImpl(attr,meta));
+    state.addValueState(new ColumnRelationalStateImpl(attr,bindingContext.getMetadataImplementor()));
   }
   attributeBinding.initialize(state);
   Map<String,String> parms=new HashMap<String,String>(1);

@@ -1,0 +1,27 @@
+{
+  XMLEntity entity=new XMLEntity();
+  entity.setName("Item");
+  entity.setClazz("Item");
+  IndexBuilder indexBuilder=getIndexBuilder();
+  EntityMappingsMocker.Default defaults=new EntityMappingsMocker.Default();
+  defaults.setPackageName(getClass().getPackage().getName());
+  defaults.setSchema("HIBERNATE_SCHEMA");
+  defaults.setCatalog("HIBERNATE_CATALOG");
+  EntityMocker entityMocker=new EntityMocker(indexBuilder,entity,defaults);
+  entityMocker.preProcess();
+  entityMocker.process();
+  Index index=indexBuilder.build(new EntityMappingsMocker.Default());
+  assertEquals(1,index.getKnownClasses().size());
+  DotName itemName=DotName.createSimple(Item.class.getName());
+  assertHasAnnotation(index,itemName,JPADotNames.ENTITY);
+  assertHasAnnotation(index,itemName,JPADotNames.TABLE);
+  assertAnnotationValue(index,itemName,JPADotNames.TABLE,new AnnotationValueChecker(){
+    @Override public void check(    AnnotationInstance annotationInstance){
+      AnnotationValue schemaValue=annotationInstance.value("schema");
+      AnnotationValue catalogValue=annotationInstance.value("catalog");
+      assertStringAnnotationValue("HIBERNATE_SCHEMA",schemaValue);
+      assertStringAnnotationValue("HIBERNATE_CATALOG",catalogValue);
+    }
+  }
+);
+}
