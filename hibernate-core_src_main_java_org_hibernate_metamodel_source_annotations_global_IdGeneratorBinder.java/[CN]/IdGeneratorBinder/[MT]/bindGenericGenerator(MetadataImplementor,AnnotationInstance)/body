@@ -1,9 +1,10 @@
 {
-  String name=JandexHelper.getValueAsString(generator,"name");
-  Map<String,String> prms=new HashMap<String,String>();
-  for (  AnnotationInstance prm : JandexHelper.getValueAsArray(generator,"parameters")) {
-    prms.put(JandexHelper.getValueAsString(prm,"name"),JandexHelper.getValueAsString(prm,"value"));
+  String name=JandexHelper.getValue(generator,"name",String.class);
+  Map<String,String> parameterMap=new HashMap<String,String>();
+  AnnotationInstance[] parameterAnnotations=JandexHelper.getValue(generator,"parameters",AnnotationInstance[].class);
+  for (  AnnotationInstance parameterAnnotation : parameterAnnotations) {
+    parameterMap.put(JandexHelper.getValue(parameterAnnotation,"name",String.class),JandexHelper.getValue(parameterAnnotation,"value",String.class));
   }
-  metadata.addIdGenerator(new IdGenerator(name,JandexHelper.getValueAsString(generator,"strategy"),prms));
+  metadata.addIdGenerator(new IdGenerator(name,JandexHelper.getValue(generator,"strategy",String.class),parameterMap));
   LOG.tracef("Add generic generator with name: %s",name);
 }

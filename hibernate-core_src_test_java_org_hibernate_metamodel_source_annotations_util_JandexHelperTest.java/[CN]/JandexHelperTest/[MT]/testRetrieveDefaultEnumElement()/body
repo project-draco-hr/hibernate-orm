@@ -1,0 +1,10 @@
+{
+@NamedQuery(name="foo",query="fubar") class Foo {
+  }
+  Index index=JandexHelper.indexForClass(classLoaderService,Foo.class);
+  List<AnnotationInstance> annotationInstances=index.getAnnotations(JPADotNames.NAMED_QUERY);
+  assertTrue(annotationInstances.size() == 1);
+  AnnotationInstance annotationInstance=annotationInstances.get(0);
+  LockModeType lockMode=JandexHelper.getValueAsEnum(annotationInstance,"lockMode",LockModeType.class);
+  assertEquals("Wrong lock mode",LockModeType.NONE,lockMode);
+}

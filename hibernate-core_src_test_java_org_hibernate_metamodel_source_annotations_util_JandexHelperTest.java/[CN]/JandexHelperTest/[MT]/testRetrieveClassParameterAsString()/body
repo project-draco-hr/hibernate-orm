@@ -1,0 +1,10 @@
+{
+@NamedNativeQuery(name="foo",query="bar",resultClass=Foo.class) class Foo {
+  }
+  Index index=JandexHelper.indexForClass(classLoaderService,Foo.class);
+  List<AnnotationInstance> annotationInstances=index.getAnnotations(HibernateDotNames.NAMED_NATIVE_QUERY);
+  assertTrue(annotationInstances.size() == 1);
+  AnnotationInstance annotationInstance=annotationInstances.get(0);
+  String fqcn=JandexHelper.getValue(annotationInstance,"resultClass",String.class);
+  assertEquals("Wrong class names",Foo.class.getName(),fqcn);
+}

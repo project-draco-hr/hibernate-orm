@@ -1,5 +1,5 @@
 {
-  String name=JandexHelper.getValueAsString(generator,"name");
+  String name=JandexHelper.getValue(generator,"name",String.class);
   String strategy;
   Map<String,String> prms=new HashMap<String,String>();
   addStringParameter(generator,"catalog",prms,PersistentIdentifierGenerator.CATALOG);
@@ -12,17 +12,17 @@
     addStringParameter(generator,"pkColumnName",prms,TableGenerator.SEGMENT_COLUMN_PARAM);
     addStringParameter(generator,"pkColumnValue",prms,TableGenerator.SEGMENT_VALUE_PARAM);
     addStringParameter(generator,"valueColumnName",prms,TableGenerator.VALUE_COLUMN_PARAM);
-    prms.put(TableGenerator.INCREMENT_PARAM,String.valueOf(JandexHelper.getValueAsInt(generator,"allocationSize")));
-    prms.put(TableGenerator.INITIAL_PARAM,String.valueOf(JandexHelper.getValueAsInt(generator,"initialValue") + 1));
+    prms.put(TableGenerator.INCREMENT_PARAM,String.valueOf(JandexHelper.getValue(generator,"allocationSize",String.class)));
+    prms.put(TableGenerator.INITIAL_PARAM,String.valueOf(JandexHelper.getValue(generator,"initialValue",String.class) + 1));
   }
  else {
     addStringParameter(generator,"table",prms,MultipleHiLoPerTableGenerator.ID_TABLE);
     addStringParameter(generator,"pkColumnName",prms,MultipleHiLoPerTableGenerator.PK_COLUMN_NAME);
     addStringParameter(generator,"pkColumnValue",prms,MultipleHiLoPerTableGenerator.PK_VALUE_NAME);
     addStringParameter(generator,"valueColumnName",prms,MultipleHiLoPerTableGenerator.VALUE_COLUMN_NAME);
-    prms.put(TableHiLoGenerator.MAX_LO,String.valueOf(JandexHelper.getValueAsInt(generator,"allocationSize") - 1));
+    prms.put(TableHiLoGenerator.MAX_LO,String.valueOf(JandexHelper.getValue(generator,"allocationSize",Integer.class) - 1));
   }
-  if (JandexHelper.getValueAsArray(generator,"uniqueConstraints").length > 0) {
+  if (JandexHelper.getValue(generator,"uniqueConstraints",AnnotationInstance[].class).length > 0) {
     LOG.ignoringTableGeneratorConstraints(name);
   }
   metadata.addIdGenerator(new IdGenerator(name,strategy,prms));
