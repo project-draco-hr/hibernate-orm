@@ -1,16 +1,18 @@
 {
-  List<AttributeOverride> attributeOverrideList=new ArrayList<AttributeOverride>();
+  Map<String,AttributeOverride> attributeOverrideList=new HashMap<String,AttributeOverride>();
   AnnotationInstance attributeOverrideAnnotation=JandexHelper.getSingleAnnotation(classInfo,JPADotNames.ATTRIBUTE_OVERRIDE);
   if (attributeOverrideAnnotation != null) {
     String prefix=createPathPrefix(attributeOverrideAnnotation);
-    attributeOverrideList.add(new AttributeOverride(prefix,attributeOverrideAnnotation));
+    AttributeOverride override=new AttributeOverride(prefix,attributeOverrideAnnotation);
+    attributeOverrideList.put(override.getAttributePath(),override);
   }
   AnnotationInstance attributeOverridesAnnotation=JandexHelper.getSingleAnnotation(classInfo,JPADotNames.ATTRIBUTE_OVERRIDES);
   if (attributeOverridesAnnotation != null) {
     AnnotationInstance[] annotationInstances=attributeOverridesAnnotation.value().asNestedArray();
     for (    AnnotationInstance annotationInstance : annotationInstances) {
       String prefix=createPathPrefix(annotationInstance);
-      attributeOverrideList.add(new AttributeOverride(prefix,annotationInstance));
+      AttributeOverride override=new AttributeOverride(prefix,annotationInstance);
+      attributeOverrideList.put(override.getAttributePath(),override);
     }
   }
   return attributeOverrideList;
