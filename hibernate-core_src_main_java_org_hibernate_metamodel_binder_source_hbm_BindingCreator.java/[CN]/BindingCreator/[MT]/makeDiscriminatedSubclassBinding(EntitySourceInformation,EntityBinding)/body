@@ -1,0 +1,19 @@
+{
+  final EntityBinding entityBinding=new EntityBinding();
+  entityBinding.setInheritanceType(InheritanceType.SINGLE_TABLE);
+  bindSuperType(entityBinding,superEntityBinding);
+  final String verbatimClassName=entitySourceInfo.getEntityElement().getName();
+  final EntityMode entityMode=verbatimClassName == null ? EntityMode.MAP : EntityMode.POJO;
+  entityBinding.setEntityMode(entityMode);
+  final String className;
+  if (entityMode == EntityMode.POJO) {
+    className=entitySourceInfo.getSourceMappingDocument().getMappingLocalBindingContext().qualifyClassName(verbatimClassName);
+  }
+ else {
+    className=null;
+  }
+  final Entity entity=new Entity(entitySourceInfo.getMappedEntityName(),className,entitySourceInfo.getSourceMappingDocument().getMappingLocalBindingContext().makeClassReference(className),null);
+  entityBinding.setEntity(entity);
+  performBasicEntityBind(entityBinding,entitySourceInfo);
+  return entityBinding;
+}

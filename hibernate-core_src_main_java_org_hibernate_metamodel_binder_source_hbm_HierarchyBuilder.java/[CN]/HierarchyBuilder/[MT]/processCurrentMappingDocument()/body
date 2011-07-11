@@ -1,0 +1,26 @@
+{
+  for (  Object entityElementO : currentMappingDocument.getMappingRoot().getClazzOrSubclassOrJoinedSubclass()) {
+    final EntityElement entityElement=(EntityElement)entityElementO;
+    if (XMLHibernateMapping.XMLClass.class.isInstance(entityElement)) {
+      final XMLHibernateMapping.XMLClass xmlClass=(XMLHibernateMapping.XMLClass)entityElement;
+      final EntityHierarchy hierarchy=new EntityHierarchy(xmlClass,currentMappingDocument);
+      entityHierarchies.add(hierarchy);
+      subEntityContainerMap.put(hierarchy.getEntitySourceInformation().getMappedEntityName(),hierarchy);
+      processSubElements(entityElement,hierarchy);
+    }
+ else {
+      final EntityHierarchySubEntity subEntityDescriptor=new EntityHierarchySubEntity(entityElement,currentMappingDocument);
+      final String entityName=subEntityDescriptor.getEntitySourceInformation().getMappedEntityName();
+      subEntityContainerMap.put(entityName,subEntityDescriptor);
+      final String entityItExtends=currentMappingDocument.getMappingLocalBindingContext().qualifyClassName(((SubEntityElement)entityElement).getExtends());
+      processSubElements(entityElement,subEntityDescriptor);
+      final SubEntityContainer container=subEntityContainerMap.get(entityItExtends);
+      if (container != null) {
+        container.addSubEntityDescriptor(subEntityDescriptor);
+      }
+ else {
+        extendsQueue.add(new ExtendsQueueEntry(subEntityDescriptor,entityItExtends));
+      }
+    }
+  }
+}

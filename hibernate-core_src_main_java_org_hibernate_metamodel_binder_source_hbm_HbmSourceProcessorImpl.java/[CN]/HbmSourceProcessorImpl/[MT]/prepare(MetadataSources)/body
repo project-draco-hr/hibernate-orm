@@ -1,8 +1,12 @@
 {
-  this.processors=new ArrayList<HibernateMappingProcessor>();
+  final HierarchyBuilder hierarchyBuilder=new HierarchyBuilder(metadata);
   for (  JaxbRoot jaxbRoot : sources.getJaxbRootList()) {
-    if (jaxbRoot.getRoot() instanceof XMLHibernateMapping) {
-      processors.add(new HibernateMappingProcessor(this,(JaxbRoot<XMLHibernateMapping>)jaxbRoot));
+    if (!XMLHibernateMapping.class.isInstance(jaxbRoot.getRoot())) {
+      continue;
     }
+    final MappingDocument mappingDocument=new MappingDocument(jaxbRoot,metadata);
+    processors.add(new HibernateMappingProcessor(metadata,mappingDocument));
+    hierarchyBuilder.processMappingDocument(mappingDocument);
   }
+  this.entityHierarchies=hierarchyBuilder.groupEntityHierarchies();
 }

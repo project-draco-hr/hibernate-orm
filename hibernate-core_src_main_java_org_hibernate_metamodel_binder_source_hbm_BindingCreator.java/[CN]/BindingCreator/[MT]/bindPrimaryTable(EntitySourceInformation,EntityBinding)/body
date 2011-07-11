@@ -1,0 +1,37 @@
+{
+  final EntityElement entityElement=entitySourceInformation.getEntityElement();
+  final HbmBindingContext bindingContext=entitySourceInformation.getSourceMappingDocument().getMappingLocalBindingContext();
+  if (XMLSubclassElement.class.isInstance(entityElement)) {
+  }
+ else {
+    final String explicitTableName;
+    final String explicitSchemaName;
+    final String explicitCatalogName;
+    if (XMLHibernateMapping.XMLClass.class.isInstance(entityElement)) {
+      explicitTableName=((XMLHibernateMapping.XMLClass)entityElement).getTable();
+      explicitSchemaName=((XMLHibernateMapping.XMLClass)entityElement).getSchema();
+      explicitCatalogName=((XMLHibernateMapping.XMLClass)entityElement).getCatalog();
+    }
+ else     if (XMLJoinedSubclassElement.class.isInstance(entityElement)) {
+      explicitTableName=((XMLJoinedSubclassElement)entityElement).getTable();
+      explicitSchemaName=((XMLJoinedSubclassElement)entityElement).getSchema();
+      explicitCatalogName=((XMLJoinedSubclassElement)entityElement).getCatalog();
+    }
+ else     if (XMLUnionSubclassElement.class.isInstance(entityElement)) {
+      explicitTableName=((XMLUnionSubclassElement)entityElement).getTable();
+      explicitSchemaName=((XMLUnionSubclassElement)entityElement).getSchema();
+      explicitCatalogName=((XMLUnionSubclassElement)entityElement).getCatalog();
+    }
+ else {
+      explicitTableName=null;
+      explicitSchemaName=null;
+      explicitCatalogName=null;
+    }
+    final NamingStrategy namingStrategy=bindingContext.getMetadataImplementor().getOptions().getNamingStrategy();
+    final String tableName=explicitTableName != null ? namingStrategy.tableName(explicitTableName) : namingStrategy.tableName(namingStrategy.classToTableName(entityBinding.getEntity().getName()));
+    final String schemaName=explicitSchemaName == null ? bindingContext.getMappingDefaults().getSchemaName() : explicitSchemaName;
+    final String catalogName=explicitCatalogName == null ? bindingContext.getMappingDefaults().getCatalogName() : explicitCatalogName;
+    final Schema schema=metadata.getDatabase().getSchema(new Schema.Name(schemaName,catalogName));
+    entityBinding.setBaseTable(schema.locateOrCreateTable(Identifier.toIdentifier(tableName)));
+  }
+}

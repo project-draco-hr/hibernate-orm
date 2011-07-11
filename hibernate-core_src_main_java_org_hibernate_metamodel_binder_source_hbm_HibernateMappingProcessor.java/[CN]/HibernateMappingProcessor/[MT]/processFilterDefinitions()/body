@@ -1,8 +1,8 @@
 {
-  if (hibernateMapping.getFilterDef() == null) {
+  if (mappingRoot().getFilterDef() == null) {
     return;
   }
-  for (  XMLHibernateMapping.XMLFilterDef filterDefinition : hibernateMapping.getFilterDef()) {
+  for (  XMLHibernateMapping.XMLFilterDef filterDefinition : mappingRoot().getFilterDef()) {
     final String name=filterDefinition.getName();
     final Map<String,Type> parameters=new HashMap<String,Type>();
     String condition=null;
@@ -14,15 +14,15 @@
       }
  else       if (o instanceof XMLHibernateMapping.XMLFilterDef.XMLFilterParam) {
         final XMLHibernateMapping.XMLFilterDef.XMLFilterParam paramElement=(XMLHibernateMapping.XMLFilterDef.XMLFilterParam)o;
-        parameters.put(paramElement.getName(),getMetadataImplementor().getTypeResolver().heuristicType(paramElement.getType()));
+        parameters.put(paramElement.getName(),metadata.getTypeResolver().heuristicType(paramElement.getType()));
       }
  else {
-        throw new MappingException("Unrecognized nested filter content",jaxbRoot.getOrigin());
+        throw new MappingException("Unrecognized nested filter content",origin());
       }
     }
     if (condition == null) {
       condition=filterDefinition.getCondition();
     }
-    getMetadataImplementor().addFilterDefinition(new FilterDefinition(name,condition,parameters));
+    metadata.addFilterDefinition(new FilterDefinition(name,condition,parameters));
   }
 }

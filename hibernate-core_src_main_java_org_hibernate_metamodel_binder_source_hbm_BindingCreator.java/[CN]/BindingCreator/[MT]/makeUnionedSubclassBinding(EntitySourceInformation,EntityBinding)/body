@@ -1,0 +1,22 @@
+{
+  final EntityBinding entityBinding=new EntityBinding();
+  entityBinding.setInheritanceType(InheritanceType.TABLE_PER_CLASS);
+  bindSuperType(entityBinding,superEntityBinding);
+  final XMLUnionSubclassElement unionEntityElement=(XMLUnionSubclassElement)entitySourceInfo.getEntityElement();
+  final HbmBindingContext bindingContext=entitySourceInfo.getSourceMappingDocument().getMappingLocalBindingContext();
+  final String entityName=bindingContext.determineEntityName(unionEntityElement);
+  final String verbatimClassName=unionEntityElement.getName();
+  final EntityMode entityMode=verbatimClassName == null ? EntityMode.MAP : EntityMode.POJO;
+  entityBinding.setEntityMode(entityMode);
+  final String className;
+  if (entityMode == EntityMode.POJO) {
+    className=bindingContext.qualifyClassName(verbatimClassName);
+  }
+ else {
+    className=null;
+  }
+  final Entity entity=new Entity(entityName,className,bindingContext.makeClassReference(className),null);
+  entityBinding.setEntity(entity);
+  performBasicEntityBind(entityBinding,entitySourceInfo);
+  return entityBinding;
+}

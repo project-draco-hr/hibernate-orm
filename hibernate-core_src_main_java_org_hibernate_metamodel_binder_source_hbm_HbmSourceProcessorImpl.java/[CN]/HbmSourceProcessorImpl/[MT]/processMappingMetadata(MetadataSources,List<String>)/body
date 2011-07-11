@@ -1,48 +1,6 @@
 {
-  final LinkedHashSet<HibernateMappingProcessor> orderedProcessors=new LinkedHashSet<HibernateMappingProcessor>();
-  final Set<ExtendsQueueEntry> extendsQueue=new HashSet<ExtendsQueueEntry>();
-  final Set<String> availableEntityNames=new HashSet<String>();
-  availableEntityNames.addAll(processedEntityNames);
-  for (  HibernateMappingProcessor processor : processors) {
-    final HibernateMappingInformation hibernateMappingInformation=new HibernateMappingInformation(processor);
-    ExtendsQueueEntry extendsQueueEntry=null;
-    for (    Object entityElementO : processor.getHibernateMapping().getClazzOrSubclassOrJoinedSubclass()) {
-      final EntityElement entityElement=(EntityElement)entityElementO;
-      final String entityName=processor.determineEntityName(entityElement);
-      hibernateMappingInformation.includedEntityNames.add(entityName);
-      if (SubclassEntityElement.class.isInstance(entityElement)) {
-        final String entityItExtends=((SubclassEntityElement)entityElement).getExtends();
-        if (!availableEntityNames.contains(entityItExtends)) {
-          if (extendsQueueEntry == null) {
-            extendsQueueEntry=new ExtendsQueueEntry(hibernateMappingInformation);
-            extendsQueue.add(extendsQueueEntry);
-          }
-          extendsQueueEntry.waitingOnEntityNames.add(entityItExtends);
-        }
-      }
-    }
-    if (extendsQueueEntry == null) {
-      orderedProcessors.add(processor);
-      availableEntityNames.addAll(hibernateMappingInformation.includedEntityNames);
-    }
-  }
-  while (!extendsQueue.isEmpty()) {
-    int numberOfMappingsProcessed=0;
-    Iterator<ExtendsQueueEntry> iterator=extendsQueue.iterator();
-    while (iterator.hasNext()) {
-      final ExtendsQueueEntry entry=iterator.next();
-      if (availableEntityNames.containsAll(entry.waitingOnEntityNames)) {
-        iterator.remove();
-        orderedProcessors.add(entry.hibernateMappingInformation.processor);
-        availableEntityNames.addAll(entry.hibernateMappingInformation.includedEntityNames);
-        numberOfMappingsProcessed++;
-      }
-    }
-    if (numberOfMappingsProcessed == 0) {
-      throw new MappingException("Unable to process extends dependencies in hbm files");
-    }
-  }
-  for (  HibernateMappingProcessor processor : orderedProcessors) {
-    processor.processMappingMetadata(processedEntityNames);
+  BindingCreator bindingCreator=new BindingCreator(metadata,processedEntityNames);
+  for (  EntityHierarchy entityHierarchy : entityHierarchies) {
+    bindingCreator.processEntityHierarchy(entityHierarchy);
   }
 }

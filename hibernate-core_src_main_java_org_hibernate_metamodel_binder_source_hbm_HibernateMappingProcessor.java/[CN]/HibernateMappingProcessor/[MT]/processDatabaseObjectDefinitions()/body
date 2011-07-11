@@ -1,19 +1,19 @@
 {
-  if (hibernateMapping.getDatabaseObject() == null) {
+  if (mappingRoot().getDatabaseObject() == null) {
     return;
   }
-  for (  XMLHibernateMapping.XMLDatabaseObject databaseObjectElement : hibernateMapping.getDatabaseObject()) {
+  for (  XMLHibernateMapping.XMLDatabaseObject databaseObjectElement : mappingRoot().getDatabaseObject()) {
     final AuxiliaryDatabaseObject auxiliaryDatabaseObject;
     if (databaseObjectElement.getDefinition() != null) {
       final String className=databaseObjectElement.getDefinition().getClazz();
       try {
-        auxiliaryDatabaseObject=(AuxiliaryDatabaseObject)classLoaderService.getValue().classForName(className).newInstance();
+        auxiliaryDatabaseObject=(AuxiliaryDatabaseObject)classForName(className).newInstance();
       }
  catch (      ClassLoadingException e) {
         throw e;
       }
 catch (      Exception e) {
-        throw new MappingException("could not instantiate custom database object class [" + className + "]",jaxbRoot.getOrigin());
+        throw new MappingException("could not instantiate custom database object class [" + className + "]",origin());
       }
     }
  else {
@@ -25,6 +25,6 @@ catch (      Exception e) {
       }
       auxiliaryDatabaseObject=new BasicAuxiliaryDatabaseObjectImpl(databaseObjectElement.getCreate(),databaseObjectElement.getDrop(),dialectScopes);
     }
-    getMetadataImplementor().addAuxiliaryDatabaseObject(auxiliaryDatabaseObject);
+    metadata.addAuxiliaryDatabaseObject(auxiliaryDatabaseObject);
   }
 }

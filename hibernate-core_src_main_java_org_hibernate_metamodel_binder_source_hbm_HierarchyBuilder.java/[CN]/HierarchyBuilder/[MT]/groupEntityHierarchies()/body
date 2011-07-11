@@ -1,0 +1,19 @@
+{
+  while (!extendsQueue.isEmpty()) {
+    int numberOfMappingsProcessed=0;
+    Iterator<ExtendsQueueEntry> iterator=extendsQueue.iterator();
+    while (iterator.hasNext()) {
+      final ExtendsQueueEntry entry=iterator.next();
+      final SubEntityContainer container=subEntityContainerMap.get(entry.entityItExtends);
+      if (container != null) {
+        container.addSubEntityDescriptor(entry.subEntityDescriptor);
+        iterator.remove();
+        numberOfMappingsProcessed++;
+      }
+    }
+    if (numberOfMappingsProcessed == 0) {
+      throw new MappingException("Unable to process extends dependencies in hbm files");
+    }
+  }
+  return entityHierarchies;
+}
