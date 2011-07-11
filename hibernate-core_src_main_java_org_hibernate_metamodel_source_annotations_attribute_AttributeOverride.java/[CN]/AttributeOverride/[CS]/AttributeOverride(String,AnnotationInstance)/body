@@ -1,7 +1,10 @@
 {
-  if (attributeOverrideAnnotation != null && !JPADotNames.ATTRIBUTE_OVERRIDE.equals(attributeOverrideAnnotation.name())) {
-    throw new AssertionFailure("A @Column annotation needs to be passed to the constructor");
+  if (attributeOverrideAnnotation == null) {
+    throw new IllegalArgumentException("An AnnotationInstance needs to be passed");
   }
-  columnValues=null;
-  attributePath="";
+  if (!JPADotNames.ATTRIBUTE_OVERRIDE.equals(attributeOverrideAnnotation.name())) {
+    throw new AssertionFailure("A @AttributeOverride annotation needs to be passed to the constructor");
+  }
+  columnValues=new ColumnValues(JandexHelper.getValue(attributeOverrideAnnotation,"column",AnnotationInstance.class));
+  attributePath=createAttributePath(prefix,JandexHelper.getValue(attributeOverrideAnnotation,"name",String.class));
 }
