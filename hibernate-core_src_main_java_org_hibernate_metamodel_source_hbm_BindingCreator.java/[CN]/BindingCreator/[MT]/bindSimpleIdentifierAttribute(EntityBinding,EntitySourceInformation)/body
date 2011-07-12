@@ -1,0 +1,36 @@
+{
+  final XMLHibernateMapping.XMLClass.XMLId idElement=((XMLHibernateMapping.XMLClass)entitySourceInfo.getEntityElement()).getId();
+  final String idAttributeName=idElement.getName() == null ? "id" : idElement.getName();
+  final SimpleAttributeBinding idAttributeBinding=doBasicSimpleAttributeBindingCreation(idAttributeName,idElement,entityBinding);
+  idAttributeBinding.setInsertable(false);
+  idAttributeBinding.setUpdatable(false);
+  idAttributeBinding.setGeneration(PropertyGeneration.INSERT);
+  idAttributeBinding.setLazy(false);
+  idAttributeBinding.setIncludedInOptimisticLocking(false);
+  final org.hibernate.metamodel.relational.Value relationalValue=makeValue(new RelationValueMetadataSource(){
+    @Override public String getColumnAttribute(){
+      return idElement.getColumnAttribute();
+    }
+    @Override public String getFormulaAttribute(){
+      return null;
+    }
+    @Override public List getColumnOrFormulaElements(){
+      return idElement.getColumn();
+    }
+  }
+,idAttributeBinding);
+  idAttributeBinding.setValue(relationalValue);
+  if (SimpleValue.class.isInstance(relationalValue)) {
+    if (!Column.class.isInstance(relationalValue)) {
+      throw new MappingException("Simple ID is not a column.",currentBindingContext.getOrigin());
+    }
+    entityBinding.getBaseTable().getPrimaryKey().addColumn(Column.class.cast(relationalValue));
+  }
+ else {
+    for (    SimpleValue subValue : ((Tuple)relationalValue).values()) {
+      if (Column.class.isInstance(subValue)) {
+        entityBinding.getBaseTable().getPrimaryKey().addColumn(Column.class.cast(subValue));
+      }
+    }
+  }
+}

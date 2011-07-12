@@ -1,0 +1,28 @@
+{
+  final Class<?> attributeJavaType=determineJavaType(attributeBinding.getAttribute());
+  if (attributeJavaType != null) {
+    attributeBinding.getHibernateTypeDescriptor().setJavaTypeName(attributeJavaType.getName());
+    ((AbstractAttributeContainer.SingularAttributeImpl)attributeBinding.getAttribute()).resolveType(currentBindingContext.makeJavaType(attributeJavaType.getName()));
+  }
+  if (property.getTypeAttribute() != null) {
+    final String explicitTypeName=property.getTypeAttribute();
+    final TypeDef typeDef=currentBindingContext.getMetadataImplementor().getTypeDefinition(explicitTypeName);
+    if (typeDef != null) {
+      attributeBinding.getHibernateTypeDescriptor().setExplicitTypeName(typeDef.getTypeClass());
+      attributeBinding.getHibernateTypeDescriptor().getTypeParameters().putAll(typeDef.getParameters());
+    }
+ else {
+      attributeBinding.getHibernateTypeDescriptor().setExplicitTypeName(explicitTypeName);
+    }
+  }
+ else   if (property.getType() != null) {
+    attributeBinding.getHibernateTypeDescriptor().setExplicitTypeName(property.getType().getName());
+    for (    XMLParamElement xmlParamElement : property.getType().getParam()) {
+      attributeBinding.getHibernateTypeDescriptor().getTypeParameters().put(xmlParamElement.getName(),xmlParamElement.getValue());
+    }
+  }
+ else {
+    if (attributeJavaType == null) {
+    }
+  }
+}

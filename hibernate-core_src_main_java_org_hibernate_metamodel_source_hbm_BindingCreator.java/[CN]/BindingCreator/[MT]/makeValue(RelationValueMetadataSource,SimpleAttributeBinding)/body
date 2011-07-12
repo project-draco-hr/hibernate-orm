@@ -1,23 +1,23 @@
 {
   final TableSpecification valueSource=attributeBinding.getEntityBinding().getBaseTable();
-  if (property.getColumn() != null && !property.getColumn().isEmpty()) {
-    if (property.getColumnOrFormula() != null && !property.getColumnOrFormula().isEmpty()) {
+  if (StringHelper.isNotEmpty(relationValueMetadataSource.getColumnAttribute())) {
+    if (relationValueMetadataSource.getColumnOrFormulaElements() != null && !relationValueMetadataSource.getColumnOrFormulaElements().isEmpty()) {
       throw new MappingException("column/formula attribute may not be used together with <column>/<formula> subelement",currentBindingContext.getOrigin());
     }
-    if (property.getFormula() != null) {
+    if (StringHelper.isNotEmpty(relationValueMetadataSource.getFormulaAttribute())) {
       throw new MappingException("column and formula attributes may not be used together",currentBindingContext.getOrigin());
     }
-    return valueSource.locateOrCreateColumn(property.getColumn());
+    return valueSource.locateOrCreateColumn(relationValueMetadataSource.getColumnAttribute());
   }
- else   if (property.getFormula() != null && !property.getFormula().isEmpty()) {
-    if (property.getColumnOrFormula() != null && !property.getColumnOrFormula().isEmpty()) {
+ else   if (StringHelper.isNotEmpty(relationValueMetadataSource.getFormulaAttribute())) {
+    if (relationValueMetadataSource.getColumnOrFormulaElements() != null && !relationValueMetadataSource.getColumnOrFormulaElements().isEmpty()) {
       throw new MappingException("column/formula attribute may not be used together with <column>/<formula> subelement",currentBindingContext.getOrigin());
     }
-    return valueSource.locateOrCreateDerivedValue(property.getFormula());
+    return valueSource.locateOrCreateDerivedValue(relationValueMetadataSource.getFormulaAttribute());
   }
- else   if (property.getColumnOrFormula() != null && !property.getColumnOrFormula().isEmpty()) {
+ else   if (relationValueMetadataSource.getColumnOrFormulaElements() != null && !relationValueMetadataSource.getColumnOrFormulaElements().isEmpty()) {
     List<SimpleValue> values=new ArrayList<SimpleValue>();
-    for (    Object columnOrFormula : property.getColumnOrFormula()) {
+    for (    Object columnOrFormula : relationValueMetadataSource.getColumnOrFormulaElements()) {
       final SimpleValue value;
       if (XMLColumnElement.class.isInstance(columnOrFormula)) {
         final XMLColumnElement columnElement=(XMLColumnElement)columnOrFormula;
@@ -35,7 +35,7 @@
         value=column;
       }
  else {
-        value=null;
+        value=valueSource.locateOrCreateDerivedValue((String)columnOrFormula);
       }
       if (value != null) {
         values.add(value);
