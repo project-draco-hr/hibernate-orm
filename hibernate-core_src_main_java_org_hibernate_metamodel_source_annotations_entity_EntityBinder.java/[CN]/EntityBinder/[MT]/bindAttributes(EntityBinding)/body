@@ -1,12 +1,13 @@
 {
+  Map<String,AttributeOverride> attributeOverrideMap=new HashMap<String,AttributeOverride>();
   AttributeContainer entity=entityBinding.getEntity();
-  bindAttributes(entityBinding,entity,entityClass,null);
-  ConfiguredClass childClass=entityClass;
+  bindAttributes(entityBinding,entity,entityClass,attributeOverrideMap);
+  attributeOverrideMap.putAll(entityClass.getAttributeOverrideMap());
   ConfiguredClass parent=entityClass.getParent();
   Hierarchical superTypeContainer=entityBinding.getEntity().getSuperType();
-  while (containsPotentialMappedSuperclassAttributes(parent)) {
-    bindAttributes(entityBinding,superTypeContainer,parent,childClass);
-    childClass=parent;
+  while (containsMappedSuperclassAttributes(parent)) {
+    bindAttributes(entityBinding,superTypeContainer,parent,attributeOverrideMap);
+    addNewOverridesToMap(parent,attributeOverrideMap);
     parent=parent.getParent();
     superTypeContainer=superTypeContainer.getSuperType();
   }
