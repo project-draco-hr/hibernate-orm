@@ -11,6 +11,9 @@
   if (StringHelper.isEmpty(tableName)) {
     tableName=bindingContext.getNamingStrategy().classToTableName(entityClass.getClassNameForTable());
   }
+  if (bindingContext.isGloballyQuotedIdentifiers() && !Identifier.isQuoted(tableName)) {
+    tableName=StringHelper.quote(tableName);
+  }
   org.hibernate.metamodel.relational.Table table=schema.locateOrCreateTable(Identifier.toIdentifier(tableName));
   entityBinding.setBaseTable(table);
   AnnotationInstance checkAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),HibernateDotNames.CHECK);

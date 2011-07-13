@@ -21,9 +21,9 @@
   final AnnotationInstance sqlInsertAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),HibernateDotNames.SQL_INSERT);
   entityBinding.setCustomInsert(createCustomSQL(sqlInsertAnnotation));
   final AnnotationInstance sqlUpdateAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),HibernateDotNames.SQL_UPDATE);
-  entityBinding.setCustomInsert(createCustomSQL(sqlUpdateAnnotation));
+  entityBinding.setCustomUpdate(createCustomSQL(sqlUpdateAnnotation));
   final AnnotationInstance sqlDeleteAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),HibernateDotNames.SQL_DELETE);
-  entityBinding.setCustomInsert(createCustomSQL(sqlDeleteAnnotation));
+  entityBinding.setCustomDelete(createCustomSQL(sqlDeleteAnnotation));
   final AnnotationInstance batchSizeAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),HibernateDotNames.BATCH_SIZE);
   entityBinding.setBatchSize(batchSizeAnnotation == null ? -1 : batchSizeAnnotation.value("size").asInt());
   final boolean lazy;
@@ -31,12 +31,17 @@
   final AnnotationInstance hibernateProxyAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),HibernateDotNames.PROXY);
   if (hibernateProxyAnnotation != null) {
     lazy=hibernateProxyAnnotation.value("lazy") == null || hibernateProxyAnnotation.value("lazy").asBoolean();
-    final AnnotationValue proxyClassValue=hibernateProxyAnnotation.value("proxyClass");
-    if (proxyClassValue == null) {
-      proxyInterfaceType=entity.getClassReferenceUnresolved();
+    if (lazy) {
+      final AnnotationValue proxyClassValue=hibernateProxyAnnotation.value("proxyClass");
+      if (proxyClassValue == null) {
+        proxyInterfaceType=entity.getClassReferenceUnresolved();
+      }
+ else {
+        proxyInterfaceType=bindingContext.makeClassReference(proxyClassValue.asString());
+      }
     }
  else {
-      proxyInterfaceType=bindingContext.makeClassReference(proxyClassValue.asString());
+      proxyInterfaceType=null;
     }
   }
  else {

@@ -1,0 +1,29 @@
+{
+  String typeName=null;
+  Properties typeParameters=new Properties();
+  if (attributeBinding.getHibernateTypeDescriptor().getExplicitTypeName() != null) {
+    typeName=attributeBinding.getHibernateTypeDescriptor().getExplicitTypeName();
+    if (attributeBinding.getHibernateTypeDescriptor().getTypeParameters() != null) {
+      typeParameters.putAll(attributeBinding.getHibernateTypeDescriptor().getTypeParameters());
+    }
+  }
+ else {
+    typeName=attributeBinding.getHibernateTypeDescriptor().getJavaTypeName();
+    if (typeName == null) {
+      if (attributeBinding.getAttribute().isSingular()) {
+        SingularAttribute singularAttribute=(SingularAttribute)attributeBinding.getAttribute();
+        if (singularAttribute.getSingularAttributeType() != null) {
+          typeName=singularAttribute.getSingularAttributeType().getClassName();
+        }
+      }
+    }
+  }
+  if (typeName != null) {
+    try {
+      return metadata.getTypeResolver().heuristicType(typeName,typeParameters);
+    }
+ catch (    Exception ignore) {
+    }
+  }
+  return null;
+}

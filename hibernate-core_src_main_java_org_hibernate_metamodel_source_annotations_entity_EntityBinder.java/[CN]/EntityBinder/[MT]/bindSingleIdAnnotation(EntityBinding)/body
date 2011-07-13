@@ -15,9 +15,12 @@
     throw new AnnotationException(String.format("Unable to find id attribute for class %s",entityClass.getName()));
   }
   MappedAttribute idAttribute=iter.next();
-  Attribute attribute=container.locateOrCreateSingularAttribute(idAttribute.getName());
+  SingularAttribute attribute=container.locateOrCreateSingularAttribute(idAttribute.getName());
   SimpleAttributeBinding attributeBinding=entityBinding.makeSimpleIdAttributeBinding(attribute);
   attributeBinding.initialize(new AttributeBindingStateImpl((SimpleAttribute)idAttribute));
   attributeBinding.initialize(new ColumnRelationalStateImpl((SimpleAttribute)idAttribute,bindingContext.getMetadataImplementor()));
   bindSingleIdGeneratedValue(entityBinding,idAttribute.getName());
+  if (!attribute.isTypeResolved()) {
+    attribute.resolveType(bindingContext.makeJavaType(attributeBinding.getHibernateTypeDescriptor().getJavaTypeName()));
+  }
 }
