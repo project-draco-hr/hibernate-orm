@@ -1,0 +1,145 @@
+{
+  final XMLHibernateMapping.XMLClass rootClassElement=(XMLHibernateMapping.XMLClass)entitySourceInfo.getEntityElement();
+  final XMLHibernateMapping.XMLClass.XMLVersion versionElement=rootClassElement.getVersion();
+  final XMLHibernateMapping.XMLClass.XMLTimestamp timestampElement=rootClassElement.getTimestamp();
+  if (versionElement == null && timestampElement == null) {
+    return;
+  }
+ else   if (versionElement != null && timestampElement != null) {
+    throw new MappingException("version and timestamp elements cannot be specified together",currentBindingContext.getOrigin());
+  }
+  final SimpleAttributeBinding attributeBinding;
+  if (versionElement != null) {
+    attributeBinding=doBasicSimpleAttributeBindingCreation(new SimpleAttributeSource(){
+      private final ExplicitHibernateTypeSource typeSource=new ExplicitHibernateTypeSource(){
+        @Override public String getName(){
+          return versionElement.getType() == null ? "integer" : versionElement.getType();
+        }
+        @Override public Map<String,String> getParameters(){
+          return null;
+        }
+      }
+;
+      private final RelationValueMetadataSource valueSource=new RelationValueMetadataSource(){
+        @Override public String getColumnAttribute(){
+          return versionElement.getColumnAttribute();
+        }
+        @Override public String getFormulaAttribute(){
+          return null;
+        }
+        @Override public List getColumnOrFormulaElements(){
+          return versionElement.getColumn();
+        }
+      }
+;
+      @Override public String getName(){
+        return versionElement.getName();
+      }
+      @Override public ExplicitHibernateTypeSource getTypeInformation(){
+        return typeSource;
+      }
+      @Override public String getPropertyAccessorName(){
+        return versionElement.getAccess();
+      }
+      @Override public boolean isInsertable(){
+        return versionElement.isInsert() == null ? true : versionElement.isInsert();
+      }
+      @Override public boolean isUpdatable(){
+        return true;
+      }
+      private Value<PropertyGeneration> propertyGenerationValue=new Value<PropertyGeneration>(new Value.DeferredInitializer<PropertyGeneration>(){
+        @Override public PropertyGeneration initialize(){
+          final PropertyGeneration propertyGeneration=versionElement.getGenerated() == null ? PropertyGeneration.NEVER : PropertyGeneration.parse(versionElement.getGenerated().value());
+          if (propertyGeneration == PropertyGeneration.INSERT) {
+            throw new MappingException("'generated' attribute cannot be 'insert' for versioning property",currentBindingContext.getOrigin());
+          }
+          return propertyGeneration;
+        }
+      }
+);
+      @Override public PropertyGeneration getGeneration(){
+        return propertyGenerationValue.getValue();
+      }
+      @Override public boolean isLazy(){
+        return false;
+      }
+      @Override public boolean isIncludedInOptimisticLocking(){
+        return false;
+      }
+      @Override public RelationValueMetadataSource getValueInformation(){
+        return valueSource;
+      }
+      @Override public MetaAttributeContext buildMetaAttributeContext(      MetaAttributeContext parentContext){
+        return Helper.extractMetaAttributeContext(versionElement.getMeta(),parentContext);
+      }
+    }
+,entityBinding);
+  }
+ else {
+    attributeBinding=doBasicSimpleAttributeBindingCreation(new SimpleAttributeSource(){
+      private final ExplicitHibernateTypeSource typeSource=new ExplicitHibernateTypeSource(){
+        @Override public String getName(){
+          return "db".equals(timestampElement.getSource()) ? "dbtimestamp" : "timestamp";
+        }
+        @Override public Map<String,String> getParameters(){
+          return null;
+        }
+      }
+;
+      private final RelationValueMetadataSource valueSource=new RelationValueMetadataSource(){
+        @Override public String getColumnAttribute(){
+          return timestampElement.getColumn();
+        }
+        @Override public String getFormulaAttribute(){
+          return null;
+        }
+        @Override public List getColumnOrFormulaElements(){
+          return null;
+        }
+      }
+;
+      @Override public String getName(){
+        return timestampElement.getName();
+      }
+      @Override public ExplicitHibernateTypeSource getTypeInformation(){
+        return typeSource;
+      }
+      @Override public String getPropertyAccessorName(){
+        return timestampElement.getAccess();
+      }
+      @Override public boolean isInsertable(){
+        return true;
+      }
+      @Override public boolean isUpdatable(){
+        return true;
+      }
+      private Value<PropertyGeneration> propertyGenerationValue=new Value<PropertyGeneration>(new Value.DeferredInitializer<PropertyGeneration>(){
+        @Override public PropertyGeneration initialize(){
+          final PropertyGeneration propertyGeneration=timestampElement.getGenerated() == null ? PropertyGeneration.NEVER : PropertyGeneration.parse(timestampElement.getGenerated().value());
+          if (propertyGeneration == PropertyGeneration.INSERT) {
+            throw new MappingException("'generated' attribute cannot be 'insert' for versioning property",currentBindingContext.getOrigin());
+          }
+          return propertyGeneration;
+        }
+      }
+);
+      @Override public PropertyGeneration getGeneration(){
+        return propertyGenerationValue.getValue();
+      }
+      @Override public boolean isLazy(){
+        return false;
+      }
+      @Override public boolean isIncludedInOptimisticLocking(){
+        return false;
+      }
+      @Override public RelationValueMetadataSource getValueInformation(){
+        return valueSource;
+      }
+      @Override public MetaAttributeContext buildMetaAttributeContext(      MetaAttributeContext parentContext){
+        return Helper.extractMetaAttributeContext(versionElement.getMeta(),parentContext);
+      }
+    }
+,entityBinding);
+  }
+  entityBinding.setVersionBinding(attributeBinding);
+}
