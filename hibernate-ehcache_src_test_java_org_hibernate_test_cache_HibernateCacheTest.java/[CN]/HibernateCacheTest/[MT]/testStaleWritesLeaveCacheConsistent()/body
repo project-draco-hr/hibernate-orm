@@ -1,0 +1,55 @@
+{
+  Session s=getSessionFactory().openSession();
+  Transaction txn=s.beginTransaction();
+  VersionedItem item=new VersionedItem();
+  item.setName("steve");
+  item.setDescription("steve's item");
+  s.save(item);
+  txn.commit();
+  s.close();
+  Long initialVersion=item.getVersion();
+  item.setVersion(item.getVersion() - 1);
+  try {
+    s=getSessionFactory().openSession();
+    txn=s.beginTransaction();
+    s.update(item);
+    txn.commit();
+    s.close();
+    fail("expected stale write to fail");
+  }
+ catch (  Throwable expected) {
+    if (txn != null) {
+      try {
+        txn.rollback();
+      }
+ catch (      Throwable ignore) {
+      }
+    }
+  }
+ finally {
+    if (s != null && s.isOpen()) {
+      try {
+        s.close();
+      }
+ catch (      Throwable ignore) {
+      }
+    }
+  }
+  SecondLevelCacheStatistics slcs=getSessionFactory().getStatistics().getSecondLevelCacheStatistics(REGION_PREFIX + VersionedItem.class.getName());
+  assertThat(slcs,CoreMatchers.<Object>notNullValue());
+  final Map entries=slcs.getEntries();
+  Object entry=entries.get(item.getId());
+  Long cachedVersionValue;
+  if (entry instanceof SoftLock) {
+  }
+ else {
+    cachedVersionValue=(Long)((Map)entry).get("_version");
+    assertThat(initialVersion,equalTo(cachedVersionValue));
+  }
+  s=getSessionFactory().openSession();
+  txn=s.beginTransaction();
+  item=(VersionedItem)s.load(VersionedItem.class,item.getId());
+  s.delete(item);
+  txn.commit();
+  s.close();
+}

@@ -1,0 +1,20 @@
+{
+  if (AccessType.READ_ONLY.equals(accessType)) {
+    if (collectionRegion.getCacheDataDescription().isMutable()) {
+      LOG.warn("read-only cache configured for mutable entity [" + collectionRegion.getName() + "]");
+    }
+    return new ReadOnlyEhcacheCollectionRegionAccessStrategy(collectionRegion,collectionRegion.getSettings());
+  }
+ else   if (AccessType.READ_WRITE.equals(accessType)) {
+    return new ReadWriteEhcacheCollectionRegionAccessStrategy(collectionRegion,collectionRegion.getSettings());
+  }
+ else   if (AccessType.NONSTRICT_READ_WRITE.equals(accessType)) {
+    return new NonStrictReadWriteEhcacheCollectionRegionAccessStrategy(collectionRegion,collectionRegion.getSettings());
+  }
+ else   if (AccessType.TRANSACTIONAL.equals(accessType)) {
+    return new TransactionalEhcacheCollectionRegionAccessStrategy(collectionRegion,collectionRegion.getEhcache(),collectionRegion.getSettings());
+  }
+ else {
+    throw new IllegalArgumentException("unrecognized access strategy type [" + accessType + "]");
+  }
+}

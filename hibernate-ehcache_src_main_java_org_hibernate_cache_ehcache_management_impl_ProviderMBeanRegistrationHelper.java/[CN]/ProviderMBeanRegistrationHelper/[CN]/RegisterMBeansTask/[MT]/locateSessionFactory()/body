@@ -1,0 +1,38 @@
+{
+  String jndiName=properties.getProperty(Environment.SESSION_FACTORY_NAME);
+  if (jndiName != null) {
+    return SessionFactoryRegistry.INSTANCE.getNamedSessionFactory(jndiName);
+  }
+  try {
+    Class factoryType=SessionFactoryRegistry.class;
+    Field instancesField=getField(factoryType,"sessionFactoryMap");
+    if (instancesField == null) {
+      throw new RuntimeException("Expected 'sessionFactoryMap' field on " + SessionFactoryRegistry.class.getName());
+    }
+    instancesField.setAccessible(true);
+    Map map=(Map)instancesField.get(null);
+    if (map == null) {
+      return null;
+    }
+    Iterator values=map.values().iterator();
+    while (values.hasNext()) {
+      SessionFactory sessionFactory=(SessionFactory)values.next();
+      Class sessionFactoryType=sessionFactory.getClass();
+      Field propertiesField=getField(sessionFactoryType,"properties");
+      if (propertiesField != null) {
+        propertiesField.setAccessible(true);
+        Properties props=(Properties)propertiesField.get(sessionFactory);
+        if (props != null && props.equals(properties)) {
+          return sessionFactory;
+        }
+      }
+    }
+  }
+ catch (  RuntimeException re) {
+    LOG.error("Error locating Hibernate Session Factory",re);
+  }
+catch (  IllegalAccessException iae) {
+    LOG.error("Error locating Hibernate Session Factory",iae);
+  }
+  return null;
+}

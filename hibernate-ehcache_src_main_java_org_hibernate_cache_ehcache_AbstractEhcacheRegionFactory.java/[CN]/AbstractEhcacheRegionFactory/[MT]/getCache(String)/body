@@ -1,0 +1,16 @@
+{
+  try {
+    Ehcache cache=manager.getEhcache(name);
+    if (cache == null) {
+      LOG.warn("Couldn't find a specific ehcache configuration for cache named [" + name + "]; using defaults.");
+      manager.addCache(name);
+      cache=manager.getEhcache(name);
+      LOG.debug("started EHCache region: " + name);
+    }
+    HibernateUtil.validateEhcache(cache);
+    return cache;
+  }
+ catch (  net.sf.ehcache.CacheException e) {
+    throw new CacheException(e);
+  }
+}

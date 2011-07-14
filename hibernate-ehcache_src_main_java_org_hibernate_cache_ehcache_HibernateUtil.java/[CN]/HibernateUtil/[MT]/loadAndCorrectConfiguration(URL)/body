@@ -1,0 +1,20 @@
+{
+  Configuration config=ConfigurationFactory.parseConfiguration(url);
+  if (config.getDefaultCacheConfiguration().isTerracottaClustered()) {
+    if (ValueMode.IDENTITY.equals(config.getDefaultCacheConfiguration().getTerracottaConfiguration().getValueMode())) {
+      LOG.warn("The default cache value mode for this Ehcache configuration is \"identity\". This is incompatible with clustered " + "Hibernate caching - the value mode has therefore been switched to \"serialization\"");
+      config.getDefaultCacheConfiguration().getTerracottaConfiguration().setValueMode(ValueMode.SERIALIZATION.name());
+    }
+    setupHibernateTimeoutBehavior(config.getDefaultCacheConfiguration().getTerracottaConfiguration().getNonstopConfiguration());
+  }
+  for (  CacheConfiguration cacheConfig : config.getCacheConfigurations().values()) {
+    if (cacheConfig.isTerracottaClustered()) {
+      if (ValueMode.IDENTITY.equals(cacheConfig.getTerracottaConfiguration().getValueMode())) {
+        LOG.warn("The value mode for the {0} cache is \"identity\". This is incompatible with clustered Hibernate caching - " + "the value mode has therefore been switched to \"serialization\"",cacheConfig.getName());
+        cacheConfig.getTerracottaConfiguration().setValueMode(ValueMode.SERIALIZATION.name());
+      }
+      setupHibernateTimeoutBehavior(cacheConfig.getTerracottaConfiguration().getNonstopConfiguration());
+    }
+  }
+  return config;
+}

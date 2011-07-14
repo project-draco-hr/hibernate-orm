@@ -1,0 +1,16 @@
+{
+  try {
+    cache.getCacheManager().removeCache(cache.getName());
+  }
+ catch (  IllegalStateException e) {
+    LOG.debug("This can happen if multiple frameworks both try to shutdown ehcache",e);
+  }
+catch (  net.sf.ehcache.CacheException e) {
+    if (e instanceof NonStopCacheException) {
+      HibernateNonstopCacheExceptionHandler.getInstance().handleNonstopCacheException((NonStopCacheException)e);
+    }
+ else {
+      throw new CacheException(e);
+    }
+  }
+}

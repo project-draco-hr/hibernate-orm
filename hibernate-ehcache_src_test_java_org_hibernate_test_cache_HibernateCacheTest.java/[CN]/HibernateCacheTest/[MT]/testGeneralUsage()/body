@@ -1,0 +1,44 @@
+{
+  EventManager mgr=new EventManager(getSessionFactory());
+  Statistics stats=getSessionFactory().getStatistics();
+  Person stevePerson=new Person();
+  stevePerson.setFirstname("Steve");
+  stevePerson.setLastname("Harris");
+  Long steveId=mgr.createAndStorePerson(stevePerson);
+  mgr.addEmailToPerson(steveId,"steve@tc.com");
+  mgr.addEmailToPerson(steveId,"sharrif@tc.com");
+  mgr.addTalismanToPerson(steveId,"rabbit foot");
+  mgr.addTalismanToPerson(steveId,"john de conqueroo");
+  PhoneNumber p1=new PhoneNumber();
+  p1.setNumberType("Office");
+  p1.setPhone(111111);
+  mgr.addPhoneNumberToPerson(steveId,p1);
+  PhoneNumber p2=new PhoneNumber();
+  p2.setNumberType("Home");
+  p2.setPhone(222222);
+  mgr.addPhoneNumberToPerson(steveId,p2);
+  Person orionPerson=new Person();
+  orionPerson.setFirstname("Orion");
+  orionPerson.setLastname("Letizi");
+  Long orionId=mgr.createAndStorePerson(orionPerson);
+  mgr.addEmailToPerson(orionId,"orion@tc.com");
+  mgr.addTalismanToPerson(orionId,"voodoo doll");
+  Long timId=mgr.createAndStorePerson("Tim","Teck");
+  mgr.addEmailToPerson(timId,"teck@tc.com");
+  mgr.addTalismanToPerson(timId,"magic decoder ring");
+  Long engMeetingId=mgr.createAndStoreEvent("Eng Meeting",stevePerson,new Date());
+  mgr.addPersonToEvent(steveId,engMeetingId);
+  mgr.addPersonToEvent(orionId,engMeetingId);
+  mgr.addPersonToEvent(timId,engMeetingId);
+  Long docMeetingId=mgr.createAndStoreEvent("Doc Meeting",orionPerson,new Date());
+  mgr.addPersonToEvent(steveId,docMeetingId);
+  mgr.addPersonToEvent(orionId,docMeetingId);
+  for (  Event event : (List<Event>)mgr.listEvents()) {
+    mgr.listEmailsOfEvent(event.getId());
+  }
+  getSessionFactory().close();
+  QueryStatistics queryStats=stats.getQueryStatistics("from Event");
+  assertThat("Cache Miss Count",queryStats.getCacheMissCount(),equalTo(1L));
+  assertThat("Cache Hit Count",queryStats.getCacheHitCount(),equalTo(0L));
+  assertThat("Cache Put Count",queryStats.getCachePutCount(),equalTo(1L));
+}

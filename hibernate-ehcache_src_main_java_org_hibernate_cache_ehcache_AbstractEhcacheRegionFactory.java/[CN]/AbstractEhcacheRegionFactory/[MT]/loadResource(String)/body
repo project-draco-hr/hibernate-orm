@@ -1,0 +1,20 @@
+{
+  URL url=null;
+  if (classLoaderService != null) {
+    url=classLoaderService.locateResource(configurationResourceName);
+  }
+  if (url == null) {
+    ClassLoader standardClassloader=ClassLoaderUtil.getStandardClassLoader();
+    if (standardClassloader != null) {
+      url=standardClassloader.getResource(configurationResourceName);
+    }
+    if (url == null) {
+      url=AbstractEhcacheRegionFactory.class.getResource(configurationResourceName);
+    }
+  }
+  LOG.debug("Creating EhCacheRegionFactory from a specified resource: {}.  Resolved to URL: {}",configurationResourceName,url);
+  if (url == null) {
+    LOG.warn("A configurationResourceName was set to {} but the resource could not be loaded from the classpath." + "Ehcache will configure itself using defaults.",configurationResourceName);
+  }
+  return url;
+}

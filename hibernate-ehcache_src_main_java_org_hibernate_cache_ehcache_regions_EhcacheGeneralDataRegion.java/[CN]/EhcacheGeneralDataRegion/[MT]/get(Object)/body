@@ -1,0 +1,27 @@
+{
+  try {
+    LOG.debug("key: {}",key);
+    if (key == null) {
+      return null;
+    }
+ else {
+      Element element=cache.get(key);
+      if (element == null) {
+        LOG.debug("Element for key {} is null",key);
+        return null;
+      }
+ else {
+        return element.getObjectValue();
+      }
+    }
+  }
+ catch (  net.sf.ehcache.CacheException e) {
+    if (e instanceof NonStopCacheException) {
+      HibernateNonstopCacheExceptionHandler.getInstance().handleNonstopCacheException((NonStopCacheException)e);
+      return null;
+    }
+ else {
+      throw new CacheException(e);
+    }
+  }
+}
