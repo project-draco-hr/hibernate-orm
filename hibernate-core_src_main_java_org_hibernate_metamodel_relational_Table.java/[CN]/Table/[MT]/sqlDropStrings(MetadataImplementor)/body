@@ -1,0 +1,12 @@
+{
+  Dialect dialect=metadata.getServiceRegistry().getService(JdbcServices.class).getDialect();
+  StringBuilder buf=new StringBuilder("drop table ");
+  if (dialect.supportsIfExistsBeforeTableName()) {
+    buf.append("if exists ");
+  }
+  buf.append(getQualifiedName(dialect)).append(dialect.getCascadeConstraintsString());
+  if (dialect.supportsIfExistsAfterTableName()) {
+    buf.append(" if exists");
+  }
+  return new String[]{buf.toString()};
+}

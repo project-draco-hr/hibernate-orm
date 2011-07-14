@@ -1,0 +1,27 @@
+{
+  String[] columnNames=new String[getColumnSpan()];
+  String[] targetColumnNames=new String[getColumnSpan()];
+  int i=0;
+  Iterator<Column> itTargetColumn=getTargetColumns().iterator();
+  for (  Column column : getColumns()) {
+    if (!itTargetColumn.hasNext()) {
+      throw new MappingException("More constraint columns that foreign key target columns.");
+    }
+    columnNames[i]=column.getColumnName().encloseInQuotesIfQuoted(dialect);
+    targetColumnNames[i]=(itTargetColumn.next()).getColumnName().encloseInQuotesIfQuoted(dialect);
+    i++;
+  }
+  if (itTargetColumn.hasNext()) {
+    throw new MappingException("More foreign key target columns than constraint columns.");
+  }
+  StringBuilder sb=new StringBuilder(dialect.getAddForeignKeyConstraintString(getName(),columnNames,targetTable.getQualifiedName(dialect),targetColumnNames,this.targetColumns == null));
+  if (dialect.supportsCascadeDelete()) {
+    if (deleteRule != ReferentialAction.NO_ACTION) {
+      sb.append(ON_DELETE).append(deleteRule.getActionString());
+    }
+    if (updateRule != ReferentialAction.NO_ACTION) {
+      sb.append(ON_UPDATE).append(updateRule.getActionString());
+    }
+  }
+  return sb.toString();
+}

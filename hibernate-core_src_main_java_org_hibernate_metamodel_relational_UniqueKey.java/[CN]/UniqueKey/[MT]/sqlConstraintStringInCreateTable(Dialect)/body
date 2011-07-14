@@ -1,0 +1,18 @@
+{
+  StringBuffer buf=new StringBuffer("unique (");
+  boolean hadNullableColumn=false;
+  boolean first=true;
+  for (  Column column : getColumns()) {
+    if (first) {
+      first=false;
+    }
+ else {
+      buf.append(", ");
+    }
+    if (!hadNullableColumn && column.isNullable()) {
+      hadNullableColumn=true;
+    }
+    buf.append(column.getColumnName().encloseInQuotesIfQuoted(dialect));
+  }
+  return !hadNullableColumn || dialect.supportsNotNullUnique() ? buf.append(')').toString() : null;
+}
