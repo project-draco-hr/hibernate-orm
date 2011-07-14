@@ -1,62 +1,6 @@
 {
   final XMLHibernateMapping.XMLClass.XMLId idElement=((XMLHibernateMapping.XMLClass)entitySourceInfo.getEntityElement()).getId();
-  final String idAttributeName=idElement.getName() == null ? "id" : idElement.getName();
-  final SimpleAttributeBinding idAttributeBinding=doBasicSimpleAttributeBindingCreation(new SimpleAttributeSource(){
-    private final ExplicitHibernateTypeSource typeSource=new ExplicitHibernateTypeSource(){
-      private final String name=idElement.getTypeAttribute() != null ? idElement.getTypeAttribute() : idElement.getType() != null ? idElement.getType().getName() : null;
-      private final Map<String,String> parameters=(idElement.getType() != null) ? extractParameters(idElement.getType().getParam()) : null;
-      @Override public String getName(){
-        return name;
-      }
-      @Override public Map<String,String> getParameters(){
-        return parameters;
-      }
-    }
-;
-    private final RelationValueMetadataSource valueSource=new RelationValueMetadataSource(){
-      @Override public String getColumnAttribute(){
-        return idElement.getColumnAttribute();
-      }
-      @Override public String getFormulaAttribute(){
-        return null;
-      }
-      @Override public List getColumnOrFormulaElements(){
-        return idElement.getColumn();
-      }
-    }
-;
-    @Override public String getName(){
-      return idAttributeName;
-    }
-    @Override public ExplicitHibernateTypeSource getTypeInformation(){
-      return typeSource;
-    }
-    @Override public String getPropertyAccessorName(){
-      return idElement.getAccess();
-    }
-    @Override public boolean isInsertable(){
-      return true;
-    }
-    @Override public boolean isUpdatable(){
-      return false;
-    }
-    @Override public PropertyGeneration getGeneration(){
-      return PropertyGeneration.INSERT;
-    }
-    @Override public boolean isLazy(){
-      return false;
-    }
-    @Override public boolean isIncludedInOptimisticLocking(){
-      return false;
-    }
-    @Override public RelationValueMetadataSource getValueInformation(){
-      return valueSource;
-    }
-    @Override public MetaAttributeContext buildMetaAttributeContext(    MetaAttributeContext parentContext){
-      return Helper.extractMetaAttributeContext(idElement.getMeta(),parentContext);
-    }
-  }
-,entityBinding);
+  final SimpleAttributeBinding idAttributeBinding=doBasicSimpleAttributeBindingCreation(new SimpleIdentifierAttributeSource(idElement),entityBinding);
   entityBinding.getEntityIdentifier().setValueBinding(idAttributeBinding);
   final org.hibernate.metamodel.relational.Value relationalValue=idAttributeBinding.getValue();
   if (idElement.getGenerator() != null) {

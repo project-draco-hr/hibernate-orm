@@ -1,0 +1,26 @@
+{
+  this.idElement=idElement;
+  this.typeSource=new ExplicitHibernateTypeSource(){
+    private final String name=idElement.getTypeAttribute() != null ? idElement.getTypeAttribute() : idElement.getType() != null ? idElement.getType().getName() : null;
+    private final Map<String,String> parameters=(idElement.getType() != null) ? extractParameters(idElement.getType().getParam()) : null;
+    @Override public String getName(){
+      return name;
+    }
+    @Override public Map<String,String> getParameters(){
+      return parameters;
+    }
+  }
+;
+  this.valueSource=new RelationValueMetadataSource(){
+    @Override public String getColumnAttribute(){
+      return idElement.getColumnAttribute();
+    }
+    @Override public String getFormulaAttribute(){
+      return null;
+    }
+    @Override public List getColumnOrFormulaElements(){
+      return idElement.getColumn();
+    }
+  }
+;
+}
