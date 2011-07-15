@@ -1,7 +1,7 @@
 {
   EntityBinding entityBinding=new EntityBinding();
   entityBinding.setInheritanceType(InheritanceType.NO_INHERITANCE);
-  entityBinding.setRoot(true);
+  entityBinding.setRoot(entityClass.isEntityRoot());
   doBasicEntityBinding(entityBinding);
   final AnnotationInstance hibernateEntityAnnotation=JandexHelper.getSingleAnnotation(entityClass.getClassInfo(),HibernateDotNames.ENTITY);
   PolymorphismType polymorphism=PolymorphismType.IMPLICIT;
@@ -24,7 +24,7 @@
   entityBinding.setCaching(interpretCaching(entityClass,bindingContext));
   bindPrimaryTable(entityBinding);
   bindId(entityBinding);
-  if (entityBinding.getInheritanceType() == InheritanceType.SINGLE_TABLE) {
+  if (entityClass.getInheritanceType() == InheritanceType.SINGLE_TABLE) {
     bindDiscriminatorColumn(entityBinding);
   }
   return entityBinding;

@@ -1,0 +1,17 @@
+{
+  String[] readWrite=new String[2];
+  boolean alreadyProcessedForColumn=false;
+  for (  AnnotationInstance annotationInstance : columnTransformerAnnotations) {
+    String forColumn=annotationInstance.value("forColumn") == null ? null : annotationInstance.value("forColumn").asString();
+    if (forColumn != null && !forColumn.equals(getName())) {
+      continue;
+    }
+    if (alreadyProcessedForColumn) {
+      throw new AnnotationException("Multiple definition of read/write conditions for column " + getName());
+    }
+    readWrite[0]=annotationInstance.value("read") == null ? null : annotationInstance.value("read").asString();
+    readWrite[1]=annotationInstance.value("write") == null ? null : annotationInstance.value("write").asString();
+    alreadyProcessedForColumn=true;
+  }
+  return readWrite;
+}

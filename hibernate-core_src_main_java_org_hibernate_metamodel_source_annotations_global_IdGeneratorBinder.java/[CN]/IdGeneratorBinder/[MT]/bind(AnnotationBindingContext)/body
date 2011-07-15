@@ -1,0 +1,20 @@
+{
+  List<AnnotationInstance> annotations=bindingContext.getIndex().getAnnotations(JPADotNames.SEQUENCE_GENERATOR);
+  for (  AnnotationInstance generator : annotations) {
+    bindSequenceGenerator(bindingContext.getMetadataImplementor(),generator);
+  }
+  annotations=bindingContext.getIndex().getAnnotations(JPADotNames.TABLE_GENERATOR);
+  for (  AnnotationInstance generator : annotations) {
+    bindTableGenerator(bindingContext.getMetadataImplementor(),generator);
+  }
+  annotations=bindingContext.getIndex().getAnnotations(HibernateDotNames.GENERIC_GENERATOR);
+  for (  AnnotationInstance generator : annotations) {
+    bindGenericGenerator(bindingContext.getMetadataImplementor(),generator);
+  }
+  annotations=bindingContext.getIndex().getAnnotations(HibernateDotNames.GENERIC_GENERATORS);
+  for (  AnnotationInstance generators : annotations) {
+    for (    AnnotationInstance generator : JandexHelper.getValue(generators,"value",AnnotationInstance[].class)) {
+      bindGenericGenerator(bindingContext.getMetadataImplementor(),generator);
+    }
+  }
+}

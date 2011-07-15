@@ -2,30 +2,39 @@
   if (simpleAttribute.isId()) {
     return;
   }
+  ColumnValues columnValues=simpleAttribute.getColumnValues();
   String attributeName=simpleAttribute.getName();
   SingularAttribute attribute=container.locateOrCreateSingularAttribute(attributeName);
   SimpleAttributeBinding attributeBinding;
   if (simpleAttribute.isDiscriminator()) {
     EntityDiscriminator entityDiscriminator=entityBinding.makeEntityDiscriminator(attribute);
-    DiscriminatorBindingState bindingState=new DiscriminatorBindingStateImpl(simpleAttribute);
-    entityDiscriminator.initialize(bindingState);
+    entityDiscriminator.setDiscriminatorValue(((DiscriminatorColumnValues)columnValues).getDiscriminatorValue());
     attributeBinding=entityDiscriminator.getValueBinding();
   }
  else   if (simpleAttribute.isVersioned()) {
     attributeBinding=entityBinding.makeVersionBinding(attribute);
-    SimpleAttributeBindingState bindingState=new AttributeBindingStateImpl(simpleAttribute);
-    attributeBinding.initialize(bindingState);
   }
  else {
     attributeBinding=entityBinding.makeSimpleAttributeBinding(attribute);
-    SimpleAttributeBindingState bindingState=new AttributeBindingStateImpl(simpleAttribute);
-    attributeBinding.initialize(bindingState);
   }
-  if (entityClass.hasOwnTable()) {
-    ColumnRelationalStateImpl columnRelationsState=new ColumnRelationalStateImpl(simpleAttribute,bindingContext.getMetadataImplementor());
-    attributeBinding.initialize(columnRelationsState);
-  }
-  if (!attribute.isTypeResolved()) {
-    attribute.resolveType(bindingContext.makeJavaType(attributeBinding.getHibernateTypeDescriptor().getJavaTypeName()));
-  }
+  attributeBinding.setInsertable(simpleAttribute.isInsertable());
+  attributeBinding.setUpdatable(simpleAttribute.isUpdatable());
+  attributeBinding.setGeneration(simpleAttribute.getPropertyGeneration());
+  attributeBinding.setLazy(simpleAttribute.isLazy());
+  attributeBinding.setIncludedInOptimisticLocking(simpleAttribute.isOptimisticLockable());
+  final TableSpecification valueSource=attributeBinding.getEntityBinding().getBaseTable();
+  String columnName=simpleAttribute.getColumnValues().getName().isEmpty() ? attribute.getName() : simpleAttribute.getColumnValues().getName();
+  Column column=valueSource.locateOrCreateColumn(columnName);
+  column.setNullable(columnValues.isNullable());
+  column.setDefaultValue(null);
+  column.setSqlType(null);
+  Size size=new Size(columnValues.getPrecision(),columnValues.getScale(),columnValues.getLength(),Size.LobMultiplier.NONE);
+  column.setSize(size);
+  column.setDatatype(null);
+  column.setReadFragment(simpleAttribute.getCustomReadFragment());
+  column.setWriteFragment(simpleAttribute.getCustomWriteFragment());
+  column.setUnique(columnValues.isUnique());
+  column.setCheckCondition(simpleAttribute.getCheckCondition());
+  column.setComment(null);
+  attributeBinding.setValue(column);
 }

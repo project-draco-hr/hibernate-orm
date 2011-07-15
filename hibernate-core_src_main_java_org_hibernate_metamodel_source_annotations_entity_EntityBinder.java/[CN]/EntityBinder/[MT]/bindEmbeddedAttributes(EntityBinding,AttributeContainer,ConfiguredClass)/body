@@ -2,12 +2,16 @@
   for (  Map.Entry<String,EmbeddableClass> entry : configuredClass.getEmbeddedClasses().entrySet()) {
     String attributeName=entry.getKey();
     EmbeddableClass embeddedClass=entry.getValue();
-    SingularAttribute component=attributeContainer.locateOrCreateComponentAttribute(attributeName);
+    SingularAttribute componentAttribute=attributeContainer.locateOrCreateComponentAttribute(attributeName);
+    if (!componentAttribute.isTypeResolved()) {
+      Component c=new Component(attributeName,embeddedClass.getName(),new Value<Class<?>>(embeddedClass.getConfiguredClass()),null);
+      componentAttribute.resolveType(c);
+    }
     for (    SimpleAttribute simpleAttribute : embeddedClass.getSimpleAttributes()) {
-      bindSingleMappedAttribute(entityBinding,component.getAttributeContainer(),simpleAttribute);
+      bindSingleMappedAttribute(entityBinding,componentAttribute.getAttributeContainer(),simpleAttribute);
     }
     for (    AssociationAttribute associationAttribute : embeddedClass.getAssociationAttributes()) {
-      bindAssociationAttribute(entityBinding,component.getAttributeContainer(),associationAttribute);
+      bindAssociationAttribute(entityBinding,componentAttribute.getAttributeContainer(),associationAttribute);
     }
   }
 }
