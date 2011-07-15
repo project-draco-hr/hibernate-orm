@@ -1,0 +1,25 @@
+{
+  if (entityElement().getId() != null) {
+    return new SimpleIdentifierSource(){
+      @Override public SingularAttributeSource getIdentifierAttributeSource(){
+        return new SingularIdentifierAttributeSourceImpl(entityElement().getId(),sourceMappingDocument().getMappingLocalBindingContext());
+      }
+      @Override public IdGenerator getIdentifierGeneratorDescriptor(){
+        if (entityElement().getId().getGenerator() != null) {
+          final String generatorName=entityElement().getId().getGenerator().getClazz();
+          IdGenerator idGenerator=sourceMappingDocument().getMappingLocalBindingContext().getMetadataImplementor().getIdGenerator(generatorName);
+          if (idGenerator == null) {
+            idGenerator=new IdGenerator(getEntityName() + generatorName,generatorName,Helper.extractParameters(entityElement().getId().getGenerator().getParam()));
+          }
+          return idGenerator;
+        }
+        return null;
+      }
+      @Override public Nature getNature(){
+        return Nature.SIMPLE;
+      }
+    }
+;
+  }
+  return null;
+}
