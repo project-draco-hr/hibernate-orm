@@ -1,0 +1,19 @@
+{
+  final SimpleAttributeBinding idAttributeBinding=doBasicSingularAttributeBindingCreation(identifierSource.getIdentifierAttributeSource(),entityBinding);
+  entityBinding.getEntityIdentifier().setValueBinding(idAttributeBinding);
+  entityBinding.getEntityIdentifier().setIdGenerator(identifierSource.getIdentifierGeneratorDescriptor());
+  final org.hibernate.metamodel.relational.Value relationalValue=idAttributeBinding.getValue();
+  if (SimpleValue.class.isInstance(relationalValue)) {
+    if (!Column.class.isInstance(relationalValue)) {
+      throw new AssertionFailure("Simple-id was not a column.");
+    }
+    entityBinding.getBaseTable().getPrimaryKey().addColumn(Column.class.cast(relationalValue));
+  }
+ else {
+    for (    SimpleValue subValue : ((Tuple)relationalValue).values()) {
+      if (Column.class.isInstance(subValue)) {
+        entityBinding.getBaseTable().getPrimaryKey().addColumn(Column.class.cast(subValue));
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  final Class<?> attributeJavaType=determineJavaType(attributeBinding.getAttribute());
+  if (attributeJavaType != null) {
+    attributeBinding.getHibernateTypeDescriptor().setJavaTypeName(attributeJavaType.getName());
+    attributeBinding.getAttribute().resolveType(currentBindingContext.makeJavaType(attributeJavaType.getName()));
+  }
+  final String explicitTypeName=typeSource.getName();
+  if (explicitTypeName != null) {
+    final TypeDef typeDef=currentBindingContext.getMetadataImplementor().getTypeDefinition(explicitTypeName);
+    if (typeDef != null) {
+      attributeBinding.getHibernateTypeDescriptor().setExplicitTypeName(typeDef.getTypeClass());
+      attributeBinding.getHibernateTypeDescriptor().getTypeParameters().putAll(typeDef.getParameters());
+    }
+ else {
+      attributeBinding.getHibernateTypeDescriptor().setExplicitTypeName(explicitTypeName);
+    }
+    final Map<String,String> parameters=typeSource.getParameters();
+    if (parameters != null) {
+      attributeBinding.getHibernateTypeDescriptor().getTypeParameters().putAll(parameters);
+    }
+  }
+ else {
+    if (attributeJavaType == null) {
+    }
+  }
+}

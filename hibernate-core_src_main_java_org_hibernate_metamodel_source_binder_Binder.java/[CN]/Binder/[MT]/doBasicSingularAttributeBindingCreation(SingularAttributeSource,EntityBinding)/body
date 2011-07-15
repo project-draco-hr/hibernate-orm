@@ -1,0 +1,26 @@
+{
+  final SingularAttribute attribute=attributeSource.isVirtualAttribute() ? entityBinding.getEntity().locateOrCreateVirtualAttribute(attributeSource.getName()) : entityBinding.getEntity().locateOrCreateSingularAttribute(attributeSource.getName());
+  final SimpleAttributeBinding attributeBinding;
+  if (attributeSource.getNature() == SingularAttributeNature.BASIC) {
+    attributeBinding=entityBinding.makeSimpleAttributeBinding(attribute);
+    resolveTypeInformation(attributeSource.getTypeInformation(),attributeBinding);
+  }
+ else   if (attributeSource.getNature() == SingularAttributeNature.MANY_TO_ONE) {
+    attributeBinding=entityBinding.makeManyToOneAttributeBinding(attribute);
+    resolveTypeInformation(attributeSource.getTypeInformation(),attributeBinding);
+    resolveToOneReferenceInformation((ToOneAttributeSource)attributeSource,(ManyToOneAttributeBinding)attributeBinding);
+  }
+ else {
+    throw new NotYetImplementedException();
+  }
+  attributeBinding.setInsertable(attributeSource.isInsertable());
+  attributeBinding.setUpdatable(attributeSource.isUpdatable());
+  attributeBinding.setGeneration(attributeSource.getGeneration());
+  attributeBinding.setLazy(attributeSource.isLazy());
+  attributeBinding.setIncludedInOptimisticLocking(attributeSource.isIncludedInOptimisticLocking());
+  attributeBinding.setPropertyAccessorName(Helper.getPropertyAccessorName(attributeSource.getPropertyAccessorName(),false,currentBindingContext.getMappingDefaults().getPropertyAccessorName()));
+  final org.hibernate.metamodel.relational.Value relationalValue=makeValue(attributeSource,attributeBinding);
+  attributeBinding.setValue(relationalValue);
+  attributeBinding.setMetaAttributeContext(buildMetaAttributeContext(attributeSource.metaAttributes(),entityBinding.getMetaAttributeContext()));
+  return attributeBinding;
+}

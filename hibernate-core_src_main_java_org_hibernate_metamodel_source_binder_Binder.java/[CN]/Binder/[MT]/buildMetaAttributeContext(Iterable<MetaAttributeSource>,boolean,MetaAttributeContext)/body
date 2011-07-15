@@ -1,0 +1,17 @@
+{
+  final MetaAttributeContext subContext=new MetaAttributeContext(parentContext);
+  for (  MetaAttributeSource metaAttributeSource : metaAttributeSources) {
+    if (onlyInheritable & !metaAttributeSource.isInheritable()) {
+      continue;
+    }
+    final String name=metaAttributeSource.getName();
+    final MetaAttribute inheritedMetaAttribute=parentContext.getMetaAttribute(name);
+    MetaAttribute metaAttribute=subContext.getLocalMetaAttribute(name);
+    if (metaAttribute == null || metaAttribute == inheritedMetaAttribute) {
+      metaAttribute=new MetaAttribute(name);
+      subContext.add(metaAttribute);
+    }
+    metaAttribute.addValue(metaAttributeSource.getValue());
+  }
+  return subContext;
+}

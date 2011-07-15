@@ -1,0 +1,30 @@
+{
+  List<RelationalValueSource> result=new ArrayList<RelationalValueSource>();
+  if (StringHelper.isNotEmpty(valueSourcesAdapter.getColumnAttribute())) {
+    if (valueSourcesAdapter.getColumnOrFormulaElements() != null && !valueSourcesAdapter.getColumnOrFormulaElements().isEmpty()) {
+      throw new MappingException("column/formula attribute may not be used together with <column>/<formula> subelement",currentBindingContext.getOrigin());
+    }
+    if (StringHelper.isNotEmpty(valueSourcesAdapter.getFormulaAttribute())) {
+      throw new MappingException("column and formula attributes may not be used together",currentBindingContext.getOrigin());
+    }
+    result.add(new ColumnAttributeSource(valueSourcesAdapter.getColumnAttribute()));
+  }
+ else   if (StringHelper.isNotEmpty(valueSourcesAdapter.getFormulaAttribute())) {
+    if (valueSourcesAdapter.getColumnOrFormulaElements() != null && !valueSourcesAdapter.getColumnOrFormulaElements().isEmpty()) {
+      throw new MappingException("column/formula attribute may not be used together with <column>/<formula> subelement",currentBindingContext.getOrigin());
+    }
+    result.add(new Formula(valueSourcesAdapter.getFormulaAttribute()));
+  }
+ else   if (valueSourcesAdapter.getColumnOrFormulaElements() != null && !valueSourcesAdapter.getColumnOrFormulaElements().isEmpty()) {
+    List<SimpleValue> values=new ArrayList<SimpleValue>();
+    for (    Object columnOrFormulaElement : valueSourcesAdapter.getColumnOrFormulaElements()) {
+      if (XMLColumnElement.class.isInstance(columnOrFormulaElement)) {
+        result.add(new ColumnSource((XMLColumnElement)columnOrFormulaElement));
+      }
+ else {
+        result.add(new Formula((String)columnOrFormulaElement));
+      }
+    }
+  }
+  return result;
+}
