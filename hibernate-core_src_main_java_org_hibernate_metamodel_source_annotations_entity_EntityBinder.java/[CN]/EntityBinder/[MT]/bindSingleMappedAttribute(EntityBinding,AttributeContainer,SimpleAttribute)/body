@@ -22,6 +22,10 @@
   attributeBinding.setGeneration(simpleAttribute.getPropertyGeneration());
   attributeBinding.setLazy(simpleAttribute.isLazy());
   attributeBinding.setIncludedInOptimisticLocking(simpleAttribute.isOptimisticLockable());
+  HibernateTypeDescriptor hibernateTypeDescriptor=attributeBinding.getHibernateTypeDescriptor();
+  hibernateTypeDescriptor.setExplicitTypeName(simpleAttribute.getExplicitHibernateTypeName());
+  hibernateTypeDescriptor.setTypeParameters(simpleAttribute.getExplicitHibernateTypeParameters());
+  hibernateTypeDescriptor.setJavaTypeName(simpleAttribute.getJavaType().getName());
   final TableSpecification valueSource=attributeBinding.getEntityBinding().getBaseTable();
   String columnName=simpleAttribute.getColumnValues().getName().isEmpty() ? attribute.getName() : simpleAttribute.getColumnValues().getName();
   Column column=valueSource.locateOrCreateColumn(columnName);
@@ -37,4 +41,7 @@
   column.setCheckCondition(simpleAttribute.getCheckCondition());
   column.setComment(null);
   attributeBinding.setValue(column);
+  if (!attribute.isTypeResolved()) {
+    attribute.resolveType(bindingContext.makeJavaType(attributeBinding.getHibernateTypeDescriptor().getJavaTypeName()));
+  }
 }
