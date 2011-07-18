@@ -1,0 +1,27 @@
+{
+  Set<String> exportIdentifiers=new HashSet<String>(50);
+  List<String> script=new ArrayList<String>(50);
+  for (int i=auxiliaryDatabaseObjects.size() - 1; i >= 0; i--) {
+    AuxiliaryDatabaseObject object=auxiliaryDatabaseObjects.get(i);
+    if (object.appliesToDialect(dialect)) {
+      addSqlDropStrings(dialect,exportIdentifiers,script,object);
+    }
+  }
+  if (dialect.dropConstraints()) {
+    for (    Schema schema : schemaMap.values()) {
+      for (      Table table : schema.getTables()) {
+        for (        ForeignKey foreignKey : table.getForeignKeys()) {
+          if (foreignKey.getTargetTable() instanceof Table) {
+            addSqlDropStrings(dialect,exportIdentifiers,script,foreignKey);
+          }
+        }
+      }
+    }
+  }
+  for (  Schema schema : schemaMap.values()) {
+    for (    Table table : schema.getTables()) {
+      addSqlDropStrings(dialect,exportIdentifiers,script,table);
+    }
+  }
+  return ArrayHelper.toStringArray(script);
+}
