@@ -1,25 +1,7 @@
 {
-@Entity class A {
-    @Id @GeneratedValue private int id;
-  }
-@Entity class B extends A {
-  }
-  Index index=JandexHelper.indexForClass(service,A.class,B.class);
-  Set<ConfiguredClassHierarchy<EntityClass>> hierarchies=ConfiguredClassHierarchyBuilder.createEntityHierarchies(new TestAnnotationsBindingContextImpl(index,serviceRegistry));
-  assertEquals("There should be only one hierarchy",1,hierarchies.size());
-  Iterator<EntityClass> iter=hierarchies.iterator().next().iterator();
-  EntityClass entityClass=iter.next();
-  ClassInfo info=entityClass.getClassInfo();
-  assertEquals("wrong class",DotName.createSimple(A.class.getName()),info.name());
-  assertTrue(entityClass.hasOwnTable());
-  Assert.assertEquals("wrong inheritance type",InheritanceType.SINGLE_TABLE,entityClass.getInheritanceType());
-  Assert.assertEquals("wrong table name","A",entityClass.getClassNameForTable());
-  assertTrue(iter.hasNext());
-  entityClass=iter.next();
-  info=entityClass.getClassInfo();
-  assertEquals("wrong class",DotName.createSimple(B.class.getName()),info.name());
-  assertFalse(entityClass.hasOwnTable());
-  Assert.assertEquals("wrong inheritance type",InheritanceType.SINGLE_TABLE,entityClass.getInheritanceType());
-  Assert.assertEquals("wrong table name","A",entityClass.getClassNameForTable());
-  assertFalse(iter.hasNext());
+  EntityBinding binding=getEntityBinding(A.class);
+  assertEquals("wrong table name","A",((Table)binding.getBaseTable()).getTableName().getName());
+  binding=getEntityBinding(B.class);
+  assertEquals("wrong inheritance type",InheritanceType.SINGLE_TABLE,binding.getInheritanceType());
+  assertEquals("wrong table name","A",((Table)binding.getBaseTable()).getTableName().getName());
 }
