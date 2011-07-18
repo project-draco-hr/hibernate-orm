@@ -24,12 +24,12 @@
     buf.append(colName).append(' ');
     if (isPrimaryKeyIdentity && colName.equals(pkColName)) {
       if (dialect.hasDataTypeInIdentityColumn()) {
-        buf.append(col.getDatatype().getTypeName());
+        buf.append(getTypeString(col,dialect));
       }
       buf.append(' ').append(dialect.getIdentityColumnString(col.getDatatype().getTypeCode()));
     }
  else {
-      buf.append(col.getDatatype().getTypeName());
+      buf.append(getTypeString(col,dialect));
       String defaultValue=col.getDefaultValue();
       if (defaultValue != null) {
         buf.append(" default ").append(defaultValue);
@@ -76,17 +76,11 @@
     }
   }
   buf.append(')');
-  if (comments != null) {
-    boolean first=true;
-    for (    String comment : comments) {
-      if (first) {
-        first=false;
-      }
- else {
-        buf.append(' ');
-      }
-      buf.append(dialect.getTableComment(comment));
-    }
+  buf.append(dialect.getTableTypeString());
+  String[] sqlStrings=new String[comments.size() + 1];
+  sqlStrings[0]=buf.toString();
+  for (int i=0; i < comments.size(); i++) {
+    sqlStrings[i + 1]=dialect.getTableComment(comments.get(i));
   }
-  return new String[]{buf.append(dialect.getTableTypeString()).toString()};
+  return sqlStrings;
 }

@@ -1,0 +1,35 @@
+{
+  Dialect dialect=getDialect(metadata);
+  Set<String> exportIdentifiers=new HashSet<String>(50);
+  List<String> script=new ArrayList<String>(50);
+  for (  Schema schema : schemaMap.values()) {
+    for (    Table table : schema.getTables()) {
+      addSqlCreateStrings(metadata,exportIdentifiers,script,table);
+    }
+  }
+  for (  Schema schema : schemaMap.values()) {
+    for (    Table table : schema.getTables()) {
+      if (!dialect.supportsUniqueConstraintInCreateAlterTable()) {
+        for (        UniqueKey uniqueKey : table.getUniqueKeys()) {
+          addSqlCreateStrings(metadata,exportIdentifiers,script,uniqueKey);
+        }
+      }
+      for (      Index index : table.getIndexes()) {
+        addSqlCreateStrings(metadata,exportIdentifiers,script,index);
+      }
+      if (dialect.hasAlterTable()) {
+        for (        ForeignKey foreignKey : table.getForeignKeys()) {
+          if (Table.class.isInstance(foreignKey.getTargetTable())) {
+            addSqlCreateStrings(metadata,exportIdentifiers,script,foreignKey);
+          }
+        }
+      }
+    }
+  }
+  for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : auxiliaryDatabaseObjects) {
+    if (auxiliaryDatabaseObject.appliesToDialect(dialect)) {
+      addSqlCreateStrings(metadata,exportIdentifiers,script,auxiliaryDatabaseObject);
+    }
+  }
+  return ArrayHelper.toStringArray(script);
+}

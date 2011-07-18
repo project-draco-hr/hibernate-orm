@@ -1,7 +1,5 @@
 {
   LOG.debug("Building session factory");
-  this.name=null;
-  this.uuid=null;
   this.fetchProfiles=null;
   this.queryCache=null;
   this.updateTimestampsCache=null;
@@ -151,5 +149,20 @@ class IntegratorObserver implements SessionFactoryObserver {
   while (iter.hasNext()) {
     final CollectionPersister persister=((CollectionPersister)iter.next());
     persister.postInstantiate();
+  }
+  name=settings.getSessionFactoryName();
+  try {
+    uuid=(String)UUID_GENERATOR.generate(null,null);
+  }
+ catch (  Exception e) {
+    throw new AssertionFailure("Could not generate UUID");
+  }
+  SessionFactoryRegistry.INSTANCE.addSessionFactory(uuid,name,this,serviceRegistry.getService(JndiService.class));
+  LOG.debugf("Instantiated session factory");
+  if (settings.isAutoCreateSchema()) {
+    new SchemaExport(metadata).create(false,true);
+  }
+  if (settings.isAutoDropSchema()) {
+    schemaExport=new SchemaExport(metadata);
   }
 }
