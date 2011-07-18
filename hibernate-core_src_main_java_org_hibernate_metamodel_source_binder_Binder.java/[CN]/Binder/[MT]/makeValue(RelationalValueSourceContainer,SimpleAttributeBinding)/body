@@ -1,0 +1,38 @@
+{
+  final TableSpecification table=attributeBinding.getEntityBinding().getBaseTable();
+  if (relationalValueSourceContainer.relationalValueSources().size() > 0) {
+    List<SimpleValue> values=new ArrayList<SimpleValue>();
+    for (    RelationalValueSource valueSource : relationalValueSourceContainer.relationalValueSources()) {
+      if (ColumnSource.class.isInstance(valueSource)) {
+        final ColumnSource columnSource=ColumnSource.class.cast(valueSource);
+        final Column column=table.locateOrCreateColumn(columnSource.getName());
+        column.setNullable(columnSource.isNullable());
+        column.setDefaultValue(columnSource.getDefaultValue());
+        column.setSqlType(columnSource.getSqlType());
+        column.setSize(columnSource.getSize());
+        column.setDatatype(columnSource.getDatatype());
+        column.setReadFragment(columnSource.getReadFragment());
+        column.setWriteFragment(columnSource.getWriteFragment());
+        column.setUnique(columnSource.isUnique());
+        column.setCheckCondition(columnSource.getCheckCondition());
+        column.setComment(columnSource.getComment());
+        values.add(column);
+      }
+ else {
+        values.add(table.locateOrCreateDerivedValue(((DerivedValueSource)valueSource).getExpression()));
+      }
+    }
+    if (values.size() == 1) {
+      return values.get(0);
+    }
+    Tuple tuple=new Tuple(table,null);
+    for (    SimpleValue value : values) {
+      tuple.addValue(value);
+    }
+    return tuple;
+  }
+ else {
+    final String name=metadata.getOptions().getNamingStrategy().propertyToColumnName(attributeBinding.getAttribute().getName());
+    return table.locateOrCreateColumn(name);
+  }
+}

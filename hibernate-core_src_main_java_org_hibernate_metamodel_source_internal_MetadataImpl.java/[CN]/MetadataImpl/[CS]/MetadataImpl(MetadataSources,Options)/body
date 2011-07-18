@@ -3,12 +3,12 @@
   this.options=options;
   this.database=new Database(options);
   this.mappingDefaults=new MappingDefaultsImpl();
-  final SourceProcessor[] sourceProcessors;
-  if (options.getSourceProcessingOrder() == SourceProcessingOrder.HBM_FIRST) {
-    sourceProcessors=new SourceProcessor[]{new HbmSourceProcessorImpl(this),new AnnotationProcessor(this)};
+  final MetadataSourceProcessor[] metadataSourceProcessors;
+  if (options.getMetadataSourceProcessingOrder() == MetadataSourceProcessingOrder.HBM_FIRST) {
+    metadataSourceProcessors=new MetadataSourceProcessor[]{new HbmMetadataSourceProcessorImpl(this),new AnnotationMetadataSourceProcessorImpl(this)};
   }
  else {
-    sourceProcessors=new SourceProcessor[]{new AnnotationProcessor(this),new HbmSourceProcessorImpl(this)};
+    metadataSourceProcessors=new MetadataSourceProcessor[]{new AnnotationMetadataSourceProcessorImpl(this),new HbmMetadataSourceProcessorImpl(this)};
   }
   this.classLoaderService=new org.hibernate.internal.util.Value<ClassLoaderService>(new org.hibernate.internal.util.Value.DeferredInitializer<ClassLoaderService>(){
     @Override public ClassLoaderService initialize(){
@@ -23,11 +23,11 @@
   }
 );
   final ArrayList<String> processedEntityNames=new ArrayList<String>();
-  prepare(sourceProcessors,metadataSources);
-  bindIndependentMetadata(sourceProcessors,metadataSources);
-  bindTypeDependentMetadata(sourceProcessors,metadataSources);
-  bindMappingMetadata(sourceProcessors,metadataSources,processedEntityNames);
-  bindMappingDependentMetadata(sourceProcessors,metadataSources);
+  prepare(metadataSourceProcessors,metadataSources);
+  bindIndependentMetadata(metadataSourceProcessors,metadataSources);
+  bindTypeDependentMetadata(metadataSourceProcessors,metadataSources);
+  bindMappingMetadata(metadataSourceProcessors,metadataSources,processedEntityNames);
+  bindMappingDependentMetadata(metadataSourceProcessors,metadataSources);
   new EntityReferenceResolver(this).resolve();
   new AttributeTypeResolver(this).resolve();
 }
