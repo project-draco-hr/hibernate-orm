@@ -5,6 +5,11 @@
   sessionFactory.close();
   serviceRegistry.destroy();
   serviceRegistry=buildServiceRegistry(configuration);
-  sessionFactory=(SessionFactoryImplementor)configuration.buildSessionFactory(serviceRegistry);
+  if (isMetadataUsed) {
+    sessionFactory=(SessionFactoryImplementor)buildMetadata(serviceRegistry).buildSessionFactory();
+  }
+ else {
+    sessionFactory=(SessionFactoryImplementor)configuration.buildSessionFactory(serviceRegistry);
+  }
   afterSessionFactoryBuilt();
 }
