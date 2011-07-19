@@ -1,0 +1,32 @@
+{
+  if (!hasOwnTable) {
+    return null;
+  }
+  String schema=getContext().getMappingDefaults().getSchemaName();
+  String catalog=getContext().getMappingDefaults().getCatalogName();
+  final AnnotationInstance tableAnnotation=JandexHelper.getSingleAnnotation(getClassInfo(),JPADotNames.TABLE);
+  if (tableAnnotation != null) {
+    final AnnotationValue schemaValue=tableAnnotation.value("schema");
+    if (schemaValue != null) {
+      schema=schemaValue.asString();
+    }
+    final AnnotationValue catalogValue=tableAnnotation.value("catalog");
+    if (catalogValue != null) {
+      catalog=catalogValue.asString();
+    }
+  }
+  if (getContext().isGloballyQuotedIdentifiers()) {
+    schema=StringHelper.quote(schema);
+    catalog=StringHelper.quote(catalog);
+  }
+  String tableName=processTableAnnotation();
+  if (tableName == null) {
+    if (explicitEntityName == null) {
+      tableName=getConfiguredClass().getSimpleName();
+    }
+ else {
+      tableName=explicitEntityName;
+    }
+  }
+  return new TableSourceImpl(schema,catalog,tableName);
+}

@@ -1,0 +1,19 @@
+{
+  InheritanceType inheritanceType=InheritanceType.SINGLE_TABLE;
+  AnnotationInstance inheritanceAnnotation=JandexHelper.getSingleAnnotation(rootClassInfo,JPADotNames.INHERITANCE);
+  if (inheritanceAnnotation != null) {
+    String enumName=inheritanceAnnotation.value("strategy").asEnum();
+    javax.persistence.InheritanceType jpaInheritanceType=Enum.valueOf(javax.persistence.InheritanceType.class,enumName);
+    inheritanceType=InheritanceType.get(jpaInheritanceType);
+  }
+  for (  ClassInfo info : classes) {
+    if (rootClassInfo.equals(info)) {
+      continue;
+    }
+    inheritanceAnnotation=JandexHelper.getSingleAnnotation(info,JPADotNames.INHERITANCE);
+    if (inheritanceAnnotation != null) {
+      throw new AnnotationException(String.format("The inheritance type for %s must be specified on the root entity %s",hierarchyListString(classes),rootClassInfo.name().toString()));
+    }
+  }
+  return inheritanceType;
+}

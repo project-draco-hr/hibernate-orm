@@ -1,0 +1,25 @@
+{
+  Set<EntityHierarchy> hierarchies=new HashSet<EntityHierarchy>();
+  List<DotName> processedEntities=new ArrayList<DotName>();
+  Map<DotName,List<ClassInfo>> classToDirectSubClassMap=new HashMap<DotName,List<ClassInfo>>();
+  Index index=bindingContext.getIndex();
+  for (  ClassInfo info : index.getKnownClasses()) {
+    if (!isEntityClass(info)) {
+      continue;
+    }
+    if (processedEntities.contains(info.name())) {
+      continue;
+    }
+    ClassInfo rootClassInfo=findRootEntityClassInfo(index,info);
+    List<ClassInfo> rootClassWithAllSubclasses=new ArrayList<ClassInfo>();
+    addMappedSuperclasses(index,rootClassInfo,rootClassWithAllSubclasses);
+    processHierarchy(bindingContext,rootClassInfo,rootClassWithAllSubclasses,processedEntities,classToDirectSubClassMap);
+    AccessType defaultAccessType=determineDefaultAccessType(rootClassWithAllSubclasses);
+    InheritanceType hierarchyInheritanceType=determineInheritanceType(rootClassInfo,rootClassWithAllSubclasses);
+    EntityClass rootEntityClass=new EntityClass(rootClassInfo,null,defaultAccessType,hierarchyInheritanceType,bindingContext);
+    RootEntitySourceImpl rootSource=new RootEntitySourceImpl(rootEntityClass);
+    addSubclassEntitySources(bindingContext,classToDirectSubClassMap,defaultAccessType,hierarchyInheritanceType,rootEntityClass,rootSource);
+    hierarchies.add(new EntityHierarchyImpl(rootSource,hierarchyInheritanceType));
+  }
+  return hierarchies;
+}

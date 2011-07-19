@@ -1,0 +1,39 @@
+{
+  final AnnotationInstance hibernateEntityAnnotation=JandexHelper.getSingleAnnotation(getClassInfo(),HibernateDotNames.ENTITY);
+  PolymorphismType polymorphism=PolymorphismType.IMPLICIT;
+  if (hibernateEntityAnnotation != null && hibernateEntityAnnotation.value("polymorphism") != null) {
+    polymorphism=PolymorphismType.valueOf(hibernateEntityAnnotation.value("polymorphism").asEnum());
+  }
+  isExplicitPolymorphism=polymorphism == PolymorphismType.EXPLICIT;
+  OptimisticLockType optimisticLockType=OptimisticLockType.VERSION;
+  if (hibernateEntityAnnotation != null && hibernateEntityAnnotation.value("optimisticLock") != null) {
+    optimisticLockType=OptimisticLockType.valueOf(hibernateEntityAnnotation.value("optimisticLock").asEnum());
+  }
+  optimisticLockStyle=OptimisticLockStyle.valueOf(optimisticLockType.name());
+  final AnnotationInstance hibernateImmutableAnnotation=JandexHelper.getSingleAnnotation(getClassInfo(),HibernateDotNames.IMMUTABLE);
+  isMutable=hibernateImmutableAnnotation == null && hibernateEntityAnnotation != null && hibernateEntityAnnotation.value("mutable") != null && hibernateEntityAnnotation.value("mutable").asBoolean();
+  final AnnotationInstance whereAnnotation=JandexHelper.getSingleAnnotation(getClassInfo(),HibernateDotNames.WHERE);
+  whereClause=whereAnnotation != null && whereAnnotation.value("clause") != null ? whereAnnotation.value("clause").asString() : null;
+  final AnnotationInstance rowIdAnnotation=JandexHelper.getSingleAnnotation(getClassInfo(),HibernateDotNames.ROW_ID);
+  rowId=rowIdAnnotation != null && rowIdAnnotation.value() != null ? rowIdAnnotation.value().asString() : null;
+  caching=determineCachingSettings();
+  isDynamicInsert=hibernateEntityAnnotation != null && hibernateEntityAnnotation.value("dynamicInsert") != null && hibernateEntityAnnotation.value("dynamicInsert").asBoolean();
+  isDynamicUpdate=hibernateEntityAnnotation != null && hibernateEntityAnnotation.value("dynamicUpdate") != null && hibernateEntityAnnotation.value("dynamicUpdate").asBoolean();
+  isSelectBeforeUpdate=hibernateEntityAnnotation != null && hibernateEntityAnnotation.value("selectBeforeUpdate") != null && hibernateEntityAnnotation.value("selectBeforeUpdate").asBoolean();
+  final String entityPersisterClass;
+  final AnnotationInstance persisterAnnotation=JandexHelper.getSingleAnnotation(getClassInfo(),HibernateDotNames.PERSISTER);
+  if (persisterAnnotation == null || persisterAnnotation.value("impl") == null) {
+    if (hibernateEntityAnnotation != null && hibernateEntityAnnotation.value("persister") != null) {
+      entityPersisterClass=hibernateEntityAnnotation.value("persister").asString();
+    }
+ else {
+      entityPersisterClass=null;
+    }
+  }
+ else {
+    if (hibernateEntityAnnotation != null && hibernateEntityAnnotation.value("persister") != null) {
+    }
+    entityPersisterClass=persisterAnnotation.value("impl").asString();
+  }
+  this.customPersister=entityPersisterClass;
+}

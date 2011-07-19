@@ -1,0 +1,22 @@
+{
+  final AnnotationInstance hibernateProxyAnnotation=JandexHelper.getSingleAnnotation(getClassInfo(),HibernateDotNames.PROXY);
+  if (hibernateProxyAnnotation != null) {
+    isLazy=hibernateProxyAnnotation.value("lazy") == null || hibernateProxyAnnotation.value("lazy").asBoolean();
+    if (isLazy) {
+      final AnnotationValue proxyClassValue=hibernateProxyAnnotation.value("proxyClass");
+      if (proxyClassValue == null) {
+        proxy=getName();
+      }
+ else {
+        proxy=proxyClassValue.asString();
+      }
+    }
+ else {
+      proxy=null;
+    }
+  }
+ else {
+    isLazy=true;
+    proxy=getName();
+  }
+}

@@ -1,8 +1,9 @@
 {
-  Set<ConfiguredClassHierarchy<EntityClass>> hierarchies=createEntityHierarchies(Foo.class);
+@Entity class Foo {
+    @Id @GeneratedValue private int id;
+  }
+  Set<EntityHierarchy> hierarchies=createEntityHierarchies(Foo.class);
   assertEquals("There should be only one hierarchy",1,hierarchies.size());
-  Iterator<EntityClass> iter=hierarchies.iterator().next().iterator();
-  ClassInfo info=iter.next().getClassInfo();
-  assertEquals("wrong class",DotName.createSimple(Foo.class.getName()),info.name());
-  assertFalse(iter.hasNext());
+  EntityHierarchy hierarchy=hierarchies.iterator().next();
+  assertEquals("wrong entity name",Foo.class.getName(),hierarchy.getRootEntitySource().getEntityName());
 }

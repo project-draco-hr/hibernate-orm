@@ -1,0 +1,12 @@
+{
+  processedEntities.add(classInfo.name());
+  rootClassWithAllSubclasses.add(classInfo);
+  List<ClassInfo> subClasses=bindingContext.getIndex().getKnownDirectSubclasses(classInfo.name());
+  if (subClasses.isEmpty()) {
+    bindingContext.resolveAllTypes(classInfo.name().toString());
+  }
+  for (  ClassInfo subClassInfo : subClasses) {
+    addSubClassToSubclassMap(classInfo.name(),subClassInfo,classToDirectSubclassMap);
+    processHierarchy(bindingContext,subClassInfo,rootClassWithAllSubclasses,processedEntities,classToDirectSubclassMap);
+  }
+}

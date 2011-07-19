@@ -1,0 +1,14 @@
+{
+  AnnotationInstance tableAnnotation=JandexHelper.getSingleAnnotation(getClassInfo(),JPADotNames.TABLE);
+  String tableName=null;
+  if (tableAnnotation != null) {
+    String explicitTableName=JandexHelper.getValue(tableAnnotation,"name",String.class);
+    if (StringHelper.isNotEmpty(explicitTableName)) {
+      tableName=getContext().getNamingStrategy().tableName(explicitTableName);
+      if (getContext().isGloballyQuotedIdentifiers() && !Identifier.isQuoted(explicitTableName)) {
+        tableName=StringHelper.quote(tableName);
+      }
+    }
+  }
+  return tableName;
+}

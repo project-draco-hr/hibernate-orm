@@ -1,0 +1,23 @@
+{
+  AccessType accessTypeByEmbeddedIdPlacement=null;
+  AccessType accessTypeByIdPlacement=null;
+  for (  ClassInfo info : classes) {
+    List<AnnotationInstance> idAnnotations=info.annotations().get(JPADotNames.ID);
+    List<AnnotationInstance> embeddedIdAnnotations=info.annotations().get(JPADotNames.EMBEDDED_ID);
+    if (embeddedIdAnnotations != null && !embeddedIdAnnotations.isEmpty()) {
+      accessTypeByEmbeddedIdPlacement=determineAccessTypeByIdPlacement(embeddedIdAnnotations);
+    }
+    if (idAnnotations != null && !idAnnotations.isEmpty()) {
+      accessTypeByIdPlacement=determineAccessTypeByIdPlacement(idAnnotations);
+    }
+  }
+  if (accessTypeByEmbeddedIdPlacement != null) {
+    return accessTypeByEmbeddedIdPlacement;
+  }
+ else   if (accessTypeByIdPlacement != null) {
+    return accessTypeByIdPlacement;
+  }
+ else {
+    return throwIdNotFoundAnnotationException(classes);
+  }
+}

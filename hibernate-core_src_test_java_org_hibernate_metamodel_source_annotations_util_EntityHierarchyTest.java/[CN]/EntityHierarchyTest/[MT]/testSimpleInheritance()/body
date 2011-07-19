@@ -1,10 +1,17 @@
 {
-  Set<ConfiguredClassHierarchy<EntityClass>> hierarchies=createEntityHierarchies(B.class,A.class);
+@Entity class A {
+    @Id @GeneratedValue private int id;
+  }
+@Entity class B extends A {
+    private String name;
+  }
+  Set<EntityHierarchy> hierarchies=createEntityHierarchies(B.class,A.class);
   assertEquals("There should be only one hierarchy",1,hierarchies.size());
-  Iterator<EntityClass> iter=hierarchies.iterator().next().iterator();
-  ClassInfo info=iter.next().getClassInfo();
-  assertEquals("wrong class",DotName.createSimple(A.class.getName()),info.name());
-  info=iter.next().getClassInfo();
-  assertEquals("wrong class",DotName.createSimple(B.class.getName()),info.name());
-  assertFalse(iter.hasNext());
+  EntityHierarchy hierarchy=hierarchies.iterator().next();
+  RootEntitySource rootSource=hierarchy.getRootEntitySource();
+  assertEquals("wrong entity name",A.class.getName(),rootSource.getEntityName());
+  Iterator<SubclassEntitySource> iter=rootSource.subclassEntitySources().iterator();
+  assertTrue("There should be a subclass entity source",iter.hasNext());
+  assertEquals("wrong class",B.class.getName(),iter.next().getEntityName());
+  assertFalse("There should be no more subclass entity sources",iter.hasNext());
 }
