@@ -1,5 +1,5 @@
 {
-  configuration=buildConfiguration();
+  configuration=constructAndConfigureConfiguration();
   serviceRegistry=buildServiceRegistry(configuration);
   isMetadataUsed=serviceRegistry.getService(ConfigurationService.class).getSetting(AvailableSettings.USE_NEW_METADATA_MAPPINGS,new ConfigurationService.Converter<Boolean>(){
     @Override public Boolean convert(    Object value){
@@ -11,6 +11,7 @@
     sessionFactory=(SessionFactoryImplementor)buildMetadata(serviceRegistry).buildSessionFactory();
   }
  else {
+    afterConstructAndConfigureConfiguration(configuration);
     sessionFactory=(SessionFactoryImplementor)configuration.buildSessionFactory(serviceRegistry);
   }
   afterSessionFactoryBuilt();
