@@ -137,17 +137,24 @@ catch (      Exception e) {
     if (attributeBinding == entityBinding.getEntityIdentifier().getValueBinding()) {
       continue;
     }
+    if (!attributeBinding.getAttribute().isSingular()) {
+      continue;
+    }
     propertyTableNumbers[i++]=0;
   }
   ArrayList columnJoinNumbers=new ArrayList();
   ArrayList formulaJoinedNumbers=new ArrayList();
   ArrayList propertyJoinNumbers=new ArrayList();
-  for (  AttributeBinding prop : entityBinding.getAttributeBindingClosure()) {
+  for (  AttributeBinding attributeBinding : entityBinding.getAttributeBindingClosure()) {
+    if (!attributeBinding.getAttribute().isSingular()) {
+      continue;
+    }
+    SingularAttributeBinding singularAttributeBinding=(SingularAttributeBinding)attributeBinding;
     int join=0;
     propertyJoinNumbers.add(join);
-    propertyTableNumbersByNameAndSubclass.put(prop.getEntityBinding().getEntity().getName() + '.' + prop.getAttribute().getName(),join);
-    for (    SimpleValue simpleValue : prop.getValues()) {
-      if (DerivedValue.class.isInstance(simpleValue)) {
+    propertyTableNumbersByNameAndSubclass.put(singularAttributeBinding.getEntityBinding().getEntity().getName() + '.' + singularAttributeBinding.getAttribute().getName(),join);
+    for (    SimpleValueBinding simpleValueBinding : singularAttributeBinding.getSimpleValueBindings()) {
+      if (DerivedValue.class.isInstance(simpleValueBinding.getSimpleValue())) {
         formulaJoinedNumbers.add(join);
       }
  else {

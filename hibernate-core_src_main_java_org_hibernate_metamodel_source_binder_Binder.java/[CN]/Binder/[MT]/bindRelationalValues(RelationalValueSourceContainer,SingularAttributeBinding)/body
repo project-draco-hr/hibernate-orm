@@ -1,0 +1,32 @@
+{
+  List<SimpleValueBinding> valueBindings=new ArrayList<SimpleValueBinding>();
+  if (relationalValueSourceContainer.relationalValueSources().size() > 0) {
+    for (    RelationalValueSource valueSource : relationalValueSourceContainer.relationalValueSources()) {
+      final TableSpecification table=attributeBinding.getEntityBinding().getTable(valueSource.getContainingTableName());
+      if (ColumnSource.class.isInstance(valueSource)) {
+        final ColumnSource columnSource=ColumnSource.class.cast(valueSource);
+        final Column column=table.locateOrCreateColumn(columnSource.getName());
+        column.setNullable(columnSource.isNullable());
+        column.setDefaultValue(columnSource.getDefaultValue());
+        column.setSqlType(columnSource.getSqlType());
+        column.setSize(columnSource.getSize());
+        column.setDatatype(columnSource.getDatatype());
+        column.setReadFragment(columnSource.getReadFragment());
+        column.setWriteFragment(columnSource.getWriteFragment());
+        column.setUnique(columnSource.isUnique());
+        column.setCheckCondition(columnSource.getCheckCondition());
+        column.setComment(columnSource.getComment());
+        valueBindings.add(new SimpleValueBinding(column,columnSource.isIncludedInInsert(),columnSource.isIncludedInUpdate()));
+      }
+ else {
+        valueBindings.add(new SimpleValueBinding(table.locateOrCreateDerivedValue(((DerivedValueSource)valueSource).getExpression())));
+      }
+    }
+  }
+ else {
+    final String name=metadata.getOptions().getNamingStrategy().propertyToColumnName(attributeBinding.getAttribute().getName());
+    final SimpleValueBinding valueBinding=new SimpleValueBinding();
+    valueBindings.add(new SimpleValueBinding(attributeBinding.getEntityBinding().getBaseTable().locateOrCreateColumn(name)));
+  }
+  attributeBinding.setSimpleValueBindings(valueBindings);
+}

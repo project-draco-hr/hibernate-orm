@@ -1,0 +1,19 @@
+{
+  List<SimpleValue> values=new ArrayList<SimpleValue>();
+  for (  SimpleValueBinding simpleValueBinding : simpleValueBindings) {
+    this.simpleValueBindings.add(simpleValueBinding);
+    values.add(simpleValueBinding.getSimpleValue());
+    this.hasDerivedValue=this.hasDerivedValue || simpleValueBinding.isDerived();
+    this.isNullable=this.isNullable && simpleValueBinding.isNullable();
+  }
+  if (values.size() == 1) {
+    this.value=values.get(0);
+  }
+ else {
+    final Tuple tuple=values.get(0).getTable().createTuple(getRole());
+    for (    SimpleValue value : values) {
+      tuple.addValue(value);
+    }
+    this.value=tuple;
+  }
+}

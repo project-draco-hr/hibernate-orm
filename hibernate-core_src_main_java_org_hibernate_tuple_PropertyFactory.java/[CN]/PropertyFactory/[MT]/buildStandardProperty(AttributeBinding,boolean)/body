@@ -1,12 +1,16 @@
 {
   final Type type=property.getHibernateTypeDescriptor().getResolvedTypeMapping();
-  boolean alwaysDirtyCheck=type.isAssociationType() && ((AssociationType)type).isAlwaysDirtyChecked();
-  if (property.isSimpleValue()) {
-    SimpleAttributeBinding simpleProperty=(SimpleAttributeBinding)property;
-    return new StandardProperty(simpleProperty.getAttribute().getName(),null,type,lazyAvailable && simpleProperty.isLazy(),simpleProperty.isInsertable(),simpleProperty.isUpdatable(),simpleProperty.getGeneration() == PropertyGeneration.INSERT || simpleProperty.getGeneration() == PropertyGeneration.ALWAYS,simpleProperty.getGeneration() == PropertyGeneration.ALWAYS,simpleProperty.isNullable(),alwaysDirtyCheck || simpleProperty.isUpdatable(),simpleProperty.isOptimisticLockable(),CascadeStyle.NONE,FetchMode.DEFAULT);
+  final boolean alwaysDirtyCheck=type.isAssociationType() && ((AssociationType)type).isAlwaysDirtyChecked();
+  if (property.getAttribute().isSingular()) {
+    final SingularAttributeBinding singularAttributeBinding=(SingularAttributeBinding)property;
+    final CascadeStyle cascadeStyle=singularAttributeBinding.isAssociation() ? ((AssociationAttributeBinding)singularAttributeBinding).getCascadeStyle() : CascadeStyle.NONE;
+    final FetchMode fetchMode=singularAttributeBinding.isAssociation() ? ((AssociationAttributeBinding)singularAttributeBinding).getFetchMode() : FetchMode.DEFAULT;
+    return new StandardProperty(singularAttributeBinding.getAttribute().getName(),null,type,lazyAvailable && singularAttributeBinding.isLazy(),true,true,singularAttributeBinding.getGeneration() == PropertyGeneration.INSERT || singularAttributeBinding.getGeneration() == PropertyGeneration.ALWAYS,singularAttributeBinding.getGeneration() == PropertyGeneration.ALWAYS,singularAttributeBinding.isNullable(),alwaysDirtyCheck,singularAttributeBinding.isIncludedInOptimisticLocking(),cascadeStyle,fetchMode);
   }
  else {
-    PluralAttributeBinding pluralProperty=(PluralAttributeBinding)property;
-    return new StandardProperty(pluralProperty.getAttribute().getName(),null,type,lazyAvailable && pluralProperty.isLazy(),true,true,false,false,pluralProperty.isNullable(),true,pluralProperty.isOptimisticLocked(),CascadeStyle.NONE,FetchMode.DEFAULT);
+    final AbstractPluralAttributeBinding pluralAttributeBinding=(AbstractPluralAttributeBinding)property;
+    final CascadeStyle cascadeStyle=pluralAttributeBinding.isAssociation() ? ((AssociationAttributeBinding)pluralAttributeBinding).getCascadeStyle() : CascadeStyle.NONE;
+    final FetchMode fetchMode=pluralAttributeBinding.isAssociation() ? ((AssociationAttributeBinding)pluralAttributeBinding).getFetchMode() : FetchMode.DEFAULT;
+    return new StandardProperty(pluralAttributeBinding.getAttribute().getName(),null,type,lazyAvailable && pluralAttributeBinding.isLazy(),true,true,false,false,false,true,pluralAttributeBinding.isIncludedInOptimisticLocking(),cascadeStyle,fetchMode);
   }
 }

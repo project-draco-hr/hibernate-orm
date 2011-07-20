@@ -7,21 +7,21 @@
     if (StringHelper.isNotEmpty(valueSourcesAdapter.getFormulaAttribute())) {
       throw new org.hibernate.metamodel.source.MappingException("column and formula attributes may not be used together",bindingContext.getOrigin());
     }
-    result.add(new ColumnAttributeSourceImpl(valueSourcesAdapter.getColumnAttribute()));
+    result.add(new ColumnAttributeSourceImpl(valueSourcesAdapter.getContainingTableName(),valueSourcesAdapter.getColumnAttribute(),valueSourcesAdapter.isIncludedInInsertByDefault(),valueSourcesAdapter.isIncludedInUpdateByDefault()));
   }
  else   if (StringHelper.isNotEmpty(valueSourcesAdapter.getFormulaAttribute())) {
     if (valueSourcesAdapter.getColumnOrFormulaElements() != null && !valueSourcesAdapter.getColumnOrFormulaElements().isEmpty()) {
       throw new org.hibernate.metamodel.source.MappingException("column/formula attribute may not be used together with <column>/<formula> subelement",bindingContext.getOrigin());
     }
-    result.add(new FormulaImpl(valueSourcesAdapter.getFormulaAttribute()));
+    result.add(new FormulaImpl(valueSourcesAdapter.getContainingTableName(),valueSourcesAdapter.getFormulaAttribute()));
   }
  else   if (valueSourcesAdapter.getColumnOrFormulaElements() != null && !valueSourcesAdapter.getColumnOrFormulaElements().isEmpty()) {
     for (    Object columnOrFormulaElement : valueSourcesAdapter.getColumnOrFormulaElements()) {
       if (XMLColumnElement.class.isInstance(columnOrFormulaElement)) {
-        result.add(new ColumnSourceImpl((XMLColumnElement)columnOrFormulaElement));
+        result.add(new ColumnSourceImpl(valueSourcesAdapter.getContainingTableName(),(XMLColumnElement)columnOrFormulaElement,valueSourcesAdapter.isIncludedInInsertByDefault(),valueSourcesAdapter.isIncludedInUpdateByDefault()));
       }
  else {
-        result.add(new FormulaImpl((String)columnOrFormulaElement));
+        result.add(new FormulaImpl(valueSourcesAdapter.getContainingTableName(),(String)columnOrFormulaElement));
       }
     }
   }
