@@ -13,10 +13,10 @@
   params.setProperty(IdentifierGenerator.ENTITY_NAME,getEntityBinding().getEntity().getName());
   String tableName=getValue().getTable().getQualifiedName(identifierGeneratorFactory.getDialect());
   params.setProperty(PersistentIdentifierGenerator.TABLE,tableName);
-  if (getValuesSpan() != 1) {
-    throw new MappingException("A SimpleAttributeBinding has a more than 1 Value: " + getAttribute().getName());
+  if (getSimpleValueSpan() > 1) {
+    throw new MappingException("A SimpleAttributeBinding used for an identifier has a more than 1 Value: " + getAttribute().getName());
   }
-  SimpleValue simpleValue=getValues().iterator().next();
+  SimpleValue simpleValue=(SimpleValue)getValue();
   if (!Column.class.isInstance(simpleValue)) {
     throw new MappingException("Cannot create an IdentifierGenerator because the value is not a column: " + simpleValue.toLoggableString());
   }

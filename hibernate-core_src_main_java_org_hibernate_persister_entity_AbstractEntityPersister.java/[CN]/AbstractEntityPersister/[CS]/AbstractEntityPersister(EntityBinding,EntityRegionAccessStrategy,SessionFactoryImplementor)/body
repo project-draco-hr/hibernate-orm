@@ -147,27 +147,32 @@
   List<int[]> propFormulaNumbers=new ArrayList<int[]>();
   List<Boolean> columnSelectables=new ArrayList<Boolean>();
   List<Boolean> propNullables=new ArrayList<Boolean>();
-  for (  AttributeBinding prop : entityBinding.getAttributeBindingClosure()) {
-    if (prop == entityBinding.getEntityIdentifier().getValueBinding()) {
+  for (  AttributeBinding attributeBinding : entityBinding.getAttributeBindingClosure()) {
+    if (attributeBinding == entityBinding.getEntityIdentifier().getValueBinding()) {
       continue;
     }
-    names.add(prop.getAttribute().getName());
-    classes.add(prop.getEntityBinding().getEntity().getName());
-    boolean isDefinedBySubclass=!thisClassProperties.contains(prop);
+    if (!attributeBinding.getAttribute().isSingular()) {
+      continue;
+    }
+    final SingularAttributeBinding singularAttributeBinding=(SingularAttributeBinding)attributeBinding;
+    names.add(singularAttributeBinding.getAttribute().getName());
+    classes.add(singularAttributeBinding.getEntityBinding().getEntity().getName());
+    boolean isDefinedBySubclass=!thisClassProperties.contains(singularAttributeBinding);
     definedBySubclass.add(isDefinedBySubclass);
-    propNullables.add(prop.isNullable() || isDefinedBySubclass);
-    types.add(prop.getHibernateTypeDescriptor().getResolvedTypeMapping());
-    String[] cols=new String[prop.getValuesSpan()];
-    String[] readers=new String[prop.getValuesSpan()];
-    String[] readerTemplates=new String[prop.getValuesSpan()];
-    String[] forms=new String[prop.getValuesSpan()];
-    int[] colnos=new int[prop.getValuesSpan()];
-    int[] formnos=new int[prop.getValuesSpan()];
+    propNullables.add(singularAttributeBinding.isNullable() || isDefinedBySubclass);
+    types.add(singularAttributeBinding.getHibernateTypeDescriptor().getResolvedTypeMapping());
+    final int span=singularAttributeBinding.getSimpleValueSpan();
+    String[] cols=new String[span];
+    String[] readers=new String[span];
+    String[] readerTemplates=new String[span];
+    String[] forms=new String[span];
+    int[] colnos=new int[span];
+    int[] formnos=new int[span];
     int l=0;
-    Boolean lazy=prop.isLazy() && lazyAvailable;
-    for (    SimpleValue thing : prop.getValues()) {
-      if (DerivedValue.class.isInstance(thing)) {
-        DerivedValue derivedValue=DerivedValue.class.cast(thing);
+    Boolean lazy=singularAttributeBinding.isLazy() && lazyAvailable;
+    for (    SimpleValueBinding valueBinding : singularAttributeBinding.getSimpleValueBindings()) {
+      if (valueBinding.isDerived()) {
+        DerivedValue derivedValue=DerivedValue.class.cast(valueBinding.getSimpleValue());
         String template=getTemplateFromString(derivedValue.getExpression(),factory);
         formnos[l]=formulaTemplates.size();
         colnos[l]=-1;
@@ -177,16 +182,16 @@
         formulaAliases.add(derivedValue.getAlias(factory.getDialect()));
         formulasLazy.add(lazy);
       }
- else       if (org.hibernate.metamodel.relational.Column.class.isInstance(thing)) {
-        org.hibernate.metamodel.relational.Column col=org.hibernate.metamodel.relational.Column.class.cast(thing);
+ else {
+        org.hibernate.metamodel.relational.Column col=org.hibernate.metamodel.relational.Column.class.cast(valueBinding.getSimpleValue());
         String colName=col.getColumnName().encloseInQuotesIfQuoted(factory.getDialect());
         colnos[l]=columns.size();
         formnos[l]=-1;
         columns.add(colName);
         cols[l]=colName;
-        aliases.add(thing.getAlias(factory.getDialect()));
+        aliases.add(col.getAlias(factory.getDialect()));
         columnsLazy.add(lazy);
-        columnSelectables.add(prop.isSimpleValue());
+        columnSelectables.add(singularAttributeBinding.getAttribute().isSingular());
         readers[l]=col.getReadFragment() == null ? col.getColumnName().encloseInQuotesIfQuoted(factory.getDialect()) : col.getReadFragment();
         String readerTemplate=getTemplateFromColumn(col,factory);
         readerTemplates[l]=readerTemplate;
