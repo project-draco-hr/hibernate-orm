@@ -1,6 +1,8 @@
 {
+  Dialect dialect=metadataSources.getServiceRegistry().getService(JdbcServices.class).getDialect();
   this.serviceRegistry=metadataSources.getServiceRegistry();
   this.options=options;
+  this.identifierGeneratorFactory=new DefaultIdentifierGeneratorFactory(dialect);
   this.database=new Database(options);
   this.mappingDefaults=new MappingDefaultsImpl();
   final MetadataSourceProcessor[] metadataSourceProcessors;
@@ -30,4 +32,5 @@
   bindMappingDependentMetadata(metadataSourceProcessors,metadataSources);
   new EntityReferenceResolver(this).resolve();
   new AttributeTypeResolver(this).resolve();
+  new IdentifierGeneratorResolver(this).resolve();
 }
