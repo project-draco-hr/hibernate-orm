@@ -1,7 +1,7 @@
 {
   this.factory=factory;
   this.cacheAccessStrategy=cacheAccessStrategy;
-  this.isLazyPropertiesCacheable=entityBinding.getCaching() == null ? false : entityBinding.getCaching().isCacheLazyProperties();
+  this.isLazyPropertiesCacheable=entityBinding.getHierarchyDetails().getCaching() == null ? false : entityBinding.getHierarchyDetails().getCaching().isCacheLazyProperties();
   this.cacheEntryStructure=factory.getSettings().isStructuredCacheEntriesEnabled() ? new StructuredCacheEntry(this) : new UnstructuredCacheEntry();
   this.entityMetamodel=new EntityMetamodel(entityBinding,factory);
   int batch=entityBinding.getBatchSize();
@@ -11,7 +11,7 @@
   batchSize=batch;
   hasSubselectLoadableCollections=entityBinding.hasSubselectLoadableCollections();
   propertyMapping=new BasicEntityPropertyMapping(this);
-  identifierColumnSpan=entityBinding.getEntityIdentifier().getValueBinding().getSimpleValueSpan();
+  identifierColumnSpan=entityBinding.getHierarchyDetails().getEntityIdentifier().getValueBinding().getSimpleValueSpan();
   rootTableKeyColumnNames=new String[identifierColumnSpan];
   rootTableKeyColumnReaders=new String[identifierColumnSpan];
   rootTableKeyColumnReaderTemplates=new String[identifierColumnSpan];
@@ -33,7 +33,7 @@
     i++;
   }
   if (entityBinding.isVersioned()) {
-    final Value versioningValue=entityBinding.getVersioningValueBinding().getValue();
+    final Value versioningValue=entityBinding.getHierarchyDetails().getVersioningAttributeBinding().getValue();
     if (!org.hibernate.metamodel.relational.Column.class.isInstance(versioningValue)) {
       throw new AssertionFailure("Bad versioning attribute binding : " + versioningValue);
     }
@@ -67,7 +67,7 @@
   i=0;
   boolean foundFormula=false;
   for (  AttributeBinding attributeBinding : entityBinding.getAttributeBindingClosure()) {
-    if (attributeBinding == entityBinding.getEntityIdentifier().getValueBinding()) {
+    if (attributeBinding == entityBinding.getHierarchyDetails().getEntityIdentifier().getValueBinding()) {
       continue;
     }
     if (!attributeBinding.getAttribute().isSingular()) {
@@ -148,7 +148,7 @@
   List<Boolean> columnSelectables=new ArrayList<Boolean>();
   List<Boolean> propNullables=new ArrayList<Boolean>();
   for (  AttributeBinding attributeBinding : entityBinding.getAttributeBindingClosure()) {
-    if (attributeBinding == entityBinding.getEntityIdentifier().getValueBinding()) {
+    if (attributeBinding == entityBinding.getHierarchyDetails().getEntityIdentifier().getValueBinding()) {
       continue;
     }
     if (!attributeBinding.getAttribute().isSingular()) {

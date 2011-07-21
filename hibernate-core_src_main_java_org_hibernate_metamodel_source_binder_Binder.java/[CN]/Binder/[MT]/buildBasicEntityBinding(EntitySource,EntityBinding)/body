@@ -1,14 +1,11 @@
 {
-  final EntityBinding entityBinding=new EntityBinding();
-  entityBinding.setSuperEntityBinding(superEntityBinding);
-  entityBinding.setInheritanceType(currentInheritanceType);
-  entityBinding.setEntityMode(currentHierarchyEntityMode);
+  final EntityBinding entityBinding=superEntityBinding == null ? new EntityBinding(currentInheritanceType,currentHierarchyEntityMode) : new EntityBinding(superEntityBinding);
   final String entityName=entitySource.getEntityName();
   final String className=currentHierarchyEntityMode == EntityMode.POJO ? entitySource.getClassName() : null;
   final Entity entity=new Entity(entityName,className,currentBindingContext.makeClassReference(className),null);
   entityBinding.setEntity(entity);
   entityBinding.setJpaEntityName(entitySource.getJpaEntityName());
-  if (entityBinding.getEntityMode() == EntityMode.POJO) {
+  if (currentHierarchyEntityMode == EntityMode.POJO) {
     final String proxy=entitySource.getProxy();
     if (proxy != null) {
       entityBinding.setProxyInterfaceType(currentBindingContext.makeClassReference(currentBindingContext.qualifyClassName(proxy)));

@@ -16,7 +16,7 @@
     lazyAvailable=FieldInterceptionHelper.isInstrumented(mappedClass);
   }
   boolean hasLazy=false;
-  SimpleSingularAttributeBinding rootEntityIdentifier=entityBinding.getEntityIdentifier().getValueBinding();
+  SimpleSingularAttributeBinding rootEntityIdentifier=entityBinding.getHierarchyDetails().getEntityIdentifier().getValueBinding();
   propertySpan=rootEntityIdentifier == null ? entityBinding.getAttributeBindingClosureSpan() : entityBinding.getAttributeBindingClosureSpan() - 1;
   properties=new StandardProperty[propertySpan];
   List naturalIdNumbers=new ArrayList();
@@ -45,9 +45,9 @@
     if (attributeBinding == rootEntityIdentifier) {
       continue;
     }
-    if (attributeBinding == entityBinding.getVersioningValueBinding()) {
+    if (attributeBinding == entityBinding.getHierarchyDetails().getVersioningAttributeBinding()) {
       tempVersionProperty=i;
-      properties[i]=PropertyFactory.buildVersionProperty(entityBinding.getVersioningValueBinding(),lazyAvailable);
+      properties[i]=PropertyFactory.buildVersionProperty(entityBinding.getHierarchyDetails().getVersioningAttributeBinding(),lazyAvailable);
     }
  else {
       properties[i]=PropertyFactory.buildStandardProperty(attributeBinding,lazyAvailable);
@@ -123,10 +123,10 @@
   dynamicInsert=entityBinding.isDynamicInsert();
   hasSubclasses=false;
   polymorphic=!entityBinding.isRoot() || hasSubclasses;
-  explicitPolymorphism=entityBinding.isExplicitPolymorphism();
+  explicitPolymorphism=entityBinding.getHierarchyDetails().isExplicitPolymorphism();
   inherited=!entityBinding.isRoot();
   superclass=inherited ? entityBinding.getEntity().getSuperType().getName() : null;
-  optimisticLockStyle=entityBinding.getOptimisticLockStyle();
+  optimisticLockStyle=entityBinding.getHierarchyDetails().getOptimisticLockStyle();
   final boolean isAllOrDirty=optimisticLockStyle == OptimisticLockStyle.ALL || optimisticLockStyle == OptimisticLockStyle.DIRTY;
   if (isAllOrDirty && !dynamicUpdate) {
     throw new MappingException("optimistic-lock=all|dirty requires dynamic-update=\"true\": " + name);

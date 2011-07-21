@@ -1,14 +1,14 @@
 {
   Table table=new Table(new Schema(null,null),"the_table");
   Entity entity=new Entity("TheEntity","NoSuchClass",makeJavaType("NoSuchClass"),null);
-  EntityBinding entityBinding=new EntityBinding();
+  EntityBinding entityBinding=new EntityBinding(InheritanceType.NO_INHERITANCE,EntityMode.POJO);
   entityBinding.setEntity(entity);
   entityBinding.setBaseTable(table);
   SingularAttribute idAttribute=entity.locateOrCreateSingularAttribute("id");
   SimpleSingularAttributeBinding attributeBinding=entityBinding.makeSimpleAttributeBinding(idAttribute);
   attributeBinding.getHibernateTypeDescriptor().setExplicitTypeName("long");
   assertSame(idAttribute,attributeBinding.getAttribute());
-  entityBinding.getEntityIdentifier().setValueBinding(attributeBinding);
+  entityBinding.getHierarchyDetails().getEntityIdentifier().setValueBinding(attributeBinding);
   Column idColumn=table.locateOrCreateColumn("id");
   idColumn.setDatatype(BIGINT);
   idColumn.setSize(Size.precision(18,0));
