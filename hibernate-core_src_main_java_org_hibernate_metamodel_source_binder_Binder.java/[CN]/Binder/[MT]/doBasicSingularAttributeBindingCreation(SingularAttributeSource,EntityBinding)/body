@@ -1,5 +1,15 @@
 {
-  final SingularAttribute attribute=attributeSource.isVirtualAttribute() ? entityBinding.getEntity().locateOrCreateVirtualAttribute(attributeSource.getName()) : entityBinding.getEntity().locateOrCreateSingularAttribute(attributeSource.getName());
+  final SingularAttribute existingAttribute=entityBinding.getEntity().locateSingularAttribute(attributeSource.getName());
+  final SingularAttribute attribute;
+  if (existingAttribute != null) {
+    attribute=existingAttribute;
+  }
+ else   if (attributeSource.isVirtualAttribute()) {
+    attribute=entityBinding.getEntity().createVirtualSingularAttribute(attributeSource.getName());
+  }
+ else {
+    attribute=entityBinding.getEntity().createSingularAttribute(attributeSource.getName());
+  }
   final SimpleSingularAttributeBinding attributeBinding;
   if (attributeSource.getNature() == SingularAttributeNature.BASIC) {
     attributeBinding=entityBinding.makeSimpleAttributeBinding(attribute);
