@@ -1,0 +1,24 @@
+{
+  try {
+    sources=new MetadataSources(new ServiceRegistryBuilder().buildServiceRegistry());
+    Resources resourcesAnnotation=origFrameworkMethod.getAnnotation(Resources.class);
+    if (resourcesAnnotation != null) {
+      sources.getMetadataBuilder().with(resourcesAnnotation.cacheMode());
+      for (      Class<?> annotatedClass : resourcesAnnotation.annotatedClasses()) {
+        sources.addAnnotatedClass(annotatedClass);
+      }
+      if (!resourcesAnnotation.ormXmlPath().isEmpty()) {
+        sources.addResource(resourcesAnnotation.ormXmlPath());
+      }
+    }
+    meta=(MetadataImpl)sources.buildMetadata();
+  }
+ catch (  final Throwable t) {
+    setupError=t;
+    Test testAnnotation=origFrameworkMethod.getAnnotation(Test.class);
+    Class<?> expected=testAnnotation.expected();
+    if (t.getClass().equals(expected)) {
+      expectedException=true;
+    }
+  }
+}

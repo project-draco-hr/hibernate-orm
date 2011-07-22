@@ -1,0 +1,41 @@
+{
+  final String attributeName=ReflectionHelper.getPropertyName(member);
+  ResolvedMember[] resolvedMembers;
+  if (member instanceof Field) {
+    resolvedMembers=resolvedType.getMemberFields();
+  }
+ else {
+    resolvedMembers=resolvedType.getMemberMethods();
+  }
+  final Class<?> attributeType=(Class<?>)findResolvedType(member.getName(),resolvedMembers);
+  final Map<DotName,List<AnnotationInstance>> annotations=JandexHelper.getMemberAnnotations(classInfo,member.getName());
+  AttributeType attributeNature=determineAttributeType(annotations);
+  String accessTypeString=accessType.toString().toLowerCase();
+switch (attributeNature) {
+case BASIC:
+{
+      SimpleAttribute attribute=SimpleAttribute.createSimpleAttribute(attributeName,attributeType,annotations,accessTypeString);
+      if (attribute.isId()) {
+        idAttributeMap.put(attributeName,attribute);
+      }
+ else       if (attribute.isVersioned()) {
+        versionAttribute=attribute;
+      }
+ else {
+        simpleAttributeMap.put(attributeName,attribute);
+      }
+      break;
+    }
+case ELEMENT_COLLECTION:
+case EMBEDDED_ID:
+case EMBEDDED:
+{
+    resolveEmbeddable(attributeName,attributeType);
+  }
+default :
+{
+  AssociationAttribute attribute=AssociationAttribute.createAssociationAttribute(attributeName,attributeType,attributeNature,accessTypeString,annotations);
+  associationAttributeMap.put(attributeName,attribute);
+}
+}
+}

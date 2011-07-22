@@ -1,8 +1,8 @@
 {
-  Set<String> explicitAccessMembers=new HashSet<String>();
+  Set<String> explicitAccessPropertyNames=new HashSet<String>();
   List<AnnotationInstance> accessAnnotations=classInfo.annotations().get(JPADotNames.ACCESS);
   if (accessAnnotations == null) {
-    return explicitAccessMembers;
+    return explicitAccessPropertyNames;
   }
   for (  AnnotationInstance accessAnnotation : accessAnnotations) {
     AnnotationTarget annotationTarget=accessAnnotation.target();
@@ -23,6 +23,7 @@
         throw new HibernateException("Unable to load method " + ((MethodInfo)annotationTarget).name() + " of class "+ clazz.getName());
       }
       member=m;
+      accessType=AccessType.PROPERTY;
     }
  else {
       Field f;
@@ -33,11 +34,12 @@
         throw new HibernateException("Unable to load field " + ((FieldInfo)annotationTarget).name() + " of class "+ clazz.getName());
       }
       member=f;
+      accessType=AccessType.FIELD;
     }
     if (ReflectionHelper.isProperty(member)) {
-      createMappedProperty(member,resolvedMembers);
-      explicitAccessMembers.add(member.getName());
+      createMappedAttribute(member,resolvedMembers,accessType);
+      explicitAccessPropertyNames.add(ReflectionHelper.getPropertyName(member));
     }
   }
-  return explicitAccessMembers;
+  return explicitAccessPropertyNames;
 }
