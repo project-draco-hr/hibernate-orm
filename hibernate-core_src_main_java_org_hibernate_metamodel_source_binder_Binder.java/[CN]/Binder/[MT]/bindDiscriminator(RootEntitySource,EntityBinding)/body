@@ -3,9 +3,10 @@
   if (discriminatorSource == null) {
     return;
   }
-  SimpleSingularAttributeBinding attributeBinding=doBasicSingularAttributeBindingCreation(discriminatorSource,entityBinding);
   EntityDiscriminator discriminator=new EntityDiscriminator();
-  discriminator.setValueBinding(attributeBinding);
+  SimpleValue relationalValue=makeSimpleValue(entityBinding,discriminatorSource.getDiscriminatorRelationalValueSource());
+  discriminator.setBoundValue(relationalValue);
+  discriminator.getExplicitHibernateTypeDescriptor().setExplicitTypeName(discriminatorSource.getExplicitHibernateTypeName() != null ? discriminatorSource.getExplicitHibernateTypeName() : "string");
   discriminator.setInserted(discriminatorSource.isInserted());
   discriminator.setForced(discriminatorSource.isForced());
   entityBinding.getHierarchyDetails().setEntityDiscriminator(discriminator);

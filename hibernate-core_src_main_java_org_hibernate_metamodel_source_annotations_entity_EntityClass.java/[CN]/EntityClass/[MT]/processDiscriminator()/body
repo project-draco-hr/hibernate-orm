@@ -1,0 +1,37 @@
+{
+  if (!InheritanceType.SINGLE_TABLE.equals(inheritanceType)) {
+    return;
+  }
+  final AnnotationInstance discriminatorValueAnnotation=JandexHelper.getSingleAnnotation(getClassInfo(),JPADotNames.DISCRIMINATOR_VALUE);
+  if (discriminatorValueAnnotation != null) {
+    this.discriminatorMatchValue=discriminatorValueAnnotation.value().asString();
+  }
+  final AnnotationInstance discriminatorOptionsAnnotation=JandexHelper.getSingleAnnotation(getClassInfo(),JPADotNames.DISCRIMINATOR_COLUMN);
+  Class<?> type=String.class;
+  if (discriminatorOptionsAnnotation != null) {
+    DiscriminatorType discriminatorType=Enum.valueOf(DiscriminatorType.class,discriminatorOptionsAnnotation.value("discriminatorType").asEnum());
+switch (discriminatorType) {
+case STRING:
+{
+        type=String.class;
+        break;
+      }
+case CHAR:
+{
+      type=Character.class;
+      break;
+    }
+case INTEGER:
+{
+    type=Integer.class;
+    break;
+  }
+default :
+{
+  throw new AnnotationException("Unsupported discriminator type: " + discriminatorType);
+}
+}
+}
+discriminatorColumnValues=new DiscriminatorColumnValues(getClassInfo().annotations());
+discriminatorType=type;
+}
