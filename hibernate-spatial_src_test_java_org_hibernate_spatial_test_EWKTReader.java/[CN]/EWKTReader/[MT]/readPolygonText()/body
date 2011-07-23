@@ -1,0 +1,17 @@
+{
+  setHasM(false);
+  String nextToken=getNextEmptyOrOpener();
+  if (nextToken.equals(EMPTY)) {
+    return geometryFactory.createPolygon(geometryFactory.createLinearRing(new Coordinate[]{}),new LinearRing[]{});
+  }
+  ArrayList holes=new ArrayList();
+  LinearRing shell=readLinearRingText();
+  nextToken=getNextCloserOrComma();
+  while (nextToken.equals(COMMA)) {
+    LinearRing hole=readLinearRingText();
+    holes.add(hole);
+    nextToken=getNextCloserOrComma();
+  }
+  LinearRing[] array=new LinearRing[holes.size()];
+  return geometryFactory.createPolygon(shell,(LinearRing[])holes.toArray(array));
+}

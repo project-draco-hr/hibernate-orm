@@ -1,0 +1,32 @@
+{
+  try {
+    Coordinate mc=nullLine.getCoordinateAtM(2);
+    assertNull(mc);
+    arbitraryLine.measureOnLength(false);
+    int elem1Indx=(int)(Math.random() * (arbitraryLine.getNumPoints() - 1));
+    int elem2Indx=0;
+    if (elem1Indx == arbitraryLine.getNumPoints() - 1) {
+      elem2Indx=elem1Indx - 1;
+    }
+ else {
+      elem2Indx=elem1Indx + 1;
+    }
+    MCoordinate mco1=(MCoordinate)arbitraryLine.getCoordinateN(elem1Indx);
+    MCoordinate mcotest=(MCoordinate)arbitraryLine.getCoordinateAtM(mco1.m);
+    assertNotSame(mco1,mcotest);
+    assertEquals(mco1.x,mcotest.x,Math.ulp(100 * mco1.x));
+    assertEquals(mco1.y,mcotest.y,Math.ulp(100 * mco1.y));
+    assertEquals(mco1.m,mcotest.m,Math.ulp(100 * mco1.m));
+    MCoordinate mco2=(MCoordinate)arbitraryLine.getCoordinateN(elem2Indx);
+    double offset=Math.random();
+    double newM=mco1.m + offset * (mco2.m - mco1.m);
+    MCoordinate mcexp=new MCoordinate(mco1.x + offset * (mco2.x - mco1.x),mco1.y + offset * (mco2.y - mco1.y),Double.NaN,mco1.m + offset * (mco2.m - mco1.m));
+    MCoordinate mctest=(MCoordinate)arbitraryLine.getCoordinateAtM(newM);
+    assertEquals(mcexp.x,mctest.x,0.0001);
+    assertEquals(mcexp.y,mctest.y,0.0001);
+    assertEquals(mcexp.m,mctest.m,0.0001);
+  }
+ catch (  Exception e) {
+    System.err.println(e);
+  }
+}

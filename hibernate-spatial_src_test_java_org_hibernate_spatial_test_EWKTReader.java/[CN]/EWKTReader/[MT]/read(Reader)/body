@@ -1,0 +1,29 @@
+{
+  try {
+synchronized (this) {
+      if (this.tokenizer != null) {
+        throw new RuntimeException("EWKT-Reader is already in use.");
+      }
+      tokenizer=new StreamTokenizer(reader);
+    }
+    tokenizer.resetSyntax();
+    tokenizer.wordChars('a','z');
+    tokenizer.wordChars('A','Z');
+    tokenizer.wordChars(128 + 32,255);
+    tokenizer.wordChars('0','9');
+    tokenizer.wordChars('-','-');
+    tokenizer.wordChars('+','+');
+    tokenizer.wordChars('.','.');
+    tokenizer.whitespaceChars(0,' ');
+    tokenizer.commentChar('#');
+    this.hasM=null;
+    this.dimension=-1;
+    return readGeometryTaggedText();
+  }
+ catch (  IOException e) {
+    throw new ParseException(e.toString());
+  }
+ finally {
+    this.tokenizer=null;
+  }
+}

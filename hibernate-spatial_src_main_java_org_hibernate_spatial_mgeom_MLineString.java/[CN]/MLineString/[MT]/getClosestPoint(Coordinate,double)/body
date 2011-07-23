@@ -1,0 +1,38 @@
+{
+  if (!this.isMonotone(false)) {
+    throw new MGeometryException(MGeometryException.OPERATION_REQUIRES_MONOTONE);
+  }
+  if (!this.isEmpty()) {
+    LineSegment seg=new LineSegment();
+    Coordinate[] coAr=this.getCoordinates();
+    seg.p0=coAr[0];
+    double d=0.0;
+    double projfact=0.0;
+    double minDist=Double.POSITIVE_INFINITY;
+    MCoordinate mincp=null;
+    for (int i=1; i < coAr.length; i++) {
+      seg.p1=coAr[i];
+      Coordinate cp=seg.closestPoint(co);
+      d=cp.distance(co);
+      if (d <= tolerance && d <= minDist) {
+        MCoordinate testcp=new MCoordinate(cp);
+        projfact=seg.projectionFactor(cp);
+        testcp.m=((MCoordinate)coAr[i - 1]).m + projfact * (((MCoordinate)coAr[i]).m - ((MCoordinate)coAr[i - 1]).m);
+        if (d < minDist || testcp.m < mincp.m) {
+          mincp=testcp;
+          minDist=d;
+        }
+      }
+      seg.p0=seg.p1;
+    }
+    if (minDist > tolerance) {
+      return null;
+    }
+ else {
+      return mincp;
+    }
+  }
+ else {
+    return null;
+  }
+}

@@ -1,0 +1,21 @@
+{
+  Point ll=box.getLLB();
+  Point ur=box.getURT();
+  Coordinate[] ringCoords=new Coordinate[5];
+  if (box instanceof org.postgis.PGbox2d) {
+    ringCoords[0]=new Coordinate(ll.x,ll.y);
+    ringCoords[1]=new Coordinate(ur.x,ll.y);
+    ringCoords[2]=new Coordinate(ur.x,ur.y);
+    ringCoords[3]=new Coordinate(ll.x,ur.y);
+    ringCoords[4]=new Coordinate(ll.x,ll.y);
+  }
+ else {
+    ringCoords[0]=new Coordinate(ll.x,ll.y,ll.z);
+    ringCoords[1]=new Coordinate(ur.x,ll.y,ll.z);
+    ringCoords[2]=new Coordinate(ur.x,ur.y,ur.z);
+    ringCoords[3]=new Coordinate(ll.x,ur.y,ur.z);
+    ringCoords[4]=new Coordinate(ll.x,ll.y,ll.z);
+  }
+  com.vividsolutions.jts.geom.LinearRing shell=getGeometryFactory().createLinearRing(ringCoords);
+  return getGeometryFactory().createPolygon(shell,null);
+}

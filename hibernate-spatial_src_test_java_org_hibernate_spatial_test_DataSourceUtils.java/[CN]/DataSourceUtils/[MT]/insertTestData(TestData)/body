@@ -1,0 +1,24 @@
+{
+  Connection cn=null;
+  try {
+    cn=getDataSource().getConnection();
+    cn.setAutoCommit(false);
+    Statement stmt=cn.createStatement();
+    for (    TestDataElement testDataElement : testData) {
+      String sql=sqlExpressionTemplate.toInsertSql(testDataElement);
+      LOGGER.debug("adding stmt: " + sql);
+      stmt.addBatch(sql);
+    }
+    int[] insCounts=stmt.executeBatch();
+    cn.commit();
+    stmt.close();
+    LOGGER.info("Loaded " + sum(insCounts) + " rows.");
+  }
+  finally {
+    try {
+      if (cn != null)       cn.close();
+    }
+ catch (    SQLException e) {
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  setHasM(false);
+  String nextToken=getNextEmptyOrOpener();
+  if (nextToken.equals(EMPTY)) {
+    return geometryFactory.createMultiPolygon(new Polygon[]{});
+  }
+  ArrayList polygons=new ArrayList();
+  Polygon polygon=readPolygonText();
+  polygons.add(polygon);
+  nextToken=getNextCloserOrComma();
+  while (nextToken.equals(COMMA)) {
+    polygon=readPolygonText();
+    polygons.add(polygon);
+    nextToken=getNextCloserOrComma();
+  }
+  Polygon[] array=new Polygon[polygons.size()];
+  return geometryFactory.createMultiPolygon((Polygon[])polygons.toArray(array));
+}

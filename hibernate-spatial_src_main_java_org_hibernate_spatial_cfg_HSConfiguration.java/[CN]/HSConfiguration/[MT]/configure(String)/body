@@ -1,0 +1,17 @@
+{
+  logger.debug("Attempting to load configuration from file: " + resource);
+  ClassLoader classLoader=Thread.currentThread().getContextClassLoader();
+  try {
+    URL url=classLoader.getResource(resource);
+    if (url == null) {
+      logger.info("No configuration file " + resource + " on the classpath.");
+      return false;
+    }
+    this.source=url.getFile();
+    return doConfigure(url.openStream());
+  }
+ catch (  Exception e) {
+    logger.warn("Failed to load configuration file: " + resource + ".\nCause:"+ e.getMessage());
+  }
+  return false;
+}

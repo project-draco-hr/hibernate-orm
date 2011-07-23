@@ -1,0 +1,66 @@
+{
+  try {
+    if (!arbitraryLine.isMonotone(false)) {
+      Coordinate mc=arbitraryLine.getClosestPoint(new Coordinate(1.0,2.0),0.1);
+      assertTrue(false);
+    }
+  }
+ catch (  Exception e) {
+    assertTrue(((MGeometryException)e).getType() == MGeometryException.OPERATION_REQUIRES_MONOTONE);
+  }
+  try {
+    MCoordinate mc=nullLine.getClosestPoint(new Coordinate(0.0,1.0),1.0);
+    assertNull(mc);
+    arbitraryLine.measureOnLength(false);
+    int selp=(int)(arbitraryLine.getNumPoints() / 2);
+    MCoordinate mcexp=(MCoordinate)arbitraryLine.getCoordinateN(selp);
+    MCoordinate mctest=arbitraryLine.getClosestPoint(mcexp,1);
+    assertEquals(mcexp,mctest);
+    mctest=controlledLine.getClosestPoint(new Coordinate(20.0,20,0),1.0);
+    assertNull(mctest);
+    ringLine.measureOnLength(false);
+    assertTrue(ringLine.isRing());
+    assertTrue(ringLine.isMonotone(false));
+    assertTrue(ringLine.getMeasureDirection() == MGeometry.INCREASING);
+    MCoordinate expCo=MCoordinate.create2dWithMeasure(0.0,0.0,0.0);
+    MCoordinate testCo=ringLine.getClosestPoint(expCo,0.1);
+    assertTrue(DoubleComparator.equals(testCo.m,expCo.m));
+    ringLine.reverseMeasures();
+    testCo=ringLine.getClosestPoint(expCo,0.1);
+    assertTrue(DoubleComparator.equals(testCo.m,expCo.m));
+    ringLine.measureOnLength(false);
+    int n=ringLine.getNumPoints() - 1;
+    ringLine.setMeasureAtIndex(n,100.0);
+    ringLine.setMeasureAtIndex(0,0.0);
+    testCo=ringLine.getClosestPoint(expCo,0.001);
+    assertTrue(DoubleComparator.equals(testCo.m,0.0));
+    arbitraryLine.measureOnLength(false);
+    int elem1Indx=(int)(Math.random() * (arbitraryLine.getNumPoints() - 1));
+    int elem2Indx=0;
+    if (elem1Indx == arbitraryLine.getNumPoints() - 1) {
+      elem2Indx=elem1Indx - 1;
+    }
+ else {
+      elem2Indx=elem1Indx + 1;
+    }
+    MCoordinate mco1=(MCoordinate)arbitraryLine.getCoordinateN(elem1Indx);
+    MCoordinate mco2=(MCoordinate)arbitraryLine.getCoordinateN(elem2Indx);
+    double d=mco1.distance(mco2);
+    double offset=Math.random();
+    mcexp=MCoordinate.create2dWithMeasure(mco1.x + offset * (mco2.x - mco1.x),mco1.y + offset * (mco2.y - mco1.y),0.0);
+    mctest=arbitraryLine.getClosestPoint(mcexp,d);
+    mcexp.m=mco1.m + offset * (mco2.m - mco1.m);
+    assertEquals(mcexp.x,mctest.x,0.001);
+    assertEquals(mcexp.y,mctest.y,0.001);
+    assertEquals(mcexp.z,mctest.z,0.001);
+    double delta=Math.random();
+    MCoordinate mcin=MCoordinate.create2dWithMeasure(mco1.x + offset * (mco2.x - mco1.x) + delta,mco1.y + offset * (mco2.y - mco1.y) + delta,0.0);
+    mctest=arbitraryLine.getClosestPoint(mcin,d);
+    assertEquals(mcin.x,mctest.x,delta * Math.sqrt(2));
+    assertEquals(mcin.y,mctest.y,delta * Math.sqrt(2));
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+    assertTrue(false);
+  }
+}

@@ -1,0 +1,18 @@
+{
+  if (lrs == null) {
+    throw new MGeometryException("Non-null MGeometry parameter is required.");
+  }
+  MGeometryFactory factory=(MGeometryFactory)lrs.getFactory();
+  CoordinateSequence[] cs=lrs.getCoordinatesBetween(begin,end);
+  List<MLineString> linestrings=new ArrayList<MLineString>(cs.length);
+  for (int i=0; i < cs.length; i++) {
+    MLineString ml;
+    if (cs[i].size() >= 2) {
+      ml=factory.createMLineString(cs[i]);
+      linestrings.add(ml);
+    }
+  }
+  MultiMLineString result=factory.createMultiMLineString(linestrings.toArray(new MLineString[linestrings.size()]));
+  copySRID(lrs.asGeometry(),result.asGeometry());
+  return result;
+}

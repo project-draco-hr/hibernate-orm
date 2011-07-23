@@ -1,0 +1,21 @@
+{
+  InputStream is=Thread.currentThread().getContextClassLoader().getResourceAsStream(fileName);
+  if (is == null) {
+    throw new RuntimeException("File " + fileName + " not found on Classpath.");
+  }
+  try {
+    BufferedReader reader=new BufferedReader(new InputStreamReader(is));
+    StringWriter sw=new StringWriter();
+    BufferedWriter writer=new BufferedWriter(sw);
+    for (int c=reader.read(); c != -1; c=reader.read()) {
+      writer.write(c);
+    }
+    writer.flush();
+    return sw.toString();
+  }
+  finally {
+    if (is != null) {
+      is.close();
+    }
+  }
+}

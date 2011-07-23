@@ -1,0 +1,21 @@
+{
+  if (!this.isMonotone(false)) {
+    throw new MGeometryException(MGeometryException.OPERATION_REQUIRES_MONOTONE);
+  }
+  double mval=Double.NaN;
+  double dist=Double.POSITIVE_INFINITY;
+  com.vividsolutions.jts.geom.Point p=this.getFactory().createPoint(co);
+  for (int i=0; i < this.getNumGeometries(); i++) {
+    MLineString ml=(MLineString)this.getGeometryN(i);
+    if (ml.distance(p) > tolerance)     continue;
+    MCoordinate mc=ml.getClosestPoint(co,tolerance);
+    if (mc != null) {
+      double d=mc.distance(co);
+      if (d <= tolerance && d < dist) {
+        dist=d;
+        mval=mc.m;
+      }
+    }
+  }
+  return mval;
+}

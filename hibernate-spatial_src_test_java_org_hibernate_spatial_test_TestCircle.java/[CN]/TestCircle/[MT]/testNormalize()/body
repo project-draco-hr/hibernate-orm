@@ -1,0 +1,36 @@
+{
+  double actual, expected=0;
+  double angleIncr=Math.PI / 4;
+  double twoPi=Math.PI * 2;
+  int factor=8;
+  for (int i=0; i <= factor; i++) {
+    expected=i * angleIncr;
+    actual=(Circle.normalizeAngle(expected));
+    assertEquals(actual,expected,Math.ulp(expected));
+    double degrees=Math.toDegrees(actual);
+    assertTrue(actual <= twoPi);
+    assertTrue(degrees <= 360);
+  }
+  factor=-8;
+  double testAngle;
+  for (int i=-1; i >= factor; i--) {
+    testAngle=i * angleIncr;
+    expected=twoPi + (i * angleIncr);
+    actual=(Circle.normalizeAngle(testAngle));
+    assertEquals(actual,expected,Math.ulp(expected));
+    double degrees=Math.toDegrees(actual);
+    assertTrue(actual <= Math.PI * 2);
+    assertTrue(degrees <= 360);
+  }
+  expected=0;
+  actual=Circle.normalizeAngle(twoPi * 8);
+  assertEquals(expected,actual,Math.ulp(expected));
+  testAngle=angleIncr + twoPi;
+  expected=angleIncr;
+  actual=Circle.normalizeAngle(testAngle);
+  assertEquals(expected,actual,Math.ulp(expected));
+  testAngle=angleIncr - twoPi;
+  expected=angleIncr;
+  actual=Circle.normalizeAngle(testAngle);
+  assertEquals(expected,actual,Math.ulp(expected));
+}

@@ -1,0 +1,19 @@
+{
+  com.vividsolutions.jts.geom.MultiLineString out;
+  if (mlstr.haveMeasure) {
+    MLineString[] lstrs=new MLineString[mlstr.numLines()];
+    for (int i=0; i < mlstr.numLines(); i++) {
+      MCoordinate[] coordinates=toJTSCoordinates(mlstr.getLine(i).getPoints());
+      lstrs[i]=getGeometryFactory().createMLineString(coordinates);
+    }
+    out=getGeometryFactory().createMultiMLineString(lstrs);
+  }
+ else {
+    com.vividsolutions.jts.geom.LineString[] lstrs=new com.vividsolutions.jts.geom.LineString[mlstr.numLines()];
+    for (int i=0; i < mlstr.numLines(); i++) {
+      lstrs[i]=getGeometryFactory().createLineString(toJTSCoordinates(mlstr.getLine(i).getPoints()));
+    }
+    out=getGeometryFactory().createMultiLineString(lstrs);
+  }
+  return out;
+}

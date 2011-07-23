@@ -1,0 +1,43 @@
+{
+  if (object == null)   return null;
+  if (object instanceof org.postgis.Geometry) {
+    object=new PGgeometry((org.postgis.Geometry)object);
+  }
+  if (object instanceof PGgeometry) {
+    PGgeometry geom=(PGgeometry)object;
+    com.vividsolutions.jts.geom.Geometry out=null;
+switch (geom.getGeoType()) {
+case org.postgis.Geometry.POINT:
+      out=convertPoint((org.postgis.Point)geom.getGeometry());
+    break;
+case org.postgis.Geometry.LINESTRING:
+  out=convertLineString((org.postgis.LineString)geom.getGeometry());
+break;
+case org.postgis.Geometry.POLYGON:
+out=convertPolygon((org.postgis.Polygon)geom.getGeometry());
+break;
+case org.postgis.Geometry.MULTILINESTRING:
+out=convertMultiLineString((org.postgis.MultiLineString)geom.getGeometry());
+break;
+case org.postgis.Geometry.MULTIPOINT:
+out=convertMultiPoint((org.postgis.MultiPoint)geom.getGeometry());
+break;
+case org.postgis.Geometry.MULTIPOLYGON:
+out=convertMultiPolygon((org.postgis.MultiPolygon)geom.getGeometry());
+break;
+case org.postgis.Geometry.GEOMETRYCOLLECTION:
+out=convertGeometryCollection((org.postgis.GeometryCollection)geom.getGeometry());
+break;
+default :
+throw new RuntimeException("Unknown type of PGgeometry");
+}
+out.setSRID(geom.getGeometry().srid);
+return out;
+}
+ else if (object instanceof org.postgis.PGboxbase) {
+return convertBox((org.postgis.PGboxbase)object);
+}
+ else {
+throw new IllegalArgumentException("Can't convert object of type " + object.getClass().getCanonicalName());
+}
+}

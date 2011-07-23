@@ -1,0 +1,17 @@
+{
+  String nextToken=getNextEmptyOrOpener();
+  if (nextToken.equals(EMPTY)) {
+    return geometryFactory.createGeometryCollection(new Geometry[]{});
+  }
+  ArrayList geometries=new ArrayList();
+  Geometry geometry=readGeometryTaggedText();
+  geometries.add(geometry);
+  nextToken=getNextCloserOrComma();
+  while (nextToken.equals(COMMA)) {
+    geometry=readGeometryTaggedText();
+    geometries.add(geometry);
+    nextToken=getNextCloserOrComma();
+  }
+  Geometry[] array=new Geometry[geometries.size()];
+  return geometryFactory.createGeometryCollection((Geometry[])geometries.toArray(array));
+}

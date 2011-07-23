@@ -1,0 +1,42 @@
+{
+  try {
+    CoordinateSequence[] cs=nullLine.getCoordinatesBetween(0.0,5.0);
+    assertTrue("cs.length = " + cs.length + ". Should be 1",cs.length == 1);
+    assertEquals(cs[0].size(),0);
+    arbitraryLine.measureOnLength(false);
+    double maxM=arbitraryLine.getMaxM();
+    cs=arbitraryLine.getCoordinatesBetween(maxM + 1.0,maxM + 10.0);
+    int minIdx=(int)(Math.random() * (arbitraryLine.getNumPoints() - 1));
+    int maxIdx=Math.min((arbitraryLine.getNumPoints() - 1),minIdx + 10);
+    double minM=((MCoordinate)arbitraryLine.getCoordinateN(minIdx)).m;
+    maxM=((MCoordinate)arbitraryLine.getCoordinateN(maxIdx)).m;
+    cs=arbitraryLine.getCoordinatesBetween(minM,maxM);
+    assertNotNull(cs);
+    assertTrue(cs.length > 0);
+    Coordinate[] coar=cs[0].toCoordinateArray();
+    int j=0;
+    for (int i=minIdx; i <= maxIdx; i++) {
+      assertEquals((MCoordinate)arbitraryLine.getCoordinateN(i),coar[j]);
+      j++;
+    }
+    minM=Math.max(0.0,minM - Math.random() * 10);
+    cs=arbitraryLine.getCoordinatesBetween(minM,maxM);
+    coar=cs[0].toCoordinateArray();
+    MCoordinate mctest=(MCoordinate)coar[0];
+    MCoordinate mcexp=(MCoordinate)arbitraryLine.getCoordinateAtM(minM);
+    assertEquals(mcexp,mctest);
+    assertEquals(mctest.m,minM,DoubleComparator.defaultNumericalPrecision());
+    maxM=Math.min(arbitraryLine.getLength(),maxM + Math.random() * 10);
+    cs=arbitraryLine.getCoordinatesBetween(minM,maxM);
+    coar=cs[0].toCoordinateArray();
+    mctest=(MCoordinate)coar[coar.length - 1];
+    mcexp=(MCoordinate)arbitraryLine.getCoordinateAtM(maxM);
+    assertEquals(mcexp.x,mctest.x,Math.ulp(mcexp.x) * 100);
+    assertEquals(mcexp.y,mctest.y,Math.ulp(mcexp.y) * 100);
+    assertEquals(mctest.m,maxM,DoubleComparator.defaultNumericalPrecision());
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+    assertTrue(false);
+  }
+}

@@ -1,0 +1,44 @@
+{
+  PreparedStatement preparedStatement=null;
+  Connection cn=null;
+  Map<Integer,T> expected=new HashMap<Integer,T>();
+  try {
+    cn=createConnection();
+    preparedStatement=nativeSQLStatement.prepare(cn);
+    LOGGER.info("Native SQL is: " + preparedStatement.toString());
+    ResultSet results=preparedStatement.executeQuery();
+    while (results.next()) {
+      int id=results.getInt(1);
+switch (type) {
+case GEOMETRY:
+        expected.put(id,(T)decode(results.getObject(2)));
+      break;
+case STRING:
+    expected.put(id,(T)results.getString(2));
+  break;
+case INTEGER:
+expected.put(id,(T)Long.valueOf(results.getLong(2)));
+break;
+case DOUBLE:
+Double value=Double.valueOf(results.getDouble(2));
+if (results.wasNull()) value=null;
+expected.put(id,(T)value);
+break;
+case BOOLEAN:
+expected.put(id,(T)Boolean.valueOf(results.getBoolean(2)));
+break;
+default :
+T val=(T)results.getObject(2);
+if (val instanceof Blob) {
+val=(T)((Blob)val).getBytes(1,MAX_BYTE_LEN);
+}
+expected.put(id,val);
+}
+}
+return expected;
+}
+  finally {
+if (preparedStatement != null) preparedStatement.close();
+if (cn != null) cn.close();
+}
+}

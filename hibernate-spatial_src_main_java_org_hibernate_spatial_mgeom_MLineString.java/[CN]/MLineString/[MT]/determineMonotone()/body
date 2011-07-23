@@ -1,0 +1,22 @@
+{
+  this.monotone=true;
+  this.strictMonotone=true;
+  if (!this.isEmpty()) {
+    double m[]=this.getMeasures();
+    if (Double.isNaN(m[0])) {
+      this.monotone=false;
+      this.strictMonotone=false;
+    }
+ else {
+      int result=0;
+      int prevResult=0;
+      for (int i=1; i < m.length && this.monotone; i++) {
+        result=Double.compare(m[i - 1],m[i]);
+        this.monotone=!(result * prevResult < 0 || Double.isNaN(m[i]));
+        this.strictMonotone&=this.monotone && result != 0;
+        prevResult=result;
+      }
+    }
+  }
+  assert(!(this.strictMonotone && !this.monotone));
+}
