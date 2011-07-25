@@ -2,10 +2,16 @@
   super(classInfo,hierarchyAccessType,parent,context);
   this.inheritanceType=inheritanceType;
   this.idType=determineIdType();
-  this.hasOwnTable=definesItsOwnTable();
+  boolean hasOwnTable=definesItsOwnTable();
   this.explicitEntityName=determineExplicitEntityName();
   this.constraintSources=new HashSet<ConstraintSource>();
-  this.tableSource=createTableSource();
+  if (hasOwnTable) {
+    this.primaryTableSource=createTableSource(JandexHelper.getSingleAnnotation(getClassInfo(),JPADotNames.TABLE));
+  }
+ else {
+    this.primaryTableSource=null;
+  }
+  this.secondaryTableSources=createSecondaryTableSources();
   this.customLoaderQueryName=determineCustomLoader();
   this.synchronizedTableNames=determineSynchronizedTableNames();
   this.customTuplizer=determineCustomTuplizer();

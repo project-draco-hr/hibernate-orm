@@ -1,0 +1,46 @@
+{
+  String schema=getContext().getMappingDefaults().getSchemaName();
+  String catalog=getContext().getMappingDefaults().getCatalogName();
+  if (tableAnnotation != null) {
+    final AnnotationValue schemaValue=tableAnnotation.value("schema");
+    if (schemaValue != null) {
+      schema=schemaValue.asString();
+    }
+    final AnnotationValue catalogValue=tableAnnotation.value("catalog");
+    if (catalogValue != null) {
+      catalog=catalogValue.asString();
+    }
+  }
+  if (getContext().isGloballyQuotedIdentifiers()) {
+    schema=StringHelper.quote(schema);
+    catalog=StringHelper.quote(catalog);
+  }
+  String tableName=null;
+  String explicitTableName=null;
+  if (tableAnnotation != null) {
+    explicitTableName=JandexHelper.getValue(tableAnnotation,"name",String.class);
+    if (StringHelper.isNotEmpty(explicitTableName)) {
+      tableName=getContext().getNamingStrategy().tableName(explicitTableName);
+      if (getContext().isGloballyQuotedIdentifiers() && !Identifier.isQuoted(explicitTableName)) {
+        tableName=StringHelper.quote(tableName);
+      }
+    }
+    createUniqueConstraints(tableAnnotation,tableName);
+  }
+  if (tableName == null) {
+    if (explicitEntityName == null) {
+      tableName=getConfiguredClass().getSimpleName();
+    }
+ else {
+      tableName=explicitEntityName;
+    }
+  }
+  TableSourceImpl tableSourceImpl;
+  if (tableAnnotation == null || JPADotNames.TABLE.equals(tableAnnotation.name())) {
+    tableSourceImpl=new TableSourceImpl(schema,catalog,tableName,null);
+  }
+ else {
+    tableSourceImpl=new TableSourceImpl(schema,catalog,tableName,explicitTableName);
+  }
+  return tableSourceImpl;
+}
