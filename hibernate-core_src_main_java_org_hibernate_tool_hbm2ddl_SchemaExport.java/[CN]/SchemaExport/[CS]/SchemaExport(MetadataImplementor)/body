@@ -1,11 +1,12 @@
 {
   ServiceRegistry serviceRegistry=metadata.getServiceRegistry();
   this.connectionHelper=new SuppliedConnectionProviderConnectionHelper(serviceRegistry.getService(ConnectionProvider.class));
-  this.sqlStatementLogger=serviceRegistry.getService(JdbcServices.class).getSqlStatementLogger();
+  JdbcServices jdbcServices=serviceRegistry.getService(JdbcServices.class);
+  this.sqlStatementLogger=jdbcServices.getSqlStatementLogger();
   this.formatter=(sqlStatementLogger.isFormat() ? FormatStyle.DDL : FormatStyle.NONE).getFormatter();
-  this.sqlExceptionHelper=serviceRegistry.getService(JdbcServices.class).getSqlExceptionHelper();
-  this.importFiles=ConfigurationHelper.getString(Environment.HBM2DDL_IMPORT_FILES,serviceRegistry.getService(ConfigurationService.class).getSettings(),DEFAULT_IMPORT_FILE);
-  final Dialect dialect=metadata.getServiceRegistry().getService(JdbcServices.class).getDialect();
+  this.sqlExceptionHelper=jdbcServices.getSqlExceptionHelper();
+  this.importFiles=ConfigurationHelper.getString(AvailableSettings.HBM2DDL_IMPORT_FILES,serviceRegistry.getService(ConfigurationService.class).getSettings(),DEFAULT_IMPORT_FILE);
+  final Dialect dialect=jdbcServices.getDialect();
   this.dropSQL=metadata.getDatabase().generateDropSchemaScript(dialect);
   this.createSQL=metadata.getDatabase().generateSchemaCreationScript(dialect);
 }
