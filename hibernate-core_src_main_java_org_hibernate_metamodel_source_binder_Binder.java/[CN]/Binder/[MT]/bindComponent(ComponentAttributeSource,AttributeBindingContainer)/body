@@ -1,0 +1,15 @@
+{
+  final String attributeName=attributeSource.getName();
+  SingularAttribute attribute=container.getAttributeContainer().locateComponentAttribute(attributeName);
+  if (attribute == null) {
+    final Component component=new Component(attributeSource.getPath(),attributeSource.getClassName(),attributeSource.getClassReference(),null);
+    attribute=container.getAttributeContainer().createComponentAttribute(attributeName,component);
+  }
+  ComponentAttributeBinding componentAttributeBinding=container.makeComponentAttributeBinding(attribute);
+  if (StringHelper.isNotEmpty(attributeSource.getParentReferenceAttributeName())) {
+    final SingularAttribute parentReferenceAttribute=componentAttributeBinding.getComponent().createSingularAttribute(attributeSource.getParentReferenceAttributeName());
+    componentAttributeBinding.setParentReference(parentReferenceAttribute);
+  }
+  componentAttributeBinding.setMetaAttributeContext(buildMetaAttributeContext(attributeSource.metaAttributes(),container.getMetaAttributeContext()));
+  bindAttributes(attributeSource,componentAttributeBinding);
+}

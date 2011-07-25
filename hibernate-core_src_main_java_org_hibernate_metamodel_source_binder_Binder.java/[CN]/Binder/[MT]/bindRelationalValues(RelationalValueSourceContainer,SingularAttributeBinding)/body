@@ -2,7 +2,7 @@
   List<SimpleValueBinding> valueBindings=new ArrayList<SimpleValueBinding>();
   if (relationalValueSourceContainer.relationalValueSources().size() > 0) {
     for (    RelationalValueSource valueSource : relationalValueSourceContainer.relationalValueSources()) {
-      final TableSpecification table=attributeBinding.getEntityBinding().getTable(valueSource.getContainingTableName());
+      final TableSpecification table=attributeBinding.getContainer().locateTable(valueSource.getContainingTableName());
       if (ColumnSource.class.isInstance(valueSource)) {
         final ColumnSource columnSource=ColumnSource.class.cast(valueSource);
         final Column column=makeColumn((ColumnSource)valueSource,table);
@@ -15,7 +15,7 @@
   }
  else {
     final String name=metadata.getOptions().getNamingStrategy().propertyToColumnName(attributeBinding.getAttribute().getName());
-    valueBindings.add(new SimpleValueBinding(attributeBinding.getEntityBinding().getBaseTable().locateOrCreateColumn(name)));
+    valueBindings.add(new SimpleValueBinding(attributeBinding.getContainer().getPrimaryTable().locateOrCreateColumn(name)));
   }
   attributeBinding.setSimpleValueBindings(valueBindings);
 }

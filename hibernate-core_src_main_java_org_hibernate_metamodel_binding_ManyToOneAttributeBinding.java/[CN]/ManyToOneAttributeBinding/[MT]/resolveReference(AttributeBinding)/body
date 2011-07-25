@@ -1,6 +1,10 @@
 {
-  if (!referencedEntityName.equals(referencedAttributeBinding.getEntityBinding().getEntity().getName())) {
-    throw new IllegalStateException("attempt to set EntityBinding with name: [" + referencedAttributeBinding.getEntityBinding().getEntity().getName() + "; entity name should be: "+ referencedEntityName);
+  if (!EntityBinding.class.isInstance(referencedAttributeBinding.getContainer())) {
+    throw new AssertionFailure("Illegal attempt to resolve many-to-one reference based on non-entity attribute");
+  }
+  final EntityBinding entityBinding=(EntityBinding)referencedAttributeBinding.getContainer();
+  if (!referencedEntityName.equals(entityBinding.getEntity().getName())) {
+    throw new IllegalStateException("attempt to set EntityBinding with name: [" + entityBinding.getEntity().getName() + "; entity name should be: "+ referencedEntityName);
   }
   if (referencedAttributeName == null) {
     referencedAttributeName=referencedAttributeBinding.getAttribute().getName();

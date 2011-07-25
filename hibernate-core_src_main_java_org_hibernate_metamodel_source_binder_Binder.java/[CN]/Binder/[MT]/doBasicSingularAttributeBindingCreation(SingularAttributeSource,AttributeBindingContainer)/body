@@ -1,0 +1,33 @@
+{
+  final SingularAttribute existingAttribute=attributeBindingContainer.getAttributeContainer().locateSingularAttribute(attributeSource.getName());
+  final SingularAttribute attribute;
+  if (existingAttribute != null) {
+    attribute=existingAttribute;
+  }
+ else   if (attributeSource.isVirtualAttribute()) {
+    attribute=attributeBindingContainer.getAttributeContainer().createVirtualSingularAttribute(attributeSource.getName());
+  }
+ else {
+    attribute=attributeBindingContainer.getAttributeContainer().createSingularAttribute(attributeSource.getName());
+  }
+  final SimpleSingularAttributeBinding attributeBinding;
+  if (attributeSource.getNature() == SingularAttributeNature.BASIC) {
+    attributeBinding=attributeBindingContainer.makeSimpleAttributeBinding(attribute);
+    resolveTypeInformation(attributeSource.getTypeInformation(),attributeBinding);
+  }
+ else   if (attributeSource.getNature() == SingularAttributeNature.MANY_TO_ONE) {
+    attributeBinding=attributeBindingContainer.makeManyToOneAttributeBinding(attribute);
+    resolveTypeInformation(attributeSource.getTypeInformation(),attributeBinding);
+    resolveToOneInformation((ToOneAttributeSource)attributeSource,(ManyToOneAttributeBinding)attributeBinding);
+  }
+ else {
+    throw new NotYetImplementedException();
+  }
+  attributeBinding.setGeneration(attributeSource.getGeneration());
+  attributeBinding.setLazy(attributeSource.isLazy());
+  attributeBinding.setIncludedInOptimisticLocking(attributeSource.isIncludedInOptimisticLocking());
+  attributeBinding.setPropertyAccessorName(Helper.getPropertyAccessorName(attributeSource.getPropertyAccessorName(),false,currentBindingContext.getMappingDefaults().getPropertyAccessorName()));
+  bindRelationalValues(attributeSource,attributeBinding);
+  attributeBinding.setMetaAttributeContext(buildMetaAttributeContext(attributeSource.metaAttributes(),attributeBindingContainer.getMetaAttributeContext()));
+  return attributeBinding;
+}
