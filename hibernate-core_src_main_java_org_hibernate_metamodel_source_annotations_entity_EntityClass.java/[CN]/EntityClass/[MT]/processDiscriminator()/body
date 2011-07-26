@@ -6,10 +6,12 @@
   if (discriminatorValueAnnotation != null) {
     this.discriminatorMatchValue=discriminatorValueAnnotation.value().asString();
   }
-  final AnnotationInstance discriminatorOptionsAnnotation=JandexHelper.getSingleAnnotation(getClassInfo(),JPADotNames.DISCRIMINATOR_COLUMN);
+  final AnnotationInstance discriminatorColumnAnnotation=JandexHelper.getSingleAnnotation(getClassInfo(),JPADotNames.DISCRIMINATOR_COLUMN);
+  discriminatorColumnValues=new ColumnValues(discriminatorColumnAnnotation);
+  discriminatorColumnValues.setNullable(false);
   Class<?> type=String.class;
-  if (discriminatorOptionsAnnotation != null) {
-    DiscriminatorType discriminatorType=Enum.valueOf(DiscriminatorType.class,discriminatorOptionsAnnotation.value("discriminatorType").asEnum());
+  if (discriminatorColumnAnnotation != null) {
+    DiscriminatorType discriminatorType=Enum.valueOf(DiscriminatorType.class,discriminatorColumnAnnotation.value("discriminatorType").asEnum());
 switch (discriminatorType) {
 case STRING:
 {
@@ -31,7 +33,20 @@ default :
   throw new AnnotationException("Unsupported discriminator type: " + discriminatorType);
 }
 }
+discriminatorColumnValues.setName(JandexHelper.getValue(discriminatorColumnAnnotation,"name",String.class));
+discriminatorColumnValues.setLength(JandexHelper.getValue(discriminatorColumnAnnotation,"length",Integer.class));
+if (discriminatorColumnAnnotation.value("columnDefinition") != null) {
+discriminatorColumnValues.setColumnDefinition(discriminatorColumnAnnotation.value("columnDefinition").asString());
 }
-discriminatorColumnValues=new DiscriminatorColumnValues(getClassInfo().annotations());
+}
 discriminatorType=type;
+AnnotationInstance discriminatorOptionsAnnotation=JandexHelper.getSingleAnnotation(getClassInfo(),HibernateDotNames.DISCRIMINATOR_OPTIONS);
+if (discriminatorOptionsAnnotation != null) {
+isDiscriminatorForced=discriminatorOptionsAnnotation.value("force").asBoolean();
+isDiscriminatorIncludedInSql=discriminatorOptionsAnnotation.value("insert").asBoolean();
+}
+ else {
+isDiscriminatorForced=false;
+isDiscriminatorIncludedInSql=true;
+}
 }
