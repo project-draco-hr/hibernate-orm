@@ -1,46 +1,25 @@
 {
-  String schema=getLocalBindingContext().getMappingDefaults().getSchemaName();
-  String catalog=getLocalBindingContext().getMappingDefaults().getCatalogName();
+  String schema=null;
+  String catalog=null;
   if (tableAnnotation != null) {
-    final AnnotationValue schemaValue=tableAnnotation.value("schema");
-    if (schemaValue != null) {
-      schema=schemaValue.asString();
-    }
-    final AnnotationValue catalogValue=tableAnnotation.value("catalog");
-    if (catalogValue != null) {
-      catalog=catalogValue.asString();
-    }
-  }
-  if (getLocalBindingContext().isGloballyQuotedIdentifiers()) {
-    schema=StringHelper.quote(schema);
-    catalog=StringHelper.quote(catalog);
+    schema=JandexHelper.getValue(tableAnnotation,"schema",String.class);
+    catalog=JandexHelper.getValue(tableAnnotation,"catalog",String.class);
   }
   String tableName=null;
-  String explicitTableName=null;
+  String logicalTableName=null;
   if (tableAnnotation != null) {
-    explicitTableName=JandexHelper.getValue(tableAnnotation,"name",String.class);
-    if (StringHelper.isNotEmpty(explicitTableName)) {
-      tableName=getLocalBindingContext().getNamingStrategy().tableName(explicitTableName);
-      if (getLocalBindingContext().isGloballyQuotedIdentifiers() && !Identifier.isQuoted(explicitTableName)) {
-        tableName=StringHelper.quote(tableName);
-      }
+    logicalTableName=JandexHelper.getValue(tableAnnotation,"name",String.class);
+    if (StringHelper.isNotEmpty(logicalTableName)) {
+      tableName=logicalTableName;
     }
     createUniqueConstraints(tableAnnotation,tableName);
-  }
-  if (tableName == null) {
-    if (explicitEntityName == null) {
-      tableName=getConfiguredClass().getSimpleName();
-    }
- else {
-      tableName=explicitEntityName;
-    }
   }
   TableSourceImpl tableSourceImpl;
   if (tableAnnotation == null || JPADotNames.TABLE.equals(tableAnnotation.name())) {
     tableSourceImpl=new TableSourceImpl(schema,catalog,tableName,null);
   }
  else {
-    tableSourceImpl=new TableSourceImpl(schema,catalog,tableName,explicitTableName);
+    tableSourceImpl=new TableSourceImpl(schema,catalog,tableName,logicalTableName);
   }
   return tableSourceImpl;
 }

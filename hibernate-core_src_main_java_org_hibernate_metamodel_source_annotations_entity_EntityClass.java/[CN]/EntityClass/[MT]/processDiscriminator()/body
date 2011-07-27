@@ -7,9 +7,14 @@
     this.discriminatorMatchValue=discriminatorValueAnnotation.value().asString();
   }
   final AnnotationInstance discriminatorColumnAnnotation=JandexHelper.getSingleAnnotation(getClassInfo(),JPADotNames.DISCRIMINATOR_COLUMN);
-  discriminatorColumnValues=new ColumnValues(discriminatorColumnAnnotation);
-  discriminatorColumnValues.setNullable(false);
+  final AnnotationInstance discriminatorFormulaAnnotation=JandexHelper.getSingleAnnotation(getClassInfo(),HibernateDotNames.DISCRIMINATOR_FORMULA);
   Class<?> type=String.class;
+  if (discriminatorFormulaAnnotation != null) {
+    String expression=JandexHelper.getValue(discriminatorFormulaAnnotation,"value",String.class);
+    discriminatorFormula=new FormulaImpl(getPrimaryTableSource().getExplicitTableName(),expression);
+  }
+  discriminatorColumnValues=new ColumnValues(null);
+  discriminatorColumnValues.setNullable(false);
   if (discriminatorColumnAnnotation != null) {
     DiscriminatorType discriminatorType=Enum.valueOf(DiscriminatorType.class,discriminatorColumnAnnotation.value("discriminatorType").asEnum());
 switch (discriminatorType) {
@@ -35,9 +40,7 @@ default :
 }
 discriminatorColumnValues.setName(JandexHelper.getValue(discriminatorColumnAnnotation,"name",String.class));
 discriminatorColumnValues.setLength(JandexHelper.getValue(discriminatorColumnAnnotation,"length",Integer.class));
-if (discriminatorColumnAnnotation.value("columnDefinition") != null) {
-discriminatorColumnValues.setColumnDefinition(discriminatorColumnAnnotation.value("columnDefinition").asString());
-}
+discriminatorColumnValues.setColumnDefinition(JandexHelper.getValue(discriminatorColumnAnnotation,"columnDefinition",String.class));
 }
 discriminatorType=type;
 AnnotationInstance discriminatorOptionsAnnotation=JandexHelper.getSingleAnnotation(getClassInfo(),HibernateDotNames.DISCRIMINATOR_OPTIONS);

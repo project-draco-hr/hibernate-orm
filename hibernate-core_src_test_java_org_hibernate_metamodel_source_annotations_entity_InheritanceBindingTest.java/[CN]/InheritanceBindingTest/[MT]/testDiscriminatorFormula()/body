@@ -1,0 +1,13 @@
+{
+  EntityBinding rootEntityBinding=getEntityBinding(Fruit.class);
+  assertTrue(rootEntityBinding.isRoot());
+  EntityBinding entityBinding=getEntityBinding(Apple.class);
+  assertFalse(entityBinding.isRoot());
+  EntityDiscriminator discriminator=rootEntityBinding.getHierarchyDetails().getEntityDiscriminator();
+  SimpleValue simpleValue=discriminator.getBoundValue();
+  assertTrue(simpleValue instanceof DerivedValue);
+  DerivedValue derivedValue=(DerivedValue)simpleValue;
+  assertEquals("case when zik_type is null then 0 else zik_type end",derivedValue.getExpression());
+  assertTrue("Wrong default value",discriminator.isForced());
+  assertFalse("Wrong default value",discriminator.isInserted());
+}
