@@ -1,6 +1,6 @@
 {
-  String schema=getContext().getMappingDefaults().getSchemaName();
-  String catalog=getContext().getMappingDefaults().getCatalogName();
+  String schema=getLocalBindingContext().getMappingDefaults().getSchemaName();
+  String catalog=getLocalBindingContext().getMappingDefaults().getCatalogName();
   if (tableAnnotation != null) {
     final AnnotationValue schemaValue=tableAnnotation.value("schema");
     if (schemaValue != null) {
@@ -11,7 +11,7 @@
       catalog=catalogValue.asString();
     }
   }
-  if (getContext().isGloballyQuotedIdentifiers()) {
+  if (getLocalBindingContext().isGloballyQuotedIdentifiers()) {
     schema=StringHelper.quote(schema);
     catalog=StringHelper.quote(catalog);
   }
@@ -20,8 +20,8 @@
   if (tableAnnotation != null) {
     explicitTableName=JandexHelper.getValue(tableAnnotation,"name",String.class);
     if (StringHelper.isNotEmpty(explicitTableName)) {
-      tableName=getContext().getNamingStrategy().tableName(explicitTableName);
-      if (getContext().isGloballyQuotedIdentifiers() && !Identifier.isQuoted(explicitTableName)) {
+      tableName=getLocalBindingContext().getNamingStrategy().tableName(explicitTableName);
+      if (getLocalBindingContext().isGloballyQuotedIdentifiers() && !Identifier.isQuoted(explicitTableName)) {
         tableName=StringHelper.quote(tableName);
       }
     }

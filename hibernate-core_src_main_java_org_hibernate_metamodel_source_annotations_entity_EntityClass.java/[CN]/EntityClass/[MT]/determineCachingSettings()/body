@@ -1,7 +1,7 @@
 {
   final AnnotationInstance hibernateCacheAnnotation=JandexHelper.getSingleAnnotation(getClassInfo(),HibernateDotNames.CACHE);
   if (hibernateCacheAnnotation != null) {
-    final org.hibernate.cache.spi.access.AccessType accessType=hibernateCacheAnnotation.value("usage") == null ? getContext().getMappingDefaults().getCacheAccessType() : CacheConcurrencyStrategy.parse(hibernateCacheAnnotation.value("usage").asEnum()).toAccessType();
+    final org.hibernate.cache.spi.access.AccessType accessType=hibernateCacheAnnotation.value("usage") == null ? getLocalBindingContext().getMappingDefaults().getCacheAccessType() : CacheConcurrencyStrategy.parse(hibernateCacheAnnotation.value("usage").asEnum()).toAccessType();
     return new Caching(hibernateCacheAnnotation.value("region") == null ? getName() : hibernateCacheAnnotation.value("region").asString(),accessType,hibernateCacheAnnotation.value("include") != null && "all".equals(hibernateCacheAnnotation.value("include").asString()));
   }
   final AnnotationInstance jpaCacheableAnnotation=JandexHelper.getSingleAnnotation(getClassInfo(),JPADotNames.CACHEABLE);
@@ -10,7 +10,7 @@
     cacheable=jpaCacheableAnnotation.value().asBoolean();
   }
   final boolean doCaching;
-switch (getContext().getMetadataImplementor().getOptions().getSharedCacheMode()) {
+switch (getLocalBindingContext().getMetadataImplementor().getOptions().getSharedCacheMode()) {
 case ALL:
 {
       doCaching=true;
@@ -35,5 +35,5 @@ break;
 if (!doCaching) {
 return null;
 }
-return new Caching(getName(),getContext().getMappingDefaults().getCacheAccessType(),true);
+return new Caching(getName(),getLocalBindingContext().getMappingDefaults().getCacheAccessType(),true);
 }
