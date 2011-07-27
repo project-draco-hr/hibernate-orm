@@ -1,0 +1,34 @@
+{
+  final AnnotationInstance temporalAnnotation=JandexHelper.getSingleAnnotation(annotations(),JPADotNames.TEMPORAL);
+  if (isTemporalType(attributeType)) {
+    if (temporalAnnotation == null) {
+      throw new AnnotationException("Attribute " + name + " is a Temporal type, but no @Temporal annotation found.");
+    }
+    TemporalType temporalType=JandexHelper.getEnumValue(temporalAnnotation,"value",TemporalType.class);
+    boolean isDate=Date.class.isAssignableFrom(attributeType);
+    String type=null;
+switch (temporalType) {
+case DATE:
+      type=isDate ? "date" : "calendar_date";
+    break;
+case TIME:
+  type="time";
+if (!isDate) {
+  throw new NotYetImplementedException("Calendar cannot persist TIME only");
+}
+break;
+case TIMESTAMP:
+type=isDate ? "timestamp" : "calendar";
+break;
+default :
+throw new AssertionFailure("Unknown temporal type: " + temporalType);
+}
+return type;
+}
+ else {
+if (temporalAnnotation != null) {
+throw new AnnotationException("@Temporal should only be set on a java.util.Date or java.util.Calendar property: " + name);
+}
+}
+return null;
+}
