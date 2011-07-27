@@ -1,0 +1,19 @@
+{
+  IdGenerator generator=null;
+  AnnotationInstance generatedValueAnnotation=JandexHelper.getSingleAnnotation(annotations(),JPADotNames.GENERATED_VALUE);
+  if (generatedValueAnnotation != null) {
+    String name=JandexHelper.getValue(generatedValueAnnotation,"generator",String.class);
+    if (StringHelper.isNotEmpty(name)) {
+      generator=getContext().getMetadataImplementor().getIdGenerator(name);
+      if (generator == null) {
+        throw new MappingException(String.format("Unable to find named generator %s",name),null);
+      }
+    }
+ else {
+      GenerationType genType=JandexHelper.getEnumValue(generatedValueAnnotation,"strategy",GenerationType.class);
+      String strategy=TypeEnumConversionHelper.generationTypeToGeneratorStrategyName(genType,getContext().getMetadataImplementor().getOptions().useNewIdentifierGenerators());
+      generator=new IdGenerator(null,strategy,null);
+    }
+  }
+  return generator;
+}

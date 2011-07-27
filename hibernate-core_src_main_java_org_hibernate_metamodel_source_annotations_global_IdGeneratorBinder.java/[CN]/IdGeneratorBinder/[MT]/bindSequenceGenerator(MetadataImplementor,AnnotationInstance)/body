@@ -1,22 +1,21 @@
 {
   String name=JandexHelper.getValue(generator,"name",String.class);
-  String strategy;
-  Map<String,String> prms=new HashMap<String,String>();
-  addStringParameter(generator,"sequenceName",prms,SequenceStyleGenerator.SEQUENCE_PARAM);
+  Map<String,String> parameterMap=new HashMap<String,String>();
+  addStringParameter(generator,"sequenceName",parameterMap,SequenceStyleGenerator.SEQUENCE_PARAM);
   boolean useNewIdentifierGenerators=metadata.getOptions().useNewIdentifierGenerators();
-  strategy=generatorType(GenerationType.SEQUENCE,useNewIdentifierGenerators);
+  String strategy=TypeEnumConversionHelper.generationTypeToGeneratorStrategyName(GenerationType.SEQUENCE,useNewIdentifierGenerators);
   if (useNewIdentifierGenerators) {
-    addStringParameter(generator,"catalog",prms,PersistentIdentifierGenerator.CATALOG);
-    addStringParameter(generator,"schema",prms,PersistentIdentifierGenerator.SCHEMA);
-    prms.put(SequenceStyleGenerator.INCREMENT_PARAM,String.valueOf(JandexHelper.getValue(generator,"allocationSize",Integer.class)));
-    prms.put(SequenceStyleGenerator.INITIAL_PARAM,String.valueOf(JandexHelper.getValue(generator,"initialValue",Integer.class)));
+    addStringParameter(generator,"catalog",parameterMap,PersistentIdentifierGenerator.CATALOG);
+    addStringParameter(generator,"schema",parameterMap,PersistentIdentifierGenerator.SCHEMA);
+    parameterMap.put(SequenceStyleGenerator.INCREMENT_PARAM,String.valueOf(JandexHelper.getValue(generator,"allocationSize",Integer.class)));
+    parameterMap.put(SequenceStyleGenerator.INITIAL_PARAM,String.valueOf(JandexHelper.getValue(generator,"initialValue",Integer.class)));
   }
  else {
     if (JandexHelper.getValue(generator,"initialValue",Integer.class) != 1) {
       LOG.unsupportedInitialValue(AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS);
     }
-    prms.put(SequenceHiLoGenerator.MAX_LO,String.valueOf(JandexHelper.getValue(generator,"allocationSize",Integer.class) - 1));
+    parameterMap.put(SequenceHiLoGenerator.MAX_LO,String.valueOf(JandexHelper.getValue(generator,"allocationSize",Integer.class) - 1));
   }
-  metadata.addIdGenerator(new IdGenerator(name,strategy,prms));
+  metadata.addIdGenerator(new IdGenerator(name,strategy,parameterMap));
   LOG.tracef("Add sequence generator with name: %s",name);
 }
