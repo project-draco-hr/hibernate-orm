@@ -1,0 +1,15 @@
+{
+@Entity class Foo {
+  }
+  Index index=JandexHelper.indexForClass(classLoaderService,Foo.class);
+  List<AnnotationInstance> annotationInstances=index.getAnnotations(JPADotNames.ENTITY);
+  assertTrue(annotationInstances.size() == 1);
+  AnnotationInstance annotationInstance=annotationInstances.get(0);
+  try {
+    JandexHelper.getValue(annotationInstance,"foo",String.class);
+    fail();
+  }
+ catch (  AssertionFailure e) {
+    assertTrue(e.getMessage().startsWith("The annotation javax.persistence.Entity does not define a parameter 'foo'"));
+  }
+}
