@@ -205,8 +205,15 @@
     templates.add(forms);
     propColumnNumbers.add(colnos);
     propFormulaNumbers.add(formnos);
-    joinedFetchesList.add(FetchMode.DEFAULT);
-    cascades.add(CascadeStyle.NONE);
+    if (singularAttributeBinding.isAssociation()) {
+      AssociationAttributeBinding associationAttributeBinding=(AssociationAttributeBinding)singularAttributeBinding;
+      cascades.add(associationAttributeBinding.getCascadeStyle());
+      joinedFetchesList.add(associationAttributeBinding.getFetchMode());
+    }
+ else {
+      cascades.add(CascadeStyle.NONE);
+      joinedFetchesList.add(FetchMode.SELECT);
+    }
   }
   subclassColumnClosure=ArrayHelper.toStringArray(columns);
   subclassColumnAliasClosure=ArrayHelper.toStringArray(aliases);
