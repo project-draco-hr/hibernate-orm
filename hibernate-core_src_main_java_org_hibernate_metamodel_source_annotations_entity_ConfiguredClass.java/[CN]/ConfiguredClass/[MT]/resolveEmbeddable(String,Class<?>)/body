@@ -1,10 +1,10 @@
 {
   ClassInfo embeddableClassInfo=localBindingContext.getClassInfo(type.getName());
-  if (classInfo == null) {
-    String msg=String.format("Attribute %s of entity %s is annotated with @Embedded, but no embeddable configuration for type %s can be found.",attributeName,getName(),type.getName());
+  if (embeddableClassInfo == null) {
+    String msg=String.format("Attribute '%s#%s' is annotated with @Embedded, but '%s' does not seem to be annotated " + "with @Embeddable. Are all annotated classes added to the configuration?",getConfiguredClass().getSimpleName(),attributeName,type.getSimpleName());
     throw new AnnotationException(msg);
   }
   localBindingContext.resolveAllTypes(type.getName());
-  EmbeddableHierarchy<EmbeddableClass> hierarchy=ConfiguredClassHierarchyBuilder.createEmbeddableHierarchy(localBindingContext.<Object>locateClassByName(embeddableClassInfo.toString()),classAccessType,localBindingContext);
+  EmbeddableHierarchy hierarchy=EmbeddableHierarchy.createEmbeddableHierarchy(localBindingContext.<Object>locateClassByName(embeddableClassInfo.toString()),attributeName,classAccessType,localBindingContext);
   embeddedClasses.put(attributeName,hierarchy.getLeaf());
 }

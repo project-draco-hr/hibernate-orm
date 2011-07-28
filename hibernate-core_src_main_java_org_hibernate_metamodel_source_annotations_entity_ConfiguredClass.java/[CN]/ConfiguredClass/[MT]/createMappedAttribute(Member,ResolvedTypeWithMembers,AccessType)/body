@@ -19,7 +19,12 @@ case BASIC:
         idAttributeMap.put(attributeName,attribute);
       }
  else       if (attribute.isVersioned()) {
-        versionAttribute=attribute;
+        if (versionAttribute == null) {
+          versionAttribute=attribute;
+        }
+ else {
+          throw new MappingException("Multiple version attributes",localBindingContext.getOrigin());
+        }
       }
  else {
         simpleAttributeMap.put(attributeName,attribute);
@@ -27,15 +32,22 @@ case BASIC:
       break;
     }
 case ELEMENT_COLLECTION:
+{
+    throw new NotYetImplementedException("Element collections must still be implemented.");
+  }
 case EMBEDDED_ID:
+{
+  throw new NotYetImplementedException("Embedded ids must still be implemented.");
+}
 case EMBEDDED:
 {
-    resolveEmbeddable(attributeName,attributeType);
-  }
+resolveEmbeddable(attributeName,attributeType);
+break;
+}
 default :
 {
-  AssociationAttribute attribute=AssociationAttribute.createAssociationAttribute(attributeName,attributeType,attributeNature,accessTypeString,annotations,getLocalBindingContext());
-  associationAttributeMap.put(attributeName,attribute);
+AssociationAttribute attribute=AssociationAttribute.createAssociationAttribute(attributeName,attributeType,attributeNature,accessTypeString,annotations,getLocalBindingContext());
+associationAttributeMap.put(attributeName,attribute);
 }
 }
 }
