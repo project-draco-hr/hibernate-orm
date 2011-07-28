@@ -3,14 +3,14 @@ switch (x.getType()) {
 case OR:
     x.setType(AND);
   x.setText("{and}");
-negateNode(x.getFirstChild());
-negateNode(x.getFirstChild().getNextSibling());
+x.setFirstChild(negateNode(x.getFirstChild()));
+x.getFirstChild().setNextSibling(negateNode(x.getFirstChild().getNextSibling()));
 return x;
 case AND:
 x.setType(OR);
 x.setText("{or}");
-negateNode(x.getFirstChild());
-negateNode(x.getFirstChild().getNextSibling());
+x.setFirstChild(negateNode(x.getFirstChild()));
+x.getFirstChild().setNextSibling(negateNode(x.getFirstChild().getNextSibling()));
 return x;
 case EQ:
 x.setType(NE);
@@ -69,6 +69,11 @@ x.setType(BETWEEN);
 x.setText("{not}" + x.getText());
 return x;
 default :
-return super.negateNode(x);
+AST not=super.negateNode(x);
+if (not != x) {
+not.setNextSibling(x.getNextSibling());
+x.setNextSibling(null);
+}
+return not;
 }
 }
