@@ -3,10 +3,18 @@
   final AbstractPluralAttributeBinding pluralAttributeBinding;
   if (attributeSource.getPluralAttributeNature() == PluralAttributeNature.BAG) {
     final PluralAttribute attribute=existingAttribute != null ? existingAttribute : attributeBindingContainer.getAttributeContainer().createBag(attributeSource.getName());
-    pluralAttributeBinding=attributeBindingContainer.makeBagAttributeBinding(attribute,convert(attributeSource.getPluralAttributeElementNature()));
+    pluralAttributeBinding=attributeBindingContainer.makeBagAttributeBinding(attribute,convert(attributeSource.getElementSource().getNature()));
+  }
+ else   if (attributeSource.getPluralAttributeNature() == PluralAttributeNature.SET) {
+    final PluralAttribute attribute=existingAttribute != null ? existingAttribute : attributeBindingContainer.getAttributeContainer().createSet(attributeSource.getName());
+    pluralAttributeBinding=attributeBindingContainer.makeSetAttributeBinding(attribute,convert(attributeSource.getElementSource().getNature()));
   }
  else {
-    throw new NotYetImplementedException("Collections other than bag not yet implmented :(");
+    throw new NotYetImplementedException("Collections other than bag not yet implemented :(");
   }
   doBasicAttributeBinding(attributeSource,pluralAttributeBinding);
+  bindCollectionTable(attributeSource,pluralAttributeBinding);
+  bindCollectionKey(attributeSource,pluralAttributeBinding);
+  bindSortingAndOrdering(attributeSource,pluralAttributeBinding);
+  metadata.addCollection(pluralAttributeBinding);
 }
