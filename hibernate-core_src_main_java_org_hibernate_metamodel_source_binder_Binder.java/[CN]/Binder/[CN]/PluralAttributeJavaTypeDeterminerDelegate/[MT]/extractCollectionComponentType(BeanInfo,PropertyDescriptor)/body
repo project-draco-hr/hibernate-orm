@@ -1,0 +1,30 @@
+{
+  final java.lang.reflect.Type collectionAttributeType;
+  if (propertyDescriptor.getReadMethod() != null) {
+    collectionAttributeType=propertyDescriptor.getReadMethod().getGenericReturnType();
+  }
+ else   if (propertyDescriptor.getWriteMethod() != null) {
+    collectionAttributeType=propertyDescriptor.getWriteMethod().getGenericParameterTypes()[0];
+  }
+ else {
+    try {
+      collectionAttributeType=ownerClass.getField(propertyDescriptor.getName()).getGenericType();
+    }
+ catch (    Exception e) {
+      return null;
+    }
+  }
+  if (ParameterizedType.class.isInstance(collectionAttributeType)) {
+    final java.lang.reflect.Type[] types=((ParameterizedType)collectionAttributeType).getActualTypeArguments();
+    if (types == null) {
+      return null;
+    }
+ else     if (types.length == 1) {
+      return (Class<?>)types[0];
+    }
+ else     if (types.length == 2) {
+      return (Class<?>)types[1];
+    }
+  }
+  return null;
+}

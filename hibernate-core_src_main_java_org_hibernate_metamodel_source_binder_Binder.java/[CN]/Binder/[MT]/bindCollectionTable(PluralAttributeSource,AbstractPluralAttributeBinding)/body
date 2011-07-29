@@ -2,14 +2,31 @@
   if (attributeSource.getElementSource().getNature() == PluralAttributeElementNature.ONE_TO_MANY) {
     return;
   }
-  if (StringHelper.isNotEmpty(attributeSource.getExplicitCollectionTableName())) {
-    final Identifier tableIdentifier=Identifier.toIdentifier(attributeSource.getExplicitCollectionTableName());
-    Table collectionTable=metadata.getDatabase().getDefaultSchema().locateTable(tableIdentifier);
+  final Schema.Name schemaName=Helper.determineDatabaseSchemaName(attributeSource.getExplicitSchemaName(),attributeSource.getExplicitCatalogName(),currentBindingContext);
+  final Schema schema=metadata.getDatabase().locateSchema(schemaName);
+  final String tableName=attributeSource.getExplicitCollectionTableName();
+  if (StringHelper.isNotEmpty(tableName)) {
+    final Identifier tableIdentifier=Identifier.toIdentifier(currentBindingContext.getNamingStrategy().tableName(tableName));
+    Table collectionTable=schema.locateTable(tableIdentifier);
     if (collectionTable == null) {
-      collectionTable=metadata.getDatabase().getDefaultSchema().createTable(tableIdentifier);
+      collectionTable=schema.createTable(tableIdentifier);
     }
     pluralAttributeBinding.setCollectionTable(collectionTable);
   }
  else {
+    final EntityBinding owner=pluralAttributeBinding.getContainer().seekEntityBinding();
+    final String ownerTableLogicalName=Table.class.isInstance(owner.getPrimaryTable()) ? Table.class.cast(owner.getPrimaryTable()).getTableName().getName() : null;
+    String collectionTableName=currentBindingContext.getNamingStrategy().collectionTableName(owner.getEntity().getName(),ownerTableLogicalName,null,null,pluralAttributeBinding.getContainer().getPathBase() + '.' + attributeSource.getName());
+    if (currentBindingContext.isGloballyQuotedIdentifiers()) {
+      collectionTableName=StringHelper.quote(collectionTableName);
+    }
+    pluralAttributeBinding.setCollectionTable(schema.locateOrCreateTable(Identifier.toIdentifier(collectionTableName)));
   }
+  if (StringHelper.isNotEmpty(attributeSource.getCollectionTableComment())) {
+    pluralAttributeBinding.getCollectionTable().addComment(attributeSource.getCollectionTableComment());
+  }
+  if (StringHelper.isNotEmpty(attributeSource.getCollectionTableCheck())) {
+    pluralAttributeBinding.getCollectionTable().addCheckConstraint(attributeSource.getCollectionTableCheck());
+  }
+  pluralAttributeBinding.setWhere(attributeSource.getWhere());
 }
