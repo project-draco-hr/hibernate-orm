@@ -1,0 +1,20 @@
+{
+  HashMap<String,String> typeParameters=new HashMap<String,String>();
+  typeParameters.put(EnumType.ENUM,mappedAttribute.getAttributeType().getName());
+  if (annotationInstance != null) {
+    javax.persistence.EnumType enumType=JandexHelper.getEnumValue(annotationInstance,"value",javax.persistence.EnumType.class);
+    if (javax.persistence.EnumType.ORDINAL.equals(enumType)) {
+      typeParameters.put(EnumType.TYPE,String.valueOf(Types.INTEGER));
+    }
+ else     if (javax.persistence.EnumType.STRING.equals(enumType)) {
+      typeParameters.put(EnumType.TYPE,String.valueOf(Types.VARCHAR));
+    }
+ else {
+      throw new AssertionFailure("Unknown EnumType: " + enumType);
+    }
+  }
+ else {
+    typeParameters.put(EnumType.TYPE,String.valueOf(Types.INTEGER));
+  }
+  return typeParameters;
+}
