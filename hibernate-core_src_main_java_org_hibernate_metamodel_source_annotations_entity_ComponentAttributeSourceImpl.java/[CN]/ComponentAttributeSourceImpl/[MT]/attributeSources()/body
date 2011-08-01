@@ -1,10 +1,15 @@
 {
   List<AttributeSource> attributeList=new ArrayList<AttributeSource>();
   for (  BasicAttribute attribute : embeddableClass.getSimpleAttributes()) {
-    attributeList.add(new SingularAttributeSourceImpl(attribute));
+    AttributeOverride attributeOverride=null;
+    String tmp=getPath() + "." + attribute.getName();
+    if (attributeOverrides.containsKey(tmp)) {
+      attributeOverride=attributeOverrides.get(tmp);
+    }
+    attributeList.add(new SingularAttributeSourceImpl(attribute,attributeOverride));
   }
   for (  EmbeddableClass component : embeddableClass.getEmbeddedClasses().values()) {
-    attributeList.add(new ComponentAttributeSourceImpl(component));
+    attributeList.add(new ComponentAttributeSourceImpl(component,embeddableClass.getAttributeOverrideMap()));
   }
   for (  AssociationAttribute associationAttribute : embeddableClass.getAssociationAttributes()) {
     attributeList.add(new ToOneAttributeSourceImpl(associationAttribute));

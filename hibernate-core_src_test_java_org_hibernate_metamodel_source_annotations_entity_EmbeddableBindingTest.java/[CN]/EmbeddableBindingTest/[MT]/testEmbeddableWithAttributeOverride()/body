@@ -1,0 +1,12 @@
+{
+  EntityBinding binding=getEntityBinding(BaseEntity.class);
+  final String componentName="embedded";
+  assertNotNull(binding.locateAttributeBinding(componentName));
+  assertTrue(binding.locateAttributeBinding(componentName) instanceof ComponentAttributeBinding);
+  ComponentAttributeBinding componentBinding=(ComponentAttributeBinding)binding.locateAttributeBinding(componentName);
+  assertNotNull(componentBinding.locateAttributeBinding("name"));
+  BasicAttributeBinding nameAttribute=(BasicAttributeBinding)componentBinding.locateAttributeBinding("name");
+  org.hibernate.metamodel.relational.Column column=(org.hibernate.metamodel.relational.Column)nameAttribute.getValue();
+  assertEquals("Attribute override specifies a custom column name","FUBAR",column.getColumnName().getName());
+  assertEquals("Attribute override specifies a custom size",42,column.getSize().getLength());
+}
