@@ -17,9 +17,7 @@
     final EntityBinding owner=pluralAttributeBinding.getContainer().seekEntityBinding();
     final String ownerTableLogicalName=Table.class.isInstance(owner.getPrimaryTable()) ? Table.class.cast(owner.getPrimaryTable()).getTableName().getName() : null;
     String collectionTableName=currentBindingContext.getNamingStrategy().collectionTableName(owner.getEntity().getName(),ownerTableLogicalName,null,null,pluralAttributeBinding.getContainer().getPathBase() + '.' + attributeSource.getName());
-    if (currentBindingContext.isGloballyQuotedIdentifiers()) {
-      collectionTableName=StringHelper.quote(collectionTableName);
-    }
+    collectionTableName=quoteIdentifier(collectionTableName);
     pluralAttributeBinding.setCollectionTable(schema.locateOrCreateTable(Identifier.toIdentifier(collectionTableName)));
   }
   if (StringHelper.isNotEmpty(attributeSource.getCollectionTableComment())) {
