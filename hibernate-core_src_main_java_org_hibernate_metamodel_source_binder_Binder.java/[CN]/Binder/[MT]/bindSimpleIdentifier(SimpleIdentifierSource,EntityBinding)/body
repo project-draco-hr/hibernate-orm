@@ -1,7 +1,13 @@
 {
   final BasicAttributeBinding idAttributeBinding=doBasicSingularAttributeBindingCreation(identifierSource.getIdentifierAttributeSource(),entityBinding);
   entityBinding.getHierarchyDetails().getEntityIdentifier().setValueBinding(idAttributeBinding);
-  entityBinding.getHierarchyDetails().getEntityIdentifier().setIdGenerator(identifierSource.getIdentifierGeneratorDescriptor());
+  IdGenerator generator=identifierSource.getIdentifierGeneratorDescriptor();
+  if (generator == null) {
+    Map<String,String> params=new HashMap<String,String>();
+    params.put(IdentifierGenerator.ENTITY_NAME,entityBinding.getEntity().getName());
+    generator=new IdGenerator("default_assign_identity_generator","assigned",params);
+  }
+  entityBinding.getHierarchyDetails().getEntityIdentifier().setIdGenerator(generator);
   final org.hibernate.metamodel.relational.Value relationalValue=idAttributeBinding.getValue();
   if (SimpleValue.class.isInstance(relationalValue)) {
     if (!Column.class.isInstance(relationalValue)) {
