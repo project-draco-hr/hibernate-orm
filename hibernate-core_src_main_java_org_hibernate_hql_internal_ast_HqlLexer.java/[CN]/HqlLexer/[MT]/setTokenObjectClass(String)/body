@@ -1,3 +1,13 @@
 {
-  super.setTokenObjectClass(HqlToken.class.getName());
+  Thread thread=null;
+  ClassLoader contextClassLoader=null;
+  try {
+    thread=Thread.currentThread();
+    contextClassLoader=thread.getContextClassLoader();
+    thread.setContextClassLoader(HqlToken.class.getClassLoader());
+    super.setTokenObjectClass(HqlToken.class.getName());
+  }
+  finally {
+    thread.setContextClassLoader(contextClassLoader);
+  }
 }
