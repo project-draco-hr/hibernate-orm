@@ -1,0 +1,19 @@
+{
+  final AnnotationInstance tuplizersAnnotation=JandexHelper.getSingleAnnotation(classInfo,HibernateDotNames.TUPLIZERS);
+  if (tuplizersAnnotation == null) {
+    return null;
+  }
+  AnnotationInstance[] annotations=JandexHelper.getValue(tuplizersAnnotation,"value",AnnotationInstance[].class);
+  AnnotationInstance pojoTuplizerAnnotation=null;
+  for (  AnnotationInstance tuplizerAnnotation : annotations) {
+    if (EntityMode.valueOf(tuplizerAnnotation.value("entityModeType").asEnum()) == EntityMode.POJO) {
+      pojoTuplizerAnnotation=tuplizerAnnotation;
+      break;
+    }
+  }
+  String customTuplizer=null;
+  if (pojoTuplizerAnnotation != null) {
+    customTuplizer=pojoTuplizerAnnotation.value("impl").asString();
+  }
+  return customTuplizer;
+}
