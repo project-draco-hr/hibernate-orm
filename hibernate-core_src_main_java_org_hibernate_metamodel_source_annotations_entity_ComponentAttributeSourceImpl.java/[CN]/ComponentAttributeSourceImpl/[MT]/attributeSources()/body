@@ -2,14 +2,14 @@
   List<AttributeSource> attributeList=new ArrayList<AttributeSource>();
   for (  BasicAttribute attribute : embeddableClass.getSimpleAttributes()) {
     AttributeOverride attributeOverride=null;
-    String tmp=getPath() + "." + attribute.getName();
+    String tmp=getPath() + PATH_SEPERATOR + attribute.getName();
     if (attributeOverrides.containsKey(tmp)) {
       attributeOverride=attributeOverrides.get(tmp);
     }
     attributeList.add(new SingularAttributeSourceImpl(attribute,attributeOverride));
   }
-  for (  EmbeddableClass component : embeddableClass.getEmbeddedClasses().values()) {
-    attributeList.add(new ComponentAttributeSourceImpl(component,embeddableClass.getAttributeOverrideMap()));
+  for (  EmbeddableClass embeddable : embeddableClass.getEmbeddedClasses().values()) {
+    attributeList.add(new ComponentAttributeSourceImpl(embeddable,getPath(),createAggregatedOverrideMap()));
   }
   for (  AssociationAttribute associationAttribute : embeddableClass.getAssociationAttributes()) {
     attributeList.add(new ToOneAttributeSourceImpl(associationAttribute));

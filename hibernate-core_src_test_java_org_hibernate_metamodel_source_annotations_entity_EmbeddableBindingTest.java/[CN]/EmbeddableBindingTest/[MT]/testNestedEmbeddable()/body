@@ -1,0 +1,20 @@
+{
+  EntityBinding binding=getEntityBinding(Customer.class);
+  final String addressComponentName="address";
+  assertNotNull(binding.locateAttributeBinding(addressComponentName));
+  assertTrue(binding.locateAttributeBinding(addressComponentName) instanceof ComponentAttributeBinding);
+  ComponentAttributeBinding attributeComponentBinding=(ComponentAttributeBinding)binding.locateAttributeBinding(addressComponentName);
+  assertNotNull(attributeComponentBinding.locateAttributeBinding("street"));
+  assertNotNull(attributeComponentBinding.locateAttributeBinding("city"));
+  assertNotNull(attributeComponentBinding.locateAttributeBinding("state"));
+  BasicAttributeBinding stateAttribute=(BasicAttributeBinding)attributeComponentBinding.locateAttributeBinding("state");
+  org.hibernate.metamodel.relational.Column column=(org.hibernate.metamodel.relational.Column)stateAttribute.getValue();
+  assertEquals("Attribute override specifies a custom column name","ADDR_STATE",column.getColumnName().getName());
+  final String zipComponentName="zipcode";
+  assertNotNull(attributeComponentBinding.locateAttributeBinding(zipComponentName));
+  assertTrue(attributeComponentBinding.locateAttributeBinding(zipComponentName) instanceof ComponentAttributeBinding);
+  ComponentAttributeBinding zipComponentBinding=(ComponentAttributeBinding)attributeComponentBinding.locateAttributeBinding(zipComponentName);
+  BasicAttributeBinding nameAttribute=(BasicAttributeBinding)zipComponentBinding.locateAttributeBinding("zip");
+  column=(org.hibernate.metamodel.relational.Column)nameAttribute.getValue();
+  assertEquals("Attribute override specifies a custom column name","ADDR_ZIP",column.getColumnName().getName());
+}

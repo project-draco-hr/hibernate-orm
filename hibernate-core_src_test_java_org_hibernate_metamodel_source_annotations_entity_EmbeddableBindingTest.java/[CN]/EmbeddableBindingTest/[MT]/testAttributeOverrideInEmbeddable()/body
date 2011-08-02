@@ -1,0 +1,17 @@
+{
+  EntityBinding binding=getEntityBinding(C.class);
+  final String aComponentName="a";
+  assertNotNull(binding.locateAttributeBinding(aComponentName));
+  assertTrue(binding.locateAttributeBinding(aComponentName) instanceof ComponentAttributeBinding);
+  ComponentAttributeBinding aComponentBinding=(ComponentAttributeBinding)binding.locateAttributeBinding(aComponentName);
+  final String bComponentName="b";
+  assertNotNull(aComponentBinding.locateAttributeBinding(bComponentName));
+  assertTrue(aComponentBinding.locateAttributeBinding(bComponentName) instanceof ComponentAttributeBinding);
+  ComponentAttributeBinding bComponentBinding=(ComponentAttributeBinding)aComponentBinding.locateAttributeBinding(bComponentName);
+  BasicAttributeBinding attribute=(BasicAttributeBinding)bComponentBinding.locateAttributeBinding("foo");
+  org.hibernate.metamodel.relational.Column column=(org.hibernate.metamodel.relational.Column)attribute.getValue();
+  assertEquals("Attribute override specifies a custom column name","BAR",column.getColumnName().getName());
+  attribute=(BasicAttributeBinding)bComponentBinding.locateAttributeBinding("fubar");
+  column=(org.hibernate.metamodel.relational.Column)attribute.getValue();
+  assertEquals("Attribute override specifies a custom column name","C_WINS",column.getColumnName().getName());
+}
