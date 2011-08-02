@@ -1,0 +1,17 @@
+{
+  if (attributeBinding.getHibernateTypeDescriptor().getResolvedTypeMapping() != null) {
+    return;
+  }
+  Type resolvedType;
+  String typeName=determineTypeName(attributeBinding.getHibernateTypeDescriptor());
+  if (typeName != null) {
+    resolvedType=metadata.getTypeResolver().getTypeFactory().customCollection(typeName,getTypeParameters(attributeBinding.getHibernateTypeDescriptor()),attributeBinding.getAttribute().getName(),attributeBinding.getReferencedPropertyName(),attributeBinding.isEmbedded());
+  }
+ else {
+    resolvedType=determineDefaultCollectionInformation(attributeBinding);
+  }
+  if (resolvedType != null) {
+    pushHibernateTypeInformationDownIfNeeded(attributeBinding.getHibernateTypeDescriptor(),null,resolvedType);
+  }
+  resolveCollectionElementTypeInformation(attributeBinding.getCollectionElement());
+}

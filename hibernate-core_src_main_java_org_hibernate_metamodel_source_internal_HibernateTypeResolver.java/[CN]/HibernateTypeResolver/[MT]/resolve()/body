@@ -4,7 +4,15 @@
       resolveDiscriminatorTypeInformation(entityBinding.getHierarchyDetails().getEntityDiscriminator());
     }
     for (    AttributeBinding attributeBinding : entityBinding.attributeBindings()) {
-      resolveAttributeTypeInformation(attributeBinding);
+      if (SingularAttributeBinding.class.isInstance(attributeBinding)) {
+        resolveSingularAttributeTypeInformation(SingularAttributeBinding.class.cast(attributeBinding));
+      }
+ else       if (AbstractPluralAttributeBinding.class.isInstance(attributeBinding)) {
+        resolvePluralAttributeTypeInformation(AbstractPluralAttributeBinding.class.cast(attributeBinding));
+      }
+ else {
+        throw new AssertionFailure("Unknown type of AttributeBinding: " + attributeBinding.getClass().getName());
+      }
     }
   }
 }

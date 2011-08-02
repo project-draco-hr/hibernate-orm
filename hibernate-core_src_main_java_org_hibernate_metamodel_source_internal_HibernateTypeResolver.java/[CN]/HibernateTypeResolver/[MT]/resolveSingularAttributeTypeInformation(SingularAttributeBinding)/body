@@ -1,0 +1,19 @@
+{
+  if (attributeBinding.getHibernateTypeDescriptor().getResolvedTypeMapping() != null) {
+    return;
+  }
+  Type resolvedType;
+  resolvedType=determineSingularTypeFromDescriptor(attributeBinding.getHibernateTypeDescriptor());
+  if (resolvedType == null) {
+    if (!attributeBinding.getAttribute().isSingular()) {
+      throw new AssertionFailure("SingularAttributeBinding object has a plural attribute: " + attributeBinding.getAttribute().getName());
+    }
+    final SingularAttribute singularAttribute=(SingularAttribute)attributeBinding.getAttribute();
+    if (singularAttribute.getSingularAttributeType() != null) {
+      resolvedType=getHeuristicType(singularAttribute.getSingularAttributeType().getClassName(),new Properties());
+    }
+  }
+  if (resolvedType != null) {
+    pushHibernateTypeInformationDownIfNeeded(attributeBinding,resolvedType);
+  }
+}
