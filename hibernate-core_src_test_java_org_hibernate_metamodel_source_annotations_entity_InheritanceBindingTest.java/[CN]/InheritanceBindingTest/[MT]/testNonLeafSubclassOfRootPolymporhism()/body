@@ -1,0 +1,25 @@
+{
+  EntityBinding rootEntityBinding=getEntityBinding(RootOfSingleTableInheritance.class);
+  EntityBinding subclassEntityBinding=getEntityBinding(SubclassOfSingleTableInheritance.class);
+  EntityBinding otherSubclassEntityBinding=getEntityBinding(OtherSubclassOfSingleTableInheritance.class);
+  EntityBinding subclassOfSubclassEntityBinding=getEntityBinding(SubclassOfSubclassOfSingleTableInheritance.class);
+  assertEquals("Wrong discriminator value","foo1",subclassEntityBinding.getDiscriminatorMatchValue());
+  assertFalse(subclassEntityBinding.isRoot());
+  assertSame(rootEntityBinding,subclassEntityBinding.getSuperEntityBinding());
+  assertSame(rootEntityBinding,getRootEntityBinding(SubclassOfSingleTableInheritance.class));
+  assertTrue(subclassEntityBinding.isPolymorphic());
+  assertTrue(subclassEntityBinding.hasSubEntityBindings());
+  assertEquals(1,subclassEntityBinding.getSubEntityBindingSpan());
+  Iterator<EntityBinding> itSubEntityBindings=subclassEntityBinding.getSubEntityBindingClosure().iterator();
+  assertTrue(itSubEntityBindings.hasNext());
+  assertSame(subclassOfSubclassEntityBinding,itSubEntityBindings.next());
+  assertFalse(itSubEntityBindings.hasNext());
+  assertEquals(2,subclassEntityBinding.getAttributeBindingClosureSpan());
+  Set<String> attributeNames=new HashSet<String>();
+  for (  AttributeBinding attributeBinding : subclassEntityBinding.getAttributeBindingClosure()) {
+    attributeNames.add(attributeBinding.getAttribute().getName());
+  }
+  assertEquals(2,attributeNames.size());
+  assertTrue(attributeNames.contains("id"));
+  assertTrue(attributeNames.contains("name"));
+}
