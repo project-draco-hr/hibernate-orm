@@ -1,21 +1,15 @@
 {
   super(name,attributeType,accessType,annotations,context);
-  AnnotationInstance idAnnotation=JandexHelper.getSingleAnnotation(annotations,JPADotNames.ID);
-  AnnotationInstance embeddedIdAnnotation=JandexHelper.getSingleAnnotation(annotations,JPADotNames.EMBEDDED_ID);
-  isId=(idAnnotation != null || embeddedIdAnnotation != null);
   AnnotationInstance versionAnnotation=JandexHelper.getSingleAnnotation(annotations,JPADotNames.VERSION);
   isVersioned=versionAnnotation != null;
-  AnnotationInstance columnAnnotation=JandexHelper.getSingleAnnotation(annotations,JPADotNames.COLUMN);
-  columnValues=new ColumnValues(columnAnnotation);
-  if (isId) {
-    columnValues.setUnique(true);
-    columnValues.setNullable(false);
+  if (isId()) {
+    getColumnValues().setUnique(true);
+    getColumnValues().setNullable(false);
     idGenerator=checkGeneratedValueAnnotation();
   }
  else {
     idGenerator=null;
   }
-  this.isOptimisticLockable=checkOptimisticLockAnnotation();
   checkBasicAnnotation();
   checkGeneratedAnnotation();
   List<AnnotationInstance> columnTransformerAnnotations=getAllColumnTransformerAnnotations();

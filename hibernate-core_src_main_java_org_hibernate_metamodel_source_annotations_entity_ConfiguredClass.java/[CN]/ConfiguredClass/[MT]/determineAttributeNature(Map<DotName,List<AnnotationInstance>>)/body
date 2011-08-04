@@ -1,0 +1,40 @@
+{
+  EnumMap<AttributeNature,AnnotationInstance> discoveredAttributeTypes=new EnumMap<AttributeNature,AnnotationInstance>(AttributeNature.class);
+  AnnotationInstance oneToOne=JandexHelper.getSingleAnnotation(annotations,JPADotNames.ONE_TO_ONE);
+  if (oneToOne != null) {
+    discoveredAttributeTypes.put(AttributeNature.ONE_TO_ONE,oneToOne);
+  }
+  AnnotationInstance oneToMany=JandexHelper.getSingleAnnotation(annotations,JPADotNames.ONE_TO_MANY);
+  if (oneToMany != null) {
+    discoveredAttributeTypes.put(AttributeNature.ONE_TO_MANY,oneToMany);
+  }
+  AnnotationInstance manyToOne=JandexHelper.getSingleAnnotation(annotations,JPADotNames.MANY_TO_ONE);
+  if (manyToOne != null) {
+    discoveredAttributeTypes.put(AttributeNature.MANY_TO_ONE,manyToOne);
+  }
+  AnnotationInstance manyToMany=JandexHelper.getSingleAnnotation(annotations,JPADotNames.MANY_TO_MANY);
+  if (manyToMany != null) {
+    discoveredAttributeTypes.put(AttributeNature.MANY_TO_MANY,manyToMany);
+  }
+  AnnotationInstance embedded=JandexHelper.getSingleAnnotation(annotations,JPADotNames.EMBEDDED);
+  if (embedded != null) {
+    discoveredAttributeTypes.put(AttributeNature.EMBEDDED,embedded);
+  }
+  AnnotationInstance embeddedId=JandexHelper.getSingleAnnotation(annotations,JPADotNames.EMBEDDED_ID);
+  if (embeddedId != null) {
+    discoveredAttributeTypes.put(AttributeNature.EMBEDDED_ID,embeddedId);
+  }
+  AnnotationInstance elementCollection=JandexHelper.getSingleAnnotation(annotations,JPADotNames.ELEMENT_COLLECTION);
+  if (elementCollection != null) {
+    discoveredAttributeTypes.put(AttributeNature.ELEMENT_COLLECTION,elementCollection);
+  }
+  if (discoveredAttributeTypes.size() == 0) {
+    return AttributeNature.BASIC;
+  }
+ else   if (discoveredAttributeTypes.size() == 1) {
+    return discoveredAttributeTypes.keySet().iterator().next();
+  }
+ else {
+    throw new AnnotationException("More than one association type configured for property  " + getName() + " of class "+ getName());
+  }
+}
