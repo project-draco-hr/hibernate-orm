@@ -1,0 +1,12 @@
+{
+  String referencedIdAttributeName;
+  AnnotationInstance mapsIdAnnotation=JandexHelper.getSingleAnnotation(annotations(),JPADotNames.MAPS_ID);
+  if (mapsIdAnnotation == null) {
+    return null;
+  }
+  if (!(AttributeNature.MANY_TO_ONE.equals(getAssociationNature()) || AttributeNature.MANY_TO_ONE.equals(getAssociationNature()))) {
+    throw new MappingException("@MapsId can only be specified on a many-to-one or one-to-one associations",getContext().getOrigin());
+  }
+  referencedIdAttributeName=JandexHelper.getValue(mapsIdAnnotation,"value",String.class);
+  return referencedIdAttributeName;
+}

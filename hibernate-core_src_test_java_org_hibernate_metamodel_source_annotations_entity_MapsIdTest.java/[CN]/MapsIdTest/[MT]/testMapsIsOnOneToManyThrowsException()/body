@@ -1,0 +1,14 @@
+{
+  try {
+    sources=new MetadataSources(new ServiceRegistryBuilder().buildServiceRegistry());
+    sources.addAnnotatedClass(DependentId.class);
+    sources.addAnnotatedClass(Dependent.class);
+    sources.addAnnotatedClass(Employee.class);
+    sources.buildMetadata();
+    fail();
+  }
+ catch (  MappingException e) {
+    assertTrue(e.getMessage().startsWith("@MapsId can only be specified on a many-to-one or one-to-one associations"));
+    assertEquals("Wrong error origin","org.hibernate.metamodel.source.annotations.entity.MapsIdTest$Dependent",e.getOrigin().getName());
+  }
+}
