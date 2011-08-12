@@ -1,12 +1,12 @@
 {
   LOG.debug("Building session factory");
-  this.sqlFunctionRegistry=null;
   this.sessionFactoryOptions=sessionFactoryOptions;
   this.properties=createPropertiesFromMap(metadata.getServiceRegistry().getService(ConfigurationService.class).getSettings());
   this.settings=new SettingsFactory().buildSettings(properties,metadata.getServiceRegistry());
   this.serviceRegistry=metadata.getServiceRegistry().getService(SessionFactoryServiceRegistryFactory.class).buildServiceRegistry(this,metadata);
   this.jdbcServices=this.serviceRegistry.getService(JdbcServices.class);
   this.dialect=this.jdbcServices.getDialect();
+  this.sqlFunctionRegistry=new SQLFunctionRegistry(this.dialect,new HashMap<String,SQLFunction>());
   if (observer != null) {
     this.observer.addObserver(observer);
   }

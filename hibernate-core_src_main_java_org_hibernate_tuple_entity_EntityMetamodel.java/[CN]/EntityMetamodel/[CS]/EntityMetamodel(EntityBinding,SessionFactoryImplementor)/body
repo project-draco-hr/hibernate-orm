@@ -1,7 +1,7 @@
 {
   this.sessionFactory=sessionFactory;
   name=entityBinding.getEntity().getName();
-  rootName=name;
+  rootName=entityBinding.getHierarchyDetails().getRootEntityBinding().getEntity().getName();
   entityType=sessionFactory.getTypeResolver().getTypeFactory().manyToOne(name);
   identifierProperty=PropertyFactory.buildIdentifierProperty(entityBinding,sessionFactory.getIdentifierGenerator(rootName));
   versioned=entityBinding.isVersioned();
@@ -121,8 +121,8 @@
   selectBeforeUpdate=entityBinding.isSelectBeforeUpdate();
   dynamicUpdate=entityBinding.isDynamicUpdate();
   dynamicInsert=entityBinding.isDynamicInsert();
-  hasSubclasses=false;
-  polymorphic=!entityBinding.isRoot() || hasSubclasses;
+  hasSubclasses=entityBinding.hasSubEntityBindings();
+  polymorphic=entityBinding.isPolymorphic();
   explicitPolymorphism=entityBinding.getHierarchyDetails().isExplicitPolymorphism();
   inherited=!entityBinding.isRoot();
   superclass=inherited ? entityBinding.getEntity().getSuperType().getName() : null;
@@ -136,6 +136,12 @@
   }
   hasCollections=foundCollection;
   hasMutableProperties=foundMutable;
+  for (  EntityBinding subEntityBinding : entityBinding.getPostOrderSubEntityBindingClosure()) {
+    subclassEntityNames.add(subEntityBinding.getEntity().getName());
+    if (subEntityBinding.getEntity().getClassReference() != null) {
+      entityNameByInheritenceClassMap.put(subEntityBinding.getEntity().getClassReference(),subEntityBinding.getEntity().getName());
+    }
+  }
   subclassEntityNames.add(name);
   if (mappedClass != null) {
     entityNameByInheritenceClassMap.put(mappedClass,name);

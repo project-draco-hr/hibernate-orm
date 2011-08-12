@@ -1,0 +1,22 @@
+{
+  EntityBinding rootEntityBinding=getEntityBinding(RootOfSingleTableInheritance.class);
+  EntityBinding subclassEntityBinding=getEntityBinding(SubclassOfSingleTableInheritance.class);
+  EntityBinding otherSubclassEntityBinding=getEntityBinding(OtherSubclassOfSingleTableInheritance.class);
+  EntityBinding subclassOfSubclassEntityBinding=getEntityBinding(SubclassOfSubclassOfSingleTableInheritance.class);
+  Iterator<EntityBinding> directEntityBindingIterator=rootEntityBinding.getDirectSubEntityBindings().iterator();
+  boolean isSubclassEntityBindingFirst=subclassEntityBinding == directEntityBindingIterator.next();
+  assertEquals(3,rootEntityBinding.getSubEntityBindingClosureSpan());
+  Iterator<EntityBinding> subEntityBindingIterator=rootEntityBinding.getPostOrderSubEntityBindingClosure().iterator();
+  assertTrue(subEntityBindingIterator.hasNext());
+  if (isSubclassEntityBindingFirst) {
+    assertSame(subclassOfSubclassEntityBinding,subEntityBindingIterator.next());
+    assertSame(subclassEntityBinding,subEntityBindingIterator.next());
+    assertSame(otherSubclassEntityBinding,subEntityBindingIterator.next());
+  }
+ else {
+    assertSame(subclassOfSubclassEntityBinding,subEntityBindingIterator.next());
+    assertSame(otherSubclassEntityBinding,subEntityBindingIterator.next());
+    assertSame(subclassEntityBinding,subEntityBindingIterator.next());
+  }
+  assertFalse(subEntityBindingIterator.hasNext());
+}

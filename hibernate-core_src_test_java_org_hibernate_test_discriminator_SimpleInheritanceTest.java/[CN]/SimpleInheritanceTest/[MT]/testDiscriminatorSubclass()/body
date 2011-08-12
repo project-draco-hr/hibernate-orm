@@ -1,0 +1,41 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  Employee mark=new Employee();
+  mark.setId(1);
+  mark.setName("Mark");
+  mark.setTitle("internal sales");
+  mark.setSex('M');
+  Customer joe=new Customer();
+  joe.setId(2);
+  joe.setName("Joe");
+  joe.setComments("Very demanding");
+  joe.setSex('M');
+  Person yomomma=new Person();
+  yomomma.setId(3);
+  yomomma.setName("mum");
+  yomomma.setSex('F');
+  s.save(yomomma);
+  s.save(mark);
+  s.save(joe);
+  assertEquals(s.createQuery("from java.io.Serializable").list().size(),0);
+  assertEquals(s.createQuery("from org.hibernate.test.discriminator.Person").list().size(),3);
+  assertEquals(s.createQuery("from org.hibernate.test.discriminator.Person p where p.class = org.hibernate.test.discriminator.Person").list().size(),1);
+  assertEquals(s.createQuery("from org.hibernate.test.discriminator.Person p where p.class = org.hibernate.test.discriminator.Customer").list().size(),1);
+  s.clear();
+  List customers=s.createQuery("from org.hibernate.test.discriminator.Customer").list();
+  for (  Object customer : customers) {
+    Customer c=(Customer)customer;
+    assertEquals("Very demanding",c.getComments());
+  }
+  assertEquals(customers.size(),1);
+  s.clear();
+  mark=(Employee)s.get(Employee.class,mark.getId());
+  joe=(Customer)s.get(Customer.class,joe.getId());
+  s.delete(mark);
+  s.delete(joe);
+  s.delete(yomomma);
+  assertTrue(s.createQuery("from org.hibernate.test.discriminator.Person").list().isEmpty());
+  t.commit();
+  s.close();
+}

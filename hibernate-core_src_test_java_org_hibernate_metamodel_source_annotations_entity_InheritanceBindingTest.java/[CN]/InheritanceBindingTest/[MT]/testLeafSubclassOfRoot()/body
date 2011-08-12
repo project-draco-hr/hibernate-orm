@@ -9,14 +9,28 @@
   assertSame(rootEntityBinding,getRootEntityBinding(OtherSubclassOfSingleTableInheritance.class));
   assertTrue(otherSubclassEntityBinding.isPolymorphic());
   assertFalse(otherSubclassEntityBinding.hasSubEntityBindings());
-  assertEquals(0,otherSubclassEntityBinding.getSubEntityBindingSpan());
-  assertFalse(otherSubclassEntityBinding.getSubEntityBindingClosure().iterator().hasNext());
-  assertEquals(2,otherSubclassEntityBinding.getAttributeBindingClosureSpan());
-  Set<String> attributeNames=new HashSet<String>();
-  for (  AttributeBinding attributeBinding : otherSubclassEntityBinding.getAttributeBindingClosure()) {
-    attributeNames.add(attributeBinding.getAttribute().getName());
+  assertEquals(0,otherSubclassEntityBinding.getSubEntityBindingClosureSpan());
+  assertFalse(otherSubclassEntityBinding.getPostOrderSubEntityBindingClosure().iterator().hasNext());
+  assertFalse(otherSubclassEntityBinding.getPreOrderSubEntityBindingClosure().iterator().hasNext());
+  Set<AttributeBinding> directAttributeBindings=new HashSet<AttributeBinding>();
+  for (  AttributeBinding attributeBinding : otherSubclassEntityBinding.attributeBindings()) {
+    assertTrue(directAttributeBindings.add(attributeBinding));
   }
-  assertEquals(2,attributeNames.size());
-  assertTrue(attributeNames.contains("id"));
-  assertTrue(attributeNames.contains("otherName"));
+  assertEquals(1,directAttributeBindings.size());
+  assertTrue(directAttributeBindings.contains(otherSubclassEntityBinding.locateAttributeBinding("otherName")));
+  assertEquals(2,otherSubclassEntityBinding.getAttributeBindingClosureSpan());
+  Set<AttributeBinding> attributeBindingClosure=new HashSet<AttributeBinding>();
+  for (  AttributeBinding attributeBinding : otherSubclassEntityBinding.getAttributeBindingClosure()) {
+    assertTrue(attributeBindingClosure.add(attributeBinding));
+  }
+  assertEquals(2,attributeBindingClosure.size());
+  assertTrue(attributeBindingClosure.contains(rootEntityBinding.locateAttributeBinding("id")));
+  assertTrue(attributeBindingClosure.contains(otherSubclassEntityBinding.locateAttributeBinding("otherName")));
+  Set<AttributeBinding> subAttributeBindings=new HashSet<AttributeBinding>();
+  for (  AttributeBinding subAttributeBinding : otherSubclassEntityBinding.getSubEntityAttributeBindingClosure()) {
+    assertTrue(subAttributeBindings.add(subAttributeBinding));
+  }
+  assertEquals(2,subAttributeBindings.size());
+  assertTrue(subAttributeBindings.contains(rootEntityBinding.locateAttributeBinding("id")));
+  assertTrue(subAttributeBindings.contains(otherSubclassEntityBinding.locateAttributeBinding("otherName")));
 }

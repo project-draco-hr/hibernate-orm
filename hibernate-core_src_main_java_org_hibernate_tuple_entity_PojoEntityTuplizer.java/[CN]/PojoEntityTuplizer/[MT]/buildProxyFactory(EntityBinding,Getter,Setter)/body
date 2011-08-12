@@ -12,6 +12,16 @@
   if (mappedClass.isInterface()) {
     proxyInterfaces.add(mappedClass);
   }
+  for (  EntityBinding subEntityBinding : entityBinding.getPostOrderSubEntityBindingClosure()) {
+    final Class subclassProxy=subEntityBinding.getProxyInterfaceType().getValue();
+    final Class subclassClass=subEntityBinding.getClassReference();
+    if (subclassProxy != null && !subclassClass.equals(subclassProxy)) {
+      if (!subclassProxy.isInterface()) {
+        throw new MappingException("proxy must be either an interface, or the class itself: " + subEntityBinding.getEntity().getName());
+      }
+      proxyInterfaces.add(subclassProxy);
+    }
+  }
   for (  AttributeBinding property : entityBinding.attributeBindings()) {
     Method method=getGetter(property).getMethod();
     if (method != null && Modifier.isFinal(method.getModifiers())) {
