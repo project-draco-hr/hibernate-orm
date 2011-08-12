@@ -79,18 +79,18 @@ class IntegratorObserver implements SessionFactoryObserver {
     if (model.getAttribute().isSingular()) {
       throw new IllegalStateException("AbstractPluralAttributeBinding has a Singular attribute defined: " + model.getAttribute().getName());
     }
-    final String cacheRegionName=cacheRegionPrefix + model.getCacheRegionName();
-    final AccessType accessType=AccessType.fromExternalName(model.getCacheConcurrencyStrategy());
+    final String cacheRegionName=cacheRegionPrefix + model.getCaching().getRegion();
+    final AccessType accessType=model.getCaching().getAccessType();
     CollectionRegionAccessStrategy accessStrategy=null;
     if (accessType != null && settings.isSecondLevelCacheEnabled()) {
-      LOG.trace("Building cache for collection data [" + model.getAttribute().getName() + "]");
+      LOG.trace("Building cache for collection data [" + model.getAttribute().getRole() + "]");
       CollectionRegion collectionRegion=settings.getRegionFactory().buildCollectionRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
       accessStrategy=collectionRegion.buildAccessStrategy(accessType);
       entityAccessStrategies.put(cacheRegionName,accessStrategy);
       allCacheRegions.put(cacheRegionName,collectionRegion);
     }
     CollectionPersister persister=serviceRegistry.getService(PersisterFactory.class).createCollectionPersister(metadata,model,accessStrategy,this);
-    collectionPersisters.put(model.getAttribute().getName(),persister.getCollectionMetadata());
+    collectionPersisters.put(model.getAttribute().getRole(),persister.getCollectionMetadata());
     Type indexType=persister.getIndexType();
     if (indexType != null && indexType.isAssociationType() && !indexType.isAnyType()) {
       String entityName=((AssociationType)indexType).getAssociatedEntityName(this);

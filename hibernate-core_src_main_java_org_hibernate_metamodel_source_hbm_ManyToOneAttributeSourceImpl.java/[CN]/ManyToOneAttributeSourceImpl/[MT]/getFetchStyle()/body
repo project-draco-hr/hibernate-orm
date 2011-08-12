@@ -1,0 +1,20 @@
+{
+  final String fetchSelection=manyToOneElement.getFetch() != null ? manyToOneElement.getFetch().value() : null;
+  final String outerJoinSelection=manyToOneElement.getOuterJoin() != null ? manyToOneElement.getOuterJoin().value() : null;
+  if (fetchSelection == null) {
+    if (outerJoinSelection == null) {
+      return FetchStyle.SELECT;
+    }
+ else {
+      if ("auto".equals(outerJoinSelection)) {
+        return bindingContext.getMappingDefaults().areAssociationsLazy() ? FetchStyle.SELECT : FetchStyle.JOIN;
+      }
+ else {
+        return "true".equals(outerJoinSelection) ? FetchStyle.JOIN : FetchStyle.SELECT;
+      }
+    }
+  }
+ else {
+    return "join".equals(fetchSelection) ? FetchStyle.JOIN : FetchStyle.SELECT;
+  }
+}

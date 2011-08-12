@@ -1,0 +1,26 @@
+{
+  final String fetchSelection=pluralAttributeElement.getFetch() != null ? pluralAttributeElement.getFetch().value() : null;
+  final String lazySelection=pluralAttributeElement.getLazy() != null ? pluralAttributeElement.getLazy().value() : null;
+  final String outerJoinSelection=pluralAttributeElement.getOuterJoin() != null ? pluralAttributeElement.getOuterJoin().value() : null;
+  if (lazySelection == null) {
+    if ("join".equals(fetchSelection) || "true".equals(outerJoinSelection)) {
+      return FetchTiming.IMMEDIATE;
+    }
+ else     if ("false".equals(outerJoinSelection)) {
+      return FetchTiming.DELAYED;
+    }
+ else {
+      return bindingContext().getMappingDefaults().areAssociationsLazy() ? FetchTiming.DELAYED : FetchTiming.IMMEDIATE;
+    }
+  }
+ else   if ("extra".equals(lazySelection)) {
+    return FetchTiming.EXTRA_LAZY;
+  }
+ else   if ("true".equals(lazySelection)) {
+    return FetchTiming.DELAYED;
+  }
+ else   if ("false".equals(lazySelection)) {
+    return FetchTiming.IMMEDIATE;
+  }
+  throw new MappingException(String.format("Unexpected lazy selection [%s] on '%s'",lazySelection,pluralAttributeElement.getName()),bindingContext().getOrigin());
+}
