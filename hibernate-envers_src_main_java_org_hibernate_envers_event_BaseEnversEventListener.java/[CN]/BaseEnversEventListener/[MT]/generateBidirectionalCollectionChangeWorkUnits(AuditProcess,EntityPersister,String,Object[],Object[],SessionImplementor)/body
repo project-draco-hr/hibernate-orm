@@ -11,36 +11,10 @@
       Object newValue=newState == null ? null : newState[i];
       if (!Tools.entitiesEqual(session,relDesc.getToEntityName(),oldValue,newValue)) {
         if (newValue != null) {
-          String toEntityName;
-          Serializable id;
-          if (newValue instanceof HibernateProxy) {
-            HibernateProxy hibernateProxy=(HibernateProxy)newValue;
-            toEntityName=session.bestGuessEntityName(newValue);
-            id=hibernateProxy.getHibernateLazyInitializer().getIdentifier();
-            newValue=Tools.getTargetFromProxy(session.getFactory(),hibernateProxy);
-          }
- else {
-            toEntityName=session.guessEntityName(newValue);
-            IdMapper idMapper=enversConfiguration.getEntCfg().get(toEntityName).getIdMapper();
-            id=(Serializable)idMapper.mapToIdFromEntity(newValue);
-          }
-          auditProcess.addWorkUnit(new CollectionChangeWorkUnit(session,toEntityName,enversConfiguration,id,newValue));
+          addCollectionChangeWorkUnit(auditProcess,session,entityName,relDesc,newValue);
         }
         if (oldValue != null) {
-          String toEntityName;
-          Serializable id;
-          if (oldValue instanceof HibernateProxy) {
-            HibernateProxy hibernateProxy=(HibernateProxy)oldValue;
-            toEntityName=session.bestGuessEntityName(oldValue);
-            id=hibernateProxy.getHibernateLazyInitializer().getIdentifier();
-            oldValue=Tools.getTargetFromProxy(session.getFactory(),hibernateProxy);
-          }
- else {
-            toEntityName=session.guessEntityName(oldValue);
-            IdMapper idMapper=enversConfiguration.getEntCfg().get(toEntityName).getIdMapper();
-            id=(Serializable)idMapper.mapToIdFromEntity(oldValue);
-          }
-          auditProcess.addWorkUnit(new CollectionChangeWorkUnit(session,toEntityName,enversConfiguration,id,oldValue));
+          addCollectionChangeWorkUnit(auditProcess,session,entityName,relDesc,oldValue);
         }
       }
     }

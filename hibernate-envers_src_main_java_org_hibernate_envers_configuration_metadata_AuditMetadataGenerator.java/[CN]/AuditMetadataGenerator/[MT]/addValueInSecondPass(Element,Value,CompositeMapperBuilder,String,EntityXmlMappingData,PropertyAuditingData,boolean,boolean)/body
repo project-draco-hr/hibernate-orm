@@ -1,0 +1,21 @@
+{
+  Type type=value.getType();
+  if (type instanceof ComponentType) {
+    componentMetadataGenerator.addComponent(parent,propertyAuditingData,value,currentMapper,entityName,xmlMappingData,false);
+    return;
+  }
+ else   if (type instanceof ManyToOneType) {
+    toOneRelationMetadataGenerator.addToOne(parent,propertyAuditingData,value,currentMapper,entityName,insertable);
+  }
+ else   if (type instanceof OneToOneType) {
+    toOneRelationMetadataGenerator.addOneToOneNotOwning(propertyAuditingData,value,currentMapper,entityName);
+  }
+ else   if (type instanceof CollectionType) {
+    CollectionMetadataGenerator collectionMetadataGenerator=new CollectionMetadataGenerator(this,(Collection)value,currentMapper,entityName,xmlMappingData,propertyAuditingData);
+    collectionMetadataGenerator.addCollection();
+  }
+ else {
+    return;
+  }
+  addModifiedFlagIfNeeded(parent,propertyAuditingData,processModifiedFlag);
+}

@@ -7,8 +7,8 @@
     Serializable relatedId=(Serializable)relatedIdMapper.mapToIdFromEntity(relatedObj);
     RevisionType revType=(RevisionType)changeData.getData().get(getAuditConfiguration().getAuditEntCfg().getRevisionTypePropName());
     String realRelatedEntityName=event.getSession().bestGuessEntityName(relatedObj);
-    AuditWorkUnit nestedWorkUnit=new CollectionChangeWorkUnit(event.getSession(),realRelatedEntityName,getAuditConfiguration(),relatedId,relatedObj);
+    AuditWorkUnit nestedWorkUnit=new CollectionChangeWorkUnit(event.getSession(),realRelatedEntityName,rd.getMappedByPropertyName(),getAuditConfiguration(),relatedId,relatedObj);
     auditProcess.addWorkUnit(new FakeBidirectionalRelationWorkUnit(event.getSession(),realRelatedEntityName,getAuditConfiguration(),relatedId,referencingPropertyName,event.getAffectedOwnerOrNull(),rd,revType,changeData.getChangedElementIndex(),nestedWorkUnit));
   }
-  auditProcess.addWorkUnit(new CollectionChangeWorkUnit(event.getSession(),collectionEntityName,getAuditConfiguration(),event.getAffectedOwnerIdOrNull(),event.getAffectedOwnerOrNull()));
+  auditProcess.addWorkUnit(new CollectionChangeWorkUnit(event.getSession(),collectionEntityName,referencingPropertyName,getAuditConfiguration(),event.getAffectedOwnerIdOrNull(),event.getAffectedOwnerOrNull()));
 }
