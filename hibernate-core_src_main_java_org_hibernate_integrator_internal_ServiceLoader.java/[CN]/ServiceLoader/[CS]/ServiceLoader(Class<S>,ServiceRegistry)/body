@@ -1,0 +1,20 @@
+{
+  Class<S> service=svc;
+  ClassLoaderService loader=serviceRegistry.getService(ClassLoaderService.class);
+  String fullName=PREFIX + service.getName();
+  service.getName();
+  List<URL> configs=locateResources(loader,fullName);
+  for (  URL url : configs) {
+    Iterator<String> names=parse(service,url);
+    while (names.hasNext()) {
+      String cn=names.next();
+      try {
+        S p=service.cast(loader.classForName(cn).newInstance());
+        providers.put(cn,p);
+      }
+ catch (      Throwable x) {
+        fail(service,"Provider " + cn + " could not be instantiated: "+ x,x);
+      }
+    }
+  }
+}
