@@ -1,0 +1,21 @@
+{
+  ClassInfo callbackClassInfo=getLocalBindingContext().getClassInfo(instanceCallbackClassName);
+  if (JandexHelper.getSingleAnnotation(callbackClassInfo,JPADotNames.EXCLUDE_SUPERCLASS_LISTENERS) != null) {
+    DotName superName=callbackClassInfo.superName();
+    if (superName != null) {
+      processDefaultJpaCallbacks(instanceCallbackClassName,jpaCallbackClassList);
+    }
+  }
+  String callbackClassName=callbackClassInfo.name().toString();
+  Map<Class<?>,String> callbacksByType=new HashMap<Class<?>,String>();
+  createDefaultCallback(PrePersist.class,PseudoJpaDotNames.DEFAULT_PRE_PERSIST,callbackClassName,callbacksByType);
+  createDefaultCallback(PreRemove.class,PseudoJpaDotNames.DEFAULT_PRE_REMOVE,callbackClassName,callbacksByType);
+  createDefaultCallback(PreUpdate.class,PseudoJpaDotNames.DEFAULT_PRE_UPDATE,callbackClassName,callbacksByType);
+  createDefaultCallback(PostLoad.class,PseudoJpaDotNames.DEFAULT_POST_LOAD,callbackClassName,callbacksByType);
+  createDefaultCallback(PostPersist.class,PseudoJpaDotNames.DEFAULT_POST_PERSIST,callbackClassName,callbacksByType);
+  createDefaultCallback(PostRemove.class,PseudoJpaDotNames.DEFAULT_POST_REMOVE,callbackClassName,callbacksByType);
+  createDefaultCallback(PostUpdate.class,PseudoJpaDotNames.DEFAULT_POST_UPDATE,callbackClassName,callbacksByType);
+  if (!callbacksByType.isEmpty()) {
+    jpaCallbackClassList.add(new JpaCallbackClassImpl(instanceCallbackClassName,callbacksByType,true));
+  }
+}

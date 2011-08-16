@@ -1,0 +1,12 @@
+{
+  for (  AnnotationInstance callback : getLocalBindingContext().getIndex().getAnnotations(callbackTypeName)) {
+    MethodInfo methodInfo=(MethodInfo)callback.target();
+    validateMethod(methodInfo,callbackTypeClass,callbacksByClass,true);
+    if (methodInfo.declaringClass().name().toString().equals(callbackClassName)) {
+      if (methodInfo.args().length != 1) {
+        throw new PersistenceException(String.format("Callback method %s must have exactly one argument defined as either Object or %s in ",methodInfo.name(),getEntityName()));
+      }
+      callbacksByClass.put(callbackTypeClass,methodInfo.name());
+    }
+  }
+}

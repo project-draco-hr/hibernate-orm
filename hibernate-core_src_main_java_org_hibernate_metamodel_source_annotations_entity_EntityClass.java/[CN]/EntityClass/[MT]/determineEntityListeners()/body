@@ -1,0 +1,38 @@
+{
+  List<JpaCallbackClass> callbackClassList=new ArrayList<JpaCallbackClass>();
+  if (JandexHelper.getSingleAnnotation(getClassInfo(),JPADotNames.EXCLUDE_DEFAULT_LISTENERS) == null) {
+    List<AnnotationInstance> defaultEntityListenerAnnotations=getLocalBindingContext().getIndex().getAnnotations(PseudoJpaDotNames.DEFAULT_ENTITY_LISTENERS);
+    for (    AnnotationInstance annotation : defaultEntityListenerAnnotations) {
+      for (      Type callbackClass : annotation.value().asClassArray()) {
+        String callbackClassName=callbackClass.name().toString();
+        try {
+          processDefaultJpaCallbacks(callbackClassName,callbackClassList);
+        }
+ catch (        PersistenceException error) {
+          throw new PersistenceException(error.getMessage() + "default entity listener " + callbackClassName);
+        }
+      }
+    }
+  }
+  List<AnnotationInstance> annotationList=getClassInfo().annotations().get(JPADotNames.ENTITY_LISTENERS);
+  if (annotationList != null) {
+    for (    AnnotationInstance annotation : annotationList) {
+      for (      Type callbackClass : annotation.value().asClassArray()) {
+        String callbackClassName=callbackClass.name().toString();
+        try {
+          processJpaCallbacks(callbackClassName,true,callbackClassList);
+        }
+ catch (        PersistenceException error) {
+          throw new PersistenceException(error.getMessage() + "entity listener " + callbackClassName);
+        }
+      }
+    }
+  }
+  try {
+    processJpaCallbacks(getName(),false,callbackClassList);
+  }
+ catch (  PersistenceException error) {
+    throw new PersistenceException(error.getMessage() + "entity/mapped superclass " + getClassInfo().name().toString());
+  }
+  return callbackClassList;
+}
