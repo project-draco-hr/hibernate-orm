@@ -52,12 +52,17 @@
   registerFunction("rtrim",new StandardSQLFunction("rtrim"));
   registerFunction("reverse",new StandardSQLFunction("reverse"));
   registerFunction("space",new StandardSQLFunction("space",StandardBasicTypes.STRING));
+  registerFunction("str",new SQLFunctionTemplate(StandardBasicTypes.STRING,"cast(?1 as varchar(256))"));
   registerFunction("rawtohex",new StandardSQLFunction("rawtohex"));
   registerFunction("hextoraw",new StandardSQLFunction("hextoraw"));
-  registerFunction("str",new SQLFunctionTemplate(StandardBasicTypes.STRING,"cast(?1 as varchar(24))"));
   registerFunction("user",new NoArgSQLFunction("user",StandardBasicTypes.STRING));
   registerFunction("database",new NoArgSQLFunction("database",StandardBasicTypes.STRING));
-  registerFunction("sysdate",new NoArgSQLFunction("sysdate",StandardBasicTypes.DATE,false));
+  if (hsqldbVersion < 20) {
+    registerFunction("sysdate",new NoArgSQLFunction("sysdate",StandardBasicTypes.DATE,false));
+  }
+ else {
+    registerFunction("sysdate",new NoArgSQLFunction("sysdate",StandardBasicTypes.TIMESTAMP,false));
+  }
   registerFunction("current_date",new NoArgSQLFunction("current_date",StandardBasicTypes.DATE,false));
   registerFunction("curdate",new NoArgSQLFunction("curdate",StandardBasicTypes.DATE));
   registerFunction("current_timestamp",new NoArgSQLFunction("current_timestamp",StandardBasicTypes.TIMESTAMP,false));
@@ -74,7 +79,7 @@
   registerFunction("quarter",new StandardSQLFunction("quarter",StandardBasicTypes.INTEGER));
   registerFunction("hour",new StandardSQLFunction("hour",StandardBasicTypes.INTEGER));
   registerFunction("minute",new StandardSQLFunction("minute",StandardBasicTypes.INTEGER));
-  registerFunction("second",new StandardSQLFunction("second",StandardBasicTypes.INTEGER));
+  registerFunction("second",new SQLFunctionTemplate(StandardBasicTypes.INTEGER,"cast(second(?1) as int)"));
   registerFunction("dayname",new StandardSQLFunction("dayname",StandardBasicTypes.STRING));
   registerFunction("monthname",new StandardSQLFunction("monthname",StandardBasicTypes.STRING));
   registerFunction("abs",new StandardSQLFunction("abs"));
@@ -94,10 +99,14 @@
   registerFunction("rand",new StandardSQLFunction("rand",StandardBasicTypes.FLOAT));
   registerFunction("radians",new StandardSQLFunction("radians",StandardBasicTypes.DOUBLE));
   registerFunction("degrees",new StandardSQLFunction("degrees",StandardBasicTypes.DOUBLE));
+  registerFunction("round",new StandardSQLFunction("round"));
   registerFunction("roundmagic",new StandardSQLFunction("roundmagic"));
+  registerFunction("truncate",new StandardSQLFunction("truncate"));
   registerFunction("ceiling",new StandardSQLFunction("ceiling"));
   registerFunction("floor",new StandardSQLFunction("floor"));
-  registerFunction("mod",new StandardSQLFunction("mod",StandardBasicTypes.INTEGER));
+  if (hsqldbVersion > 21) {
+    registerFunction("rownum",new NoArgSQLFunction("rownum",StandardBasicTypes.INTEGER));
+  }
   registerFunction("concat",new VarArgsSQLFunction(StandardBasicTypes.STRING,"(","||",")"));
   getDefaultProperties().setProperty(Environment.STATEMENT_BATCH_SIZE,DEFAULT_BATCH_SIZE);
 }
