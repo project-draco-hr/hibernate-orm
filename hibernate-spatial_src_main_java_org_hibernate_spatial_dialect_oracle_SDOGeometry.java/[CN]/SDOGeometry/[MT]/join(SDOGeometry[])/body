@@ -1,0 +1,25 @@
+{
+  SDOGeometry SDOCollection=new SDOGeometry();
+  if (SDOElements == null || SDOElements.length == 0) {
+    SDOCollection.setGType(new SDOGType(2,0,TypeGeometry.COLLECTION));
+  }
+ else {
+    SDOGeometry firstElement=SDOElements[0];
+    int dim=firstElement.getGType().getDimension();
+    int lrsDim=firstElement.getGType().getLRSDimension();
+    SDOCollection.setGType(new SDOGType(dim,lrsDim,TypeGeometry.COLLECTION));
+    int ordinatesOffset=1;
+    for (int i=0; i < SDOElements.length; i++) {
+      ElemInfo element=SDOElements[i].getInfo();
+      Double[] ordinates=SDOElements[i].getOrdinates().getOrdinateArray();
+      if (element != null && element.getSize() > 0) {
+        int shift=ordinatesOffset - element.getOrdinatesOffset(0);
+        shiftOrdinateOffset(element,shift);
+        SDOCollection.addElement(element);
+        SDOCollection.addOrdinates(ordinates);
+        ordinatesOffset+=ordinates.length;
+      }
+    }
+  }
+  return SDOCollection;
+}

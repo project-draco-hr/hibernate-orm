@@ -1,0 +1,27 @@
+{
+  LinearRing shell=null;
+  LinearRing[] holes=new LinearRing[SDOGeom.getNumElements() - 1];
+  ElemInfo info=SDOGeom.getInfo();
+  int i=0;
+  int idxInteriorRings=0;
+  while (i < info.getSize()) {
+    CoordinateSequence cs=null;
+    int numCompounds=0;
+    if (info.getElementType(i).isCompound()) {
+      numCompounds=info.getNumCompounds(i);
+      cs=add(cs,getCompoundCSeq(i + 1,i + numCompounds,SDOGeom));
+    }
+ else {
+      cs=add(cs,getElementCSeq(i,SDOGeom,false));
+    }
+    if (info.getElementType(i).isInteriorRing()) {
+      holes[idxInteriorRings]=getGeometryFactory().createLinearRing(cs);
+      idxInteriorRings++;
+    }
+ else {
+      shell=getGeometryFactory().createLinearRing(cs);
+    }
+    i+=1 + numCompounds;
+  }
+  return getGeometryFactory().createPolygon(shell,holes);
+}

@@ -1,0 +1,44 @@
+{
+  if (getGType().getTypeGeometry() == TypeGeometry.COLLECTION) {
+    List<SDOGeometry> elements=new ArrayList<SDOGeometry>();
+    int i=0;
+    while (i < this.getNumElements()) {
+      ElementType et=this.getInfo().getElementType(i);
+      int next=i + 1;
+      if (et.isExteriorRing()) {
+        while (next < this.getNumElements()) {
+          if (!this.getInfo().getElementType(next).isInteriorRing()) {
+            break;
+          }
+          next++;
+        }
+      }
+ else       if (et.isCompound()) {
+        next=i + this.getInfo().getNumCompounds(i) + 1;
+      }
+      SDOGeometry elemGeom=new SDOGeometry();
+      SDOGType elemGtype=deriveGTYPE(this.getInfo().getElementType(i),this);
+      elemGeom.setGType(elemGtype);
+      elemGeom.setSRID(this.getSRID());
+      ElemInfo elemInfo=new ElemInfo(this.getInfo().getElement(i));
+      shiftOrdinateOffset(elemInfo,-elemInfo.getOrdinatesOffset(0) + 1);
+      elemGeom.setInfo(elemInfo);
+      int startPosition=this.getInfo().getOrdinatesOffset(i);
+      Ordinates elemOrdinates=null;
+      if (next < this.getNumElements()) {
+        int endPosition=this.getInfo().getOrdinatesOffset(next);
+        elemOrdinates=new Ordinates(this.getOrdinates().getOrdinatesArray(startPosition,endPosition));
+      }
+ else {
+        elemOrdinates=new Ordinates(this.getOrdinates().getOrdinatesArray(startPosition));
+      }
+      elemGeom.setOrdinates(elemOrdinates);
+      elements.add(elemGeom);
+      i=next;
+    }
+    return elements.toArray(new SDOGeometry[elements.size()]);
+  }
+ else {
+    return new SDOGeometry[]{this};
+  }
+}

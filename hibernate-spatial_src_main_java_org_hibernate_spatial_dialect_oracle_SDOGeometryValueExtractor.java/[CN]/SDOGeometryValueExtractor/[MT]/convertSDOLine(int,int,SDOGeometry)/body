@@ -1,0 +1,19 @@
+{
+  boolean lrs=SDOGeom.isLRSGeometry();
+  ElemInfo info=SDOGeom.getInfo();
+  CoordinateSequence cs=null;
+  int i=0;
+  while (i < info.getSize()) {
+    if (info.getElementType(i).isCompound()) {
+      int numCompounds=info.getNumCompounds(i);
+      cs=add(cs,getCompoundCSeq(i + 1,i + numCompounds,SDOGeom));
+      i+=1 + numCompounds;
+    }
+ else {
+      cs=add(cs,getElementCSeq(i,SDOGeom,false));
+      i++;
+    }
+  }
+  LineString ls=lrs ? getGeometryFactory().createMLineString(cs) : getGeometryFactory().createLineString(cs);
+  return ls;
+}

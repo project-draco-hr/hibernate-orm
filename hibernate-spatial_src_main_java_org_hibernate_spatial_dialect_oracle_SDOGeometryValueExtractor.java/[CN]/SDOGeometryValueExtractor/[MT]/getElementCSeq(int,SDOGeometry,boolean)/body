@@ -1,0 +1,29 @@
+{
+  ElementType type=SDOGeom.getInfo().getElementType(i);
+  Double[] elemOrdinates=extractOrdinatesOfElement(i,SDOGeom,hasNextSE);
+  CoordinateSequence cs;
+  if (type.isStraightSegment()) {
+    cs=convertOrdinateArray(elemOrdinates,SDOGeom);
+  }
+ else   if (type.isArcSegment() || type.isCircle()) {
+    Coordinate[] linearized=linearize(elemOrdinates,SDOGeom.getDimension(),SDOGeom.isLRSGeometry(),type.isCircle());
+    cs=getGeometryFactory().getCoordinateSequenceFactory().create(linearized);
+  }
+ else   if (type.isRect()) {
+    cs=convertOrdinateArray(elemOrdinates,SDOGeom);
+    Coordinate ll=cs.getCoordinate(0);
+    Coordinate ur=cs.getCoordinate(1);
+    Coordinate lr=new Coordinate(ur.x,ll.y);
+    Coordinate ul=new Coordinate(ll.x,ur.y);
+    if (type.isExteriorRing()) {
+      cs=getGeometryFactory().getCoordinateSequenceFactory().create(new Coordinate[]{ll,lr,ur,ul,ll});
+    }
+ else {
+      cs=getGeometryFactory().getCoordinateSequenceFactory().create(new Coordinate[]{ll,ul,ur,lr,ll});
+    }
+  }
+ else {
+    throw new RuntimeException("Unexpected Element type in compound: " + type);
+  }
+  return cs;
+}

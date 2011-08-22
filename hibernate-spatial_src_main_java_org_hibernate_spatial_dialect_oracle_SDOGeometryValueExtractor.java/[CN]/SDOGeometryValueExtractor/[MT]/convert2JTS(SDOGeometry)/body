@@ -1,0 +1,32 @@
+{
+  int dim=SDOGeom.getGType().getDimension();
+  int lrsDim=SDOGeom.getGType().getLRSDimension();
+  Geometry result=null;
+switch (SDOGeom.getGType().getTypeGeometry()) {
+case POINT:
+    result=convertSDOPoint(SDOGeom);
+  break;
+case LINE:
+result=convertSDOLine(dim,lrsDim,SDOGeom);
+break;
+case POLYGON:
+result=convertSDOPolygon(dim,lrsDim,SDOGeom);
+break;
+case MULTIPOINT:
+result=convertSDOMultiPoint(dim,lrsDim,SDOGeom);
+break;
+case MULTILINE:
+result=convertSDOMultiLine(dim,lrsDim,SDOGeom);
+break;
+case MULTIPOLYGON:
+result=convertSDOMultiPolygon(dim,lrsDim,SDOGeom);
+break;
+case COLLECTION:
+result=convertSDOCollection(dim,lrsDim,SDOGeom);
+break;
+default :
+throw new IllegalArgumentException("Type not supported: " + SDOGeom.getGType().getTypeGeometry());
+}
+result.setSRID(SDOGeom.getSRID());
+return result;
+}

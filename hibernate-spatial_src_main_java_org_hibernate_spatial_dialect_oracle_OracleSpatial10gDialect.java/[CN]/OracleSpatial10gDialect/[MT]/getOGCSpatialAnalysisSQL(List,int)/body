@@ -1,0 +1,48 @@
+{
+  boolean[] geomArgs;
+  StringBuffer ogcFunction=new StringBuffer("MDSYS.");
+  boolean isGeomReturn=true;
+switch (spatialAnalysisFunction) {
+case SpatialAnalysis.BUFFER:
+    ogcFunction.append("OGC_BUFFER");
+  geomArgs=new boolean[]{true,false};
+break;
+case SpatialAnalysis.CONVEXHULL:
+ogcFunction.append("OGC_CONVEXHULL");
+geomArgs=new boolean[]{true};
+break;
+case SpatialAnalysis.DIFFERENCE:
+ogcFunction.append("OGC_DIFFERENCE");
+geomArgs=new boolean[]{true,true};
+break;
+case SpatialAnalysis.DISTANCE:
+ogcFunction.append("OGC_DISTANCE");
+geomArgs=new boolean[]{true,true};
+isGeomReturn=false;
+break;
+case SpatialAnalysis.INTERSECTION:
+ogcFunction.append("OGC_INTERSECTION");
+geomArgs=new boolean[]{true,true};
+break;
+case SpatialAnalysis.SYMDIFFERENCE:
+ogcFunction.append("OGC_SYMMETRICDIFFERENCE");
+geomArgs=new boolean[]{true,true};
+break;
+case SpatialAnalysis.UNION:
+ogcFunction.append("OGC_UNION");
+geomArgs=new boolean[]{true,true};
+break;
+default :
+throw new IllegalArgumentException("Unknown SpatialAnalysisFunction (" + spatialAnalysisFunction + ").");
+}
+if (args.size() < geomArgs.length) throw new QueryException("Insufficient arguments for spatial analysis function (function type:  " + spatialAnalysisFunction + ").");
+ogcFunction.append("(");
+for (int i=0; i < geomArgs.length; i++) {
+if (i > 0) ogcFunction.append(",");
+if (geomArgs[i]) wrapInSTGeometry((String)args.get(i),ogcFunction);
+ else ogcFunction.append(args.get(i));
+}
+ogcFunction.append(")");
+if (isGeomReturn) ogcFunction.append(".geom");
+return ogcFunction.toString();
+}

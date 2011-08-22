@@ -1,0 +1,19 @@
+{
+  int dim=getCoordDimension(multiLineString);
+  int lrsDim=getCoordinateLrsPosition(multiLineString);
+  boolean isLrs=(lrsDim != 0);
+  SDOGeometry geom=new SDOGeometry();
+  geom.setGType(new SDOGType(dim,lrsDim,TypeGeometry.MULTILINE));
+  geom.setSRID(multiLineString.getSRID());
+  ElemInfo info=new ElemInfo(multiLineString.getNumGeometries());
+  int oordinatesOffset=1;
+  Double[] ordinates=new Double[]{};
+  for (int i=0; i < multiLineString.getNumGeometries(); i++) {
+    info.setElement(i,oordinatesOffset,ElementType.LINE_STRAITH_SEGMENTS,0);
+    ordinates=convertAddCoordinates(ordinates,multiLineString.getGeometryN(i).getCoordinates(),dim,isLrs);
+    oordinatesOffset=ordinates.length + 1;
+  }
+  geom.setInfo(info);
+  geom.setOrdinates(new Ordinates(ordinates));
+  return geom;
+}

@@ -1,0 +1,43 @@
+{
+  ClassLoader loader=Thread.currentThread().getContextClassLoader();
+  String propfileLoc=getClass().getCanonicalName() + ".properties";
+  URL propfile=loader.getResource(propfileLoc);
+  if (propfile != null) {
+    InputStream is=null;
+    log.info("properties file found: " + propfile);
+    try {
+      loader.getResource(getClass().getCanonicalName());
+      is=propfile.openStream();
+      PropertyFileReader reader=new PropertyFileReader(is);
+      Properties props=reader.getProperties();
+      String ccn=props.getProperty(CONNECTION_FINDER_PROPERTY);
+      if (ccn != null) {
+        try {
+          Class clazz=Thread.currentThread().getContextClassLoader().loadClass(ccn);
+          ConnectionFinder cf=(ConnectionFinder)clazz.newInstance();
+          OracleJDBCTypeFactory.setConnectionFinder(cf);
+          log.info("Setting ConnectionFinder to " + ccn);
+        }
+ catch (        ClassNotFoundException e) {
+          log.warn("Tried to set ConnectionFinder to " + ccn + ", but class not found.");
+        }
+catch (        InstantiationException e) {
+          log.warn("Tried to set ConnectionFinder to " + ccn + ", but couldn't instantiate.");
+        }
+catch (        IllegalAccessException e) {
+          log.warn("Tried to set ConnectionFinder to " + ccn + ", but got IllegalAcessException on instantiation.");
+        }
+      }
+    }
+ catch (    IOException e) {
+      log.warn("Problem reading properties file " + e);
+    }
+ finally {
+      try {
+        is.close();
+      }
+ catch (      Exception e) {
+      }
+    }
+  }
+}
