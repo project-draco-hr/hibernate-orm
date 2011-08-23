@@ -1,0 +1,18 @@
+{
+  if (nativeGeom.isEmptyShape(shapeIndex)) {
+    return createNullGeometry();
+  }
+  IndexRange figureRange=nativeGeom.getFiguresForShape(shapeIndex);
+  LinearRing[] holes=new LinearRing[figureRange.length() - 1];
+  LinearRing shell=null;
+  for (int figureIdx=figureRange.start, i=0; figureIdx < figureRange.end; figureIdx++) {
+    IndexRange pntIndexRange=nativeGeom.getPointsForFigure(figureIdx);
+    if (nativeGeom.isFigureInteriorRing(figureIdx)) {
+      holes[i++]=toLinearRing(nativeGeom,pntIndexRange);
+    }
+ else {
+      shell=toLinearRing(nativeGeom,pntIndexRange);
+    }
+  }
+  return getGeometryFactory().createPolygon(shell,holes);
+}

@@ -1,0 +1,18 @@
+{
+  try {
+    Field registryFld=typeResolver.getClass().getDeclaredField("basicTypeRegistry");
+    registryFld.setAccessible(true);
+    Object registry=registryFld.get(typeResolver);
+    Field lockedFld=registry.getClass().getDeclaredField("locked");
+    lockedFld.setAccessible(true);
+    lockedFld.setBoolean(registry,locked);
+    lockedFld.setAccessible(false);
+    registryFld.setAccessible(true);
+  }
+ catch (  NoSuchFieldException e) {
+    throw new IllegalStateException(UNLOCK_ERROR_MSG,e);
+  }
+catch (  IllegalAccessException e) {
+    throw new IllegalStateException(UNLOCK_ERROR_MSG,e);
+  }
+}

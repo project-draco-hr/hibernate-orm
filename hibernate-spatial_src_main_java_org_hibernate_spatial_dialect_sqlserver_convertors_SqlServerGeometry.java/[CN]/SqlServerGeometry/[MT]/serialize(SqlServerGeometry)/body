@@ -1,0 +1,37 @@
+{
+  int capacity=sqlServerGeom.calculateCapacity();
+  ByteBuffer buffer=ByteBuffer.allocate(capacity);
+  buffer.order(ByteOrder.LITTLE_ENDIAN);
+  buffer.putInt(sqlServerGeom.srid);
+  buffer.put(SUPPORTED_VERSION);
+  buffer.put(sqlServerGeom.serializationPropertiesByte);
+  if (!sqlServerGeom.isSinglePoint() && !sqlServerGeom.isSingleLineSegment()) {
+    buffer.putInt(sqlServerGeom.numberOfPoints);
+  }
+  for (int i=0; i < sqlServerGeom.getNumPoints(); i++) {
+    buffer.putDouble(sqlServerGeom.points[2 * i]);
+    buffer.putDouble(sqlServerGeom.points[2 * i + 1]);
+  }
+  if (sqlServerGeom.hasZValues()) {
+    for (int i=0; i < sqlServerGeom.zValues.length; i++) {
+      buffer.putDouble(sqlServerGeom.zValues[i]);
+    }
+  }
+  if (sqlServerGeom.hasMValues()) {
+    for (int i=0; i < sqlServerGeom.mValues.length; i++) {
+      buffer.putDouble(sqlServerGeom.mValues[i]);
+    }
+  }
+  if (sqlServerGeom.isSingleLineSegment() || sqlServerGeom.isSinglePoint()) {
+    return buffer.array();
+  }
+  buffer.putInt(sqlServerGeom.getNumFigures());
+  for (int i=0; i < sqlServerGeom.getNumFigures(); i++) {
+    sqlServerGeom.getFigure(i).store(buffer);
+  }
+  buffer.putInt(sqlServerGeom.getNumShapes());
+  for (int i=0; i < sqlServerGeom.getNumShapes(); i++) {
+    sqlServerGeom.getShape(i).store(buffer);
+  }
+  return buffer.array();
+}

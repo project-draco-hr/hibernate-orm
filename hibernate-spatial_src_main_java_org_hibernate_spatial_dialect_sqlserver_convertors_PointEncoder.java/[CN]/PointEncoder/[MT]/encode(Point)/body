@@ -1,0 +1,25 @@
+{
+  SqlServerGeometry sqlServerGeom=new SqlServerGeometry();
+  sqlServerGeom.setSrid(geom.getSRID());
+  sqlServerGeom.setIsValid();
+  if (geom.isEmpty()) {
+    sqlServerGeom.setNumberOfPoints(0);
+    sqlServerGeom.setNumberOfFigures(0);
+    sqlServerGeom.setNumberOfShapes(1);
+    sqlServerGeom.setShape(0,new Shape(-1,-1,OpenGisType.POINT));
+    return sqlServerGeom;
+  }
+  sqlServerGeom.setIsSinglePoint();
+  sqlServerGeom.setNumberOfPoints(1);
+  Coordinate coordinate=geom.getCoordinate();
+  if (is3DPoint(coordinate)) {
+    sqlServerGeom.setHasZValues();
+    sqlServerGeom.allocateZValueArray();
+  }
+  if (isMPoint(coordinate)) {
+    sqlServerGeom.setHasMValues();
+    sqlServerGeom.allocateMValueArray();
+  }
+  sqlServerGeom.setCoordinate(0,coordinate);
+  return sqlServerGeom;
+}
