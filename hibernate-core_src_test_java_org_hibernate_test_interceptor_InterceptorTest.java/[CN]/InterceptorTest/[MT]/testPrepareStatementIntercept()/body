@@ -1,0 +1,43 @@
+{
+  final Queue<String> expectedSQLs=new LinkedList<String>();
+  expectedSQLs.add("insert");
+  expectedSQLs.add("select");
+  expectedSQLs.add("select");
+  expectedSQLs.add("select");
+  expectedSQLs.add("select");
+  expectedSQLs.add("update");
+  expectedSQLs.add("select");
+  expectedSQLs.add("delete");
+  final Interceptor interceptor=new EmptyInterceptor(){
+    @Override public String onPrepareStatement(    String sql){
+      assertNotNull(sql);
+      assertTrue(sql.toLowerCase().startsWith(expectedSQLs.poll().toLowerCase()));
+      return sql;
+    }
+  }
+;
+  Session s=openSession(interceptor);
+  Transaction t=s.beginTransaction();
+  User u=new User("Lukasz","Antoniak");
+  s.persist(u);
+  t.commit();
+  s.close();
+  s=openSession(interceptor);
+  t=s.beginTransaction();
+  s.get(User.class,"Lukasz");
+  s.createQuery("from User u").list();
+  t.commit();
+  s.close();
+  u.setPassword("Kinga");
+  s=openSession(interceptor);
+  t=s.beginTransaction();
+  s.merge(u);
+  t.commit();
+  s.close();
+  s=openSession(interceptor);
+  t=s.beginTransaction();
+  s.delete(u);
+  t.commit();
+  s.close();
+  assertTrue(expectedSQLs.isEmpty());
+}
