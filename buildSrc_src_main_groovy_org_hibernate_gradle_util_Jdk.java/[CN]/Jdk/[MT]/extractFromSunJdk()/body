@@ -1,0 +1,32 @@
+{
+  String version=null;
+  final String key="java version \"";
+  try {
+    final File javaCommand=getJavaExecutable();
+    Process javaProcess=Runtime.getRuntime().exec(javaCommand.getAbsolutePath() + " -version");
+    try {
+      BufferedReader br=new BufferedReader(new InputStreamReader(javaProcess.getErrorStream()));
+      String line;
+      while ((line=br.readLine()) != null) {
+        if (version == null && line.startsWith(key)) {
+          version=line.substring(key.length(),line.length() - 1);
+        }
+      }
+      br.close();
+      br=new BufferedReader(new InputStreamReader(javaProcess.getInputStream()));
+      while ((line=br.readLine()) != null) {
+        if (version == null && line.startsWith(key)) {
+          version=line.substring(key.length(),line.length() - 1);
+        }
+      }
+      br.close();
+    }
+  finally {
+      javaProcess.destroy();
+    }
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("Unable to determine Java version",e);
+  }
+  return version;
+}

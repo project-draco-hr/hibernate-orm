@@ -1,0 +1,36 @@
+{
+  final String databaseName=databaseDir.getName();
+  if (ignoreDefault(databaseName)) {
+    return;
+  }
+  log.debug("Checking potential database directory : {}",databaseName);
+  MatrixNode node=null;
+  final File matrixFile=new File(databaseDir,MATRIX_BUILD_FILE);
+  if (FileUtil.isFile(matrixFile)) {
+    node=prepareFromGradleFile(matrixFile);
+  }
+ else {
+    final File jdbcDir=new File(databaseDir,"jdbc");
+    if (FileUtil.isDirectory(jdbcDir)) {
+      node=prepareFromJdbcDir(jdbcDir);
+    }
+  }
+  if (node == null) {
+    log.info("Doesn't found valid Matrix database configuration file in directory : {}",databaseDir);
+    return;
+  }
+  final File propertiesFile=new File(new File(databaseDir,"resources"),"hibernate.properties");
+  if (FileUtil.isFile(propertiesFile)) {
+    node.setHibernatePropertyFile(propertiesFile);
+  }
+ else {
+    log.warn("No 'hibernate.properties' found in {}/resources",databaseDir);
+  }
+  log.debug("Adding node[{}] " + node.getName());
+  if (matrixNodeMap.containsKey(node.getName())) {
+    throw new DuplicatedDBConfigException("There is already a Matrix node named " + node.getName());
+  }
+ else {
+    matrixNodeMap.put(node.getName(),node);
+  }
+}

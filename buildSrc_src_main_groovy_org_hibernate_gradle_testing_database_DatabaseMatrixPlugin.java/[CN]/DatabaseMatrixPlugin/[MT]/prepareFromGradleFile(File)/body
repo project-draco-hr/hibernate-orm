@@ -1,0 +1,13 @@
+{
+  log.debug("Found matrix file : " + matrixFile);
+  MatrixDotGradleMatrixNodeImpl matrixNode=new MatrixDotGradleMatrixNodeImpl(matrixFile.getParentFile().getName());
+  MatrixDotGradleMatrixNodeConvention convention=new MatrixDotGradleMatrixNodeConvention(matrixNode);
+  project.getConvention().getPlugins().put(MATRIX_NODE_CONVENTION_KEY,convention);
+  try {
+    project.apply(Collections.singletonMap("from",matrixFile));
+  }
+  finally {
+    project.getConvention().getPlugins().remove(MATRIX_NODE_CONVENTION_KEY);
+  }
+  return matrixNode;
+}

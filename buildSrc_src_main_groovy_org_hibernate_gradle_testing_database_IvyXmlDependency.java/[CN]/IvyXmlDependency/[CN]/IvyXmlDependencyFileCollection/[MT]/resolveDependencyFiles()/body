@@ -1,0 +1,21 @@
+{
+  DefaultIvyService ivyService=unwrap(((DefaultConfigurationContainer)project.getConfigurations()).getIvyService());
+  final ModuleDescriptor moduleDescriptor=resolveIvyXml(ivyService);
+  DefaultRepositoryCacheManager repositoryCacheManager=null;
+  final ResolverProvider resolverProvider=ivyService.getResolverProvider();
+  for (  DependencyResolver resolver : resolverProvider.getResolvers()) {
+    RepositoryCacheManager potentialRepositoryCacheManager=resolver.getRepositoryCacheManager();
+    if (DefaultRepositoryCacheManager.class.isInstance(potentialRepositoryCacheManager)) {
+      repositoryCacheManager=(DefaultRepositoryCacheManager)potentialRepositoryCacheManager;
+    }
+  }
+  if (repositoryCacheManager == null) {
+    throw buildResolutionException(moduleDescriptor.getModuleRevisionId(),"Unable to locate proper dependency cache manager");
+  }
+  HashSet<File> dependencyFiles=new HashSet<File>();
+  for (  DependencyDescriptor dependencyDescriptor : moduleDescriptor.getDependencies()) {
+    final ModuleRevisionId info=dependencyDescriptor.getDynamicConstraintDependencyRevisionId();
+    dependencyFiles.add(repositoryCacheManager.getIvyFileInCache(info));
+  }
+  return dependencyFiles;
+}
