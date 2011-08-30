@@ -10,7 +10,9 @@
         throw new PersistenceException("Using a JTA persistence context wo setting hibernate.transaction.manager_lookup_class");
       }
       try {
-        transactionManager.setRollbackOnly();
+        if (transactionManager.getStatus() != Status.STATUS_NO_TRANSACTION) {
+          transactionManager.setRollbackOnly();
+        }
       }
  catch (      SystemException e) {
         throw new PersistenceException("Unable to set the JTA transaction as RollbackOnly",e);
