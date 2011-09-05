@@ -1,0 +1,35 @@
+{
+  Session session=openSession();
+  Transaction transaction=session.beginTransaction();
+  VariousTypesEntity entity=new VariousTypesEntity();
+  entity.setId(1);
+  entity.setByteData(TEST_VALUE);
+  session.persist(entity);
+  transaction.commit();
+  session.close();
+  session=openSession();
+  transaction=session.beginTransaction();
+  entity=(VariousTypesEntity)session.createQuery(" from VariousTypesEntity " + " where byteData = org.hibernate.test.typedescriptor.ByteTest.TEST_VALUE ").uniqueResult();
+  Assert.assertNotNull(entity);
+  Assert.assertEquals(TEST_VALUE,entity.getByteData());
+  entity.setByteData(Byte.MIN_VALUE);
+  session.update(entity);
+  transaction.commit();
+  session.close();
+  session=openSession();
+  transaction=session.beginTransaction();
+  entity=(VariousTypesEntity)session.createQuery(" from VariousTypesEntity " + " where byteData = java.lang.Byte.MIN_VALUE ").uniqueResult();
+  Assert.assertNotNull(entity);
+  Assert.assertEquals(Byte.MIN_VALUE,entity.getByteData());
+  entity.setByteData(Byte.MAX_VALUE);
+  session.update(entity);
+  transaction.commit();
+  session.close();
+  session=openSession();
+  transaction=session.beginTransaction();
+  entity=(VariousTypesEntity)session.createQuery(" from VariousTypesEntity " + " where byteData = java.lang.Byte.MAX_VALUE ").uniqueResult();
+  Assert.assertNotNull(entity);
+  Assert.assertEquals(Byte.MAX_VALUE,entity.getByteData());
+  transaction.commit();
+  session.close();
+}
