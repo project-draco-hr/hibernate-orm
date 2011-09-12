@@ -6,7 +6,7 @@
     IdMapper idMapper=auditCfg.getEntCfg().get(entityName).getIdMapper();
     idMapper.addIdEqualsToQuery(qb.getRootParameters(),id,auditCfg.getAuditEntCfg().getOriginalIdPropName(),true);
     addEndRevisionNullRestriction(auditCfg,qb);
-    @SuppressWarnings({"unchecked"}) List<Object> l=qb.toQuery(session).list();
+    @SuppressWarnings({"unchecked"}) List<Object> l=qb.toQuery(session).setLockOptions(LockOptions.UPGRADE).list();
     updateLastRevision(session,auditCfg,l,id,auditedEntityName,revision);
   }
   session.save(auditedEntityName,data);
