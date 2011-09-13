@@ -1,7 +1,36 @@
 {
-  this.classLoadingClassLoaders=new LinkedHashSet<ClassLoader>();
+  if (hibernateClassLoader == null) {
+    hibernateClassLoader=ClassLoaderServiceImpl.class.getClassLoader();
+  }
+  if (environmentClassLoader == null || applicationClassLoader == null) {
+    ClassLoader sysClassLoader=locateSystemClassLoader();
+    ClassLoader tccl=locateTCCL();
+    if (environmentClassLoader == null) {
+      environmentClassLoader=sysClassLoader != null ? sysClassLoader : hibernateClassLoader;
+    }
+    if (applicationClassLoader == null) {
+      applicationClassLoader=tccl != null ? tccl : hibernateClassLoader;
+    }
+  }
+  if (resourcesClassLoader == null) {
+    resourcesClassLoader=applicationClassLoader;
+  }
+  final LinkedHashSet<ClassLoader> classLoadingClassLoaders=new LinkedHashSet<ClassLoader>();
   classLoadingClassLoaders.add(applicationClassLoader);
   classLoadingClassLoaders.add(hibernateClassLoader);
   classLoadingClassLoaders.add(environmentClassLoader);
+  this.classClassLoader=new ClassLoader(){
+    @Override protected Class<?> findClass(    String name) throws ClassNotFoundException {
+      for (      ClassLoader loader : classLoadingClassLoaders) {
+        try {
+          return loader.loadClass(name);
+        }
+ catch (        Exception ignore) {
+        }
+      }
+      throw new ClassNotFoundException("Could not load requested class : " + name);
+    }
+  }
+;
   this.resourcesClassLoader=resourcesClassLoader;
 }

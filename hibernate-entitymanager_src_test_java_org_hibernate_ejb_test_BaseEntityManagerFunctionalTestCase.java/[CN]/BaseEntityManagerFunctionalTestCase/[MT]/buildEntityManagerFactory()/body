@@ -3,8 +3,7 @@
   ejb3Configuration=buildConfiguration();
   ejb3Configuration.configure(getConfig());
   afterConfigurationBuilt(ejb3Configuration);
-  serviceRegistry=buildServiceRegistry(ejb3Configuration.getHibernateConfiguration());
-  applyServices(serviceRegistry);
-  entityManagerFactory=ejb3Configuration.buildEntityManagerFactory(serviceRegistry);
+  entityManagerFactory=(EntityManagerFactoryImpl)ejb3Configuration.buildEntityManagerFactory(bootstrapRegistryBuilder());
+  serviceRegistry=(BasicServiceRegistryImpl)((SessionFactoryImpl)entityManagerFactory.getSessionFactory()).getServiceRegistry().getParentServiceRegistry();
   afterEntityManagerFactoryBuilt();
 }

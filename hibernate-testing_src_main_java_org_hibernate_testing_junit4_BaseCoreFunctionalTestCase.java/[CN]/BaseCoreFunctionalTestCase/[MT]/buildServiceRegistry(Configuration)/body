@@ -3,7 +3,8 @@
   properties.putAll(configuration.getProperties());
   Environment.verifyProperties(properties);
   ConfigurationHelper.resolvePlaceHolders(properties);
-  BasicServiceRegistryImpl serviceRegistry=(BasicServiceRegistryImpl)new org.hibernate.service.ServiceRegistryBuilder(properties).buildServiceRegistry();
-  applyServices(serviceRegistry);
-  return serviceRegistry;
+  final BootstrapServiceRegistryImpl bootstrapServiceRegistry=generateBootstrapRegistry(properties);
+  ServiceRegistryBuilder registryBuilder=new ServiceRegistryBuilder(bootstrapServiceRegistry).applySettings(properties);
+  prepareBasicRegistryBuilder(registryBuilder);
+  return (BasicServiceRegistryImpl)registryBuilder.buildServiceRegistry();
 }

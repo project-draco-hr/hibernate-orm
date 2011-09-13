@@ -1,0 +1,24 @@
+{
+  Thread thread=null;
+  ClassLoader contextClassLoader=null;
+  if (overridenClassLoader != null) {
+    thread=Thread.currentThread();
+    contextClassLoader=thread.getContextClassLoader();
+    thread.setContextClassLoader(overridenClassLoader);
+  }
+  try {
+    final ServiceRegistryBuilder serviceRegistryBuilder=new ServiceRegistryBuilder(builder.with(new JpaIntegrator()).build());
+    serviceRegistryBuilder.applySettings(cfg.getProperties());
+    configure((Properties)null,null);
+    NamingHelper.bind(this);
+    return new EntityManagerFactoryImpl(transactionType,discardOnClose,getSessionInterceptorClass(cfg.getProperties()),cfg,serviceRegistryBuilder.buildServiceRegistry());
+  }
+ catch (  HibernateException e) {
+    throw new PersistenceException(getExceptionHeader() + "Unable to build EntityManagerFactory",e);
+  }
+ finally {
+    if (thread != null) {
+      thread.setContextClassLoader(contextClassLoader);
+    }
+  }
+}

@@ -3,5 +3,10 @@
   settingsCopy.putAll(settings);
   Environment.verifyProperties(settingsCopy);
   ConfigurationHelper.resolvePlaceHolders(settingsCopy);
-  return new BasicServiceRegistryImpl(initiators,providedServices,settingsCopy);
+  for (  Integrator integrator : bootstrapServiceRegistry.getService(IntegratorService.class).getIntegrators()) {
+    if (ServiceContributingIntegrator.class.isInstance(integrator)) {
+      ServiceContributingIntegrator.class.cast(integrator).prepareServices(this);
+    }
+  }
+  return new BasicServiceRegistryImpl(bootstrapServiceRegistry,initiators,providedServices,settingsCopy);
 }
