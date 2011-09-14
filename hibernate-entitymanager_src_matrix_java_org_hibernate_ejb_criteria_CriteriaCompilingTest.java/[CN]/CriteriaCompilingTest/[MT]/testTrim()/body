@@ -1,0 +1,25 @@
+{
+  final String expectedResult="David R. Vincent";
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  Customer customer=new Customer();
+  customer.setId("id");
+  customer.setName(" David R. Vincent ");
+  em.persist(customer);
+  em.getTransaction().commit();
+  em.close();
+  em=getOrCreateEntityManager();
+  CriteriaBuilder cb=em.getCriteriaBuilder();
+  EntityTransaction et=em.getTransaction();
+  et.begin();
+  CriteriaQuery<String> cquery=cb.createQuery(String.class);
+  Root<Customer> cust=cquery.from(Customer.class);
+  EntityType<Customer> Customer_=cust.getModel();
+  cquery.where(cb.equal(cust.get(Customer_.getSingularAttribute("name",String.class)),cb.literal(" David R. Vincent ")));
+  cquery.select(cb.trim(CriteriaBuilder.Trimspec.BOTH,cust.get(Customer_.getSingularAttribute("name",String.class))));
+  TypedQuery<String> tq=em.createQuery(cquery);
+  String result=tq.getSingleResult();
+  et.commit();
+  em.close();
+  Assert.assertEquals("Mismatch in received results",expectedResult,result);
+}
