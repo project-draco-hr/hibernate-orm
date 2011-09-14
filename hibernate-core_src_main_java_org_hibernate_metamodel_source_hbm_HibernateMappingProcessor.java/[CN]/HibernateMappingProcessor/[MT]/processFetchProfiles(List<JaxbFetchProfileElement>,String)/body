@@ -1,0 +1,14 @@
+{
+  for (  JaxbFetchProfileElement fetchProfile : fetchProfiles) {
+    String profileName=fetchProfile.getName();
+    Set<FetchProfile.Fetch> fetches=new HashSet<FetchProfile.Fetch>();
+    for (    JaxbFetchProfileElement.JaxbFetch fetch : fetchProfile.getFetch()) {
+      String entityName=fetch.getEntity() == null ? containingEntityName : fetch.getEntity();
+      if (entityName == null) {
+        throw new MappingException("could not determine entity for fetch-profile fetch [" + profileName + "]:["+ fetch.getAssociation()+ "]",origin());
+      }
+      fetches.add(new FetchProfile.Fetch(entityName,fetch.getAssociation(),fetch.getStyle()));
+    }
+    metadata.addFetchProfile(new FetchProfile(profileName,fetches));
+  }
+}

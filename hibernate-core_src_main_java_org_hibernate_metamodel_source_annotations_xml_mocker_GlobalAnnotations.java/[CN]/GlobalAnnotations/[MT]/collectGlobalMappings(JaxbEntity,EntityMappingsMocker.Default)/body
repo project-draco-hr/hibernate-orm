@@ -1,0 +1,48 @@
+{
+  for (  JaxbNamedQuery namedQuery : entity.getNamedQuery()) {
+    if (!defaultNamedQueryNames.contains(namedQuery.getName())) {
+      put(namedQuery);
+    }
+ else {
+      LOG.warn("Named Query [" + namedQuery.getName() + "] duplicated.");
+    }
+  }
+  for (  JaxbNamedNativeQuery namedNativeQuery : entity.getNamedNativeQuery()) {
+    if (!defaultNamedNativeQueryNames.contains(namedNativeQuery.getName())) {
+      put(namedNativeQuery);
+    }
+ else {
+      LOG.warn("Named native Query [" + namedNativeQuery.getName() + "] duplicated.");
+    }
+  }
+  for (  JaxbSqlResultSetMapping sqlResultSetMapping : entity.getSqlResultSetMapping()) {
+    if (!defaultSqlResultSetMappingNames.contains(sqlResultSetMapping.getName())) {
+      put(sqlResultSetMapping);
+    }
+  }
+  JaxbSequenceGenerator sequenceGenerator=entity.getSequenceGenerator();
+  if (sequenceGenerator != null) {
+    if (!defaultNamedGenerators.contains(sequenceGenerator.getName())) {
+      put(sequenceGenerator,defaults);
+    }
+  }
+  JaxbTableGenerator tableGenerator=entity.getTableGenerator();
+  if (tableGenerator != null) {
+    if (!defaultNamedGenerators.contains(tableGenerator.getName())) {
+      put(tableGenerator,defaults);
+    }
+  }
+  JaxbAttributes attributes=entity.getAttributes();
+  if (attributes != null) {
+    for (    JaxbId id : attributes.getId()) {
+      sequenceGenerator=id.getSequenceGenerator();
+      if (sequenceGenerator != null) {
+        put(sequenceGenerator,defaults);
+      }
+      tableGenerator=id.getTableGenerator();
+      if (tableGenerator != null) {
+        put(tableGenerator,defaults);
+      }
+    }
+  }
+}

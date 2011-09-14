@@ -1,0 +1,25 @@
+{
+  if (target == null) {
+    throw new AssertionFailure("target can not be null");
+  }
+  if (attributeOverrides == null || attributeOverrides.isEmpty()) {
+    return null;
+  }
+  Set<String> names=new HashSet<String>();
+  for (  JaxbAttributeOverride attributeOverride : attributeOverrides) {
+    names.add(attributeOverride.getName());
+  }
+  Operation operation=new AttributeOverrideOperation(names,attributeOverrides);
+  getAnnotationInstanceByTarget(ATTRIBUTE_OVERRIDES,target,new ContainerOperation(operation));
+  getAnnotationInstanceByTarget(ATTRIBUTE_OVERRIDE,target,operation);
+  if (attributeOverrides.size() == 1) {
+    return parserAttributeOverride(attributeOverrides.get(0),target);
+  }
+ else {
+    AnnotationValue[] values=new AnnotationValue[attributeOverrides.size()];
+    for (int i=0; i < values.length; i++) {
+      values[i]=MockHelper.nestedAnnotationValue("",parserAttributeOverride(attributeOverrides.get(i),null));
+    }
+    return create(ATTRIBUTE_OVERRIDES,target,new AnnotationValue[]{AnnotationValue.createArrayValue("value",values)});
+  }
+}

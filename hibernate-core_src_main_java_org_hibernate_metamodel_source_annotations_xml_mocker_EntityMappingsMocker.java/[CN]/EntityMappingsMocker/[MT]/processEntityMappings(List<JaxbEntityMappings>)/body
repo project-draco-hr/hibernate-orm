@@ -1,0 +1,26 @@
+{
+  List<AbstractEntityObjectMocker> mockerList=new ArrayList<AbstractEntityObjectMocker>();
+  for (  JaxbEntityMappings entityMappings : entityMappingsList) {
+    final Default defaults=getEntityMappingsDefaults(entityMappings);
+    globalAnnotations.collectGlobalMappings(entityMappings,defaults);
+    for (    JaxbMappedSuperclass mappedSuperclass : entityMappings.getMappedSuperclass()) {
+      AbstractEntityObjectMocker mocker=new MappedSuperclassMocker(indexBuilder,mappedSuperclass,defaults);
+      mockerList.add(mocker);
+      mocker.preProcess();
+    }
+    for (    JaxbEmbeddable embeddable : entityMappings.getEmbeddable()) {
+      AbstractEntityObjectMocker mocker=new EmbeddableMocker(indexBuilder,embeddable,defaults);
+      mockerList.add(mocker);
+      mocker.preProcess();
+    }
+    for (    JaxbEntity entity : entityMappings.getEntity()) {
+      globalAnnotations.collectGlobalMappings(entity,defaults);
+      AbstractEntityObjectMocker mocker=new EntityMocker(indexBuilder,entity,defaults);
+      mockerList.add(mocker);
+      mocker.preProcess();
+    }
+  }
+  for (  AbstractEntityObjectMocker mocker : mockerList) {
+    mocker.process();
+  }
+}
