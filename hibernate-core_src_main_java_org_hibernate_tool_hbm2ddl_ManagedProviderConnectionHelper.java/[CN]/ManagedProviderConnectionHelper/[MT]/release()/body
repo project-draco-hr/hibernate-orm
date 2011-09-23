@@ -1,15 +1,8 @@
 {
-  if (connection != null) {
-    try {
-      new SqlExceptionHelper().logAndClearWarnings(connection);
-      connectionProvider.closeConnection(connection);
-    }
-  finally {
-      if (connectionProvider instanceof Stoppable) {
-        ((Stoppable)connectionProvider).stop();
-      }
-      connectionProvider=null;
-    }
+  try {
+    releaseConnection();
   }
-  connection=null;
+  finally {
+    releaseServiceRegistry();
+  }
 }
