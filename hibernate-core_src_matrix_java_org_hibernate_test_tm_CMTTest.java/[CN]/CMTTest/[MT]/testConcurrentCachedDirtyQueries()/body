@@ -39,8 +39,12 @@ synchronized (this) {
   assertEquals(sessionFactory().getStatistics().getQueryCachePutCount(),2);
   assertEquals(sessionFactory().getStatistics().getQueryCacheHitCount(),0);
   assertEquals(sessionFactory().getStatistics().getQueryCacheMissCount(),2);
+  assertEquals(sessionFactory().getStatistics().getUpdateTimestampsCacheHitCount(),4);
+  assertEquals(sessionFactory().getStatistics().getUpdateTimestampsCachePutCount(),2);
   TestingJtaBootstrap.INSTANCE.getTransactionManager().resume(tx1);
   TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  assertEquals(sessionFactory().getStatistics().getUpdateTimestampsCachePutCount(),3);
+  assertEquals(sessionFactory().getStatistics().getUpdateTimestampsCacheHitCount(),5);
   TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s3=openSession();
   s3.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
@@ -53,6 +57,7 @@ synchronized (this) {
   assertEquals(sessionFactory().getStatistics().getQueryCachePutCount(),3);
   assertEquals(sessionFactory().getStatistics().getQueryCacheHitCount(),0);
   assertEquals(sessionFactory().getStatistics().getQueryCacheMissCount(),3);
+  assertEquals(sessionFactory().getStatistics().getUpdateTimestampsCacheHitCount(),6);
   TestingJtaBootstrap.INSTANCE.getTransactionManager().resume(tx4);
   List r4=s4.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
   assertEquals(r4.size(),2);
@@ -65,6 +70,7 @@ synchronized (this) {
   assertEquals(sessionFactory().getStatistics().getQueryCachePutCount(),3);
   assertEquals(sessionFactory().getStatistics().getQueryCacheHitCount(),1);
   assertEquals(sessionFactory().getStatistics().getQueryCacheMissCount(),3);
+  assertEquals(sessionFactory().getStatistics().getUpdateTimestampsCacheHitCount(),7);
   TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.createQuery("delete from Item").executeUpdate();

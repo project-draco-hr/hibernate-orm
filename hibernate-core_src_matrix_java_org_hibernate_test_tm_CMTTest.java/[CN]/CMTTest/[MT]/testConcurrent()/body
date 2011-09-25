@@ -1,5 +1,8 @@
 {
   sessionFactory().getStatistics().clear();
+  assertEquals(0,sessionFactory().getStatistics().getUpdateTimestampsCacheHitCount());
+  assertEquals(0,sessionFactory().getStatistics().getUpdateTimestampsCachePutCount());
+  assertEquals(0,sessionFactory().getStatistics().getUpdateTimestampsCacheMissCount());
   assertNotNull(sessionFactory().getEntityPersister("Item").getCacheAccessStrategy());
   assertEquals(0,sessionFactory().getStatistics().getEntityLoadCount());
   TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
@@ -13,6 +16,9 @@
   bar.put("description","a small bar");
   s.persist("Item",bar);
   TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  assertEquals(0,sessionFactory().getStatistics().getUpdateTimestampsCacheHitCount());
+  assertEquals(3,sessionFactory().getStatistics().getUpdateTimestampsCachePutCount());
+  assertEquals(0,sessionFactory().getStatistics().getUpdateTimestampsCacheMissCount());
   sessionFactory().evictEntity("Item");
   TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s1=openSession();
@@ -44,6 +50,8 @@
   assertEquals(3,sessionFactory().getStatistics().getQueryExecutionCount());
   assertEquals(0,sessionFactory().getStatistics().getQueryCacheHitCount());
   assertEquals(0,sessionFactory().getStatistics().getQueryCacheMissCount());
+  assertEquals(0,sessionFactory().getStatistics().getUpdateTimestampsCacheHitCount());
+  assertEquals(3,sessionFactory().getStatistics().getUpdateTimestampsCachePutCount());
   TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.createQuery("delete from Item").executeUpdate();

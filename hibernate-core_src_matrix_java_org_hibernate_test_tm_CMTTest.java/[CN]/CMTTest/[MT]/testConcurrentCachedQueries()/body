@@ -36,6 +36,8 @@ synchronized (this) {
   assertEquals(sessionFactory().getStatistics().getQueryCachePutCount(),1);
   assertEquals(sessionFactory().getStatistics().getQueryCacheHitCount(),1);
   assertEquals(sessionFactory().getStatistics().getQueryCacheMissCount(),1);
+  assertEquals(sessionFactory().getStatistics().getUpdateTimestampsCacheHitCount(),1);
+  assertEquals(sessionFactory().getStatistics().getUpdateTimestampsCachePutCount(),0);
   TestingJtaBootstrap.INSTANCE.getTransactionManager().resume(tx1);
   TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
@@ -50,6 +52,9 @@ synchronized (this) {
   assertEquals(sessionFactory().getStatistics().getQueryCachePutCount(),1);
   assertEquals(sessionFactory().getStatistics().getQueryCacheHitCount(),2);
   assertEquals(sessionFactory().getStatistics().getQueryCacheMissCount(),1);
+  assertEquals(sessionFactory().getStatistics().getUpdateTimestampsCacheHitCount(),2);
+  assertEquals(sessionFactory().getStatistics().getUpdateTimestampsCachePutCount(),0);
+  assertEquals(sessionFactory().getStatistics().getUpdateTimestampsCacheMissCount(),0);
   TestingJtaBootstrap.INSTANCE.getTransactionManager().resume(tx4);
   List r4=s4.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
   assertEquals(r4.size(),2);
@@ -62,6 +67,8 @@ synchronized (this) {
   assertEquals(sessionFactory().getStatistics().getQueryCachePutCount(),1);
   assertEquals(sessionFactory().getStatistics().getQueryCacheHitCount(),3);
   assertEquals(sessionFactory().getStatistics().getQueryCacheMissCount(),1);
+  assertEquals(sessionFactory().getStatistics().getUpdateTimestampsCacheHitCount(),3);
+  assertEquals(sessionFactory().getStatistics().getUpdateTimestampsCachePutCount(),0);
   TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.createQuery("delete from Item").executeUpdate();

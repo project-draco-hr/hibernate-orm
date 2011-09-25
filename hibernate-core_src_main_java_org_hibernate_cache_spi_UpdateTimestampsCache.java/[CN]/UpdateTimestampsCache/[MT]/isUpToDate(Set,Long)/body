@@ -4,9 +4,15 @@
     for (    Serializable space : (Set<Serializable>)spaces) {
       Long lastUpdate=(Long)region.get(space);
       if (lastUpdate == null) {
+        if (factory.getStatistics().isStatisticsEnabled()) {
+          factory.getStatisticsImplementor().updateTimestampsCacheMiss();
+        }
       }
  else {
         LOG.debugf("[%s] last update timestamp: %s",space,lastUpdate + ", result set timestamp: " + timestamp);
+        if (factory.getStatistics().isStatisticsEnabled()) {
+          factory.getStatisticsImplementor().updateTimestampsCacheHit();
+        }
         if (lastUpdate.longValue() >= timestamp.longValue())         return false;
       }
     }
