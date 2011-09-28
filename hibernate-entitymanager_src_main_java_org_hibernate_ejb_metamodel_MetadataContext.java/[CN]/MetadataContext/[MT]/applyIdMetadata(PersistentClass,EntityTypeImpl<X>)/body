@@ -6,7 +6,9 @@
     }
   }
  else   if (persistentClass.hasIdentifierMapper()) {
-    jpaEntityType.getBuilder().applyIdClassAttributes(buildIdClassAttributes(jpaEntityType,persistentClass));
+    @SuppressWarnings("unchecked") Iterator<Property> propertyIterator=persistentClass.getIdentifierMapper().getPropertyIterator();
+    Set<SingularAttribute<? super X,?>> attributes=buildIdClassAttributes(jpaEntityType,propertyIterator);
+    jpaEntityType.getBuilder().applyIdClassAttributes(attributes);
   }
  else {
     final KeyValue value=persistentClass.getIdentifier();
