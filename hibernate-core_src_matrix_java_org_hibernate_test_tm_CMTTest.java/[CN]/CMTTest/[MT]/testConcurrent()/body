@@ -19,7 +19,7 @@
   assertEquals(0,sessionFactory().getStatistics().getUpdateTimestampsCacheHitCount());
   assertEquals(3,sessionFactory().getStatistics().getUpdateTimestampsCachePutCount());
   assertEquals(0,sessionFactory().getStatistics().getUpdateTimestampsCacheMissCount());
-  sessionFactory().evictEntity("Item");
+  sessionFactory().getCache().evictEntityRegion("Item");
   TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   Session s1=openSession();
   foo=(Map)s1.get("Item","Foo");
@@ -30,7 +30,7 @@
   TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   TestingJtaBootstrap.INSTANCE.getTransactionManager().resume(tx);
   TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
-  sessionFactory().evictEntity("Item");
+  sessionFactory().getCache().evictEntityRegion("Item");
   TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s1=openSession();
   s1.createCriteria("Item").list();
