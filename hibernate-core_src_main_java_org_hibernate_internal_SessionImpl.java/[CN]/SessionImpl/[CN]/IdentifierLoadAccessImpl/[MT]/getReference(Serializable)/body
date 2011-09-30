@@ -1,0 +1,25 @@
+{
+  if (this.lockOptions != null) {
+    LoadEvent event=new LoadEvent(id,entityName,lockOptions,SessionImpl.this);
+    fireLoad(event,LoadEventListener.LOAD);
+    return this.entityClass.cast(event.getResult());
+  }
+  if (this.lockMode != null) {
+    LoadEvent event=new LoadEvent(id,entityName,lockMode,SessionImpl.this);
+    fireLoad(event,LoadEventListener.LOAD);
+    return this.entityClass.cast(event.getResult());
+  }
+  LoadEvent event=new LoadEvent(id,entityName,false,SessionImpl.this);
+  boolean success=false;
+  try {
+    fireLoad(event,LoadEventListener.LOAD);
+    if (event.getResult() == null) {
+      getFactory().getEntityNotFoundDelegate().handleEntityNotFound(entityName,id);
+    }
+    success=true;
+    return this.entityClass.cast(event.getResult());
+  }
+  finally {
+    afterOperation(success);
+  }
+}
