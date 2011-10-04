@@ -1,0 +1,26 @@
+{
+  final SessionImplementor source=event.getSession();
+  EntityPersister persister=source.getFactory().getEntityPersister(event.getEntityClassName());
+  if (persister == null) {
+    throw new HibernateException("Unable to locate persister: " + event.getEntityClassName());
+  }
+  final EntityMetamodel entityMetamodel=persister.getEntityMetamodel();
+  final int[] naturalIdentifierProperties=entityMetamodel.getNaturalIdentifierProperties();
+  if (naturalIdentifierProperties == null || naturalIdentifierProperties.length == 0) {
+    throw new HibernateException(event.getEntityClassName() + " does not have a natural id");
+  }
+  final Map<String,Object> naturalIdParams=event.getNaturalId();
+  if (naturalIdentifierProperties.length != naturalIdParams.size()) {
+    throw new HibernateException(event.getEntityClassName() + " has " + naturalIdentifierProperties.length+ " properties in its natural id but "+ naturalIdParams.size()+ " properties were specified: "+ naturalIdParams);
+  }
+  final StandardProperty[] properties=entityMetamodel.getProperties();
+  for (int idPropIdx=0; idPropIdx < naturalIdentifierProperties.length; idPropIdx++) {
+    final StandardProperty property=properties[naturalIdentifierProperties[idPropIdx]];
+    final String name=property.getName();
+    if (!naturalIdParams.containsKey(name)) {
+      throw new HibernateException(event.getEntityClassName() + " natural id property " + name+ " is missing from the map of natural id parameters: "+ naturalIdParams);
+    }
+  }
+  final Serializable entityId=doResolveNaturalId(event,persister);
+  event.setEntityId(entityId);
+}
