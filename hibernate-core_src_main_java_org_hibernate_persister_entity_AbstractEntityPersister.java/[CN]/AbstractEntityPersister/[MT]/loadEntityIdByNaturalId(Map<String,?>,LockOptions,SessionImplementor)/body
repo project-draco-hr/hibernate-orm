@@ -3,32 +3,11 @@
     throw new MappingException("persistent class did not define a natural-id : " + MessageHelper.infoString(this));
   }
   if (LOG.isTraceEnabled())   LOG.trace("Getting entity id for natural-id for: " + MessageHelper.infoString(this,naturalIdParameters,getFactory()));
-  Select select=new Select(getFactory().getDialect());
-  if (getFactory().getSettings().isCommentsEnabled()) {
-    select.setComment("get current natural-id->entity-id state " + getEntityName());
-  }
-  final String rootAlias=getRootAlias();
-  select.setSelectClause(identifierSelectFragment(rootAlias,""));
-  select.setFromClause(fromTableFragment(rootAlias) + fromJoinFragment(rootAlias,true,false));
-  final StringBuilder whereClause=new StringBuilder();
-  final int[] propertyTableNumbers=getPropertyTableNumbers();
-  final int[] naturalIdPropertyIndexes=this.getNaturalIdentifierProperties();
-  for (int propIdx=0; propIdx < naturalIdPropertyIndexes.length; propIdx++) {
-    if (propIdx > 0) {
-      whereClause.append(" and ");
-    }
-    final int naturalIdIdx=naturalIdPropertyIndexes[propIdx];
-    final String tableAlias=generateTableAlias(rootAlias,propertyTableNumbers[naturalIdIdx]);
-    final String[] propertyColumnNames=getPropertyColumnNames(naturalIdIdx);
-    final String[] aliasedPropertyColumns=StringHelper.qualify(rootAlias,propertyColumnNames);
-    whereClause.append(StringHelper.join("=? and ",aliasedPropertyColumns)).append("=?");
-  }
-  whereClause.append(whereJoinFragment(getRootAlias(),true,false));
-  String sql=select.setOuterJoins("","").setWhereClause(whereClause.toString()).toStatementString();
   try {
-    PreparedStatement ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql);
+    PreparedStatement ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sqlEntityIdByNaturalIdString);
     try {
       int positions=1;
+      final int[] naturalIdPropertyIndexes=this.getNaturalIdentifierProperties();
       for (int propIdx=0; propIdx < naturalIdPropertyIndexes.length; propIdx++) {
         final int naturalIdIdx=naturalIdPropertyIndexes[propIdx];
         final StandardProperty[] properties=entityMetamodel.getProperties();
@@ -54,6 +33,6 @@
     }
   }
  catch (  SQLException e) {
-    throw getFactory().getSQLExceptionHelper().convert(e,"could not retrieve snapshot: " + MessageHelper.infoString(this,naturalIdParameters,getFactory()),sql);
+    throw getFactory().getSQLExceptionHelper().convert(e,"could not retrieve entity id: " + MessageHelper.infoString(this,naturalIdParameters,getFactory()),sqlEntityIdByNaturalIdString);
   }
 }
