@@ -4,35 +4,27 @@
   ArrayList placeholders=new ArrayList();
   ArrayList replacements=new ArrayList();
   StringBuffer templateQuery=new StringBuffer(40);
+  int start=getStartingPositionFor(tokens,templateQuery);
   int count=0;
-  String last=null;
-  int nextIndex=0;
   String next=null;
-  boolean isSelectClause=false;
-  templateQuery.append(tokens[0]);
-  if ("select".equals(tokens[0].toLowerCase()))   isSelectClause=true;
-  for (int i=1; i < tokens.length; i++) {
-    if (!ParserHelper.isWhitespace(tokens[i - 1]))     last=tokens[i - 1].toLowerCase();
-    if ("from".equals(tokens[i].toLowerCase()))     isSelectClause=false;
+  String last=tokens[start - 1].toLowerCase();
+  for (int i=start; i < tokens.length; i++) {
     String token=tokens[i];
-    if (!ParserHelper.isWhitespace(token) || last == null) {
-      if (nextIndex <= i) {
-        for (nextIndex=i + 1; nextIndex < tokens.length; nextIndex++) {
-          next=tokens[nextIndex].toLowerCase();
-          if (!ParserHelper.isWhitespace(next))           break;
-        }
-      }
-      boolean process=!isSelectClause && isJavaIdentifier(token) && isPossiblyClassName(last,next);
-      if (process) {
-        String importedClassName=getImportedClass(token,factory);
-        if (importedClassName != null) {
-          String[] implementors=factory.getImplementors(importedClassName);
-          String placeholder="$clazz" + count++ + "$";
-          if (implementors != null) {
-            placeholders.add(placeholder);
-            replacements.add(implementors);
-          }
-          token=placeholder;
+    if (ParserHelper.isWhitespace(token)) {
+      templateQuery.append(token);
+      continue;
+    }
+    next=nextNonWhite(tokens,i).toLowerCase();
+    boolean process=isJavaIdentifier(token) && isPossiblyClassName(last,next);
+    last=token.toLowerCase();
+    if (process) {
+      String importedClassName=getImportedClass(token,factory);
+      if (importedClassName != null) {
+        String[] implementors=factory.getImplementors(importedClassName);
+        token="$clazz" + count++ + "$";
+        if (implementors != null) {
+          placeholders.add(token);
+          replacements.add(implementors);
         }
       }
     }
