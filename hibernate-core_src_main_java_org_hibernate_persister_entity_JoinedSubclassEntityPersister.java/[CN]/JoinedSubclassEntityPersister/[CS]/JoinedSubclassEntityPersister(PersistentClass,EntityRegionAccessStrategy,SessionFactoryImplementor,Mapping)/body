@@ -2,7 +2,7 @@
   super(persistentClass,cacheAccessStrategy,factory);
   if (persistentClass.isPolymorphic()) {
     try {
-      discriminatorValue=new Integer(persistentClass.getSubclassId());
+      discriminatorValue=persistentClass.getSubclassId();
       discriminatorSQLString=discriminatorValue.toString();
     }
  catch (    Exception e) {
@@ -194,7 +194,7 @@
     Property prop=(Property)iter.next();
     Table tab=prop.getValue().getTable();
     String tabname=tab.getQualifiedName(factory.getDialect(),factory.getSettings().getDefaultCatalogName(),factory.getSettings().getDefaultSchemaName());
-    Integer tabnum=new Integer(getTableId(tabname,subclassTableNameClosure));
+    Integer tabnum=getTableId(tabname,subclassTableNameClosure);
     propTableNumbers.add(tabnum);
     Iterator citer=prop.getColumnIterator();
     while (citer.hasNext()) {
@@ -235,7 +235,7 @@
     subclassClosure[k]=sc.getEntityName();
     try {
       if (persistentClass.isPolymorphic()) {
-        Integer subclassId=new Integer(sc.getSubclassId());
+        Integer subclassId=sc.getSubclassId();
         subclassesByDiscriminatorValue.put(subclassId,sc.getEntityName());
         discriminatorValues[k]=subclassId.toString();
         int id=getTableId(sc.getTable().getQualifiedName(factory.getDialect(),factory.getSettings().getDefaultCatalogName(),factory.getSettings().getDefaultSchemaName()),subclassTableNameClosure);
