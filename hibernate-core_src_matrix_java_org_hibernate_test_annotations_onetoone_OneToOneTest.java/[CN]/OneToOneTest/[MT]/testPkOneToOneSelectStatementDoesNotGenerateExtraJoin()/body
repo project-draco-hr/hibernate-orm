@@ -18,6 +18,21 @@
   assertNotNull(address);
   assertNotNull(address.getOwner());
   assertEquals(address.getId(),address.getOwner().getId());
+  s.flush();
+  s.clear();
+  owner=(Owner)s.createCriteria(Owner.class).add(Restrictions.idEq(owner.getId())).uniqueResult();
+  assertNotNull(owner);
+  assertNotNull(owner.getAddress());
+  assertEquals(owner.getId(),owner.getAddress().getId());
+  s.flush();
+  s.clear();
+  address=(OwnerAddress)s.createCriteria(OwnerAddress.class).add(Restrictions.idEq(address.getId())).uniqueResult();
+  address=(OwnerAddress)s.get(OwnerAddress.class,address.getId());
+  assertNotNull(address);
+  assertNotNull(address.getOwner());
+  assertEquals(address.getId(),address.getOwner().getId());
+  s.flush();
+  s.clear();
   tx.rollback();
   s.close();
 }

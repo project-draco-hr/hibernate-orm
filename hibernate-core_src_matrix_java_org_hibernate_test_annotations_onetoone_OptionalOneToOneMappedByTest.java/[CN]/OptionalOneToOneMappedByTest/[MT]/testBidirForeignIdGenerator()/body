@@ -1,0 +1,17 @@
+{
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  OwnerAddress address=new OwnerAddress();
+  address.setOwner(null);
+  try {
+    s.persist(address);
+    s.flush();
+    fail("should have failed with IdentifierGenerationException");
+  }
+ catch (  IdentifierGenerationException ex) {
+  }
+ finally {
+    tx.rollback();
+  }
+  s.close();
+}
