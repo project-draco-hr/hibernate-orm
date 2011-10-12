@@ -1,12 +1,20 @@
 {
   if (RootClass.class.isInstance(metadata)) {
-    return singleTableEntityPersister();
+    if (metadata.hasSubclasses()) {
+      metadata=(PersistentClass)metadata.getDirectSubclasses().next();
+    }
+ else {
+      return singleTableEntityPersister();
+    }
   }
- else   if (JoinedSubclass.class.isInstance(metadata)) {
+  if (JoinedSubclass.class.isInstance(metadata)) {
     return joinedSubclassEntityPersister();
   }
  else   if (UnionSubclass.class.isInstance(metadata)) {
     return unionSubclassEntityPersister();
+  }
+ else   if (SingleTableSubclass.class.isInstance(metadata)) {
+    return singleTableEntityPersister();
   }
  else {
     throw new UnknownPersisterException("Could not determine persister implementation for entity [" + metadata.getEntityName() + "]");
