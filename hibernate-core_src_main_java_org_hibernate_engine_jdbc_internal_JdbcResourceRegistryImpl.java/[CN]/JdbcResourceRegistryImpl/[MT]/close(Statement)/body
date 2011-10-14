@@ -1,5 +1,5 @@
 {
-  LOG.trace("Closing prepared statement [" + statement + "]");
+  LOG.tracev("Closing prepared statement [{0}]",statement);
   if (statement instanceof InvalidatableWrapper) {
     InvalidatableWrapper<Statement> wrapper=(InvalidatableWrapper<Statement>)statement;
     close(wrapper.getWrappedObject());
@@ -16,7 +16,9 @@
       }
     }
  catch (    SQLException sqle) {
-      LOG.debugf("Exception clearing maxRows/queryTimeout [%s]",sqle.getMessage());
+      if (LOG.isDebugEnabled()) {
+        LOG.debugf("Exception clearing maxRows/queryTimeout [%s]",sqle.getMessage());
+      }
       return;
     }
     statement.close();
@@ -25,6 +27,8 @@
     }
   }
  catch (  SQLException sqle) {
-    LOG.debugf("Unable to release statement [%s]",sqle.getMessage());
+    if (LOG.isDebugEnabled()) {
+      LOG.debugf("Unable to release statement [%s]",sqle.getMessage());
+    }
   }
 }

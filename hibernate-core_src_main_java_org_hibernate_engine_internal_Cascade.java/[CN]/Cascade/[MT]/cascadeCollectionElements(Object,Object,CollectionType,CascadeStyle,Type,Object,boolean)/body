@@ -1,18 +1,26 @@
 {
   boolean reallyDoCascade=style.reallyDoCascade(action) && child != CollectionType.UNFETCHED_COLLECTION;
   if (reallyDoCascade) {
-    LOG.trace("Cascade " + action + " for collection: "+ collectionType.getRole());
+    if (LOG.isTraceEnabled()) {
+      LOG.tracev("Cascade {0} for collection: {1}",action,collectionType.getRole());
+    }
     Iterator iter=action.getCascadableChildrenIterator(eventSource,collectionType,child);
     while (iter.hasNext()) {
       cascadeProperty(parent,iter.next(),elemType,style,null,anything,isCascadeDeleteEnabled);
     }
-    LOG.trace("Done cascade " + action + " for collection: "+ collectionType.getRole());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Done cascade " + action + " for collection: "+ collectionType.getRole());
+    }
   }
   final boolean deleteOrphans=style.hasOrphanDelete() && action.deleteOrphans() && elemType.isEntityType()&& child instanceof PersistentCollection;
   if (deleteOrphans) {
-    LOG.trace("Deleting orphans for collection: " + collectionType.getRole());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Deleting orphans for collection: " + collectionType.getRole());
+    }
     final String entityName=collectionType.getAssociatedEntityName(eventSource.getFactory());
     deleteOrphans(entityName,(PersistentCollection)child);
-    LOG.trace("Done deleting orphans for collection: " + collectionType.getRole());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Done deleting orphans for collection: " + collectionType.getRole());
+    }
   }
 }
