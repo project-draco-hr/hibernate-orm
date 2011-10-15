@@ -1,12 +1,9 @@
 {
-  LOG.trace("Total checked-out connections: " + checkedOut);
+  LOG.tracev("Total checked-out connections: {0}",checkedOut);
 synchronized (pool) {
     if (!pool.isEmpty()) {
       int last=pool.size() - 1;
-      if (LOG.isTraceEnabled()) {
-        LOG.trace("Using pooled JDBC connection, pool size: " + last);
-        checkedOut++;
-      }
+      LOG.tracev("Using pooled JDBC connection, pool size: {0}",last);
       Connection pooled=pool.remove(last);
       if (isolation != null) {
         pooled.setTransactionIsolation(isolation.intValue());
@@ -14,6 +11,7 @@ synchronized (pool) {
       if (pooled.getAutoCommit() != autocommit) {
         pooled.setAutoCommit(autocommit);
       }
+      checkedOut++;
       return pooled;
     }
   }
@@ -25,7 +23,9 @@ synchronized (pool) {
   if (conn.getAutoCommit() != autocommit) {
     conn.setAutoCommit(autocommit);
   }
-  LOG.debugf("Created connection to: %s, Isolation Level: %s",url,conn.getTransactionIsolation());
+  if (LOG.isDebugEnabled()) {
+    LOG.debugf("Created connection to: %s, Isolation Level: %s",url,conn.getTransactionIsolation());
+  }
   checkedOut++;
   return conn;
 }

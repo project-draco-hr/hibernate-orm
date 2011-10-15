@@ -23,14 +23,18 @@
     oldVersion=persister.getCurrentVersion(id,source);
   }
   if (oldVersion != null) {
-    if (LOG.isTraceEnabled())     LOG.trace("Found existing row for " + MessageHelper.infoString(persister,id,source.getFactory()));
+    if (LOG.isTraceEnabled()) {
+      LOG.tracev("Found existing row for {0}",MessageHelper.infoString(persister,id,source.getFactory()));
+    }
     final Object realOldVersion=persister.isVersioned() ? oldVersion : null;
     boolean canReplicate=replicationMode.shouldOverwriteCurrentVersion(entity,realOldVersion,persister.getVersion(entity),persister.getVersionType());
     if (canReplicate)     performReplication(entity,id,realOldVersion,persister,replicationMode,source);
  else     LOG.trace("No need to replicate");
   }
  else {
-    if (LOG.isTraceEnabled())     LOG.trace("No existing row, replicating new instance " + MessageHelper.infoString(persister,id,source.getFactory()));
+    if (LOG.isTraceEnabled()) {
+      LOG.tracev("No existing row, replicating new instance {0}",MessageHelper.infoString(persister,id,source.getFactory()));
+    }
     final boolean regenerate=persister.isIdentifierAssignedByInsert();
     final EntityKey key=regenerate ? null : source.generateEntityKey(id,persister);
     performSaveOrReplicate(entity,key,persister,regenerate,replicationMode,source,true);

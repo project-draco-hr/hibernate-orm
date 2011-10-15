@@ -8,7 +8,9 @@
   while (iter.hasNext()) {
     final CollectionKey collectionKey=(CollectionKey)iter.next();
     final LoadingCollectionEntry lce=loadContexts.locateLoadingCollectionEntry(collectionKey);
-    if (lce == null)     LOG.loadingCollectionKeyNotFound(collectionKey);
+    if (lce == null) {
+      LOG.loadingCollectionKeyNotFound(collectionKey);
+    }
  else     if (lce.getResultSet() == resultSet && lce.getPersister() == persister) {
       if (matches == null) {
         matches=new ArrayList();
@@ -17,7 +19,7 @@
       if (lce.getCollection().getOwner() == null) {
         session.getPersistenceContext().addUnownedCollection(new CollectionKey(persister,lce.getKey(),persister.getOwnerEntityPersister().getEntityMetamodel().getEntityMode()),lce.getCollection());
       }
-      LOG.trace("Removing collection load entry [" + lce + "]");
+      LOG.tracev("Removing collection load entry [{0}]",lce);
       loadContexts.unregisterLoadingCollectionXRef(collectionKey);
       iter.remove();
     }

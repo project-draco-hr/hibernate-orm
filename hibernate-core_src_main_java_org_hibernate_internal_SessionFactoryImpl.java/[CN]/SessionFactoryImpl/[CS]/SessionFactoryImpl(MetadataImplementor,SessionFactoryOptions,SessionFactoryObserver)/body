@@ -58,7 +58,9 @@ class IntegratorObserver implements SessionFactoryObserver {
       accessStrategy=EntityRegionAccessStrategy.class.cast(entityAccessStrategies.get(cacheRegionName));
       if (accessStrategy == null) {
         final AccessType accessType=model.getHierarchyDetails().getCaching().getAccessType();
-        LOG.trace("Building cache for entity data [" + model.getEntity().getName() + "]");
+        if (LOG.isTraceEnabled()) {
+          LOG.tracev("Building cache for entity data [{0}]",model.getEntity().getName());
+        }
         EntityRegion entityRegion=settings.getRegionFactory().buildEntityRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
         accessStrategy=entityRegion.buildAccessStrategy(accessType);
         entityAccessStrategies.put(cacheRegionName,accessStrategy);
@@ -83,7 +85,9 @@ class IntegratorObserver implements SessionFactoryObserver {
     final AccessType accessType=model.getCaching().getAccessType();
     CollectionRegionAccessStrategy accessStrategy=null;
     if (accessType != null && settings.isSecondLevelCacheEnabled()) {
-      LOG.trace("Building cache for collection data [" + model.getAttribute().getRole() + "]");
+      if (LOG.isTraceEnabled()) {
+        LOG.tracev("Building cache for collection data [{0}]",model.getAttribute().getRole());
+      }
       CollectionRegion collectionRegion=settings.getRegionFactory().buildCollectionRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
       accessStrategy=collectionRegion.buildAccessStrategy(accessType);
       entityAccessStrategies.put(cacheRegionName,accessStrategy);

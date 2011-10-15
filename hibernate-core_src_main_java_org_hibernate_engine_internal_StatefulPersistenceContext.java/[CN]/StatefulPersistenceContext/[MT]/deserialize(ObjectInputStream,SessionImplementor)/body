@@ -1,23 +1,24 @@
 {
-  LOG.trace("Serializing persistent-context");
+  final boolean tracing=LOG.isTraceEnabled();
+  if (tracing)   LOG.trace("Serializing persistent-context");
   StatefulPersistenceContext rtn=new StatefulPersistenceContext(session);
   try {
     rtn.defaultReadOnly=ois.readBoolean();
     rtn.hasNonReadOnlyEntities=ois.readBoolean();
     int count=ois.readInt();
-    LOG.trace("Starting deserialization of [" + count + "] entitiesByKey entries");
+    if (tracing)     LOG.trace("Starting deserialization of [" + count + "] entitiesByKey entries");
     rtn.entitiesByKey=new HashMap(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
     for (int i=0; i < count; i++) {
       rtn.entitiesByKey.put(EntityKey.deserialize(ois,session),ois.readObject());
     }
     count=ois.readInt();
-    LOG.trace("Starting deserialization of [" + count + "] entitiesByUniqueKey entries");
+    if (tracing)     LOG.trace("Starting deserialization of [" + count + "] entitiesByUniqueKey entries");
     rtn.entitiesByUniqueKey=new HashMap(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
     for (int i=0; i < count; i++) {
       rtn.entitiesByUniqueKey.put(EntityUniqueKey.deserialize(ois,session),ois.readObject());
     }
     count=ois.readInt();
-    LOG.trace("Starting deserialization of [" + count + "] proxiesByKey entries");
+    if (tracing)     LOG.trace("Starting deserialization of [" + count + "] proxiesByKey entries");
     rtn.proxiesByKey=new ReferenceMap(AbstractReferenceMap.HARD,AbstractReferenceMap.WEAK,count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count,.75f);
     for (int i=0; i < count; i++) {
       EntityKey ek=EntityKey.deserialize(ois,session);
@@ -26,16 +27,18 @@
         ((HibernateProxy)proxy).getHibernateLazyInitializer().setSession(session);
         rtn.proxiesByKey.put(ek,proxy);
       }
- else       LOG.trace("Encountered prunded proxy");
+ else {
+        if (tracing)         LOG.trace("Encountered prunded proxy");
+      }
     }
     count=ois.readInt();
-    LOG.trace("Starting deserialization of [" + count + "] entitySnapshotsByKey entries");
+    if (tracing)     LOG.trace("Starting deserialization of [" + count + "] entitySnapshotsByKey entries");
     rtn.entitySnapshotsByKey=new HashMap(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
     for (int i=0; i < count; i++) {
       rtn.entitySnapshotsByKey.put(EntityKey.deserialize(ois,session),ois.readObject());
     }
     count=ois.readInt();
-    LOG.trace("Starting deserialization of [" + count + "] entityEntries entries");
+    if (tracing)     LOG.trace("Starting deserialization of [" + count + "] entityEntries entries");
     rtn.entityEntries=IdentityMap.instantiateSequenced(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
     for (int i=0; i < count; i++) {
       Object entity=ois.readObject();
@@ -43,13 +46,13 @@
       rtn.entityEntries.put(entity,entry);
     }
     count=ois.readInt();
-    LOG.trace("Starting deserialization of [" + count + "] collectionsByKey entries");
+    if (tracing)     LOG.trace("Starting deserialization of [" + count + "] collectionsByKey entries");
     rtn.collectionsByKey=new HashMap(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
     for (int i=0; i < count; i++) {
       rtn.collectionsByKey.put(CollectionKey.deserialize(ois,session),ois.readObject());
     }
     count=ois.readInt();
-    LOG.trace("Starting deserialization of [" + count + "] collectionEntries entries");
+    if (tracing)     LOG.trace("Starting deserialization of [" + count + "] collectionEntries entries");
     rtn.collectionEntries=IdentityMap.instantiateSequenced(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
     for (int i=0; i < count; i++) {
       final PersistentCollection pc=(PersistentCollection)ois.readObject();
@@ -58,13 +61,13 @@
       rtn.collectionEntries.put(pc,ce);
     }
     count=ois.readInt();
-    LOG.trace("Starting deserialization of [" + count + "] arrayHolders entries");
+    if (tracing)     LOG.trace("Starting deserialization of [" + count + "] arrayHolders entries");
     rtn.arrayHolders=IdentityMap.instantiate(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
     for (int i=0; i < count; i++) {
       rtn.arrayHolders.put(ois.readObject(),ois.readObject());
     }
     count=ois.readInt();
-    LOG.trace("Starting deserialization of [" + count + "] nullifiableEntityKey entries");
+    if (tracing)     LOG.trace("Starting deserialization of [" + count + "] nullifiableEntityKey entries");
     rtn.nullifiableEntityKeys=new HashSet();
     for (int i=0; i < count; i++) {
       rtn.nullifiableEntityKeys.add(EntityKey.deserialize(ois,session));

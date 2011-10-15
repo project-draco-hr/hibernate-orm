@@ -1,23 +1,24 @@
 {
+  final String methodName=method.getName();
   try {
-    if ("close".equals(method.getName())) {
+    if ("close".equals(methodName)) {
       unbind(realSession.getSessionFactory());
     }
- else     if ("toString".equals(method.getName()) || "equals".equals(method.getName()) || "hashCode".equals(method.getName())|| "getStatistics".equals(method.getName())|| "isOpen".equals(method.getName())|| "getListeners".equals(method.getName())) {
+ else     if ("toString".equals(methodName) || "equals".equals(methodName) || "hashCode".equals(methodName)|| "getStatistics".equals(methodName)|| "isOpen".equals(methodName)|| "getListeners".equals(methodName)) {
     }
  else     if (!realSession.isOpen()) {
     }
  else     if (!realSession.getTransaction().isActive()) {
-      if ("beginTransaction".equals(method.getName()) || "getTransaction".equals(method.getName()) || "isTransactionInProgress".equals(method.getName())|| "setFlushMode".equals(method.getName())|| "getFactory".equals(method.getName())|| "getSessionFactory".equals(method.getName())) {
-        LOG.trace("Allowing method [" + method.getName() + "] in non-transacted context");
+      if ("beginTransaction".equals(methodName) || "getTransaction".equals(methodName) || "isTransactionInProgress".equals(methodName)|| "setFlushMode".equals(methodName)|| "getFactory".equals(methodName)|| "getSessionFactory".equals(methodName)) {
+        LOG.tracev("Allowing method [{0}] in non-transacted context",methodName);
       }
- else       if ("reconnect".equals(method.getName()) || "disconnect".equals(method.getName())) {
+ else       if ("reconnect".equals(methodName) || "disconnect".equals(methodName)) {
       }
  else {
-        throw new HibernateException(method.getName() + " is not valid without active transaction");
+        throw new HibernateException(methodName + " is not valid without active transaction");
       }
     }
-    LOG.trace("Allowing proxied method [" + method.getName() + "] to proceed to real session");
+    LOG.tracev("Allowing proxied method [{0}] to proceed to real session",methodName);
     return method.invoke(realSession,args);
   }
  catch (  InvocationTargetException e) {

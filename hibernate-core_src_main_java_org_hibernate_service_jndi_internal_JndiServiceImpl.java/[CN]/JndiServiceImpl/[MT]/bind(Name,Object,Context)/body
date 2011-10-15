@@ -12,7 +12,7 @@
       final String intermediateContextName=name.get(0);
       Context intermediateContext=null;
       try {
-        LOG.trace("Intermediate lookup: " + intermediateContextName);
+        LOG.tracev("Intermediate lookup: {0}",intermediateContextName);
         intermediateContext=(Context)intermediateContextBase.lookup(intermediateContextName);
       }
  catch (      NameNotFoundException handledBelow) {
@@ -20,9 +20,11 @@
 catch (      NamingException e) {
         throw new JndiException("Unanticipated error doing intermediate lookup",e);
       }
-      if (intermediateContext != null)       LOG.trace("Found intermediate context: " + intermediateContextName);
+      if (intermediateContext != null) {
+        LOG.tracev("Found intermediate context: {0}",intermediateContextName);
+      }
  else {
-        LOG.trace("Creating sub-context: " + intermediateContextName);
+        LOG.tracev("Creating sub-context: {0}",intermediateContextName);
         try {
           intermediateContext=intermediateContextBase.createSubcontext(intermediateContextName);
         }
@@ -33,7 +35,7 @@ catch (      NamingException e) {
       intermediateContextBase=intermediateContext;
       name=name.getSuffix(1);
     }
-    LOG.trace("Binding : " + name);
+    LOG.tracev("Binding : {0}",name);
     try {
       intermediateContextBase.rebind(name,value);
     }

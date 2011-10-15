@@ -1,5 +1,7 @@
 {
-  LOG.debugf("Binding a OneToMany: %s.%s through a foreign key",propertyHolder.getEntityName(),propertyName);
+  if (LOG.isDebugEnabled()) {
+    LOG.debugf("Binding a OneToMany: %s.%s through a foreign key",propertyHolder.getEntityName(),propertyName);
+  }
   org.hibernate.mapping.OneToMany oneToMany=new org.hibernate.mapping.OneToMany(mappings,collection.getOwner());
   collection.setElement(oneToMany);
   oneToMany.setReferencedEntityName(collectionType.getName());
@@ -21,7 +23,9 @@
     column.setJoins(joins);
     collection.setCollectionTable(column.getTable());
   }
-  LOG.debugf("Mapping collection: %s -> %s",collection.getRole(),collection.getCollectionTable().getName());
+  if (LOG.isDebugEnabled()) {
+    LOG.debugf("Mapping collection: %s -> %s",collection.getRole(),collection.getCollectionTable().getName());
+  }
   bindFilters(false);
   bindCollectionSecondPass(collection,null,fkJoinColumns,cascadeDeleteEnabled,property,mappings);
   if (!collection.isInverse() && !collection.getKey().isNullable()) {

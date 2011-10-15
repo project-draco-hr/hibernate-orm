@@ -61,7 +61,9 @@
       }
       idGen.addParam(TableHiLoGenerator.MAX_LO,String.valueOf(tabGen.allocationSize() - 1));
     }
-    LOG.trace("Add table generator with name: " + idGen.getName());
+    if (LOG.isTraceEnabled()) {
+      LOG.tracev("Add table generator with name: {0}",idGen.getName());
+    }
   }
  else   if (ann instanceof SequenceGenerator) {
     SequenceGenerator seqGen=(SequenceGenerator)ann;
@@ -85,9 +87,13 @@
       if (!BinderHelper.isEmptyAnnotationValue(seqGen.sequenceName())) {
         idGen.addParam(org.hibernate.id.SequenceGenerator.SEQUENCE,seqGen.sequenceName());
       }
-      if (seqGen.initialValue() != 1)       LOG.unsupportedInitialValue(AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS);
+      if (seqGen.initialValue() != 1) {
+        LOG.unsupportedInitialValue(AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS);
+      }
       idGen.addParam(SequenceHiLoGenerator.MAX_LO,String.valueOf(seqGen.allocationSize() - 1));
-      LOG.trace("Add sequence generator with name: " + idGen.getName());
+      if (LOG.isTraceEnabled()) {
+        LOG.tracev("Add sequence generator with name: {0}",idGen.getName());
+      }
     }
   }
  else   if (ann instanceof GenericGenerator) {
@@ -98,7 +104,9 @@
     for (    Parameter parameter : params) {
       idGen.addParam(parameter.name(),parameter.value());
     }
-    LOG.trace("Add generic generator with name: " + idGen.getName());
+    if (LOG.isTraceEnabled()) {
+      LOG.tracev("Add generic generator with name: {0}",idGen.getName());
+    }
   }
  else {
     throw new AssertionFailure("Unknown Generator annotation: " + ann);

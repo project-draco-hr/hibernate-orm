@@ -1,21 +1,24 @@
 {
+  final String fetchAssociactionRole=fetch.getAssociation().getRole();
   Type associationType=fetch.getAssociation().getOwner().getPropertyType(fetch.getAssociation().getAssociationPath());
   if (associationType.isCollectionType()) {
-    LOG.trace("Handling request to add collection fetch [" + fetch.getAssociation().getRole() + "]");
+    LOG.tracev("Handling request to add collection fetch [{0}]",fetchAssociactionRole);
     if (Fetch.Style.JOIN == fetch.getStyle()) {
       if (BagType.class.isInstance(associationType)) {
         if (containsJoinFetchedCollection) {
-          LOG.containsJoinFetchedCollection(fetch.getAssociation().getRole());
+          LOG.containsJoinFetchedCollection(fetchAssociactionRole);
           return;
         }
       }
       if (containsJoinFetchedBag) {
-        if (fetches.remove(bagJoinFetch.getAssociation().getRole()) != bagJoinFetch)         LOG.unableToRemoveBagJoinFetch();
+        if (fetches.remove(bagJoinFetch.getAssociation().getRole()) != bagJoinFetch) {
+          LOG.unableToRemoveBagJoinFetch();
+        }
         bagJoinFetch=null;
         containsJoinFetchedBag=false;
       }
       containsJoinFetchedCollection=true;
     }
   }
-  fetches.put(fetch.getAssociation().getRole(),fetch);
+  fetches.put(fetchAssociactionRole,fetch);
 }

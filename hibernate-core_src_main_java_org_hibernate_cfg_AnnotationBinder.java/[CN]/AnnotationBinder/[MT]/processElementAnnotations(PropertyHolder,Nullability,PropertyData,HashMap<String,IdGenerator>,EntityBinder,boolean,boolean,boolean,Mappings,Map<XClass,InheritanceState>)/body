@@ -1,5 +1,7 @@
 {
-  LOG.trace("Processing annotations of " + propertyHolder.getEntityName() + "."+ inferredData.getPropertyName());
+  if (LOG.isTraceEnabled()) {
+    LOG.tracev("Processing annotations of {0}.{1}",propertyHolder.getEntityName(),inferredData.getPropertyName());
+  }
   final XProperty property=inferredData.getProperty();
   if (property.isAnnotationPresent(Parent.class)) {
     if (propertyHolder.isComponent()) {
@@ -41,7 +43,9 @@
     if (!propertyHolder.isEntity()) {
       throw new AnnotationException("Unable to define @Version on an embedded class: " + propertyHolder.getEntityName());
     }
-    LOG.trace(inferredData.getPropertyName() + " is a version property");
+    if (LOG.isTraceEnabled()) {
+      LOG.tracev("{0} is a version property",inferredData.getPropertyName());
+    }
     RootClass rootClass=(RootClass)propertyHolder.getPersistentClass();
     propertyBinder.setColumns(columns);
     Property prop=propertyBinder.makePropertyValueAndBind();
@@ -57,7 +61,9 @@
     SimpleValue simpleValue=(SimpleValue)prop.getValue();
     simpleValue.setNullValue("undefined");
     rootClass.setOptimisticLockMode(Versioning.OPTIMISTIC_LOCK_VERSION);
-    LOG.trace("Version name: " + rootClass.getVersion().getName() + ", unsavedValue: "+ ((SimpleValue)rootClass.getVersion().getValue()).getNullValue());
+    if (LOG.isTraceEnabled()) {
+      LOG.tracev("Version name: {0}, unsavedValue: {1}",rootClass.getVersion().getName(),((SimpleValue)rootClass.getVersion().getValue()).getNullValue());
+    }
   }
  else {
     final boolean forcePersist=property.isAnnotationPresent(MapsId.class) || property.isAnnotationPresent(Id.class);

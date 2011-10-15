@@ -1,6 +1,8 @@
 {
   if (queryAnn == null)   return;
-  if (BinderHelper.isEmptyAnnotationValue(queryAnn.name()))   throw new AnnotationException("A named query must have a name when used in class or package level");
+  if (BinderHelper.isEmptyAnnotationValue(queryAnn.name())) {
+    throw new AnnotationException("A named query must have a name when used in class or package level");
+  }
   NamedSQLQueryDefinition query;
   String resultSetMapping=queryAnn.resultSetMapping();
   if (!BinderHelper.isEmptyAnnotationValue(resultSetMapping)) {
@@ -14,5 +16,7 @@
     throw new NotYetImplementedException("Pure native scalar queries are not yet supported");
   }
   mappings.addSQLQuery(query.getName(),query);
-  LOG.debugf("Binding named native query: %s => %s",query.getName(),queryAnn.query());
+  if (LOG.isDebugEnabled()) {
+    LOG.debugf("Binding named native query: %s => %s",query.getName(),queryAnn.query());
+  }
 }
