@@ -5,7 +5,8 @@
   entityType=sessionFactory.getTypeResolver().getTypeFactory().manyToOne(name);
   identifierProperty=PropertyFactory.buildIdentifierProperty(persistentClass,sessionFactory.getIdentifierGenerator(rootName));
   versioned=persistentClass.isVersioned();
-  boolean lazyAvailable=persistentClass.hasPojoRepresentation() && FieldInterceptionHelper.isInstrumented(persistentClass.getMappedClass());
+  InstrumentationService instrumentationService=sessionFactory.getServiceRegistry().getService(InstrumentationService.class);
+  lazyAvailable=persistentClass.hasPojoRepresentation() && instrumentationService.isInstrumented(persistentClass.getMappedClass());
   boolean hasLazy=false;
   propertySpan=persistentClass.getPropertyClosureSpan();
   properties=new StandardProperty[propertySpan];

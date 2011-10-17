@@ -8,12 +8,13 @@
   boolean hasPojoRepresentation=false;
   Class<?> mappedClass=null;
   Class<?> proxyInterfaceClass=null;
-  boolean lazyAvailable=false;
+  lazyAvailable=false;
   if (entityBinding.getEntity().getClassReferenceUnresolved() != null) {
     hasPojoRepresentation=true;
     mappedClass=entityBinding.getEntity().getClassReference();
     proxyInterfaceClass=entityBinding.getProxyInterfaceType().getValue();
-    lazyAvailable=FieldInterceptionHelper.isInstrumented(mappedClass);
+    InstrumentationService instrumentationService=sessionFactory.getServiceRegistry().getService(InstrumentationService.class);
+    lazyAvailable=instrumentationService.isInstrumented(mappedClass);
   }
   boolean hasLazy=false;
   BasicAttributeBinding rootEntityIdentifier=entityBinding.getHierarchyDetails().getEntityIdentifier().getValueBinding();
