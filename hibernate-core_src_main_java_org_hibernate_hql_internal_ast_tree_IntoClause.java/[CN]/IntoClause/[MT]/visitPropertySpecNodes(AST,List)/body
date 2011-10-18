@@ -6,8 +6,26 @@
   if (isSuperclassProperty(name)) {
     throw new QueryException("INSERT statements cannot refer to superclass/joined properties [" + name + "]");
   }
-  if (name.equals(persister.getIdentifierPropertyName())) {
-    explicitIdInsertion=true;
+  if (!explicitIdInsertion) {
+    if (persister.getIdentifierType() instanceof ComponentType) {
+      if (componentIds == null) {
+        String[] propertyNames=((ComponentType)persister.getIdentifierType()).getPropertyNames();
+        componentIds=new HashSet();
+        for (int i=0; i < propertyNames.length; i++) {
+          componentIds.add(propertyNames[i]);
+        }
+      }
+      if (componentIds.contains(name)) {
+        if (explicitComponentIds == null) {
+          explicitComponentIds=new ArrayList(componentIds.size());
+        }
+        explicitComponentIds.add(name);
+        explicitIdInsertion=explicitComponentIds.size() == componentIds.size();
+      }
+    }
+ else     if (name.equals(persister.getIdentifierPropertyName())) {
+      explicitIdInsertion=true;
+    }
   }
   if (persister.isVersioned()) {
     if (name.equals(persister.getPropertyNames()[persister.getVersionProperty()])) {
