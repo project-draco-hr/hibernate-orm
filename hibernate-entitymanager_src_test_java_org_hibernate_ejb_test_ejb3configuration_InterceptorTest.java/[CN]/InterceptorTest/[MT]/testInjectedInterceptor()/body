@@ -1,6 +1,5 @@
 {
-  configuration.setInterceptor(new ExceptionInterceptor());
-  EntityManagerFactory emf=configuration.createEntityManagerFactory();
+  EntityManagerFactory emf=constructConfiguration().setInterceptor(new ExceptionInterceptor()).createEntityManagerFactory();
   EntityManager em=emf.createEntityManager();
   Item i=new Item();
   i.setName("Laptop");
@@ -13,7 +12,9 @@
     assertEquals(ExceptionInterceptor.EXCEPTION_MESSAGE,e.getMessage());
   }
  finally {
-    if (em.getTransaction() != null && em.getTransaction().isActive())     em.getTransaction().rollback();
+    if (em.getTransaction() != null && em.getTransaction().isActive()) {
+      em.getTransaction().rollback();
+    }
     em.close();
     emf.close();
   }
