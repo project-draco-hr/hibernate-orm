@@ -17,9 +17,9 @@
   e.setPasswordExpiryDays(PASSWORD_EXPIRY_DAYS);
   s.persist(e);
   s.flush();
-  Double heightViaSql=(Double)s.createSQLQuery("select height_centimeters from JPerson where name='Emmanuel'").uniqueResult();
+  Double heightViaSql=((Number)s.createSQLQuery("select height_centimeters from JPerson where name='Emmanuel'").uniqueResult()).doubleValue();
   assertEquals(HEIGHT_CENTIMETERS,heightViaSql,0.01d);
-  Double expiryViaSql=(Double)s.createSQLQuery("select pwd_expiry_weeks from JEmployee where person_id=?").setLong(0,e.getId()).uniqueResult();
+  Double expiryViaSql=((Number)s.createSQLQuery("select pwd_expiry_weeks from JEmployee where person_id=?").setLong(0,e.getId()).uniqueResult()).doubleValue();
   assertEquals(PASSWORD_EXPIRY_WEEKS,expiryViaSql,0.01d);
   Double heightViaHql=(Double)s.createQuery("select p.heightInches from Person p where p.name = 'Emmanuel'").uniqueResult();
   assertEquals(HEIGHT_INCHES,heightViaHql,0.01d);
@@ -36,9 +36,9 @@
   p.setHeightInches(1);
   e.setPasswordExpiryDays(7);
   s.flush();
-  heightViaSql=(Double)s.createSQLQuery("select height_centimeters from JPerson where name='Emmanuel'").uniqueResult();
+  heightViaSql=((Number)s.createSQLQuery("select height_centimeters from JPerson where name='Emmanuel'").uniqueResult()).doubleValue();
   assertEquals(2.54d,heightViaSql,0.01d);
-  expiryViaSql=(Double)s.createSQLQuery("select pwd_expiry_weeks from JEmployee where person_id=?").setLong(0,e.getId()).uniqueResult();
+  expiryViaSql=((Number)s.createSQLQuery("select pwd_expiry_weeks from JEmployee where person_id=?").setLong(0,e.getId()).uniqueResult()).doubleValue();
   assertEquals(1d,expiryViaSql,0.01d);
   s.delete(p);
   s.delete(e);
