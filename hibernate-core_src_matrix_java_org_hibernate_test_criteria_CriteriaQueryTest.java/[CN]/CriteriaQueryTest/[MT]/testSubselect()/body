@@ -29,7 +29,9 @@
   session.createCriteria(Enrolment.class,"e").add(Subqueries.eq("Gavin King",dc3)).list();
   DetachedCriteria dc4=DetachedCriteria.forClass(Student.class,"st").setProjection(Property.forName("name").as("stname"));
   dc4.getExecutableCriteria(session).list();
-  if (!(getDialect() instanceof SQLServerDialect))   dc4.getExecutableCriteria(session).addOrder(Order.asc("stname")).list();
+  if (!(getDialect() instanceof SQLServerDialect) && !(getDialect() instanceof Oracle8iDialect)) {
+    dc4.getExecutableCriteria(session).addOrder(Order.asc("stname")).list();
+  }
   session.createCriteria(Enrolment.class,"e").add(Subqueries.eq("Gavin King",dc4)).list();
   session.delete(enrolment2);
   session.delete(gavin);
