@@ -38,9 +38,12 @@
  catch (          LockTimeoutException e) {
             log.info("testContendedPessimisticReadLockTimeout: (BG) got expected timeout exception");
             timedOut=true;
+            em2.getTransaction().rollback();
+            return new Boolean(timedOut);
           }
 catch (          Throwable e) {
             log.info("Expected LockTimeoutException but got unexpected exception",e);
+            throw new RuntimeException("Expected LockTimeoutException but got unexpected exception",e);
           }
           em2.getTransaction().commit();
           return new Boolean(timedOut);
