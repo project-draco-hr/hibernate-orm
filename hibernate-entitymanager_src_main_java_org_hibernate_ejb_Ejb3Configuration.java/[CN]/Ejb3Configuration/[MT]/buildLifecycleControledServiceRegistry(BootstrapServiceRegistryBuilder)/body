@@ -1,0 +1,25 @@
+{
+  final ServiceRegistryBuilder serviceRegistryBuilder=new ServiceRegistryBuilder(builder.with(new JpaIntegrator()).build());
+  serviceRegistryBuilder.applySettings(cfg.getProperties());
+  configure((Properties)null,null);
+  NamingHelper.bind(this);
+  final ServiceRegistry serviceRegistry=serviceRegistryBuilder.buildServiceRegistry();
+  SessionFactoryObserver serviceRegistryCloser=new SessionFactoryObserver(){
+    @Override public void sessionFactoryCreated(    SessionFactory factory){
+    }
+    @Override public void sessionFactoryClosed(    SessionFactory factory){
+      ((StandardServiceRegistryImpl)serviceRegistry).destroy();
+    }
+  }
+;
+  if (cfg.getSessionFactoryObserver() != null) {
+    SessionFactoryObserverChain aggregator=new SessionFactoryObserverChain();
+    aggregator.addObserver(cfg.getSessionFactoryObserver());
+    aggregator.addObserver(serviceRegistryCloser);
+    cfg.setSessionFactoryObserver(aggregator);
+  }
+ else {
+    cfg.setSessionFactoryObserver(serviceRegistryCloser);
+  }
+  return serviceRegistry;
+}
