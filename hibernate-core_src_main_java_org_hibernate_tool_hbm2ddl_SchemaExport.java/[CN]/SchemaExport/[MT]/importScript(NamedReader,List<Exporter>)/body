@@ -1,17 +1,25 @@
 {
   BufferedReader reader=new BufferedReader(namedReader.getReader());
-  List<String> statementList=new StatementExtractor().retrieveStatements(reader);
-  for (  String statement : statementList) {
-    if (!StringHelper.isEmpty(statement)) {
-      try {
-        for (        Exporter exporter : exporters) {
-          if (exporter.acceptsImportScripts()) {
-            exporter.export(statement);
+  String[] statements=serviceRegistry.getService(ImportSqlCommandExtractor.class).extractCommands(reader);
+  if (statements != null) {
+    for (    String statement : statements) {
+      if (statement != null) {
+        String trimmedSql=statement.trim();
+        if (trimmedSql.endsWith(";")) {
+          trimmedSql=trimmedSql.substring(0,statement.length() - 1);
+        }
+        if (!StringHelper.isEmpty(trimmedSql)) {
+          try {
+            for (            Exporter exporter : exporters) {
+              if (exporter.acceptsImportScripts()) {
+                exporter.export(trimmedSql);
+              }
+            }
+          }
+ catch (          Exception e) {
+            throw new ImportScriptException("Error during statement execution (file: '" + namedReader.getName() + "'): "+ trimmedSql,e);
           }
         }
-      }
- catch (      Exception e) {
-        throw new ImportScriptException("Error during statement execution (file: '" + namedReader.getName() + "'): "+ statement,e);
       }
     }
   }
