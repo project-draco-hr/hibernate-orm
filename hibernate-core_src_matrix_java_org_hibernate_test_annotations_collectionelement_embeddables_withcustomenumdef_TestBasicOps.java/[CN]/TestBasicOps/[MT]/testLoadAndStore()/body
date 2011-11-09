@@ -1,0 +1,16 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  s.save(new Query(new Location("first",Location.Type.COUNTY)));
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  Query q=(Query)s.get(Query.class,1L);
+  assertEquals(1,q.getIncludedLocations().size());
+  Location l=q.getIncludedLocations().iterator().next();
+  assertEquals(Location.Type.COUNTY,l.getType());
+  s.delete(q);
+  s.getTransaction().commit();
+  s.close();
+}
