@@ -165,7 +165,7 @@ class IntegratorObserver implements SessionFactoryObserver {
   SessionFactoryRegistry.INSTANCE.addSessionFactory(uuid,name,this,serviceRegistry.getService(JndiService.class));
   LOG.debugf("Instantiated session factory");
   if (settings.isAutoCreateSchema()) {
-    new SchemaExport(serviceRegistry,cfg).create(false,true);
+    new SchemaExport(serviceRegistry,cfg).setImportSqlCommandExtractor(serviceRegistry.getService(ImportSqlCommandExtractor.class)).create(false,true);
   }
   if (settings.isAutoUpdateSchema()) {
     new SchemaUpdate(serviceRegistry,cfg).execute(false,true);
@@ -174,7 +174,7 @@ class IntegratorObserver implements SessionFactoryObserver {
     new SchemaValidator(serviceRegistry,cfg).validate();
   }
   if (settings.isAutoDropSchema()) {
-    schemaExport=new SchemaExport(serviceRegistry,cfg);
+    schemaExport=new SchemaExport(serviceRegistry,cfg).setImportSqlCommandExtractor(serviceRegistry.getService(ImportSqlCommandExtractor.class));
   }
   currentSessionContext=buildCurrentSessionContext();
   if (settings.isQueryCacheEnabled()) {
