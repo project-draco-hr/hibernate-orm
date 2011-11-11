@@ -1,9 +1,11 @@
 {
-  ListIterator<ServiceBinding> serviceBindingsIterator=serviceBindingList.listIterator(serviceBindingList.size());
-  while (serviceBindingsIterator.hasPrevious()) {
-    final ServiceBinding serviceBinding=serviceBindingsIterator.previous();
-    serviceBinding.getLifecycleOwner().stopService(serviceBinding);
+synchronized (serviceBindingList) {
+    ListIterator<ServiceBinding> serviceBindingsIterator=serviceBindingList.listIterator(serviceBindingList.size());
+    while (serviceBindingsIterator.hasPrevious()) {
+      final ServiceBinding serviceBinding=serviceBindingsIterator.previous();
+      serviceBinding.getLifecycleOwner().stopService(serviceBinding);
+    }
+    serviceBindingList.clear();
   }
-  serviceBindingList.clear();
   serviceBindingMap.clear();
 }
