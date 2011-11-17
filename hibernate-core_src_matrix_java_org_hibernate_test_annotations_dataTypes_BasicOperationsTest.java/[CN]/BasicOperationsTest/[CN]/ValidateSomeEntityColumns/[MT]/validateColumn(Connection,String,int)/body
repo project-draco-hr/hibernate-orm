@@ -1,0 +1,10 @@
+{
+  DatabaseMetaData meta=connection.getMetaData();
+  String tableNamePattern=generateFinalNamePattern(meta,SOME_ENTITY_TABLE_NAME);
+  String columnNamePattern=generateFinalNamePattern(meta,columnName);
+  ResultSet columnInfo=meta.getColumns(null,null,tableNamePattern,columnNamePattern);
+  assertTrue(columnInfo.next());
+  int dataType=columnInfo.getInt("DATA_TYPE");
+  columnInfo.close();
+  assertEquals(columnName,JdbcTypeNameMapper.getTypeName(expectedJdbcTypeCode),JdbcTypeNameMapper.getTypeName(dataType));
+}
