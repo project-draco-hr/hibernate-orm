@@ -7,9 +7,17 @@
   }
   QueryCache currentQueryCache=queryCaches.get(regionName);
   if (currentQueryCache == null) {
-    currentQueryCache=settings.getQueryCacheFactory().getQueryCache(regionName,updateTimestampsCache,settings,properties);
-    queryCaches.put(regionName,currentQueryCache);
-    allCacheRegions.put(currentQueryCache.getRegion().getName(),currentQueryCache.getRegion());
+synchronized (allCacheRegions) {
+      currentQueryCache=queryCaches.get(regionName);
+      if (currentQueryCache == null) {
+        currentQueryCache=settings.getQueryCacheFactory().getQueryCache(regionName,updateTimestampsCache,settings,properties);
+        queryCaches.put(regionName,currentQueryCache);
+        allCacheRegions.put(currentQueryCache.getRegion().getName(),currentQueryCache.getRegion());
+      }
+ else {
+        return currentQueryCache;
+      }
+    }
   }
   return currentQueryCache;
 }
