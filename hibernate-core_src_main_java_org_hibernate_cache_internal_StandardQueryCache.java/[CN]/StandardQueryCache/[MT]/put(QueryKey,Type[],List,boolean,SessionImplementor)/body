@@ -1,13 +1,19 @@
 {
-  if (isNaturalKeyLookup && result.size() == 0)   return false;
+  if (isNaturalKeyLookup && result.size() == 0) {
+    return false;
+  }
   Long ts=session.getFactory().getSettings().getRegionFactory().nextTimestamp();
   LOG.debugf("Caching query results in region: %s; timestamp=%s",cacheRegion.getName(),ts);
   List cacheable=new ArrayList(result.size() + 1);
   logCachedResultDetails(key,null,returnTypes,cacheable);
   cacheable.add(ts);
   for (  Object aResult : result) {
-    if (returnTypes.length == 1)     cacheable.add(returnTypes[0].disassemble(aResult,session,null));
- else     cacheable.add(TypeHelper.disassemble((Object[])aResult,returnTypes,null,session,null));
+    if (returnTypes.length == 1) {
+      cacheable.add(returnTypes[0].disassemble(aResult,session,null));
+    }
+ else {
+      cacheable.add(TypeHelper.disassemble((Object[])aResult,returnTypes,null,session,null));
+    }
     logCachedResultRowDetails(returnTypes,aResult);
   }
   cacheRegion.put(key,cacheable);
