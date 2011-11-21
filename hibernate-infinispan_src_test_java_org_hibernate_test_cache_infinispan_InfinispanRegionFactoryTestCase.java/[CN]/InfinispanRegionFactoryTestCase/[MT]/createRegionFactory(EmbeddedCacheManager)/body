@@ -1,0 +1,19 @@
+{
+  return new InfinispanRegionFactory(){
+    @Override protected HibernateTransactionManagerLookup createTransactionManagerLookup(    Settings settings,    Properties properties){
+      return new HibernateTransactionManagerLookup(null,null){
+        @Override public TransactionManager getTransactionManager() throws Exception {
+          AbstractJtaPlatform jta=new JBossStandAloneJtaPlatform();
+          jta.injectServices(ServiceRegistryBuilder.buildServiceRegistry());
+          return jta.getTransactionManager();
+        }
+      }
+;
+    }
+    @Override protected EmbeddedCacheManager createCacheManager(    Properties properties) throws CacheException {
+      if (manager != null)       return manager;
+ else       return super.createCacheManager(properties);
+    }
+  }
+;
+}
