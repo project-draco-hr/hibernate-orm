@@ -7,7 +7,7 @@
   }
   Lock lock=new Lock();
   Thread t=null;
-  FutureTask<Boolean> bgTask=null;
+  FutureTask<Boolean> bgTask;
   final CountDownLatch latch=new CountDownLatch(1);
   try {
     lock.setName("testQueryTimeout");
@@ -21,7 +21,7 @@
     final Integer id=lock.getId();
     lock.getName();
     log.info("testQueryTimeout: got write lock");
-    bgTask=new FutureTask<Boolean>(new Callable(){
+    bgTask=new FutureTask<Boolean>(new Callable<Boolean>(){
       public Boolean call(){
         try {
           boolean timedOut=false;
@@ -33,7 +33,7 @@
           try {
             Query query=em2.createQuery("select L from Lock_ L where L.id < 10000 ");
             query.setLockMode(LockModeType.PESSIMISTIC_READ);
-            query.setHint("javax.persistence.query.timeout",new Integer(500));
+            query.setHint("javax.persistence.query.timeout",500);
             List<Lock> resultList=query.getResultList();
             String name=resultList.get(0).getName();
             log.info("testQueryTimeout: name read =" + name);
@@ -46,7 +46,7 @@ catch (          Throwable e) {
             log.info("testQueryTimeout: Expected LockTimeoutException but got unexpected exception",e);
           }
           em2.getTransaction().commit();
-          return new Boolean(timedOut);
+          return timedOut;
         }
   finally {
           latch.countDown();
@@ -60,7 +60,7 @@ catch (          Throwable e) {
     t.start();
     boolean latchSet=latch.await(10,TimeUnit.SECONDS);
     assertTrue("background test thread finished (lock timeout is broken)",latchSet);
-    assertTrue("background test thread timed out on lock attempt",bgTask.get().booleanValue());
+    assertTrue("background test thread timed out on lock attempt",bgTask.get());
     em.getTransaction().commit();
   }
   finally {

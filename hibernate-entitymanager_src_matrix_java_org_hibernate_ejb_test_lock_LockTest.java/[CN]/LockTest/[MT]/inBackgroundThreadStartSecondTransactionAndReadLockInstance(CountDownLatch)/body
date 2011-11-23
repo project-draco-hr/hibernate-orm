@@ -1,0 +1,31 @@
+{
+  final EntityManager isolatedEntityManager=createIsolatedEntityManager();
+  FutureTask<Boolean> bgTask=new FutureTask<Boolean>(new Callable<Boolean>(){
+    public Boolean call(){
+      try {
+        isolatedEntityManager.getTransaction().begin();
+        log.debug("testContendedPessimisticLock: (BG) about to issue (PESSIMISTIC_READ) query against write-locked entity");
+        Query query=isolatedEntityManager.createQuery("select L from Lock_ L where L.id < 10000 ");
+        query.setLockMode(LockModeType.PESSIMISTIC_READ);
+        List<Lock> resultList=query.getResultList();
+        Lock lock=resultList.get(0);
+        return lock.getName().equals("foo");
+      }
+ catch (      RuntimeException e) {
+        fail("An error occurred waiting while attempting to read the entity: " + e.getMessage());
+        throw e;
+      }
+ finally {
+        isolatedEntityManager.getTransaction().commit();
+        isolatedEntityManager.close();
+        latch.countDown();
+      }
+    }
+  }
+);
+  Thread thread=new Thread(bgTask);
+  thread.setDaemon(true);
+  thread.setName("LockTest read lock");
+  thread.start();
+  return bgTask;
+}

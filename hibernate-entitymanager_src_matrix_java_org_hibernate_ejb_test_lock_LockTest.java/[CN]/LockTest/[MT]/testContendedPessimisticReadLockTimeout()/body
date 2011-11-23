@@ -21,7 +21,7 @@
     final Integer id=lock.getId();
     lock.getName();
     log.info("testContendedPessimisticReadLockTimeout: got write lock");
-    bgTask=new FutureTask<Boolean>(new Callable(){
+    bgTask=new FutureTask<Boolean>(new Callable<Boolean>(){
       public Boolean call(){
         try {
           boolean timedOut=false;
@@ -31,7 +31,7 @@
           lock2.getName();
           log.info("testContendedPessimisticReadLockTimeout: (BG) read write-locked entity");
           Map<String,Object> props=new HashMap<String,Object>();
-          props.put("javax.persistence.lock.timeout",new Integer(1000));
+          props.put("javax.persistence.lock.timeout",1000);
           try {
             em2.lock(lock2,LockModeType.PESSIMISTIC_READ,props);
           }
@@ -39,14 +39,14 @@
             log.info("testContendedPessimisticReadLockTimeout: (BG) got expected timeout exception");
             timedOut=true;
             em2.getTransaction().rollback();
-            return new Boolean(timedOut);
+            return timedOut;
           }
 catch (          Throwable e) {
             log.info("Expected LockTimeoutException but got unexpected exception",e);
             throw new RuntimeException("Expected LockTimeoutException but got unexpected exception",e);
           }
           em2.getTransaction().commit();
-          return new Boolean(timedOut);
+          return timedOut;
         }
   finally {
           latch.countDown();
@@ -60,7 +60,7 @@ catch (          Throwable e) {
     t.start();
     boolean latchSet=latch.await(10,TimeUnit.SECONDS);
     assertTrue("background test thread finished (lock timeout is broken)",latchSet);
-    assertTrue("background test thread timed out on lock attempt",bgTask.get().booleanValue());
+    assertTrue("background test thread timed out on lock attempt",bgTask.get());
     em.getTransaction().commit();
   }
   finally {

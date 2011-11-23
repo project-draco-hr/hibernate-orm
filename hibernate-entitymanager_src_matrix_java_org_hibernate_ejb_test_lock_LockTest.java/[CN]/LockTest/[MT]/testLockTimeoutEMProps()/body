@@ -1,7 +1,7 @@
 {
   EntityManager em=getOrCreateEntityManager();
-  Map TimeoutProps=new HashMap();
-  TimeoutProps.put("javax.persistence.lock.timeout",new Integer(1000));
+  Map<String,Object> TimeoutProps=new HashMap<String,Object>();
+  TimeoutProps.put("javax.persistence.lock.timeout",1000);
   final EntityManager em2=createIsolatedEntityManager(TimeoutProps);
   if (!(getDialect() instanceof Oracle10gDialect)) {
     log.info("skipping testLockTimeoutEMProps");
@@ -9,7 +9,7 @@
   }
   Lock lock=new Lock();
   Thread t=null;
-  FutureTask<Boolean> bgTask=null;
+  FutureTask<Boolean> bgTask;
   final CountDownLatch latch=new CountDownLatch(1);
   try {
     lock.setName("testLockTimeoutEMProps");
@@ -23,7 +23,7 @@
     final Integer id=lock.getId();
     lock.getName();
     log.info("testLockTimeoutEMProps: got write lock");
-    bgTask=new FutureTask<Boolean>(new Callable(){
+    bgTask=new FutureTask<Boolean>(new Callable<Boolean>(){
       public Boolean call(){
         try {
           boolean timedOut=false;
@@ -43,7 +43,7 @@ catch (          Throwable e) {
             log.info("Expected LockTimeoutException but got unexpected exception",e);
           }
           em2.getTransaction().commit();
-          return new Boolean(timedOut);
+          return timedOut;
         }
   finally {
           latch.countDown();
@@ -57,7 +57,7 @@ catch (          Throwable e) {
     t.start();
     boolean latchSet=latch.await(10,TimeUnit.SECONDS);
     assertTrue("background test thread finished (lock timeout is broken)",latchSet);
-    assertTrue("background test thread timed out on lock attempt",bgTask.get().booleanValue());
+    assertTrue("background test thread timed out on lock attempt",bgTask.get());
     em.getTransaction().commit();
   }
   finally {

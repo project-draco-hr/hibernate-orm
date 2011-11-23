@@ -1,59 +1,25 @@
 {
-  EntityManager em=getOrCreateEntityManager();
-  final EntityManager em2=createIsolatedEntityManager();
-  Lock lock=new Lock();
-  Thread t=null;
+  final EntityManager em=getOrCreateEntityManager();
+  Lock lock=createAndPersistLockInstance(em);
   try {
-    lock.setName("testContendedPessimisticLock");
-    em.getTransaction().begin();
-    em.persist(lock);
-    em.getTransaction().commit();
-    em.clear();
-    em.getTransaction().begin();
-    lock=em.getReference(Lock.class,lock.getId());
-    em.lock(lock,LockModeType.PESSIMISTIC_WRITE);
-    final Integer id=lock.getId();
-    lock.getName();
-    log.info("testContendedPessimisticLock: got write lock");
+    inFirstTransactionReloadAndModifyLockInstance(em,lock);
     final CountDownLatch latch=new CountDownLatch(1);
-    t=new Thread(new Runnable(){
-      public void run(){
-        try {
-          em2.getTransaction().begin();
-          log.info("testContendedPessimisticLock: (BG) about to issue (PESSIMISTIC_READ) query against write-locked entity");
-          Query query=em2.createQuery("select L from Lock_ L where L.id < 10000 ");
-          query.setLockMode(LockModeType.PESSIMISTIC_READ);
-          List<Lock> resultList=query.getResultList();
-          resultList.get(0).getName();
-        }
-  finally {
-          em2.getTransaction().commit();
-          latch.countDown();
-        }
-      }
+    FutureTask<Boolean> future=inBackgroundThreadStartSecondTransactionAndReadLockInstance(latch);
+    log.debug("testContendedPessimisticLock:  wait on BG thread");
+    boolean backGroundThreadCompleted=latch.await(3,TimeUnit.SECONDS);
+    if (backGroundThreadCompleted) {
+      boolean backgroundThreadHasReadNewValue=future.get();
+      assertFalse("The background thread is not allowed to see the updated value while the first transaction has not committed yet",backgroundThreadHasReadNewValue);
+      em.getTransaction().commit();
     }
-);
-    t.setDaemon(true);
-    t.setName("LockTest read lock");
-    t.start();
-    log.info("testContendedPessimisticLock:  wait on BG thread");
-    boolean latchSet=latch.await(10,TimeUnit.SECONDS);
-    log.info("testContendedPessimisticLock:  BG thread completed transaction");
-    assertFalse("shouldn't be able to get read lock while another transaction has write lock",latchSet);
-    em.getTransaction().commit();
+ else {
+      log.debug("The background thread was blocked");
+      em.getTransaction().commit();
+      boolean backgroundThreadHasReadNewValue=future.get();
+      assertTrue("Background thread should read the new value after being unblocked",backgroundThreadHasReadNewValue);
+    }
   }
   finally {
-    if (em.getTransaction().isActive()) {
-      em.getTransaction().rollback();
-    }
-    if (t != null) {
-      t.join();
-    }
-    em.getTransaction().begin();
-    lock=em.getReference(Lock.class,lock.getId());
-    em.remove(lock);
-    em.getTransaction().commit();
-    em.close();
-    em2.close();
+    cleanup(em,lock);
   }
 }
