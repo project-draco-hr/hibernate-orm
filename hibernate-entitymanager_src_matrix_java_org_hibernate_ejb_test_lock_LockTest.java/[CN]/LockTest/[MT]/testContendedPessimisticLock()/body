@@ -1,10 +1,11 @@
 {
   final EntityManager em=getOrCreateEntityManager();
+  final EntityManager isolatedEntityManager=createIsolatedEntityManager();
   Lock lock=createAndPersistLockInstance(em);
   try {
     inFirstTransactionReloadAndModifyLockInstance(em,lock);
     final CountDownLatch latch=new CountDownLatch(1);
-    FutureTask<Boolean> future=inBackgroundThreadStartSecondTransactionAndReadLockInstance(latch);
+    FutureTask<Boolean> future=inBackgroundThreadStartSecondTransactionAndReadLockInstance(latch,isolatedEntityManager);
     log.debug("testContendedPessimisticLock:  wait on BG thread");
     boolean backGroundThreadCompleted=latch.await(3,TimeUnit.SECONDS);
     if (backGroundThreadCompleted) {
@@ -20,6 +21,6 @@
     }
   }
   finally {
-    cleanup(em,lock);
+    cleanup(em,isolatedEntityManager,lock);
   }
 }
