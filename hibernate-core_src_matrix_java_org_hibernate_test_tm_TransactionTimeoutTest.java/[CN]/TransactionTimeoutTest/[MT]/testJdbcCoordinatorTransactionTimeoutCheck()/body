@@ -1,0 +1,10 @@
+{
+  Session session=openSession();
+  Transaction transaction=session.getTransaction();
+  transaction.setTimeout(2);
+  assertEquals(-1,((SessionImplementor)session).getTransactionCoordinator().getJdbcCoordinator().determineRemainingTransactionTimeOutPeriod());
+  transaction.begin();
+  assertNotSame(-1,((SessionImplementor)session).getTransactionCoordinator().getJdbcCoordinator().determineRemainingTransactionTimeOutPeriod());
+  transaction.commit();
+  session.close();
+}

@@ -1,0 +1,11 @@
+{
+  Session session=openSession();
+  Transaction transaction=session.getTransaction();
+  transaction.setTimeout(1);
+  assertEquals(-1,((SessionImplementor)session).getTransactionCoordinator().getJdbcCoordinator().determineRemainingTransactionTimeOutPeriod());
+  transaction.begin();
+  Thread.sleep(1000);
+  session.persist(new Person("Lukasz","Antoniak"));
+  transaction.commit();
+  session.close();
+}
