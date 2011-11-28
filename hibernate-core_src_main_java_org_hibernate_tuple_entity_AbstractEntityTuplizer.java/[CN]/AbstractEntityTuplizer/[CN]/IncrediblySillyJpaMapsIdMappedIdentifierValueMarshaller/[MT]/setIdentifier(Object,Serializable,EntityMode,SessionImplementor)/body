@@ -1,6 +1,7 @@
 {
   final Object[] extractedValues=mappedIdentifierType.getPropertyValues(id,entityMode);
   final Object[] injectionValues=new Object[extractedValues.length];
+  final PersistenceContext persistenceContext=session.getPersistenceContext();
   for (int i=0; i < virtualIdComponent.getSubtypes().length; i++) {
     final Type virtualPropertyType=virtualIdComponent.getSubtypes()[i];
     final Type idClassPropertyType=mappedIdentifierType.getSubtypes()[i];
@@ -10,9 +11,9 @@
       }
       final String associatedEntityName=((EntityType)virtualPropertyType).getAssociatedEntityName();
       final EntityKey entityKey=session.generateEntityKey((Serializable)extractedValues[i],session.getFactory().getEntityPersister(associatedEntityName));
-      Object association=session.getPersistenceContext().getProxy(entityKey);
+      Object association=persistenceContext.getProxy(entityKey);
       if (association == null) {
-        association=session.getPersistenceContext().getEntity(entityKey);
+        association=persistenceContext.getEntity(entityKey);
       }
       injectionValues[i]=association;
     }

@@ -4,6 +4,7 @@
   final Type[] subTypes=virtualIdComponent.getSubtypes();
   final Type[] copierSubTypes=mappedIdentifierType.getSubtypes();
   final Iterable<PersistEventListener> persistEventListeners=persistEventListeners(session);
+  final PersistenceContext persistenceContext=session.getPersistenceContext();
   final int length=subTypes.length;
   for (int i=0; i < length; i++) {
     if (propertyValues[i] == null) {
@@ -28,7 +29,7 @@
           for (          PersistEventListener listener : persistEventListeners) {
             listener.onPersist(event);
           }
-          pcEntry=session.getPersistenceContext().getEntry(propertyValues[i]);
+          pcEntry=persistenceContext.getEntry(propertyValues[i]);
           if (pcEntry == null || pcEntry.getId() == null) {
             throw new HibernateException("Unable to process implicit derived identity cascade");
           }

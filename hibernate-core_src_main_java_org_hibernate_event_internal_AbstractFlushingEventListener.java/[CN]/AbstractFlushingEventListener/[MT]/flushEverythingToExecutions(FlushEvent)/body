@@ -3,12 +3,12 @@
   EventSource session=event.getSession();
   final PersistenceContext persistenceContext=session.getPersistenceContext();
   session.getInterceptor().preFlush(new LazyIterator(persistenceContext.getEntitiesByKey()));
-  prepareEntityFlushes(session);
-  prepareCollectionFlushes(session);
+  prepareEntityFlushes(session,persistenceContext);
+  prepareCollectionFlushes(persistenceContext);
   persistenceContext.setFlushing(true);
   try {
-    flushEntities(event);
-    flushCollections(session);
+    flushEntities(event,persistenceContext);
+    flushCollections(session,persistenceContext);
   }
   finally {
     persistenceContext.setFlushing(false);
