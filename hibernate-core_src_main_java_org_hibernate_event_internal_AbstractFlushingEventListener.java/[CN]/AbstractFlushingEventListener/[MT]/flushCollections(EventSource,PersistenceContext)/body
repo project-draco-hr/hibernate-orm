@@ -1,22 +1,20 @@
 {
   LOG.trace("Processing unreferenced collections");
-  List list=IdentityMap.entries(persistenceContext.getCollectionEntries());
-  int size=list.size();
-  for (int i=0; i < size; i++) {
-    Map.Entry me=(Map.Entry)list.get(i);
-    CollectionEntry ce=(CollectionEntry)me.getValue();
+  Iterator<Map.Entry<PersistentCollection,CollectionEntry>> entriesIterator=IdentityMap.entriesIterator(persistenceContext.getCollectionEntries());
+  while (entriesIterator.hasNext()) {
+    Map.Entry<PersistentCollection,CollectionEntry> me=entriesIterator.next();
+    CollectionEntry ce=me.getValue();
     if (!ce.isReached() && !ce.isIgnore()) {
-      Collections.processUnreachableCollection((PersistentCollection)me.getKey(),session);
+      Collections.processUnreachableCollection(me.getKey(),session);
     }
   }
   LOG.trace("Scheduling collection removes/(re)creates/updates");
-  list=IdentityMap.entries(persistenceContext.getCollectionEntries());
-  size=list.size();
+  entriesIterator=IdentityMap.entriesIterator(persistenceContext.getCollectionEntries());
   ActionQueue actionQueue=session.getActionQueue();
-  for (int i=0; i < size; i++) {
-    Map.Entry me=(Map.Entry)list.get(i);
-    PersistentCollection coll=(PersistentCollection)me.getKey();
-    CollectionEntry ce=(CollectionEntry)me.getValue();
+  while (entriesIterator.hasNext()) {
+    Map.Entry<PersistentCollection,CollectionEntry> me=entriesIterator.next();
+    PersistentCollection coll=me.getKey();
+    CollectionEntry ce=me.getValue();
     if (ce.isDorecreate()) {
       session.getInterceptor().onCollectionRecreate(coll,ce.getCurrentKey());
       actionQueue.addAction(new CollectionRecreateAction(coll,ce.getCurrentPersister(),ce.getCurrentKey(),session));
