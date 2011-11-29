@@ -1,11 +1,18 @@
 {
   try {
     Metadata metadata=new Metadata(getFactory(),rs);
-    List aliases=new ArrayList();
-    List types=new ArrayList();
     rowProcessor.prepareForAutoDiscovery(metadata);
+    List<String> aliases=new ArrayList<String>();
+    List<Type> types=new ArrayList<Type>();
     for (int i=0; i < rowProcessor.columnProcessors.length; i++) {
       rowProcessor.columnProcessors[i].performDiscovery(metadata,types,aliases);
+    }
+    final HashSet<String> aliasesSet=new HashSet<String>();
+    for (    String alias : aliases) {
+      boolean alreadyExisted=!aliasesSet.add(alias);
+      if (alreadyExisted) {
+        throw new NonUniqueDiscoveredSqlAliasException("Encountered a duplicated sql alias [" + alias + "] during auto-discovery of a native-sql query");
+      }
     }
     resultTypes=ArrayHelper.toTypeArray(types);
     transformerAliases=ArrayHelper.toStringArray(aliases);
