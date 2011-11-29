@@ -3,7 +3,7 @@
   CollectionPersister cp=session.getFactory().getCollectionPersister(entity + '.' + property);
   Object parent=parentsByChild.get(childEntity);
   if (parent != null) {
-    final EntityEntry entityEntry=(EntityEntry)entityEntries.get(parent);
+    final EntityEntry entityEntry=entityEntries.get(parent);
     if (persister.isSubclassEntityName(entityEntry.getEntityName())) {
       Object index=getIndexInParent(property,childEntity,persister,cp,parent);
       if (index == null && mergeMap != null) {
@@ -21,10 +21,10 @@
       parentsByChild.remove(childEntity);
     }
   }
-  Iterator entities=IdentityMap.entries(entityEntries).iterator();
+  Iterator<Entry<Object,EntityEntry>> entities=IdentityMap.entries(entityEntries).iterator();
   while (entities.hasNext()) {
-    Map.Entry me=(Map.Entry)entities.next();
-    EntityEntry ee=(EntityEntry)me.getValue();
+    Map.Entry<Object,EntityEntry> me=entities.next();
+    EntityEntry ee=me.getValue();
     if (persister.isSubclassEntityName(ee.getEntityName())) {
       Object instance=me.getKey();
       Object index=getIndexInParent(property,childEntity,persister,cp,instance);

@@ -4,7 +4,7 @@
   final CollectionPersister collectionPersister=session.getFactory().getCollectionPersister(collectionRole);
   Object parent=parentsByChild.get(childEntity);
   if (parent != null) {
-    final EntityEntry entityEntry=(EntityEntry)entityEntries.get(parent);
+    final EntityEntry entityEntry=entityEntries.get(parent);
     if (persister.isSubclassEntityName(entityEntry.getEntityName()) && isFoundInParent(propertyName,childEntity,persister,collectionPersister,parent)) {
       return getEntry(parent).getId();
     }
@@ -12,10 +12,10 @@
       parentsByChild.remove(childEntity);
     }
   }
-  Iterator entities=IdentityMap.entries(entityEntries).iterator();
+  Iterator<Entry<Object,EntityEntry>> entities=IdentityMap.entries(entityEntries).iterator();
   while (entities.hasNext()) {
-    final Map.Entry me=(Map.Entry)entities.next();
-    final EntityEntry entityEntry=(EntityEntry)me.getValue();
+    final Map.Entry<Object,EntityEntry> me=entities.next();
+    final EntityEntry entityEntry=me.getValue();
     if (persister.isSubclassEntityName(entityEntry.getEntityName())) {
       final Object entityEntryInstance=me.getKey();
       boolean found=isFoundInParent(propertyName,childEntity,persister,collectionPersister,entityEntryInstance);
