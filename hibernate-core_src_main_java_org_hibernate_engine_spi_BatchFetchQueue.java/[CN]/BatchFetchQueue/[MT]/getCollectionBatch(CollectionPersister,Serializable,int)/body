@@ -4,11 +4,9 @@
   int i=1;
   int end=-1;
   boolean checkForEnd=false;
-  Iterator iter=context.getCollectionEntries().entrySet().iterator();
-  while (iter.hasNext()) {
-    Map.Entry me=(Map.Entry)iter.next();
-    CollectionEntry ce=(CollectionEntry)me.getValue();
-    PersistentCollection collection=(PersistentCollection)me.getKey();
+  for (  Map.Entry<PersistentCollection,CollectionEntry> me : IdentityMap.concurrentEntries((Map<PersistentCollection,CollectionEntry>)context.getCollectionEntries())) {
+    CollectionEntry ce=me.getValue();
+    PersistentCollection collection=me.getKey();
     if (!collection.wasInitialized() && ce.getLoadedPersister() == collectionPersister) {
       if (checkForEnd && i == end) {
         return keys;

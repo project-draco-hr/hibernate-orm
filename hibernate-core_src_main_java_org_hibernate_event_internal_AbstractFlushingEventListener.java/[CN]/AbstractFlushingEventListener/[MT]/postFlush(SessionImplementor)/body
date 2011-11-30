@@ -3,11 +3,9 @@
   final PersistenceContext persistenceContext=session.getPersistenceContext();
   persistenceContext.getCollectionsByKey().clear();
   persistenceContext.getBatchFetchQueue().clearSubselects();
-  Iterator iter=persistenceContext.getCollectionEntries().entrySet().iterator();
-  while (iter.hasNext()) {
-    Map.Entry me=(Map.Entry)iter.next();
-    CollectionEntry collectionEntry=(CollectionEntry)me.getValue();
-    PersistentCollection persistentCollection=(PersistentCollection)me.getKey();
+  for (  Map.Entry<PersistentCollection,CollectionEntry> me : IdentityMap.concurrentEntries(persistenceContext.getCollectionEntries())) {
+    CollectionEntry collectionEntry=me.getValue();
+    PersistentCollection persistentCollection=me.getKey();
     collectionEntry.postFlush(persistentCollection);
     if (collectionEntry.getLoadedPersister() == null) {
       persistenceContext.getCollectionEntries().remove(persistentCollection);
