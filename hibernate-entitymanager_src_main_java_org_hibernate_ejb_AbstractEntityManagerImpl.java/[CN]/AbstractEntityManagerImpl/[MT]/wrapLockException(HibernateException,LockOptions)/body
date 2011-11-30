@@ -1,16 +1,25 @@
 {
-  PersistenceException pe;
-  if (e instanceof org.hibernate.OptimisticLockException) {
-    org.hibernate.OptimisticLockException ole=(org.hibernate.OptimisticLockException)e;
-    pe=new OptimisticLockException(ole.getMessage(),ole,ole.getEntity());
+  final PersistenceException pe;
+  if (e instanceof OptimisticEntityLockException) {
+    final OptimisticEntityLockException lockException=(OptimisticEntityLockException)e;
+    pe=new OptimisticLockException(lockException.getMessage(),lockException,lockException.getEntity());
   }
- else   if (e instanceof org.hibernate.PessimisticLockException) {
-    org.hibernate.PessimisticLockException ple=(org.hibernate.PessimisticLockException)e;
+ else   if (e instanceof PessimisticEntityLockException) {
+    PessimisticEntityLockException lockException=(PessimisticEntityLockException)e;
     if (lockOptions != null && lockOptions.getTimeOut() > -1) {
-      pe=new LockTimeoutException(ple.getMessage(),ple,ple.getEntity());
+      pe=new LockTimeoutException(lockException.getMessage(),lockException,lockException.getEntity());
     }
  else {
-      pe=new PessimisticLockException(ple.getMessage(),ple,ple.getEntity());
+      pe=new PessimisticLockException(lockException.getMessage(),lockException,lockException.getEntity());
+    }
+  }
+ else   if (e instanceof org.hibernate.PessimisticLockException) {
+    org.hibernate.PessimisticLockException jdbcLockException=(org.hibernate.PessimisticLockException)e;
+    if (lockOptions != null && lockOptions.getTimeOut() > -1) {
+      pe=new LockTimeoutException(jdbcLockException.getMessage(),jdbcLockException,null);
+    }
+ else {
+      pe=new PessimisticLockException(jdbcLockException.getMessage(),jdbcLockException,null);
     }
   }
  else {
