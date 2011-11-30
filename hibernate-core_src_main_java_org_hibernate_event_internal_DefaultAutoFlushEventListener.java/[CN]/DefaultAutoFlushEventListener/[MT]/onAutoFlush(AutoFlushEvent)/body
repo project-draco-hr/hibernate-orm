@@ -1,7 +1,6 @@
 {
   final EventSource source=event.getSession();
   if (flushMightBeNeeded(source)) {
-    final int oldSize=source.getActionQueue().numberOfCollectionRemovals();
     flushEverythingToExecutions(event);
     if (flushIsReallyNeeded(event,source)) {
       LOG.trace("Need to execute flush");
@@ -13,6 +12,7 @@
     }
  else {
       LOG.trace("Don't need to execute flush");
+      final int oldSize=source.getActionQueue().numberOfCollectionRemovals();
       source.getActionQueue().clearFromFlushNeededCheck(oldSize);
     }
     event.setFlushRequired(flushIsReallyNeeded(event,source));
