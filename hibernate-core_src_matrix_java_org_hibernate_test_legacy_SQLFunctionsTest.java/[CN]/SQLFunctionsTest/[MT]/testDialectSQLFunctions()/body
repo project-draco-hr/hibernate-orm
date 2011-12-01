@@ -13,7 +13,7 @@
   assertTrue(s.createQuery("select max(s.count) from Simple s").list().size() == 1);
   assertTrue(s.createQuery("select count(*) from Simple s").list().size() == 1);
   if (getDialect() instanceof Oracle9iDialect) {
-    List rset=s.createQuery("select s.name, sysdate(), trunc(s.pay), round(s.pay) from Simple s").list();
+    List rset=s.createQuery("select s.name, sysdate, trunc(s.pay), round(s.pay) from Simple s").list();
     assertNotNull("Name string should have been returned",(((Object[])rset.get(0))[0]));
     assertNotNull("Todays Date should have been returned",(((Object[])rset.get(0))[1]));
     assertEquals("trunc(45.8) result was incorrect ",Float.valueOf(45),((Object[])rset.get(0))[2]);
@@ -22,7 +22,7 @@
     s.update(simple);
     rset=s.createQuery("select abs(round(s.pay)) from Simple s").list();
     assertEquals("abs(round(-45.8)) result was incorrect ",Float.valueOf(46),rset.get(0));
-    assertTrue(s.createQuery("select trunc(round(sysdate())) from Simple s").list().size() == 1);
+    assertTrue(s.createQuery("select trunc(round(sysdate)) from Simple s").list().size() == 1);
     simple.setPay(null);
     s.update(simple);
     Integer value=(Integer)s.createQuery("select MOD( NVL(s.pay, 5000), 2 ) from Simple as s where s.id = 10").list().get(0);
