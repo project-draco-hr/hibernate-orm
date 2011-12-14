@@ -1,0 +1,15 @@
+{
+  Configuration cfg=new Configuration().addAnnotatedClass(Customer.class);
+  cfg.buildMappings();
+  Mapping mapping=cfg.buildMapping();
+  PersistentClass classMetadata=cfg.getClassMapping(Customer.class.getName());
+  Property investmentsProperty=classMetadata.getProperty("investments");
+  Collection investmentsValue=(Collection)investmentsProperty.getValue();
+  Component investmentMetadata=(Component)investmentsValue.getElement();
+  Component amountMetadata=(Component)investmentMetadata.getProperty("amount").getValue();
+  SimpleValue currencyMetadata=(SimpleValue)amountMetadata.getProperty("currency").getValue();
+  CustomType currencyType=(CustomType)currencyMetadata.getType();
+  int[] currencySqlTypes=currencyType.sqlTypes(mapping);
+  assertEquals(1,currencySqlTypes.length);
+  assertEquals(Types.VARCHAR,currencySqlTypes[0]);
+}
