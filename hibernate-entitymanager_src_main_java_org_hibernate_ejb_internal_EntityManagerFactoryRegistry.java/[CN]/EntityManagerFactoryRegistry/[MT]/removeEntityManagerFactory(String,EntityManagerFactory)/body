@@ -1,0 +1,17 @@
+{
+  LOG.debugf("Remove: name=%s",name);
+  if (name == null) {
+    LOG.tracef("not removing EntityManagerFactory from registry because name is null");
+    return;
+  }
+  Set<EntityManagerFactory> entityManagerFactorySet=entityManagerFactoryMap.get(name);
+  if (entityManagerFactorySet == null) {
+    throw new HibernateException("registry does not contain entity manager factory: " + name);
+  }
+synchronized (entityManagerFactorySet) {
+    boolean removed=entityManagerFactorySet.remove(entityManagerFactory);
+    if (entityManagerFactorySet.size() == 0) {
+      entityManagerFactoryMap.remove(name);
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  LOG.debugf("Registering EntityManagerFactory: %s ",name);
+  if (name == null) {
+    LOG.tracef("not registering EntityManagerFactory because name is null");
+    return;
+  }
+  Set<EntityManagerFactory> entityManagerFactorySet=new HashSet<EntityManagerFactory>();
+  entityManagerFactorySet.add(entityManagerFactory);
+  Set<EntityManagerFactory> previous=entityManagerFactoryMap.putIfAbsent(name,entityManagerFactorySet);
+  if (previous != null) {
+    LOG.entityManagerFactoryAlreadyRegistered(name,AvailableSettings.ENTITY_MANAGER_FACTORY_NAME);
+    boolean done=false;
+    while (!done) {
+synchronized (previous) {
+        if (entityManagerFactoryMap.get(name) == previous) {
+          previous.add(entityManagerFactory);
+          done=true;
+        }
+ else {
+          previous=entityManagerFactoryMap.get(name);
+          if (null == previous) {
+            entityManagerFactoryMap.putIfAbsent(name,new HashSet<EntityManagerFactory>());
+            previous=entityManagerFactoryMap.get(name);
+          }
+        }
+      }
+    }
+  }
+}
