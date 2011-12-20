@@ -8,12 +8,14 @@
   dupe=(NumberedNode)getOldToNewEntityRefMap().get(dupe);
   s.persist(dupe);
   applyNonFlushedChangesToNewSessionCloseOldSession(s);
+  dupe=(NumberedNode)getOldToNewEntityRefMap().get(dupe);
   TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
   TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   try {
     s.persist(dupe);
+    s.flush();
     assertFalse(true);
   }
  catch (  PersistentObjectException poe) {

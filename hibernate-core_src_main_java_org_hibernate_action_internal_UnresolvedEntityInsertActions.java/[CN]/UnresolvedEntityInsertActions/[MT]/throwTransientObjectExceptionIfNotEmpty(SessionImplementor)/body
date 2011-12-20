@@ -1,0 +1,43 @@
+{
+  if (isEmpty()) {
+    return;
+  }
+  StringBuilder sb=new StringBuilder("Could not save one or more entities because of non-nullable associations with unsaved transient instance(s); save these transient instance(s) before saving the dependent entities.\n");
+  boolean firstTransientEntity=true;
+  for (  Map.Entry<Object,Set<AbstractEntityInsertAction>> entry : dependentActionsByTransientEntity.entrySet()) {
+    if (firstTransientEntity) {
+      firstTransientEntity=false;
+    }
+ else {
+      sb.append('\n');
+    }
+    Object transientEntity=entry.getKey();
+    Set<String> propertyPaths=new TreeSet<String>();
+    for (    AbstractEntityInsertAction dependentAction : entry.getValue()) {
+      for (      String fullPropertyPaths : dependenciesByAction.get(dependentAction).getNonNullableTransientPropertyPaths(transientEntity)) {
+        propertyPaths.add(fullPropertyPaths);
+      }
+    }
+    sb.append("Non-nullable association");
+    if (propertyPaths.size() > 1) {
+      sb.append('s');
+    }
+    sb.append(" (");
+    boolean firstPropertyPath=true;
+    for (    String propertyPath : propertyPaths) {
+      if (firstPropertyPath) {
+        firstPropertyPath=false;
+      }
+ else {
+        sb.append(", ");
+      }
+      sb.append(propertyPath);
+    }
+    sb.append(") depend");
+    if (propertyPaths.size() == 1) {
+      sb.append('s');
+    }
+    sb.append(" on unsaved transient entity: ").append(session.guessEntityName(transientEntity)).append('.');
+  }
+  throw new TransientObjectException(sb.toString());
+}

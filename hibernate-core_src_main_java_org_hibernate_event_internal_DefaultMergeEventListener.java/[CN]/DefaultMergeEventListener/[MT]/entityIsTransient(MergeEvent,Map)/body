@@ -2,7 +2,20 @@
   LOG.trace("Merging transient instance");
   final Object entity=event.getEntity();
   final EventSource source=event.getSession();
-  final EntityPersister persister=source.getEntityPersister(event.getEntityName(),entity);
-  final String entityName=persister.getEntityName();
-  event.setResult(mergeTransientEntity(entity,entityName,event.getRequestedId(),source,copyCache,true));
+  final String entityName=event.getEntityName();
+  final EntityPersister persister=source.getEntityPersister(entityName,entity);
+  final Serializable id=persister.hasIdentifierProperty() ? persister.getIdentifier(entity,source) : null;
+  if (copyCache.containsKey(entity)) {
+    persister.setIdentifier(copyCache.get(entity),id,source);
+  }
+ else {
+    ((EventCache)copyCache).put(entity,source.instantiate(persister,id),true);
+  }
+  final Object copy=copyCache.get(entity);
+  super.cascadeBeforeSave(source,persister,entity,copyCache);
+  copyValues(persister,entity,copy,source,copyCache,ForeignKeyDirection.FOREIGN_KEY_FROM_PARENT);
+  saveTransientEntity(copy,entityName,event.getRequestedId(),source,copyCache);
+  super.cascadeAfterSave(source,persister,entity,copyCache);
+  copyValues(persister,entity,copy,source,copyCache,ForeignKeyDirection.FOREIGN_KEY_TO_PARENT);
+  event.setResult(copy);
 }

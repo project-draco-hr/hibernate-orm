@@ -1,0 +1,29 @@
+{
+  EntityEntry entityEntry=session.getPersistenceContext().getEntry(managedEntity);
+  if (entityEntry.getStatus() != Status.MANAGED && entityEntry.getStatus() != Status.READ_ONLY) {
+    throw new IllegalArgumentException("EntityEntry did not have status MANAGED or READ_ONLY: " + entityEntry);
+  }
+  Set<AbstractEntityInsertAction> dependentActions=dependentActionsByTransientEntity.remove(managedEntity);
+  if (dependentActions == null) {
+    if (LOG.isTraceEnabled()) {
+      LOG.tracev("No unresolved entity inserts that depended on [{0}]",MessageHelper.infoString(entityEntry.getEntityName(),entityEntry.getId()));
+    }
+    return Collections.emptySet();
+  }
+  Set<AbstractEntityInsertAction> resolvedActions=new IdentitySet();
+  for (  AbstractEntityInsertAction dependentAction : dependentActions) {
+    NonNullableTransientDependencies dependencies=dependenciesByAction.get(dependentAction);
+    dependencies.resolveNonNullableTransientEntity(managedEntity);
+    if (dependencies.isEmpty()) {
+      if (LOG.isTraceEnabled()) {
+        LOG.tracev("Entity insert [{0}] only depended on [{1}]; removing from [{2}]",dependentAction,MessageHelper.infoString(entityEntry.getEntityName(),entityEntry.getId()),getClass().getSimpleName());
+      }
+      dependenciesByAction.remove(dependentAction);
+      resolvedActions.add(dependentAction);
+    }
+  }
+  if (LOG.isTraceEnabled() && !resolvedActions.isEmpty()) {
+    LOG.tracev("Remaining unresolved dependencies: ",toString());
+  }
+  return resolvedActions;
+}

@@ -1,0 +1,26 @@
+{
+  Route route=getUpdatedDetachedEntity();
+  clearCounts();
+  Session s=openSession();
+  s.beginTransaction();
+  Node node=((Node)route.getNodes().toArray()[0]);
+  Transport transport;
+  if (node.getPickupTransports().size() == 1) {
+    transport=(Transport)node.getPickupTransports().toArray()[0];
+  }
+ else {
+    transport=(Transport)node.getDeliveryTransports().toArray()[0];
+  }
+  transport=(Transport)operation.doEntityOperation(transport,s);
+  s.getTransaction().commit();
+  s.close();
+  assertInsertCount(4);
+  assertUpdateCount(0);
+  s=openSession();
+  s.beginTransaction();
+  route=(Route)s.get(Route.class,route.getRouteID());
+  checkResults(route,false);
+  s.getTransaction().commit();
+  s.close();
+  cleanup();
+}
