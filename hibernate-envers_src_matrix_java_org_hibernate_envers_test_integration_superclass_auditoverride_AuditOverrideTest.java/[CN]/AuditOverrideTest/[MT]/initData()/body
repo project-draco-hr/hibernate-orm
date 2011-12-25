@@ -1,0 +1,21 @@
+{
+  EntityManager em=getEntityManager();
+  em.getTransaction().begin();
+  PropertyOverrideTestEntity propertyEntity=new PropertyOverrideTestEntity("data 1",1,"data 2");
+  em.persist(propertyEntity);
+  em.getTransaction().commit();
+  propertyEntityId=propertyEntity.getId();
+  em.getTransaction().begin();
+  TransitiveOverrideTestEntity transitiveEntity=new TransitiveOverrideTestEntity("data 1",1,"data 2",2,"data 3");
+  em.persist(transitiveEntity);
+  em.getTransaction().commit();
+  transitiveEntityId=transitiveEntity.getId();
+  em.getTransaction().begin();
+  AuditedSpecialEntity auditedEntity=new AuditedSpecialEntity("data 1",1,"data 2");
+  em.persist(auditedEntity);
+  em.getTransaction().commit();
+  auditedEntityId=auditedEntity.getId();
+  propertyTable=getCfg().getClassMapping("org.hibernate.envers.test.integration.superclass.auditoverride.PropertyOverrideTestEntity_AUD").getTable();
+  transitiveTable=getCfg().getClassMapping("org.hibernate.envers.test.integration.superclass.auditoverride.TransitiveOverrideTestEntity_AUD").getTable();
+  auditedTable=getCfg().getClassMapping("org.hibernate.envers.test.integration.superclass.auditoverride.AuditedSpecialEntity_AUD").getTable();
+}

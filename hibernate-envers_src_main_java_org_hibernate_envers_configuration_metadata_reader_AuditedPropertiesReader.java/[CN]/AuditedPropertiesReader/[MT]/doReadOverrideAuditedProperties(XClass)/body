@@ -1,0 +1,27 @@
+{
+  List<AuditOverride> auditOverrides=computeAuditOverrides(clazz);
+  for (  AuditOverride auditOverride : auditOverrides) {
+    if (auditOverride.relatedClass() != void.class) {
+      XClass overrideClass=reflectionManager.toXClass(auditOverride.relatedClass());
+      checkSuperclass(clazz,overrideClass);
+      String propertyName=auditOverride.name();
+      if (propertyName != null) {
+        XProperty property=getProperty(overrideClass,propertyName);
+        if (auditOverride.isAudited()) {
+          if (!overriddenNotAuditedProperties.contains(property)) {
+            overriddenAuditedProperties.add(property);
+          }
+        }
+ else {
+          if (!overriddenAuditedProperties.contains(property)) {
+            overriddenNotAuditedProperties.add(property);
+          }
+        }
+      }
+    }
+  }
+  XClass superclass=clazz.getSuperclass();
+  if (!clazz.isInterface() && !Object.class.getName().equals(superclass.getName())) {
+    doReadOverrideAuditedProperties(superclass);
+  }
+}
