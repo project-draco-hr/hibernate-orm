@@ -1,0 +1,29 @@
+{
+  Session s1=sessionFactory().openSession();
+  s1.beginTransaction();
+  try {
+    A it=(A)s1.createQuery("from A a").setLockMode("a",LockMode.PESSIMISTIC_WRITE).uniqueResult();
+    assertNotNull(it);
+    Session s2=sessionFactory().openSession();
+    s2.beginTransaction();
+    try {
+      s2.createQuery("from A a").setLockMode("a",LockMode.PESSIMISTIC_WRITE).uniqueResult();
+      fail("Pessimistic lock was not obtained/held");
+    }
+ catch (    Exception e) {
+      if (LockAcquisitionException.class.isInstance(e) || GenericJDBCException.class.isInstance(e) || PessimisticLockException.class.isInstance(e)) {
+      }
+ else {
+        fail("Unexpected error type testing pessimistic locking : " + e.getClass().getName());
+      }
+    }
+ finally {
+      s2.getTransaction().commit();
+      s2.close();
+    }
+  }
+  finally {
+    s1.getTransaction().commit();
+    s1.close();
+  }
+}
