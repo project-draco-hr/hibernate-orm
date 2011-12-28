@@ -4,22 +4,20 @@
   SelectClause selectClause=insertStatement.getSelectClause();
   Queryable persister=insertStatement.getIntoClause().getQueryable();
   if (!insertStatement.getIntoClause().isExplicitIdInsertion()) {
-    IdentifierGenerator generator=persister.getIdentifierGenerator();
-    if (!supportsIdGenWithBulkInsertion(generator)) {
-      throw new QueryException("can only generate ids as part of bulk insert with either sequence or post-insert style generators");
+    final IdentifierGenerator generator=persister.getIdentifierGenerator();
+    if (!BulkInsertionCapableIdentifierGenerator.class.isInstance(generator)) {
+      throw new QueryException("Invalid identifier generator encountered for implicit id handling as part of bulk insertions");
     }
-    AST idSelectExprNode=null;
-    if (SequenceGenerator.class.isAssignableFrom(generator.getClass())) {
-      String seqName=(String)((SequenceGenerator)generator).generatorKey();
-      String nextval=sessionFactoryHelper.getFactory().getDialect().getSelectSequenceNextValString(seqName);
-      idSelectExprNode=getASTFactory().create(HqlSqlTokenTypes.SQL_TOKEN,nextval);
+    final BulkInsertionCapableIdentifierGenerator capableGenerator=BulkInsertionCapableIdentifierGenerator.class.cast(generator);
+    if (!capableGenerator.supportsBulkInsertionIdentifierGeneration()) {
+      throw new QueryException("Identifier generator reported it does not support implicit id handling as part of bulk insertions");
     }
- else {
-    }
-    if (idSelectExprNode != null) {
-      AST currentFirstSelectExprNode=selectClause.getFirstChild();
-      selectClause.setFirstChild(idSelectExprNode);
-      idSelectExprNode.setNextSibling(currentFirstSelectExprNode);
+    final String fragment=capableGenerator.determineBulkInsertionIdentifierGenerationSelectFragment(sessionFactoryHelper.getFactory().getDialect());
+    if (fragment != null) {
+      AST fragmentNode=getASTFactory().create(HqlSqlTokenTypes.SQL_TOKEN,fragment);
+      AST originalFirstSelectExprNode=selectClause.getFirstChild();
+      selectClause.setFirstChild(fragmentNode);
+      fragmentNode.setNextSibling(originalFirstSelectExprNode);
       insertStatement.getIntoClause().prependIdColumnSpec();
     }
   }
