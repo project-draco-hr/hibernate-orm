@@ -6,41 +6,40 @@
  catch (  ClassNotFoundException cnfe) {
     return new String[]{className};
   }
-  ArrayList results=new ArrayList();
-  Iterator iter=entityPersisters.values().iterator();
-  while (iter.hasNext()) {
-    EntityPersister testPersister=(EntityPersister)iter.next();
-    if (testPersister instanceof Queryable) {
-      Queryable testQueryable=(Queryable)testPersister;
-      String testClassName=testQueryable.getEntityName();
-      boolean isMappedClass=className.equals(testClassName);
-      if (testQueryable.isExplicitPolymorphism()) {
-        if (isMappedClass) {
-          return new String[]{className};
-        }
+  ArrayList<String> results=new ArrayList<String>();
+  for (  EntityPersister checkPersister : entityPersisters.values()) {
+    if (!Queryable.class.isInstance(checkPersister)) {
+      continue;
+    }
+    final Queryable checkQueryable=Queryable.class.cast(checkPersister);
+    final String checkQueryableEntityName=checkQueryable.getEntityName();
+    final boolean isMappedClass=className.equals(checkQueryableEntityName);
+    if (checkQueryable.isExplicitPolymorphism()) {
+      if (isMappedClass) {
+        return new String[]{className};
+      }
+    }
+ else {
+      if (isMappedClass) {
+        results.add(checkQueryableEntityName);
       }
  else {
-        if (isMappedClass) {
-          results.add(testClassName);
-        }
+        final Class mappedClass=checkQueryable.getMappedClass();
+        if (mappedClass != null && clazz.isAssignableFrom(mappedClass)) {
+          final boolean assignableSuperclass;
+          if (checkQueryable.isInherited()) {
+            Class mappedSuperclass=getEntityPersister(checkQueryable.getMappedSuperclass()).getMappedClass();
+            assignableSuperclass=clazz.isAssignableFrom(mappedSuperclass);
+          }
  else {
-          final Class mappedClass=testQueryable.getMappedClass();
-          if (mappedClass != null && clazz.isAssignableFrom(mappedClass)) {
-            final boolean assignableSuperclass;
-            if (testQueryable.isInherited()) {
-              Class mappedSuperclass=getEntityPersister(testQueryable.getMappedSuperclass()).getMappedClass();
-              assignableSuperclass=clazz.isAssignableFrom(mappedSuperclass);
-            }
- else {
-              assignableSuperclass=false;
-            }
-            if (!assignableSuperclass) {
-              results.add(testClassName);
-            }
+            assignableSuperclass=false;
+          }
+          if (!assignableSuperclass) {
+            results.add(checkQueryableEntityName);
           }
         }
       }
     }
   }
-  return (String[])results.toArray(new String[results.size()]);
+  return results.toArray(new String[results.size()]);
 }

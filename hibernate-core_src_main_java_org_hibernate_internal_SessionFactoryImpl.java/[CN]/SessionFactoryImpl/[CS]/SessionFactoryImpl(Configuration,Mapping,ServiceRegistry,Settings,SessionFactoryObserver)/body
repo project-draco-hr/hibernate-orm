@@ -94,7 +94,8 @@ class IntegratorObserver implements SessionFactoryObserver {
   }
   this.classMetadata=Collections.unmodifiableMap(classMeta);
   Map<String,Set<String>> tmpEntityToCollectionRoleMap=new HashMap<String,Set<String>>();
-  collectionPersisters=new HashMap();
+  collectionPersisters=new HashMap<String,CollectionPersister>();
+  Map<String,CollectionMetadata> tmpCollectionMetadata=new HashMap<String,CollectionMetadata>();
   Iterator collections=cfg.getCollectionMappings();
   while (collections.hasNext()) {
     Collection model=(Collection)collections.next();
@@ -111,7 +112,8 @@ class IntegratorObserver implements SessionFactoryObserver {
       allCacheRegions.put(cacheRegionName,collectionRegion);
     }
     CollectionPersister persister=serviceRegistry.getService(PersisterFactory.class).createCollectionPersister(cfg,model,accessStrategy,this);
-    collectionPersisters.put(model.getRole(),persister.getCollectionMetadata());
+    collectionPersisters.put(model.getRole(),persister);
+    tmpCollectionMetadata.put(model.getRole(),persister.getCollectionMetadata());
     Type indexType=persister.getIndexType();
     if (indexType != null && indexType.isAssociationType() && !indexType.isAnyType()) {
       String entityName=((AssociationType)indexType).getAssociatedEntityName(this);
@@ -133,7 +135,7 @@ class IntegratorObserver implements SessionFactoryObserver {
       roles.add(persister.getRole());
     }
   }
-  collectionMetadata=Collections.unmodifiableMap(collectionPersisters);
+  collectionMetadata=Collections.unmodifiableMap(tmpCollectionMetadata);
   Iterator itr=tmpEntityToCollectionRoleMap.entrySet().iterator();
   while (itr.hasNext()) {
     final Map.Entry entry=(Map.Entry)itr.next();
@@ -162,7 +164,7 @@ class IntegratorObserver implements SessionFactoryObserver {
  catch (  Exception e) {
     throw new AssertionFailure("Could not generate UUID");
   }
-  SessionFactoryRegistry.INSTANCE.addSessionFactory(uuid,name,this,serviceRegistry.getService(JndiService.class));
+  SessionFactoryRegistry.INSTANCE.addSessionFactory(uuid,name,settings.isSessionFactoryNameAlsoJndiName(),this,serviceRegistry.getService(JndiService.class));
   LOG.debug("Instantiated session factory");
   if (settings.isAutoCreateSchema()) {
     new SchemaExport(serviceRegistry,cfg).setImportSqlCommandExtractor(serviceRegistry.getService(ImportSqlCommandExtractor.class)).create(false,true);
@@ -190,16 +192,14 @@ class IntegratorObserver implements SessionFactoryObserver {
     queryCaches=null;
   }
   if (settings.isNamedQueryStartupCheckingEnabled()) {
-    Map errors=checkNamedQueries();
+    final Map<String,HibernateException> errors=checkNamedQueries();
     if (!errors.isEmpty()) {
-      Set keys=errors.keySet();
-      StringBuffer failingQueries=new StringBuffer("Errors in named queries: ");
-      for (Iterator iterator=keys.iterator(); iterator.hasNext(); ) {
-        String queryName=(String)iterator.next();
-        HibernateException e=(HibernateException)errors.get(queryName);
-        failingQueries.append(queryName);
-        if (iterator.hasNext())         failingQueries.append(", ");
-        LOG.namedQueryError(queryName,e);
+      StringBuilder failingQueries=new StringBuilder("Errors in named queries: ");
+      String sep="";
+      for (      Map.Entry<String,HibernateException> entry : errors.entrySet()) {
+        LOG.namedQueryError(entry.getKey(),entry.getValue());
+        failingQueries.append(entry.getKey()).append(sep);
+        sep=", ";
       }
       throw new HibernateException(failingQueries.toString());
     }
@@ -209,11 +209,9 @@ class IntegratorObserver implements SessionFactoryObserver {
   while (itr.hasNext()) {
     final org.hibernate.mapping.FetchProfile mappingProfile=(org.hibernate.mapping.FetchProfile)itr.next();
     final FetchProfile fetchProfile=new FetchProfile(mappingProfile.getName());
-    Iterator fetches=mappingProfile.getFetches().iterator();
-    while (fetches.hasNext()) {
-      final org.hibernate.mapping.FetchProfile.Fetch mappingFetch=(org.hibernate.mapping.FetchProfile.Fetch)fetches.next();
+    for (    org.hibernate.mapping.FetchProfile.Fetch mappingFetch : mappingProfile.getFetches()) {
       final String entityName=getImportedClassName(mappingFetch.getEntity());
-      final EntityPersister owner=(EntityPersister)(entityName == null ? null : entityPersisters.get(entityName));
+      final EntityPersister owner=entityName == null ? null : entityPersisters.get(entityName);
       if (owner == null) {
         throw new HibernateException("Unable to resolve entity reference [" + mappingFetch.getEntity() + "] in fetch profile ["+ fetchProfile.getName()+ "]");
       }

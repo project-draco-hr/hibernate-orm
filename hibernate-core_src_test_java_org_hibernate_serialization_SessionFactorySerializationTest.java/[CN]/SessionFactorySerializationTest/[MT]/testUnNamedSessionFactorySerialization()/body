@@ -1,0 +1,16 @@
+{
+  Configuration cfg=new Configuration().setProperty(AvailableSettings.SESSION_FACTORY_NAME_IS_JNDI,"false");
+  SessionFactory factory=cfg.buildSessionFactory();
+  Reference reference=factory.getReference();
+  StringRefAddr refAddr=(StringRefAddr)reference.get("uuid");
+  String uuid=(String)refAddr.getContent();
+  SessionFactoryRegistry.INSTANCE.removeSessionFactory(uuid,NAME,false,null);
+  SessionFactoryRegistry.INSTANCE.addSessionFactory("some-other-uuid",NAME,false,factory,null);
+  try {
+    SerializationHelper.clone(factory);
+    fail("Expecting an error");
+  }
+ catch (  SerializationException expected) {
+  }
+  factory.close();
+}

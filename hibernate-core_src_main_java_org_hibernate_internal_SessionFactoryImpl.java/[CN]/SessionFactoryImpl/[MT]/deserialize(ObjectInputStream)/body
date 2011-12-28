@@ -1,16 +1,7 @@
 {
+  LOG.trace("Deserializing SessionFactory from Session");
   final String uuid=ois.readUTF();
   boolean isNamed=ois.readBoolean();
   final String name=isNamed ? ois.readUTF() : null;
-  Object result=SessionFactoryRegistry.INSTANCE.getSessionFactory(uuid);
-  if (result == null) {
-    LOG.tracev("Could not locate session factory by uuid [{0}] during session deserialization; trying name",uuid);
-    if (isNamed) {
-      result=SessionFactoryRegistry.INSTANCE.getNamedSessionFactory(name);
-    }
-    if (result == null) {
-      throw new InvalidObjectException("could not resolve session factory during session deserialization [uuid=" + uuid + ", name="+ name+ "]");
-    }
-  }
-  return (SessionFactoryImpl)result;
+  return (SessionFactoryImpl)locateSessionFactoryOnDeserialization(uuid,name);
 }
