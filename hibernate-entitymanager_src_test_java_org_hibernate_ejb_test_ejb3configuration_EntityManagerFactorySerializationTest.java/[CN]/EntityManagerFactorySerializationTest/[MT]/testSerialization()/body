@@ -1,5 +1,16 @@
 {
-  EntityManager em=entityManagerFactory().createEntityManager();
+  ByteArrayOutputStream stream=new ByteArrayOutputStream();
+  ObjectOutput out=new ObjectOutputStream(stream);
+  out.writeObject(entityManagerFactory());
+  out.close();
+  byte[] serialized=stream.toByteArray();
+  stream.close();
+  ByteArrayInputStream byteIn=new ByteArrayInputStream(serialized);
+  ObjectInputStream in=new ObjectInputStream(byteIn);
+  EntityManagerFactory serializedFactory=(EntityManagerFactory)in.readObject();
+  in.close();
+  byteIn.close();
+  EntityManager em=serializedFactory.createEntityManager();
   Cat cat=new Cat();
   cat.setAge(3);
   cat.setDateOfBirth(new Date());
@@ -12,14 +23,14 @@
   em.persist(item);
   item.setDescr("Paris-Bruxelles");
   ((HibernateEntityManager)em).getSession().disconnect();
-  ByteArrayOutputStream stream=new ByteArrayOutputStream();
-  ObjectOutput out=new ObjectOutputStream(stream);
+  stream=new ByteArrayOutputStream();
+  out=new ObjectOutputStream(stream);
   out.writeObject(em);
   out.close();
-  byte[] serialized=stream.toByteArray();
+  serialized=stream.toByteArray();
   stream.close();
-  ByteArrayInputStream byteIn=new ByteArrayInputStream(serialized);
-  ObjectInputStream in=new ObjectInputStream(byteIn);
+  byteIn=new ByteArrayInputStream(serialized);
+  in=new ObjectInputStream(byteIn);
   em=(EntityManager)in.readObject();
   in.close();
   byteIn.close();
