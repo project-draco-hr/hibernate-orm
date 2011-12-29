@@ -4,23 +4,7 @@
   try {
     A it=(A)s1.get(A.class,1,LockMode.PESSIMISTIC_WRITE);
     assertNotNull(it);
-    Session s2=sessionFactory().openSession();
-    s2.beginTransaction();
-    try {
-      s2.get(A.class,1,LockMode.PESSIMISTIC_WRITE);
-      fail("Pessimistic lock was not obtained/held");
-    }
- catch (    Exception e) {
-      if (LockAcquisitionException.class.isInstance(e) || GenericJDBCException.class.isInstance(e) || PessimisticLockException.class.isInstance(e)) {
-      }
- else {
-        fail("Unexpected error type testing pessimistic locking : " + e.getClass().getName());
-      }
-    }
- finally {
-      s2.getTransaction().commit();
-      s2.close();
-    }
+    nowAttemptToUpdateRow();
   }
   finally {
     s1.getTransaction().commit();

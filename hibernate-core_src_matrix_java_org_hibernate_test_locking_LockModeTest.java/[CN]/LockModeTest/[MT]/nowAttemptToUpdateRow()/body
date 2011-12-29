@@ -1,0 +1,20 @@
+{
+  Session s=sessionFactory().openSession();
+  s.beginTransaction();
+  try {
+    A it2=(A)s.get(A.class,1);
+    it2.setValue("changed");
+    s.flush();
+  }
+ catch (  Exception e) {
+    if (LockAcquisitionException.class.isInstance(e) || GenericJDBCException.class.isInstance(e) || PessimisticLockException.class.isInstance(e)) {
+    }
+ else {
+      fail("Unexpected error type testing pessimistic locking : " + e.getClass().getName());
+    }
+  }
+ finally {
+    s.getTransaction().commit();
+    s.close();
+  }
+}
