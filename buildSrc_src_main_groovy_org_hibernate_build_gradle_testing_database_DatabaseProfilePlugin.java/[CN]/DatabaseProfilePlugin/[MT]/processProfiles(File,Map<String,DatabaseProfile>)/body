@@ -22,8 +22,8 @@
     log.debug("Skipping ignored database profile [{}]",profileName);
     return;
   }
-  if (profileMap.containsKey(databaseProfile.getName())) {
-    throw new DuplicateDatabaseProfileException("There is already a profile named " + profileName);
+  DatabaseProfile previousEntry=profileMap.put(profileName,databaseProfile);
+  if (previousEntry != null) {
+    log.lifecycle("Found duplicate profile definitions [name={}], [{}] taking precedence over [{}]",profileName,databaseProfile.getDirectory().getAbsolutePath(),previousEntry.getDirectory().getAbsolutePath());
   }
-  profileMap.put(profileName,databaseProfile);
 }
