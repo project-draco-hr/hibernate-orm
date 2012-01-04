@@ -1,0 +1,29 @@
+{
+  if (obj == null) {
+    return;
+  }
+  EntityConfiguration entCfg=verCfg.getEntCfg().get(referencedEntityName);
+  boolean isRelationAudited=true;
+  if (entCfg == null) {
+    entCfg=verCfg.getEntCfg().getNotVersionEntityConfiguration(referencedEntityName);
+    isRelationAudited=false;
+  }
+  Class<?> entityClass=ReflectionTools.loadClass(entCfg.getEntityClassName());
+  Object value=null;
+  try {
+    if (isRelationAudited) {
+      value=versionsReader.createQuery().forEntitiesAtRevision(entityClass,referencedEntityName,revision).add(AuditEntity.id().eq(primaryKey)).getSingleResult();
+    }
+ else {
+      value=createNotAuditedEntityReference(versionsReader,entityClass,referencedEntityName,(Serializable)primaryKey);
+    }
+  }
+ catch (  NoResultException e) {
+    value=null;
+  }
+catch (  NonUniqueResultException e) {
+    throw new AuditException("Many versions results for one-to-one relationship: (" + entityName + ", "+ propertyData.getBeanName()+ ")");
+  }
+  Setter setter=ReflectionTools.getSetter(obj.getClass(),propertyData);
+  setter.set(obj,value,null);
+}
