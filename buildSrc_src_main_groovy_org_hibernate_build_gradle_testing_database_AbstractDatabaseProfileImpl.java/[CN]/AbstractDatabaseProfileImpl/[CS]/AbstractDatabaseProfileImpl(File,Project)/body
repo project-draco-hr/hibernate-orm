@@ -1,0 +1,29 @@
+{
+  this.profileDirectory=profileDirectory;
+  this.name=profileDirectory.getName();
+  this.project=project;
+  this.hibernateProperties=new HashMap<String,String>();
+  final File hibernatePropertiesFile=new File(new File(profileDirectory,"resources"),"hibernate.properties");
+  if (hibernatePropertiesFile.exists()) {
+    Properties props=new Properties();
+    try {
+      FileInputStream stream=new FileInputStream(hibernatePropertiesFile);
+      try {
+        props.load(stream);
+      }
+  finally {
+        try {
+          stream.close();
+        }
+ catch (        IOException ignore) {
+        }
+      }
+    }
+ catch (    IOException e) {
+      log.warn("Unable to read Hibernate properties for database profile [" + name + "]",e);
+    }
+    for (    String propName : props.stringPropertyNames()) {
+      hibernateProperties.put(propName,props.getProperty(propName));
+    }
+  }
+}
