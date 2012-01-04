@@ -2,8 +2,8 @@
   Session s=sessionFactory().openSession();
   s.beginTransaction();
   try {
-    A it2=(A)s.get(A.class,1);
-    it2.setValue("changed");
+    A it=(A)s.get(A.class,1,new LockOptions(LockMode.PESSIMISTIC_WRITE).setTimeOut(LockOptions.NO_WAIT));
+    it.setValue("changed");
     s.flush();
     fail("Pessimistic lock not obtained/held");
   }
