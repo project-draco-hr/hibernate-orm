@@ -1,0 +1,21 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  Item item=new Item();
+  item.setName("dummy");
+  Part part=new Part(item,"child","1234",BigDecimal.ONE);
+  s.persist(item);
+  s.delete(item);
+  assertFalse("the item is contained in the session after deletion",s.contains(item));
+  assertFalse("the part is contained in the session after deletion",s.contains(part));
+  s.persist(item);
+  assertTrue("the item is contained in the session after deletion",s.contains(item));
+  assertTrue("the part is contained in the session after deletion",s.contains(part));
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  s.delete(item);
+  s.getTransaction().commit();
+  s.close();
+}

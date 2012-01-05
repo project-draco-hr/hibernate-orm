@@ -1,0 +1,19 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  Item item=new Item();
+  item.setName("dummy");
+  Part child=new Part(item,"child","1234",BigDecimal.ONE);
+  s.persist(item);
+  s.delete(child);
+  assertFalse("the child is contained in the session, since it is deleted",s.contains(child));
+  s.flush();
+  assertTrue("Now it is consistent again since if was cascade-persisted by the flush()",s.contains(child));
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  s.delete(item);
+  s.getTransaction().commit();
+  s.close();
+}

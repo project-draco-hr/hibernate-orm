@@ -39,14 +39,30 @@
   }
 switch (entityState) {
 case DETACHED:
-    throw new PersistentObjectException("detached entity passed to persist: " + getLoggableName(event.getEntityName(),entity));
+{
+      throw new PersistentObjectException("detached entity passed to persist: " + getLoggableName(event.getEntityName(),entity));
+    }
 case PERSISTENT:
-  entityIsPersistent(event,createCache);
-break;
+{
+    entityIsPersistent(event,createCache);
+    break;
+  }
 case TRANSIENT:
-entityIsTransient(event,createCache);
+{
+  entityIsTransient(event,createCache);
+  break;
+}
+case DELETED:
+{
+entityEntry.setStatus(Status.MANAGED);
+entityEntry.setDeletedState(null);
+event.getSession().getActionQueue().unScheduleDeletion(entityEntry,event.getObject());
+entityIsDeleted(event,createCache);
 break;
+}
 default :
+{
 throw new ObjectDeletedException("deleted entity passed to persist",null,getLoggableName(event.getEntityName(),entity));
+}
 }
 }
