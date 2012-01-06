@@ -7,7 +7,7 @@
         return new SQLGrammarException(message,sqlException,sql);
       }
  else       if (INTEGRITY_VIOLATION_CATEGORIES.contains(sqlStateClassCode)) {
-        String constraintName=extracter.extractConstraintName(sqlException);
+        final String constraintName=getConversionContext().getViolatedConstraintNameExtracter().extractConstraintName(sqlException);
         return new ConstraintViolationException(message,sqlException,sql,constraintName);
       }
  else       if (CONNECTION_CATEGORIES.contains(sqlStateClassCode)) {
@@ -30,5 +30,5 @@
       throw new QueryTimeoutException(message,sqlException,sql);
     }
   }
-  return handledNonSpecificException(sqlException,message,sql);
+  return null;
 }

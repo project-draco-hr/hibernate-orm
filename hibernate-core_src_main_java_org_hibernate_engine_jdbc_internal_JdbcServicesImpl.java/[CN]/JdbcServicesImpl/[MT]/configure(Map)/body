@@ -69,6 +69,21 @@ catch (    UnsupportedOperationException uoe) {
   this.dialect=dialect;
   this.lobCreatorBuilder=(lobCreatorBuilder == null ? new LobCreatorBuilder(configValues,null) : lobCreatorBuilder);
   this.sqlStatementLogger=new SqlStatementLogger(showSQL,formatSQL);
-  this.sqlExceptionHelper=new SqlExceptionHelper(dialect.buildSQLExceptionConverter());
   this.extractedMetaDataSupport=new ExtractedDatabaseMetaDataImpl(metaSupportsScrollable,metaSupportsGetGeneratedKeys,metaSupportsBatchUpdates,metaReportsDDLInTxnSupported,metaReportsDDLCausesTxnCommit,parseKeywords(extraKeywordsString),parseSQLStateType(sqlStateType),lobLocatorUpdateCopy,schemaName,catalogName,typeInfoSet);
+  SQLExceptionConverter sqlExceptionConverter=dialect.buildSQLExceptionConverter();
+  if (sqlExceptionConverter == null) {
+    final Dialect finalDialect=dialect;
+    final ConversionContext conversionContext=new ConversionContext(){
+      private final ViolatedConstraintNameExtracter extracter=finalDialect.getViolatedConstraintNameExtracter();
+      @Override public ViolatedConstraintNameExtracter getViolatedConstraintNameExtracter(){
+        return extracter;
+      }
+    }
+;
+    final StandardSQLExceptionConverter converter=new StandardSQLExceptionConverter();
+    sqlExceptionConverter=converter;
+    converter.addDelegate(new SQLExceptionTypeDelegate(conversionContext));
+    converter.addDelegate(new SQLStateConversionDelegate(conversionContext));
+  }
+  this.sqlExceptionHelper=new SqlExceptionHelper(sqlExceptionConverter);
 }

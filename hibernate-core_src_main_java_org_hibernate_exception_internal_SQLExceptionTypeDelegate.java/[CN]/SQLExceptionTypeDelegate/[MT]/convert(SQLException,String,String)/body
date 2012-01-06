@@ -1,0 +1,21 @@
+{
+  if (SQLClientInfoException.class.isInstance(sqlException) || SQLInvalidAuthorizationSpecException.class.isInstance(sqlException) || SQLNonTransientConnectionException.class.isInstance(sqlException)|| SQLTransientConnectionException.class.isInstance(sqlException)) {
+    return new JDBCConnectionException(message,sqlException,sql);
+  }
+ else   if (DataTruncation.class.isInstance(sqlException) || SQLDataException.class.isInstance(sqlException)) {
+    throw new DataException(message,sqlException,sql);
+  }
+ else   if (SQLIntegrityConstraintViolationException.class.isInstance(sqlException)) {
+    return new ConstraintViolationException(message,sqlException,sql,getConversionContext().getViolatedConstraintNameExtracter().extractConstraintName(sqlException));
+  }
+ else   if (SQLSyntaxErrorException.class.isInstance(sqlException)) {
+    return new SQLGrammarException(message,sqlException,sql);
+  }
+ else   if (SQLTimeoutException.class.isInstance(sqlException)) {
+    return new GenericJDBCException(message,sqlException,sql);
+  }
+ else   if (SQLTransactionRollbackException.class.isInstance(sqlException)) {
+    return new LockAcquisitionException(message,sqlException,sql);
+  }
+  return null;
+}
