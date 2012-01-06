@@ -1,0 +1,49 @@
+{
+  Audited allClassAudited=clazz.getAnnotation(Audited.class);
+  if (allClassAudited != null && allClassAudited.auditParents().length > 0) {
+    for (    Class c : allClassAudited.auditParents()) {
+      XClass parentClass=reflectionManager.toXClass(c);
+      checkSuperclass(clazz,parentClass);
+      if (!overriddenNotAuditedClasses.contains(parentClass)) {
+        overriddenAuditedClasses.add(parentClass);
+      }
+    }
+  }
+  List<AuditOverride> auditOverrides=computeAuditOverrides(clazz);
+  for (  AuditOverride auditOverride : auditOverrides) {
+    if (auditOverride.forClass() != void.class) {
+      XClass overrideClass=reflectionManager.toXClass(auditOverride.forClass());
+      checkSuperclass(clazz,overrideClass);
+      String propertyName=auditOverride.name();
+      if (!StringTools.isEmpty(propertyName)) {
+        XProperty property=getProperty(overrideClass,propertyName);
+        if (auditOverride.isAudited()) {
+          if (!overriddenNotAuditedProperties.contains(property)) {
+            overriddenAuditedProperties.add(property);
+          }
+        }
+ else {
+          if (!overriddenAuditedProperties.contains(property)) {
+            overriddenNotAuditedProperties.add(property);
+          }
+        }
+      }
+ else {
+        if (auditOverride.isAudited()) {
+          if (!overriddenNotAuditedClasses.contains(overrideClass)) {
+            overriddenAuditedClasses.add(overrideClass);
+          }
+        }
+ else {
+          if (!overriddenAuditedClasses.contains(overrideClass)) {
+            overriddenNotAuditedClasses.add(overrideClass);
+          }
+        }
+      }
+    }
+  }
+  XClass superclass=clazz.getSuperclass();
+  if (!clazz.isInterface() && !Object.class.getName().equals(superclass.getName())) {
+    doReadOverrideAudited(superclass);
+  }
+}
