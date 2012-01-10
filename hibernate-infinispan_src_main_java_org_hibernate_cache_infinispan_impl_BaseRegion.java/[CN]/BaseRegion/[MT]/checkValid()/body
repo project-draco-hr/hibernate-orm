@@ -5,7 +5,13 @@ synchronized (invalidationMutex) {
       if (invalidateState.compareAndSet(InvalidateState.INVALID,InvalidateState.CLEARING)) {
         Transaction tx=suspend();
         try {
-          cacheAdapter.withFlags(FlagAdapter.CACHE_MODE_LOCAL,FlagAdapter.ZERO_LOCK_ACQUISITION_TIMEOUT).clear();
+          cacheAdapter.withinTx(new Callable<Void>(){
+            @Override public Void call() throws Exception {
+              cacheAdapter.withFlags(FlagAdapter.CACHE_MODE_LOCAL,FlagAdapter.ZERO_LOCK_ACQUISITION_TIMEOUT).clear();
+              return null;
+            }
+          }
+);
           invalidateState.compareAndSet(InvalidateState.CLEARING,InvalidateState.VALID);
         }
  catch (        Exception e) {
