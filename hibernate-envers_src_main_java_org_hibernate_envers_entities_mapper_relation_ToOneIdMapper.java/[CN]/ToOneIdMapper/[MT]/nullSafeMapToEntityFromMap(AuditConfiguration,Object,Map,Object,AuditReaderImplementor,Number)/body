@@ -1,0 +1,14 @@
+{
+  Object entityId=delegate.mapToIdFromMap(data);
+  Object value=null;
+  if (entityId != null) {
+    if (versionsReader.getFirstLevelCache().contains(referencedEntityName,revision,entityId)) {
+      value=versionsReader.getFirstLevelCache().get(referencedEntityName,revision,entityId);
+    }
+ else {
+      RelationDescriptor relationDescriptor=getRelationDescriptor(verCfg,referencedEntityName);
+      value=versionsReader.getSessionImplementor().getFactory().getEntityPersister(referencedEntityName).createProxy((Serializable)entityId,new ToOneDelegateSessionImplementor(versionsReader,relationDescriptor.getReferencedEntityClass(),entityId,revision,verCfg));
+    }
+  }
+  setPropertyValue(obj,value);
+}
