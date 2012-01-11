@@ -1,7 +1,5 @@
 {
-  if (!areTransientReferencesNullified()) {
-    nullifyTransientReferences();
-  }
+  nullifyTransientReferencesIfNotAlready();
   final EntityPersister persister=getPersister();
   final SessionImplementor session=getSession();
   final Object instance=getInstance();
@@ -12,9 +10,9 @@
       persister.processInsertGeneratedProperties(generatedId,instance,getState(),session);
     }
     persister.setIdentifier(instance,generatedId,session);
-    getSession().getPersistenceContext().registerInsertedKey(getPersister(),generatedId);
-    entityKey=getSession().generateEntityKey(generatedId,persister);
-    getSession().getPersistenceContext().checkUniqueness(entityKey,getInstance());
+    session.getPersistenceContext().registerInsertedKey(getPersister(),generatedId);
+    entityKey=session.generateEntityKey(generatedId,persister);
+    session.getPersistenceContext().checkUniqueness(entityKey,getInstance());
   }
   postInsert();
   if (session.getFactory().getStatistics().isStatisticsEnabled() && !veto) {
