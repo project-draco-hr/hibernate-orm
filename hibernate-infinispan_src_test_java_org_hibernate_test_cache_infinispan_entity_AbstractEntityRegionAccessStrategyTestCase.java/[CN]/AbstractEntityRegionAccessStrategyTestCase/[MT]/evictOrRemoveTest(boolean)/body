@@ -8,12 +8,14 @@
   assertEquals(VALUE1,localAccessStrategy.get(KEY,System.currentTimeMillis()));
   remoteAccessStrategy.putFromLoad(KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
   assertEquals(VALUE1,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
-  if (evict) {
-    localAccessStrategy.evict(KEY);
+  CacheHelper.withinTx(localEntityRegion.getTransactionManager(),new Callable<Void>(){
+    @Override public Void call() throws Exception {
+      if (evict)       localAccessStrategy.evict(KEY);
+ else       localAccessStrategy.remove(KEY);
+      return null;
+    }
   }
- else {
-    localAccessStrategy.remove(KEY);
-  }
+);
   assertEquals(null,localAccessStrategy.get(KEY,System.currentTimeMillis()));
   assertEquals(0,getValidKeyCount(localEntityRegion.getCacheAdapter().keySet()));
   assertEquals(null,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
