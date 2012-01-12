@@ -1,7 +1,13 @@
 {
   AuditStrategy strategy;
   try {
-    Class<?> auditStrategyClass=Thread.currentThread().getContextClassLoader().loadClass(auditEntCfg.getAuditStrategyName());
+    Class<?> auditStrategyClass=null;
+    if (classLoaderService != null) {
+      auditStrategyClass=classLoaderService.classForName(auditEntCfg.getAuditStrategyName());
+    }
+ else {
+      auditStrategyClass=Thread.currentThread().getContextClassLoader().loadClass(auditEntCfg.getAuditStrategyName());
+    }
     strategy=(AuditStrategy)auditStrategyClass.newInstance();
   }
  catch (  Exception e) {
