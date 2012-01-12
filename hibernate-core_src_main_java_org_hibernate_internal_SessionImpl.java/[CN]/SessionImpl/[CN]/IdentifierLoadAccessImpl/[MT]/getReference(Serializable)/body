@@ -1,15 +1,15 @@
 {
   if (this.lockOptions != null) {
-    LoadEvent event=new LoadEvent(id,entityName,lockOptions,SessionImpl.this);
+    LoadEvent event=new LoadEvent(id,entityPersister.getEntityName(),lockOptions,SessionImpl.this);
     fireLoad(event,LoadEventListener.LOAD);
     return event.getResult();
   }
-  LoadEvent event=new LoadEvent(id,entityName,false,SessionImpl.this);
+  LoadEvent event=new LoadEvent(id,entityPersister.getEntityName(),false,SessionImpl.this);
   boolean success=false;
   try {
     fireLoad(event,LoadEventListener.LOAD);
     if (event.getResult() == null) {
-      getFactory().getEntityNotFoundDelegate().handleEntityNotFound(entityName,id);
+      getFactory().getEntityNotFoundDelegate().handleEntityNotFound(entityPersister.getEntityName(),id);
     }
     success=true;
     return event.getResult();

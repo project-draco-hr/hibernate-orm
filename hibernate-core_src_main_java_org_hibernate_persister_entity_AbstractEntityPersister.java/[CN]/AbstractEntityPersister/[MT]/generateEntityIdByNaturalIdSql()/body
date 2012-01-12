@@ -16,10 +16,9 @@
     final int naturalIdIdx=naturalIdPropertyIndexes[propIdx];
     final String tableAlias=generateTableAlias(rootAlias,propertyTableNumbers[naturalIdIdx]);
     final String[] propertyColumnNames=getPropertyColumnNames(naturalIdIdx);
-    final String[] aliasedPropertyColumns=StringHelper.qualify(rootAlias,propertyColumnNames);
+    final String[] aliasedPropertyColumns=StringHelper.qualify(tableAlias,propertyColumnNames);
     whereClause.append(StringHelper.join("=? and ",aliasedPropertyColumns)).append("=?");
   }
   whereClause.append(whereJoinFragment(getRootAlias(),true,false));
-  String sql=select.setOuterJoins("","").setWhereClause(whereClause.toString()).toStatementString();
-  return sql;
+  return select.setOuterJoins("","").setWhereClause(whereClause.toString()).toStatementString();
 }
