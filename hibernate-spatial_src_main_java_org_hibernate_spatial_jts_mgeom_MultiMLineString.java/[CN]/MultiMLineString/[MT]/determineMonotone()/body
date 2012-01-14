@@ -1,0 +1,51 @@
+{
+  this.monotone=true;
+  this.strictMonotone=true;
+  if (this.isEmpty()) {
+    return;
+  }
+  int mdir=CONSTANT;
+  for (int i=0; i < this.geometries.length; i++) {
+    MLineString ml=(MLineString)this.geometries[0];
+    if (!ml.isEmpty()) {
+      mdir=ml.getMeasureDirection();
+      break;
+    }
+  }
+  for (int i=0; i < this.geometries.length; i++) {
+    MLineString ml=(MLineString)this.geometries[i];
+    if (ml.isEmpty()) {
+      continue;
+    }
+    if (!ml.isMonotone(false) || (ml.getMeasureDirection() != mdir && !(ml.getMeasureDirection() == CONSTANT))) {
+      this.monotone=false;
+      break;
+    }
+    if (!ml.isMonotone(true) || (ml.getMeasureDirection() != mdir)) {
+      this.strictMonotone=false;
+      break;
+    }
+    if (i > 0) {
+      MLineString mlp=(MLineString)this.geometries[i - 1];
+      if (mdir == INCREASING) {
+        if (mlp.getMaxM() > ml.getMinM()) {
+          monotone=false;
+        }
+ else         if (mlp.getMaxM() >= ml.getMinM()) {
+          strictMonotone=false;
+        }
+      }
+ else {
+        if (mlp.getMinM() < ml.getMaxM()) {
+          monotone=false;
+        }
+ else         if (mlp.getMinM() <= ml.getMaxM()) {
+          strictMonotone=false;
+        }
+      }
+    }
+  }
+  if (!monotone) {
+    this.strictMonotone=false;
+  }
+}
