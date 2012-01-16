@@ -1,12 +1,8 @@
 {
   pw.print("public abstract class " + entity.getSimpleName() + META_MODEL_CLASS_NAME_SUFFIX);
-  final TypeMirror superClass=entity.getTypeElement().getSuperclass();
-  if (superClass.getKind() == TypeKind.DECLARED) {
-    final Element superClassElement=((DeclaredType)superClass).asElement();
-    String superClassName=((TypeElement)superClassElement).getQualifiedName().toString();
-    if (extendsSuperMetaModel(superClassElement,entity.isMetaComplete(),context)) {
-      pw.print(" extends " + superClassName + META_MODEL_CLASS_NAME_SUFFIX);
-    }
+  String superClassName=findMappedSuperClass(entity,context);
+  if (superClassName != null) {
+    pw.print(" extends " + superClassName + META_MODEL_CLASS_NAME_SUFFIX);
   }
   pw.println(" {");
 }
