@@ -1,23 +1,12 @@
 {
   Type type=value.getType();
-  if (type.isComponentType() && !type.isAnyType()) {
-    CompositeType actype=(CompositeType)type;
-    int length=actype.getSubtypes().length;
-    for (int i=0; i < length; i++) {
-      if (actype.getCascadeStyle(i) != CascadeStyle.NONE)       return CascadeStyle.ALL;
-    }
-    return CascadeStyle.NONE;
+  if (type.isComponentType()) {
+    return getCompositeCascadeStyle((CompositeType)type,cascade);
   }
- else   if (cascade == null || cascade.equals("none")) {
-    return CascadeStyle.NONE;
+ else   if (type.isCollectionType()) {
+    return getCollectionCascadeStyle(((Collection)value).getElement().getType(),cascade);
   }
  else {
-    StringTokenizer tokens=new StringTokenizer(cascade,", ");
-    CascadeStyle[] styles=new CascadeStyle[tokens.countTokens()];
-    int i=0;
-    while (tokens.hasMoreTokens()) {
-      styles[i++]=CascadeStyle.getCascadeStyle(tokens.nextToken());
-    }
-    return new CascadeStyle.MultipleCascadeStyle(styles);
+    return getCascadeStyle(cascade);
   }
 }
