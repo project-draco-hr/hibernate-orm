@@ -1,0 +1,20 @@
+{
+  if (object == null) {
+    return null;
+  }
+  byte[] data=(byte[])object;
+  byte[] wkb=new byte[data.length - SRIDLEN];
+  System.arraycopy(data,SRIDLEN,wkb,0,wkb.length);
+  int srid=0;
+  srid=data[3] << 24 | (data[2] & 0xff) << 16 | (data[1] & 0xff) << 8 | (data[0] & 0xff);
+  Geometry geom=null;
+  try {
+    WKBReader reader=new WKBReader();
+    geom=reader.read(wkb);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Couldn't parse incoming MySQL Spatial data.");
+  }
+  geom.setSRID(srid);
+  return geom;
+}

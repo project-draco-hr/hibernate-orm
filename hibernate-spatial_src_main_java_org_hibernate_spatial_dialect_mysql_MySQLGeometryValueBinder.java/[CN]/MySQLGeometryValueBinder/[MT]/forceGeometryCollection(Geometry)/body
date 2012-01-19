@@ -1,0 +1,20 @@
+{
+  if (jtsGeom.isEmpty())   return createEmptyGeometryCollection(jtsGeom);
+  if (jtsGeom instanceof GeometryCollection) {
+    GeometryCollection gc=(GeometryCollection)jtsGeom;
+    Geometry[] components=new Geometry[gc.getNumGeometries()];
+    for (int i=0; i < gc.getNumGeometries(); i++) {
+      Geometry component=gc.getGeometryN(i);
+      if (component.isEmpty()) {
+        components[i]=jtsGeom.getFactory().createGeometryCollection(null);
+      }
+ else {
+        components[i]=component;
+      }
+    }
+    Geometry geometryCollection=jtsGeom.getFactory().createGeometryCollection(components);
+    geometryCollection.setSRID(jtsGeom.getSRID());
+    return geometryCollection;
+  }
+  return jtsGeom;
+}
