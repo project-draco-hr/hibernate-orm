@@ -1,0 +1,18 @@
+{
+  for (  Map.Entry<Object,Set<AbstractEntityInsertAction>> entry : dependentActionsByTransientEntity.entrySet()) {
+    Object transientEntity=entry.getKey();
+    String transientEntityName=session.guessEntityName(transientEntity);
+    Serializable transientEntityId=session.getFactory().getEntityPersister(transientEntityName).getIdentifier(transientEntity,session);
+    String transientEntityString=MessageHelper.infoString(transientEntityName,transientEntityId);
+    Set<String> dependentEntityStrings=new TreeSet<String>();
+    Set<String> nonNullableTransientPropertyPaths=new TreeSet<String>();
+    for (    AbstractEntityInsertAction dependentAction : entry.getValue()) {
+      dependentEntityStrings.add(MessageHelper.infoString(dependentAction.getEntityName(),dependentAction.getId()));
+      for (      String path : dependenciesByAction.get(dependentAction).getNonNullableTransientPropertyPaths(transientEntity)) {
+        String fullPath=new StringBuilder(dependentAction.getEntityName().length() + path.length() + 1).append(dependentAction.getEntityName()).append('.').append(path).toString();
+        nonNullableTransientPropertyPaths.add(fullPath);
+      }
+    }
+    LOG.cannotResolveNonNullableTransientDependencies(transientEntityString,dependentEntityStrings,nonNullableTransientPropertyPaths);
+  }
+}

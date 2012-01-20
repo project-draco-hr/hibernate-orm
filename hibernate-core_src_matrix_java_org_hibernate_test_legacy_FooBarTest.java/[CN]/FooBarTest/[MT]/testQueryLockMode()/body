@@ -9,7 +9,7 @@
   baz.setFoo(bar);
   s.save(baz);
   Query q=s.createQuery("from Foo foo, Bar bar");
-  if (!(getDialect() instanceof DB2Dialect)) {
+  if (supportsLockingNullableSideOfJoin(getDialect())) {
     q.setLockMode("bar",LockMode.UPGRADE);
   }
   Object[] result=(Object[])q.uniqueResult();
@@ -35,12 +35,12 @@
   s=openSession();
   tx=s.beginTransaction();
   q=s.createQuery("from Foo foo, Bar bar, Bar bar2");
-  if (!(getDialect() instanceof DB2Dialect)) {
+  if (supportsLockingNullableSideOfJoin(getDialect())) {
     q.setLockMode("bar",LockMode.UPGRADE);
   }
   q.setLockMode("bar2",LockMode.READ);
   result=(Object[])q.list().get(0);
-  if (!(getDialect() instanceof DB2Dialect)) {
+  if (supportsLockingNullableSideOfJoin(getDialect())) {
     assertTrue(s.getCurrentLockMode(result[0]) == LockMode.UPGRADE && s.getCurrentLockMode(result[1]) == LockMode.UPGRADE);
   }
   s.delete(result[0]);

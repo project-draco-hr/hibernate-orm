@@ -1,0 +1,13 @@
+{
+  if (isEmpty()) {
+    LOG.trace("No entity insert actions have non-nullable, transient entity dependencies.");
+  }
+ else {
+    AbstractEntityInsertAction firstDependentAction=dependenciesByAction.keySet().iterator().next();
+    logCannotResolveNonNullableTransientDependencies(firstDependentAction.getSession());
+    NonNullableTransientDependencies nonNullableTransientDependencies=dependenciesByAction.get(firstDependentAction);
+    Object firstTransientDependency=nonNullableTransientDependencies.getNonNullableTransientEntities().iterator().next();
+    String firstPropertyPath=nonNullableTransientDependencies.getNonNullableTransientPropertyPaths(firstTransientDependency).iterator().next();
+    throw new PropertyValueException("Not-null property references a transient value - transient instance must be saved before current operation",firstDependentAction.getEntityName(),firstPropertyPath);
+  }
+}

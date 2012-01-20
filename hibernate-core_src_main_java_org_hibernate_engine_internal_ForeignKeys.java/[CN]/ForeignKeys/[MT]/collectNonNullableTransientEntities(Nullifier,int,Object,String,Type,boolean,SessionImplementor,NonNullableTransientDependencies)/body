@@ -1,0 +1,28 @@
+{
+  if (value == null) {
+    return;
+  }
+  if (type.isEntityType()) {
+    EntityType entityType=(EntityType)type;
+    if (!isNullable && !entityType.isOneToOne() && nullifier.isNullifiable(entityType.getAssociatedEntityName(),value)) {
+      nonNullableTransientEntities.add(propertyName,value);
+    }
+  }
+ else   if (type.isAnyType()) {
+    if (!isNullable && nullifier.isNullifiable(null,value)) {
+      nonNullableTransientEntities.add(propertyName,value);
+    }
+  }
+ else   if (type.isComponentType()) {
+    CompositeType actype=(CompositeType)type;
+    boolean[] subValueNullability=actype.getPropertyNullability();
+    if (subValueNullability != null) {
+      String[] subPropertyNames=actype.getPropertyNames();
+      Object[] subvalues=actype.getPropertyValues(value,session);
+      Type[] subtypes=actype.getSubtypes();
+      for (int j=0; j < subvalues.length; j++) {
+        collectNonNullableTransientEntities(nullifier,j,subvalues[j],subPropertyNames[j],subtypes[j],subValueNullability[j],session,nonNullableTransientEntities);
+      }
+    }
+  }
+}

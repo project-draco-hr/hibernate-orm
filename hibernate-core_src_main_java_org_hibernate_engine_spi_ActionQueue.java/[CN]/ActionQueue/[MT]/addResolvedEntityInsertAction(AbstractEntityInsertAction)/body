@@ -1,0 +1,16 @@
+{
+  if (insert.isEarlyInsert()) {
+    LOG.trace("Executing insertions before resolved early-insert");
+    executeInserts();
+    LOG.debug("Executing identity-insert immediately");
+    execute(insert);
+  }
+ else {
+    LOG.trace("Adding resolved non-early insert action.");
+    insertions.add(insert);
+  }
+  insert.makeEntityManaged();
+  for (  AbstractEntityInsertAction resolvedAction : unresolvedInsertions.resolveDependentActions(insert.getInstance(),session)) {
+    addResolvedEntityInsertAction(resolvedAction);
+  }
+}

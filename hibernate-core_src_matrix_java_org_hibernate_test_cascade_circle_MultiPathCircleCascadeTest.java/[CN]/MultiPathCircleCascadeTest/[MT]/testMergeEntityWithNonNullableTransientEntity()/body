@@ -1,28 +1,3 @@
 {
-  IdentifierGenerator routeIdentifierGenerator=sessionFactory().getEntityPersister(Route.class.getName()).getIdentifierGenerator();
-  if (!sessionFactory().getSettings().isCheckNullability() && (SequenceGenerator.class.isInstance(routeIdentifierGenerator) || IncrementGenerator.class.isInstance(routeIdentifierGenerator))) {
-    SkipLog.reportSkip("delayed-insert without checking nullability","delayed-insert without checking nullability is known to fail when dirty-checking; see HHH-6744");
-    return;
-  }
-  Route route=getUpdatedDetachedEntity();
-  Node node=(Node)route.getNodes().iterator().next();
-  route.getNodes().remove(node);
-  Route routeNew=new Route();
-  routeNew.setName("new route");
-  routeNew.getNodes().add(node);
-  node.setRoute(routeNew);
-  Session s=openSession();
-  s.beginTransaction();
-  try {
-    s.merge(node);
-    s.getTransaction().commit();
-    fail("should have thrown an exception");
-  }
- catch (  Exception ex) {
-    checkExceptionFromNullValueForNonNullable(ex,((SessionImplementor)s).getFactory().getSettings().isCheckNullability(),false);
-  }
- finally {
-    s.getTransaction().rollback();
-    s.close();
-  }
+  testEntityWithNonNullableTransientEntity(MERGE_OPERATION);
 }

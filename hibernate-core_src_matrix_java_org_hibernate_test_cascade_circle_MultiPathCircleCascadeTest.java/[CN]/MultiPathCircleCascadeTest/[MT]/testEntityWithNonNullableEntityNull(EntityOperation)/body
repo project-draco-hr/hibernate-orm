@@ -1,0 +1,21 @@
+{
+  Route route=getUpdatedDetachedEntity();
+  Node node=(Node)route.getNodes().iterator().next();
+  route.getNodes().remove(node);
+  node.setRoute(null);
+  Session s=openSession();
+  s.beginTransaction();
+  try {
+    operation.doEntityOperation(node,s);
+    s.getTransaction().commit();
+    fail("should have thrown an exception");
+  }
+ catch (  Exception ex) {
+    checkExceptionFromNullValueForNonNullable(ex,((SessionImplementor)s).getFactory().getSettings().isCheckNullability(),true);
+  }
+ finally {
+    s.getTransaction().rollback();
+    s.close();
+    cleanup();
+  }
+}

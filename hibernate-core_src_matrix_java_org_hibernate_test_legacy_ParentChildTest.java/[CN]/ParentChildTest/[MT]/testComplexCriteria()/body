@@ -22,7 +22,7 @@
   baz.getFooSet().add(foo1);
   baz.getFooSet().add(foo2);
   baz.setFooArray(new FooProxy[]{foo1});
-  LockMode lockMode=(getDialect() instanceof DB2Dialect) ? LockMode.READ : LockMode.UPGRADE;
+  LockMode lockMode=supportsLockingNullableSideOfJoin(getDialect()) ? LockMode.UPGRADE : LockMode.READ;
   Criteria crit=s.createCriteria(Baz.class);
   crit.createCriteria("topGlarchez").add(Restrictions.isNotNull("name")).createCriteria("proxyArray").add(Restrictions.eqProperty("name","name")).add(Restrictions.eq("name","g2")).add(Restrictions.gt("x",new Integer(-666)));
   crit.createCriteria("fooSet").add(Restrictions.isNull("null")).add(Restrictions.eq("string","a string")).add(Restrictions.lt("integer",new Integer(-665)));

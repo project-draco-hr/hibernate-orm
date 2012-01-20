@@ -1,18 +1,22 @@
 {
+  nullifyTransientReferencesIfNotAlready();
   final EntityPersister persister=getPersister();
   final SessionImplementor session=getSession();
   final Object instance=getInstance();
   boolean veto=preInsert();
   if (!veto) {
-    generatedId=persister.insert(state,instance,session);
+    generatedId=persister.insert(getState(),instance,session);
     if (persister.hasInsertGeneratedProperties()) {
-      persister.processInsertGeneratedProperties(generatedId,instance,state,session);
+      persister.processInsertGeneratedProperties(generatedId,instance,getState(),session);
     }
     persister.setIdentifier(instance,generatedId,session);
-    getSession().getPersistenceContext().registerInsertedKey(getPersister(),generatedId);
+    session.getPersistenceContext().registerInsertedKey(getPersister(),generatedId);
+    entityKey=session.generateEntityKey(generatedId,persister);
+    session.getPersistenceContext().checkUniqueness(entityKey,getInstance());
   }
   postInsert();
   if (session.getFactory().getStatistics().isStatisticsEnabled() && !veto) {
     session.getFactory().getStatisticsImplementor().insertEntity(getPersister().getEntityName());
   }
+  markExecuted();
 }
