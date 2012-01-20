@@ -5,10 +5,12 @@
   if (rd != null && rd.isBidirectional()) {
     String relatedEntityName=rd.getToEntityName();
     IdMapper relatedIdMapper=getAuditConfiguration().getEntCfg().get(relatedEntityName).getIdMapper();
+    Set<String> toPropertyNames=getAuditConfiguration().getEntCfg().getToPropertyNames(event.getAffectedOwnerEntityName(),rd.getFromPropertyName(),relatedEntityName);
+    String toPropertyName=toPropertyNames.iterator().next();
     for (    PersistentCollectionChangeData changeData : workUnit.getCollectionChanges()) {
       Object relatedObj=changeData.getChangedElement();
       Serializable relatedId=(Serializable)relatedIdMapper.mapToIdFromEntity(relatedObj);
-      auditProcess.addWorkUnit(new CollectionChangeWorkUnit(event.getSession(),event.getSession().bestGuessEntityName(relatedObj),getAuditConfiguration(),relatedId,relatedObj));
+      auditProcess.addWorkUnit(new CollectionChangeWorkUnit(event.getSession(),event.getSession().bestGuessEntityName(relatedObj),toPropertyName,getAuditConfiguration(),relatedId,relatedObj));
     }
   }
 }

@@ -1,0 +1,30 @@
+{
+  EntityManager em=getEntityManager();
+  StringMapEntity sme1=new StringMapEntity();
+  StringMapEntity sme2=new StringMapEntity();
+  em.getTransaction().begin();
+  sme2.getStrings().put("1","a");
+  em.persist(sme1);
+  em.persist(sme2);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  sme1=em.find(StringMapEntity.class,sme1.getId());
+  sme2=em.find(StringMapEntity.class,sme2.getId());
+  sme1.getStrings().put("1","a");
+  sme1.getStrings().put("2","b");
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  sme1=em.find(StringMapEntity.class,sme1.getId());
+  sme2=em.find(StringMapEntity.class,sme2.getId());
+  sme1.getStrings().remove("1");
+  sme2.getStrings().put("1","b");
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  sme1=em.find(StringMapEntity.class,sme1.getId());
+  sme2=em.find(StringMapEntity.class,sme2.getId());
+  sme1.getStrings().remove("3");
+  sme2.getStrings().put("1","b");
+  em.getTransaction().commit();
+  sme1_id=sme1.getId();
+  sme2_id=sme2.getId();
+}
