@@ -1,2 +1,13 @@
 {
+  final EntityPersister persister=entityEntry.getPersister();
+  if (!persister.hasNaturalIdentifier()) {
+    return;
+  }
+  final int[] naturalIdPropertyIndexes=persister.getNaturalIdentifierProperties();
+  final Object[] naturalIdValues=new Object[naturalIdPropertyIndexes.length];
+  int i=0;
+  for (  int naturalIdPropertyIndex : naturalIdPropertyIndexes) {
+    naturalIdValues[i++]=entityEntry.getLoadedState()[naturalIdPropertyIndex];
+  }
+  cacheNaturalIdResolution(persister,entityEntry.getId(),naturalIdValues);
 }
