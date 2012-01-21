@@ -2,27 +2,26 @@
   if (!persister.hasNaturalIdentifier()) {
     return null;
   }
-  int[] props=persister.getNaturalIdentifierProperties();
-  boolean[] updateable=persister.getPropertyUpdateability();
-  boolean allNatualIdPropsAreUpdateable=true;
-  for (  int prop : props) {
-    if (!updateable[prop]) {
-      allNatualIdPropsAreUpdateable=false;
-      break;
-    }
+  final Object[] cachedValue=findCachedNaturalId(persister,id);
+  if (cachedValue != null) {
+    return cachedValue;
   }
-  if (allNatualIdPropsAreUpdateable) {
-    Object[] entitySnapshot=getDatabaseSnapshot(id,persister);
+  if (persister.getEntityMetamodel().hasImmutableNaturalId()) {
+    final Object[] dbValue=persister.getNaturalIdentifierSnapshot(id,session);
+    cacheNaturalIdResolution(persister,id,dbValue);
+    return dbValue;
+  }
+ else {
+    final int[] props=persister.getNaturalIdentifierProperties();
+    final Object[] entitySnapshot=getDatabaseSnapshot(id,persister);
     if (entitySnapshot == NO_ROW) {
       return null;
     }
-    Object[] naturalIdSnapshot=new Object[props.length];
+    final Object[] naturalIdSnapshotSubSet=new Object[props.length];
     for (int i=0; i < props.length; i++) {
-      naturalIdSnapshot[i]=entitySnapshot[props[i]];
+      naturalIdSnapshotSubSet[i]=entitySnapshot[props[i]];
     }
-    return naturalIdSnapshot;
-  }
- else {
-    return persister.getNaturalIdentifierSnapshot(id,session);
+    cacheNaturalIdResolution(persister,id,naturalIdSnapshotSubSet);
+    return naturalIdSnapshotSubSet;
   }
 }

@@ -1,0 +1,33 @@
+{
+  if (LOG.isTraceEnabled()) {
+    LOG.tracef("Resolving natural-id [%s] to id : %s ",naturalIdValues,MessageHelper.infoString(this));
+  }
+  try {
+    PreparedStatement ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sqlEntityIdByNaturalIdString);
+    try {
+      int positions=1;
+      int loop=0;
+      for (      int idPosition : getNaturalIdentifierProperties()) {
+        final Type type=getPropertyTypes()[idPosition];
+        type.nullSafeSet(ps,naturalIdValues[loop++],positions,session);
+        positions+=type.getColumnSpan(session.getFactory());
+      }
+      ResultSet rs=ps.executeQuery();
+      try {
+        if (!rs.next()) {
+          return null;
+        }
+        return (Serializable)getIdentifierType().hydrate(rs,getIdentifierAliases(),session,null);
+      }
+  finally {
+        rs.close();
+      }
+    }
+  finally {
+      ps.close();
+    }
+  }
+ catch (  SQLException e) {
+    throw getFactory().getSQLExceptionHelper().convert(e,String.format("could not resolve natural-id [%s] to id : %s",naturalIdValues,MessageHelper.infoString(this)),sqlEntityIdByNaturalIdString);
+  }
+}
