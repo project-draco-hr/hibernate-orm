@@ -6,9 +6,8 @@
       return true;
     }
  else {
-      InstrumentationService instrumentationService=event.getSession().getFactory().getServiceRegistry().getService(InstrumentationService.class);
-      if (instrumentationService.isInstrumented(event.getEntity())) {
-        FieldInterceptionHelper.clearDirty(event.getEntity());
+      if (event.getEntityEntry().getPersister().getInstrumentationMetadata().isInstrumented()) {
+        event.getEntityEntry().getPersister().getInstrumentationMetadata().extractInterceptor(event.getEntity()).clearDirty();
       }
       return false;
     }

@@ -5,8 +5,11 @@
     this.version=nextVersion;
     getPersister().setPropertyValue(entity,getPersister().getVersionProperty(),nextVersion);
   }
-  if (getPersister().getFactory().getServiceRegistry().getService(InstrumentationService.class).isInstrumented(entity)) {
-    FieldInterceptionHelper.clearDirty(entity);
+  if (getPersister().getInstrumentationMetadata().isInstrumented()) {
+    final FieldInterceptor interceptor=getPersister().getInstrumentationMetadata().extractInterceptor(entity);
+    if (interceptor != null) {
+      interceptor.clearDirty();
+    }
   }
   notifyLoadedStateUpdated();
 }

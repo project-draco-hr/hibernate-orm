@@ -1,12 +1,11 @@
 {
-  InstrumentationService instrumentationService=session.getFactory().getServiceRegistry().getService(InstrumentationService.class);
-  if (instrumentationService.isInstrumented(entity)) {
-    FieldInterceptor interceptor=FieldInterceptionHelper.extractFieldInterceptor(entity);
+  if (getEntityMetamodel().getInstrumentationMetadata().isInstrumented()) {
+    FieldInterceptor interceptor=getEntityMetamodel().getInstrumentationMetadata().extractInterceptor(entity);
     if (interceptor != null) {
       interceptor.setSession(session);
     }
  else {
-      FieldInterceptor fieldInterceptor=FieldInterceptionHelper.injectFieldInterceptor(entity,getEntityName(),null,session);
+      FieldInterceptor fieldInterceptor=getEntityMetamodel().getInstrumentationMetadata().injectInterceptor(entity,getEntityName(),null,session);
       fieldInterceptor.dirty();
     }
   }

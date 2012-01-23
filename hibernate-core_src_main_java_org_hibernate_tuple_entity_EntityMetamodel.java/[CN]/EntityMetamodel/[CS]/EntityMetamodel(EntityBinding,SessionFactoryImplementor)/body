@@ -8,14 +8,12 @@
   boolean hasPojoRepresentation=false;
   Class<?> mappedClass=null;
   Class<?> proxyInterfaceClass=null;
-  lazyAvailable=false;
   if (entityBinding.getEntity().getClassReferenceUnresolved() != null) {
     hasPojoRepresentation=true;
     mappedClass=entityBinding.getEntity().getClassReference();
     proxyInterfaceClass=entityBinding.getProxyInterfaceType().getValue();
-    InstrumentationService instrumentationService=sessionFactory.getServiceRegistry().getService(InstrumentationService.class);
-    lazyAvailable=instrumentationService.isInstrumented(mappedClass);
   }
+  instrumentationMetadata=Environment.getBytecodeProvider().getEntityInstrumentationMetadata(mappedClass);
   boolean hasLazy=false;
   BasicAttributeBinding rootEntityIdentifier=entityBinding.getHierarchyDetails().getEntityIdentifier().getValueBinding();
   propertySpan=rootEntityIdentifier == null ? entityBinding.getAttributeBindingClosureSpan() : entityBinding.getAttributeBindingClosureSpan() - 1;
@@ -48,15 +46,15 @@
     }
     if (attributeBinding == entityBinding.getHierarchyDetails().getVersioningAttributeBinding()) {
       tempVersionProperty=i;
-      properties[i]=PropertyFactory.buildVersionProperty(entityBinding.getHierarchyDetails().getVersioningAttributeBinding(),lazyAvailable);
+      properties[i]=PropertyFactory.buildVersionProperty(entityBinding.getHierarchyDetails().getVersioningAttributeBinding(),instrumentationMetadata.isInstrumented());
     }
  else {
-      properties[i]=PropertyFactory.buildStandardProperty(attributeBinding,lazyAvailable);
+      properties[i]=PropertyFactory.buildStandardProperty(attributeBinding,instrumentationMetadata.isInstrumented());
     }
     if ("id".equals(attributeBinding.getAttribute().getName())) {
       foundNonIdentifierPropertyNamedId=true;
     }
-    boolean lazy=attributeBinding.isLazy() && lazyAvailable;
+    boolean lazy=attributeBinding.isLazy() && instrumentationMetadata.isInstrumented();
     if (lazy)     hasLazy=true;
     propertyLaziness[i]=lazy;
     propertyNames[i]=properties[i].getName();
