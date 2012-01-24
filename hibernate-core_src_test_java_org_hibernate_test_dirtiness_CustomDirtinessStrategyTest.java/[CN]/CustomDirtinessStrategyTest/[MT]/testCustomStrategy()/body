@@ -1,0 +1,22 @@
+{
+  final String INITIAL_NAME="thing 1";
+  final String SUBSEQUENT_NAME="thing 2";
+  Session session=openSession();
+  session.beginTransaction();
+  session.save(new Thing(INITIAL_NAME));
+  session.getTransaction().commit();
+  session.close();
+  session=openSession();
+  session.beginTransaction();
+  Thing thing=(Thing)session.get(Thing.class,1L);
+  thing.setName(SUBSEQUENT_NAME);
+  session.getTransaction().commit();
+  session.close();
+  session=openSession();
+  session.beginTransaction();
+  thing=(Thing)session.get(Thing.class,1L);
+  assertEquals(INITIAL_NAME,thing.getName());
+  session.delete(thing);
+  session.getTransaction().commit();
+  session.close();
+}
