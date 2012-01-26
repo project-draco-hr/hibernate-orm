@@ -4,8 +4,9 @@
   this.discardOnClose=discardOnClose;
   this.sessionInterceptorClass=sessionInterceptorClass;
   final Iterator<PersistentClass> classes=cfg.getClassMappings();
-  if (!"disabled".equalsIgnoreCase(cfg.getProperty("hibernate.ejb.metamodel.generation"))) {
-    this.metamodel=MetamodelImpl.buildMetamodel(classes,(SessionFactoryImplementor)sessionFactory);
+  final String ejbMetamodelGenerationProperty=cfg.getProperty("hibernate.ejb.metamodel.generation");
+  if (!"disabled".equalsIgnoreCase(ejbMetamodelGenerationProperty)) {
+    this.metamodel=MetamodelImpl.buildMetamodel(classes,(SessionFactoryImplementor)sessionFactory,"ignoreUnsupported".equalsIgnoreCase(ejbMetamodelGenerationProperty));
   }
  else {
     this.metamodel=null;

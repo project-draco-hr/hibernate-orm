@@ -6,7 +6,12 @@
   final org.hibernate.type.Type type=value.getType();
   LOG.trace("    Determined type [name=" + type.getName() + ", class="+ type.getClass().getName()+ "]");
   if (type.isAnyType()) {
-    throw new UnsupportedOperationException("any not supported yet");
+    if (context.isIgnoreUnsupported()) {
+      return null;
+    }
+ else {
+      throw new UnsupportedOperationException("any not supported yet");
+    }
   }
  else   if (type.isAssociationType()) {
     if (type.isEntityType()) {
