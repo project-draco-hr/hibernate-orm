@@ -1,0 +1,34 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  EntityTransaction tx=em.getTransaction();
+  tx.begin();
+  Top top=new Top();
+  em.persist(top);
+  em.flush();
+  Middle middle=new Middle(1l);
+  top.addMiddle(middle);
+  middle.setTop(top);
+  Bottom bottom=new Bottom();
+  middle.setBottom(bottom);
+  bottom.setMiddle(middle);
+  Middle middle2=new Middle(2l);
+  top.addMiddle(middle2);
+  middle2.setTop(top);
+  Bottom bottom2=new Bottom();
+  middle2.setBottom(bottom2);
+  bottom2.setMiddle(middle2);
+  em.flush();
+  tx.commit();
+  em.close();
+  em=getOrCreateEntityManager();
+  tx=em.getTransaction();
+  tx.begin();
+  top=em.find(Top.class,top.getId());
+  assertEquals(2,top.getMiddles().size());
+  for (  Middle loadedMiddle : top.getMiddles()) {
+    assertSame(top,loadedMiddle.getTop());
+    assertNotNull(loadedMiddle.getBottom());
+  }
+  em.remove(top);
+  em.close();
+}
