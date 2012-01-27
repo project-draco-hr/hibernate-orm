@@ -1,0 +1,24 @@
+{
+  skipCleanup=true;
+  c.getBCollection().clear();
+  c.getDCollection().clear();
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  em.persist(c);
+  c.getBCollection().add(b);
+  c.getDCollection().add(d);
+  try {
+    em.getTransaction().commit();
+    fail("should have thrown IllegalStateException");
+  }
+ catch (  RollbackException ex) {
+    assertTrue(ex.getCause() instanceof IllegalStateException);
+    IllegalStateException ise=(IllegalStateException)ex.getCause();
+    assertTrue(ise.getCause() instanceof TransientPropertyValueException);
+    TransientPropertyValueException tpve=(TransientPropertyValueException)ise.getCause();
+    assertEquals(E.class.getName(),tpve.getTransientEntityName());
+    assertEquals(D.class.getName(),tpve.getPropertyOwnerEntityName());
+    assertEquals("e",tpve.getPropertyName());
+  }
+  em.close();
+}
