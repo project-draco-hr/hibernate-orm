@@ -91,8 +91,8 @@ class IntegratorObserver implements SessionFactoryObserver {
     EntityPersister cp=serviceRegistry.getService(PersisterFactory.class).createEntityPersister(model,accessStrategy,this,mapping);
     entityPersisters.put(model.getEntityName(),cp);
     classMeta.put(model.getEntityName(),cp.getClassMetadata());
-    if (cp.hasNaturalIdentifier() && cp.isNatrualIdentifierCached()) {
-      final String naturalIdCacheRegionName=cacheRegionPrefix + model.getRootClass().getCacheRegionName() + NATURAL_ID_CACHE_SUFFIX;
+    if (cp.hasNaturalIdentifier() && model.getNaturalIdCacheRegionName() != null) {
+      final String naturalIdCacheRegionName=cacheRegionPrefix + model.getNaturalIdCacheRegionName();
       NaturalIdRegionAccessStrategy naturalIdAccessStrategy=(NaturalIdRegionAccessStrategy)entityAccessStrategies.get(naturalIdCacheRegionName);
       if (naturalIdAccessStrategy == null && settings.isSecondLevelCacheEnabled()) {
         final NaturalIdRegion naturalIdRegion=settings.getRegionFactory().buildNaturalIdRegion(naturalIdCacheRegionName,properties,CacheDataDescriptionImpl.decode(cp));

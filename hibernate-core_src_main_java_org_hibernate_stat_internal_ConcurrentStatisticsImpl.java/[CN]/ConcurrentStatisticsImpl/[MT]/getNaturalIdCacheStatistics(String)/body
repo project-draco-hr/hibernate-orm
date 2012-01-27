@@ -1,0 +1,18 @@
+{
+  ConcurrentNaturalIdCacheStatisticsImpl nics=(ConcurrentNaturalIdCacheStatisticsImpl)naturalIdCacheStatistics.get(regionName);
+  if (nics == null) {
+    if (sessionFactory == null) {
+      return null;
+    }
+    Region region=sessionFactory.getNaturalIdCacheRegion(regionName);
+    if (region == null) {
+      return null;
+    }
+    nics=new ConcurrentNaturalIdCacheStatisticsImpl(region);
+    ConcurrentNaturalIdCacheStatisticsImpl previous;
+    if ((previous=(ConcurrentNaturalIdCacheStatisticsImpl)naturalIdCacheStatistics.putIfAbsent(regionName,nics)) != null) {
+      nics=previous;
+    }
+  }
+  return nics;
+}

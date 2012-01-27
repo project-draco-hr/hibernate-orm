@@ -70,13 +70,6 @@ class IntegratorObserver implements SessionFactoryObserver {
     EntityPersister cp=serviceRegistry.getService(PersisterFactory.class).createEntityPersister(model,accessStrategy,this,metadata);
     entityPersisters.put(model.getEntity().getName(),cp);
     classMeta.put(model.getEntity().getName(),cp.getClassMetadata());
-    if (settings.isSecondLevelCacheEnabled() && cp.hasNaturalIdentifier() && cp.isNatrualIdentifierCached()) {
-      final String naturalIdCacheRegionName=cacheRegionPrefix + rootEntityBinding.getHierarchyDetails().getCaching().getRegion() + NATURAL_ID_CACHE_SUFFIX;
-      final NaturalIdRegion naturalIdRegion=settings.getRegionFactory().buildNaturalIdRegion(naturalIdCacheRegionName,properties,CacheDataDescriptionImpl.decode(cp));
-      final NaturalIdRegionAccessStrategy naturalIdAccessStrategy=naturalIdRegion.buildAccessStrategy(settings.getRegionFactory().getDefaultAccessType());
-      entityAccessStrategies.put(naturalIdCacheRegionName,naturalIdAccessStrategy);
-      allCacheRegions.put(naturalIdCacheRegionName,naturalIdRegion);
-    }
   }
   this.classMetadata=Collections.unmodifiableMap(classMeta);
   Map<String,Set<String>> tmpEntityToCollectionRoleMap=new HashMap<String,Set<String>>();
