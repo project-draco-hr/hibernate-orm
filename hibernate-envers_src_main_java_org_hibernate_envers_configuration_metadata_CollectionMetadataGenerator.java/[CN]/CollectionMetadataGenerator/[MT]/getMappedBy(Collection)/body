@@ -1,5 +1,13 @@
 {
-  PersistentClass referencedClass=((OneToMany)collectionValue.getElement()).getAssociatedClass();
+  PersistentClass referencedClass=null;
+  if (collectionValue.getElement() instanceof OneToMany) {
+    OneToMany oneToManyValue=(OneToMany)collectionValue.getElement();
+    referencedClass=oneToManyValue.getAssociatedClass();
+  }
+ else   if (collectionValue.getElement() instanceof ManyToOne) {
+    ManyToOne manyToOneValue=(ManyToOne)collectionValue.getElement();
+    referencedClass=manyToOneValue.getMappings().getClass(manyToOneValue.getReferencedEntityName());
+  }
   String auditMappedBy=propertyAuditingData.getAuditMappedBy();
   if (auditMappedBy != null) {
     return auditMappedBy;
