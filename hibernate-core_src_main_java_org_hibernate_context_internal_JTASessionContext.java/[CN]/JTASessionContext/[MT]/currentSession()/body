@@ -1,5 +1,5 @@
 {
-  final JtaPlatform jtaPlatform=factory.getServiceRegistry().getService(JtaPlatform.class);
+  final JtaPlatform jtaPlatform=factory().getServiceRegistry().getService(JtaPlatform.class);
   final TransactionManager transactionManager=jtaPlatform.retrieveTransactionManager();
   if (transactionManager == null) {
     throw new HibernateException("No TransactionManagerLookup specified");
@@ -37,6 +37,9 @@ catch (  Throwable t) {
       throw new HibernateException("Unable to register cleanup Synchronization with TransactionManager");
     }
     currentSessionMap.put(txnIdentifier,currentSession);
+  }
+ else {
+    validateExistingSession(currentSession);
   }
   return currentSession;
 }

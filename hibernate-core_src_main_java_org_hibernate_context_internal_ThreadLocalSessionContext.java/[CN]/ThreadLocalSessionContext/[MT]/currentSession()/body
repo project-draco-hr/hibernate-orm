@@ -1,12 +1,15 @@
 {
-  Session current=existingSession(factory);
+  Session current=existingSession(factory());
   if (current == null) {
     current=buildOrObtainSession();
     current.getTransaction().registerSynchronization(buildCleanupSynch());
     if (needsWrapping(current)) {
       current=wrap(current);
     }
-    doBind(current,factory);
+    doBind(current,factory());
+  }
+ else {
+    validateExistingSession(current);
   }
   return current;
 }
