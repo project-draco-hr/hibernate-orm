@@ -1,0 +1,13 @@
+{
+  boolean isSecurityEnabled=configuration.getProperties().containsKey(AvailableSettings.JACC_ENABLED);
+  if (!isSecurityEnabled) {
+    return;
+  }
+  final EventListenerRegistry eventListenerRegistry=serviceRegistry.getService(EventListenerRegistry.class);
+  eventListenerRegistry.addDuplicationStrategy(JACC_DUPLICATION_STRATEGY);
+  final String jaccContextId=configuration.getProperty(Environment.JACC_CONTEXTID);
+  eventListenerRegistry.prependListeners(EventType.PRE_DELETE,new JACCPreDeleteEventListener(jaccContextId));
+  eventListenerRegistry.prependListeners(EventType.PRE_INSERT,new JACCPreInsertEventListener(jaccContextId));
+  eventListenerRegistry.prependListeners(EventType.PRE_UPDATE,new JACCPreUpdateEventListener(jaccContextId));
+  eventListenerRegistry.prependListeners(EventType.PRE_LOAD,new JACCPreLoadEventListener(jaccContextId));
+}
