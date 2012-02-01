@@ -1,5 +1,40 @@
 {
-  if (MultiTenancyStrategy.determineMultiTenancyStrategy(configurationValues) == MultiTenancyStrategy.NONE) {
+  final MultiTenancyStrategy strategy=MultiTenancyStrategy.determineMultiTenancyStrategy(configurationValues);
+  if (strategy == MultiTenancyStrategy.NONE || strategy == MultiTenancyStrategy.DISCRIMINATOR) {
   }
-  return null;
+  final Object configValue=configurationValues.get(AvailableSettings.MULTI_TENANT_CONNECTION_PROVIDER);
+  if (configValue == null) {
+    final Object dataSourceConfigValue=configurationValues.get(AvailableSettings.DATASOURCE);
+    if (dataSourceConfigValue != null && String.class.isInstance(dataSourceConfigValue)) {
+      return new DataSourceBasedMultiTenantConnectionProviderImpl();
+    }
+    return null;
+  }
+  if (MultiTenantConnectionProvider.class.isInstance(configValue)) {
+    return (MultiTenantConnectionProvider)configValue;
+  }
+ else {
+    final Class<MultiTenantConnectionProvider> implClass;
+    if (Class.class.isInstance(configValue)) {
+      implClass=(Class)configValue;
+    }
+ else {
+      final String className=configValue.toString();
+      final ClassLoaderService classLoaderService=registry.getService(ClassLoaderService.class);
+      try {
+        implClass=classLoaderService.classForName(className);
+      }
+ catch (      ClassLoadingException cle) {
+        log.warn("Unable to locate specified class [" + className + "]",cle);
+        return null;
+      }
+    }
+    try {
+      return implClass.newInstance();
+    }
+ catch (    Exception e) {
+      log.warn("Unable to instantiate specified class [" + implClass.getName() + "]",e);
+      return null;
+    }
+  }
 }
