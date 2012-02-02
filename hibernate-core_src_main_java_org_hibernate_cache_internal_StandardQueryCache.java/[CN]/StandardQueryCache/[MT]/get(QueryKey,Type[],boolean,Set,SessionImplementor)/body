@@ -12,8 +12,9 @@
     return null;
   }
   LOG.debug("Returning cached query results");
+  final boolean singleResult=returnTypes.length == 1;
   for (int i=1; i < cacheable.size(); i++) {
-    if (returnTypes.length == 1) {
+    if (singleResult) {
       returnTypes[0].beforeAssemble((Serializable)cacheable.get(i),session);
     }
  else {
@@ -23,7 +24,7 @@
   List result=new ArrayList(cacheable.size() - 1);
   for (int i=1; i < cacheable.size(); i++) {
     try {
-      if (returnTypes.length == 1) {
+      if (singleResult) {
         result.add(returnTypes[0].assemble((Serializable)cacheable.get(i),session,null));
       }
  else {
