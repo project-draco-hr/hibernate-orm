@@ -1,0 +1,18 @@
+{
+  if (!persister.hasNaturalIdentifier()) {
+    throw new IllegalArgumentException("Entity did not define a natural-id");
+  }
+  if (persister.getNaturalIdentifierProperties().length != naturalIdValues.length) {
+    throw new IllegalArgumentException("Mismatch between expected number of natural-id values and found.");
+  }
+  NaturalIdResolutionCache entityNaturalIdResolutionCache=naturalIdResolutionCacheMap.get(persister);
+  if (entityNaturalIdResolutionCache == null) {
+    entityNaturalIdResolutionCache=new NaturalIdResolutionCache(persister);
+    naturalIdResolutionCacheMap.put(persister,entityNaturalIdResolutionCache);
+  }
+  final NaturalIdCacheKey naturalIdCacheKey=getNaturalIdCacheKey(naturalIdValues,persister);
+  entityNaturalIdResolutionCache.pkToNaturalIdMap.remove(pk);
+  entityNaturalIdResolutionCache.naturalIdToPkMap.remove(naturalIdCacheKey);
+  final NaturalIdRegionAccessStrategy naturalIdCacheAccessStrategy=persister.getNaturalIdCacheAccessStrategy();
+  naturalIdCacheAccessStrategy.evict(naturalIdCacheKey);
+}

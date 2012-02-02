@@ -6,11 +6,12 @@
     throw new IllegalArgumentException("Mismatch between expected number of natural-id values and found.");
   }
   final NaturalIdResolutionCache entityNaturalIdResolutionCache=naturalIdResolutionCacheMap.get(persister);
+  final NaturalIdCacheKey naturalIdCacheKey=getNaturalIdCacheKey(naturalIdValues,persister);
   if (entityNaturalIdResolutionCache == null) {
-    return null;
+    final NaturalIdRegionAccessStrategy naturalIdCacheAccessStrategy=persister.getNaturalIdCacheAccessStrategy();
+    return (Serializable)naturalIdCacheAccessStrategy.get(naturalIdCacheKey,session.getTimestamp());
   }
  else {
-    final NaturalId naturalId=new NaturalId(persister,naturalIdValues);
-    return entityNaturalIdResolutionCache.naturalIdToPkMap.get(naturalId);
+    return entityNaturalIdResolutionCache.naturalIdToPkMap.get(naturalIdCacheKey);
   }
 }

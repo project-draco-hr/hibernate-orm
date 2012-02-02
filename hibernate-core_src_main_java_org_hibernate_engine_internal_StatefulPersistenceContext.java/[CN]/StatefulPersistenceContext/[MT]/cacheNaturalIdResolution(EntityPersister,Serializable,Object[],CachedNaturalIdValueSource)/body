@@ -1,0 +1,47 @@
+{
+  if (!persister.hasNaturalIdentifier()) {
+    throw new IllegalArgumentException("Entity did not define a natural-id");
+  }
+  if (persister.getNaturalIdentifierProperties().length != naturalIdValues.length) {
+    throw new IllegalArgumentException("Mismatch between expected number of natural-id values and found.");
+  }
+  NaturalIdResolutionCache entityNaturalIdResolutionCache=naturalIdResolutionCacheMap.get(persister);
+  if (entityNaturalIdResolutionCache == null) {
+    entityNaturalIdResolutionCache=new NaturalIdResolutionCache(persister);
+    naturalIdResolutionCacheMap.put(persister,entityNaturalIdResolutionCache);
+  }
+  final NaturalIdCacheKey naturalIdCacheKey=getNaturalIdCacheKey(naturalIdValues,persister);
+  entityNaturalIdResolutionCache.pkToNaturalIdMap.put(pk,naturalIdCacheKey);
+  entityNaturalIdResolutionCache.naturalIdToPkMap.put(naturalIdCacheKey,pk);
+  final NaturalIdRegionAccessStrategy naturalIdCacheAccessStrategy=persister.getNaturalIdCacheAccessStrategy();
+switch (valueSource) {
+case LOAD:
+{
+      naturalIdCacheAccessStrategy.putFromLoad(naturalIdCacheKey,pk,session.getTimestamp(),null);
+      break;
+    }
+case INSERT:
+{
+    naturalIdCacheAccessStrategy.insert(naturalIdCacheKey,pk);
+    ((EventSource)this.session).getActionQueue().registerProcess(new AfterTransactionCompletionProcess(){
+      @Override public void doAfterTransactionCompletion(      boolean success,      SessionImplementor session){
+        naturalIdCacheAccessStrategy.afterInsert(naturalIdCacheKey,pk);
+      }
+    }
+);
+    break;
+  }
+case UPDATE:
+{
+  final SoftLock lock=naturalIdCacheAccessStrategy.lockItem(naturalIdCacheKey,null);
+  naturalIdCacheAccessStrategy.update(naturalIdCacheKey,pk);
+  ((EventSource)this.session).getActionQueue().registerProcess(new AfterTransactionCompletionProcess(){
+    @Override public void doAfterTransactionCompletion(    boolean success,    SessionImplementor session){
+      naturalIdCacheAccessStrategy.afterUpdate(naturalIdCacheKey,pk,lock);
+    }
+  }
+);
+  break;
+}
+}
+}

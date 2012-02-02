@@ -4,7 +4,16 @@
     return null;
   }
  else {
-    final NaturalId naturalId=entityNaturalIdResolutionCache.pkToNaturalIdMap.get(pk);
-    return naturalId == null ? null : naturalId.getValues();
+    final NaturalIdCacheKey naturalIdCacheKey=entityNaturalIdResolutionCache.pkToNaturalIdMap.get(pk);
+    if (naturalIdCacheKey == null) {
+      return null;
+    }
+    final Serializable[] naturalIdKeyValues=naturalIdCacheKey.getNaturalId();
+    final Type[] types=naturalIdCacheKey.getTypes();
+    Object[] naturalIdValues=new Object[naturalIdKeyValues.length];
+    for (int i=0; i < naturalIdKeyValues.length; i++) {
+      naturalIdValues[i]=types[i].assemble(naturalIdKeyValues[i],session,null);
+    }
+    return naturalIdValues;
   }
 }
