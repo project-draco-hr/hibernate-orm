@@ -6,13 +6,14 @@
     throw new IllegalArgumentException("Mismatch between expected number of natural-id values and found.");
   }
   NaturalIdResolutionCache entityNaturalIdResolutionCache=naturalIdResolutionCacheMap.get(persister);
-  if (entityNaturalIdResolutionCache == null) {
-    entityNaturalIdResolutionCache=new NaturalIdResolutionCache(persister);
-    naturalIdResolutionCacheMap.put(persister,entityNaturalIdResolutionCache);
+  if (entityNaturalIdResolutionCache != null) {
+    final LocalNaturalIdCacheKey localNaturalIdCacheKey=new LocalNaturalIdCacheKey(persister,naturalIdValues);
+    entityNaturalIdResolutionCache.pkToNaturalIdMap.remove(pk);
+    entityNaturalIdResolutionCache.naturalIdToPkMap.remove(localNaturalIdCacheKey);
   }
-  final NaturalIdCacheKey naturalIdCacheKey=getNaturalIdCacheKey(naturalIdValues,persister);
-  entityNaturalIdResolutionCache.pkToNaturalIdMap.remove(pk);
-  entityNaturalIdResolutionCache.naturalIdToPkMap.remove(naturalIdCacheKey);
-  final NaturalIdRegionAccessStrategy naturalIdCacheAccessStrategy=persister.getNaturalIdCacheAccessStrategy();
-  naturalIdCacheAccessStrategy.evict(naturalIdCacheKey);
+  if (persister.hasNaturalIdCache()) {
+    final NaturalIdRegionAccessStrategy naturalIdCacheAccessStrategy=persister.getNaturalIdCacheAccessStrategy();
+    final NaturalIdCacheKey naturalIdCacheKey=new NaturalIdCacheKey(naturalIdValues,persister,session);
+    naturalIdCacheAccessStrategy.evict(naturalIdCacheKey);
+  }
 }
