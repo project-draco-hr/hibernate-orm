@@ -72,18 +72,11 @@ catch (    UnsupportedOperationException uoe) {
   this.extractedMetaDataSupport=new ExtractedDatabaseMetaDataImpl(metaSupportsScrollable,metaSupportsGetGeneratedKeys,metaSupportsBatchUpdates,metaReportsDDLInTxnSupported,metaReportsDDLCausesTxnCommit,parseKeywords(extraKeywordsString),parseSQLStateType(sqlStateType),lobLocatorUpdateCopy,schemaName,catalogName,typeInfoSet);
   SQLExceptionConverter sqlExceptionConverter=dialect.buildSQLExceptionConverter();
   if (sqlExceptionConverter == null) {
-    final Dialect finalDialect=dialect;
-    final ConversionContext conversionContext=new ConversionContext(){
-      private final ViolatedConstraintNameExtracter extracter=finalDialect.getViolatedConstraintNameExtracter();
-      @Override public ViolatedConstraintNameExtracter getViolatedConstraintNameExtracter(){
-        return extracter;
-      }
-    }
-;
     final StandardSQLExceptionConverter converter=new StandardSQLExceptionConverter();
     sqlExceptionConverter=converter;
-    converter.addDelegate(new SQLExceptionTypeDelegate(conversionContext));
-    converter.addDelegate(new SQLStateConversionDelegate(conversionContext));
+    converter.addDelegate(new SQLExceptionTypeDelegate(dialect));
+    converter.addDelegate(dialect.buildSQLExceptionConversionDelegate());
+    converter.addDelegate(new SQLStateConversionDelegate(dialect));
   }
   this.sqlExceptionHelper=new SqlExceptionHelper(sqlExceptionConverter);
 }
