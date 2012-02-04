@@ -2,13 +2,13 @@
   this.referencingIdData=referencingIdData;
   String revisionPropertyPath=verEntCfg.getRevisionNumberPath();
   String originalIdPropertyName=verEntCfg.getOriginalIdPropName();
-  QueryBuilder qb=new QueryBuilder(versionsMiddleEntityName,"ee");
-  qb.addProjection(null,"ee",false,false);
+  QueryBuilder qb=new QueryBuilder(versionsMiddleEntityName,MIDDLE_ENTITY_ALIAS);
+  qb.addProjection(null,MIDDLE_ENTITY_ALIAS,false,false);
   Parameters rootParameters=qb.getRootParameters();
   referencingIdData.getPrefixedMapper().addNamedIdEqualsToQuery(rootParameters,originalIdPropertyName,true);
-  String eeOriginalIdPropertyPath="ee." + originalIdPropertyName;
+  String eeOriginalIdPropertyPath=MIDDLE_ENTITY_ALIAS + "." + originalIdPropertyName;
   auditStrategy.addAssociationAtRevisionRestriction(qb,revisionPropertyPath,verEntCfg.getRevisionEndFieldName(),true,referencingIdData,versionsMiddleEntityName,eeOriginalIdPropertyPath,revisionPropertyPath,originalIdPropertyName,componentDatas);
-  rootParameters.addWhereWithNamedParam(verEntCfg.getRevisionTypePropName(),"!=","delrevisiontype");
+  rootParameters.addWhereWithNamedParam(verEntCfg.getRevisionTypePropName(),"!=",DEL_REVISION_TYPE_PARAMETER);
   StringBuilder sb=new StringBuilder();
   qb.build(sb,Collections.<String,Object>emptyMap());
   queryString=sb.toString();

@@ -3,15 +3,15 @@
   String revisionPropertyPath=verEntCfg.getRevisionNumberPath();
   String originalIdPropertyName=verEntCfg.getOriginalIdPropName();
   MiddleIdData referencedIdData=new MiddleIdData(verEntCfg,verCfg.getEntCfg().get(entityName).getIdMappingData(),null,entityName,verCfg.getEntCfg().isVersioned(entityName));
-  verCfg.getAuditStrategy().addEntityAtRevisionRestriction(verCfg.getGlobalCfg(),qb,revisionPropertyPath,verEntCfg.getRevisionEndFieldName(),true,referencedIdData,revisionPropertyPath,originalIdPropertyName,"e","e2");
+  verCfg.getAuditStrategy().addEntityAtRevisionRestriction(verCfg.getGlobalCfg(),qb,revisionPropertyPath,verEntCfg.getRevisionEndFieldName(),true,referencedIdData,revisionPropertyPath,originalIdPropertyName,REFERENCED_ENTITY_ALIAS,REFERENCED_ENTITY_ALIAS_DEF_AUD_STR);
   qb.getRootParameters().addWhereWithParam(verEntCfg.getRevisionTypePropName(),"<>",RevisionType.DEL);
   for (  AuditCriterion criterion : criterions) {
     criterion.addToQuery(verCfg,entityName,qb,qb.getRootParameters());
   }
   Query query=buildQuery();
   List<String> params=Arrays.asList(query.getNamedParameters());
-  if (params.contains("revision")) {
-    query.setParameter("revision",revision);
+  if (params.contains(REVISION_PARAMETER)) {
+    query.setParameter(REVISION_PARAMETER,revision);
   }
   List queryResult=query.list();
   if (hasProjection) {
