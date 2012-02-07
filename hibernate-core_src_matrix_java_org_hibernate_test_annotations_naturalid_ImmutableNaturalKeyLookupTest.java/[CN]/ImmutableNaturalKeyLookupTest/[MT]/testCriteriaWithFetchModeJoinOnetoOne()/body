@@ -16,11 +16,13 @@
   a2.setName("xxxxxx");
   s.persist(a2);
   newTx.commit();
+  s.close();
+  s=openSession();
   newTx=s.beginTransaction();
   Assert.assertTrue(s.getSessionFactory().getStatistics().isStatisticsEnabled());
   s.getSessionFactory().getStatistics().clear();
   getCriteria(s).setFetchMode("singleD",FetchMode.JOIN).uniqueResult();
-  Assert.assertEquals("query is not considered as isImmutableNaturalKeyLookup, despite fullfilling all conditions",1,s.getSessionFactory().getStatistics().getQueryCacheHitCount());
+  Assert.assertEquals("query is not considered as isImmutableNaturalKeyLookup, despite fullfilling all conditions",1,s.getSessionFactory().getStatistics().getNaturalIdCacheHitCount());
   s.createQuery("delete from A").executeUpdate();
   s.createQuery("delete from D").executeUpdate();
   newTx.commit();

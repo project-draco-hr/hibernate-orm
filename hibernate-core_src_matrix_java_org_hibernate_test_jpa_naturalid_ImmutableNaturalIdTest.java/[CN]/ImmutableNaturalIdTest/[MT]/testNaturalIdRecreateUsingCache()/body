@@ -11,9 +11,9 @@
   s.beginTransaction();
   u=(User)s.createCriteria(User.class).add(Restrictions.naturalId().set("userName","steve")).setCacheable(true).uniqueResult();
   assertNotNull(u);
-  assertEquals(sessionFactory().getStatistics().getQueryExecutionCount(),1);
-  assertEquals(sessionFactory().getStatistics().getQueryCacheHitCount(),0);
-  assertEquals(sessionFactory().getStatistics().getQueryCachePutCount(),1);
+  assertEquals(1,sessionFactory().getStatistics().getNaturalIdQueryExecutionCount());
+  assertEquals(0,sessionFactory().getStatistics().getNaturalIdCacheHitCount());
+  assertEquals(0,sessionFactory().getStatistics().getNaturalIdCachePutCount());
   sessionFactory().getStatistics().clear();
   s.getTransaction().commit();
   s.close();
@@ -21,8 +21,8 @@
   s.beginTransaction();
   u=(User)s.createCriteria(User.class).add(Restrictions.naturalId().set("userName","steve")).setCacheable(true).uniqueResult();
   assertNotNull(u);
-  assertEquals(sessionFactory().getStatistics().getQueryExecutionCount(),0);
-  assertEquals(sessionFactory().getStatistics().getQueryCacheHitCount(),1);
+  assertEquals(1,sessionFactory().getStatistics().getNaturalIdQueryExecutionCount());
+  assertEquals(0,sessionFactory().getStatistics().getNaturalIdCacheHitCount());
   s.delete(u);
   s.getTransaction().commit();
   s.close();

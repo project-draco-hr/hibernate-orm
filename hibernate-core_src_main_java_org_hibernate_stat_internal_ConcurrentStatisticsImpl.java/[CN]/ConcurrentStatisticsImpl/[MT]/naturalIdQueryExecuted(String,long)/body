@@ -1,0 +1,12 @@
+{
+  naturalIdQueryExecutionCount.getAndIncrement();
+  boolean isLongestQuery=false;
+  for (long old=naturalIdQueryExecutionMaxTime.get(); (isLongestQuery=time > old) && (!naturalIdQueryExecutionMaxTime.compareAndSet(old,time)); old=naturalIdQueryExecutionMaxTime.get()) {
+  }
+  if (isLongestQuery && regionName != null) {
+    naturalIdQueryExecutionMaxTimeRegion=regionName;
+  }
+  if (regionName != null) {
+    ((ConcurrentNaturalIdCacheStatisticsImpl)getNaturalIdCacheStatistics(regionName)).queryExecuted(time);
+  }
+}

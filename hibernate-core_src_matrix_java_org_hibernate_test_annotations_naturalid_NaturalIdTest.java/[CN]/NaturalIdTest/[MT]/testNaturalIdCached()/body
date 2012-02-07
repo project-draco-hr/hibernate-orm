@@ -6,17 +6,21 @@
   Criteria criteria=s.createCriteria(Citizen.class);
   criteria.add(Restrictions.naturalId().set("ssn","1234").set("state",france));
   criteria.setCacheable(true);
+  s.getSessionFactory().getCache().evictNaturalIdRegions();
   Statistics stats=sessionFactory().getStatistics();
   stats.setStatisticsEnabled(true);
   stats.clear();
-  assertEquals("Cache hits should be empty",0,stats.getQueryCacheHitCount());
+  assertEquals("Cache hits should be empty",0,stats.getNaturalIdCacheHitCount());
   List results=criteria.list();
   assertEquals(1,results.size());
-  assertEquals("Cache hits should be empty",0,stats.getQueryCacheHitCount());
-  assertEquals("First query should be a miss",1,stats.getQueryCacheMissCount());
-  assertEquals("Query result should be added to cache",1,stats.getQueryCachePutCount());
+  assertEquals("Cache hits should be empty",0,stats.getNaturalIdCacheHitCount());
+  assertEquals("First query should be a miss",1,stats.getNaturalIdCacheMissCount());
+  assertEquals("Query result should be added to cache",1,stats.getNaturalIdCachePutCount());
+  assertEquals("Query execution count should be one",1,stats.getNaturalIdQueryExecutionCount());
   criteria.list();
-  assertEquals("Cache hits should be empty",1,stats.getQueryCacheHitCount());
+  assertEquals("Cache hits should be empty",0,stats.getNaturalIdCacheHitCount());
+  assertEquals("Second query should not be a miss",1,stats.getNaturalIdCacheMissCount());
+  assertEquals("Query execution count should be one",1,stats.getNaturalIdQueryExecutionCount());
   tx.rollback();
   s.close();
 }

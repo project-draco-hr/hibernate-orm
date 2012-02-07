@@ -1,0 +1,29 @@
+{
+  if (!criteria.isLookupByNaturalKey()) {
+    return null;
+  }
+  final String entityName=criteria.getEntityOrClassName();
+  final EntityPersister entityPersister=factory.getEntityPersister(entityName);
+  if (!entityPersister.hasNaturalIdentifier()) {
+    return null;
+  }
+  final CriterionEntry criterionEntry=(CriterionEntry)criteria.iterateExpressionEntries().next();
+  final NaturalIdentifier naturalIdentifier=(NaturalIdentifier)criterionEntry.getCriterion();
+  final Map<String,Object> naturalIdValues=naturalIdentifier.getNaturalIdValues();
+  final int[] naturalIdentifierProperties=entityPersister.getNaturalIdentifierProperties();
+  if (naturalIdentifierProperties.length != naturalIdValues.size()) {
+    return null;
+  }
+  final String[] propertyNames=entityPersister.getPropertyNames();
+  final NaturalIdLoadAccess naturalIdLoader=this.byNaturalId(entityName);
+  for (int i=0; i < naturalIdentifierProperties.length; i++) {
+    final String naturalIdProperty=propertyNames[naturalIdentifierProperties[i]];
+    final Object naturalIdValue=naturalIdValues.get(naturalIdProperty);
+    if (naturalIdValue == null) {
+      return null;
+    }
+    naturalIdLoader.using(naturalIdProperty,naturalIdValue);
+  }
+  LOG.warn("Session.byNaturalId(" + entityName + ") should be used for naturalId queries instead of Restrictions.naturalId() from a Criteria");
+  return naturalIdLoader;
+}
