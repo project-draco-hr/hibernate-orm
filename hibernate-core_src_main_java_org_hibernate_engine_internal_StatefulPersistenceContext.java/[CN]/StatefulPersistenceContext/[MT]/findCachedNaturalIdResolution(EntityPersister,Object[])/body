@@ -6,7 +6,9 @@
   if (entityNaturalIdResolutionCache != null) {
     pk=entityNaturalIdResolutionCache.naturalIdToPkMap.get(localNaturalIdCacheKey);
     if (pk != null) {
-      if (LOG.isTraceEnabled())       LOG.tracev("Resolved primary key in session cache: {0}",MessageHelper.infoString(persister,Arrays.toString(naturalIdValues),session.getFactory()));
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("Resolved natural key -> primary key resolution in session cache: " + persister.getRootEntityName() + "#["+ Arrays.toString(naturalIdValues)+ "]");
+      }
       return pk;
     }
   }
@@ -21,7 +23,7 @@
     if (factory.getStatistics().isStatisticsEnabled()) {
       factory.getStatisticsImplementor().naturalIdCacheHit(naturalIdCacheAccessStrategy.getRegion().getName());
     }
-    if (LOG.isTraceEnabled())     LOG.tracev("Resolved primary key in second-level cache: {0}",MessageHelper.infoString(persister,naturalIdCacheKey.getNaturalId(),session.getFactory()));
+    if (LOG.isTraceEnabled())     LOG.trace("Resolved natural key -> primary key resolution in second-level cache: " + persister.getRootEntityName() + "#["+ Arrays.toString(naturalIdValues)+ "]");
     if (entityNaturalIdResolutionCache == null) {
       entityNaturalIdResolutionCache=new NaturalIdResolutionCache(persister);
       naturalIdResolutionCacheMap.put(persister,entityNaturalIdResolutionCache);
