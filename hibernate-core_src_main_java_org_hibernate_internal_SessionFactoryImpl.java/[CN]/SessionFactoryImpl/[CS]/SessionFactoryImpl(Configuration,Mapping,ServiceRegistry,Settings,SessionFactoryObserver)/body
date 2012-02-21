@@ -39,7 +39,8 @@
   this.filters.putAll(cfg.getFilterDefinitions());
   LOG.debugf("Session factory constructed with filter configurations : %s",filters);
   LOG.debugf("Instantiating session factory with properties: %s",properties);
-  settings.getRegionFactory().start(settings,properties);
+  final RegionFactory regionFactory=settings.getRegionFactory();
+  regionFactory.start(settings,properties);
   this.queryPlanCache=new QueryPlanCache(this);
 class IntegratorObserver implements SessionFactoryObserver {
     private ArrayList<Integrator> integrators=new ArrayList<Integrator>();
@@ -82,7 +83,7 @@ class IntegratorObserver implements SessionFactoryObserver {
         if (LOG.isTraceEnabled()) {
           LOG.tracev("Building cache for entity data [{0}]",model.getEntityName());
         }
-        EntityRegion entityRegion=settings.getRegionFactory().buildEntityRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
+        EntityRegion entityRegion=regionFactory.buildEntityRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
         accessStrategy=entityRegion.buildAccessStrategy(accessType);
         entityAccessStrategies.put(cacheRegionName,accessStrategy);
         allCacheRegions.put(cacheRegionName,entityRegion);
@@ -93,10 +94,19 @@ class IntegratorObserver implements SessionFactoryObserver {
       final String naturalIdCacheRegionName=cacheRegionPrefix + model.getNaturalIdCacheRegionName();
       naturalIdAccessStrategy=(NaturalIdRegionAccessStrategy)entityAccessStrategies.get(naturalIdCacheRegionName);
       if (naturalIdAccessStrategy == null && settings.isSecondLevelCacheEnabled()) {
-        final NaturalIdRegion naturalIdRegion=settings.getRegionFactory().buildNaturalIdRegion(naturalIdCacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
-        naturalIdAccessStrategy=naturalIdRegion.buildAccessStrategy(settings.getRegionFactory().getDefaultAccessType());
-        entityAccessStrategies.put(naturalIdCacheRegionName,naturalIdAccessStrategy);
-        allCacheRegions.put(naturalIdCacheRegionName,naturalIdRegion);
+        final CacheDataDescriptionImpl cacheDataDescription=CacheDataDescriptionImpl.decode(model);
+        NaturalIdRegion naturalIdRegion=null;
+        try {
+          naturalIdRegion=regionFactory.buildNaturalIdRegion(naturalIdCacheRegionName,properties,cacheDataDescription);
+        }
+ catch (        UnsupportedOperationException e) {
+          LOG.warn(regionFactory.getClass().getName() + " threw an UnsupportedOperationException for buildNaturalIdRegion, second-level NaturalId caching will not be enabled for " + model.getEntityName());
+        }
+        if (naturalIdRegion != null) {
+          naturalIdAccessStrategy=naturalIdRegion.buildAccessStrategy(regionFactory.getDefaultAccessType());
+          entityAccessStrategies.put(naturalIdCacheRegionName,naturalIdAccessStrategy);
+          allCacheRegions.put(naturalIdCacheRegionName,naturalIdRegion);
+        }
       }
     }
     EntityPersister cp=serviceRegistry.getService(PersisterFactory.class).createEntityPersister(model,accessStrategy,naturalIdAccessStrategy,this,mapping);
@@ -117,7 +127,7 @@ class IntegratorObserver implements SessionFactoryObserver {
       if (LOG.isTraceEnabled()) {
         LOG.tracev("Building cache for collection data [{0}]",model.getRole());
       }
-      CollectionRegion collectionRegion=settings.getRegionFactory().buildCollectionRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
+      CollectionRegion collectionRegion=regionFactory.buildCollectionRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
       accessStrategy=collectionRegion.buildAccessStrategy(accessType);
       entityAccessStrategies.put(cacheRegionName,accessStrategy);
       allCacheRegions.put(cacheRegionName,collectionRegion);
