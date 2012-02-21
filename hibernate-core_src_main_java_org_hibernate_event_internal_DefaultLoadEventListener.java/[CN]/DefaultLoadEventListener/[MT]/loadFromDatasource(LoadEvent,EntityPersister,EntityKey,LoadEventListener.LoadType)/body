@@ -1,6 +1,14 @@
 {
   final SessionImplementor source=event.getSession();
   Object entity=persister.load(event.getEntityId(),event.getInstanceToLoad(),event.getLockOptions(),source);
+  if (entity != null && persister.hasNaturalIdentifier()) {
+    final int[] naturalIdentifierProperties=persister.getNaturalIdentifierProperties();
+    final Object[] naturalId=new Object[naturalIdentifierProperties.length];
+    for (int i=0; i < naturalIdentifierProperties.length; i++) {
+      naturalId[i]=persister.getPropertyValue(entity,naturalIdentifierProperties[i]);
+    }
+    event.getSession().getPersistenceContext().cacheNaturalIdResolution(persister,event.getEntityId(),naturalId,CachedNaturalIdValueSource.LOAD);
+  }
   if (event.isAssociationFetch() && source.getFactory().getStatistics().isStatisticsEnabled()) {
     source.getFactory().getStatisticsImplementor().fetchEntity(event.getEntityClassName());
   }
