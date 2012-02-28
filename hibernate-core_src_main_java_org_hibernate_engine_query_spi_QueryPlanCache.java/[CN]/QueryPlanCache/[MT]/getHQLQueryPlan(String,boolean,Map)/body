@@ -1,13 +1,13 @@
 {
   HQLQueryPlanKey key=new HQLQueryPlanKey(queryString,shallow,enabledFilters);
-  HQLQueryPlan plan=(HQLQueryPlan)planCache.get(key);
-  if (plan == null) {
-    LOG.tracev("Unable to locate HQL query plan in cache; generating ({0})",queryString);
-    plan=new HQLQueryPlan(queryString,shallow,enabledFilters,factory);
+  HQLQueryPlan value=(HQLQueryPlan)queryPlanCache.get(key);
+  if (value == null) {
+    if (isTraceEnabled)     LOG.tracev("Unable to locate HQL query plan in cache; generating ({0})",queryString);
+    value=new HQLQueryPlan(queryString,shallow,enabledFilters,factory);
+    queryPlanCache.putIfAbsent(key,value);
   }
  else {
-    LOG.tracev("Located HQL query plan in cache ({0})",queryString);
+    if (isTraceEnabled)     LOG.tracev("Located HQL query plan in cache ({0})",queryString);
   }
-  planCache.put(key,plan);
-  return plan;
+  return value;
 }

@@ -19,7 +19,7 @@
     }
     count=ois.readInt();
     if (tracing)     LOG.trace("Starting deserialization of [" + count + "] proxiesByKey entries");
-    rtn.proxiesByKey=new ReferenceMap(AbstractReferenceMap.HARD,AbstractReferenceMap.WEAK,count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count,.75f);
+    rtn.proxiesByKey=new ConcurrentReferenceHashMap<EntityKey,Object>(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count,.75f,1,ConcurrentReferenceHashMap.ReferenceType.STRONG,ConcurrentReferenceHashMap.ReferenceType.WEAK,null);
     for (int i=0; i < count; i++) {
       EntityKey ek=EntityKey.deserialize(ois,session);
       Object proxy=ois.readObject();

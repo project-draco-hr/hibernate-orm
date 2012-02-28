@@ -4,19 +4,22 @@
   Set copy=new HashSet();
   copy.addAll(enabledFilters.keySet());
   this.enabledFilterNames=java.util.Collections.unmodifiableSet(copy);
-  Set combinedQuerySpaces=new HashSet();
-  String[] concreteQueryStrings=QuerySplitter.concreteQueries(hql,factory);
+  final String[] concreteQueryStrings=QuerySplitter.concreteQueries(hql,factory);
   final int length=concreteQueryStrings.length;
-  translators=new QueryTranslator[length];
-  List sqlStringList=new ArrayList();
+  this.translators=new QueryTranslator[length];
+  List<String> sqlStringList=new ArrayList<String>();
+  Set combinedQuerySpaces=new HashSet();
+  final boolean hasCollectionRole=(collectionRole == null);
+  final Map querySubstitutions=factory.getSettings().getQuerySubstitutions();
+  final QueryTranslatorFactory queryTranslatorFactory=factory.getSettings().getQueryTranslatorFactory();
   for (int i=0; i < length; i++) {
-    if (collectionRole == null) {
-      translators[i]=factory.getSettings().getQueryTranslatorFactory().createQueryTranslator(hql,concreteQueryStrings[i],enabledFilters,factory);
-      translators[i].compile(factory.getSettings().getQuerySubstitutions(),shallow);
+    if (hasCollectionRole) {
+      translators[i]=queryTranslatorFactory.createQueryTranslator(hql,concreteQueryStrings[i],enabledFilters,factory);
+      translators[i].compile(querySubstitutions,shallow);
     }
  else {
-      translators[i]=factory.getSettings().getQueryTranslatorFactory().createFilterTranslator(hql,concreteQueryStrings[i],enabledFilters,factory);
-      ((FilterTranslator)translators[i]).compile(collectionRole,factory.getSettings().getQuerySubstitutions(),shallow);
+      translators[i]=queryTranslatorFactory.createFilterTranslator(hql,concreteQueryStrings[i],enabledFilters,factory);
+      ((FilterTranslator)translators[i]).compile(collectionRole,querySubstitutions,shallow);
     }
     combinedQuerySpaces.addAll(translators[i].getQuerySpaces());
     sqlStringList.addAll(translators[i].collectSqlStrings());
@@ -33,13 +36,8 @@
       returnMetadata=null;
     }
  else {
-      if (length > 1) {
-        final int returns=translators[0].getReturnTypes().length;
-        returnMetadata=new ReturnMetadata(translators[0].getReturnAliases(),new Type[returns]);
-      }
- else {
-        returnMetadata=new ReturnMetadata(translators[0].getReturnAliases(),translators[0].getReturnTypes());
-      }
+      final Type[] types=(length > 1) ? new Type[translators[0].getReturnTypes().length] : translators[0].getReturnTypes();
+      returnMetadata=new ReturnMetadata(translators[0].getReturnAliases(),types);
     }
   }
 }

@@ -1,13 +1,13 @@
 {
   FilterQueryPlanKey key=new FilterQueryPlanKey(filterString,collectionRole,shallow,enabledFilters);
-  FilterQueryPlan plan=(FilterQueryPlan)planCache.get(key);
-  if (plan == null) {
-    LOG.tracev("Unable to locate collection-filter query plan in cache; generating ({0} : {1} )",collectionRole,filterString);
-    plan=new FilterQueryPlan(filterString,collectionRole,shallow,enabledFilters,factory);
+  FilterQueryPlan value=(FilterQueryPlan)queryPlanCache.get(key);
+  if (value == null) {
+    if (isTraceEnabled)     LOG.tracev("Unable to locate collection-filter query plan in cache; generating ({0} : {1} )",collectionRole,filterString);
+    value=new FilterQueryPlan(filterString,collectionRole,shallow,enabledFilters,factory);
+    queryPlanCache.putIfAbsent(key,value);
   }
  else {
-    LOG.tracev("Located collection-filter query plan in cache ({0} : {1})",collectionRole,filterString);
+    if (isTraceEnabled)     LOG.tracev("Located collection-filter query plan in cache ({0} : {1})",collectionRole,filterString);
   }
-  planCache.put(key,plan);
-  return plan;
+  return value;
 }

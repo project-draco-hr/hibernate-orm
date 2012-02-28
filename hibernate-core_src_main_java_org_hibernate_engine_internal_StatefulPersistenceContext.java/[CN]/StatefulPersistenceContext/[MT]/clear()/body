@@ -1,7 +1,9 @@
 {
   for (  Object o : proxiesByKey.values()) {
-    final LazyInitializer li=((HibernateProxy)o).getHibernateLazyInitializer();
-    li.unsetSession();
+    if (o == null) {
+      continue;
+    }
+    ((HibernateProxy)o).getHibernateLazyInitializer().unsetSession();
   }
   for (  Map.Entry<PersistentCollection,CollectionEntry> aCollectionEntryArray : IdentityMap.concurrentEntries(collectionEntries)) {
     aCollectionEntryArray.getKey().unsetSession(getSession());
