@@ -1,0 +1,9 @@
+{
+  if (!isSupportedByDialect(SpatialFunction.contains)) {
+    return;
+  }
+  Map<Integer,Boolean> dbexpected=expectationsFactory.getContains(expectationsFactory.getTestPolygon());
+  String hql="SELECT id, contains(geom, :filter) from org.hibernate.spatial.integration.GeomEntity where contains(geom, :filter) = true and srid(geom) = 4326";
+  Map<String,Object> params=createQueryParams("filter",expectationsFactory.getTestPolygon());
+  retrieveHQLResultsAndCompare(dbexpected,hql,params);
+}

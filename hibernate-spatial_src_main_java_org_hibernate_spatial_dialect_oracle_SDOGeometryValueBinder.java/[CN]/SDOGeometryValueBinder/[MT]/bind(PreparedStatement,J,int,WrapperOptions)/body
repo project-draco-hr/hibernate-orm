@@ -1,0 +1,16 @@
+{
+  if (value == null) {
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(String.format(NULL_BIND_MSG_TEMPLATE,index,JdbcTypeNameMapper.getTypeName(SDOGeometryTypeDescriptor.INSTANCE.getSqlType())));
+    }
+    st.setNull(index,SDOGeometryTypeDescriptor.INSTANCE.getSqlType(),SDOGeometryTypeDescriptor.INSTANCE.getTypeName());
+  }
+ else {
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(String.format(BIND_MSG_TEMPLATE,index,JdbcTypeNameMapper.getTypeName(SDOGeometryTypeDescriptor.INSTANCE.getSqlType()),javaDescriptor.extractLoggableRepresentation(value)));
+    }
+    Geometry jtsGeom=javaDescriptor.unwrap(value,Geometry.class,options);
+    Object dbGeom=toNative(jtsGeom,st.getConnection());
+    st.setObject(index,dbGeom);
+  }
+}
