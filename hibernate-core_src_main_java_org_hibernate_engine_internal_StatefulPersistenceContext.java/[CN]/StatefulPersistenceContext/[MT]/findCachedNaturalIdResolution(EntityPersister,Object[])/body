@@ -1,38 +1,3 @@
 {
-  validateNaturalId(persister,naturalIdValues);
-  NaturalIdResolutionCache entityNaturalIdResolutionCache=naturalIdResolutionCacheMap.get(persister);
-  Serializable pk;
-  final LocalNaturalIdCacheKey localNaturalIdCacheKey=new LocalNaturalIdCacheKey(persister,naturalIdValues);
-  if (entityNaturalIdResolutionCache != null) {
-    pk=entityNaturalIdResolutionCache.naturalIdToPkMap.get(localNaturalIdCacheKey);
-    if (pk != null) {
-      if (LOG.isTraceEnabled()) {
-        LOG.trace("Resolved natural key -> primary key resolution in session cache: " + persister.getRootEntityName() + "#["+ Arrays.toString(naturalIdValues)+ "]");
-      }
-      return pk;
-    }
-  }
-  if (!persister.hasNaturalIdCache()) {
-    return null;
-  }
-  final NaturalIdCacheKey naturalIdCacheKey=new NaturalIdCacheKey(naturalIdValues,persister,session);
-  final NaturalIdRegionAccessStrategy naturalIdCacheAccessStrategy=persister.getNaturalIdCacheAccessStrategy();
-  pk=(Serializable)naturalIdCacheAccessStrategy.get(naturalIdCacheKey,session.getTimestamp());
-  final SessionFactoryImplementor factory=getSession().getFactory();
-  if (pk != null) {
-    if (factory.getStatistics().isStatisticsEnabled()) {
-      factory.getStatisticsImplementor().naturalIdCacheHit(naturalIdCacheAccessStrategy.getRegion().getName());
-    }
-    if (LOG.isTraceEnabled())     LOG.trace("Resolved natural key -> primary key resolution in second-level cache: " + persister.getRootEntityName() + "#["+ Arrays.toString(naturalIdValues)+ "]");
-    if (entityNaturalIdResolutionCache == null) {
-      entityNaturalIdResolutionCache=new NaturalIdResolutionCache(persister);
-      naturalIdResolutionCacheMap.put(persister,entityNaturalIdResolutionCache);
-    }
-    entityNaturalIdResolutionCache.pkToNaturalIdMap.put(pk,localNaturalIdCacheKey);
-    entityNaturalIdResolutionCache.naturalIdToPkMap.put(localNaturalIdCacheKey,pk);
-  }
- else   if (factory.getStatistics().isStatisticsEnabled()) {
-    factory.getStatisticsImplementor().naturalIdCacheMiss(naturalIdCacheAccessStrategy.getRegion().getName());
-  }
-  return pk;
+  return naturalIdXrefDelegate.findCachedNaturalIdResolution(persister,naturalIdValues);
 }
