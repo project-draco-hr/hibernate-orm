@@ -2,11 +2,11 @@
   saveSomeCitizens();
   Session s=openSession();
   Transaction tx=s.beginTransaction();
-  State france=(State)s.load(State.class,2);
+  State france=this.getState(s,"Ile de France");
   Criteria criteria=s.createCriteria(Citizen.class);
   criteria.add(Restrictions.naturalId().set("ssn","1234").set("state",france));
   criteria.setCacheable(false);
-  s.getSessionFactory().getCache().evictNaturalIdRegions();
+  this.cleanupCache();
   Statistics stats=sessionFactory().getStatistics();
   stats.setStatisticsEnabled(true);
   stats.clear();
