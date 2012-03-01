@@ -5,9 +5,7 @@
     entityNaturalIdResolutionCache=new NaturalIdResolutionCache(persister);
     naturalIdResolutionCacheMap.put(persister,entityNaturalIdResolutionCache);
   }
-  final CachedNaturalId cachedNaturalId=new CachedNaturalId(persister,naturalIdValues);
-  entityNaturalIdResolutionCache.pkToNaturalIdMap.put(pk,cachedNaturalId);
-  entityNaturalIdResolutionCache.naturalIdToPkMap.put(cachedNaturalId,pk);
+  final boolean justAddedToLocalCache=entityNaturalIdResolutionCache.cache(pk,naturalIdValues);
   if (persister.hasNaturalIdCache()) {
     final NaturalIdRegionAccessStrategy naturalIdCacheAccessStrategy=persister.getNaturalIdCacheAccessStrategy();
     final NaturalIdCacheKey naturalIdCacheKey=new NaturalIdCacheKey(naturalIdValues,persister,session());
@@ -16,7 +14,7 @@ switch (valueSource) {
 case LOAD:
 {
         final boolean put=naturalIdCacheAccessStrategy.putFromLoad(naturalIdCacheKey,pk,session().getTimestamp(),null);
-        if (put && factory.getStatistics().isStatisticsEnabled()) {
+        if (put && justAddedToLocalCache && factory.getStatistics().isStatisticsEnabled()) {
           factory.getStatisticsImplementor().naturalIdCachePut(naturalIdCacheAccessStrategy.getRegion().getName());
         }
         break;
@@ -27,7 +25,7 @@ case INSERT:
       ((EventSource)session()).getActionQueue().registerProcess(new AfterTransactionCompletionProcess(){
         @Override public void doAfterTransactionCompletion(        boolean success,        SessionImplementor session){
           final boolean put=naturalIdCacheAccessStrategy.afterInsert(naturalIdCacheKey,pk);
-          if (put && factory.getStatistics().isStatisticsEnabled()) {
+          if (put && justAddedToLocalCache && factory.getStatistics().isStatisticsEnabled()) {
             factory.getStatisticsImplementor().naturalIdCachePut(naturalIdCacheAccessStrategy.getRegion().getName());
           }
         }
@@ -42,7 +40,7 @@ case UPDATE:
     ((EventSource)session()).getActionQueue().registerProcess(new AfterTransactionCompletionProcess(){
       @Override public void doAfterTransactionCompletion(      boolean success,      SessionImplementor session){
         final boolean put=naturalIdCacheAccessStrategy.afterUpdate(naturalIdCacheKey,pk,lock);
-        if (put && factory.getStatistics().isStatisticsEnabled()) {
+        if (put && justAddedToLocalCache && factory.getStatistics().isStatisticsEnabled()) {
           factory.getStatisticsImplementor().naturalIdCachePut(naturalIdCacheAccessStrategy.getRegion().getName());
         }
       }
