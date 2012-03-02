@@ -4,12 +4,12 @@
   this.discardOnClose=discardOnClose;
   this.sessionInterceptorClass=sessionInterceptorClass;
   final Iterator<PersistentClass> classes=cfg.getClassMappings();
-  final String ejbMetamodelGenerationProperty=cfg.getProperty("hibernate.ejb.metamodel.generation");
-  if (!"disabled".equalsIgnoreCase(ejbMetamodelGenerationProperty)) {
-    this.metamodel=MetamodelImpl.buildMetamodel(classes,(SessionFactoryImplementor)sessionFactory,"ignoreUnsupported".equalsIgnoreCase(ejbMetamodelGenerationProperty));
+  final JpaMetaModelPopulationSetting jpaMetaModelPopulationSetting=determineJpaMetaModelPopulationSetting(cfg);
+  if (JpaMetaModelPopulationSetting.DISABLED == jpaMetaModelPopulationSetting) {
+    this.metamodel=null;
   }
  else {
-    this.metamodel=null;
+    this.metamodel=MetamodelImpl.buildMetamodel(classes,(SessionFactoryImplementor)sessionFactory,JpaMetaModelPopulationSetting.IGNORE_UNSUPPORTED == jpaMetaModelPopulationSetting);
   }
   this.criteriaBuilder=new CriteriaBuilderImpl(this);
   this.util=new HibernatePersistenceUnitUtil(this);
