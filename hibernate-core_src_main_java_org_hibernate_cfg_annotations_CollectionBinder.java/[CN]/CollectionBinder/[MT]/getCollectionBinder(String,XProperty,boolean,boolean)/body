@@ -64,5 +64,12 @@
     throw new AnnotationException("Illegal attempt to map a non collection as a @OneToMany, @ManyToMany or @CollectionOfElements: " + StringHelper.qualify(entityName,property.getName()));
   }
   result.setIsHibernateExtensionMapping(isHibernateExtensionMapping);
+  final Type typeAnnotation=property.getAnnotation(Type.class);
+  if (typeAnnotation != null) {
+    result.explicitType=typeAnnotation.type();
+    for (    Parameter param : typeAnnotation.parameters()) {
+      result.explicitTypeParameters.setProperty(param.name(),param.value());
+    }
+  }
   return result;
 }

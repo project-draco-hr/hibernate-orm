@@ -7,6 +7,17 @@
   if (property.isAnnotationPresent(MapKeyColumn.class) && mapKeyPropertyName != null) {
     throw new AnnotationException("Cannot mix @javax.persistence.MapKey and @MapKeyColumn or @org.hibernate.annotations.MapKey " + "on the same collection: " + StringHelper.qualify(propertyHolder.getPath(),propertyName));
   }
+  if (explicitType != null) {
+    final TypeDef typeDef=mappings.getTypeDef(explicitType);
+    if (typeDef == null) {
+      collection.setTypeName(explicitType);
+      collection.setTypeParameters(explicitTypeParameters);
+    }
+ else {
+      collection.setTypeName(typeDef.getTypeClass());
+      collection.setTypeParameters(typeDef.getParameters());
+    }
+  }
   defineFetchingStrategy();
   collection.setBatchSize(batchSize);
   if (orderBy != null && hqlOrderBy != null) {
