@@ -1,0 +1,83 @@
+{
+  CollectionBinder result;
+  if (property.isArray()) {
+    if (property.getElementClass().isPrimitive()) {
+      result=new PrimitiveArrayBinder();
+    }
+ else {
+      result=new ArrayBinder();
+    }
+  }
+ else   if (property.isCollection()) {
+    Class returnedClass=property.getCollectionClass();
+    if (java.util.Set.class.equals(returnedClass)) {
+      if (property.isAnnotationPresent(CollectionId.class)) {
+        throw new AnnotationException("Set do not support @CollectionId: " + StringHelper.qualify(entityName,property.getName()));
+      }
+      result=new SetBinder();
+    }
+ else     if (java.util.SortedSet.class.equals(returnedClass)) {
+      if (property.isAnnotationPresent(CollectionId.class)) {
+        throw new AnnotationException("Set do not support @CollectionId: " + StringHelper.qualify(entityName,property.getName()));
+      }
+      result=new SetBinder(true);
+    }
+ else     if (java.util.Map.class.equals(returnedClass)) {
+      if (property.isAnnotationPresent(CollectionId.class)) {
+        throw new AnnotationException("Map do not support @CollectionId: " + StringHelper.qualify(entityName,property.getName()));
+      }
+      result=new MapBinder();
+    }
+ else     if (java.util.SortedMap.class.equals(returnedClass)) {
+      if (property.isAnnotationPresent(CollectionId.class)) {
+        throw new AnnotationException("Map do not support @CollectionId: " + StringHelper.qualify(entityName,property.getName()));
+      }
+      result=new MapBinder(true);
+    }
+ else     if (java.util.Collection.class.equals(returnedClass)) {
+      if (property.isAnnotationPresent(CollectionId.class)) {
+        result=new IdBagBinder();
+      }
+ else {
+        result=new BagBinder();
+      }
+    }
+ else     if (java.util.List.class.equals(returnedClass)) {
+      if (isIndexed) {
+        if (property.isAnnotationPresent(CollectionId.class)) {
+          throw new AnnotationException("List do not support @CollectionId and @OrderColumn (or @IndexColumn) at the same time: " + StringHelper.qualify(entityName,property.getName()));
+        }
+        result=new ListBinder();
+      }
+ else       if (property.isAnnotationPresent(CollectionId.class)) {
+        result=new IdBagBinder();
+      }
+ else {
+        result=new BagBinder();
+      }
+    }
+ else {
+      throw new AnnotationException(returnedClass.getName() + " collection not yet supported: " + StringHelper.qualify(entityName,property.getName()));
+    }
+  }
+ else {
+    throw new AnnotationException("Illegal attempt to map a non collection as a @OneToMany, @ManyToMany or @CollectionOfElements: " + StringHelper.qualify(entityName,property.getName()));
+  }
+  result.setIsHibernateExtensionMapping(isHibernateExtensionMapping);
+  final CollectionType typeAnnotation=property.getAnnotation(CollectionType.class);
+  if (typeAnnotation != null) {
+    final String typeName=typeAnnotation.type();
+    final TypeDef typeDef=mappings.getTypeDef(typeName);
+    if (typeDef != null) {
+      result.explicitType=typeDef.getTypeClass();
+      result.explicitTypeParameters.putAll(typeDef.getParameters());
+    }
+ else {
+      result.explicitType=typeName;
+      for (      Parameter param : typeAnnotation.parameters()) {
+        result.explicitTypeParameters.setProperty(param.name(),param.value());
+      }
+    }
+  }
+  return result;
+}
