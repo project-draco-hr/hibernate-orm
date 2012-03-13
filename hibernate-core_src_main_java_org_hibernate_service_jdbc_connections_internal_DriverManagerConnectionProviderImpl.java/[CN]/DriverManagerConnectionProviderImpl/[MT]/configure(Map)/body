@@ -1,18 +1,15 @@
 {
   LOG.usingHibernateBuiltInConnectionPool();
   String driverClassName=(String)configurationValues.get(AvailableSettings.DRIVER);
-  if (driverClassName == null)   LOG.jdbcDriverNotSpecified(AvailableSettings.DRIVER);
+  if (driverClassName == null) {
+    LOG.jdbcDriverNotSpecified(AvailableSettings.DRIVER);
+  }
  else {
     try {
-      Class.forName(driverClassName);
+      serviceRegistry.getService(ClassLoaderService.class).classForName(driverClassName);
     }
- catch (    ClassNotFoundException cnfe) {
-      try {
-        ReflectHelper.classForName(driverClassName);
-      }
- catch (      ClassNotFoundException e) {
-        throw new HibernateException("Specified JDBC Driver " + driverClassName + " class not found",e);
-      }
+ catch (    ClassLoadingException e) {
+      throw new ClassLoadingException("Specified JDBC Driver " + driverClassName + " class not found",e);
     }
   }
   poolSize=ConfigurationHelper.getInt(AvailableSettings.POOL_SIZE,configurationValues,20);
