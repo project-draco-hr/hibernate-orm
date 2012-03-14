@@ -4,12 +4,25 @@
   if (driverClassName == null) {
     LOG.jdbcDriverNotSpecified(AvailableSettings.DRIVER);
   }
- else {
+ else   if (serviceRegistry != null) {
     try {
       serviceRegistry.getService(ClassLoaderService.class).classForName(driverClassName);
     }
  catch (    ClassLoadingException e) {
       throw new ClassLoadingException("Specified JDBC Driver " + driverClassName + " class not found",e);
+    }
+  }
+ else {
+    try {
+      Class.forName(driverClassName);
+    }
+ catch (    ClassNotFoundException cnfe) {
+      try {
+        ReflectHelper.classForName(driverClassName);
+      }
+ catch (      ClassNotFoundException e) {
+        throw new HibernateException("Specified JDBC Driver " + driverClassName + " class not found",e);
+      }
     }
   }
   poolSize=ConfigurationHelper.getInt(AvailableSettings.POOL_SIZE,configurationValues,20);
