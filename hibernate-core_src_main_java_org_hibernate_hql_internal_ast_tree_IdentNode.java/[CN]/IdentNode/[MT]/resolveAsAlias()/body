@@ -5,16 +5,22 @@
     setFromElement(element);
     String[] columnExpressions=element.getIdentityColumns();
     final boolean isInNonDistinctCount=getWalker().isInCount() && !getWalker().isInCountDistinct();
-    final boolean isCompositePk=columnExpressions.length > 1;
-    if (isCompositePk && isInNonDistinctCount && !getWalker().getSessionFactoryHelper().getFactory().getDialect().supportsTupleCounts()) {
-      setText(columnExpressions[0]);
+    final boolean isCompositeValue=columnExpressions.length > 1;
+    if (isCompositeValue) {
+      if (isInNonDistinctCount && !getWalker().getSessionFactoryHelper().getFactory().getDialect().supportsTupleCounts()) {
+        setText(columnExpressions[0]);
+      }
+ else {
+        String joinedFragment=StringHelper.join(", ",columnExpressions);
+        final boolean shouldSkipWrappingInParenthesis=getWalker().isInCount() || getWalker().getCurrentTopLevelClauseType() == HqlSqlTokenTypes.ORDER || getWalker().getCurrentTopLevelClauseType() == HqlSqlTokenTypes.GROUP;
+        if (!shouldSkipWrappingInParenthesis) {
+          joinedFragment="(" + joinedFragment + ")";
+        }
+        setText(joinedFragment);
+      }
     }
  else {
-      String joinedFragment=StringHelper.join(", ",columnExpressions);
-      if (!getWalker().isInCount()) {
-        joinedFragment="(" + joinedFragment + ")";
-      }
-      setText(joinedFragment);
+      setText(columnExpressions[0]);
     }
     return true;
   }
