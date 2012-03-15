@@ -1,3 +1,10 @@
 {
-  throw new UnsupportedOperationException();
+  if (log.isDebugEnabled()) {
+    log.debug("Building natural id cache region [" + regionName + "]");
+  }
+  AdvancedCache cache=getCache(regionName,NATURAL_ID_KEY,properties);
+  CacheAdapter cacheAdapter=CacheAdapterImpl.newInstance(cache);
+  NaturalIdRegionImpl region=new NaturalIdRegionImpl(cacheAdapter,regionName,metadata,transactionManager,this);
+  startRegion(region,regionName);
+  return region;
 }
