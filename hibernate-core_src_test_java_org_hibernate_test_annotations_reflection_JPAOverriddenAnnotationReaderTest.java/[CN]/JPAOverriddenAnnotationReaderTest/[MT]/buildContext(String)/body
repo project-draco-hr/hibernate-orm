@@ -4,8 +4,8 @@
   InputStream is=cl.getResourceAsStream(ormfile);
   assertNotNull("ORM.xml not found: " + ormfile,is);
   XMLContext context=new XMLContext();
-  List errors=new ArrayList();
-  SAXReader saxReader=xmlHelper.createSAXReader("XML InputStream",errors,EJB3DTDEntityResolver.INSTANCE);
+  ErrorLogger errorLogger=new ErrorLogger();
+  SAXReader saxReader=xmlHelper.createSAXReader(errorLogger,EJB3DTDEntityResolver.INSTANCE);
   try {
     saxReader.setFeature("http://apache.org/xml/features/validation/schema",true);
   }
@@ -19,10 +19,10 @@
   finally {
     is.close();
   }
-  if (errors.size() > 0) {
-    System.out.println(errors.get(0));
+  if (errorLogger.hasErrors()) {
+    System.out.println(errorLogger.getErrors().get(0));
   }
-  assertEquals(0,errors.size());
+  assertFalse(errorLogger.hasErrors());
   context.addDocument(doc);
   return context;
 }

@@ -1,9 +1,9 @@
 {
   try {
-    List errors=new ArrayList<SAXParseException>();
-    Document document=xmlHelper.createSAXReader(resourceName,errors,entityResolver).read(new InputSource(stream));
-    if (errors.size() != 0) {
-      throw new MappingException("invalid configuration",(Throwable)errors.get(0));
+    ErrorLogger errorLogger=new ErrorLogger(resourceName);
+    Document document=xmlHelper.createSAXReader(errorLogger,entityResolver).read(new InputSource(stream));
+    if (errorLogger.hasErrors()) {
+      throw new MappingException("invalid configuration",errorLogger.getErrors().get(0));
     }
     doConfigure(document);
   }

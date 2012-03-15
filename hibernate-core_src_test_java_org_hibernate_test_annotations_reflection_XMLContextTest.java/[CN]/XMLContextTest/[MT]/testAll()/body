@@ -4,8 +4,8 @@
   InputStream is=cl.getResourceAsStream("org/hibernate/test/annotations/reflection/orm.xml");
   Assert.assertNotNull("ORM.xml not found",is);
   XMLContext context=new XMLContext();
-  List errors=new ArrayList();
-  SAXReader saxReader=xmlHelper.createSAXReader("XML InputStream",errors,EJB3DTDEntityResolver.INSTANCE);
+  ErrorLogger errorLogger=new ErrorLogger();
+  SAXReader saxReader=xmlHelper.createSAXReader(errorLogger,EJB3DTDEntityResolver.INSTANCE);
   try {
     saxReader.setFeature("http://apache.org/xml/features/validation/schema",true);
   }
@@ -23,6 +23,6 @@
  catch (    IOException ioe) {
     }
   }
-  Assert.assertEquals(0,errors.size());
+  Assert.assertFalse(errorLogger.hasErrors());
   context.addDocument(doc);
 }

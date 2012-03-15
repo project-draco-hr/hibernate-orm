@@ -10,8 +10,8 @@
   try {
     setValidationFor(saxReader,"orm_2_0.xsd");
     document=saxReader.read(source);
-    if (errorHandler.getError() != null) {
-      throw errorHandler.getError();
+    if (errorHandler.hasErrors()) {
+      throw errorHandler.getErrors().get(0);
     }
     return new XmlDocumentImpl(document,origin.getType(),origin.getName());
   }
@@ -25,8 +25,9 @@
       try {
         setValidationFor(saxReader,"orm_1_0.xsd");
         document=saxReader.read(new StringReader(document.asXML()));
-        if (errorHandler.getError() != null) {
-          throw errorHandler.getError();
+        if (errorHandler.hasErrors()) {
+          errorHandler.logErrors();
+          throw errorHandler.getErrors().get(0);
         }
         return new XmlDocumentImpl(document,origin.getType(),origin.getName());
       }
