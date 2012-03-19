@@ -1,10 +1,24 @@
 {
   Session session=sessionFactory().openSession();
   session.getTransaction().begin();
-  Session secondSession=session.sessionWithOptions().connection().autoClose(true).openSession();
-  secondSession.createCriteria(IrrelevantEntity.class).list();
-  assertFalse(((SessionImplementor)secondSession).getTransactionCoordinator().getJdbcCoordinator().getLogicalConnection().getResourceRegistry().hasRegisteredResources());
+  Session secondSession=session.sessionWithOptions().transactionContext().autoClose(true).openSession();
+  assertTrue(((TransactionContext)secondSession).isAutoCloseSessionEnabled());
+  assertTrue(((TransactionContext)secondSession).shouldAutoClose());
   session.getTransaction().commit();
+  assertFalse(((SessionImplementor)session).isClosed());
+  assertTrue(((SessionImplementor)secondSession).isClosed());
+  session.close();
+  assertTrue(((SessionImplementor)session).isClosed());
+  assertTrue(((SessionImplementor)secondSession).isClosed());
+  session=sessionFactory().openSession();
+  session.getTransaction().begin();
+  secondSession=session.sessionWithOptions().transactionContext().autoClose(true).openSession();
+  assertTrue(((TransactionContext)secondSession).isAutoCloseSessionEnabled());
+  assertTrue(((TransactionContext)secondSession).shouldAutoClose());
+  session.getTransaction().rollback();
+  assertFalse(((SessionImplementor)session).isClosed());
+  assertTrue(((SessionImplementor)secondSession).isClosed());
+  session.close();
   assertTrue(((SessionImplementor)session).isClosed());
   assertTrue(((SessionImplementor)secondSession).isClosed());
 }

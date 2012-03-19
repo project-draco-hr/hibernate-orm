@@ -1,10 +1,19 @@
 {
   Session session=sessionFactory().openSession();
   session.getTransaction().begin();
-  Session secondSession=session.sessionWithOptions().connection().openSession();
+  Session secondSession=session.sessionWithOptions().transactionContext().openSession();
   secondSession.createCriteria(IrrelevantEntity.class).list();
   assertFalse(((SessionImplementor)secondSession).getTransactionCoordinator().getJdbcCoordinator().getLogicalConnection().getResourceRegistry().hasRegisteredResources());
-  secondSession.close();
+  assertTrue(session.isOpen());
+  assertTrue(secondSession.isOpen());
+  assertSame(session.getTransaction(),secondSession.getTransaction());
   session.getTransaction().commit();
+  assertTrue(session.isOpen());
+  assertTrue(secondSession.isOpen());
+  secondSession.close();
+  assertTrue(session.isOpen());
+  assertFalse(secondSession.isOpen());
   session.close();
+  assertFalse(session.isOpen());
+  assertFalse(secondSession.isOpen());
 }
