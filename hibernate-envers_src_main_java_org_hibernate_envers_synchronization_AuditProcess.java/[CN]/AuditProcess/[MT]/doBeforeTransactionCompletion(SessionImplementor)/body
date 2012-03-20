@@ -5,7 +5,7 @@
   if (FlushMode.isManualFlushMode(session.getFlushMode())) {
     Session temporarySession=null;
     try {
-      temporarySession=session.getFactory().openTemporarySession();
+      temporarySession=((Session)session).sessionWithOptions().transactionContext().autoClose(false).connectionReleaseMode(ConnectionReleaseMode.AFTER_TRANSACTION).openSession();
       executeInSession(temporarySession);
       temporarySession.flush();
     }
