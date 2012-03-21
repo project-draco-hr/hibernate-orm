@@ -1,0 +1,32 @@
+{
+  Session session=openSession();
+  session.beginTransaction();
+  IrrelevantEntity irrelevantEntity=new IrrelevantEntity();
+  irrelevantEntity.setName("valid 1");
+  session.save(irrelevantEntity);
+  irrelevantEntity=new IrrelevantEntity();
+  session.save(irrelevantEntity);
+  try {
+    session.flush();
+    Assert.fail("Validation exception did not occur");
+  }
+ catch (  Exception e) {
+    session.getTransaction().rollback();
+  }
+  session.close();
+  session=openSession();
+  session.beginTransaction();
+  irrelevantEntity=new IrrelevantEntity();
+  irrelevantEntity.setName("valid 2");
+  session.save(irrelevantEntity);
+  session.flush();
+  session.getTransaction().commit();
+  session.close();
+  session=openSession();
+  session.beginTransaction();
+  Criteria criteria=session.createCriteria(IrrelevantEntity.class);
+  List results=criteria.list();
+  session.getTransaction().commit();
+  session.close();
+  Assert.assertEquals(1,results.size());
+}
