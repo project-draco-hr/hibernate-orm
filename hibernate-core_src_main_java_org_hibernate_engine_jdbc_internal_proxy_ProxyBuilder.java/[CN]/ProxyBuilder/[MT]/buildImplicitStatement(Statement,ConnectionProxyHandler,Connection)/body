@@ -2,6 +2,11 @@
   if (statement == null) {
     return null;
   }
-  ImplicitStatementProxyHandler handler=new ImplicitStatementProxyHandler(statement,connectionProxyHandler,connectionProxy);
-  return (Statement)Proxy.newProxyInstance(JdbcWrapper.class.getClassLoader(),STMNT_PROXY_INTERFACES,handler);
+  final ImplicitStatementProxyHandler proxyHandler=new ImplicitStatementProxyHandler(statement,connectionProxyHandler,connectionProxy);
+  try {
+    return statementProxyConstructorValue.getValue().newInstance(proxyHandler);
+  }
+ catch (  Exception e) {
+    throw new JdbcProxyException("Could not instantiate JDBC Statement proxy",e);
+  }
 }

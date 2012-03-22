@@ -1,4 +1,9 @@
 {
-  PreparedStatementProxyHandler proxyHandler=new PreparedStatementProxyHandler(sql,statement,connectionProxyHandler,connectionProxy);
-  return (PreparedStatement)Proxy.newProxyInstance(JdbcWrapper.class.getClassLoader(),PREPARED_STMNT_PROXY_INTERFACES,proxyHandler);
+  final PreparedStatementProxyHandler proxyHandler=new PreparedStatementProxyHandler(sql,statement,connectionProxyHandler,connectionProxy);
+  try {
+    return preparedStatementProxyConstructorValue.getValue().newInstance(proxyHandler);
+  }
+ catch (  Exception e) {
+    throw new JdbcProxyException("Could not instantiate JDBC PreparedStatement proxy",e);
+  }
 }

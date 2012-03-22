@@ -1,4 +1,9 @@
 {
-  ConnectionProxyHandler proxyHandler=new ConnectionProxyHandler(logicalConnection);
-  return (Connection)Proxy.newProxyInstance(JdbcWrapper.class.getClassLoader(),CONNECTION_PROXY_INTERFACES,proxyHandler);
+  final ConnectionProxyHandler proxyHandler=new ConnectionProxyHandler(logicalConnection);
+  try {
+    return connectionProxyConstructorValue.getValue().newInstance(proxyHandler);
+  }
+ catch (  Exception e) {
+    throw new JdbcProxyException("Could not instantiate JDBC Connection proxy",e);
+  }
 }
