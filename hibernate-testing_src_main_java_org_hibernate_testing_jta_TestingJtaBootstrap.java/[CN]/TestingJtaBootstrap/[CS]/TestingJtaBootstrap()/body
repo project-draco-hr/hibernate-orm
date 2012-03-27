@@ -5,8 +5,8 @@
   this.transactionManager=com.arjuna.ats.jta.TransactionManager.transactionManager();
   this.userTransaction=com.arjuna.ats.jta.UserTransaction.userTransaction();
   Properties environmentProperties=Environment.getProperties();
-  StandardXADataSource dataSource=new StandardXADataSource();
-  dataSource.setTransactionManager(com.arjuna.ats.jta.TransactionManager.transactionManager());
+  JtaAwareDataSource dataSource=new JtaAwareDataSource();
+  dataSource.setTransactionManager(transactionManager);
   try {
     dataSource.setDriverName(environmentProperties.getProperty(Environment.DRIVER));
   }
@@ -16,6 +16,8 @@
   dataSource.setUrl(environmentProperties.getProperty(Environment.URL));
   dataSource.setUser(environmentProperties.getProperty(Environment.USER));
   dataSource.setPassword(environmentProperties.getProperty(Environment.PASS));
+  environmentProperties.remove(Environment.USER);
+  environmentProperties.remove(Environment.PASS);
   final String isolationString=environmentProperties.getProperty(Environment.ISOLATION);
   if (isolationString != null) {
     dataSource.setTransactionIsolation(Integer.valueOf(isolationString));
