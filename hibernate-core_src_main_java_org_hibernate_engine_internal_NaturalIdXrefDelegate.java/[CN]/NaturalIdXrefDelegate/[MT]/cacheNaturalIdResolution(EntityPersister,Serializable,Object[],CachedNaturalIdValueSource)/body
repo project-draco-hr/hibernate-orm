@@ -23,7 +23,10 @@ case LOAD:
       }
 case INSERT:
 {
-      naturalIdCacheAccessStrategy.insert(naturalIdCacheKey,pk);
+      final boolean put=naturalIdCacheAccessStrategy.insert(naturalIdCacheKey,pk);
+      if (put && justAddedToLocalCache && factory.getStatistics().isStatisticsEnabled()) {
+        factory.getStatisticsImplementor().naturalIdCachePut(naturalIdCacheAccessStrategy.getRegion().getName());
+      }
       ((EventSource)session()).getActionQueue().registerProcess(new AfterTransactionCompletionProcess(){
         @Override public void doAfterTransactionCompletion(        boolean success,        SessionImplementor session){
           final boolean put=naturalIdCacheAccessStrategy.afterInsert(naturalIdCacheKey,pk);
@@ -41,7 +44,10 @@ case UPDATE:
     final SoftLock removalLock=naturalIdCacheAccessStrategy.lockItem(previousCacheKey,null);
     naturalIdCacheAccessStrategy.remove(previousCacheKey);
     final SoftLock lock=naturalIdCacheAccessStrategy.lockItem(naturalIdCacheKey,null);
-    naturalIdCacheAccessStrategy.update(naturalIdCacheKey,pk);
+    final boolean put=naturalIdCacheAccessStrategy.update(naturalIdCacheKey,pk);
+    if (put && justAddedToLocalCache && factory.getStatistics().isStatisticsEnabled()) {
+      factory.getStatisticsImplementor().naturalIdCachePut(naturalIdCacheAccessStrategy.getRegion().getName());
+    }
     ((EventSource)session()).getActionQueue().registerProcess(new AfterTransactionCompletionProcess(){
       @Override public void doAfterTransactionCompletion(      boolean success,      SessionImplementor session){
         naturalIdCacheAccessStrategy.unlockRegion(removalLock);
@@ -49,6 +55,7 @@ case UPDATE:
         if (put && justAddedToLocalCache && factory.getStatistics().isStatisticsEnabled()) {
           factory.getStatisticsImplementor().naturalIdCachePut(naturalIdCacheAccessStrategy.getRegion().getName());
         }
+        naturalIdCacheAccessStrategy.unlockItem(naturalIdCacheKey,lock);
       }
     }
 );
