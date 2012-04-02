@@ -1,0 +1,18 @@
+{
+  withTx(tm,new Callable<Void>(){
+    @Override public Void call() throws Exception {
+      Session s=sf.openSession();
+      Transaction tx=s.beginTransaction();
+      State france=getState(s,"Ile de France");
+      Criteria criteria=s.createCriteria(Citizen.class);
+      criteria.add(Restrictions.naturalId().set("ssn","1234").set("state",france));
+      criteria.setCacheable(true);
+      Citizen c=(Citizen)criteria.uniqueResult();
+      s.delete(c);
+      tx.commit();
+      s.close();
+      return null;
+    }
+  }
+);
+}

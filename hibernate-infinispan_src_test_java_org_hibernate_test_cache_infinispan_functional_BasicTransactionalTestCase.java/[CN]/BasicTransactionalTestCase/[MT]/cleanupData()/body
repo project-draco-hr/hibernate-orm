@@ -1,0 +1,16 @@
+{
+  super.cleanupCache();
+  withTx(tm,new Callable<Void>(){
+    @Override public Void call() throws Exception {
+      Session s=sessionFactory().openSession();
+      s.beginTransaction();
+      s.createQuery("delete NaturalIdOnManyToOne").executeUpdate();
+      s.createQuery("delete Citizen").executeUpdate();
+      s.createQuery("delete State").executeUpdate();
+      s.getTransaction().commit();
+      s.close();
+      return null;
+    }
+  }
+);
+}

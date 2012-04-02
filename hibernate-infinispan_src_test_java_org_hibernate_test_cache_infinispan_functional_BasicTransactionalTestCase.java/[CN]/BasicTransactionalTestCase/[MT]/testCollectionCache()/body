@@ -1,54 +1,45 @@
 {
-  Statistics stats=sessionFactory().getStatistics();
+  final Statistics stats=sessionFactory().getStatistics();
   stats.clear();
-  Item item=new Item("chris","Chris's Item");
-  Item another=new Item("another","Owned Item");
+  final Item item=new Item("chris","Chris's Item");
+  final Item another=new Item("another","Owned Item");
   item.addItem(another);
-  beginTx();
-  try {
-    Session s=openSession();
-    s.getTransaction().begin();
-    s.persist(item);
-    s.persist(another);
-    s.getTransaction().commit();
-    s.close();
+  withTx(tm,new Callable<Void>(){
+    @Override public Void call() throws Exception {
+      Session s=openSession();
+      s.getTransaction().begin();
+      s.persist(item);
+      s.persist(another);
+      s.getTransaction().commit();
+      s.close();
+      return null;
+    }
   }
- catch (  Exception e) {
-    setRollbackOnlyTx(e);
+);
+  withTx(tm,new Callable<Void>(){
+    @Override public Void call() throws Exception {
+      Session s=openSession();
+      Item loaded=(Item)s.load(Item.class,item.getId());
+      assertEquals(1,loaded.getItems().size());
+      s.close();
+      return null;
+    }
   }
- finally {
-    commitOrRollbackTx();
+);
+  withTx(tm,new Callable<Void>(){
+    @Override public Void call() throws Exception {
+      Session s=openSession();
+      SecondLevelCacheStatistics cStats=stats.getSecondLevelCacheStatistics(Item.class.getName() + ".items");
+      Item loadedWithCachedCollection=(Item)s.load(Item.class,item.getId());
+      stats.logSummary();
+      assertEquals(item.getName(),loadedWithCachedCollection.getName());
+      assertEquals(item.getItems().size(),loadedWithCachedCollection.getItems().size());
+      assertEquals(1,cStats.getHitCount());
+      Map cacheEntries=cStats.getEntries();
+      assertEquals(1,cacheEntries.size());
+      s.close();
+      return null;
+    }
   }
-  beginTx();
-  try {
-    Session s=openSession();
-    Item loaded=(Item)s.load(Item.class,item.getId());
-    assertEquals(1,loaded.getItems().size());
-    s.close();
-  }
- catch (  Exception e) {
-    setRollbackOnlyTx(e);
-  }
- finally {
-    commitOrRollbackTx();
-  }
-  beginTx();
-  try {
-    Session s=openSession();
-    SecondLevelCacheStatistics cStats=stats.getSecondLevelCacheStatistics(Item.class.getName() + ".items");
-    Item loadedWithCachedCollection=(Item)s.load(Item.class,item.getId());
-    stats.logSummary();
-    assertEquals(item.getName(),loadedWithCachedCollection.getName());
-    assertEquals(item.getItems().size(),loadedWithCachedCollection.getItems().size());
-    assertEquals(1,cStats.getHitCount());
-    Map cacheEntries=cStats.getEntries();
-    assertEquals(1,cacheEntries.size());
-    s.close();
-  }
- catch (  Exception e) {
-    setRollbackOnlyTx(e);
-  }
- finally {
-    commitOrRollbackTx();
-  }
+);
 }

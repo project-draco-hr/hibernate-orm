@@ -1,0 +1,75 @@
+{
+  final Statistics stats=sessionFactory().getStatistics();
+  stats.setStatisticsEnabled(true);
+  stats.clear();
+  assertEquals("NaturalId Cache Hits",0,stats.getNaturalIdCacheHitCount());
+  assertEquals("NaturalId Cache Misses",0,stats.getNaturalIdCacheMissCount());
+  assertEquals("NaturalId Cache Puts",0,stats.getNaturalIdCachePutCount());
+  assertEquals("NaturalId Cache Queries",0,stats.getNaturalIdQueryExecutionCount());
+  saveSomeCitizens();
+  assertEquals("NaturalId Cache Hits",0,stats.getNaturalIdCacheHitCount());
+  assertEquals("NaturalId Cache Misses",0,stats.getNaturalIdCacheMissCount());
+  assertEquals("NaturalId Cache Puts",2,stats.getNaturalIdCachePutCount());
+  assertEquals("NaturalId Cache Queries",0,stats.getNaturalIdQueryExecutionCount());
+  final Citizen citizen=withTx(tm,new Callable<Citizen>(){
+    @Override public Citizen call() throws Exception {
+      Session s=openSession();
+      Transaction tx=s.beginTransaction();
+      State france=BasicTransactionalTestCase.this.getState(s,"Ile de France");
+      NaturalIdLoadAccess naturalIdLoader=s.byNaturalId(Citizen.class);
+      naturalIdLoader.using("ssn","1234").using("state",france);
+      stats.clear();
+      Citizen citizen=(Citizen)naturalIdLoader.load();
+      assertNotNull(citizen);
+      assertEquals("NaturalId Cache Hits",1,stats.getNaturalIdCacheHitCount());
+      assertEquals("NaturalId Cache Misses",0,stats.getNaturalIdCacheMissCount());
+      assertEquals("NaturalId Cache Puts",0,stats.getNaturalIdCachePutCount());
+      assertEquals("NaturalId Cache Queries",0,stats.getNaturalIdQueryExecutionCount());
+      tx.rollback();
+      s.close();
+      return citizen;
+    }
+  }
+);
+  this.cleanupCache();
+  Thread.sleep(PutFromLoadValidator.NAKED_PUT_INVALIDATION_PERIOD + TimeUnit.SECONDS.toMillis(1));
+  stats.setStatisticsEnabled(true);
+  stats.clear();
+  withTx(tm,new Callable<Void>(){
+    @Override public Void call() throws Exception {
+      Session s=openSession();
+      Transaction tx=s.beginTransaction();
+      Citizen loadedCitizen=(Citizen)s.get(Citizen.class,citizen.getId());
+      assertNotNull(loadedCitizen);
+      assertEquals("NaturalId Cache Hits",0,stats.getNaturalIdCacheHitCount());
+      assertEquals("NaturalId Cache Misses",0,stats.getNaturalIdCacheMissCount());
+      assertEquals("NaturalId Cache Puts",1,stats.getNaturalIdCachePutCount());
+      assertEquals("NaturalId Cache Queries",0,stats.getNaturalIdQueryExecutionCount());
+      tx.rollback();
+      s.close();
+      return null;
+    }
+  }
+);
+  withTx(tm,new Callable<Void>(){
+    @Override public Void call() throws Exception {
+      Session s=openSession();
+      Transaction tx=s.beginTransaction();
+      State france=BasicTransactionalTestCase.this.getState(s,"Ile de France");
+      NaturalIdLoadAccess naturalIdLoader=s.byNaturalId(Citizen.class);
+      naturalIdLoader.using("ssn","1234").using("state",france);
+      stats.setStatisticsEnabled(true);
+      stats.clear();
+      Citizen loadedCitizen=(Citizen)naturalIdLoader.load();
+      assertNotNull(loadedCitizen);
+      assertEquals("NaturalId Cache Hits",1,stats.getNaturalIdCacheHitCount());
+      assertEquals("NaturalId Cache Misses",0,stats.getNaturalIdCacheMissCount());
+      assertEquals("NaturalId Cache Puts",0,stats.getNaturalIdCachePutCount());
+      assertEquals("NaturalId Cache Queries",0,stats.getNaturalIdQueryExecutionCount());
+      tx.rollback();
+      s.close();
+      return null;
+    }
+  }
+);
+}

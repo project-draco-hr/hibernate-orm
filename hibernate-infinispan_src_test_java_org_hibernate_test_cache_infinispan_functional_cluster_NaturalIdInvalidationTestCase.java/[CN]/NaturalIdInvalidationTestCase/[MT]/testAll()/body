@@ -1,0 +1,63 @@
+{
+  log.info("*** testAll()");
+  CacheContainer localManager=ClusterAwareRegionFactory.getCacheManager(DualNodeTestCase.LOCAL);
+  Cache localNaturalIdCache=localManager.getCache(Citizen.class.getName() + "##NaturalId");
+  MyListener localListener=new MyListener("local");
+  localNaturalIdCache.addListener(localListener);
+  TransactionManager localTM=DualNodeJtaTransactionManagerImpl.getInstance(DualNodeTestCase.LOCAL);
+  CacheContainer remoteManager=ClusterAwareRegionFactory.getCacheManager(DualNodeTestCase.REMOTE);
+  Cache remoteNaturalIdCache=remoteManager.getCache(Citizen.class.getName() + "##NaturalId");
+  MyListener remoteListener=new MyListener("remote");
+  remoteNaturalIdCache.addListener(remoteListener);
+  TransactionManager remoteTM=DualNodeJtaTransactionManagerImpl.getInstance(DualNodeTestCase.REMOTE);
+  SessionFactory localFactory=sessionFactory();
+  SessionFactory remoteFactory=secondNodeEnvironment().getSessionFactory();
+  try {
+    assertTrue(remoteListener.isEmpty());
+    assertTrue(localListener.isEmpty());
+    saveSomeCitizens(localTM,localFactory);
+    assertTrue(remoteListener.isEmpty());
+    assertTrue(localListener.isEmpty());
+    sleep(SLEEP_TIME);
+    log.debug("Find node 0");
+    getCitizenWithCriteria(localTM,localFactory);
+    sleep(SLEEP_TIME);
+    log.debug("Find(2) node 0");
+    localListener.clear();
+    getCitizenWithCriteria(localTM,localFactory);
+    log.debug("Check cache 0");
+    assertLoadedFromCache(localListener,"1234");
+    log.debug("Find node 1");
+    getCitizenWithCriteria(remoteTM,remoteFactory);
+    log.debug("Find(2) node 1");
+    remoteListener.clear();
+    getCitizenWithCriteria(remoteTM,remoteFactory);
+    log.debug("Check cache 1");
+    assertLoadedFromCache(remoteListener,"1234");
+    remoteListener.clear();
+    deleteCitizenWithCriteria(remoteTM,remoteFactory);
+    sleep(250);
+    Set localKeys=localNaturalIdCache.keySet();
+    assertEquals(1,localKeys.size());
+    localKeys.toString().contains("000");
+  }
+ catch (  Exception e) {
+    log.error("Error",e);
+    throw e;
+  }
+ finally {
+    withTx(localTM,new Callable<Void>(){
+      @Override public Void call() throws Exception {
+        Session s=sessionFactory().openSession();
+        s.beginTransaction();
+        s.createQuery("delete NaturalIdOnManyToOne").executeUpdate();
+        s.createQuery("delete Citizen").executeUpdate();
+        s.createQuery("delete State").executeUpdate();
+        s.getTransaction().commit();
+        s.close();
+        return null;
+      }
+    }
+);
+  }
+}
