@@ -9,7 +9,7 @@
     persister.insert(id,getState(),instance,session);
     EntityEntry entry=session.getPersistenceContext().getEntry(instance);
     if (entry == null) {
-      throw new AssertionFailure("possible nonthreadsafe access to session");
+      throw new AssertionFailure("possible non-threadsafe access to session");
     }
     entry.postInsert(getState());
     if (persister.hasInsertGeneratedProperties()) {
@@ -31,6 +31,7 @@
       factory.getStatisticsImplementor().secondLevelCachePut(getPersister().getCacheAccessStrategy().getRegion().getName());
     }
   }
+  handleNaturalIdPostSaveNotifications();
   postInsert();
   if (factory.getStatistics().isStatisticsEnabled() && !veto) {
     factory.getStatisticsImplementor().insertEntity(getPersister().getEntityName());

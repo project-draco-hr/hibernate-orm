@@ -1,10 +1,11 @@
 {
-  final Set<Serializable> querySpaces=new LinkedHashSet<Serializable>();
-  for (  final Serializable querySpace : entityPersister.getQuerySpaces()) {
-    querySpaces.add(querySpace);
-  }
-  autoFlushIfRequired(querySpaces);
+  performAnyNeededCrossReferenceSynchronizations();
   final ResolveNaturalIdEvent event=new ResolveNaturalIdEvent(naturalIdParameters,entityPersister,SessionImpl.this);
   fireResolveNaturalId(event);
-  return event.getEntityId();
+  if (event.getEntityId() == PersistenceContext.NaturalIdHelper.INVALID_NATURAL_ID_REFERENCE) {
+    return null;
+  }
+ else {
+    return event.getEntityId();
+  }
 }

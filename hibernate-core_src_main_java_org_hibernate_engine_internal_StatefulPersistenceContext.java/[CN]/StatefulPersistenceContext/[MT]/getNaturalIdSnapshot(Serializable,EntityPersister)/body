@@ -2,13 +2,14 @@
   if (!persister.hasNaturalIdentifier()) {
     return null;
   }
-  final Object[] cachedValue=findCachedNaturalId(persister,id);
+  persister=locateProperPersister(persister);
+  final Object[] cachedValue=naturalIdHelper.findCachedNaturalId(persister,id);
   if (cachedValue != null) {
     return cachedValue;
   }
   if (persister.getEntityMetamodel().hasImmutableNaturalId()) {
     final Object[] dbValue=persister.getNaturalIdentifierSnapshot(id,session);
-    cacheNaturalIdResolution(persister,id,dbValue,CachedNaturalIdValueSource.LOAD);
+    naturalIdHelper.cacheNaturalIdCrossReferenceFromLoad(persister,id,dbValue);
     return dbValue;
   }
  else {
@@ -21,7 +22,7 @@
     for (int i=0; i < props.length; i++) {
       naturalIdSnapshotSubSet[i]=entitySnapshot[props[i]];
     }
-    cacheNaturalIdResolution(persister,id,naturalIdSnapshotSubSet,CachedNaturalIdValueSource.LOAD);
+    naturalIdHelper.cacheNaturalIdCrossReferenceFromLoad(persister,id,naturalIdSnapshotSubSet);
     return naturalIdSnapshotSubSet;
   }
 }
