@@ -3,8 +3,9 @@
   Set<Number> revNumbers=new HashSet<Number>();
   revNumbers.add(1);
   revNumbers.add(2);
-  Map<Number,InheritedRevEntity> revisionMap=vr.findRevisions(InheritedRevEntity.class,revNumbers);
+  Class<?> revisionClass=getDialect() instanceof Oracle8iDialect ? OracleRevisionEntity.class : InheritedRevEntity.class;
+  Map revisionMap=vr.findRevisions(revisionClass,revNumbers);
   assert(revisionMap.size() == 2);
-  assert(revisionMap.get(1).equals(vr.findRevision(InheritedRevEntity.class,1)));
-  assert(revisionMap.get(2).equals(vr.findRevision(InheritedRevEntity.class,2)));
+  assert(revisionMap.get(1).equals(vr.findRevision(revisionClass,1)));
+  assert(revisionMap.get(2).equals(vr.findRevision(revisionClass,2)));
 }
