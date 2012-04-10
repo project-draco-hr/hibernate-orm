@@ -1,0 +1,22 @@
+{
+  Session session=openSession();
+  final String postCommitMessage="post commit was called";
+  EventListenerRegistry eventListenerRegistry=sessionFactory().getServiceRegistry().getService(EventListenerRegistry.class);
+  eventListenerRegistry.appendListeners(EventType.POST_COMMIT_INSERT,new PostInsertEventListener(){
+    @Override public void onPostInsert(    PostInsertEvent event){
+      ((IrrelevantEntity)event.getEntity()).setName(postCommitMessage);
+    }
+  }
+);
+  session.getTransaction().begin();
+  IrrelevantEntity irrelevantEntityMainSession=new IrrelevantEntity();
+  irrelevantEntityMainSession.setName("main session");
+  session.save(irrelevantEntityMainSession);
+  Session secondSession=session.sessionWithOptions().connection().flushBeforeCompletion(true).autoClose(true).openSession();
+  IrrelevantEntity irrelevantEntitySecondarySession=new IrrelevantEntity();
+  irrelevantEntitySecondarySession.setName("secondary session");
+  secondSession.save(irrelevantEntitySecondarySession);
+  session.getTransaction().commit();
+  assertEquals(postCommitMessage,irrelevantEntityMainSession.getName());
+  assertEquals(postCommitMessage,irrelevantEntitySecondarySession.getName());
+}

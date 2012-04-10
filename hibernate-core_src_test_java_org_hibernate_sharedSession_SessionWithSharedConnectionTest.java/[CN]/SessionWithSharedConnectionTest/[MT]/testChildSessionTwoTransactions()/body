@@ -1,0 +1,9 @@
+{
+  Session session=openSession();
+  session.getTransaction().begin();
+  Session secondarySession=session.sessionWithOptions().connection().flushBeforeCompletion(true).autoClose(true).openSession();
+  session.getTransaction().commit();
+  assertFalse(secondarySession.isOpen());
+  session.getTransaction().begin();
+  session.getTransaction().commit();
+}

@@ -1,0 +1,20 @@
+{
+  Session session=sessionFactory().openSession();
+  session.getTransaction().begin();
+  Field field=TransactionCoordinatorImpl.class.getDeclaredField("observers");
+  field.setAccessible(true);
+  List observers=(List)field.get(((SessionImplementor)session).getTransactionCoordinator());
+  int originalObserverSize=observers.size();
+  Session secondSession=session.sessionWithOptions().connection().flushBeforeCompletion(false).autoClose(false).openSession();
+  observers=(List)field.get(((SessionImplementor)session).getTransactionCoordinator());
+  final int observerSizeWithSecondSession=observers.size();
+  assertTrue(observerSizeWithSecondSession > originalObserverSize);
+  secondSession.close();
+  observers=(List)field.get(((SessionImplementor)session).getTransactionCoordinator());
+  assertEquals(originalObserverSize,observers.size());
+  TransactionCoordinator transactionCoordinator=((SessionImplementor)session).getTransactionCoordinator();
+  session.getTransaction().commit();
+  session.close();
+  observers=(List)field.get(transactionCoordinator);
+  assertEquals(0,observers.size());
+}
