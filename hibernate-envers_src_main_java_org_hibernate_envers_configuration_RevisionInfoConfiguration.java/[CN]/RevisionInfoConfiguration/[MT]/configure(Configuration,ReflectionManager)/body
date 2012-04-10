@@ -35,7 +35,7 @@
       revisionInfoClass=pc.getMappedClass();
       Class<? extends RevisionListener> revisionListenerClass=getRevisionListenerClass(revisionEntity.value());
       revisionInfoTimestampType=pc.getProperty(revisionInfoTimestampData.getName()).getType();
-      if (globalCfg.isTrackEntitiesChangedInRevisionEnabled() || DefaultTrackingModifiedEntitiesRevisionEntity.class.isAssignableFrom(revisionInfoClass) || modifiedEntityNamesFound.isSet()) {
+      if (globalCfg.isTrackEntitiesChangedInRevisionEnabled() || (!globalCfg.isUseEnhancedRevisionEntity() && DefaultTrackingModifiedEntitiesRevisionEntity.class.isAssignableFrom(revisionInfoClass)) || (globalCfg.isUseEnhancedRevisionEntity() && org.hibernate.envers.enhanced.DefaultTrackingModifiedEntitiesRevisionEntity.class.isAssignableFrom(revisionInfoClass))|| modifiedEntityNamesFound.isSet()) {
         revisionInfoGenerator=new DefaultTrackingModifiedEntitiesRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,revisionListenerClass,revisionInfoTimestampData,isTimestampAsDate(),modifiedEntityNamesData);
         globalCfg.setTrackEntitiesChangedInRevisionEnabled(true);
       }
@@ -48,12 +48,12 @@
   Class<? extends RevisionListener> revisionListenerClass=getRevisionListenerClass(RevisionListener.class);
   if (revisionInfoGenerator == null) {
     if (globalCfg.isTrackEntitiesChangedInRevisionEnabled()) {
-      revisionInfoClass=DefaultTrackingModifiedEntitiesRevisionEntity.class;
-      revisionInfoEntityName=DefaultTrackingModifiedEntitiesRevisionEntity.class.getName();
+      revisionInfoClass=globalCfg.isUseEnhancedRevisionEntity() ? org.hibernate.envers.enhanced.DefaultTrackingModifiedEntitiesRevisionEntity.class : DefaultTrackingModifiedEntitiesRevisionEntity.class;
+      revisionInfoEntityName=revisionInfoClass.getName();
       revisionInfoGenerator=new DefaultTrackingModifiedEntitiesRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,revisionListenerClass,revisionInfoTimestampData,isTimestampAsDate(),modifiedEntityNamesData);
     }
  else {
-      revisionInfoClass=DefaultRevisionEntity.class;
+      revisionInfoClass=globalCfg.isUseEnhancedRevisionEntity() ? org.hibernate.envers.enhanced.DefaultRevisionEntity.class : DefaultRevisionEntity.class;
       revisionInfoGenerator=new DefaultRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,revisionListenerClass,revisionInfoTimestampData,isTimestampAsDate());
     }
     revisionInfoXmlMapping=generateDefaultRevisionInfoXmlMapping();

@@ -1,27 +1,16 @@
 {
   for (  Map<String,Object> revisionEntity : revisionEntities) {
     Date revendTimestamp=(Date)revisionEntity.get(revendTimestampColumName);
-    if (getDialect() instanceof Oracle8iDialect) {
-      OracleRevisionEntity revEnd=(OracleRevisionEntity)revisionEntity.get("REVEND");
-      if (revendTimestamp == null) {
-        Assert.assertNull(revEnd);
+    DefaultRevisionEntity revEnd=(DefaultRevisionEntity)revisionEntity.get("REVEND");
+    if (revendTimestamp == null) {
+      Assert.assertNull(revEnd);
+    }
+ else {
+      if (getDialect() instanceof MySQL5Dialect) {
+        Assert.assertEquals(revendTimestamp.getTime(),(revEnd.getTimestamp() - (revEnd.getTimestamp() % 1000)));
       }
  else {
         Assert.assertEquals(revendTimestamp.getTime(),revEnd.getTimestamp());
-      }
-    }
- else {
-      DefaultRevisionEntity revEnd=(DefaultRevisionEntity)revisionEntity.get("REVEND");
-      if (revendTimestamp == null) {
-        Assert.assertNull(revEnd);
-      }
- else {
-        if (getDialect() instanceof MySQL5Dialect) {
-          Assert.assertEquals(revendTimestamp.getTime(),(revEnd.getTimestamp() - (revEnd.getTimestamp() % 1000)));
-        }
- else {
-          Assert.assertEquals(revendTimestamp.getTime(),revEnd.getTimestamp());
-        }
       }
     }
   }
