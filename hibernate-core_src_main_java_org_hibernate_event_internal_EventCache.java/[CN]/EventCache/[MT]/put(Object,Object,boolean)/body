@@ -2,7 +2,30 @@
   if (entity == null || copy == null) {
     throw new NullPointerException("null entities and copies are not supported by " + getClass().getName());
   }
-  entityToOperatedOnFlagMap.put(entity,Boolean.valueOf(isOperatedOn));
-  copyToEntityMap.put(copy,entity);
-  return entityToCopyMap.put(entity,copy);
+  Object oldCopy=entityToCopyMap.put(entity,copy);
+  Boolean oldOperatedOn=entityToOperatedOnFlagMap.put(entity,isOperatedOn);
+  Object oldEntity=copyToEntityMap.put(copy,entity);
+  if (oldCopy == null) {
+    if (oldEntity != null) {
+      throw new IllegalStateException("An entity copy is already assigned to a different entity.");
+    }
+    if (oldOperatedOn != null) {
+      throw new IllegalStateException("entityToOperatedOnFlagMap contains an entity, but entityToCopyMap does not.");
+    }
+  }
+ else {
+    if (oldEntity == null) {
+      throw new IllegalStateException("An entity already had a copy in entityToCopyMap, but the specified copy was not in copyToEntityMap.");
+    }
+    if (oldOperatedOn == null) {
+      throw new IllegalStateException("entityToCopyMap contained an entity, but entityToOperatedOnFlagMap did not.");
+    }
+    if (oldEntity != entity) {
+      throw new IllegalStateException("An entity copy was associated with a different entity than provided.");
+    }
+    if (oldCopy != copy) {
+      throw new IllegalStateException("An entity was already associated with a copy that is different from the copy provided.");
+    }
+  }
+  return oldCopy;
 }

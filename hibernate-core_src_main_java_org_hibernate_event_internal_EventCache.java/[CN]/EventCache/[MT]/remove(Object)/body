@@ -2,8 +2,24 @@
   if (entity == null) {
     throw new NullPointerException("null entities are not supported by " + getClass().getName());
   }
-  entityToOperatedOnFlagMap.remove(entity);
-  Object result=entityToCopyMap.remove(entity);
-  copyToEntityMap.remove(result);
-  return result;
+  Boolean oldOperatedOn=entityToOperatedOnFlagMap.remove(entity);
+  Object oldCopy=entityToCopyMap.remove(entity);
+  Object oldEntity=oldCopy != null ? copyToEntityMap.remove(oldCopy) : null;
+  if (oldCopy == null) {
+    if (oldOperatedOn != null) {
+      throw new IllegalStateException("Removed entity from entityToOperatedOnFlagMap, but entityToCopyMap did not contain the entity.");
+    }
+  }
+ else {
+    if (oldEntity == null) {
+      throw new IllegalStateException("Removed entity from entityToCopyMap, but copyToEntityMap did not contain the entity.");
+    }
+    if (oldOperatedOn == null) {
+      throw new IllegalStateException("entityToCopyMap contained an entity, but entityToOperatedOnFlagMap did not.");
+    }
+    if (oldEntity != entity) {
+      throw new IllegalStateException("An entity copy was associated with a different entity than provided.");
+    }
+  }
+  return oldCopy;
 }

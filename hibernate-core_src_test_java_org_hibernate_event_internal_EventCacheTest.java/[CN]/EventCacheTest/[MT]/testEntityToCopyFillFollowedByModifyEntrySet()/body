@@ -1,0 +1,42 @@
+{
+  EventCache cache=new EventCache();
+  Object entity=new Simple(1);
+  Object copy=new Simple(2);
+  cache.put(entity,copy,true);
+  Iterator it=cache.entrySet().iterator();
+  try {
+    it.remove();
+    fail("should have thrown UnsupportedOperationException");
+  }
+ catch (  UnsupportedOperationException ex) {
+  }
+  Map.Entry entry=(Map.Entry)cache.entrySet().iterator().next();
+  try {
+    cache.entrySet().remove(entry);
+    fail("should have thrown UnsupportedOperationException");
+  }
+ catch (  UnsupportedOperationException ex) {
+  }
+  Map.Entry anotherEntry=new Map.Entry(){
+    private Object key=new Simple(3);
+    private Object value=4;
+    @Override public Object getKey(){
+      return key;
+    }
+    @Override public Object getValue(){
+      return value;
+    }
+    @Override public Object setValue(    Object value){
+      Object oldValue=this.value;
+      this.value=value;
+      return oldValue;
+    }
+  }
+;
+  try {
+    cache.entrySet().add(anotherEntry);
+    fail("should have thrown UnsupportedOperationException");
+  }
+ catch (  UnsupportedOperationException ex) {
+  }
+}
