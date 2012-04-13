@@ -6,13 +6,15 @@
   Iterator iter=getTableMappings();
   while (iter.hasNext()) {
     Table table=(Table)iter.next();
+    String tableSchema=(table.getSchema() == null) ? defaultSchema : table.getSchema();
+    String tableCatalog=(table.getCatalog() == null) ? defaultCatalog : table.getCatalog();
     if (table.isPhysicalTable()) {
-      TableMetadata tableInfo=databaseMetadata.getTableMetadata(table.getName(),(table.getSchema() == null) ? defaultSchema : table.getSchema(),(table.getCatalog() == null) ? defaultCatalog : table.getCatalog(),table.isQuoted());
+      TableMetadata tableInfo=databaseMetadata.getTableMetadata(table.getName(),tableSchema,tableCatalog,table.isQuoted());
       if (tableInfo == null) {
-        script.add(table.sqlCreateString(dialect,mapping,defaultCatalog,defaultSchema));
+        script.add(table.sqlCreateString(dialect,mapping,tableCatalog,tableSchema));
       }
  else {
-        Iterator<String> subiter=table.sqlAlterStrings(dialect,mapping,tableInfo,defaultCatalog,defaultSchema);
+        Iterator<String> subiter=table.sqlAlterStrings(dialect,mapping,tableInfo,tableCatalog,tableSchema);
         while (subiter.hasNext()) {
           script.add(subiter.next());
         }
@@ -26,8 +28,10 @@
   iter=getTableMappings();
   while (iter.hasNext()) {
     Table table=(Table)iter.next();
+    String tableSchema=(table.getSchema() == null) ? defaultSchema : table.getSchema();
+    String tableCatalog=(table.getCatalog() == null) ? defaultCatalog : table.getCatalog();
     if (table.isPhysicalTable()) {
-      TableMetadata tableInfo=databaseMetadata.getTableMetadata(table.getName(),table.getSchema(),table.getCatalog(),table.isQuoted());
+      TableMetadata tableInfo=databaseMetadata.getTableMetadata(table.getName(),tableSchema,tableCatalog,table.isQuoted());
       if (dialect.hasAlterTable()) {
         Iterator subIter=table.getForeignKeyIterator();
         while (subIter.hasNext()) {
@@ -35,7 +39,7 @@
           if (fk.isPhysicalConstraint()) {
             boolean create=tableInfo == null || (tableInfo.getForeignKeyMetadata(fk) == null && (!(dialect instanceof MySQLDialect) || tableInfo.getIndexMetadata(fk.getName()) == null));
             if (create) {
-              script.add(fk.sqlCreateString(dialect,mapping,defaultCatalog,defaultSchema));
+              script.add(fk.sqlCreateString(dialect,mapping,tableCatalog,tableSchema));
             }
           }
         }
@@ -49,7 +53,7 @@
             continue;
           }
         }
-        script.add(index.sqlCreateString(dialect,mapping,defaultCatalog,defaultSchema));
+        script.add(index.sqlCreateString(dialect,mapping,tableCatalog,tableSchema));
       }
     }
   }
