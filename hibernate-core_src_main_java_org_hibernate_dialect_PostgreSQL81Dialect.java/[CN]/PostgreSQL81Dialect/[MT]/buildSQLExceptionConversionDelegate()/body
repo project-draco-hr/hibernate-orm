@@ -1,0 +1,22 @@
+{
+  SQLExceptionConversionDelegate delegate=super.buildSQLExceptionConversionDelegate();
+  if (delegate == null) {
+    delegate=new SQLStateConversionDelegate(this){
+      @Override public JDBCException convert(      SQLException sqlException,      String message,      String sql){
+        JDBCException exception=super.convert(sqlException,message,sql);
+        if (exception == null) {
+          String sqlState=JdbcExceptionHelper.extractSqlState(sqlException);
+          if ("40P01".equals(sqlState)) {
+            exception=new LockAcquisitionException(message,sqlException,sql);
+          }
+          if ("55P03".equals(sqlState)) {
+            exception=new PessimisticLockException(message,sqlException,sql);
+          }
+        }
+        return exception;
+      }
+    }
+;
+  }
+  return delegate;
+}
