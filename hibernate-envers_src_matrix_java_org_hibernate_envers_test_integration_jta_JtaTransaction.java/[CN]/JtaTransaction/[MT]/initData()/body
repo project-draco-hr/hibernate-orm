@@ -3,7 +3,6 @@
   EntityManager em;
   IntTestEntity ite;
   try {
-    newEntityManager();
     em=getEntityManager();
     ite=new IntTestEntity(10);
     em.persist(ite);
@@ -12,9 +11,9 @@
   finally {
     TestingJtaBootstrap.tryCommit();
   }
+  em.close();
   TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
   try {
-    newEntityManager();
     em=getEntityManager();
     ite=em.find(IntTestEntity.class,id1);
     ite.setNumber(20);
@@ -22,4 +21,5 @@
   finally {
     TestingJtaBootstrap.tryCommit();
   }
+  em.close();
 }

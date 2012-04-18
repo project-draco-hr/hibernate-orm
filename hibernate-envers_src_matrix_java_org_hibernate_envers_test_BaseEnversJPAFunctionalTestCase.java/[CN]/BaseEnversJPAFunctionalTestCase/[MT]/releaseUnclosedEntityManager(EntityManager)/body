@@ -1,0 +1,29 @@
+{
+  if (em == null) {
+    return;
+  }
+  if (!em.isOpen()) {
+    em=null;
+    return;
+  }
+  if (JtaStatusHelper.isActive(TestingJtaBootstrap.INSTANCE.getTransactionManager())) {
+    log.warn("Cleaning up unfinished transaction");
+    try {
+      TestingJtaBootstrap.INSTANCE.getTransactionManager().rollback();
+    }
+ catch (    SystemException ignored) {
+    }
+  }
+  try {
+    if (em.getTransaction().isActive()) {
+      em.getTransaction().rollback();
+      log.warn("You left an open transaction! Fix your test case. For now, we are closing it for you.");
+    }
+  }
+ catch (  IllegalStateException e) {
+  }
+  if (em.isOpen()) {
+    em.close();
+    log.warn("The EntityManager is not closed. Closing it.");
+  }
+}
