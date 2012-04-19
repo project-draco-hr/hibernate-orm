@@ -1,0 +1,20 @@
+{
+  SQLExceptionConversionDelegate delegate=super.buildSQLExceptionConversionDelegate();
+  if (delegate == null) {
+    delegate=new SQLExceptionConversionDelegate(){
+      @Override public JDBCException convert(      SQLException sqlException,      String message,      String sql){
+        JDBCException exception=null;
+        int errorCode=JdbcExceptionHelper.extractErrorCode(sqlException);
+        if (40001 == errorCode) {
+          exception=new LockAcquisitionException(message,sqlException,sql);
+        }
+        if (50200 == errorCode) {
+          exception=new PessimisticLockException(message,sqlException,sql);
+        }
+        return exception;
+      }
+    }
+;
+  }
+  return delegate;
+}
