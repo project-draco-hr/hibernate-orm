@@ -1,13 +1,13 @@
 {
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   Competition competition=new Competition();
   competition.getCompetitors().add(new Competitor("Name"));
   competition.getCompetitors().add(new Competitor());
   competition.getCompetitors().add(new Competitor());
   s.persist(competition);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   List newComp=new ArrayList();
   Competitor originalCompetitor=(Competitor)competition.getCompetitors().get(0);
@@ -18,16 +18,16 @@
   Competition competition2=(Competition)s.merge(competition);
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   Competition competition2copy=(Competition)getOldToNewEntityRefMap().get(competition2);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   assertFalse(competition == competition2);
   assertFalse(competition2 == competition2copy);
   assertFalse(competition.getCompetitors() == competition2.getCompetitors());
   assertEquals(2,competition2.getCompetitors().size());
   assertEquals(2,competition2copy.getCompetitors().size());
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   competition=(Competition)s.get(Competition.class,competition.getId());
   assertEquals(2,competition.getCompetitors().size());
   s.delete(competition);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
 }

@@ -1,6 +1,6 @@
 {
   Session s;
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   Employer er=new Employer();
   Employee ee=new Employee();
@@ -17,8 +17,8 @@
   applyNonFlushedChangesToNewSessionCloseOldSession(s);
   ee=(Employee)getOldToNewEntityRefMap().get(ee);
   er=(Employer)ee.getEmployers().iterator().next();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   er=(Employer)s.load(Employer.class,er.getId());
   assertNotNull(er);
@@ -34,5 +34,5 @@
   eeFromDb=(Employee)getOldToNewEntityRefMap().get(eeFromDb);
   assertEquals(ee.getId(),eeFromDb.getId());
   applyNonFlushedChangesToNewSessionCloseOldSession(s);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
 }

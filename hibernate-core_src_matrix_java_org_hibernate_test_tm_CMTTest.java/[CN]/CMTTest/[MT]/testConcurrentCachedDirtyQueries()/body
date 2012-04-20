@@ -1,5 +1,5 @@
 {
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   Map foo=new HashMap();
   foo.put("name","Foo");
@@ -9,28 +9,28 @@
   bar.put("name","Bar");
   bar.put("description","a small bar");
   s.persist("Item",bar);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
 synchronized (this) {
     wait(1000);
   }
   sessionFactory().getStatistics().clear();
   cleanupCache();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   Session s4=openSession();
-  Transaction tx4=TestingJtaBootstrap.INSTANCE.getTransactionManager().suspend();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  Transaction tx4=TestingJtaPlatformImpl.INSTANCE.getTransactionManager().suspend();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   Session s1=openSession();
   List r1=s1.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
   assertEquals(r1.size(),2);
   foo=(Map)r1.get(0);
   foo.put("description","a big red foo");
   s1.flush();
-  Transaction tx1=TestingJtaBootstrap.INSTANCE.getTransactionManager().suspend();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  Transaction tx1=TestingJtaPlatformImpl.INSTANCE.getTransactionManager().suspend();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   Session s2=openSession();
   List r2=s2.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
   assertEquals(r2.size(),2);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   assertEquals(0,sessionFactory().getStatistics().getSecondLevelCacheHitCount());
   assertEquals(0,sessionFactory().getStatistics().getSecondLevelCacheMissCount());
   assertEquals(4,sessionFactory().getStatistics().getEntityLoadCount());
@@ -41,14 +41,14 @@ synchronized (this) {
   assertEquals(2,sessionFactory().getStatistics().getQueryCacheMissCount());
   assertEquals(1,sessionFactory().getStatistics().getUpdateTimestampsCachePutCount());
   assertEquals(1,sessionFactory().getStatistics().getUpdateTimestampsCacheHitCount());
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().resume(tx1);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().resume(tx1);
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   assertEquals(2,sessionFactory().getStatistics().getUpdateTimestampsCachePutCount());
   assertEquals(1,sessionFactory().getStatistics().getUpdateTimestampsCacheHitCount());
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   Session s3=openSession();
   s3.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   assertEquals(0,sessionFactory().getStatistics().getSecondLevelCacheHitCount());
   assertEquals(0,sessionFactory().getStatistics().getSecondLevelCacheMissCount());
   assertEquals(6,sessionFactory().getStatistics().getEntityLoadCount());
@@ -58,10 +58,10 @@ synchronized (this) {
   assertEquals(0,sessionFactory().getStatistics().getQueryCacheHitCount());
   assertEquals(3,sessionFactory().getStatistics().getQueryCacheMissCount());
   assertEquals(2,sessionFactory().getStatistics().getUpdateTimestampsCacheHitCount());
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().resume(tx4);
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().resume(tx4);
   List r4=s4.createCriteria("Item").addOrder(Order.asc("description")).setCacheable(true).list();
   assertEquals(r4.size(),2);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   assertEquals(2,sessionFactory().getStatistics().getSecondLevelCacheHitCount());
   assertEquals(0,sessionFactory().getStatistics().getSecondLevelCacheMissCount());
   assertEquals(6,sessionFactory().getStatistics().getEntityLoadCount());
@@ -71,8 +71,8 @@ synchronized (this) {
   assertEquals(1,sessionFactory().getStatistics().getQueryCacheHitCount());
   assertEquals(3,sessionFactory().getStatistics().getQueryCacheMissCount());
   assertEquals(3,sessionFactory().getStatistics().getUpdateTimestampsCacheHitCount());
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.createQuery("delete from Item").executeUpdate();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
 }

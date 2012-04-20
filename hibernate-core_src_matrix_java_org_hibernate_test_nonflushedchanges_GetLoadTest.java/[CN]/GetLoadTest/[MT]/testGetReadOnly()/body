@@ -1,6 +1,6 @@
 {
   clearCounts();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   Employer emp=new Employer();
   s.persist(emp);
@@ -8,8 +8,8 @@
   Node parent=new Node("bar");
   parent.addChild(node);
   s.persist(parent);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   assertFalse(s.isDefaultReadOnly());
   s.setDefaultReadOnly(true);
@@ -39,8 +39,8 @@
   }
   assertFalse(Hibernate.isInitialized(node.getParent()));
   assertNull(s.get(Node.class,"xyz"));
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   assertFalse(s.isDefaultReadOnly());
   emp=(Employer)s.get("org.hibernate.test.nonflushedchanges.Employer",emp.getId());
@@ -59,14 +59,14 @@
   node=(Node)getOldToNewEntityRefMap().get(node);
   assertTrue(Hibernate.isInitialized(node));
   assertTrue(s.isReadOnly(node));
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   assertFetchCount(0);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.createQuery("delete from Employer").executeUpdate();
   List list=s.createQuery("from Node").list();
   for (  Object aList : list) {
     s.delete(aList);
   }
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
 }

@@ -1,12 +1,12 @@
 {
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   NumberedNode root=new NumberedNode("root");
   s.saveOrUpdate(root);
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   root=(NumberedNode)getOldToNewEntityRefMap().get(root);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   root=(NumberedNode)s.get(NumberedNode.class,root.getId());
   NumberedNode child=new NumberedNode("child");
@@ -24,13 +24,13 @@
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   root=(NumberedNode)getOldToNewEntityRefMap().get(root);
   child=(NumberedNode)getOldToNewEntityRefMap().get(child);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   assertTrue(root.getChildren().contains(child));
   assertEquals(root.getChildren().size(),1);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   assertEquals(Long.valueOf(2),s.createCriteria(NumberedNode.class).setProjection(Projections.rowCount()).uniqueResult());
   s.delete(root);
   s.delete(child);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
 }

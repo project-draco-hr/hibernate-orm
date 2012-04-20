@@ -1,5 +1,5 @@
 {
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   NumberedNode dupe=new NumberedNode("dupe");
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
@@ -9,8 +9,8 @@
   s.persist(dupe);
   applyNonFlushedChangesToNewSessionCloseOldSession(s);
   dupe=(NumberedNode)getOldToNewEntityRefMap().get(dupe);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   try {
@@ -20,10 +20,10 @@
   }
  catch (  PersistentObjectException poe) {
   }
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().rollback();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().rollback();
   NumberedNode nondupe=new NumberedNode("nondupe");
   nondupe.addChild(dupe);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   try {
@@ -32,5 +32,5 @@
   }
  catch (  PersistentObjectException poe) {
   }
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().rollback();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().rollback();
 }

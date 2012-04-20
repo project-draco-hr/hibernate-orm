@@ -1,24 +1,24 @@
 {
   rebuildSessionFactory();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   Person p=new Person("steve");
   new PersonalDetails("I have big feet",p);
   s.persist(p);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   clearCounts();
   p.getDetails().setSomePersonalDetail(p.getDetails().getSomePersonalDetail() + " and big hands too");
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   p=(Person)s.merge(p);
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   p=(Person)getOldToNewEntityRefMap().get(p);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   assertInsertCount(0);
   assertUpdateCount(1);
   assertDeleteCount(0);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.delete(p);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
 }

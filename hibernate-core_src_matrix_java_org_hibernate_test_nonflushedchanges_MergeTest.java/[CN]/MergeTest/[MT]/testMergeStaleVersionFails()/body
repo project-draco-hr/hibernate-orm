@@ -1,27 +1,27 @@
 {
   clearCounts();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   VersionedEntity entity=new VersionedEntity("entity","entity");
   s.persist(entity);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   VersionedEntity entity2=(VersionedEntity)s.get(VersionedEntity.class,entity.getId());
   entity2.setName("entity-name");
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   try {
     s.merge(entity);
     s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
     entity=(VersionedEntity)getOldToNewEntityRefMap().get(entity);
-    TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+    TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
     fail("was expecting staleness error");
   }
  catch (  StaleObjectStateException expected) {
   }
  finally {
-    TestingJtaBootstrap.INSTANCE.getTransactionManager().rollback();
+    TestingJtaPlatformImpl.INSTANCE.getTransactionManager().rollback();
   }
 }

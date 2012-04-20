@@ -1,6 +1,6 @@
 {
   clearCounts();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   NumberedNode root=new NumberedNode("root");
   NumberedNode child=new NumberedNode("child");
@@ -10,7 +10,7 @@
   root=(NumberedNode)s.merge(root);
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   root=(NumberedNode)getOldToNewEntityRefMap().get(root);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   assertInsertCount(3);
   assertUpdateCount(0);
   clearCounts();
@@ -19,12 +19,12 @@
   grandchild.setDescription("the grand child");
   NumberedNode grandchild2=new NumberedNode("grandchild2");
   child.addChild(grandchild2);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   root=(NumberedNode)s.merge(root);
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   root=(NumberedNode)getOldToNewEntityRefMap().get(root);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   assertInsertCount(1);
   assertUpdateCount(1);
   clearCounts();
@@ -33,19 +33,19 @@
   NumberedNode grandchild3=new NumberedNode("grandchild3");
   child2.addChild(grandchild3);
   root.addChild(child2);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   root=(NumberedNode)s.merge(root);
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   root=(NumberedNode)getOldToNewEntityRefMap().get(root);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   assertInsertCount(2);
   assertUpdateCount(0);
   clearCounts();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.createQuery("delete from NumberedNode where name like 'grand%'").executeUpdate();
   s.createQuery("delete from NumberedNode where name like 'child%'").executeUpdate();
   s.createQuery("delete from NumberedNode").executeUpdate();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
 }

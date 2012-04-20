@@ -1,24 +1,24 @@
 {
   clearCounts();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   Node root=new Node("root");
   s.saveOrUpdate(root);
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   root=(Node)getOldToNewEntityRefMap().get(root);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   assertInsertCount(1);
   assertUpdateCount(0);
   clearCounts();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   s.saveOrUpdate(root);
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   root=(Node)getOldToNewEntityRefMap().get(root);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   assertInsertCount(0);
   assertUpdateCount(0);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   root=(Node)s.get(Node.class,"root");
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
@@ -26,9 +26,9 @@
   Hibernate.initialize(root.getChildren());
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   root=(Node)getOldToNewEntityRefMap().get(root);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   clearCounts();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   Node child=new Node("child");
   root.addChild(child);
@@ -40,12 +40,12 @@
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   root=(Node)getOldToNewEntityRefMap().get(root);
   child=(Node)getOldToNewEntityRefMap().get(child);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   assertInsertCount(1);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   assertEquals(Long.valueOf(2),s.createCriteria(Node.class).setProjection(Projections.rowCount()).uniqueResult());
   s.delete(root);
   s.delete(child);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
 }

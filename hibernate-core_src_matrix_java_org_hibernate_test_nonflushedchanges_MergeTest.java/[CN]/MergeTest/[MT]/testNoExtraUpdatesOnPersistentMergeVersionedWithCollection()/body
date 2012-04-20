@@ -1,14 +1,14 @@
 {
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   Session s=openSession();
   VersionedEntity parent=new VersionedEntity("parent","parent");
   VersionedEntity child=new VersionedEntity("child","child");
   parent.getChildren().add(child);
   child.setParent(parent);
   s.persist(parent);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   clearCounts();
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   VersionedEntity persistentParent=(VersionedEntity)s.get(VersionedEntity.class,parent.getId());
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
@@ -19,13 +19,13 @@
   VersionedEntity mergedParent=(VersionedEntity)s.merge(persistentParent);
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
   mergedParent=(VersionedEntity)getOldToNewEntityRefMap().get(mergedParent);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   assertUpdateCount(0);
   assertInsertCount(0);
   assertEquals("unexpected parent version increment",parent.getVersion(),mergedParent.getVersion());
   VersionedEntity mergedChild=(VersionedEntity)mergedParent.getChildren().iterator().next();
   assertEquals("unexpected child version increment",child.getVersion(),mergedChild.getVersion());
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().begin();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
   s=openSession();
   persistentParent=(VersionedEntity)s.get(VersionedEntity.class,parent.getId());
   persistentParent.setName("new name");
@@ -34,7 +34,7 @@
   persistentParent=(VersionedEntity)getOldToNewEntityRefMap().get(persistentParent);
   persistentParent=(VersionedEntity)s.merge(persistentParent);
   s=applyNonFlushedChangesToNewSessionCloseOldSession(s);
-  TestingJtaBootstrap.INSTANCE.getTransactionManager().commit();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
   assertUpdateCount(1);
   assertInsertCount(1);
 }
