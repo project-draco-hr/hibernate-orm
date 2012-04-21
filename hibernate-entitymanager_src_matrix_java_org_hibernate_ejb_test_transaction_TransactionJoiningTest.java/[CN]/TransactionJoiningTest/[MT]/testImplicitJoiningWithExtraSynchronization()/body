@@ -1,0 +1,19 @@
+{
+  assertFalse(JtaStatusHelper.isActive(TestingJtaPlatformImpl.INSTANCE.getTransactionManager()));
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
+  EntityManager entityManager=entityManagerFactory().createEntityManager();
+  SessionImplementor session=entityManager.unwrap(SessionImplementor.class);
+  Transaction hibernateTransaction=((Session)session).getTransaction();
+  assertTrue(CMTTransaction.class.isInstance(hibernateTransaction));
+  assertTrue(session.getTransactionCoordinator().isSynchronizationRegistered());
+  assertTrue(hibernateTransaction.isParticipating());
+  entityManager.close();
+  hibernateTransaction.registerSynchronization(new Synchronization(){
+    public void beforeCompletion(){
+    }
+    public void afterCompletion(    int i){
+    }
+  }
+);
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
+}
