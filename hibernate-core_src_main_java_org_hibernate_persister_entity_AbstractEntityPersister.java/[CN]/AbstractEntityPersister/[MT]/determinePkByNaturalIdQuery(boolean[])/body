@@ -1,0 +1,15 @@
+{
+  if (!hasNaturalIdentifier()) {
+    throw new HibernateException("Attempt to build natural-id -> PK resolution query for entity that does not define natural id");
+  }
+  if (isNaturalIdNonNullable()) {
+    if (valueNullness != null && !ArrayHelper.isAllFalse(valueNullness)) {
+      throw new HibernateException("Null value(s) passed to lookup by non-nullable natural-id");
+    }
+    if (cachedPkByNonNullableNaturalIdQuery == null) {
+      cachedPkByNonNullableNaturalIdQuery=generateEntityIdByNaturalIdSql(null);
+    }
+    return cachedPkByNonNullableNaturalIdQuery;
+  }
+  return generateEntityIdByNaturalIdSql(valueNullness);
+}
