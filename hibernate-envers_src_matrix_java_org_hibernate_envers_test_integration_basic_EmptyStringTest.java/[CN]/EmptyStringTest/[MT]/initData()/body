@@ -1,0 +1,22 @@
+{
+  EntityManager em=getEntityManager();
+  em.getTransaction().begin();
+  StrTestEntity emptyEntity=new StrTestEntity("");
+  em.persist(emptyEntity);
+  StrTestEntity nullEntity=new StrTestEntity(null);
+  em.persist(nullEntity);
+  em.getTransaction().commit();
+  emptyId=emptyEntity.getId();
+  nullId=nullEntity.getId();
+  em.close();
+  em=getEntityManager();
+  em.getTransaction().begin();
+  emptyEntity=em.find(StrTestEntity.class,emptyId);
+  emptyEntity.setStr(null);
+  em.merge(emptyEntity);
+  nullEntity=em.find(StrTestEntity.class,nullId);
+  nullEntity.setStr("");
+  em.merge(nullEntity);
+  em.getTransaction().commit();
+  em.close();
+}
