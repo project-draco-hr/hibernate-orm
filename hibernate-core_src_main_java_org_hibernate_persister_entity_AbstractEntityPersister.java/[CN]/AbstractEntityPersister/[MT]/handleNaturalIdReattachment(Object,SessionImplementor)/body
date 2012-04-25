@@ -5,7 +5,16 @@
   if (getEntityMetamodel().hasImmutableNaturalId()) {
     return;
   }
+  final NaturalIdHelper naturalIdHelper=session.getPersistenceContext().getNaturalIdHelper();
   final Serializable id=getIdentifier(entity,session);
-  final NaturalIdHelper helper=session.getPersistenceContext().getNaturalIdHelper();
-  helper.cacheNaturalIdCrossReferenceFromLoad(this,id,helper.extractNaturalIdValues(getPropertyValues(entity),this));
+  final Object[] naturalIdSnapshot;
+  final Object[] entitySnapshot=session.getPersistenceContext().getDatabaseSnapshot(id,this);
+  if (entitySnapshot == StatefulPersistenceContext.NO_ROW) {
+    naturalIdSnapshot=null;
+  }
+ else {
+    naturalIdSnapshot=naturalIdHelper.extractNaturalIdValues(entitySnapshot,this);
+  }
+  naturalIdHelper.removeSharedNaturalIdCrossReference(this,id,naturalIdSnapshot);
+  naturalIdHelper.manageLocalNaturalIdCrossReference(this,id,naturalIdHelper.extractNaturalIdValues(entity,this),naturalIdSnapshot,CachedNaturalIdValueSource.UPDATE);
 }
