@@ -24,6 +24,12 @@
   assertTrue(hibernateTransaction.isActive());
   assertTrue(session.getTransactionCoordinator().isSynchronizationRegistered());
   assertTrue(hibernateTransaction.isParticipating());
+  assertTrue(entityManager.isOpen());
+  assertTrue(session.isOpen());
   entityManager.close();
+  assertFalse(entityManager.isOpen());
+  assertTrue(session.isOpen());
   TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
+  assertFalse(entityManager.isOpen());
+  assertFalse(session.isOpen());
 }

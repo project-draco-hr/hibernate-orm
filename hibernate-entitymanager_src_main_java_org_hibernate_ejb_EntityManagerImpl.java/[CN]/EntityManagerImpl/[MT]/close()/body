@@ -3,21 +3,7 @@
   if (!open) {
     throw new IllegalStateException("EntityManager is closed");
   }
-  if (!discardOnClose && isTransactionInProgress()) {
-    getSession().getTransaction().registerSynchronization(new Synchronization(){
-      public void beforeCompletion(){
-      }
-      public void afterCompletion(      int i){
-        if (session != null)         if (session.isOpen()) {
-          LOG.debugf("Closing entity manager after transaction completion");
-          session.close();
-        }
- else         LOG.entityManagerClosedBySomeoneElse(Environment.AUTO_CLOSE_SESSION);
-      }
-    }
-);
-  }
- else {
+  if (discardOnClose || !isTransactionInProgress()) {
     if (session != null) {
       session.close();
     }
