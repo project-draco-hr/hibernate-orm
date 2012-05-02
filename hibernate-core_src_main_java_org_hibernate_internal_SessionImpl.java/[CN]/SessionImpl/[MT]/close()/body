@@ -11,7 +11,10 @@
       return transactionCoordinator.close();
     }
  else {
-      if (!getActionQueue().hasAfterTransactionActions()) {
+      if (getActionQueue().hasAfterTransactionActions()) {
+        LOG.warn("On close, shared Session had after transaction actions that have not yet been processed");
+      }
+ else {
         transactionCoordinator.removeObserver(transactionObserver);
       }
       return null;

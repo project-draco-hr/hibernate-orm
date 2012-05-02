@@ -44,17 +44,11 @@
         }
       }
       @Override public void afterCompletion(      boolean successful,      TransactionImplementor transaction){
-        if (isOpen()) {
-          getActionQueue().afterTransactionCompletion(successful);
-          if (autoCloseSessionEnabled) {
-            managedClose();
-          }
+        afterTransactionCompletion(transaction,successful);
+        if (isOpen() && autoCloseSessionEnabled) {
+          managedClose();
         }
- else {
-          if (actionQueue.hasAfterTransactionActions()) {
-            LOG.log(Logger.Level.DEBUG,"Session had after transaction actions that were not processed");
-          }
-        }
+        transactionCoordinator.removeObserver(this);
       }
     }
 ;
