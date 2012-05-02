@@ -1,0 +1,20 @@
+{
+  Session s=openSession();
+  Connection conn=((SessionFactoryImpl)s.getSessionFactory()).getConnectionProvider().getConnection();
+  String databaseName=conn.getCatalog();
+  conn.close();
+  s.createSQLQuery("ALTER DATABASE " + databaseName + " COLLATE Latin1_General_CS_AS").executeUpdate();
+  Transaction tx=s.beginTransaction();
+  for (int i=1; i <= 20; i++) {
+    Product kit=new Product();
+    kit.id=i;
+    kit.description="Kit" + i;
+    s.persist(kit);
+  }
+  s.flush();
+  s.clear();
+  List list=s.createQuery("from Product where description like 'Kit%'").setFirstResult(2).setMaxResults(2).list();
+  assertEquals(2,list.size());
+  tx.rollback();
+  s.close();
+}
