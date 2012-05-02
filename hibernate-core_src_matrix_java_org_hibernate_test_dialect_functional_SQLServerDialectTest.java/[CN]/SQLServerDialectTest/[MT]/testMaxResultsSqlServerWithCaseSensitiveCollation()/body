@@ -3,7 +3,9 @@
   Connection conn=((SessionFactoryImpl)s.getSessionFactory()).getConnectionProvider().getConnection();
   String databaseName=conn.getCatalog();
   conn.close();
+  s.createSQLQuery("ALTER DATABASE " + databaseName + " set single_user with rollback immediate").executeUpdate();
   s.createSQLQuery("ALTER DATABASE " + databaseName + " COLLATE Latin1_General_CS_AS").executeUpdate();
+  s.createSQLQuery("ALTER DATABASE " + databaseName + " set multi_user").executeUpdate();
   Transaction tx=s.beginTransaction();
   for (int i=1; i <= 20; i++) {
     Product kit=new Product();
