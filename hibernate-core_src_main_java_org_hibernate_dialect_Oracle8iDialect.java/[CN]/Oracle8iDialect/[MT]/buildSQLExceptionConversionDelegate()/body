@@ -1,0 +1,27 @@
+{
+  return new SQLExceptionConversionDelegate(){
+    @Override public JDBCException convert(    SQLException sqlException,    String message,    String sql){
+      final int errorCode=JdbcExceptionHelper.extractErrorCode(sqlException);
+      if (errorCode == 30006) {
+        throw new LockTimeoutException(message,sqlException,sql);
+      }
+ else       if (errorCode == 54) {
+        throw new LockTimeoutException(message,sqlException,sql);
+      }
+ else       if (4021 == errorCode) {
+        throw new LockTimeoutException(message,sqlException,sql);
+      }
+      if (60 == errorCode) {
+        return new LockAcquisitionException(message,sqlException,sql);
+      }
+ else       if (4020 == errorCode) {
+        return new LockAcquisitionException(message,sqlException,sql);
+      }
+      if (1013 == errorCode) {
+        throw new QueryTimeoutException(message,sqlException,sql);
+      }
+      return null;
+    }
+  }
+;
+}
