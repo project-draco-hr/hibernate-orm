@@ -7,24 +7,29 @@
   Object oldEntity=copyToEntityMap.put(copy,entity);
   if (oldCopy == null) {
     if (oldEntity != null) {
-      throw new IllegalStateException("An entity copy is already assigned to a different entity.");
+      throw new IllegalStateException("An entity copy was already assigned to a different entity.");
     }
     if (oldOperatedOn != null) {
       throw new IllegalStateException("entityToOperatedOnFlagMap contains an entity, but entityToCopyMap does not.");
     }
   }
  else {
-    if (oldEntity == null) {
-      throw new IllegalStateException("An entity already had a copy in entityToCopyMap, but the specified copy was not in copyToEntityMap.");
+    if (oldCopy != copy) {
+      Object removedEntity=copyToEntityMap.remove(oldCopy);
+      if (removedEntity != entity) {
+        throw new IllegalStateException("An unexpected entity was associated with the old entity copy.");
+      }
+      if (oldEntity != null) {
+        throw new IllegalStateException("A new entity copy is already associated with a different entity.");
+      }
+    }
+ else {
+      if (oldEntity != entity) {
+        throw new IllegalStateException("An entity copy was associated with a different entity than provided.");
+      }
     }
     if (oldOperatedOn == null) {
       throw new IllegalStateException("entityToCopyMap contained an entity, but entityToOperatedOnFlagMap did not.");
-    }
-    if (oldEntity != entity) {
-      throw new IllegalStateException("An entity copy was associated with a different entity than provided.");
-    }
-    if (oldCopy != copy) {
-      throw new IllegalStateException("An entity was already associated with a copy that is different from the copy provided.");
     }
   }
   return oldCopy;
