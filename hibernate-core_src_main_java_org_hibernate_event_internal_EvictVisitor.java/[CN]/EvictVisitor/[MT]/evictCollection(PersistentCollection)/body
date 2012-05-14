@@ -3,6 +3,9 @@
   if (LOG.isDebugEnabled()) {
     LOG.debugf("Evicting collection: %s",MessageHelper.collectionInfoString(ce.getLoadedPersister(),collection,ce.getLoadedKey(),getSession()));
   }
+  if (ce.getLoadedPersister() != null && ce.getLoadedPersister().getBatchSize() > 1) {
+    getSession().getPersistenceContext().getBatchFetchQueue().removeBatchLoadableCollection(ce);
+  }
   if (ce.getLoadedPersister() != null && ce.getLoadedKey() != null) {
     getSession().getPersistenceContext().getCollectionsByKey().remove(new CollectionKey(ce.getLoadedPersister(),ce.getLoadedKey()));
   }
