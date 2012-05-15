@@ -1,0 +1,16 @@
+{
+  int filterCount=filters.size();
+  filterNames=new String[filterCount];
+  filterConditions=new String[filterCount];
+  filterTables=new String[filterCount];
+  Iterator iter=filters.iterator();
+  filterCount=0;
+  while (iter.hasNext()) {
+    final FilterConfiguration filter=(FilterConfiguration)iter.next();
+    filterNames[filterCount]=(String)filter.getName();
+    filterConditions[filterCount]=Template.renderWhereStringTemplate(filter.getCondition(),FilterImpl.MARKER,dialect,factory.getSqlFunctionRegistry());
+    filterConditions[filterCount]=StringHelper.replace(filterConditions[filterCount],":",":" + filterNames[filterCount] + ".");
+    filterTables[filterCount]=filter.getQualifiedTableName(factory);
+    filterCount++;
+  }
+}
