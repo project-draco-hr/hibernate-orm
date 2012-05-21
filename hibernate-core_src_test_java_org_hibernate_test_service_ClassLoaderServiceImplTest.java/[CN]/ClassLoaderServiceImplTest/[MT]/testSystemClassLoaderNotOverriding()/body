@@ -1,0 +1,11 @@
+{
+  Class<?> testClass=Entity.class;
+  ClassLoader.getSystemClassLoader().loadClass(testClass.getName());
+  TestClassLoader anotherLoader=new TestClassLoader();
+  anotherLoader.overrideClass(testClass);
+  Class<?> anotherClass=anotherLoader.loadClass(testClass.getName());
+  Assert.assertNotSame(testClass,anotherClass);
+  ClassLoaderServiceImpl loaderService=new ClassLoaderServiceImpl(anotherLoader);
+  Class<Object> objectClass=loaderService.classForName(testClass.getName());
+  Assert.assertSame("Should not return class loaded from the parent classloader of ClassLoaderServiceImpl",objectClass,anotherClass);
+}
