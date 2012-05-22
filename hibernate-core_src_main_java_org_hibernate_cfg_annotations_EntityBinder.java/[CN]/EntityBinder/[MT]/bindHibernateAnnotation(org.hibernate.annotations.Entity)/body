@@ -1,17 +1,25 @@
 {
-  if (hibAnn != null) {
-    dynamicInsert=hibAnn.dynamicInsert();
-    dynamicUpdate=hibAnn.dynamicUpdate();
-    optimisticLockType=hibAnn.optimisticLock();
-    selectBeforeUpdate=hibAnn.selectBeforeUpdate();
-    polymorphismType=hibAnn.polymorphism();
-    explicitHibernateEntityAnnotation=true;
+{
+    final DynamicInsert dynamicInsertAnn=annotatedClass.getAnnotation(DynamicInsert.class);
+    this.dynamicInsert=dynamicInsertAnn == null ? (hibAnn == null ? false : hibAnn.dynamicInsert()) : dynamicInsertAnn.value();
   }
- else {
-    dynamicInsert=false;
-    dynamicUpdate=false;
-    optimisticLockType=OptimisticLockType.VERSION;
-    polymorphismType=PolymorphismType.IMPLICIT;
-    selectBeforeUpdate=false;
+{
+    final DynamicUpdate dynamicUpdateAnn=annotatedClass.getAnnotation(DynamicUpdate.class);
+    this.dynamicUpdate=dynamicUpdateAnn == null ? (hibAnn == null ? false : hibAnn.dynamicUpdate()) : dynamicUpdateAnn.value();
+  }
+{
+    final SelectBeforeUpdate selectBeforeUpdateAnn=annotatedClass.getAnnotation(SelectBeforeUpdate.class);
+    this.selectBeforeUpdate=selectBeforeUpdateAnn == null ? (hibAnn == null ? false : hibAnn.selectBeforeUpdate()) : selectBeforeUpdateAnn.value();
+  }
+{
+    final OptimisticLocking optimisticLockingAnn=annotatedClass.getAnnotation(OptimisticLocking.class);
+    this.optimisticLockType=optimisticLockingAnn == null ? (hibAnn == null ? OptimisticLockType.VERSION : hibAnn.optimisticLock()) : optimisticLockingAnn.type();
+  }
+{
+    final Polymorphism polymorphismAnn=annotatedClass.getAnnotation(Polymorphism.class);
+    this.polymorphismType=polymorphismAnn == null ? (hibAnn == null ? PolymorphismType.IMPLICIT : hibAnn.polymorphism()) : polymorphismAnn.type();
+  }
+  if (hibAnn != null) {
+    explicitHibernateEntityAnnotation=true;
   }
 }
