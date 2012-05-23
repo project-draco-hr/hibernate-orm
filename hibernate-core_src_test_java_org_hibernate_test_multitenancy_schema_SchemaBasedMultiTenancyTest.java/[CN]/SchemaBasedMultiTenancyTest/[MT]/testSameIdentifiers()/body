@@ -1,11 +1,11 @@
 {
-  Session session=sessionFactory.withOptions().tenantIdentifier("jboss").openSession();
+  Session session=getNewSession("jboss");
   session.beginTransaction();
   Customer steve=new Customer(1L,"steve");
   session.save(steve);
   session.getTransaction().commit();
   session.close();
-  session=sessionFactory.withOptions().tenantIdentifier("acme").openSession();
+  session=getNewSession("acme");
   session.beginTransaction();
   Customer john=new Customer(1L,"john");
   session.save(john);
@@ -13,7 +13,7 @@
   session.close();
   sessionFactory.getStatisticsImplementor().clear();
 {
-    session=sessionFactory.withOptions().tenantIdentifier("jboss").openSession();
+    session=getNewSession("jboss");
     session.beginTransaction();
     Customer customer=(Customer)session.load(Customer.class,1L);
     Assert.assertEquals("steve",customer.getName());
@@ -23,7 +23,7 @@
   }
   sessionFactory.getStatisticsImplementor().clear();
 {
-    session=sessionFactory.withOptions().tenantIdentifier("acme").openSession();
+    session=getNewSession("acme");
     session.beginTransaction();
     Customer customer=(Customer)session.load(Customer.class,1L);
     Assert.assertEquals("john",customer.getName());
@@ -34,7 +34,7 @@
   sessionFactory.getStatisticsImplementor().clear();
   sessionFactory.getCache().evictEntityRegions();
 {
-    session=sessionFactory.withOptions().tenantIdentifier("jboss").openSession();
+    session=getNewSession("jboss");
     session.beginTransaction();
     Customer customer=(Customer)session.load(Customer.class,1L);
     Assert.assertEquals("steve",customer.getName());
@@ -44,7 +44,7 @@
   }
   sessionFactory.getStatisticsImplementor().clear();
 {
-    session=sessionFactory.withOptions().tenantIdentifier("acme").openSession();
+    session=getNewSession("acme");
     session.beginTransaction();
     Customer customer=(Customer)session.load(Customer.class,1L);
     Assert.assertEquals("john",customer.getName());
@@ -52,12 +52,12 @@
     session.getTransaction().commit();
     session.close();
   }
-  session=sessionFactory.withOptions().tenantIdentifier("jboss").openSession();
+  session=getNewSession("jboss");
   session.beginTransaction();
   session.delete(steve);
   session.getTransaction().commit();
   session.close();
-  session=sessionFactory.withOptions().tenantIdentifier("acme").openSession();
+  session=getNewSession("acme");
   session.beginTransaction();
   session.delete(john);
   session.getTransaction().commit();

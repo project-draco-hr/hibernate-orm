@@ -1,11 +1,11 @@
 {
-  Session session=sessionFactory.withOptions().tenantIdentifier("jboss").openSession();
+  Session session=getNewSession("jboss");
   session.beginTransaction();
   Customer steve=new Customer(1L,"steve");
   session.save(steve);
   session.getTransaction().commit();
   session.close();
-  session=sessionFactory.withOptions().tenantIdentifier("acme").openSession();
+  session=getNewSession("acme");
   try {
     session.beginTransaction();
     Customer check=(Customer)session.get(Customer.class,steve.getId());
@@ -15,7 +15,7 @@
     session.getTransaction().commit();
     session.close();
   }
-  session=sessionFactory.withOptions().tenantIdentifier("jboss").openSession();
+  session=getNewSession("jboss");
   session.beginTransaction();
   session.delete(steve);
   session.getTransaction().commit();

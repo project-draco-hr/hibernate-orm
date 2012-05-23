@@ -1,55 +1,6 @@
 {
-  acmeProvider=ConnectionProviderBuilder.buildConnectionProvider("acme");
-  jbossProvider=ConnectionProviderBuilder.buildConnectionProvider("jboss");
-  AbstractMultiTenantConnectionProvider multiTenantConnectionProvider=new AbstractMultiTenantConnectionProvider(){
-    @Override protected ConnectionProvider getAnyConnectionProvider(){
-      return acmeProvider;
-    }
-    @Override protected ConnectionProvider selectConnectionProvider(    String tenantIdentifier){
-      if ("acme".equals(tenantIdentifier)) {
-        return acmeProvider;
-      }
- else       if ("jboss".equals(tenantIdentifier)) {
-        return jbossProvider;
-      }
-      throw new HibernateException("Unknown tenant identifier");
-    }
-  }
-;
-  Configuration cfg=new Configuration();
-  cfg.getProperties().put(Environment.MULTI_TENANT,MultiTenancyStrategy.DATABASE);
-  cfg.setProperty(Environment.CACHE_REGION_FACTORY,CachingRegionFactory.class.getName());
-  cfg.setProperty(Environment.GENERATE_STATISTICS,"true");
-  cfg.addAnnotatedClass(Customer.class);
-  cfg.buildMappings();
-  RootClass meta=(RootClass)cfg.getClassMapping(Customer.class.getName());
-  meta.setCacheConcurrencyStrategy("read-write");
-  new SchemaExport(new ConnectionHelper(){
-    private Connection connection;
-    @Override public void prepare(    boolean needsAutoCommit) throws SQLException {
-      connection=acmeProvider.getConnection();
-    }
-    @Override public Connection getConnection() throws SQLException {
-      return connection;
-    }
-    @Override public void release() throws SQLException {
-      acmeProvider.closeConnection(connection);
-    }
-  }
-,cfg.generateDropSchemaScript(ConnectionProviderBuilder.getCorrespondingDialect()),cfg.generateSchemaCreationScript(ConnectionProviderBuilder.getCorrespondingDialect())).execute(false,true,false,false);
-  new SchemaExport(new ConnectionHelper(){
-    private Connection connection;
-    @Override public void prepare(    boolean needsAutoCommit) throws SQLException {
-      connection=jbossProvider.getConnection();
-    }
-    @Override public Connection getConnection() throws SQLException {
-      return connection;
-    }
-    @Override public void release() throws SQLException {
-      jbossProvider.closeConnection(connection);
-    }
-  }
-,cfg.generateDropSchemaScript(ConnectionProviderBuilder.getCorrespondingDialect()),cfg.generateSchemaCreationScript(ConnectionProviderBuilder.getCorrespondingDialect())).execute(false,true,false,false);
+  AbstractMultiTenantConnectionProvider multiTenantConnectionProvider=buildMultiTenantConnectionProvider();
+  Configuration cfg=buildConfiguration();
   serviceRegistry=(ServiceRegistryImplementor)new ServiceRegistryBuilder().applySettings(cfg.getProperties()).addService(MultiTenantConnectionProvider.class,multiTenantConnectionProvider).buildServiceRegistry();
   sessionFactory=(SessionFactoryImplementor)cfg.buildSessionFactory(serviceRegistry);
 }
