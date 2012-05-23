@@ -4,15 +4,9 @@
     String revisionEndFieldName=auditCfg.getAuditEntCfg().getRevisionEndFieldName();
     ((Map<String,Object>)previousData).put(revisionEndFieldName,revision);
     if (auditCfg.getAuditEntCfg().isRevisionEndTimestampEnabled()) {
-      Date revisionEndTimestamp;
       String revEndTimestampFieldName=auditCfg.getAuditEntCfg().getRevisionEndTimestampFieldName();
       Object revEndTimestampObj=this.revisionTimestampGetter.get(revision);
-      if (revEndTimestampObj instanceof Date) {
-        revisionEndTimestamp=(Date)revEndTimestampObj;
-      }
- else {
-        revisionEndTimestamp=new Date((Long)revEndTimestampObj);
-      }
+      Date revisionEndTimestamp=convertRevEndTimestampToDate(revEndTimestampObj);
       ((Map<String,Object>)previousData).put(revEndTimestampFieldName,revisionEndTimestamp);
     }
     session.save(auditedEntityName,previousData);

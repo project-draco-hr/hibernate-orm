@@ -1,13 +1,36 @@
 {
-  AuditEntitiesConfiguration audEntCfg=auditCfg.getAuditEntCfg();
-  String auditedEntityName=audEntCfg.getAuditEntityName(entityName);
+  final AuditEntitiesConfiguration audEntitiesCfg=auditCfg.getAuditEntCfg();
+  final String auditedEntityName=audEntitiesCfg.getAuditEntityName(entityName);
+  final Dialect dialect=((SessionImplementor)session).getFactory().getDialect();
+  final EntityConfiguration auditEntityCfg=auditCfg.getEntCfg().get(entityName);
+  final IdMapper idMapper=auditEntityCfg.getIdMapper();
   if (getRevisionType(auditCfg,data) != RevisionType.ADD) {
-    QueryBuilder qb=new QueryBuilder(auditedEntityName,MIDDLE_ENTITY_ALIAS);
-    IdMapper idMapper=auditCfg.getEntCfg().get(entityName).getIdMapper();
-    idMapper.addIdEqualsToQuery(qb.getRootParameters(),id,auditCfg.getAuditEntCfg().getOriginalIdPropName(),true);
-    addEndRevisionNullRestriction(auditCfg,qb);
-    @SuppressWarnings({"unchecked"}) List<Object> l=qb.toQuery(session).setLockOptions(LockOptions.UPGRADE).list();
-    updateLastRevision(session,auditCfg,l,id,auditedEntityName,revision);
+    if (shallSelectAndUpdate(dialect,auditEntityCfg)) {
+      QueryBuilder qb=new QueryBuilder(auditedEntityName,MIDDLE_ENTITY_ALIAS);
+      idMapper.addIdEqualsToQuery(qb.getRootParameters(),id,auditCfg.getAuditEntCfg().getOriginalIdPropName(),true);
+      addEndRevisionNullRestriction(auditCfg,qb.getRootParameters());
+      @SuppressWarnings({"unchecked"}) List<Object> l=qb.toQuery(session).setLockOptions(LockOptions.UPGRADE).list();
+      updateLastRevision(session,auditCfg,l,id,auditedEntityName,revision);
+    }
+ else {
+      session.save(auditedEntityName,data);
+      sessionCacheCleaner.scheduleAuditDataRemoval(session,data);
+      final UpdateBuilder ub=new UpdateBuilder(auditedEntityName,MIDDLE_ENTITY_ALIAS);
+      final Number revisionNumber=auditCfg.getRevisionInfoNumberReader().getRevisionNumber(revision);
+      ub.updateValue(auditCfg.getAuditEntCfg().getRevisionEndFieldName(),revision);
+      if (auditCfg.getAuditEntCfg().isRevisionEndTimestampEnabled()) {
+        Object revEndTimestampObj=revisionTimestampGetter.get(revision);
+        Date revisionEndTimestamp=convertRevEndTimestampToDate(revEndTimestampObj);
+        ub.updateValue(auditCfg.getAuditEntCfg().getRevisionEndTimestampFieldName(),revisionEndTimestamp);
+      }
+      idMapper.addIdEqualsToQuery(ub.getRootParameters(),id,auditCfg.getAuditEntCfg().getOriginalIdPropName(),true);
+      addEndRevisionNullRestriction(auditCfg,ub.getRootParameters());
+      ub.getRootParameters().addWhereWithParam(auditCfg.getAuditEntCfg().getRevisionNumberPath(),true,"<>",revisionNumber);
+      if (ub.toQuery(session).executeUpdate() != 1) {
+        throw new RuntimeException("Cannot update previous revision for entity " + auditedEntityName + " and id "+ id);
+      }
+      return;
+    }
   }
   session.save(auditedEntityName,data);
   sessionCacheCleaner.scheduleAuditDataRemoval(session,data);
