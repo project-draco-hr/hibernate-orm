@@ -1,8 +1,26 @@
 {
   Session s=openSession();
-  Connection conn=((SessionFactoryImpl)s.getSessionFactory()).getConnectionProvider().getConnection();
-  String databaseName=conn.getCatalog();
-  conn.close();
+  s.beginTransaction();
+  String defaultCollationName=s.doReturningWork(new ReturningWork<String>(){
+    @Override public String execute(    Connection connection) throws SQLException {
+      String databaseName=connection.getCatalog();
+      ResultSet rs=connection.createStatement().executeQuery("SELECT collation_name FROM sys.databases WHERE name = '" + databaseName + "';");
+      while (rs.next()) {
+        return rs.getString("collation_name");
+      }
+      throw new AssertionError("can't get collation name of database " + databaseName);
+    }
+  }
+);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  String databaseName=s.doReturningWork(new ReturningWork<String>(){
+    @Override public String execute(    Connection connection) throws SQLException {
+      return connection.getCatalog();
+    }
+  }
+);
   s.createSQLQuery("ALTER DATABASE " + databaseName + " set single_user with rollback immediate").executeUpdate();
   s.createSQLQuery("ALTER DATABASE " + databaseName + " COLLATE Latin1_General_CS_AS").executeUpdate();
   s.createSQLQuery("ALTER DATABASE " + databaseName + " set multi_user").executeUpdate();
@@ -18,5 +36,10 @@
   List list=s.createQuery("from Product2 where description like 'Kit%'").setFirstResult(2).setMaxResults(2).list();
   assertEquals(2,list.size());
   tx.rollback();
+  s.close();
+  s=openSession();
+  s.createSQLQuery("ALTER DATABASE " + databaseName + " set single_user with rollback immediate").executeUpdate();
+  s.createSQLQuery("ALTER DATABASE " + databaseName + " COLLATE "+ defaultCollationName).executeUpdate();
+  s.createSQLQuery("ALTER DATABASE " + databaseName + " set multi_user").executeUpdate();
   s.close();
 }
