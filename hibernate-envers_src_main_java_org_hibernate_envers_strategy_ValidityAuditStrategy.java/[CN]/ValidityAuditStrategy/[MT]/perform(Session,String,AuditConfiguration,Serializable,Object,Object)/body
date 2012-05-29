@@ -1,36 +1,65 @@
 {
   final AuditEntitiesConfiguration audEntitiesCfg=auditCfg.getAuditEntCfg();
   final String auditedEntityName=audEntitiesCfg.getAuditEntityName(entityName);
-  final Dialect dialect=((SessionImplementor)session).getFactory().getDialect();
-  final EntityConfiguration auditEntityCfg=auditCfg.getEntCfg().get(entityName);
-  final IdMapper idMapper=auditEntityCfg.getIdMapper();
+  final String revisionInfoEntityName=auditCfg.getAuditEntCfg().getRevisionInfoEntityName();
+  final SessionImplementor sessionImplementor=(SessionImplementor)session;
+  final Dialect dialect=sessionImplementor.getFactory().getDialect();
   if (getRevisionType(auditCfg,data) != RevisionType.ADD) {
-    if (shallSelectAndUpdate(dialect,auditEntityCfg)) {
-      QueryBuilder qb=new QueryBuilder(auditedEntityName,MIDDLE_ENTITY_ALIAS);
-      idMapper.addIdEqualsToQuery(qb.getRootParameters(),id,auditCfg.getAuditEntCfg().getOriginalIdPropName(),true);
-      addEndRevisionNullRestriction(auditCfg,qb.getRootParameters());
-      @SuppressWarnings({"unchecked"}) List<Object> l=qb.toQuery(session).setLockOptions(LockOptions.UPGRADE).list();
-      updateLastRevision(session,auditCfg,l,id,auditedEntityName,revision);
+    session.save(auditedEntityName,data);
+    sessionCacheCleaner.scheduleAuditDataRemoval(session,data);
+    final Queryable productionEntityQueryable=(Queryable)sessionImplementor.getFactory().getEntityPersister(entityName);
+    final Queryable auditedEntityQueryable=(Queryable)sessionImplementor.getFactory().getEntityPersister(auditedEntityName);
+    final Queryable revisionInfoEntityQueryable=(Queryable)sessionImplementor.getFactory().getEntityPersister(revisionInfoEntityName);
+    autoFlushIfRequired(sessionImplementor,auditedEntityQueryable,revisionInfoEntityQueryable);
+    final Type revisionInfoIdType=sessionImplementor.getFactory().getEntityPersister(revisionInfoEntityName).getIdentifierType();
+    final String revEndColumnName=auditedEntityQueryable.toColumns(auditCfg.getAuditEntCfg().getRevisionEndFieldName())[0];
+    final boolean isRevisionEndTimestampEnabled=auditCfg.getAuditEntCfg().isRevisionEndTimestampEnabled();
+    final Update update=new Update(dialect).setTableName(auditedEntityQueryable.getTableName());
+    update.addColumn(revEndColumnName);
+    if (isRevisionEndTimestampEnabled) {
+      update.addColumn(auditedEntityQueryable.toColumns(auditCfg.getAuditEntCfg().getRevisionEndTimestampFieldName())[0]);
     }
- else {
-      session.save(auditedEntityName,data);
-      sessionCacheCleaner.scheduleAuditDataRemoval(session,data);
-      final UpdateBuilder ub=new UpdateBuilder(auditedEntityName,MIDDLE_ENTITY_ALIAS);
-      final Number revisionNumber=auditCfg.getRevisionInfoNumberReader().getRevisionNumber(revision);
-      ub.updateValue(auditCfg.getAuditEntCfg().getRevisionEndFieldName(),revision);
-      if (auditCfg.getAuditEntCfg().isRevisionEndTimestampEnabled()) {
-        Object revEndTimestampObj=revisionTimestampGetter.get(revision);
-        Date revisionEndTimestamp=convertRevEndTimestampToDate(revEndTimestampObj);
-        ub.updateValue(auditCfg.getAuditEntCfg().getRevisionEndTimestampFieldName(),revisionEndTimestamp);
+    update.addPrimaryKeyColumns(productionEntityQueryable.getIdentifierColumnNames());
+    update.addWhereColumn(auditedEntityQueryable.toColumns(auditCfg.getAuditEntCfg().getRevisionNumberPath())[0],"<> ?");
+    update.addWhereColumn(revEndColumnName," is null");
+    final String updateSql=update.toStatementString();
+    int rowCount=session.doReturningWork(new ReturningWork<Integer>(){
+      @Override public Integer execute(      Connection connection) throws SQLException {
+        PreparedStatement preparedStatement=connection.prepareStatement(updateSql);
+        try {
+          int index=1;
+          final Number revisionNumber=auditCfg.getRevisionInfoNumberReader().getRevisionNumber(revision);
+          revisionInfoIdType.nullSafeSet(preparedStatement,revisionNumber,index,sessionImplementor);
+          index+=revisionInfoIdType.getColumnSpan(sessionImplementor.getFactory());
+          if (isRevisionEndTimestampEnabled) {
+            final Object revEndTimestampObj=revisionTimestampGetter.get(revision);
+            final Date revisionEndTimestamp=convertRevEndTimestampToDate(revEndTimestampObj);
+            final Type revEndTsType=auditedEntityQueryable.getPropertyType(auditCfg.getAuditEntCfg().getRevisionEndTimestampFieldName());
+            revEndTsType.nullSafeSet(preparedStatement,revisionEndTimestamp,index,sessionImplementor);
+            index+=revEndTsType.getColumnSpan(sessionImplementor.getFactory());
+          }
+          final Type idType=productionEntityQueryable.getIdentifierType();
+          idType.nullSafeSet(preparedStatement,id,index,sessionImplementor);
+          index+=idType.getColumnSpan(sessionImplementor.getFactory());
+          final Type revType=auditedEntityQueryable.getPropertyType(auditCfg.getAuditEntCfg().getRevisionNumberPath());
+          revType.nullSafeSet(preparedStatement,revisionNumber,index,sessionImplementor);
+          return preparedStatement.executeUpdate();
+        }
+  finally {
+          try {
+            preparedStatement.close();
+          }
+ catch (          SQLException e) {
+            log.debug("Could not release prepared statement : " + e.getMessage());
+          }
+        }
       }
-      idMapper.addIdEqualsToQuery(ub.getRootParameters(),id,auditCfg.getAuditEntCfg().getOriginalIdPropName(),true);
-      addEndRevisionNullRestriction(auditCfg,ub.getRootParameters());
-      ub.getRootParameters().addWhereWithParam(auditCfg.getAuditEntCfg().getRevisionNumberPath(),true,"<>",revisionNumber);
-      if (ub.toQuery(session).executeUpdate() != 1) {
-        throw new RuntimeException("Cannot update previous revision for entity " + auditedEntityName + " and id "+ id);
-      }
-      return;
     }
+);
+    if (rowCount != 1) {
+      throw new RuntimeException("Cannot update previous revision for entity " + auditedEntityName + " and id "+ id);
+    }
+    return;
   }
   session.save(auditedEntityName,data);
   sessionCacheCleaner.scheduleAuditDataRemoval(session,data);

@@ -1,0 +1,10 @@
+{
+  final Set<String> querySpaces=new HashSet<String>();
+  querySpaces.add(auditedEntityQueryable.getTableName());
+  querySpaces.add(revisionInfoEntityQueryable.getTableName());
+  final AutoFlushEvent event=new AutoFlushEvent(querySpaces,(EventSource)sessionImplementor);
+  final Iterable<AutoFlushEventListener> listeners=sessionImplementor.getFactory().getServiceRegistry().getService(EventListenerRegistry.class).getEventListenerGroup(EventType.AUTO_FLUSH).listeners();
+  for (  AutoFlushEventListener listener : listeners) {
+    listener.onAutoFlush(event);
+  }
+}
