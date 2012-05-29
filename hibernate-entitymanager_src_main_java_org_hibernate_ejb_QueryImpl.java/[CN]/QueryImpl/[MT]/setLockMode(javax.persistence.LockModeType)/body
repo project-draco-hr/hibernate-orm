@@ -7,5 +7,9 @@
   }
   this.jpaLockMode=lockModeType;
   ((org.hibernate.internal.QueryImpl)query).getLockOptions().setLockMode(LockModeTypeHelper.getLockMode(lockModeType));
+  if (getHints() != null && getHints().containsKey(AvailableSettings.LOCK_TIMEOUT)) {
+    int timeout=(int)Math.round(ConfigurationHelper.getInteger(getHints().get(AvailableSettings.LOCK_TIMEOUT)).doubleValue() / 1000.0);
+    applyTimeout(timeout);
+  }
   return this;
 }
