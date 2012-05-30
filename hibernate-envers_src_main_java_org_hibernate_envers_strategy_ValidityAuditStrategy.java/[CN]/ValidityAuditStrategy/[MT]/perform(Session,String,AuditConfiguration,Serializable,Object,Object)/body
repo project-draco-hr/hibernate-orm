@@ -7,20 +7,29 @@
   if (getRevisionType(auditCfg,data) != RevisionType.ADD) {
     session.save(auditedEntityName,data);
     sessionCacheCleaner.scheduleAuditDataRemoval(session,data);
-    final Queryable productionEntityQueryable=(Queryable)sessionImplementor.getFactory().getEntityPersister(entityName);
-    final Queryable auditedEntityQueryable=(Queryable)sessionImplementor.getFactory().getEntityPersister(auditedEntityName);
-    final Queryable revisionInfoEntityQueryable=(Queryable)sessionImplementor.getFactory().getEntityPersister(revisionInfoEntityName);
-    autoFlushIfRequired(sessionImplementor,auditedEntityQueryable,revisionInfoEntityQueryable);
+    final Queryable productionEntityQueryable=getQueryable(entityName,sessionImplementor);
+    final Queryable rootProductionEntityQueryable=getQueryable(productionEntityQueryable.getRootEntityName(),sessionImplementor);
+    final Queryable auditedEntityQueryable=getQueryable(auditedEntityName,sessionImplementor);
+    final Queryable rootAuditedEntityQueryable=getQueryable(auditedEntityQueryable.getRootEntityName(),sessionImplementor);
+    final Queryable revisionInfoEntityQueryable=getQueryable(revisionInfoEntityName,sessionImplementor);
+    final String updateTableName;
+    if (UnionSubclassEntityPersister.class.isInstance(rootProductionEntityQueryable)) {
+      updateTableName=auditedEntityQueryable.getSubclassTableName(0);
+    }
+ else {
+      updateTableName=rootAuditedEntityQueryable.getTableName();
+    }
+    autoFlushIfRequired(sessionImplementor,rootAuditedEntityQueryable,revisionInfoEntityQueryable);
     final Type revisionInfoIdType=sessionImplementor.getFactory().getEntityPersister(revisionInfoEntityName).getIdentifierType();
-    final String revEndColumnName=auditedEntityQueryable.toColumns(auditCfg.getAuditEntCfg().getRevisionEndFieldName())[0];
+    final String revEndColumnName=rootAuditedEntityQueryable.toColumns(auditCfg.getAuditEntCfg().getRevisionEndFieldName())[0];
     final boolean isRevisionEndTimestampEnabled=auditCfg.getAuditEntCfg().isRevisionEndTimestampEnabled();
-    final Update update=new Update(dialect).setTableName(auditedEntityQueryable.getTableName());
+    final Update update=new Update(dialect).setTableName(updateTableName);
     update.addColumn(revEndColumnName);
     if (isRevisionEndTimestampEnabled) {
-      update.addColumn(auditedEntityQueryable.toColumns(auditCfg.getAuditEntCfg().getRevisionEndTimestampFieldName())[0]);
+      update.addColumn(rootAuditedEntityQueryable.toColumns(auditCfg.getAuditEntCfg().getRevisionEndTimestampFieldName())[0]);
     }
-    update.addPrimaryKeyColumns(productionEntityQueryable.getIdentifierColumnNames());
-    update.addWhereColumn(auditedEntityQueryable.toColumns(auditCfg.getAuditEntCfg().getRevisionNumberPath())[0],"<> ?");
+    update.addPrimaryKeyColumns(rootProductionEntityQueryable.getIdentifierColumnNames());
+    update.addWhereColumn(rootAuditedEntityQueryable.toColumns(auditCfg.getAuditEntCfg().getRevisionNumberPath())[0],"<> ?");
     update.addWhereColumn(revEndColumnName," is null");
     final String updateSql=update.toStatementString();
     int rowCount=session.doReturningWork(new ReturningWork<Integer>(){
@@ -34,14 +43,14 @@
           if (isRevisionEndTimestampEnabled) {
             final Object revEndTimestampObj=revisionTimestampGetter.get(revision);
             final Date revisionEndTimestamp=convertRevEndTimestampToDate(revEndTimestampObj);
-            final Type revEndTsType=auditedEntityQueryable.getPropertyType(auditCfg.getAuditEntCfg().getRevisionEndTimestampFieldName());
+            final Type revEndTsType=rootAuditedEntityQueryable.getPropertyType(auditCfg.getAuditEntCfg().getRevisionEndTimestampFieldName());
             revEndTsType.nullSafeSet(preparedStatement,revisionEndTimestamp,index,sessionImplementor);
             index+=revEndTsType.getColumnSpan(sessionImplementor.getFactory());
           }
-          final Type idType=productionEntityQueryable.getIdentifierType();
+          final Type idType=rootProductionEntityQueryable.getIdentifierType();
           idType.nullSafeSet(preparedStatement,id,index,sessionImplementor);
           index+=idType.getColumnSpan(sessionImplementor.getFactory());
-          final Type revType=auditedEntityQueryable.getPropertyType(auditCfg.getAuditEntCfg().getRevisionNumberPath());
+          final Type revType=rootAuditedEntityQueryable.getPropertyType(auditCfg.getAuditEntCfg().getRevisionNumberPath());
           revType.nullSafeSet(preparedStatement,revisionNumber,index,sessionImplementor);
           return preparedStatement.executeUpdate();
         }
