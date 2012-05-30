@@ -4,9 +4,9 @@
   final String revisionInfoEntityName=auditCfg.getAuditEntCfg().getRevisionInfoEntityName();
   final SessionImplementor sessionImplementor=(SessionImplementor)session;
   final Dialect dialect=sessionImplementor.getFactory().getDialect();
+  session.save(auditedEntityName,data);
+  sessionCacheCleaner.scheduleAuditDataRemoval(session,data);
   if (getRevisionType(auditCfg,data) != RevisionType.ADD) {
-    session.save(auditedEntityName,data);
-    sessionCacheCleaner.scheduleAuditDataRemoval(session,data);
     final Queryable productionEntityQueryable=getQueryable(entityName,sessionImplementor);
     final Queryable rootProductionEntityQueryable=getQueryable(productionEntityQueryable.getRootEntityName(),sessionImplementor);
     final Queryable auditedEntityQueryable=getQueryable(auditedEntityName,sessionImplementor);
@@ -68,8 +68,5 @@
     if (rowCount != 1) {
       throw new RuntimeException("Cannot update previous revision for entity " + auditedEntityName + " and id "+ id);
     }
-    return;
   }
-  session.save(auditedEntityName,data);
-  sessionCacheCleaner.scheduleAuditDataRemoval(session,data);
 }
