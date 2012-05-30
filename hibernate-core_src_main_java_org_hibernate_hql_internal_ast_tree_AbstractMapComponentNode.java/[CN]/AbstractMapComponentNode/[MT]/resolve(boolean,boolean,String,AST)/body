@@ -4,17 +4,27 @@
   }
   FromReferenceNode mapReference=getMapReference();
   mapReference.resolve(true,true);
-  if (mapReference.getDataType().isCollectionType()) {
-    CollectionType collectionType=(CollectionType)mapReference.getDataType();
-    if (Map.class.isAssignableFrom(collectionType.getReturnedClass())) {
-      FromElement sourceFromElement=mapReference.getFromElement();
-      setFromElement(sourceFromElement);
-      setDataType(resolveType(sourceFromElement.getQueryableCollection()));
-      this.columns=resolveColumns(sourceFromElement.getQueryableCollection());
-      initText(this.columns);
-      setFirstChild(null);
-      return;
+  FromElement sourceFromElement=null;
+  if (isAliasRef(mapReference)) {
+    QueryableCollection collectionPersister=mapReference.getFromElement().getQueryableCollection();
+    if (Map.class.isAssignableFrom(collectionPersister.getCollectionType().getReturnedClass())) {
+      sourceFromElement=mapReference.getFromElement();
     }
   }
-  throw nonMap();
+ else {
+    if (mapReference.getDataType().isCollectionType()) {
+      CollectionType collectionType=(CollectionType)mapReference.getDataType();
+      if (Map.class.isAssignableFrom(collectionType.getReturnedClass())) {
+        sourceFromElement=mapReference.getFromElement();
+      }
+    }
+  }
+  if (sourceFromElement == null) {
+    throw nonMap();
+  }
+  setFromElement(sourceFromElement);
+  setDataType(resolveType(sourceFromElement.getQueryableCollection()));
+  this.columns=resolveColumns(sourceFromElement.getQueryableCollection());
+  initText(this.columns);
+  setFirstChild(null);
 }
