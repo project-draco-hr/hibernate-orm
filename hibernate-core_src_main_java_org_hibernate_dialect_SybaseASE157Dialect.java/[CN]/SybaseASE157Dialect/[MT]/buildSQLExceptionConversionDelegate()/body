@@ -2,11 +2,8 @@
   return new SQLExceptionConversionDelegate(){
     @Override public JDBCException convert(    SQLException sqlException,    String message,    String sql){
       final String sqlState=JdbcExceptionHelper.extractSqlState(sqlException);
-      if ("41000".equals(sqlState)) {
-        return new LockTimeoutException(message,sqlException,sql);
-      }
-      if ("40001".equals(sqlState)) {
-        return new LockAcquisitionException(message,sqlException,sql);
+      if ("JZ0TO".equals(sqlState) || "JZ006".equals(sqlState)) {
+        throw new LockTimeoutException(message,sqlException,sql);
       }
       return null;
     }
