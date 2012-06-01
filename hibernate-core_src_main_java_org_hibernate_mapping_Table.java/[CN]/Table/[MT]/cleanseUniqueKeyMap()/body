@@ -1,0 +1,34 @@
+{
+  if (uniqueKeys.isEmpty()) {
+    return;
+  }
+ else   if (uniqueKeys.size() == 1) {
+    final Map.Entry<String,UniqueKey> uniqueKeyEntry=uniqueKeys.entrySet().iterator().next();
+    if (isSameAsPrimaryKeyColumns(uniqueKeyEntry.getValue())) {
+      uniqueKeys.remove(uniqueKeyEntry.getKey());
+    }
+  }
+ else {
+    final Iterator<Map.Entry<String,UniqueKey>> uniqueKeyEntries=uniqueKeys.entrySet().iterator();
+    while (uniqueKeyEntries.hasNext()) {
+      final Map.Entry<String,UniqueKey> uniqueKeyEntry=uniqueKeyEntries.next();
+      final UniqueKey uniqueKey=uniqueKeyEntry.getValue();
+      boolean removeIt=false;
+      for (      UniqueKey otherUniqueKey : uniqueKeys.values()) {
+        if (uniqueKeyEntry.getValue() == otherUniqueKey) {
+          continue;
+        }
+        if (otherUniqueKey.getColumns().containsAll(uniqueKey.getColumns()) && uniqueKey.getColumns().containsAll(otherUniqueKey.getColumns())) {
+          removeIt=true;
+          break;
+        }
+      }
+      if (isSameAsPrimaryKeyColumns(uniqueKeyEntry.getValue())) {
+        removeIt=true;
+      }
+      if (removeIt) {
+        uniqueKeys.remove(uniqueKeyEntry.getKey());
+      }
+    }
+  }
+}
