@@ -1,0 +1,56 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  Human me=new Human();
+  me.setName(new Name("Steve",null,"Ebersole"));
+  Human joe=new Human();
+  me.setName(new Name("Joe",null,"Ebersole"));
+  me.setFamily(new HashMap());
+  me.getFamily().put("son",joe);
+  s.save(me);
+  s.save(joe);
+  s.getTransaction().commit();
+  s.close();
+{
+    s=openSession();
+    s.beginTransaction();
+    List results=s.createQuery("select value(h.family) from Human h").list();
+    assertEquals(1,results.size());
+    Object result=results.get(0);
+    assertTrue(Human.class.isAssignableFrom(result.getClass()));
+    s.getTransaction().commit();
+    s.close();
+  }
+{
+    s=openSession();
+    s.beginTransaction();
+    List results=s.createQuery("select VALUE(f) from Human h join h.family f").list();
+    assertEquals(1,results.size());
+    Object result=results.get(0);
+    assertTrue(Human.class.isAssignableFrom(result.getClass()));
+    s.getTransaction().commit();
+    s.close();
+  }
+{
+    s=openSession();
+    s.beginTransaction();
+    Long count=(Long)s.createQuery("select count(*) from Human h where VALUE(h.family) = :joe").setParameter("joe",joe).uniqueResult();
+    assertEquals((Long)1L,count);
+    s.getTransaction().commit();
+    s.close();
+  }
+{
+    s=openSession();
+    s.beginTransaction();
+    Long count=(Long)s.createQuery("select count(*) from Human h join h.family f where value(f) = :joe").setParameter("joe",joe).uniqueResult();
+    assertEquals((Long)1L,count);
+    s.getTransaction().commit();
+    s.close();
+  }
+  s=openSession();
+  s.beginTransaction();
+  s.delete(me);
+  s.delete(joe);
+  s.getTransaction().commit();
+  s.close();
+}

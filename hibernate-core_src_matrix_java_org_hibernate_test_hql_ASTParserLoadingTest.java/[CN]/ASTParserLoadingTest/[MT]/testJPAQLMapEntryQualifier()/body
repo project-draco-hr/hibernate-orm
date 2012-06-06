@@ -1,0 +1,46 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  Human me=new Human();
+  me.setName(new Name("Steve",null,"Ebersole"));
+  Human joe=new Human();
+  me.setName(new Name("Joe",null,"Ebersole"));
+  me.setFamily(new HashMap());
+  me.getFamily().put("son",joe);
+  s.save(me);
+  s.save(joe);
+  s.getTransaction().commit();
+  s.close();
+{
+    s=openSession();
+    s.beginTransaction();
+    List results=s.createQuery("select entry(h.family) from Human h").list();
+    assertEquals(1,results.size());
+    Object result=results.get(0);
+    assertTrue(Map.Entry.class.isAssignableFrom(result.getClass()));
+    Map.Entry entry=(Map.Entry)result;
+    assertTrue(String.class.isAssignableFrom(entry.getKey().getClass()));
+    assertTrue(Human.class.isAssignableFrom(entry.getValue().getClass()));
+    s.getTransaction().commit();
+    s.close();
+  }
+{
+    s=openSession();
+    s.beginTransaction();
+    List results=s.createQuery("select ENTRY(f) from Human h join h.family f").list();
+    assertEquals(1,results.size());
+    Object result=results.get(0);
+    assertTrue(Map.Entry.class.isAssignableFrom(result.getClass()));
+    Map.Entry entry=(Map.Entry)result;
+    assertTrue(String.class.isAssignableFrom(entry.getKey().getClass()));
+    assertTrue(Human.class.isAssignableFrom(entry.getValue().getClass()));
+    s.getTransaction().commit();
+    s.close();
+  }
+  s=openSession();
+  s.beginTransaction();
+  s.delete(me);
+  s.delete(joe);
+  s.getTransaction().commit();
+  s.close();
+}
