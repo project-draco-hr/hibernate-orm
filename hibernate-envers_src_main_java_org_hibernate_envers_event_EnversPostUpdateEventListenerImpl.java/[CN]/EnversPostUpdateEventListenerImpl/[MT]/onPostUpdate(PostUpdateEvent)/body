@@ -2,10 +2,11 @@
   String entityName=event.getPersister().getEntityName();
   if (getAuditConfiguration().getEntCfg().isVersioned(entityName)) {
     AuditProcess auditProcess=getAuditConfiguration().getSyncManager().get(event.getSession());
-    AuditWorkUnit workUnit=new ModWorkUnit(event.getSession(),event.getPersister().getEntityName(),getAuditConfiguration(),event.getId(),event.getPersister(),event.getState(),event.getOldState());
+    final Object[] newDbState=postUpdateDBState(event);
+    AuditWorkUnit workUnit=new ModWorkUnit(event.getSession(),event.getPersister().getEntityName(),getAuditConfiguration(),event.getId(),event.getPersister(),newDbState,event.getOldState());
     auditProcess.addWorkUnit(workUnit);
     if (workUnit.containsWork()) {
-      generateBidirectionalCollectionChangeWorkUnits(auditProcess,event.getPersister(),entityName,event.getState(),event.getOldState(),event.getSession());
+      generateBidirectionalCollectionChangeWorkUnits(auditProcess,event.getPersister(),entityName,newDbState,event.getOldState(),event.getSession());
     }
   }
 }
