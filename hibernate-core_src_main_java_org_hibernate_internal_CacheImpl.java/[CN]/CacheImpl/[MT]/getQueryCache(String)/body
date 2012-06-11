@@ -1,0 +1,23 @@
+{
+  if (regionName == null) {
+    return getQueryCache();
+  }
+  if (!settings.isQueryCacheEnabled()) {
+    return null;
+  }
+  QueryCache currentQueryCache=queryCaches.get(regionName);
+  if (currentQueryCache == null) {
+synchronized (allCacheRegions) {
+      currentQueryCache=queryCaches.get(regionName);
+      if (currentQueryCache == null) {
+        currentQueryCache=settings.getQueryCacheFactory().getQueryCache(regionName,updateTimestampsCache,settings,sessionFactory.getProperties());
+        queryCaches.put(regionName,currentQueryCache);
+        allCacheRegions.put(currentQueryCache.getRegion().getName(),currentQueryCache.getRegion());
+      }
+ else {
+        return currentQueryCache;
+      }
+    }
+  }
+  return currentQueryCache;
+}

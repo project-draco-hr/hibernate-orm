@@ -29,6 +29,8 @@
   this.serviceRegistry=serviceRegistry.getService(SessionFactoryServiceRegistryFactory.class).buildServiceRegistry(this,cfg);
   this.jdbcServices=this.serviceRegistry.getService(JdbcServices.class);
   this.dialect=this.jdbcServices.getDialect();
+  this.cacheAccess=this.serviceRegistry.getService(CacheImplementor.class);
+  final RegionFactory regionFactory=cacheAccess.getRegionFactory();
   this.sqlFunctionRegistry=new SQLFunctionRegistry(getDialect(),cfg.getSqlFunctions());
   if (observer != null) {
     this.observer.addObserver(observer);
@@ -39,8 +41,6 @@
   this.filters.putAll(cfg.getFilterDefinitions());
   LOG.debugf("Session factory constructed with filter configurations : %s",filters);
   LOG.debugf("Instantiating session factory with properties: %s",properties);
-  final RegionFactory regionFactory=settings.getRegionFactory();
-  regionFactory.start(settings,properties);
   this.queryPlanCache=new QueryPlanCache(this);
 class IntegratorObserver implements SessionFactoryObserver {
     private ArrayList<Integrator> integrators=new ArrayList<Integrator>();
@@ -84,7 +84,7 @@ class IntegratorObserver implements SessionFactoryObserver {
         EntityRegion entityRegion=regionFactory.buildEntityRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
         accessStrategy=entityRegion.buildAccessStrategy(accessType);
         entityAccessStrategies.put(cacheRegionName,accessStrategy);
-        allCacheRegions.put(cacheRegionName,entityRegion);
+        cacheAccess.addCacheRegion(cacheRegionName,entityRegion);
       }
     }
     NaturalIdRegionAccessStrategy naturalIdAccessStrategy=null;
@@ -103,7 +103,7 @@ class IntegratorObserver implements SessionFactoryObserver {
         if (naturalIdRegion != null) {
           naturalIdAccessStrategy=naturalIdRegion.buildAccessStrategy(regionFactory.getDefaultAccessType());
           entityAccessStrategies.put(naturalIdCacheRegionName,naturalIdAccessStrategy);
-          allCacheRegions.put(naturalIdCacheRegionName,naturalIdRegion);
+          cacheAccess.addCacheRegion(naturalIdCacheRegionName,naturalIdRegion);
         }
       }
     }
@@ -126,7 +126,7 @@ class IntegratorObserver implements SessionFactoryObserver {
       CollectionRegion collectionRegion=regionFactory.buildCollectionRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
       accessStrategy=collectionRegion.buildAccessStrategy(accessType);
       entityAccessStrategies.put(cacheRegionName,accessStrategy);
-      allCacheRegions.put(cacheRegionName,collectionRegion);
+      cacheAccess.addCacheRegion(cacheRegionName,collectionRegion);
     }
     CollectionPersister persister=serviceRegistry.getService(PersisterFactory.class).createCollectionPersister(cfg,model,accessStrategy,this);
     collectionPersisters.put(model.getRole(),persister);
@@ -196,18 +196,6 @@ class IntegratorObserver implements SessionFactoryObserver {
     schemaExport=new SchemaExport(serviceRegistry,cfg).setImportSqlCommandExtractor(serviceRegistry.getService(ImportSqlCommandExtractor.class));
   }
   currentSessionContext=buildCurrentSessionContext();
-  if (settings.isQueryCacheEnabled()) {
-    updateTimestampsCache=new UpdateTimestampsCache(settings,properties,this);
-    queryCache=settings.getQueryCacheFactory().getQueryCache(null,updateTimestampsCache,settings,properties);
-    queryCaches=new ConcurrentHashMap<String,QueryCache>();
-    allCacheRegions.put(updateTimestampsCache.getRegion().getName(),updateTimestampsCache.getRegion());
-    allCacheRegions.put(queryCache.getRegion().getName(),queryCache.getRegion());
-  }
- else {
-    updateTimestampsCache=null;
-    queryCache=null;
-    queryCaches=null;
-  }
   if (settings.isNamedQueryStartupCheckingEnabled()) {
     final Map<String,HibernateException> errors=checkNamedQueries();
     if (!errors.isEmpty()) {

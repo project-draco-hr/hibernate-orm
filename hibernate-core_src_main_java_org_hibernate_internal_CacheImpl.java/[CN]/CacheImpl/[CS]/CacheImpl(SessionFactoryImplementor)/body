@@ -1,0 +1,18 @@
+{
+  this.sessionFactory=sessionFactory;
+  this.settings=sessionFactory.getSettings();
+  this.regionFactory=settings.getRegionFactory();
+  regionFactory.start(settings,sessionFactory.getProperties());
+  if (settings.isQueryCacheEnabled()) {
+    updateTimestampsCache=new UpdateTimestampsCache(settings,sessionFactory.getProperties(),sessionFactory);
+    queryCache=settings.getQueryCacheFactory().getQueryCache(null,updateTimestampsCache,settings,sessionFactory.getProperties());
+    queryCaches=new ConcurrentHashMap<String,QueryCache>();
+    allCacheRegions.put(updateTimestampsCache.getRegion().getName(),updateTimestampsCache.getRegion());
+    allCacheRegions.put(queryCache.getRegion().getName(),queryCache.getRegion());
+  }
+ else {
+    updateTimestampsCache=null;
+    queryCache=null;
+    queryCaches=null;
+  }
+}

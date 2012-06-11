@@ -6,6 +6,7 @@
   this.serviceRegistry=metadata.getServiceRegistry().getService(SessionFactoryServiceRegistryFactory.class).buildServiceRegistry(this,metadata);
   this.jdbcServices=this.serviceRegistry.getService(JdbcServices.class);
   this.dialect=this.jdbcServices.getDialect();
+  this.cacheAccess=this.serviceRegistry.getService(CacheImplementor.class);
   this.sqlFunctionRegistry=new SQLFunctionRegistry(this.dialect,new HashMap<String,SQLFunction>());
   if (observer != null) {
     this.observer.addObserver(observer);
@@ -18,7 +19,6 @@
   }
   LOG.debugf("Session factory constructed with filter configurations : %s",filters);
   LOG.debugf("Instantiating session factory with properties: %s",properties);
-  settings.getRegionFactory().start(settings,properties);
   this.queryPlanCache=new QueryPlanCache(this);
 class IntegratorObserver implements SessionFactoryObserver {
     private ArrayList<Integrator> integrators=new ArrayList<Integrator>();
@@ -64,7 +64,7 @@ class IntegratorObserver implements SessionFactoryObserver {
         EntityRegion entityRegion=settings.getRegionFactory().buildEntityRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
         accessStrategy=entityRegion.buildAccessStrategy(accessType);
         entityAccessStrategies.put(cacheRegionName,accessStrategy);
-        allCacheRegions.put(cacheRegionName,entityRegion);
+        cacheAccess.addCacheRegion(cacheRegionName,entityRegion);
       }
     }
     EntityPersister cp=serviceRegistry.getService(PersisterFactory.class).createEntityPersister(model,accessStrategy,this,metadata);
@@ -92,7 +92,7 @@ class IntegratorObserver implements SessionFactoryObserver {
       CollectionRegion collectionRegion=settings.getRegionFactory().buildCollectionRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
       accessStrategy=collectionRegion.buildAccessStrategy(accessType);
       entityAccessStrategies.put(cacheRegionName,accessStrategy);
-      allCacheRegions.put(cacheRegionName,collectionRegion);
+      cacheAccess.addCacheRegion(cacheRegionName,collectionRegion);
     }
     CollectionPersister persister=serviceRegistry.getService(PersisterFactory.class).createCollectionPersister(metadata,model,accessStrategy,this);
     collectionPersisters.put(model.getAttribute().getRole(),persister);
@@ -166,18 +166,6 @@ class IntegratorObserver implements SessionFactoryObserver {
     schemaExport=new SchemaExport(metadata).setImportSqlCommandExtractor(serviceRegistry.getService(ImportSqlCommandExtractor.class));
   }
   currentSessionContext=buildCurrentSessionContext();
-  if (settings.isQueryCacheEnabled()) {
-    updateTimestampsCache=new UpdateTimestampsCache(settings,properties,this);
-    queryCache=settings.getQueryCacheFactory().getQueryCache(null,updateTimestampsCache,settings,properties);
-    queryCaches=new ConcurrentHashMap<String,QueryCache>();
-    allCacheRegions.put(updateTimestampsCache.getRegion().getName(),updateTimestampsCache.getRegion());
-    allCacheRegions.put(queryCache.getRegion().getName(),queryCache.getRegion());
-  }
- else {
-    updateTimestampsCache=null;
-    queryCache=null;
-    queryCaches=null;
-  }
   if (settings.isNamedQueryStartupCheckingEnabled()) {
     final Map<String,HibernateException> errors=checkNamedQueries();
     if (!errors.isEmpty()) {
