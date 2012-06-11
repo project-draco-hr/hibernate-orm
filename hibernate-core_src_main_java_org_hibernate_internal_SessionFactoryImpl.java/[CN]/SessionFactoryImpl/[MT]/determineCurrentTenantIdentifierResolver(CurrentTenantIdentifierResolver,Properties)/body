@@ -11,7 +11,7 @@
   }
   Class<CurrentTenantIdentifierResolver> implClass;
   if (Class.class.isInstance(value)) {
-    implClass=Class.class.cast(customEntityDirtinessStrategy);
+    implClass=Class.class.cast(value);
   }
  else {
     try {
@@ -22,11 +22,13 @@
       return null;
     }
   }
-  try {
-    return implClass.newInstance();
-  }
- catch (  Exception e) {
-    LOG.debugf("Unable to instantiate CurrentTenantIdentifierResolver class %s",implClass.getName());
+  if (implClass != null) {
+    try {
+      return implClass.newInstance();
+    }
+ catch (    Exception e) {
+      LOG.debugf("Unable to instantiate CurrentTenantIdentifierResolver class %s",implClass.getName());
+    }
   }
   return null;
 }
