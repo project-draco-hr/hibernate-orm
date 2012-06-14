@@ -58,7 +58,7 @@
 ;
   final RenderedCriteriaQuery renderedCriteriaQuery=criteriaQueryImpl.render(renderingContext);
   LOG.debugf("Rendered criteria query -> %s",renderedCriteriaQuery.getQueryString());
-  TypedQuery<T> jpaqlQuery=entityManager.createQuery(renderedCriteriaQuery.getQueryString(),criteriaQuery.getResultType(),criteriaQuery.getSelection(),new HibernateEntityManagerImplementor.Options(){
+  QueryImpl<T> jpaqlQuery=entityManager.createQuery(renderedCriteriaQuery.getQueryString(),criteriaQuery.getResultType(),criteriaQuery.getSelection(),new HibernateEntityManagerImplementor.Options(){
     public List<ValueHandlerFactory.ValueHandler> getValueHandlers(){
       return renderedCriteriaQuery.getValueHandlers();
     }
@@ -73,5 +73,5 @@
   for (  ImplicitParameterBinding implicitParameterBinding : implicitParameterBindings) {
     implicitParameterBinding.bind(jpaqlQuery);
   }
-  return wrap(jpaqlQuery,explicitParameterMapping,explicitParameterNameMapping);
+  return new CriteriaQueryTypeQueryAdapter<T>(jpaqlQuery,explicitParameterMapping,explicitParameterNameMapping);
 }
