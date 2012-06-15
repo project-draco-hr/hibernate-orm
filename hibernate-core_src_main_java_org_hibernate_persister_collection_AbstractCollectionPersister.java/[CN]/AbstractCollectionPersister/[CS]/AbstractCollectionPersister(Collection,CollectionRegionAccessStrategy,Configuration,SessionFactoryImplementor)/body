@@ -238,16 +238,10 @@
   }
   hasOrder=collection.getOrderBy() != null;
   if (hasOrder) {
-    ColumnMapper mapper=new ColumnMapper(){
-      public String[] map(      String reference){
-        return elementPropertyMapping.toColumns(reference);
-      }
-    }
-;
-    sqlOrderByStringTemplate=Template.renderOrderByStringTemplate(collection.getOrderBy(),mapper,factory,dialect,factory.getSqlFunctionRegistry());
+    orderByTranslation=Template.translateOrderBy(collection.getOrderBy(),new ColumnMapperImpl(),factory,dialect,factory.getSqlFunctionRegistry());
   }
  else {
-    sqlOrderByStringTemplate=null;
+    orderByTranslation=null;
   }
   filterHelper=new FilterHelper(collection.getFilterMap(),dialect,factory.getSqlFunctionRegistry());
   manyToManyFilterHelper=new FilterHelper(collection.getManyToManyFilterMap(),dialect,factory.getSqlFunctionRegistry());
@@ -255,16 +249,10 @@
   manyToManyWhereTemplate=manyToManyWhereString == null ? null : Template.renderWhereStringTemplate(manyToManyWhereString,factory.getDialect(),factory.getSqlFunctionRegistry());
   hasManyToManyOrder=collection.getManyToManyOrdering() != null;
   if (hasManyToManyOrder) {
-    ColumnMapper mapper=new ColumnMapper(){
-      public String[] map(      String reference){
-        return elementPropertyMapping.toColumns(reference);
-      }
-    }
-;
-    manyToManyOrderByTemplate=Template.renderOrderByStringTemplate(collection.getManyToManyOrdering(),mapper,factory,dialect,factory.getSqlFunctionRegistry());
+    manyToManyOrderByTranslation=Template.translateOrderBy(collection.getManyToManyOrdering(),new ColumnMapperImpl(),factory,dialect,factory.getSqlFunctionRegistry());
   }
  else {
-    manyToManyOrderByTemplate=null;
+    manyToManyOrderByTranslation=null;
   }
   initCollectionPropertyMap();
 }

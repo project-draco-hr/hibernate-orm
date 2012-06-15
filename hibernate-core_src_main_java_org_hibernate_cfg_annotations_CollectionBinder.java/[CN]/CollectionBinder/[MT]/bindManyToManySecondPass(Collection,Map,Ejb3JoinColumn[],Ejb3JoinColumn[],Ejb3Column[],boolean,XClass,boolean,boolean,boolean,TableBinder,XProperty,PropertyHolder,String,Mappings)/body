@@ -145,7 +145,7 @@
       collValue.setElement(component);
       if (StringHelper.isNotEmpty(hqlOrderBy)) {
         String path=collValue.getOwnerEntityName() + "." + joinColumns[0].getPropertyName();
-        String orderBy=buildOrderByClauseFromHql(hqlOrderBy,component,path);
+        String orderBy=adjustUserSuppliedValueCollectionOrderingFragment(hqlOrderBy);
         if (orderBy != null) {
           collValue.setOrderBy(orderBy);
         }
@@ -173,6 +173,10 @@
       elementBinder.setColumns(elementColumns);
       elementBinder.setType(property,elementClass);
       collValue.setElement(elementBinder.make());
+      String orderBy=adjustUserSuppliedValueCollectionOrderingFragment(hqlOrderBy);
+      if (orderBy != null) {
+        collValue.setOrderBy(orderBy);
+      }
     }
   }
   checkFilterConditions(collValue);

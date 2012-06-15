@@ -1,0 +1,18 @@
+{
+  int templateLength=template.length();
+  int startPos=template.indexOf(Template.TEMPLATE);
+  while (startPos < templateLength) {
+    int dotPos=startPos + TEMPLATE_MARKER_LENGTH;
+    int pos=dotPos + 1;
+    while (pos < templateLength && isValidIdentifierCharacter(template.charAt(pos))) {
+      pos++;
+    }
+    final String columnReference=template.substring(dotPos + 1,pos);
+    final String replacement="{" + columnReference + "}";
+    template=template.replace(template.substring(startPos,pos),replacement);
+    columnReferences.add(columnReference);
+    startPos=(pos - TEMPLATE_MARKER_LENGTH) + 1;
+    templateLength=template.length();
+  }
+  return template;
+}

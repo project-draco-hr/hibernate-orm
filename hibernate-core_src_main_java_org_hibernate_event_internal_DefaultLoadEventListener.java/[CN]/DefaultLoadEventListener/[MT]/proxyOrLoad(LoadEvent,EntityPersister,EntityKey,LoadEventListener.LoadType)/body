@@ -2,10 +2,16 @@
   if (LOG.isTraceEnabled()) {
     LOG.tracev("Loading entity: {0}",MessageHelper.infoString(persister,event.getEntityId(),event.getSession().getFactory()));
   }
-  if (!persister.hasProxy())   return load(event,persister,keyToLoad,options);
+  if (!persister.hasProxy()) {
+    return load(event,persister,keyToLoad,options);
+  }
   final PersistenceContext persistenceContext=event.getSession().getPersistenceContext();
   Object proxy=persistenceContext.getProxy(keyToLoad);
-  if (proxy != null)   return returnNarrowedProxy(event,persister,keyToLoad,options,persistenceContext,proxy);
-  if (options.isAllowProxyCreation())   return createProxyIfNecessary(event,persister,keyToLoad,options,persistenceContext);
+  if (proxy != null) {
+    return returnNarrowedProxy(event,persister,keyToLoad,options,persistenceContext,proxy);
+  }
+  if (options.isAllowProxyCreation()) {
+    return createProxyIfNecessary(event,persister,keyToLoad,options,persistenceContext);
+  }
   return load(event,persister,keyToLoad,options);
 }

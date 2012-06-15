@@ -1,0 +1,28 @@
+{
+  GeneratedOrderByLexer lexer=new GeneratedOrderByLexer(new StringReader(fragment));
+  OrderByFragmentParser parser=new OrderByFragmentParser(lexer,context);
+  try {
+    parser.orderByFragment();
+  }
+ catch (  HibernateException e) {
+    throw e;
+  }
+catch (  Throwable t) {
+    throw new HibernateException("Unable to parse order-by fragment",t);
+  }
+  if (LOG.isTraceEnabled()) {
+    ASTPrinter printer=new ASTPrinter(OrderByTemplateTokenTypes.class);
+    LOG.trace(printer.showAsString(parser.getAST(),"--- {order-by fragment} ---"));
+  }
+  OrderByFragmentRenderer renderer=new OrderByFragmentRenderer();
+  try {
+    renderer.orderByFragment(parser.getAST());
+  }
+ catch (  HibernateException e) {
+    throw e;
+  }
+catch (  Throwable t) {
+    throw new HibernateException("Unable to render parsed order-by fragment",t);
+  }
+  return new StandardOrderByTranslationImpl(renderer.getRenderedFragment(),parser.getColumnReferences());
+}
