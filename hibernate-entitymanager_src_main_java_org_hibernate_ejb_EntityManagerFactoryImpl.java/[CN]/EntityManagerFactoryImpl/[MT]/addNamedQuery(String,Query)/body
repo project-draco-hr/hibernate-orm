@@ -5,5 +5,13 @@
   if (!HibernateQuery.class.isInstance(query)) {
     throw new PersistenceException("Cannot use query non-Hibernate EntityManager query as basis for named query");
   }
-  throw new NotYetImplementedException();
+  final org.hibernate.Query hibernateQuery=((HibernateQuery)query).getHibernateQuery();
+  if (org.hibernate.SQLQuery.class.isInstance(hibernateQuery)) {
+    final NamedSQLQueryDefinition namedQueryDefinition=extractSqlQueryDefinition((org.hibernate.SQLQuery)hibernateQuery,name);
+    sessionFactory.registerNamedSQLQueryDefinition(name,namedQueryDefinition);
+  }
+ else {
+    final NamedQueryDefinition namedQueryDefinition=extractHqlQueryDefinition(hibernateQuery,name);
+    sessionFactory.registerNamedQueryDefinition(name,namedQueryDefinition);
+  }
 }

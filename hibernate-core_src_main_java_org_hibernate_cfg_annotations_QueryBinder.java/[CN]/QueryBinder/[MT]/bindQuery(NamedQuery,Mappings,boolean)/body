@@ -5,14 +5,14 @@
   }
   QueryHint[] hints=queryAnn.hints();
   String queryName=queryAnn.query();
-  NamedQueryDefinition query=new NamedQueryDefinition(queryAnn.name(),queryName,getBoolean(queryName,"org.hibernate.cacheable",hints),getString(queryName,"org.hibernate.cacheRegion",hints),getTimeout(queryName,hints),getInteger(queryName,"javax.persistence.lock.timeout",hints),getInteger(queryName,"org.hibernate.fetchSize",hints),getFlushMode(queryName,hints),getCacheMode(queryName,hints),getBoolean(queryName,"org.hibernate.readOnly",hints),getString(queryName,"org.hibernate.comment",hints),null);
+  NamedQueryDefinition queryDefinition=new NamedQueryDefinitionBuilder(queryAnn.name()).setLockOptions(determineLockOptions(queryAnn,hints)).setQuery(queryName).setCacheable(getBoolean(queryName,"org.hibernate.cacheable",hints)).setCacheRegion(getString(queryName,"org.hibernate.cacheRegion",hints)).setTimeout(getTimeout(queryName,hints)).setFetchSize(getInteger(queryName,"org.hibernate.fetchSize",hints)).setFlushMode(getFlushMode(queryName,hints)).setCacheMode(getCacheMode(queryName,hints)).setReadOnly(getBoolean(queryName,"org.hibernate.readOnly",hints)).setComment(getString(queryName,"org.hibernate.comment",hints)).setParameterTypes(null).createNamedQueryDefinition();
   if (isDefault) {
-    mappings.addDefaultQuery(query.getName(),query);
+    mappings.addDefaultQuery(queryDefinition.getName(),queryDefinition);
   }
  else {
-    mappings.addQuery(query.getName(),query);
+    mappings.addQuery(queryDefinition.getName(),queryDefinition);
   }
   if (LOG.isDebugEnabled()) {
-    LOG.debugf("Binding named query: %s => %s",query.getName(),query.getQueryString());
+    LOG.debugf("Binding named query: %s => %s",queryDefinition.getName(),queryDefinition.getQueryString());
   }
 }
