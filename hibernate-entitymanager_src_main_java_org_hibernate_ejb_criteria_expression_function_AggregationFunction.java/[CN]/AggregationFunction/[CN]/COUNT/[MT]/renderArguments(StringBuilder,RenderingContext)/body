@@ -1,0 +1,19 @@
+{
+  if (isDistinct()) {
+    buffer.append("distinct ");
+  }
+ else {
+    List<Expression<?>> argExprs=getArgumentExpressions();
+    if (argExprs.size() == 1) {
+      Expression argExpr=argExprs.get(0);
+      if (argExpr instanceof Root<?>) {
+        Root<?> root=(Root<?>)argExpr;
+        if (root.getModel().getIdType() != null) {
+          buffer.append('*');
+          return;
+        }
+      }
+    }
+  }
+  super.renderArguments(buffer,renderingContext);
+}

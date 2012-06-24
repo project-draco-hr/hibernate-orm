@@ -1,0 +1,51 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  CriteriaBuilder builder=em.getCriteriaBuilder();
+{
+    try {
+      CriteriaDelete<Customer> deleteCriteria=builder.createCriteriaDelete(Customer.class);
+      Root<Customer> root=deleteCriteria.from(Customer.class);
+      root.join(Customer_.spouse);
+      em.createQuery(deleteCriteria).executeUpdate();
+      fail("Expected failure dues to attempt to join");
+    }
+ catch (    IllegalArgumentException expected) {
+    }
+  }
+{
+    try {
+      CriteriaDelete<Customer> deleteCriteria=builder.createCriteriaDelete(Customer.class);
+      Root<Customer> root=deleteCriteria.from(Customer.class);
+      root.fetch(Customer_.spouse);
+      em.createQuery(deleteCriteria).executeUpdate();
+      fail("Expected failure dues to attempt to fetch");
+    }
+ catch (    IllegalArgumentException expected) {
+    }
+  }
+{
+    try {
+      CriteriaUpdate<Customer> updateCriteria=builder.createCriteriaUpdate(Customer.class);
+      Root<Customer> root=updateCriteria.from(Customer.class);
+      root.join(Customer_.spouse);
+      em.createQuery(updateCriteria).executeUpdate();
+      fail("Expected failure dues to attempt to join");
+    }
+ catch (    IllegalArgumentException expected) {
+    }
+  }
+{
+    try {
+      CriteriaUpdate<Customer> updateCriteria=builder.createCriteriaUpdate(Customer.class);
+      Root<Customer> root=updateCriteria.from(Customer.class);
+      root.fetch(Customer_.spouse);
+      em.createQuery(updateCriteria).executeUpdate();
+      fail("Expected failure dues to attempt to fetch");
+    }
+ catch (    IllegalArgumentException expected) {
+    }
+  }
+  em.getTransaction().commit();
+  em.close();
+}

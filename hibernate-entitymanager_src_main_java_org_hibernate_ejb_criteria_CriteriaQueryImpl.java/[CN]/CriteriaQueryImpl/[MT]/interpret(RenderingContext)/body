@@ -1,0 +1,53 @@
+{
+  final StringBuilder jpaqlBuffer=new StringBuilder();
+  queryStructure.render(jpaqlBuffer,renderingContext);
+  if (!getOrderList().isEmpty()) {
+    jpaqlBuffer.append(" order by ");
+    String sep="";
+    for (    Order orderSpec : getOrderList()) {
+      jpaqlBuffer.append(sep).append(((Renderable)orderSpec.getExpression()).render(renderingContext)).append(orderSpec.isAscending() ? " asc" : " desc");
+      sep=", ";
+    }
+  }
+  final String jpaqlString=jpaqlBuffer.toString();
+  log.debugf("Rendered criteria query -> %s",jpaqlString);
+  return new CriteriaInterpretation(){
+    @Override @SuppressWarnings("unchecked") public Query buildCompiledQuery(    HibernateEntityManagerImplementor entityManager,    final InterpretedParameterMetadata parameterMetadata){
+      QueryImpl jpaqlQuery=entityManager.createQuery(jpaqlString,getResultType(),getSelection(),new HibernateEntityManagerImplementor.Options(){
+        @Override public List<ValueHandlerFactory.ValueHandler> getValueHandlers(){
+          SelectionImplementor selection=(SelectionImplementor)queryStructure.getSelection();
+          return selection == null ? null : selection.getValueHandlers();
+        }
+        @Override public Map<String,Class> getNamedParameterExplicitTypes(){
+          return parameterMetadata.implicitParameterTypes();
+        }
+        @Override public ResultMetadataValidator getResultMetadataValidator(){
+          return new HibernateEntityManagerImplementor.Options.ResultMetadataValidator(){
+            @Override public void validate(            Type[] returnTypes){
+              SelectionImplementor selection=(SelectionImplementor)queryStructure.getSelection();
+              if (selection != null) {
+                if (selection.isCompoundSelection()) {
+                  if (returnTypes.length != selection.getCompoundSelectionItems().size()) {
+                    throw new IllegalStateException("Number of return values [" + returnTypes.length + "] did not match expected ["+ selection.getCompoundSelectionItems().size()+ "]");
+                  }
+                }
+ else {
+                  if (returnTypes.length > 1) {
+                    throw new IllegalStateException("Number of return values [" + returnTypes.length + "] did not match expected [1]");
+                  }
+                }
+              }
+            }
+          }
+;
+        }
+      }
+);
+      for (      ImplicitParameterBinding implicitParameterBinding : parameterMetadata.implicitParameterBindings()) {
+        implicitParameterBinding.bind(jpaqlQuery);
+      }
+      return new CriteriaQueryTypeQueryAdapter(jpaqlQuery,parameterMetadata.explicitParameterMapping(),parameterMetadata.explicitParameterNameMapping());
+    }
+  }
+;
+}

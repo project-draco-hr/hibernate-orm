@@ -1,0 +1,73 @@
+{
+  criteria.validate();
+  final Map<ParameterExpression<?>,String> explicitParameterMapping=new HashMap<ParameterExpression<?>,String>();
+  final Map<String,ParameterExpression<?>> explicitParameterNameMapping=new HashMap<String,ParameterExpression<?>>();
+  final List<ImplicitParameterBinding> implicitParameterBindings=new ArrayList<ImplicitParameterBinding>();
+  final Map<String,Class> implicitParameterTypes=new HashMap<String,Class>();
+  RenderingContext renderingContext=new RenderingContext(){
+    private int aliasCount=0;
+    private int explicitParameterCount=0;
+    public String generateAlias(){
+      return "generatedAlias" + aliasCount++;
+    }
+    public String generateParameterName(){
+      return "param" + explicitParameterCount++;
+    }
+    public String registerExplicitParameter(    ParameterExpression<?> criteriaQueryParameter){
+      final String jpaqlParameterName;
+      if (explicitParameterMapping.containsKey(criteriaQueryParameter)) {
+        jpaqlParameterName=explicitParameterMapping.get(criteriaQueryParameter);
+      }
+ else {
+        jpaqlParameterName=generateParameterName();
+        explicitParameterMapping.put(criteriaQueryParameter,jpaqlParameterName);
+      }
+      if (StringHelper.isNotEmpty(criteriaQueryParameter.getName())) {
+        explicitParameterNameMapping.put(criteriaQueryParameter.getName(),criteriaQueryParameter);
+      }
+      return jpaqlParameterName;
+    }
+    public String registerLiteralParameterBinding(    final Object literal,    final Class javaType){
+      final String parameterName=generateParameterName();
+      final ImplicitParameterBinding binding=new ImplicitParameterBinding(){
+        public String getParameterName(){
+          return parameterName;
+        }
+        public Class getJavaType(){
+          return javaType;
+        }
+        public void bind(        TypedQuery typedQuery){
+          typedQuery.setParameter(parameterName,literal);
+        }
+      }
+;
+      implicitParameterBindings.add(binding);
+      implicitParameterTypes.put(parameterName,javaType);
+      return parameterName;
+    }
+    public String getCastType(    Class javaType){
+      SessionFactoryImplementor factory=(SessionFactoryImplementor)entityManager.getFactory().getSessionFactory();
+      Type hibernateType=factory.getTypeResolver().heuristicType(javaType.getName());
+      if (hibernateType == null) {
+        throw new IllegalArgumentException("Could not convert java type [" + javaType.getName() + "] to Hibernate type");
+      }
+      return hibernateType.getName();
+    }
+  }
+;
+  return criteria.interpret(renderingContext).buildCompiledQuery(entityManager,new InterpretedParameterMetadata(){
+    @Override public Map<ParameterExpression<?>,String> explicitParameterMapping(){
+      return explicitParameterMapping;
+    }
+    @Override public Map<String,ParameterExpression<?>> explicitParameterNameMapping(){
+      return explicitParameterNameMapping;
+    }
+    @Override public List<ImplicitParameterBinding> implicitParameterBindings(){
+      return implicitParameterBindings;
+    }
+    @Override public Map<String,Class> implicitParameterTypes(){
+      return implicitParameterTypes;
+    }
+  }
+);
+}

@@ -2,7 +2,9 @@
   try {
     org.hibernate.Query hqlQuery=getSession().createQuery(jpaqlString);
     if (options.getValueHandlers() == null) {
-      options.getResultMetadataValidator().validate(hqlQuery.getReturnTypes());
+      if (options.getResultMetadataValidator() != null) {
+        options.getResultMetadataValidator().validate(hqlQuery.getReturnTypes());
+      }
     }
     List tupleElements=Tuple.class.equals(resultClass) ? ((CompoundSelectionImpl<Tuple>)selection).getCompoundSelectionItems() : null;
     if (options.getValueHandlers() != null || tupleElements != null) {

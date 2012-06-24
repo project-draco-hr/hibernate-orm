@@ -1,0 +1,24 @@
+{
+  final String jpaqlString=renderQuery(renderingContext);
+  return new CriteriaInterpretation(){
+    @Override @SuppressWarnings("unchecked") public Query buildCompiledQuery(    HibernateEntityManagerImplementor entityManager,    final InterpretedParameterMetadata interpretedParameterMetadata){
+      QueryImpl jpaqlQuery=entityManager.createQuery(jpaqlString,null,null,new HibernateEntityManagerImplementor.Options(){
+        @Override public List<ValueHandlerFactory.ValueHandler> getValueHandlers(){
+          return null;
+        }
+        @Override public Map<String,Class> getNamedParameterExplicitTypes(){
+          return interpretedParameterMetadata.implicitParameterTypes();
+        }
+        @Override public ResultMetadataValidator getResultMetadataValidator(){
+          return null;
+        }
+      }
+);
+      for (      ImplicitParameterBinding implicitParameterBinding : interpretedParameterMetadata.implicitParameterBindings()) {
+        implicitParameterBinding.bind(jpaqlQuery);
+      }
+      return jpaqlQuery;
+    }
+  }
+;
+}
