@@ -1,6 +1,5 @@
 {
   final String name=filterElement.attributeValue("name");
-  final String tableName=filterElement.attributeValue("table");
   String condition=filterElement.getTextTrim();
   if (StringHelper.isEmpty(condition)) {
     condition=filterElement.attributeValue("condition");
@@ -11,6 +10,14 @@
   if (condition == null) {
     throw new MappingException("no filter condition found for filter: " + name);
   }
+  Iterator aliasesIterator=filterElement.elementIterator("aliases");
+  java.util.Map<String,String> aliasTables=new HashMap<String,String>();
+  while (aliasesIterator.hasNext()) {
+    Element alias=(Element)aliasesIterator.next();
+    aliasTables.put(alias.attributeValue("alias"),alias.attributeValue("table"));
+  }
   LOG.debugf("Applying filter [%s] as [%s]",name,condition);
-  filterable.addFilter(name,tableName,condition);
+  String autoAliasInjectionText=filterElement.attributeValue("autoAliasInjection");
+  boolean autoAliasInjection=StringHelper.isEmpty(autoAliasInjectionText) ? true : Boolean.parseBoolean(autoAliasInjectionText);
+  filterable.addFilter(name,condition,autoAliasInjection,aliasTables);
 }

@@ -110,9 +110,9 @@
     EntityMode mode=EntityMode.parse(tuplizer.entityMode());
     persistentClass.addTuplizer(mode,tuplizer.impl().getName());
   }
-  for (  Map.Entry<String,String> filter : filters.entrySet()) {
-    String filterName=filter.getKey();
-    String cond=filter.getValue();
+  for (  Filter filter : filters) {
+    String filterName=filter.name();
+    String cond=filter.condition();
     if (BinderHelper.isEmptyAnnotationValue(cond)) {
       FilterDefinition definition=mappings.getFilterDefinition(filterName);
       cond=definition == null ? null : definition.getDefaultFilterCondition();
@@ -120,7 +120,7 @@
         throw new AnnotationException("no filter condition found for filter " + filterName + " in "+ this.name);
       }
     }
-    persistentClass.addFilter(filterName,null,cond);
+    persistentClass.addFilter(filterName,cond,filter.deduceAliasInjectionPoints(),toTableAliasMap(filter.aliases()));
   }
   LOG.debugf("Import with entity name %s",name);
   try {
