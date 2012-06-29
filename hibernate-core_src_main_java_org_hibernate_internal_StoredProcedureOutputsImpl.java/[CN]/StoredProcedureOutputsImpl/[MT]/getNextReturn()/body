@@ -1,0 +1,26 @@
+{
+  if (currentReturnDescriptor == null) {
+    if (executed) {
+      throw new IllegalStateException("Unexpected condition");
+    }
+ else {
+      throw new IllegalStateException("hasMoreReturns() not called before getNextReturn()");
+    }
+  }
+  if (!hasMoreResults(currentReturnDescriptor)) {
+    throw new IllegalStateException("Results have been exhausted");
+  }
+  CurrentReturnDescriptor copyReturnDescriptor=currentReturnDescriptor;
+  currentReturnDescriptor=null;
+  if (copyReturnDescriptor.isResultSet) {
+    try {
+      return new ResultSetReturn(this,callableStatement.getResultSet());
+    }
+ catch (    SQLException e) {
+      throw convert(e,"Error calling CallableStatement.getResultSet");
+    }
+  }
+ else {
+    return new UpdateCountReturn(this,copyReturnDescriptor.updateCount);
+  }
+}

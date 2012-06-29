@@ -1,0 +1,13 @@
+{
+  try {
+    if (ProcedureParameterExtractionAware.class.isInstance(hibernateType)) {
+      return (T)((ProcedureParameterExtractionAware)hibernateType).extract(statement,startIndex,session());
+    }
+ else {
+      return (T)statement.getObject(startIndex);
+    }
+  }
+ catch (  SQLException e) {
+    throw procedureCall.session().getFactory().getSQLExceptionHelper().convert(e,"Unable to extract OUT/INOUT parameter value");
+  }
+}

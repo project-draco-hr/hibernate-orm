@@ -1,13 +1,13 @@
 {
-  List customReturns=new ArrayList();
-  Map customReturnsByAlias=new HashMap();
-  for (int i=0; i < queryReturns.length; i++) {
-    if (queryReturns[i] instanceof NativeSQLQueryScalarReturn) {
-      NativeSQLQueryScalarReturn rtn=(NativeSQLQueryScalarReturn)queryReturns[i];
+  List<Return> customReturns=new ArrayList<Return>();
+  Map<String,Return> customReturnsByAlias=new HashMap<String,Return>();
+  for (  NativeSQLQueryReturn queryReturn : queryReturns) {
+    if (queryReturn instanceof NativeSQLQueryScalarReturn) {
+      NativeSQLQueryScalarReturn rtn=(NativeSQLQueryScalarReturn)queryReturn;
       customReturns.add(new ScalarReturn(rtn.getType(),rtn.getColumnAlias()));
     }
- else     if (queryReturns[i] instanceof NativeSQLQueryRootReturn) {
-      NativeSQLQueryRootReturn rtn=(NativeSQLQueryRootReturn)queryReturns[i];
+ else     if (queryReturn instanceof NativeSQLQueryRootReturn) {
+      NativeSQLQueryRootReturn rtn=(NativeSQLQueryRootReturn)queryReturn;
       String alias=rtn.getAlias();
       EntityAliases entityAliases;
       if (queryHadAliases || hasPropertyResultMap(alias)) {
@@ -20,8 +20,8 @@
       customReturns.add(customReturn);
       customReturnsByAlias.put(rtn.getAlias(),customReturn);
     }
- else     if (queryReturns[i] instanceof NativeSQLQueryCollectionReturn) {
-      NativeSQLQueryCollectionReturn rtn=(NativeSQLQueryCollectionReturn)queryReturns[i];
+ else     if (queryReturn instanceof NativeSQLQueryCollectionReturn) {
+      NativeSQLQueryCollectionReturn rtn=(NativeSQLQueryCollectionReturn)queryReturn;
       String alias=rtn.getAlias();
       SQLLoadableCollection persister=(SQLLoadableCollection)alias2CollectionPersister.get(alias);
       boolean isEntityElements=persister.getElementType().isEntityType();
@@ -43,8 +43,8 @@
       customReturns.add(customReturn);
       customReturnsByAlias.put(rtn.getAlias(),customReturn);
     }
- else     if (queryReturns[i] instanceof NativeSQLQueryJoinReturn) {
-      NativeSQLQueryJoinReturn rtn=(NativeSQLQueryJoinReturn)queryReturns[i];
+ else     if (queryReturn instanceof NativeSQLQueryJoinReturn) {
+      NativeSQLQueryJoinReturn rtn=(NativeSQLQueryJoinReturn)queryReturn;
       String alias=rtn.getAlias();
       FetchReturn customReturn;
       NonScalarReturn ownerCustomReturn=(NonScalarReturn)customReturnsByAlias.get(rtn.getOwnerAlias());

@@ -1,8 +1,10 @@
 {
   return new BasicExtractor<X>(javaTypeDescriptor,this){
     @Override protected X doExtract(    ResultSet rs,    String name,    WrapperOptions options) throws SQLException {
-      final byte[] bytes=rs.getBytes(name);
-      return javaTypeDescriptor.wrap(bytes,options);
+      return javaTypeDescriptor.wrap(rs.getBytes(name),options);
+    }
+    @Override protected X doExtract(    CallableStatement statement,    int index,    WrapperOptions options) throws SQLException {
+      return javaTypeDescriptor.wrap(statement.getBytes(index),options);
     }
   }
 ;
