@@ -1,8 +1,29 @@
 {
-  if (typeName == null) {
+  if (typeName != null) {
+    return;
+  }
+  if (type != null) {
+    return;
+  }
+  if (jpaAttributeConverterDefinition == null) {
     if (className == null) {
       throw new MappingException("you must specify types for a dynamic entity: " + propertyName);
     }
     typeName=ReflectHelper.reflectedPropertyClass(className,propertyName).getName();
+    return;
   }
+  final Class entityAttributeJavaType=jpaAttributeConverterDefinition.getEntityAttributeType();
+  final Class databaseColumnJavaType=jpaAttributeConverterDefinition.getDatabaseColumnType();
+  final int jdbcTypeCode=JdbcTypeJavaClassMappings.INSTANCE.determineJdbcTypeCodeForJavaClass(databaseColumnJavaType);
+  final JavaTypeDescriptor javaTypeDescriptor=JavaTypeDescriptorRegistry.INSTANCE.getDescriptor(entityAttributeJavaType);
+  final SqlTypeDescriptor sqlTypeDescriptor=SqlTypeDescriptorRegistry.INSTANCE.getDescriptor(jdbcTypeCode);
+  final SqlTypeDescriptor sqlTypeDescriptorAdapter=new AttributeConverterSqlTypeDescriptorAdapter(jpaAttributeConverterDefinition.getAttributeConverter(),sqlTypeDescriptor);
+  final String name="BasicType adapter for AttributeConverter<" + entityAttributeJavaType + ","+ databaseColumnJavaType+ ">";
+  type=new AbstractSingleColumnStandardBasicType(sqlTypeDescriptorAdapter,javaTypeDescriptor){
+    @Override public String getName(){
+      return name;
+    }
+  }
+;
+  log.debug("Created : " + name);
 }

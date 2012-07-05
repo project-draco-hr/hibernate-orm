@@ -1,0 +1,19 @@
+{
+  Convert localConvertAnnotation=property.getAnnotation(Convert.class);
+  if (localConvertAnnotation != null) {
+    return localConvertAnnotation;
+  }
+  if (persistentClassName == null) {
+    LOG.debug("Persistent Class name not known during attempt to locate @Convert annotations");
+    return null;
+  }
+  final XClass owner;
+  try {
+    final Class ownerClass=ReflectHelper.classForName(persistentClassName);
+    owner=mappings.getReflectionManager().classForName(persistentClassName,ownerClass);
+  }
+ catch (  ClassNotFoundException e) {
+    throw new AnnotationException("Unable to resolve Class reference during attempt to locate @Convert annotations");
+  }
+  return lookForEntityDefinedConvertAnnotation(property,owner);
+}

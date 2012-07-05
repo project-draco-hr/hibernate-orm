@@ -1,16 +1,24 @@
 {
   LOG.debugf("Setting SimpleValue typeName for %s",propertyName);
-  String type=BinderHelper.isEmptyAnnotationValue(explicitType) ? returnedClassName : explicitType;
-  org.hibernate.mapping.TypeDef typeDef=mappings.getTypeDef(type);
-  if (typeDef != null) {
-    type=typeDef.getTypeClass();
-    simpleValue.setTypeParameters(typeDef.getParameters());
+  if (attributeConverterDefinition != null) {
+    if (!BinderHelper.isEmptyAnnotationValue(explicitType)) {
+      throw new AnnotationException(String.format("AttributeConverter and explicit Type cannot be applied to same attribute [%s.%s];" + "remove @Type or specify @Convert(disableConversion = true)",persistentClassName,propertyName));
+    }
+    simpleValue.setJpaAttributeConverterDefinition(attributeConverterDefinition);
   }
-  if (typeParameters != null && typeParameters.size() != 0) {
-    simpleValue.setTypeParameters(typeParameters);
+ else {
+    String type=BinderHelper.isEmptyAnnotationValue(explicitType) ? returnedClassName : explicitType;
+    org.hibernate.mapping.TypeDef typeDef=mappings.getTypeDef(type);
+    if (typeDef != null) {
+      type=typeDef.getTypeClass();
+      simpleValue.setTypeParameters(typeDef.getParameters());
+    }
+    if (typeParameters != null && typeParameters.size() != 0) {
+      simpleValue.setTypeParameters(typeParameters);
+    }
+    simpleValue.setTypeName(type);
   }
-  simpleValue.setTypeName(type);
-  if (persistentClassName != null) {
+  if (persistentClassName != null || attributeConverterDefinition != null) {
     simpleValue.setTypeUsingReflection(persistentClassName,propertyName);
   }
   if (!simpleValue.isTypeSpecified() && isVersion()) {

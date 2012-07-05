@@ -1,0 +1,14 @@
+{
+  final boolean canBeConverted=!property.isAnnotationPresent(Id.class) && !isVersion && !isAssociation()&& !property.isAnnotationPresent(Temporal.class)&& !property.isAnnotationPresent(Enumerated.class);
+  if (canBeConverted) {
+    final Convert convertAnnotation=locateConvertAnnotation(property);
+    if (convertAnnotation != null) {
+      if (!convertAnnotation.disableConversion()) {
+        attributeConverterDefinition=mappings.locateAttributeConverter(convertAnnotation.converter());
+      }
+    }
+ else {
+      attributeConverterDefinition=locateAutoApplyAttributeConverter(property);
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  if (cls == null) {
+    throw new IllegalArgumentException("Class passed to locate Java type descriptor cannot be null");
+  }
+  JavaTypeDescriptor<T> descriptor=descriptorsByClass.get(cls);
+  if (descriptor != null) {
+    return descriptor;
+  }
+  for (  Map.Entry<Class,JavaTypeDescriptor> entry : descriptorsByClass.entrySet()) {
+    if (cls.isAssignableFrom(entry.getKey())) {
+      return entry.getValue();
+    }
+  }
+  if (Serializable.class.isAssignableFrom(cls)) {
+    return new SerializableTypeDescriptor(cls);
+  }
+ else {
+    return new FallbackJavaTypeDescriptor<T>(cls);
+  }
+}

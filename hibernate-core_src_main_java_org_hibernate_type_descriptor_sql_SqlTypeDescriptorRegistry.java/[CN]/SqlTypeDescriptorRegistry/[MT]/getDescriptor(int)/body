@@ -1,0 +1,26 @@
+{
+  SqlTypeDescriptor descriptor=descriptorMap.get(Integer.valueOf(jdbcTypeCode));
+  if (descriptor != null) {
+    return descriptor;
+  }
+  if (JdbcTypeNameMapper.isStandardTypeCode(jdbcTypeCode)) {
+    log.debugf("A standard JDBC type code [%s] was not defined in SqlTypeDescriptorRegistry",jdbcTypeCode);
+  }
+  JdbcTypeFamilyInformation.Family family=JdbcTypeFamilyInformation.INSTANCE.locateJdbcTypeFamilyByTypeCode(jdbcTypeCode);
+  if (family != null) {
+    for (    int potentialAlternateTypeCode : family.getTypeCodes()) {
+      if (potentialAlternateTypeCode != jdbcTypeCode) {
+        final SqlTypeDescriptor potentialAlternateDescriptor=descriptorMap.get(Integer.valueOf(potentialAlternateTypeCode));
+        if (potentialAlternateDescriptor != null) {
+          return potentialAlternateDescriptor;
+        }
+        if (JdbcTypeNameMapper.isStandardTypeCode(potentialAlternateTypeCode)) {
+          log.debugf("A standard JDBC type code [%s] was not defined in SqlTypeDescriptorRegistry",potentialAlternateTypeCode);
+        }
+      }
+    }
+  }
+  final ObjectSqlTypeDescriptor fallBackDescriptor=new ObjectSqlTypeDescriptor(jdbcTypeCode);
+  addDescriptor(fallBackDescriptor);
+  return fallBackDescriptor;
+}

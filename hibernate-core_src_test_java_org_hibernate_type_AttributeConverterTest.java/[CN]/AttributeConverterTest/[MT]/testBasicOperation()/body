@@ -1,0 +1,12 @@
+{
+  Configuration cfg=new Configuration();
+  SimpleValue simpleValue=new SimpleValue(cfg.createMappings());
+  simpleValue.setJpaAttributeConverterDefinition(new AttributeConverterDefinition(new StringClobConverter(),true));
+  simpleValue.setTypeUsingReflection(IrrelevantEntity.class.getName(),"name");
+  Type type=simpleValue.getType();
+  assertNotNull(type);
+  assertTyping(BasicType.class,type);
+  AbstractStandardBasicType basicType=assertTyping(AbstractStandardBasicType.class,type);
+  assertSame(StringTypeDescriptor.INSTANCE,basicType.getJavaTypeDescriptor());
+  assertEquals(Types.CLOB,basicType.getSqlTypeDescriptor().getSqlType());
+}
