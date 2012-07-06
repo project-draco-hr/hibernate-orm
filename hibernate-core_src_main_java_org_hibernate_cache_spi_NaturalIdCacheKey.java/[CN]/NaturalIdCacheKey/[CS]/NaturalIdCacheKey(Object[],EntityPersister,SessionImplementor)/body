@@ -1,8 +1,7 @@
 {
   this.entityName=persister.getRootEntityName();
   this.tenantId=session.getTenantIdentifier();
-  final Serializable[] disassembledNaturalId=new Serializable[naturalIdValues.length];
-  final StringBuilder toStringBuilder=new StringBuilder(entityName).append("##NaturalId[");
+  this.naturalIdValues=new Serializable[naturalIdValues.length];
   final SessionFactoryImplementor factory=session.getFactory();
   final int[] naturalIdPropertyIndexes=persister.getNaturalIdentifierProperties();
   final Type[] propertyTypes=persister.getPropertyTypes();
@@ -14,14 +13,7 @@
     final Type type=propertyTypes[naturalIdPropertyIndexes[i]];
     final Object value=naturalIdValues[i];
     result=prime * result + (value != null ? type.getHashCode(value,factory) : 0);
-    disassembledNaturalId[i]=type.disassemble(value,session,null);
-    toStringBuilder.append(type.toLoggableString(value,factory));
-    if (i + 1 < naturalIdValues.length) {
-      toStringBuilder.append(", ");
-    }
+    this.naturalIdValues[i]=type.disassemble(value,session,null);
   }
-  toStringBuilder.append("]");
-  this.naturalIdValues=disassembledNaturalId;
   this.hashCode=result;
-  this.toString=toStringBuilder.toString();
 }
