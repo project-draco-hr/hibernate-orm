@@ -1,0 +1,17 @@
+{
+  LinkedHashSet<Integrator> providedIntegrators=new LinkedHashSet<Integrator>();
+  providedIntegrators.add(new InvestorIntegrator());
+  ClassLoaderService classLoaderService=new ClassLoaderServiceImpl();
+  IntegratorService integratorService=new IntegratorServiceImpl(providedIntegrators,classLoaderService);
+  ServiceRegistry reg=new ServiceRegistryBuilder(new BootstrapServiceRegistryImpl(classLoaderService,integratorService)).buildServiceRegistry();
+  SessionFactory sf=new Configuration().addAnnotatedClass(Investor.class).setProperty("hibernate.hbm2ddl.auto","create-drop").buildSessionFactory(reg);
+  Session sess=sf.openSession();
+  Investor myInv=getInvestor();
+  myInv.setId(2L);
+  sess.save(myInv);
+  sess.flush();
+  sess.clear();
+  Investor inv=(Investor)sess.get(Investor.class,2L);
+  assertEquals(new BigDecimal("100"),inv.getInvestments().get(0).getAmount().getAmount());
+  sess.close();
+}

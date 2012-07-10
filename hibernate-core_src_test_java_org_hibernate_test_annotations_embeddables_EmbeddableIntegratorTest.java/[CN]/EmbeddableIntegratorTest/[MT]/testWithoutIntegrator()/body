@@ -1,0 +1,13 @@
+{
+  ServiceRegistry reg=new ServiceRegistryBuilder(new BootstrapServiceRegistryImpl()).buildServiceRegistry();
+  SessionFactory sf=new Configuration().addAnnotatedClass(Investor.class).buildSessionFactory(reg);
+  Session sess=sf.openSession();
+  Investor myInv=getInvestor();
+  myInv.setId(1L);
+  sess.save(myInv);
+  sess.flush();
+  sess.clear();
+  Investor inv=(Investor)sess.get(Investor.class,1L);
+  assertEquals(new BigDecimal("100"),inv.getInvestments().get(0).getAmount().getAmount());
+  sess.close();
+}
