@@ -1,0 +1,17 @@
+{
+  try {
+    ResultSet rs=st.executeQuery();
+    rs=wrapResultSetIfEnabled(rs,session);
+    if (!limitHandler.supportsLimitOffset() || !LimitHelper.useLimit(limitHandler,selection)) {
+      advance(rs,selection);
+    }
+    if (autodiscovertypes) {
+      autoDiscoverTypes(rs);
+    }
+    return rs;
+  }
+ catch (  SQLException sqle) {
+    st.close();
+    throw sqle;
+  }
+}

@@ -1,0 +1,36 @@
+{
+  final List<String> aliases=new LinkedList<String>();
+  final int startPos=shallowIndexOf(sb,SELECT_WITH_SPACE,0);
+  int endPos=shallowIndexOfWord(sb,FROM,startPos);
+  int nextComa=startPos;
+  int prevComa=startPos;
+  int unique=0;
+  while (nextComa != -1) {
+    prevComa=nextComa;
+    nextComa=shallowIndexOf(sb,",",nextComa);
+    if (nextComa > endPos) {
+      break;
+    }
+    if (nextComa != -1) {
+      String expression=sb.substring(prevComa,nextComa);
+      String alias=getAlias(expression);
+      if (alias == null) {
+        alias=StringHelper.generateAlias("page",unique);
+        sb.insert(nextComa," as " + alias);
+        ++unique;
+        nextComa+=(" as " + alias).length();
+      }
+      aliases.add(alias);
+      ++nextComa;
+    }
+  }
+  endPos=shallowIndexOfWord(sb,FROM,startPos);
+  String expression=sb.substring(prevComa,endPos);
+  String alias=getAlias(expression);
+  if (alias == null) {
+    alias=StringHelper.generateAlias("page",unique);
+    sb.insert(endPos - 1," as " + alias);
+  }
+  aliases.add(alias);
+  return StringHelper.join(", ",aliases.iterator());
+}

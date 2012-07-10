@@ -1,0 +1,14 @@
+{
+  if (!supportsVariableLimit() || !LimitHelper.hasMaxRows(selection)) {
+    return 0;
+  }
+  int firstRow=convertToFirstRowValue(LimitHelper.getFirstRow(selection));
+  int lastRow=getMaxOrLimit();
+  boolean hasFirstRow=supportsLimitOffset() && (firstRow > 0 || forceLimitUsage());
+  boolean reverse=bindLimitParametersInReverseOrder();
+  if (hasFirstRow) {
+    statement.setInt(index + (reverse ? 1 : 0),firstRow);
+  }
+  statement.setInt(index + (reverse || !hasFirstRow ? 0 : 1),lastRow);
+  return hasFirstRow ? 2 : 1;
+}

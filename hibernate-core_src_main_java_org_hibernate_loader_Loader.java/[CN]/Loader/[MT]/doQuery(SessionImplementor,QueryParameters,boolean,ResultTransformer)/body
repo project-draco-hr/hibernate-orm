@@ -1,10 +1,10 @@
 {
   final RowSelection selection=queryParameters.getRowSelection();
-  final int maxRows=hasMaxRows(selection) ? selection.getMaxRows() : Integer.MAX_VALUE;
+  final int maxRows=LimitHelper.hasMaxRows(selection) ? selection.getMaxRows() : Integer.MAX_VALUE;
   final int entitySpan=getEntityPersisters().length;
   final ArrayList hydratedObjects=entitySpan == 0 ? null : new ArrayList(entitySpan * 10);
-  final PreparedStatement st=prepareQueryStatement(queryParameters,false,session);
-  final ResultSet rs=getResultSet(st,queryParameters.hasAutoDiscoverScalarTypes(),queryParameters.isCallable(),selection,session);
+  final ResultSet rs=executeQueryStatement(queryParameters,false,session);
+  final PreparedStatement st=(PreparedStatement)rs.getStatement();
   final EntityKey optionalObjectKey=getOptionalObjectKey(queryParameters,session);
   final LockMode[] lockModesArray=getLockModes(queryParameters.getLockOptions());
   final boolean createSubselects=isSubselectLoadingEnabled();
