@@ -1,0 +1,41 @@
+{
+  applyJdbcConnectionProperties();
+  applyTransactionProperties();
+  final Object validationFactory=configurationValues.get(AvailableSettings.VALIDATION_FACTORY);
+  if (validationFactory != null) {
+    BeanValidationIntegrator.validateFactory(validationFactory);
+  }
+  if ("true".equals(configurationValues.get(Environment.FLUSH_BEFORE_COMPLETION))) {
+    serviceRegistryBuilder.applySetting(Environment.FLUSH_BEFORE_COMPLETION,"false");
+    LOG.definingFlushBeforeCompletionIgnoredInHem(Environment.FLUSH_BEFORE_COMPLETION);
+  }
+  for (  Map.Entry entry : configurationValues.entrySet()) {
+    if (entry.getKey() instanceof String) {
+      final String keyString=(String)entry.getKey();
+      if (AvailableSettings.INTERCEPTOR.equals(keyString)) {
+        sessionFactoryInterceptor=instantiateCustomClassFromConfiguration(entry.getValue(),Interceptor.class,bootstrapServiceRegistry);
+      }
+ else       if (AvailableSettings.SESSION_INTERCEPTOR.equals(keyString)) {
+        settings.setSessionInterceptorClass(loadSessionInterceptorClass(entry.getValue(),bootstrapServiceRegistry));
+      }
+ else       if (AvailableSettings.NAMING_STRATEGY.equals(keyString)) {
+        namingStrategy=instantiateCustomClassFromConfiguration(entry.getValue(),NamingStrategy.class,bootstrapServiceRegistry);
+      }
+ else       if (AvailableSettings.SESSION_FACTORY_OBSERVER.equals(keyString)) {
+        suppliedSessionFactoryObserver=instantiateCustomClassFromConfiguration(entry.getValue(),SessionFactoryObserver.class,bootstrapServiceRegistry);
+      }
+ else       if (AvailableSettings.DISCARD_PC_ON_CLOSE.equals(keyString)) {
+        settings.setReleaseResourcesOnCloseEnabled("true".equals(entry.getValue()));
+      }
+ else       if (keyString.startsWith(AvailableSettings.CLASS_CACHE_PREFIX)) {
+        addCacheRegionDefinition(keyString.substring(AvailableSettings.CLASS_CACHE_PREFIX.length() + 1),(String)entry.getValue(),CacheRegionDefinition.CacheType.ENTITY);
+      }
+ else       if (keyString.startsWith(AvailableSettings.COLLECTION_CACHE_PREFIX)) {
+        addCacheRegionDefinition(keyString.substring(AvailableSettings.COLLECTION_CACHE_PREFIX.length() + 1),(String)entry.getValue(),CacheRegionDefinition.CacheType.COLLECTION);
+      }
+ else       if (keyString.startsWith(AvailableSettings.JACC_PREFIX) && !(keyString.equals(AvailableSettings.JACC_CONTEXT_ID) || keyString.equals(AvailableSettings.JACC_ENABLED))) {
+        addJaccDefinition((String)entry.getKey(),entry.getValue());
+      }
+    }
+  }
+}

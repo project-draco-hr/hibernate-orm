@@ -1,0 +1,33 @@
+{
+  final Object value=configurationValues.remove(AvailableSettings.SCANNER);
+  if (value == null) {
+    return new NativeScanner();
+  }
+  if (Scanner.class.isInstance(value)) {
+    return (Scanner)value;
+  }
+  Class<? extends Scanner> scannerClass;
+  if (Class.class.isInstance(value)) {
+    try {
+      scannerClass=(Class<? extends Scanner>)value;
+    }
+ catch (    ClassCastException e) {
+      throw persistenceException("Expecting Scanner implementation, but found " + ((Class)value).getName());
+    }
+  }
+ else {
+    final String scannerClassName=value.toString();
+    try {
+      scannerClass=bootstrapServiceRegistry.getService(ClassLoaderService.class).classForName(scannerClassName);
+    }
+ catch (    ClassCastException e) {
+      throw persistenceException("Expecting Scanner implementation, but found " + scannerClassName);
+    }
+  }
+  try {
+    return scannerClass.newInstance();
+  }
+ catch (  Exception e) {
+    throw persistenceException("Unable to instantiate Scanner class: " + scannerClass,e);
+  }
+}

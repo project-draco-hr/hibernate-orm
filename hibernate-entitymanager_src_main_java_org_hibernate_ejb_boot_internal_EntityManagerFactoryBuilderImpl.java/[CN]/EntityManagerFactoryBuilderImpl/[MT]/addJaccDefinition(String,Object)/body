@@ -1,0 +1,19 @@
+{
+  if (jaccContextId == null) {
+    jaccContextId=(String)configurationValues.get(AvailableSettings.JACC_CONTEXT_ID);
+    if (jaccContextId == null) {
+      throw persistenceException("Entities have been configured for JACC, but " + AvailableSettings.JACC_CONTEXT_ID + " has not been set");
+    }
+  }
+  try {
+    final int roleStart=AvailableSettings.JACC_PREFIX.length() + 1;
+    final String role=key.substring(roleStart,key.indexOf('.',roleStart));
+    final int classStart=roleStart + role.length() + 1;
+    final String clazz=key.substring(classStart,key.length());
+    final JaccDefinition def=new JaccDefinition(jaccContextId,role,clazz,(String)value);
+    jaccDefinitions.add(def);
+  }
+ catch (  IndexOutOfBoundsException e) {
+    throw persistenceException("Illegal usage of " + AvailableSettings.JACC_PREFIX + ": "+ key);
+  }
+}

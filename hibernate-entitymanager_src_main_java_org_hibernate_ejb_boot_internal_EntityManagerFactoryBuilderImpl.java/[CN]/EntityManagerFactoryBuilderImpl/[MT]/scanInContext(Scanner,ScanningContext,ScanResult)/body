@@ -1,0 +1,46 @@
+{
+  if (scanningContext.getUrl() == null) {
+    LOG.containerProvidingNullPersistenceUnitRootUrl();
+    return;
+  }
+  try {
+    if (scanningContext.isDetectClasses()) {
+      Set<Package> matchingPackages=scanner.getPackagesInJar(scanningContext.url,new HashSet<Class<? extends Annotation>>(0));
+      for (      Package pkg : matchingPackages) {
+        scanResult.getPackageNames().add(pkg.getName());
+      }
+      Set<Class<? extends Annotation>> annotationsToLookFor=new HashSet<Class<? extends Annotation>>();
+      annotationsToLookFor.add(Entity.class);
+      annotationsToLookFor.add(MappedSuperclass.class);
+      annotationsToLookFor.add(Embeddable.class);
+      annotationsToLookFor.add(Converter.class);
+      Set<Class<?>> matchingClasses=scanner.getClassesInJar(scanningContext.url,annotationsToLookFor);
+      for (      Class<?> clazz : matchingClasses) {
+        scanResult.getManagedClassNames().add(clazz.getName());
+      }
+    }
+    Set<String> patterns=new HashSet<String>();
+    if (scanningContext.isSearchOrm()) {
+      patterns.add(META_INF_ORM_XML);
+    }
+    if (scanningContext.isDetectHbmFiles()) {
+      patterns.add("**/*.hbm.xml");
+    }
+    if (!scanResult.getMappingFiles().isEmpty()) {
+      patterns.addAll(scanResult.getMappingFiles());
+    }
+    if (patterns.size() != 0) {
+      Set<NamedInputStream> files=scanner.getFilesInJar(scanningContext.getUrl(),patterns);
+      for (      NamedInputStream file : files) {
+        scanResult.getHbmFiles().add(file);
+        scanResult.getMappingFiles().remove(file.getName());
+      }
+    }
+  }
+ catch (  PersistenceException e) {
+    throw e;
+  }
+catch (  RuntimeException e) {
+    throw persistenceException("error trying to scan url: " + scanningContext.getUrl().toString(),e);
+  }
+}

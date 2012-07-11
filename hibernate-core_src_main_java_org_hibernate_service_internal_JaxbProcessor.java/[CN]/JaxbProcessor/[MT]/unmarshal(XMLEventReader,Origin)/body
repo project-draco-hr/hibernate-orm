@@ -1,0 +1,35 @@
+{
+  XMLEvent event;
+  try {
+    event=staxEventReader.peek();
+    while (event != null && !event.isStartElement()) {
+      staxEventReader.nextEvent();
+      event=staxEventReader.peek();
+    }
+  }
+ catch (  Exception e) {
+    throw new MappingException("Error accessing stax stream",e,origin);
+  }
+  if (event == null) {
+    throw new MappingException("Could not locate root element",origin);
+  }
+  if (!isNamespaced(event.asStartElement())) {
+    log.debug("cfg.xml document did not define namespaces; wrapping in custom event reader to introduce namespace information");
+    staxEventReader=new NamespaceAddingEventReader(staxEventReader,HIBERNATE_CONFIGURATION_URI);
+  }
+  final Object target;
+  final ContextProvidingValidationEventHandler handler=new ContextProvidingValidationEventHandler();
+  try {
+    JAXBContext jaxbContext=JAXBContext.newInstance(JaxbHibernateConfiguration.class);
+    Unmarshaller unmarshaller=jaxbContext.createUnmarshaller();
+    unmarshaller.setSchema(schema());
+    unmarshaller.setEventHandler(handler);
+    target=unmarshaller.unmarshal(staxEventReader);
+    return (JaxbHibernateConfiguration)target;
+  }
+ catch (  JAXBException e) {
+    StringBuilder builder=new StringBuilder();
+    builder.append("Unable to perform unmarshalling at line number ").append(handler.getLineNumber()).append(" and column ").append(handler.getColumnNumber()).append(" in ").append(origin.getType().name()).append(" ").append(origin.getName()).append(". Message: ").append(handler.getMessage());
+    throw new ConfigurationException(builder.toString(),e);
+  }
+}

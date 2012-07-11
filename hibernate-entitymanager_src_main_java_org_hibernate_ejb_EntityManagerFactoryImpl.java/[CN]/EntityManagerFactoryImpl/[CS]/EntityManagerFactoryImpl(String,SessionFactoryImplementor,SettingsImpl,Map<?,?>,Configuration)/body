@@ -1,0 +1,30 @@
+{
+  this.sessionFactory=(SessionFactoryImpl)sessionFactory;
+  this.transactionType=settings.getTransactionType();
+  this.discardOnClose=settings.isReleaseResourcesOnCloseEnabled();
+  this.sessionInterceptorClass=settings.getSessionInterceptorClass();
+  final Iterator<PersistentClass> classes=cfg.getClassMappings();
+  final JpaMetaModelPopulationSetting jpaMetaModelPopulationSetting=determineJpaMetaModelPopulationSetting(cfg);
+  if (JpaMetaModelPopulationSetting.DISABLED == jpaMetaModelPopulationSetting) {
+    this.metamodel=null;
+  }
+ else {
+    this.metamodel=MetamodelImpl.buildMetamodel(classes,sessionFactory,JpaMetaModelPopulationSetting.IGNORE_UNSUPPORTED == jpaMetaModelPopulationSetting);
+  }
+  this.criteriaBuilder=new CriteriaBuilderImpl(this);
+  this.util=new HibernatePersistenceUnitUtil(this);
+  HashMap<String,Object> props=new HashMap<String,Object>();
+  addAll(props,sessionFactory.getProperties());
+  addAll(props,cfg.getProperties());
+  addAll(props,configurationValues);
+  this.properties=Collections.unmodifiableMap(props);
+  String entityManagerFactoryName=(String)this.properties.get(AvailableSettings.ENTITY_MANAGER_FACTORY_NAME);
+  if (entityManagerFactoryName == null) {
+    entityManagerFactoryName=persistenceUnitName;
+  }
+  if (entityManagerFactoryName == null) {
+    entityManagerFactoryName=(String)UUID_GENERATOR.generate(null,null);
+  }
+  this.entityManagerFactoryName=entityManagerFactoryName;
+  EntityManagerFactoryRegistry.INSTANCE.addEntityManagerFactory(entityManagerFactoryName,this);
+}

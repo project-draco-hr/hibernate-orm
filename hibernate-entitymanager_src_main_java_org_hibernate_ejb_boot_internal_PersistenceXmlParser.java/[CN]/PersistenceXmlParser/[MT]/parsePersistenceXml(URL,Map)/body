@@ -1,0 +1,35 @@
+{
+  final Document doc=loadUrl(xmlUrl);
+  final Element top=doc.getDocumentElement();
+  final List<ParsedPersistenceXmlDescriptor> persistenceUnits=new ArrayList<ParsedPersistenceXmlDescriptor>();
+  final NodeList children=top.getChildNodes();
+  for (int i=0; i < children.getLength(); i++) {
+    if (children.item(i).getNodeType() == Node.ELEMENT_NODE) {
+      final Element element=(Element)children.item(i);
+      final String tag=element.getTagName();
+      if (tag.equals("persistence-unit")) {
+        final URL puRootUrl=JarVisitorFactory.getJarURLFromURLEntry(xmlUrl,"/META-INF/persistence.xml");
+        ParsedPersistenceXmlDescriptor persistenceUnit=new ParsedPersistenceXmlDescriptor(puRootUrl);
+        bindPersistenceUnit(persistenceUnit,element);
+        if (integration.containsKey(AvailableSettings.PROVIDER)) {
+          persistenceUnit.setProviderClassName((String)integration.get(AvailableSettings.PROVIDER));
+        }
+        if (integration.containsKey(AvailableSettings.TRANSACTION_TYPE)) {
+          String transactionType=(String)integration.get(AvailableSettings.TRANSACTION_TYPE);
+          persistenceUnit.setTransactionType(parseTransactionType(transactionType));
+        }
+        if (integration.containsKey(AvailableSettings.JTA_DATASOURCE)) {
+          persistenceUnit.setJtaDataSource(integration.get(AvailableSettings.JTA_DATASOURCE));
+        }
+        if (integration.containsKey(AvailableSettings.NON_JTA_DATASOURCE)) {
+          persistenceUnit.setNonJtaDataSource(integration.get(AvailableSettings.NON_JTA_DATASOURCE));
+        }
+        decodeTransactionType(persistenceUnit);
+        Properties properties=persistenceUnit.getProperties();
+        ConfigurationHelper.overrideProperties(properties,integration);
+        persistenceUnits.add(persistenceUnit);
+      }
+    }
+  }
+  return persistenceUnits;
+}

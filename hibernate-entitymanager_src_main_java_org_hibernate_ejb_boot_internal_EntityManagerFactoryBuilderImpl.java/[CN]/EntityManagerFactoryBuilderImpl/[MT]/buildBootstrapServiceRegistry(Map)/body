@@ -1,0 +1,12 @@
+{
+  final BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder=new BootstrapServiceRegistryBuilder();
+  bootstrapServiceRegistryBuilder.with(new JpaIntegrator());
+  final IntegratorProvider integratorProvider=(IntegratorProvider)integrationSettings.remove(INTEGRATOR_PROVIDER);
+  if (integratorProvider != null) {
+    for (    Integrator integrator : integratorProvider.getIntegrators()) {
+      bootstrapServiceRegistryBuilder.with(integrator);
+    }
+  }
+  bootstrapServiceRegistryBuilder.withApplicationClassLoader((ClassLoader)integrationSettings.remove(org.hibernate.cfg.AvailableSettings.APP_CLASSLOADER));
+  return bootstrapServiceRegistryBuilder.build();
+}

@@ -1,0 +1,30 @@
+{
+  if (!mergeMap.containsKey(org.hibernate.cfg.AvailableSettings.SESSION_FACTORY_NAME)) {
+    String cfgName=configurationElement.getSessionFactory().getName();
+    if (cfgName != null) {
+      mergeMap.put(org.hibernate.cfg.AvailableSettings.SESSION_FACTORY_NAME,cfgName);
+    }
+  }
+  for (  JaxbHibernateConfiguration.JaxbSessionFactory.JaxbProperty jaxbProperty : configurationElement.getSessionFactory().getProperty()) {
+    mergeMap.put(jaxbProperty.getName(),jaxbProperty.getValue());
+  }
+  for (  JaxbHibernateConfiguration.JaxbSessionFactory.JaxbMapping jaxbMapping : configurationElement.getSessionFactory().getMapping()) {
+    cfgXmlNamedMappings.add(jaxbMapping);
+  }
+  for (  Object cacheDeclaration : configurationElement.getSessionFactory().getClassCacheOrCollectionCache()) {
+    if (JaxbHibernateConfiguration.JaxbSessionFactory.JaxbClassCache.class.isInstance(cacheDeclaration)) {
+      final JaxbHibernateConfiguration.JaxbSessionFactory.JaxbClassCache jaxbClassCache=(JaxbHibernateConfiguration.JaxbSessionFactory.JaxbClassCache)cacheDeclaration;
+      cacheRegionDefinitions.add(new CacheRegionDefinition(CacheRegionDefinition.CacheType.ENTITY,jaxbClassCache.getClazz(),jaxbClassCache.getUsage().value(),jaxbClassCache.getRegion(),"all".equals(jaxbClassCache.getInclude())));
+    }
+ else {
+      final JaxbHibernateConfiguration.JaxbSessionFactory.JaxbCollectionCache jaxbCollectionCache=(JaxbHibernateConfiguration.JaxbSessionFactory.JaxbCollectionCache)cacheDeclaration;
+      cacheRegionDefinitions.add(new CacheRegionDefinition(CacheRegionDefinition.CacheType.COLLECTION,jaxbCollectionCache.getCollection(),jaxbCollectionCache.getUsage().value(),jaxbCollectionCache.getRegion(),false));
+    }
+  }
+  if (configurationElement.getSecurity() != null) {
+    final String contextId=configurationElement.getSecurity().getContext();
+    for (    JaxbHibernateConfiguration.JaxbSecurity.JaxbGrant grant : configurationElement.getSecurity().getGrant()) {
+      jaccDefinitions.add(new JaccDefinition(contextId,grant.getRole(),grant.getEntityName(),grant.getActions()));
+    }
+  }
+}

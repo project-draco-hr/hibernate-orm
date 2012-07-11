@@ -1,0 +1,65 @@
+{
+  final String name=persistenceUnitElement.getAttribute("name");
+  if (StringHelper.isNotEmpty(name)) {
+    LOG.tracef("Persistence unit name from persistence.xml : %s",name);
+    persistenceUnit.setName(name);
+  }
+  final PersistenceUnitTransactionType transactionType=parseTransactionType(persistenceUnitElement.getAttribute("transaction-type"));
+  if (transactionType != null) {
+    persistenceUnit.setTransactionType(transactionType);
+  }
+  NodeList children=persistenceUnitElement.getChildNodes();
+  for (int i=0; i < children.getLength(); i++) {
+    if (children.item(i).getNodeType() == Node.ELEMENT_NODE) {
+      Element element=(Element)children.item(i);
+      String tag=element.getTagName();
+      if (tag.equals("non-jta-data-source")) {
+        persistenceUnit.setNonJtaDataSource(extractContent(element));
+      }
+ else       if (tag.equals("jta-data-source")) {
+        persistenceUnit.setJtaDataSource(extractContent(element));
+      }
+ else       if (tag.equals("provider")) {
+        persistenceUnit.setProviderClassName(extractContent(element));
+      }
+ else       if (tag.equals("class")) {
+        persistenceUnit.addClasses(extractContent(element));
+      }
+ else       if (tag.equals("mapping-file")) {
+        persistenceUnit.addMappingFiles(extractContent(element));
+      }
+ else       if (tag.equals("jar-file")) {
+        persistenceUnit.addJarFileUrl(JarVisitorFactory.getURLFromPath(extractContent(element)));
+      }
+ else       if (tag.equals("exclude-unlisted-classes")) {
+        persistenceUnit.setExcludeUnlistedClasses(true);
+      }
+ else       if (tag.equals("delimited-identifiers")) {
+        persistenceUnit.setUseQuotedIdentifiers(true);
+      }
+ else       if (tag.equals("validation-mode")) {
+        persistenceUnit.setValidationMode(extractContent(element));
+      }
+ else       if (tag.equals("shared-cache-mode")) {
+        persistenceUnit.setSharedCacheMode(extractContent(element));
+      }
+ else       if (tag.equals("properties")) {
+        NodeList props=element.getChildNodes();
+        for (int j=0; j < props.getLength(); j++) {
+          if (props.item(j).getNodeType() == Node.ELEMENT_NODE) {
+            Element propElement=(Element)props.item(j);
+            if (!"property".equals(propElement.getTagName())) {
+              continue;
+            }
+            String propName=propElement.getAttribute("name").trim();
+            String propValue=propElement.getAttribute("value").trim();
+            if (StringHelper.isEmpty(propValue)) {
+              propValue=extractContent(propElement,"");
+            }
+            persistenceUnit.getProperties().put(propName,propValue);
+          }
+        }
+      }
+    }
+  }
+}

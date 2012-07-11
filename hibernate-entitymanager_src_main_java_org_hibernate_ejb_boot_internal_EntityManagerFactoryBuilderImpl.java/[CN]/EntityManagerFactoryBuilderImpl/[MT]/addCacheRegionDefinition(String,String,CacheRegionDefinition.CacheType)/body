@@ -1,0 +1,30 @@
+{
+  final StringTokenizer params=new StringTokenizer(value,";, ");
+  if (!params.hasMoreTokens()) {
+    StringBuilder error=new StringBuilder("Illegal usage of ");
+    if (cacheType == CacheRegionDefinition.CacheType.ENTITY) {
+      error.append(AvailableSettings.CLASS_CACHE_PREFIX).append(": ").append(AvailableSettings.CLASS_CACHE_PREFIX);
+    }
+ else {
+      error.append(AvailableSettings.COLLECTION_CACHE_PREFIX).append(": ").append(AvailableSettings.COLLECTION_CACHE_PREFIX);
+    }
+    error.append('.').append(role).append(' ').append(value).append(".  Was expecting configuration, but found none");
+    throw persistenceException(error.toString());
+  }
+  String usage=params.nextToken();
+  String region=null;
+  if (params.hasMoreTokens()) {
+    region=params.nextToken();
+  }
+  boolean lazyProperty=true;
+  if (cacheType == CacheRegionDefinition.CacheType.ENTITY) {
+    if (params.hasMoreTokens()) {
+      lazyProperty="all".equalsIgnoreCase(params.nextToken());
+    }
+  }
+ else {
+    lazyProperty=false;
+  }
+  final CacheRegionDefinition def=new CacheRegionDefinition(cacheType,role,usage,region,lazyProperty);
+  cacheRegionDefinitions.add(def);
+}

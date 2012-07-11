@@ -1,0 +1,32 @@
+{
+  if (value == null) {
+    return null;
+  }
+  if (type.isInstance(value)) {
+    return (T)value;
+  }
+  final Class<? extends T> implementationClass;
+  if (Class.class.isInstance(value)) {
+    try {
+      implementationClass=(Class<? extends T>)value;
+    }
+ catch (    ClassCastException e) {
+      throw persistenceException(String.format("Specified implementation class [%s] was not of expected type [%s]",((Class)value).getName(),type.getName()));
+    }
+  }
+ else {
+    final String implementationClassName=value.toString();
+    try {
+      implementationClass=bootstrapServiceRegistry.getService(ClassLoaderService.class).classForName(implementationClassName);
+    }
+ catch (    ClassCastException e) {
+      throw persistenceException(String.format("Specified implementation class [%s] was not of expected type [%s]",implementationClassName,type.getName()));
+    }
+  }
+  try {
+    return implementationClass.newInstance();
+  }
+ catch (  Exception e) {
+    throw persistenceException(String.format("Unable to instantiate specified implementation class [%s]",implementationClass.getName()),e);
+  }
+}
