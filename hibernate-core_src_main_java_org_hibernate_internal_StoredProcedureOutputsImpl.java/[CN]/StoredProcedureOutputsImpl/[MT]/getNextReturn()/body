@@ -20,7 +20,20 @@
       throw convert(e,"Error calling CallableStatement.getResultSet");
     }
   }
- else {
+ else   if (copyReturnDescriptor.updateCount >= 0) {
     return new UpdateCountReturn(this,copyReturnDescriptor.updateCount);
+  }
+ else {
+    this.refCursorParamIndex++;
+    ResultSet resultSet;
+    int refCursorParamIndex=copyReturnDescriptor.refCursorParamIndex;
+    StoredProcedureParameterImplementor refCursorParam=refCursorParameters[refCursorParamIndex];
+    if (refCursorParam.getName() != null) {
+      resultSet=procedureCall.session().getFactory().getServiceRegistry().getService(RefCursorSupport.class).getResultSet(callableStatement,refCursorParam.getName());
+    }
+ else {
+      resultSet=procedureCall.session().getFactory().getServiceRegistry().getService(RefCursorSupport.class).getResultSet(callableStatement,refCursorParam.getPosition());
+    }
+    return new ResultSetReturn(this,resultSet);
   }
 }

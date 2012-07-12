@@ -1,0 +1,17 @@
+{
+  if (paramNames.length > 1) {
+    throw new IllegalArgumentException("Basic value extraction cannot handle multiple output parameters");
+  }
+  final String paramName=paramNames[0];
+  final J value=doExtract(statement,paramName,options);
+  if (value == null || statement.wasNull()) {
+    LOG.tracev("Found [null] as procedure output  parameter [{0}]",paramName);
+    return null;
+  }
+ else {
+    if (LOG.isTraceEnabled()) {
+      LOG.tracev("Found [{0}] as procedure output parameter [{1}]",getJavaDescriptor().extractLoggableRepresentation(value),paramName);
+    }
+    return value;
+  }
+}

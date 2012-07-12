@@ -1,19 +1,12 @@
 {
   if (StringHelper.isNotEmpty(parameter.getName())) {
-    if (typeOfParameters == TypeOfParameter.POSITIONAL) {
-      throw new QueryException("Cannot mix named and positional parameters");
-    }
-    typeOfParameters=TypeOfParameter.NAMED;
-    registeredParameters.add(parameter);
+    prepareForNamedParameters();
   }
  else   if (parameter.getPosition() != null) {
-    if (typeOfParameters == TypeOfParameter.NAMED) {
-      throw new QueryException("Cannot mix named and positional parameters");
-    }
-    typeOfParameters=TypeOfParameter.POSITIONAL;
-    registeredParameters.add(parameter.getPosition(),parameter);
+    prepareForPositionalParameters();
   }
  else {
     throw new IllegalArgumentException("Given parameter did not define name nor position [" + parameter + "]");
   }
+  registeredParameters.add(parameter);
 }

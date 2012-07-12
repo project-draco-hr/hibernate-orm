@@ -3,6 +3,8 @@
   final DialectFactory dialectFactory=serviceRegistry.getService(DialectFactory.class);
   Dialect dialect=null;
   LobCreatorBuilder lobCreatorBuilder=null;
+  boolean metaSupportsRefCursors=false;
+  boolean metaSupportsNamedParams=false;
   boolean metaSupportsScrollable=false;
   boolean metaSupportsGetGeneratedKeys=false;
   boolean metaSupportsBatchUpdates=false;
@@ -25,6 +27,8 @@
           LOG.debugf("Driver ->\n" + "       name : %s\n" + "    version : %s\n"+ "      major : %s\n"+ "      minor : %s",meta.getDriverName(),meta.getDriverVersion(),meta.getDriverMajorVersion(),meta.getDriverMinorVersion());
           LOG.debugf("JDBC version : %s.%s",meta.getJDBCMajorVersion(),meta.getJDBCMinorVersion());
         }
+        metaSupportsRefCursors=StandardRefCursorSupport.supportsRefCursors(meta);
+        metaSupportsNamedParams=meta.supportsNamedParameters();
         metaSupportsScrollable=meta.supportsResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
         metaSupportsBatchUpdates=meta.supportsBatchUpdates();
         metaReportsDDLCausesTxnCommit=meta.dataDefinitionCausesTransactionCommit();
@@ -69,7 +73,7 @@ catch (    UnsupportedOperationException uoe) {
   this.dialect=dialect;
   this.lobCreatorBuilder=(lobCreatorBuilder == null ? new LobCreatorBuilder(configValues,null) : lobCreatorBuilder);
   this.sqlStatementLogger=new SqlStatementLogger(showSQL,formatSQL);
-  this.extractedMetaDataSupport=new ExtractedDatabaseMetaDataImpl(metaSupportsScrollable,metaSupportsGetGeneratedKeys,metaSupportsBatchUpdates,metaReportsDDLInTxnSupported,metaReportsDDLCausesTxnCommit,parseKeywords(extraKeywordsString),parseSQLStateType(sqlStateType),lobLocatorUpdateCopy,schemaName,catalogName,typeInfoSet);
+  this.extractedMetaDataSupport=new ExtractedDatabaseMetaDataImpl(metaSupportsRefCursors,metaSupportsNamedParams,metaSupportsScrollable,metaSupportsGetGeneratedKeys,metaSupportsBatchUpdates,metaReportsDDLInTxnSupported,metaReportsDDLCausesTxnCommit,parseKeywords(extraKeywordsString),parseSQLStateType(sqlStateType),lobLocatorUpdateCopy,schemaName,catalogName,typeInfoSet);
   SQLExceptionConverter sqlExceptionConverter=dialect.buildSQLExceptionConverter();
   if (sqlExceptionConverter == null) {
     final StandardSQLExceptionConverter converter=new StandardSQLExceptionConverter();

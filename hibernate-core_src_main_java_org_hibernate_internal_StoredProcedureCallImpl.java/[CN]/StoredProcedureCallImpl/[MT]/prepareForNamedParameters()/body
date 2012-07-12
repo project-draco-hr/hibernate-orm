@@ -1,0 +1,12 @@
+{
+  if (typeOfParameters == TypeOfParameter.POSITIONAL) {
+    throw new QueryException("Cannot mix named and positional parameters");
+  }
+  if (typeOfParameters == null) {
+    final ExtractedDatabaseMetaData databaseMetaData=session().getTransactionCoordinator().getJdbcCoordinator().getLogicalConnection().getJdbcServices().getExtractedMetaDataSupport();
+    if (!databaseMetaData.supportsNamedParameters()) {
+      throw new QueryException("Named stored procedure parameters used, but JDBC driver does not support named parameters");
+    }
+    typeOfParameters=TypeOfParameter.NAMED;
+  }
+}
