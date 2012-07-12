@@ -1,7 +1,7 @@
 {
   try {
     org.hibernate.Query namedQuery=getSession().getNamedQuery(name);
-    final SessionFactoryImplementor factoryImplementor=(SessionFactoryImplementor)entityManagerFactory.getSessionFactory();
+    final SessionFactoryImplementor factoryImplementor=entityManagerFactory.getSessionFactory();
     final NamedSQLQueryDefinition queryDefinition=factoryImplementor.getNamedSQLQuery(name);
     try {
       if (queryDefinition != null) {
@@ -37,12 +37,7 @@
         }
       }
  else {
-        if (namedQuery.getReturnTypes().length != 1) {
-          throw new IllegalArgumentException("Cannot create TypedQuery for query with more than one return");
-        }
-        if (!resultClass.isAssignableFrom(namedQuery.getReturnTypes()[0].getReturnedClass())) {
-          throw buildIncompatibleException(resultClass,namedQuery.getReturnTypes()[0].getReturnedClass());
-        }
+        resultClassChecking(resultClass,namedQuery);
       }
       return new QueryImpl<T>(namedQuery,this);
     }
