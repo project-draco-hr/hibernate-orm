@@ -1,10 +1,7 @@
 {
-  log.trace("Building session factory");
-  ejb3Configuration=buildConfiguration();
-  ejb3Configuration.configure(getConfig());
-  configure(ejb3Configuration);
-  afterConfigurationBuilt(ejb3Configuration);
-  entityManagerFactory=(EntityManagerFactoryImpl)ejb3Configuration.buildEntityManagerFactory(bootstrapRegistryBuilder());
-  serviceRegistry=(StandardServiceRegistryImpl)((SessionFactoryImpl)entityManagerFactory.getSessionFactory()).getServiceRegistry().getParentServiceRegistry();
+  log.trace("Building EntityManagerFactory");
+  entityManagerFactoryBuilder=(EntityManagerFactoryBuilderImpl)Bootstrap.getEntityManagerFactoryBuilder(buildPersistenceUnitDescriptor(),buildSettings());
+  entityManagerFactory=(EntityManagerFactoryImpl)entityManagerFactoryBuilder.buildEntityManagerFactory();
+  serviceRegistry=(StandardServiceRegistryImpl)entityManagerFactory.getSessionFactory().getServiceRegistry().getParentServiceRegistry();
   afterEntityManagerFactoryBuilt();
 }

@@ -1,9 +1,7 @@
 {
-  Ejb3Configuration conf=new Ejb3Configuration();
-  conf.getProperties().put(PersisterClassResolverInitiator.IMPL_NAME,GoofyPersisterClassProvider.class);
-  conf.addAnnotatedClass(Bell.class);
+  Map settings=SettingsGenerator.generateSettings(PersisterClassResolverInitiator.IMPL_NAME,GoofyPersisterClassProvider.class,AvailableSettings.LOADED_CLASSES,Arrays.asList(Bell.class));
   try {
-    final EntityManagerFactory entityManagerFactory=conf.buildEntityManagerFactory();
+    EntityManagerFactory entityManagerFactory=Bootstrap.getEntityManagerFactoryBuilder(new PersistenceUnitDescriptorAdapter(),settings).buildEntityManagerFactory();
     entityManagerFactory.close();
   }
  catch (  PersistenceException e) {

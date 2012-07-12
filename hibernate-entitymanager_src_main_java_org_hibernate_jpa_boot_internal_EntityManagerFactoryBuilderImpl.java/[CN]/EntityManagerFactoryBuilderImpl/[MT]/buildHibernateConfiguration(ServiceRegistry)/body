@@ -1,0 +1,112 @@
+{
+  Properties props=new Properties();
+  props.putAll(configurationValues);
+  Configuration cfg=new Configuration().setProperties(props);
+  cfg.setEntityNotFoundDelegate(jpaEntityNotFoundDelegate);
+  if (namingStrategy != null) {
+    cfg.setNamingStrategy(namingStrategy);
+  }
+  if (sessionFactoryInterceptor != null) {
+    cfg.setInterceptor(sessionFactoryInterceptor);
+  }
+  final IdentifierGeneratorStrategyProvider strategyProvider=instantiateCustomClassFromConfiguration(props.get(AvailableSettings.IDENTIFIER_GENERATOR_STRATEGY_PROVIDER),IdentifierGeneratorStrategyProvider.class,serviceRegistry);
+  if (strategyProvider != null) {
+    final MutableIdentifierGeneratorFactory identifierGeneratorFactory=cfg.getIdentifierGeneratorFactory();
+    for (    Map.Entry<String,Class<?>> entry : strategyProvider.getStrategies().entrySet()) {
+      identifierGeneratorFactory.register(entry.getKey(),entry.getValue());
+    }
+  }
+  if (jaccDefinitions != null) {
+    for (    JaccDefinition jaccDefinition : jaccDefinitions) {
+      JACCConfiguration jaccCfg=new JACCConfiguration(jaccDefinition.contextId);
+      jaccCfg.addPermission(jaccDefinition.role,jaccDefinition.clazz,jaccDefinition.actions);
+    }
+  }
+  if (cacheRegionDefinitions != null) {
+    for (    CacheRegionDefinition cacheRegionDefinition : cacheRegionDefinitions) {
+      if (cacheRegionDefinition.cacheType == CacheRegionDefinition.CacheType.ENTITY) {
+        cfg.setCacheConcurrencyStrategy(cacheRegionDefinition.role,cacheRegionDefinition.usage,cacheRegionDefinition.region,cacheRegionDefinition.cacheLazy);
+      }
+ else {
+        cfg.setCollectionCacheConcurrencyStrategy(cacheRegionDefinition.role,cacheRegionDefinition.usage,cacheRegionDefinition.region);
+      }
+    }
+  }
+  for (  JaxbHibernateConfiguration.JaxbSessionFactory.JaxbMapping jaxbMapping : cfgXmlNamedMappings) {
+    if (jaxbMapping.getClazz() != null) {
+      cfg.addAnnotatedClass(serviceRegistry.getService(ClassLoaderService.class).classForName(jaxbMapping.getClazz()));
+    }
+ else     if (jaxbMapping.getResource() != null) {
+      cfg.addResource(jaxbMapping.getResource());
+    }
+ else     if (jaxbMapping.getJar() != null) {
+      cfg.addJar(new File(jaxbMapping.getJar()));
+    }
+ else     if (jaxbMapping.getPackage() != null) {
+      cfg.addPackage(jaxbMapping.getPackage());
+    }
+  }
+  List<Class> loadedAnnotatedClasses=(List<Class>)configurationValues.remove(AvailableSettings.LOADED_CLASSES);
+  if (loadedAnnotatedClasses != null) {
+    for (    Class cls : loadedAnnotatedClasses) {
+      cfg.addAnnotatedClass(cls);
+    }
+  }
+  for (  String className : metadataSources.getAnnotatedMappingClassNames()) {
+    cfg.addAnnotatedClass(serviceRegistry.getService(ClassLoaderService.class).classForName(className));
+  }
+  for (  MetadataSources.ConverterDescriptor converterDescriptor : metadataSources.getConverterDescriptors()) {
+    final Class<? extends AttributeConverter> converterClass;
+    try {
+      Class theClass=serviceRegistry.getService(ClassLoaderService.class).classForName(converterDescriptor.converterClassName);
+      converterClass=(Class<? extends AttributeConverter>)theClass;
+    }
+ catch (    ClassCastException e) {
+      throw persistenceException(String.format("AttributeConverter implementation [%s] does not implement AttributeConverter interface",converterDescriptor.converterClassName));
+    }
+    cfg.addAttributeConverter(converterClass,converterDescriptor.autoApply);
+  }
+  for (  String resourceName : metadataSources.mappingFileResources) {
+    Boolean useMetaInf=null;
+    try {
+      if (resourceName.endsWith(META_INF_ORM_XML)) {
+        useMetaInf=true;
+      }
+      cfg.addResource(resourceName);
+    }
+ catch (    MappingNotFoundException e) {
+      if (!resourceName.endsWith(META_INF_ORM_XML)) {
+        throw persistenceException("Unable to find XML mapping file in classpath: " + resourceName);
+      }
+ else {
+        useMetaInf=false;
+      }
+    }
+catch (    MappingException me) {
+      throw persistenceException("Error while reading JPA XML file: " + resourceName,me);
+    }
+    if (Boolean.TRUE.equals(useMetaInf)) {
+      LOG.exceptionHeaderFound(getExceptionHeader(),META_INF_ORM_XML);
+    }
+ else     if (Boolean.FALSE.equals(useMetaInf)) {
+      LOG.exceptionHeaderNotFound(getExceptionHeader(),META_INF_ORM_XML);
+    }
+  }
+  for (  NamedInputStream namedInputStream : metadataSources.namedMappingFileInputStreams) {
+    try {
+      cfg.addInputStream(new BufferedInputStream(namedInputStream.getStream()));
+    }
+ catch (    MappingException me) {
+      if (StringHelper.isEmpty(namedInputStream.getName())) {
+        throw me;
+      }
+ else {
+        throw new MappingException("Error while parsing file: " + namedInputStream.getName(),me);
+      }
+    }
+  }
+  for (  String packageName : metadataSources.packageNames) {
+    cfg.addPackage(packageName);
+  }
+  return cfg;
+}

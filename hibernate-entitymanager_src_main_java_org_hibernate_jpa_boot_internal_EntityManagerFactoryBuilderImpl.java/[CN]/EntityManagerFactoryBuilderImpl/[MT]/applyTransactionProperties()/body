@@ -1,0 +1,22 @@
+{
+  PersistenceUnitTransactionType txnType=PersistenceUnitTransactionTypeHelper.interpretTransactionType(configurationValues.get(AvailableSettings.TRANSACTION_TYPE));
+  if (txnType == null) {
+    txnType=persistenceUnit.getTransactionType();
+  }
+  if (txnType == null) {
+    txnType=PersistenceUnitTransactionType.RESOURCE_LOCAL;
+  }
+  settings.setTransactionType(txnType);
+  boolean hasTxStrategy=configurationValues.containsKey(Environment.TRANSACTION_STRATEGY);
+  if (hasTxStrategy) {
+    LOG.overridingTransactionStrategyDangerous(Environment.TRANSACTION_STRATEGY);
+  }
+ else {
+    if (txnType == PersistenceUnitTransactionType.JTA) {
+      serviceRegistryBuilder.applySetting(Environment.TRANSACTION_STRATEGY,CMTTransactionFactory.class);
+    }
+ else     if (txnType == PersistenceUnitTransactionType.RESOURCE_LOCAL) {
+      serviceRegistryBuilder.applySetting(Environment.TRANSACTION_STRATEGY,JdbcTransactionFactory.class);
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  Scanner scanner=locateOrBuildScanner(bootstrapServiceRegistry);
+  ScanningContext scanningContext=new ScanningContext();
+  final ScanResult scanResult=new ScanResult();
+  if (persistenceUnit.getMappingFileNames() != null) {
+    scanResult.getMappingFiles().addAll(persistenceUnit.getMappingFileNames());
+  }
+  scanningContext.setSearchOrm(!scanResult.getMappingFiles().contains(META_INF_ORM_XML));
+  if (persistenceUnit.getJarFileUrls() != null) {
+    prepareAutoDetectionSettings(scanningContext,false);
+    for (    URL jar : persistenceUnit.getJarFileUrls()) {
+      scanningContext.setUrl(jar);
+      scanInContext(scanner,scanningContext,scanResult);
+    }
+  }
+  prepareAutoDetectionSettings(scanningContext,persistenceUnit.isExcludeUnlistedClasses());
+  scanningContext.setUrl(persistenceUnit.getPersistenceUnitRootUrl());
+  scanInContext(scanner,scanningContext,scanResult);
+  return scanResult;
+}

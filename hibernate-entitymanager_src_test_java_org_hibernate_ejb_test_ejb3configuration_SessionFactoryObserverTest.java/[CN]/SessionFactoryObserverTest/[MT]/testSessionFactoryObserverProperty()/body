@@ -1,9 +1,7 @@
 {
-  Ejb3Configuration conf=new Ejb3Configuration();
-  conf.setProperty(AvailableSettings.SESSION_FACTORY_OBSERVER,GoofySessionFactoryObserver.class.getName());
-  conf.addAnnotatedClass(Bell.class);
+  EntityManagerFactoryBuilder builder=Bootstrap.getEntityManagerFactoryBuilder(new PersistenceUnitInfoAdapter(),Collections.singletonMap(AvailableSettings.SESSION_FACTORY_OBSERVER,GoofySessionFactoryObserver.class.getName()));
   try {
-    final EntityManagerFactory entityManagerFactory=conf.buildEntityManagerFactory();
+    final EntityManagerFactory entityManagerFactory=builder.buildEntityManagerFactory();
     entityManagerFactory.close();
     Assert.fail("GoofyException should have been thrown");
   }

@@ -14,10 +14,9 @@
     configurationProperties.setProperty("org.hibernate.envers.audit_strategy",auditStrategy);
   }
   addConfigurationProperties(configurationProperties);
-  cfg=new Ejb3Configuration();
-  configure(cfg);
-  cfg.configure(configurationProperties);
-  emf=(EntityManagerFactoryImpl)cfg.buildEntityManagerFactory(createBootstrapRegistryBuilder());
-  serviceRegistry=(StandardServiceRegistryImpl)((SessionFactoryImpl)emf.getSessionFactory()).getServiceRegistry().getParentServiceRegistry();
+  configurationProperties.put(AvailableSettings.LOADED_CLASSES,Arrays.asList(getAnnotatedClasses()));
+  entityManagerFactoryBuilder=(EntityManagerFactoryBuilderImpl)Bootstrap.getEntityManagerFactoryBuilder(new PersistenceUnitDescriptorAdapter(),configurationProperties);
+  emf=(EntityManagerFactoryImpl)entityManagerFactoryBuilder.buildEntityManagerFactory();
+  serviceRegistry=(StandardServiceRegistryImpl)emf.getSessionFactory().getServiceRegistry().getParentServiceRegistry();
   newEntityManager();
 }

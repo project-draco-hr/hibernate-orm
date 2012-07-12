@@ -1,12 +1,11 @@
 {
-  Properties properties=new Properties();
-  properties.put(AvailableSettings.SHARED_CACHE_MODE,mode);
-  properties.put(Environment.CACHE_REGION_FACTORY,CustomRegionFactory.class.getName());
-  Ejb3Configuration config=new Ejb3Configuration();
-  config.setProperties(properties);
-  config.addAnnotatedClass(ExplicitlyCacheableEntity.class);
-  config.addAnnotatedClass(ExplicitlyNonCacheableEntity.class);
-  config.addAnnotatedClass(NoCacheableAnnotationEntity.class);
-  config.buildMappings();
-  return config;
+  Map settings=new HashMap();
+  settings.put(AvailableSettings.SHARED_CACHE_MODE,mode);
+  settings.put(Environment.CACHE_REGION_FACTORY,CustomRegionFactory.class.getName());
+  settings.put(AvailableSettings.LOADED_CLASSES,Arrays.asList(ExplicitlyCacheableEntity.class,ExplicitlyNonCacheableEntity.class,NoCacheableAnnotationEntity.class));
+  PersistenceUnitInfoAdapter adapter=new PersistenceUnitInfoAdapter();
+  EntityManagerFactoryBuilderImpl emfb=(EntityManagerFactoryBuilderImpl)Bootstrap.getEntityManagerFactoryBuilder(adapter,settings);
+  Configuration hibernateConfiguration=emfb.buildHibernateConfiguration(emfb.buildServiceRegistry());
+  hibernateConfiguration.buildMappings();
+  return hibernateConfiguration;
 }
