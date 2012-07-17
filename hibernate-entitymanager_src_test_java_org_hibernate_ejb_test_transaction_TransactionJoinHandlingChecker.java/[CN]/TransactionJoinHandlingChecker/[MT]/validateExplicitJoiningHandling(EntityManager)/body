@@ -1,0 +1,33 @@
+{
+  SessionImplementor session=entityManager.unwrap(SessionImplementor.class);
+  assertFalse(session.getTransactionCoordinator().isSynchronizationRegistered());
+  Transaction hibernateTransaction=((Session)session).getTransaction();
+  ExtraAssertions.assertTyping(CMTTransaction.class,hibernateTransaction);
+  assertFalse(hibernateTransaction.isParticipating());
+  session.getFlushMode();
+  assertFalse(session.getTransactionCoordinator().isSynchronizationRegistered());
+  assertFalse(hibernateTransaction.isParticipating());
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
+  assertTrue(JtaStatusHelper.isActive(TestingJtaPlatformImpl.INSTANCE.getTransactionManager()));
+  assertTrue(hibernateTransaction.isActive());
+  assertFalse(hibernateTransaction.isParticipating());
+  assertFalse(session.getTransactionCoordinator().isSynchronizationRegistered());
+  session.getFlushMode();
+  assertTrue(JtaStatusHelper.isActive(TestingJtaPlatformImpl.INSTANCE.getTransactionManager()));
+  assertTrue(hibernateTransaction.isActive());
+  assertFalse(session.getTransactionCoordinator().isSynchronizationRegistered());
+  assertFalse(hibernateTransaction.isParticipating());
+  entityManager.joinTransaction();
+  assertTrue(JtaStatusHelper.isActive(TestingJtaPlatformImpl.INSTANCE.getTransactionManager()));
+  assertTrue(hibernateTransaction.isActive());
+  assertTrue(session.getTransactionCoordinator().isSynchronizationRegistered());
+  assertTrue(hibernateTransaction.isParticipating());
+  assertTrue(entityManager.isOpen());
+  assertTrue(session.isOpen());
+  entityManager.close();
+  assertFalse(entityManager.isOpen());
+  assertTrue(session.isOpen());
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
+  assertFalse(entityManager.isOpen());
+  assertFalse(session.isOpen());
+}

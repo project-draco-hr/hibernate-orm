@@ -5,10 +5,12 @@
   if (currentHibernateTransaction.isInitiator()) {
     return;
   }
-  if (!transactionContext.shouldAutoJoinTransaction()) {
-    if (currentHibernateTransaction.getJoinStatus() != JoinStatus.MARKED_FOR_JOINED) {
-      LOG.debug("Skipping JTA sync registration due to auto join checking");
-      return;
+  if (currentHibernateTransaction.getJoinStatus() != JoinStatus.JOINED) {
+    if (!transactionContext.shouldAutoJoinTransaction()) {
+      if (currentHibernateTransaction.getJoinStatus() != JoinStatus.MARKED_FOR_JOINED) {
+        LOG.debug("Skipping JTA sync registration due to auto join checking");
+        return;
+      }
     }
   }
   JtaPlatform jtaPlatform=getTransactionEnvironment().getJtaPlatform();

@@ -1,0 +1,49 @@
+{
+  assertFalse("setup problem",JtaStatusHelper.isActive(TestingJtaPlatformImpl.INSTANCE.getTransactionManager()));
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
+  assertTrue("setup problem",JtaStatusHelper.isActive(TestingJtaPlatformImpl.INSTANCE.getTransactionManager()));
+  EntityManager entityManager=entityManagerFactory().createEntityManager(SynchronizationType.UNSYNCHRONIZED,null);
+  try {
+    entityManager.flush();
+    fail("Expecting flush() call to fail");
+  }
+ catch (  TransactionRequiredException expected) {
+  }
+  try {
+    entityManager.createQuery("delete Book").executeUpdate();
+    fail("Expecting executeUpdate() call to fail");
+  }
+ catch (  TransactionRequiredException expected) {
+  }
+  try {
+    entityManager.createQuery("update Book set name = null").executeUpdate();
+    fail("Expecting executeUpdate() call to fail");
+  }
+ catch (  TransactionRequiredException expected) {
+  }
+  try {
+    CriteriaDelete<Book> deleteCriteria=entityManager.getCriteriaBuilder().createCriteriaDelete(Book.class);
+    deleteCriteria.from(Book.class);
+    entityManager.createQuery(deleteCriteria).executeUpdate();
+    fail("Expecting executeUpdate() call to fail");
+  }
+ catch (  TransactionRequiredException expected) {
+  }
+  try {
+    CriteriaUpdate<Book> updateCriteria=entityManager.getCriteriaBuilder().createCriteriaUpdate(Book.class);
+    updateCriteria.from(Book.class);
+    updateCriteria.set(Book_.name,(String)null);
+    entityManager.createQuery(updateCriteria).executeUpdate();
+    fail("Expecting executeUpdate() call to fail");
+  }
+ catch (  TransactionRequiredException expected) {
+  }
+  try {
+    entityManager.createQuery("select b from Book b").setLockMode(LockModeType.PESSIMISTIC_WRITE).getResultList();
+    fail("Expecting attempted pessimistic lock query to fail");
+  }
+ catch (  TransactionRequiredException expected) {
+  }
+  entityManager.close();
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().rollback();
+}
