@@ -1,0 +1,15 @@
+{
+  List<String> entities=new ArrayList<String>();
+  entities.add("org.hibernate.jpa.test.instrument.Simple");
+  try {
+    Simple.class.getDeclaredMethod("getFieldHandler");
+    Assert.fail();
+  }
+ catch (  NoSuchMethodException nsme) {
+  }
+  InstrumentedClassLoader cl=new InstrumentedClassLoader(Thread.currentThread().getContextClassLoader());
+  cl.setEntities(entities);
+  Class clazz=cl.loadClass(entities.get(0));
+  Method method=clazz.getDeclaredMethod("getFieldHandler");
+  Assert.assertNotNull(method);
+}
