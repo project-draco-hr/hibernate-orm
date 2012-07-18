@@ -1,0 +1,21 @@
+{
+  if (session == null) {
+    if (sessionFactoryUuid == null) {
+      throwLazyInitializationExceptionIfNotConnected();
+    }
+    try {
+      SessionFactoryImplementor sf=(SessionFactoryImplementor)SessionFactoryRegistry.INSTANCE.getSessionFactory(sessionFactoryUuid);
+      session=(SessionImplementor)sf.openSession();
+      CollectionPersister collectionPersister=session.getFactory().getCollectionPersister(this.getRole());
+      session.getPersistenceContext().addUninitializedDetachedCollection(collectionPersister,this);
+      session.initializeCollection(this,writing);
+    }
+ catch (    Exception e) {
+      e.printStackTrace();
+      throw new LazyInitializationException(e.getMessage());
+    }
+  }
+ else {
+    session.initializeCollection(this,writing);
+  }
+}

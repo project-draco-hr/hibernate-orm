@@ -4,15 +4,23 @@
       return true;
     }
  else {
-      throwLazyInitializationExceptionIfNotConnected();
-      CollectionEntry entry=session.getPersistenceContext().getCollectionEntry(this);
-      CollectionPersister persister=entry.getLoadedPersister();
-      if (persister.isExtraLazy()) {
-        if (hasQueuedOperations()) {
-          session.flush();
+      try {
+        if (specjLazyLoad) {
+          specialSpecjInitialization(false);
         }
-        cachedSize=persister.getSize(entry.getLoadedKey(),session);
-        return true;
+ else         throwLazyInitializationExceptionIfNotConnected();
+        CollectionEntry entry=session.getPersistenceContext().getCollectionEntry(this);
+        CollectionPersister persister=entry.getLoadedPersister();
+        if (persister.isExtraLazy()) {
+          if (hasQueuedOperations()) {
+            session.flush();
+          }
+          cachedSize=persister.getSize(entry.getLoadedKey(),session);
+          return true;
+        }
+      }
+  finally {
+        if (specjLazyLoad)         session=null;
       }
     }
   }

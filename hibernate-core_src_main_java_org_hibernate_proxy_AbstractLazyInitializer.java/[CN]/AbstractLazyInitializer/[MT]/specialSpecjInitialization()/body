@@ -1,0 +1,29 @@
+{
+  if (session == null) {
+    if (sessionFactoryUuid == null) {
+      throw new LazyInitializationException("could not initialize proxy - no Session");
+    }
+    try {
+      SessionFactoryImplementor sf=(SessionFactoryImplementor)SessionFactoryRegistry.INSTANCE.getSessionFactory(sessionFactoryUuid);
+      session=(SessionImplementor)sf.openSession();
+      target=session.immediateLoad(entityName,id);
+      initialized=true;
+      checkTargetState();
+    }
+ catch (    Exception e) {
+      e.printStackTrace();
+      throw new LazyInitializationException(e.getMessage());
+    }
+ finally {
+      session=null;
+    }
+  }
+ else   if (session.isOpen() && session.isConnected()) {
+    target=session.immediateLoad(entityName,id);
+    initialized=true;
+    checkTargetState();
+  }
+ else {
+    throw new LazyInitializationException("could not initialize proxy - Session was closed or disced");
+  }
+}

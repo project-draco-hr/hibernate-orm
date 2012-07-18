@@ -1,13 +1,21 @@
 {
   if (!initialized) {
-    throwLazyInitializationExceptionIfNotConnected();
-    CollectionEntry entry=session.getPersistenceContext().getCollectionEntry(this);
-    CollectionPersister persister=entry.getLoadedPersister();
-    if (persister.isExtraLazy()) {
-      if (hasQueuedOperations()) {
-        session.flush();
+    try {
+      if (specjLazyLoad) {
+        specialSpecjInitialization(false);
       }
-      return persister.elementExists(entry.getLoadedKey(),element,session);
+ else       throwLazyInitializationExceptionIfNotConnected();
+      CollectionEntry entry=session.getPersistenceContext().getCollectionEntry(this);
+      CollectionPersister persister=entry.getLoadedPersister();
+      if (persister.isExtraLazy()) {
+        if (hasQueuedOperations()) {
+          session.flush();
+        }
+        return persister.elementExists(entry.getLoadedKey(),element,session);
+      }
+    }
+  finally {
+      if (specjLazyLoad)       session=null;
     }
   }
   read();
