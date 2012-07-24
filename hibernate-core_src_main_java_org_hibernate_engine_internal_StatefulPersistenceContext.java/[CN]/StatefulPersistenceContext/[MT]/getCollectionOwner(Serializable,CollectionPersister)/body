@@ -1,3 +1,23 @@
 {
+  final EntityPersister ownerPersister=collectionPersister.getOwnerEntityPersister();
+  if (ownerPersister.getIdentifierType().getReturnedClass().isInstance(key)) {
+    return getEntity(session.generateEntityKey(key,collectionPersister.getOwnerEntityPersister()));
+  }
+  if (ownerPersister.isInstance(key)) {
+    final Serializable owenerId=ownerPersister.getIdentifier(key,session);
+    if (owenerId == null) {
+      return null;
+    }
+    return getEntity(session.generateEntityKey(owenerId,ownerPersister));
+  }
+  final CollectionType collectionType=collectionPersister.getCollectionType();
+  if (collectionType.getLHSPropertyName() != null) {
+    Object owner=getEntity(new EntityUniqueKey(ownerPersister.getEntityName(),collectionType.getLHSPropertyName(),key,collectionPersister.getKeyType(),ownerPersister.getEntityMode(),session.getFactory()));
+    if (owner != null) {
+      return owner;
+    }
+    final Serializable ownerId=ownerPersister.getIdByUniqueKey(key,collectionType.getLHSPropertyName(),session);
+    return getEntity(session.generateEntityKey(ownerId,ownerPersister));
+  }
   return getEntity(session.generateEntityKey(key,collectionPersister.getOwnerEntityPersister()));
 }
