@@ -10,24 +10,12 @@
   result=prime * result + ((this.entityName == null) ? 0 : this.entityName.hashCode());
   result=prime * result + ((this.tenantId == null) ? 0 : this.tenantId.hashCode());
   for (int i=0; i < naturalIdValues.length; i++) {
-    final Type type=propertyTypes[naturalIdPropertyIndexes[i]];
+    final int naturalIdPropertyIndex=naturalIdPropertyIndexes[i];
+    final Type type=propertyTypes[naturalIdPropertyIndex];
     final Object value=naturalIdValues[i];
     result=prime * result + (value != null ? type.getHashCode(value,factory) : 0);
     this.naturalIdValues[i]=type.disassemble(value,session,null);
   }
   this.hashCode=result;
-  this.toString=new ValueHolder<String>(new ValueHolder.DeferredInitializer<String>(){
-    @Override public String initialize(){
-      final StringBuilder toStringBuilder=new StringBuilder(entityName).append("##NaturalId[");
-      for (int i=0; i < naturalIdValues.length; i++) {
-        toStringBuilder.append(naturalIdValues[i]);
-        if (i + 1 < naturalIdValues.length) {
-          toStringBuilder.append(", ");
-        }
-      }
-      toStringBuilder.append("]");
-      return toStringBuilder.toString();
-    }
-  }
-);
+  initTransients();
 }
