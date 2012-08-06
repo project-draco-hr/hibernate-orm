@@ -23,17 +23,6 @@
     metadataSourceQueue.syncAnnotatedClasses();
     metadataSourceQueue.processMetadata(determineMetadataSourcePrecedence());
   }
-{
-    for (    CacheHolder holder : caches) {
-      if (holder.isClass) {
-        applyCacheConcurrencyStrategy(holder);
-      }
- else {
-        applyCollectionCacheConcurrencyStrategy(holder);
-      }
-    }
-    caches.clear();
-  }
   try {
     inSecondPass=true;
     processSecondPassesOfType(PkDrivenByDefaultMapsIdSecondPass.class);
@@ -47,6 +36,17 @@
   }
  catch (  RecoverableException e) {
     throw (RuntimeException)e.getCause();
+  }
+{
+    for (    CacheHolder holder : caches) {
+      if (holder.isClass) {
+        applyCacheConcurrencyStrategy(holder);
+      }
+ else {
+        applyCollectionCacheConcurrencyStrategy(holder);
+      }
+    }
+    caches.clear();
   }
   for (  Map.Entry<Table,List<UniqueConstraintHolder>> tableListEntry : uniqueConstraintHoldersByTable.entrySet()) {
     final Table table=tableListEntry.getKey();
