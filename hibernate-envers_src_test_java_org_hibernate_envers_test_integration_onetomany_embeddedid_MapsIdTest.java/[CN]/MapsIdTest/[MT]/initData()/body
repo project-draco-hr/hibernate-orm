@@ -1,0 +1,38 @@
+{
+  EntityManager em=getEntityManager();
+  em.getTransaction().begin();
+  Person personA=new Person("Peter");
+  Person personB=new Person("Mary");
+  em.persist(personA);
+  em.persist(personB);
+  Constant cons=new Constant("USD","US Dollar");
+  em.persist(cons);
+  PersonTuple tuple1=new PersonTuple(true,personA,personB,cons);
+  em.persist(tuple1);
+  em.getTransaction().commit();
+  tuple1Ver1=new PersonTuple(tuple1.isHelloWorld(),tuple1.getPersonA(),tuple1.getPersonB(),tuple1.getConstant());
+  em.getTransaction().begin();
+  cons=em.find(Constant.class,cons.getId());
+  Person personC1=new Person("Lukasz");
+  em.persist(personC1);
+  PersonTuple tuple2=new PersonTuple(true,personA,personC1,cons);
+  em.persist(tuple2);
+  em.getTransaction().commit();
+  tuple2Ver1=new PersonTuple(tuple2.isHelloWorld(),tuple2.getPersonA(),tuple2.getPersonB(),tuple2.getConstant());
+  personCVer1=new Person(personC1.getId(),personC1.getName());
+  personCVer1.getPersonBTuples().add(tuple2Ver1);
+  em.getTransaction().begin();
+  tuple2=em.find(PersonTuple.class,tuple2.getPersonTupleId());
+  tuple2.setHelloWorld(false);
+  em.merge(tuple2);
+  em.getTransaction().commit();
+  tuple2Ver2=new PersonTuple(tuple2.isHelloWorld(),tuple2.getPersonA(),tuple2.getPersonB(),tuple2.getConstant());
+  em.getTransaction().begin();
+  Person personC2=em.find(Person.class,personC1.getId());
+  personC2.setName("Robert");
+  em.merge(personC2);
+  em.getTransaction().commit();
+  personCVer2=new Person(personC2.getId(),personC2.getName());
+  personCVer2.getPersonBTuples().add(tuple2Ver1);
+  em.close();
+}
