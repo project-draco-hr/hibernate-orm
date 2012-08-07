@@ -55,6 +55,11 @@
     LOG.debugf("JDBC result set fetch size: %s",statementFetchSize);
   }
   settings.setJdbcFetchSize(statementFetchSize);
+  MultiTenancyStrategy multiTenancyStrategy=MultiTenancyStrategy.determineMultiTenancyStrategy(properties);
+  if (debugEnabled) {
+    LOG.debugf("multi-tenancy strategy : %s",multiTenancyStrategy);
+  }
+  settings.setMultiTenancyStrategy(multiTenancyStrategy);
   String releaseModeName=ConfigurationHelper.getString(Environment.RELEASE_CONNECTIONS,properties,"auto");
   if (debugEnabled) {
     LOG.debugf("Connection release mode: %s",releaseModeName);
@@ -65,9 +70,12 @@
   }
  else {
     releaseMode=ConnectionReleaseMode.parse(releaseModeName);
-    if (releaseMode == ConnectionReleaseMode.AFTER_STATEMENT && !jdbcServices.getConnectionProvider().supportsAggressiveRelease()) {
-      LOG.unsupportedAfterStatement();
-      releaseMode=ConnectionReleaseMode.AFTER_TRANSACTION;
+    if (releaseMode == ConnectionReleaseMode.AFTER_STATEMENT) {
+      boolean supportsAgrressiveRelease=multiTenancyStrategy.requiresMultiTenantConnectionProvider() ? serviceRegistry.getService(MultiTenantConnectionProvider.class).supportsAggressiveRelease() : serviceRegistry.getService(ConnectionProvider.class).supportsAggressiveRelease();
+      if (!supportsAgrressiveRelease) {
+        LOG.unsupportedAfterStatement();
+        releaseMode=ConnectionReleaseMode.AFTER_TRANSACTION;
+      }
     }
   }
   settings.setConnectionReleaseMode(releaseMode);
@@ -189,11 +197,6 @@
     LOG.debugf("Check Nullability in Core (should be disabled when Bean Validation is on): %s",enabledDisabled(checkNullability));
   }
   settings.setCheckNullability(checkNullability);
-  MultiTenancyStrategy multiTenancyStrategy=MultiTenancyStrategy.determineMultiTenancyStrategy(properties);
-  if (debugEnabled) {
-    LOG.debugf("multi-tenancy strategy : %s",multiTenancyStrategy);
-  }
-  settings.setMultiTenancyStrategy(multiTenancyStrategy);
   settings.setEntityTuplizerFactory(new EntityTuplizerFactory());
   return settings;
 }

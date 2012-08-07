@@ -1,7 +1,7 @@
 {
   boolean wasAutoCommit=false;
   try {
-    Connection connection=connectionProvider().getConnection();
+    Connection connection=jdbcConnectionAccess().obtainConnection();
     try {
       if (transacted) {
         if (connection.getAutoCommit()) {
@@ -44,7 +44,7 @@
         }
       }
       try {
-        connectionProvider().closeConnection(connection);
+        jdbcConnectionAccess().releaseConnection(connection);
       }
  catch (      Exception ignore) {
         LOG.unableToReleaseIsolatedConnection(ignore);

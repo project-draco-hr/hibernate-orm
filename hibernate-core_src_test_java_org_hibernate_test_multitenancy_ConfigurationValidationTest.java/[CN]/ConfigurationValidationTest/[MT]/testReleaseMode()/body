@@ -1,0 +1,8 @@
+{
+  Configuration cfg=new Configuration();
+  cfg.getProperties().put(Environment.MULTI_TENANT,MultiTenancyStrategy.SCHEMA);
+  cfg.getProperties().put(Environment.RELEASE_CONNECTIONS,ConnectionReleaseMode.AFTER_STATEMENT.name());
+  cfg.buildMappings();
+  ServiceRegistryImplementor serviceRegistry=(ServiceRegistryImplementor)new ServiceRegistryBuilder().applySettings(cfg.getProperties()).addService(MultiTenantConnectionProvider.class,new TestingConnectionProvider(new TestingConnectionProvider.NamedConnectionProviderPair("acme",ConnectionProviderBuilder.buildConnectionProvider("acme")))).buildServiceRegistry();
+  cfg.buildSessionFactory(serviceRegistry);
+}

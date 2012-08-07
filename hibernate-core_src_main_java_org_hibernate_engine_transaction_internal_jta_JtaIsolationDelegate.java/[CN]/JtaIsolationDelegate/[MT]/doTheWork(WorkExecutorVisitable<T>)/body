@@ -1,6 +1,6 @@
 {
   try {
-    Connection connection=connectionProvider().getConnection();
+    Connection connection=jdbcConnectionAccess().obtainConnection();
     try {
       return work.accept(new WorkExecutor<T>(),connection);
     }
@@ -12,7 +12,7 @@ catch (    Exception e) {
     }
  finally {
       try {
-        connectionProvider().closeConnection(connection);
+        jdbcConnectionAccess().releaseConnection(connection);
       }
  catch (      Throwable ignore) {
         LOG.unableToReleaseIsolatedConnection(ignore);
