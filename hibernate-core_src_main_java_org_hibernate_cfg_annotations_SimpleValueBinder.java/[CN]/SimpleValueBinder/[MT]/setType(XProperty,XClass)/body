@@ -8,10 +8,16 @@
     returnedClassOrElement=property.getElementClass();
     isArray=true;
   }
+  this.xproperty=property;
   Properties typeParameters=this.typeParameters;
   typeParameters.clear();
   String type=BinderHelper.ANNOTATION_STRING_DEFAULT;
-  if ((!key && property.isAnnotationPresent(Temporal.class)) || (key && property.isAnnotationPresent(MapKeyTemporal.class))) {
+  Type annType=property.getAnnotation(Type.class);
+  if (annType != null) {
+    setExplicitType(annType);
+    type=explicitType;
+  }
+ else   if ((!key && property.isAnnotationPresent(Temporal.class)) || (key && property.isAnnotationPresent(MapKeyTemporal.class))) {
     boolean isDate;
     if (mappings.getReflectionManager().equals(returnedClassOrElement,Date.class)) {
       isDate=true;
@@ -39,6 +45,7 @@ break;
 default :
 throw new AssertionFailure("Unknown temporal type: " + temporalType);
 }
+explicitType=type;
 }
  else if (property.isAnnotationPresent(Lob.class)) {
 if (mappings.getReflectionManager().equals(returnedClassOrElement,java.sql.Clob.class)) {
@@ -69,6 +76,11 @@ typeParameters.setProperty(SerializableToBlobType.CLASS_NAME,returnedClassOrElem
  else {
 type="blob";
 }
+explicitType=type;
+}
+ else if ((!key && property.isAnnotationPresent(Enumerated.class)) || (key && property.isAnnotationPresent(MapKeyEnumerated.class))) {
+type=EnumType.class.getName();
+explicitType=type;
 }
 if (columns == null) {
 throw new AssertionFailure("SimpleValueBinder.setColumns should be set before SimpleValueBinder.setType");
@@ -76,33 +88,9 @@ throw new AssertionFailure("SimpleValueBinder.setColumns should be set before Si
 if (BinderHelper.ANNOTATION_STRING_DEFAULT.equals(type)) {
 if (returnedClassOrElement.isEnum()) {
 type=EnumType.class.getName();
-typeParameters=new Properties();
-typeParameters.setProperty(EnumType.ENUM,returnedClassOrElement.getName());
-String schema=columns[0].getTable().getSchema();
-schema=schema == null ? "" : schema;
-String catalog=columns[0].getTable().getCatalog();
-catalog=catalog == null ? "" : catalog;
-typeParameters.setProperty(EnumType.SCHEMA,schema);
-typeParameters.setProperty(EnumType.CATALOG,catalog);
-typeParameters.setProperty(EnumType.TABLE,columns[0].getTable().getName());
-typeParameters.setProperty(EnumType.COLUMN,columns[0].getName());
-javax.persistence.EnumType enumType=getEnumType(property);
-if (enumType != null) {
-if (javax.persistence.EnumType.ORDINAL.equals(enumType)) {
-typeParameters.setProperty(EnumType.TYPE,String.valueOf(Types.INTEGER));
-}
- else if (javax.persistence.EnumType.STRING.equals(enumType)) {
-typeParameters.setProperty(EnumType.TYPE,String.valueOf(Types.VARCHAR));
-}
- else {
-throw new AssertionFailure("Unknown EnumType: " + enumType);
 }
 }
-}
-}
-explicitType=type;
+defaultType=BinderHelper.isEmptyAnnotationValue(type) ? returnedClassName : type;
 this.typeParameters=typeParameters;
-Type annType=property.getAnnotation(Type.class);
-setExplicitType(annType);
 applyAttributeConverter(property);
 }

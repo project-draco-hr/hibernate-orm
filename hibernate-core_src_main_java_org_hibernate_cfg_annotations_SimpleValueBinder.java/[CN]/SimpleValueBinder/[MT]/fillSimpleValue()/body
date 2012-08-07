@@ -7,8 +7,23 @@
     simpleValue.setJpaAttributeConverterDefinition(attributeConverterDefinition);
   }
  else {
-    String type=BinderHelper.isEmptyAnnotationValue(explicitType) ? returnedClassName : explicitType;
-    org.hibernate.mapping.TypeDef typeDef=mappings.getTypeDef(type);
+    String type;
+    org.hibernate.mapping.TypeDef typeDef;
+    if (!BinderHelper.isEmptyAnnotationValue(explicitType)) {
+      type=explicitType;
+      typeDef=mappings.getTypeDef(type);
+    }
+ else {
+      org.hibernate.mapping.TypeDef implicitTypeDef=mappings.getTypeDef(returnedClassName);
+      if (implicitTypeDef != null) {
+        typeDef=implicitTypeDef;
+        type=returnedClassName;
+      }
+ else {
+        typeDef=mappings.getTypeDef(defaultType);
+        type=defaultType;
+      }
+    }
     if (typeDef != null) {
       type=typeDef.getTypeClass();
       simpleValue.setTypeParameters(typeDef.getParameters());
@@ -26,5 +41,26 @@
   }
   if (timeStampVersionType != null) {
     simpleValue.setTypeName(timeStampVersionType);
+  }
+  if (simpleValue.getTypeName() != null && simpleValue.getTypeName().length() > 0 && simpleValue.getMappings().getTypeResolver().basic(simpleValue.getTypeName()) == null) {
+    try {
+      Class typeClass=ReflectHelper.classForName(simpleValue.getTypeName());
+      if (typeClass != null && DynamicParameterizedType.class.isAssignableFrom(typeClass)) {
+        Properties parameters=simpleValue.getTypeParameters();
+        if (parameters == null) {
+          parameters=new Properties();
+        }
+        parameters.put(DynamicParameterizedType.IS_DYNAMIC,Boolean.toString(true));
+        parameters.put(DynamicParameterizedType.RETURNED_CLASS,returnedClassName);
+        parameters.put(DynamicParameterizedType.IS_PRIMARY_KEY,Boolean.toString(key));
+        parameters.put(DynamicParameterizedType.ENTITY,persistentClassName);
+        parameters.put(DynamicParameterizedType.PROPERTY,xproperty.getName());
+        parameters.put(DynamicParameterizedType.ACCESS_TYPE,accessType.getType());
+        simpleValue.setTypeParameters(parameters);
+      }
+    }
+ catch (    ClassNotFoundException cnfe) {
+      throw new MappingException("Could not determine type for: " + simpleValue.getTypeName(),cnfe);
+    }
   }
 }
