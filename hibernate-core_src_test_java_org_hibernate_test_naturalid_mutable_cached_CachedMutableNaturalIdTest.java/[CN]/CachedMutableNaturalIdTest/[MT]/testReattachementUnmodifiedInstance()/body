@@ -1,0 +1,20 @@
+{
+  Session session=openSession();
+  session.beginTransaction();
+  A a=new A();
+  B b=new B();
+  b.naturalid=100;
+  session.persist(a);
+  session.persist(b);
+  b.assA=a;
+  a.assB.add(b);
+  session.getTransaction().commit();
+  session.close();
+  session=openSession();
+  session.beginTransaction();
+  session.buildLockRequest(LockOptions.NONE).lock(b);
+  session.delete(b.assA);
+  session.delete(b);
+  session.getTransaction().commit();
+  session.close();
+}
