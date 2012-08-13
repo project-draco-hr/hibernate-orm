@@ -1,16 +1,22 @@
 {
   final ServiceRegistry serviceRegistry=buildServiceRegistry();
-  hibernateConfiguration=buildHibernateConfiguration(serviceRegistry);
-  SessionFactoryImplementor sessionFactory;
-  try {
-    sessionFactory=(SessionFactoryImplementor)hibernateConfiguration.buildSessionFactory(serviceRegistry);
+  final ClassLoaderService classLoaderService=serviceRegistry.getService(ClassLoaderService.class);
+  return ((ClassLoaderServiceImpl)classLoaderService).withTccl(new ClassLoaderServiceImpl.Work<EntityManagerFactoryImpl>(){
+    @Override public EntityManagerFactoryImpl perform(){
+      hibernateConfiguration=buildHibernateConfiguration(serviceRegistry);
+      SessionFactoryImplementor sessionFactory;
+      try {
+        sessionFactory=(SessionFactoryImplementor)hibernateConfiguration.buildSessionFactory(serviceRegistry);
+      }
+ catch (      MappingException e) {
+        throw persistenceException("Unable to build Hibernate SessionFactory",e);
+      }
+      if (suppliedSessionFactoryObserver != null) {
+        sessionFactory.addObserver(suppliedSessionFactoryObserver);
+      }
+      sessionFactory.addObserver(new ServiceRegistryCloser());
+      return new EntityManagerFactoryImpl(persistenceUnit.getName(),sessionFactory,settings,configurationValues,hibernateConfiguration);
+    }
   }
- catch (  MappingException e) {
-    throw persistenceException("Unable to build Hibernate SessionFactory",e);
-  }
-  if (suppliedSessionFactoryObserver != null) {
-    sessionFactory.addObserver(suppliedSessionFactoryObserver);
-  }
-  sessionFactory.addObserver(new ServiceRegistryCloser());
-  return new EntityManagerFactoryImpl(persistenceUnit.getName(),sessionFactory,settings,configurationValues,hibernateConfiguration);
+);
 }
