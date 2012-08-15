@@ -1,27 +1,25 @@
 {
   if (!initialized) {
-    try {
-      if (specjLazyLoad) {
-        specialSpecjInitialization(false);
-      }
- else {
-        throwLazyInitializationExceptionIfNotConnected();
-      }
-      CollectionEntry entry=session.getPersistenceContext().getCollectionEntry(this);
-      CollectionPersister persister=entry.getLoadedPersister();
-      if (persister.isExtraLazy()) {
-        if (hasQueuedOperations()) {
-          session.flush();
+    Boolean extraLazyExistenceCheck=withTemporarySessionIfNeeded(new LazyInitializationWork<Boolean>(){
+      @Override public Boolean doWork(){
+        CollectionEntry entry=session.getPersistenceContext().getCollectionEntry(AbstractPersistentCollection.this);
+        CollectionPersister persister=entry.getLoadedPersister();
+        if (persister.isExtraLazy()) {
+          if (hasQueuedOperations()) {
+            session.flush();
+          }
+          return persister.elementExists(entry.getLoadedKey(),element,session);
         }
-        return persister.elementExists(entry.getLoadedKey(),element,session);
+ else {
+          read();
+        }
+        return null;
       }
     }
-  finally {
-      if (specjLazyLoad) {
-        session=null;
-      }
+);
+    if (extraLazyExistenceCheck != null) {
+      return extraLazyExistenceCheck;
     }
   }
-  read();
   return null;
 }

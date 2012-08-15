@@ -1,0 +1,50 @@
+{
+  SessionImplementor originalSession=null;
+  boolean isTempSession=false;
+  if (session == null) {
+    if (specjLazyLoad) {
+      session=openTemporarySessionForLoading();
+      isTempSession=true;
+    }
+ else {
+      throw new LazyInitializationException("could not initialize proxy - no Session");
+    }
+  }
+ else   if (!session.isOpen()) {
+    if (specjLazyLoad) {
+      originalSession=session;
+      session=openTemporarySessionForLoading();
+      isTempSession=true;
+    }
+ else {
+      throw new LazyInitializationException("could not initialize proxy - the owning Session was closed");
+    }
+  }
+ else   if (!session.isConnected()) {
+    if (specjLazyLoad) {
+      originalSession=session;
+      session=openTemporarySessionForLoading();
+      isTempSession=true;
+    }
+ else {
+      throw new LazyInitializationException("could not initialize proxy - the owning Session is disconnected");
+    }
+  }
+  if (isTempSession) {
+    session.getPersistenceContext().addUninitializedDetachedCollection(session.getFactory().getCollectionPersister(getRole()),this);
+  }
+  try {
+    return lazyInitializationWork.doWork();
+  }
+  finally {
+    if (isTempSession) {
+      try {
+        ((Session)session).close();
+      }
+ catch (      Exception e) {
+        log.warn("Unable to close temporary session used to load lazy collection associated to no session");
+      }
+      session=originalSession;
+    }
+  }
+}

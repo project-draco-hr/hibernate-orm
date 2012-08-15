@@ -5,17 +5,24 @@
     }
     try {
       SessionFactoryImplementor sf=(SessionFactoryImplementor)SessionFactoryRegistry.INSTANCE.getSessionFactory(sessionFactoryUuid);
-      session=(SessionImplementor)sf.openSession();
-      target=session.immediateLoad(entityName,id);
+      SessionImplementor session=(SessionImplementor)sf.openSession();
+      try {
+        target=session.immediateLoad(entityName,id);
+      }
+  finally {
+        try {
+          ((Session)session).close();
+        }
+ catch (        Exception e) {
+          log.warn("Unable to close temporary session used to load lazy proxy associated to no session");
+        }
+      }
       initialized=true;
       checkTargetState();
     }
  catch (    Exception e) {
       e.printStackTrace();
       throw new LazyInitializationException(e.getMessage());
-    }
- finally {
-      session=null;
     }
   }
  else   if (session.isOpen() && session.isConnected()) {
