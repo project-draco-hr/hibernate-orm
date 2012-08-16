@@ -1,0 +1,16 @@
+{
+  for (  Object key : originalId.keySet()) {
+    Object value=originalId.get(key);
+    if (value instanceof HibernateProxy) {
+      HibernateProxy hibernateProxy=(HibernateProxy)value;
+      LazyInitializer initializer=hibernateProxy.getHibernateLazyInitializer();
+      final String entityName=initializer.getEntityName();
+      final Serializable entityId=initializer.getIdentifier();
+      if (verCfg.getEntCfg().isVersioned(entityName)) {
+        final String entityClassName=verCfg.getEntCfg().get(entityName).getEntityClassName();
+        final ToOneDelegateSessionImplementor delegate=new ToOneDelegateSessionImplementor(versionsReader,ReflectionTools.loadClass(entityClassName),entityId,revision,verCfg);
+        originalId.put(key,versionsReader.getSessionImplementor().getFactory().getEntityPersister(entityName).createProxy(entityId,delegate));
+      }
+    }
+  }
+}

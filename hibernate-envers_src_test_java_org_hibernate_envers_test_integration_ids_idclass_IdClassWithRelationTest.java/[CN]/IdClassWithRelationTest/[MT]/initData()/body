@@ -1,0 +1,24 @@
+{
+  EntityManager em=getEntityManager();
+  em.getTransaction().begin();
+  ClassType type=new ClassType("type","initial description");
+  SampleClass entity=new SampleClass();
+  entity.setType(type);
+  entity.setSampleValue("initial data");
+  em.persist(type);
+  em.persist(entity);
+  em.getTransaction().commit();
+  typeId=type.getType();
+  entityId=new RelationalClassId(entity.getId(),new ClassType("type","initial description"));
+  em.getTransaction().begin();
+  type=em.find(ClassType.class,type.getType());
+  type.setDescription("modified description");
+  em.merge(type);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  entity=em.find(SampleClass.class,entityId);
+  entity.setSampleValue("modified data");
+  em.merge(entity);
+  em.getTransaction().commit();
+  em.close();
+}

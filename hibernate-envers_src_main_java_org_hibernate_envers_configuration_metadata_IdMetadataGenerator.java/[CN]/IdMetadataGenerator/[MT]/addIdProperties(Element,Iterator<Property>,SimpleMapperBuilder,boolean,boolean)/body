@@ -3,7 +3,13 @@
     Property property=properties.next();
     Type propertyType=property.getType();
     if (!"_identifierMapper".equals(property.getName())) {
-      boolean added=mainGenerator.getBasicMetadataGenerator().addBasic(parent,getIdPersistentPropertyAuditingData(property),property.getValue(),mapper,true,key);
+      boolean added=false;
+      if (propertyType instanceof ManyToOneType) {
+        added=mainGenerator.getBasicMetadataGenerator().addKeyManyToOne(parent,getIdPersistentPropertyAuditingData(property),property.getValue(),mapper);
+      }
+ else {
+        added=mainGenerator.getBasicMetadataGenerator().addBasic(parent,getIdPersistentPropertyAuditingData(property),property.getValue(),mapper,true,key);
+      }
       if (!added) {
         if (audited) {
           throw new MappingException("Type not supported: " + propertyType.getClass().getName());
