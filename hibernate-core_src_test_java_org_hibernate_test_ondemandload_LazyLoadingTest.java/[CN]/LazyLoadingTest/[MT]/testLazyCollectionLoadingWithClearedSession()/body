@@ -12,6 +12,17 @@
   assertTrue(Hibernate.isInitialized(store.getInventories()));
   assertEquals(2,sessionFactory().getStatistics().getSessionOpenCount());
   assertEquals(1,sessionFactory().getStatistics().getSessionCloseCount());
+  s.clear();
+  store=(Store)s.get(Store.class,1);
+  assertNotNull(store);
+  assertFalse(Hibernate.isInitialized(store.getInventories()));
+  assertEquals(2,sessionFactory().getStatistics().getSessionOpenCount());
+  assertEquals(1,sessionFactory().getStatistics().getSessionCloseCount());
+  s.clear();
+  store.getInventories().iterator();
+  assertTrue(Hibernate.isInitialized(store.getInventories()));
+  assertEquals(3,sessionFactory().getStatistics().getSessionOpenCount());
+  assertEquals(2,sessionFactory().getStatistics().getSessionCloseCount());
   s.getTransaction().commit();
   s.close();
 }
