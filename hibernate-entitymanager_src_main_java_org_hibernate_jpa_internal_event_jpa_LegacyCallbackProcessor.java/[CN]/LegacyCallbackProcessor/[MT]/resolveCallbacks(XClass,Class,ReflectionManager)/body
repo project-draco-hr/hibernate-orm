@@ -1,0 +1,89 @@
+{
+  List<Callback> callbacks=new ArrayList<Callback>();
+  List<String> callbacksMethodNames=new ArrayList<String>();
+  List<Class> orderedListeners=new ArrayList<Class>();
+  XClass currentClazz=beanClass;
+  boolean stopListeners=false;
+  boolean stopDefaultListeners=false;
+  do {
+    Callback callback=null;
+    List<XMethod> methods=currentClazz.getDeclaredMethods();
+    final int size=methods.size();
+    for (int i=0; i < size; i++) {
+      final XMethod xMethod=methods.get(i);
+      if (xMethod.isAnnotationPresent(annotation)) {
+        Method method=reflectionManager.toMethod(xMethod);
+        final String methodName=method.getName();
+        if (!callbacksMethodNames.contains(methodName)) {
+          if (callback == null) {
+            callback=new EntityCallback(method);
+            Class returnType=method.getReturnType();
+            Class[] args=method.getParameterTypes();
+            if (returnType != Void.TYPE || args.length != 0) {
+              throw new RuntimeException("Callback methods annotated on the bean class must return void and take no arguments: " + annotation.getName() + " - "+ xMethod);
+            }
+            if (!method.isAccessible())             method.setAccessible(true);
+            log.debugf("Adding %s as %s callback for entity %s",methodName,annotation.getSimpleName(),beanClass.getName());
+            callbacks.add(0,callback);
+            callbacksMethodNames.add(0,methodName);
+          }
+ else {
+            throw new PersistenceException("You can only annotate one callback method with " + annotation.getName() + " in bean class: "+ beanClass.getName());
+          }
+        }
+      }
+    }
+    if (!stopListeners) {
+      getListeners(currentClazz,orderedListeners);
+      stopListeners=currentClazz.isAnnotationPresent(ExcludeSuperclassListeners.class);
+      stopDefaultListeners=currentClazz.isAnnotationPresent(ExcludeDefaultListeners.class);
+    }
+    do {
+      currentClazz=currentClazz.getSuperclass();
+    }
+ while (currentClazz != null && !(currentClazz.isAnnotationPresent(Entity.class) || currentClazz.isAnnotationPresent(MappedSuperclass.class)));
+  }
+ while (currentClazz != null);
+  if (!stopDefaultListeners) {
+    List<Class> defaultListeners=(List<Class>)reflectionManager.getDefaults().get(EntityListeners.class);
+    if (defaultListeners != null) {
+      int defaultListenerSize=defaultListeners.size();
+      for (int i=defaultListenerSize - 1; i >= 0; i--) {
+        orderedListeners.add(defaultListeners.get(i));
+      }
+    }
+  }
+  for (  Class listener : orderedListeners) {
+    Callback callback=null;
+    if (listener != null) {
+      XClass xListener=reflectionManager.toXClass(listener);
+      callbacksMethodNames=new ArrayList<String>();
+      List<XMethod> methods=xListener.getDeclaredMethods();
+      final int size=methods.size();
+      for (int i=0; i < size; i++) {
+        final XMethod xMethod=methods.get(i);
+        if (xMethod.isAnnotationPresent(annotation)) {
+          final Method method=reflectionManager.toMethod(xMethod);
+          final String methodName=method.getName();
+          if (!callbacksMethodNames.contains(methodName)) {
+            if (callback == null) {
+              callback=new ListenerCallback(jpaListenerFactory.buildListener(listener),method);
+              Class returnType=method.getReturnType();
+              Class[] args=method.getParameterTypes();
+              if (returnType != Void.TYPE || args.length != 1) {
+                throw new PersistenceException("Callback methods annotated in a listener bean class must return void and take one argument: " + annotation.getName() + " - "+ method);
+              }
+              if (!method.isAccessible())               method.setAccessible(true);
+              log.debugf("Adding %s as %s callback for entity %s",methodName,annotation.getSimpleName(),beanClass.getName());
+              callbacks.add(0,callback);
+            }
+ else {
+              throw new PersistenceException("You can only annotate one callback method with " + annotation.getName() + " in bean class: "+ beanClass.getName()+ " and callback listener: "+ listener.getName());
+            }
+          }
+        }
+      }
+    }
+  }
+  return callbacks.toArray(new Callback[callbacks.size()]);
+}

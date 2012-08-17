@@ -47,26 +47,23 @@
       eventListenerGroup.appendListener(instantiate(listenerImpl,serviceRegistry));
     }
   }
-  final EntityCallbackHandler callbackHandler=new EntityCallbackHandler();
+  this.callbackRegistry=new CallbackRegistry();
+  final BeanManager beanManager=(BeanManager)configuration.getProperties().get(AvailableSettings.CDI_BEAN_MANAGER);
+  this.jpaListenerFactory=beanManager == null ? new StandardListenerFactory() : new BeanManagerListenerFactory(beanManager);
+  this.callbackProcessor=new LegacyCallbackProcessor(jpaListenerFactory,configuration.getReflectionManager());
   Iterator classes=configuration.getClassMappings();
-  ReflectionManager reflectionManager=configuration.getReflectionManager();
   while (classes.hasNext()) {
-    PersistentClass clazz=(PersistentClass)classes.next();
+    final PersistentClass clazz=(PersistentClass)classes.next();
     if (clazz.getClassName() == null) {
       continue;
     }
-    try {
-      callbackHandler.add(reflectionManager.classForName(clazz.getClassName(),this.getClass()),reflectionManager);
-    }
- catch (    ClassNotFoundException e) {
-      throw new MappingException("entity class not found: " + clazz.getNodeName(),e);
-    }
+    callbackProcessor.processCallbacksForEntity(clazz.getClassName(),callbackRegistry);
   }
   for (  EventType eventType : EventType.values()) {
     final EventListenerGroup eventListenerGroup=eventListenerRegistry.getEventListenerGroup(eventType);
     for (    Object listener : eventListenerGroup.listeners()) {
-      if (CallbackHandlerConsumer.class.isInstance(listener)) {
-        ((CallbackHandlerConsumer)listener).setCallbackHandler(callbackHandler);
+      if (CallbackRegistryConsumer.class.isInstance(listener)) {
+        ((CallbackRegistryConsumer)listener).injectCallbackRegistry(callbackRegistry);
       }
     }
   }

@@ -47,18 +47,19 @@
       eventListenerGroup.appendListener(instantiate(listenerImpl,serviceRegistry));
     }
   }
-  final EntityCallbackHandler callbackHandler=new EntityCallbackHandler();
-  ClassLoaderService classLoaderSvc=serviceRegistry.getService(ClassLoaderService.class);
+  this.callbackRegistry=new CallbackRegistry();
+  final BeanManager beanManager=(BeanManager)sessionFactory.getProperties().get(AvailableSettings.CDI_BEAN_MANAGER);
+  this.jpaListenerFactory=beanManager == null ? new StandardListenerFactory() : new BeanManagerListenerFactory(beanManager);
+  this.callbackProcessor=new CallbackProcessorImpl(jpaListenerFactory,metadata,serviceRegistry);
   for (  EntityBinding binding : metadata.getEntityBindings()) {
-    String name=binding.getEntity().getName();
-    if (name == null) {
-      continue;
-    }
-    try {
-      callbackHandler.add(classLoaderSvc.classForName(name),classLoaderSvc,binding);
-    }
- catch (    ClassLoadingException error) {
-      throw new MappingException("entity class not found: " + name,error);
+    callbackProcessor.processCallbacksForEntity(binding,callbackRegistry);
+  }
+  for (  EventType eventType : EventType.values()) {
+    final EventListenerGroup eventListenerGroup=eventListenerRegistry.getEventListenerGroup(eventType);
+    for (    Object listener : eventListenerGroup.listeners()) {
+      if (CallbackRegistryConsumer.class.isInstance(listener)) {
+        ((CallbackRegistryConsumer)listener).injectCallbackRegistry(callbackRegistry);
+      }
     }
   }
 }

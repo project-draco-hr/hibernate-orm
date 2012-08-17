@@ -1,0 +1,16 @@
+{
+  final EntityBinding entityBinding=(EntityBinding)entityObject;
+  final String entityClassName=entityBinding.getEntity().getClassName();
+  if (entityClassName == null) {
+    return;
+  }
+  try {
+    final Class entityClass=classLoaderService.classForName(entityClassName);
+    for (    Class annotationClass : CALLBACK_ANNOTATION_CLASSES) {
+      callbackRegistry.addEntityCallbacks(entityClass,annotationClass,collectCallbacks(entityBinding,entityClass,annotationClass));
+    }
+  }
+ catch (  ClassLoadingException e) {
+    throw new MappingException("entity class not found: " + entityClassName,e);
+  }
+}
