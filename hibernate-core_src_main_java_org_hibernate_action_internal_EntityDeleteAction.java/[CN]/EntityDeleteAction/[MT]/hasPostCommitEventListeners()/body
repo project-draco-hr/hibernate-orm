@@ -1,3 +1,9 @@
 {
-  return !listenerGroup(EventType.POST_COMMIT_DELETE).isEmpty();
+  final EventListenerGroup<PostDeleteEventListener> group=listenerGroup(EventType.POST_COMMIT_DELETE);
+  for (  PostDeleteEventListener listener : group.listeners()) {
+    if (listener.requiresPostCommitHanding(getPersister())) {
+      return true;
+    }
+  }
+  return false;
 }
