@@ -1,0 +1,19 @@
+{
+  Session session=getSession();
+  session.getTransaction().begin();
+  ListRefCollEntity parent=new ListRefCollEntity(1,"initial data");
+  StrTestEntity child=new StrTestEntity("data");
+  session.save(child);
+  parent.setCollection(Arrays.asList(child));
+  session.save(parent);
+  session.getTransaction().commit();
+  session.close();
+  session=getSession();
+  session.getTransaction().begin();
+  parent.setData("modified data");
+  session.update(parent);
+  session.getTransaction().commit();
+  session.close();
+  parentId=parent.getId();
+  childId=child.getId();
+}
