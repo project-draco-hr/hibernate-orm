@@ -48,8 +48,8 @@
     }
   }
   this.callbackRegistry=new CallbackRegistryImpl();
-  final BeanManager beanManager=(BeanManager)configuration.getProperties().get(AvailableSettings.CDI_BEAN_MANAGER);
-  this.jpaListenerFactory=beanManager == null ? new StandardListenerFactory() : new BeanManagerListenerFactory(beanManager);
+  final Object beanManagerRef=configuration.getProperties().get(AvailableSettings.CDI_BEAN_MANAGER);
+  this.jpaListenerFactory=beanManagerRef == null ? new StandardListenerFactory() : buildBeanManagerListenerFactory(beanManagerRef);
   this.callbackProcessor=new LegacyCallbackProcessor(jpaListenerFactory,configuration.getReflectionManager());
   Iterator classes=configuration.getClassMappings();
   while (classes.hasNext()) {

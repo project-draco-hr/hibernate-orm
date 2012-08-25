@@ -1,0 +1,21 @@
+{
+  try {
+    final Class beanManagerListenerFactoryClass=getClass().getClassLoader().loadClass("org.hibernate.jpa.event.internal.jpa.BeanManagerListenerFactory");
+    final Method beanManagerListenerFactoryBuilderMethod=beanManagerListenerFactoryClass.getMethod("fromBeanManagerReference",Object.class);
+    try {
+      return (ListenerFactory)beanManagerListenerFactoryBuilderMethod.invoke(null,beanManagerRef);
+    }
+ catch (    InvocationTargetException e) {
+      throw e.getTargetException();
+    }
+  }
+ catch (  ReflectiveOperationException e) {
+    throw new HibernateException("Could not access BeanManagerListenerFactory class to handle CDI extensions",e);
+  }
+catch (  RuntimeException e) {
+    throw e;
+  }
+catch (  Throwable e) {
+    throw new HibernateException("Problem calling BeanManagerListenerFactory class to handle CDI extensions",e);
+  }
+}

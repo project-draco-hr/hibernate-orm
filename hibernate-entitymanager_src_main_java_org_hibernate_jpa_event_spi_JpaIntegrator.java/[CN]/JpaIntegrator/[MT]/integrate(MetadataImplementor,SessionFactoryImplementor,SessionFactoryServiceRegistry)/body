@@ -48,8 +48,8 @@
     }
   }
   this.callbackRegistry=new CallbackRegistryImpl();
-  final BeanManager beanManager=(BeanManager)sessionFactory.getProperties().get(AvailableSettings.CDI_BEAN_MANAGER);
-  this.jpaListenerFactory=beanManager == null ? new StandardListenerFactory() : new BeanManagerListenerFactory(beanManager);
+  final Object beanManagerRef=sessionFactory.getProperties().get(AvailableSettings.CDI_BEAN_MANAGER);
+  this.jpaListenerFactory=beanManagerRef == null ? new StandardListenerFactory() : buildBeanManagerListenerFactory(beanManagerRef);
   this.callbackProcessor=new CallbackProcessorImpl(jpaListenerFactory,metadata,serviceRegistry);
   for (  EntityBinding binding : metadata.getEntityBindings()) {
     callbackProcessor.processCallbacksForEntity(binding,callbackRegistry);
