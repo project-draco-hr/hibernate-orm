@@ -1,37 +1,8 @@
 {
-  final Object strategy=configurationValues.get(Environment.TRANSACTION_STRATEGY);
+  final Object strategy=configurationValues.get(AvailableSettings.TRANSACTION_STRATEGY);
   if (strategy == null) {
     LOG.usingDefaultTransactionStrategy();
     return new JdbcTransactionFactory();
   }
-  if (TransactionFactory.class.isInstance(strategy)) {
-    return (TransactionFactory)strategy;
-  }
-  Class<? extends TransactionFactory> transactionFactoryClass;
-  if (Class.class.isInstance(strategy)) {
-    final Class theClass=(Class)strategy;
-    LOG.transactionStrategy(theClass.getName());
-    try {
-      transactionFactoryClass=(Class<? extends TransactionFactory>)theClass;
-    }
- catch (    ClassCastException e) {
-      throw new ClassLoadingException(String.format("TransactionFactory implementation class [%s] did not implement TransactionFactory interface",theClass.getName()));
-    }
-  }
- else {
-    final String strategyClassName=mapName(strategy.toString());
-    LOG.transactionStrategy(strategyClassName);
-    try {
-      transactionFactoryClass=registry.getService(ClassLoaderService.class).classForName(strategyClassName);
-    }
- catch (    ClassCastException e) {
-      throw new ClassLoadingException(String.format("TransactionFactory implementation class [%s] did not implement TransactionFactory interface",strategyClassName));
-    }
-  }
-  try {
-    return transactionFactoryClass.newInstance();
-  }
- catch (  Exception e) {
-    throw new HibernateException("Unable to instantiate specified TransactionFactory class [" + transactionFactoryClass.getName() + "]",e);
-  }
+  return registry.getService(StrategySelector.class).resolveStrategy(TransactionFactory.class,strategy);
 }

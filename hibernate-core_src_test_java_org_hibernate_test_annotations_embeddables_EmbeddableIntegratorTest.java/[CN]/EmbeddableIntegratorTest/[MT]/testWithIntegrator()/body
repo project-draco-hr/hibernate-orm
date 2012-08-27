@@ -1,9 +1,5 @@
 {
-  LinkedHashSet<Integrator> providedIntegrators=new LinkedHashSet<Integrator>();
-  providedIntegrators.add(new InvestorIntegrator());
-  ClassLoaderService classLoaderService=new ClassLoaderServiceImpl();
-  IntegratorService integratorService=new IntegratorServiceImpl(providedIntegrators,classLoaderService);
-  ServiceRegistry reg=new ServiceRegistryBuilder(new BootstrapServiceRegistryImpl(classLoaderService,integratorService)).buildServiceRegistry();
+  ServiceRegistry reg=new ServiceRegistryBuilder(new BootstrapServiceRegistryBuilder().with(new InvestorIntegrator()).build()).buildServiceRegistry();
   SessionFactory sf=new Configuration().addAnnotatedClass(Investor.class).setProperty("hibernate.hbm2ddl.auto","create-drop").buildSessionFactory(reg);
   Session sess=sf.openSession();
   Investor myInv=getInvestor();
