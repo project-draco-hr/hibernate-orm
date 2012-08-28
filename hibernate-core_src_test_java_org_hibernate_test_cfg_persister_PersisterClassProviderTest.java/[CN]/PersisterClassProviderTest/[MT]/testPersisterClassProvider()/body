@@ -1,11 +1,11 @@
 {
   Configuration cfg=new Configuration();
   cfg.addAnnotatedClass(Gate.class);
-  ServiceRegistry serviceRegistry=new ServiceRegistryBuilder().applySettings(cfg.getProperties()).buildServiceRegistry();
+  ServiceRegistry serviceRegistry=new StandardServiceRegistryBuilder().applySettings(cfg.getProperties()).buildServiceRegistry();
   SessionFactory sessionFactory=cfg.buildSessionFactory(serviceRegistry);
   sessionFactory.close();
-  ServiceRegistryBuilder.destroy(serviceRegistry);
-  serviceRegistry=new ServiceRegistryBuilder().applySettings(cfg.getProperties()).addService(PersisterClassResolver.class,new GoofyPersisterClassProvider()).buildServiceRegistry();
+  StandardServiceRegistryBuilder.destroy(serviceRegistry);
+  serviceRegistry=new StandardServiceRegistryBuilder().applySettings(cfg.getProperties()).addService(PersisterClassResolver.class,new GoofyPersisterClassProvider()).buildServiceRegistry();
   cfg=new Configuration();
   cfg.addAnnotatedClass(Gate.class);
   try {
@@ -17,12 +17,12 @@
     assertEquals("The entity persister should be overridden",GoofyPersisterClassProvider.NoopEntityPersister.class,((GoofyException)e.getCause()).getValue());
   }
  finally {
-    ServiceRegistryBuilder.destroy(serviceRegistry);
+    StandardServiceRegistryBuilder.destroy(serviceRegistry);
   }
   cfg=new Configuration();
   cfg.addAnnotatedClass(Portal.class);
   cfg.addAnnotatedClass(Window.class);
-  serviceRegistry=new ServiceRegistryBuilder().applySettings(cfg.getProperties()).addService(PersisterClassResolver.class,new GoofyPersisterClassProvider()).buildServiceRegistry();
+  serviceRegistry=new StandardServiceRegistryBuilder().applySettings(cfg.getProperties()).addService(PersisterClassResolver.class,new GoofyPersisterClassProvider()).buildServiceRegistry();
   try {
     sessionFactory=cfg.buildSessionFactory(serviceRegistry);
     sessionFactory.close();
@@ -32,12 +32,12 @@
     assertEquals("The collection persister should be overridden but not the entity persister",GoofyPersisterClassProvider.NoopCollectionPersister.class,((GoofyException)e.getCause()).getValue());
   }
  finally {
-    ServiceRegistryBuilder.destroy(serviceRegistry);
+    StandardServiceRegistryBuilder.destroy(serviceRegistry);
   }
   cfg=new Configuration();
   cfg.addAnnotatedClass(Tree.class);
   cfg.addAnnotatedClass(Palmtree.class);
-  serviceRegistry=new ServiceRegistryBuilder().applySettings(cfg.getProperties()).addService(PersisterClassResolver.class,new GoofyPersisterClassProvider()).buildServiceRegistry();
+  serviceRegistry=new StandardServiceRegistryBuilder().applySettings(cfg.getProperties()).addService(PersisterClassResolver.class,new GoofyPersisterClassProvider()).buildServiceRegistry();
   try {
     sessionFactory=cfg.buildSessionFactory(serviceRegistry);
     sessionFactory.close();
@@ -47,6 +47,6 @@
     assertEquals("The entity persisters should be overridden in a class hierarchy",GoofyPersisterClassProvider.NoopEntityPersister.class,((GoofyException)e.getCause()).getValue());
   }
  finally {
-    ServiceRegistryBuilder.destroy(serviceRegistry);
+    StandardServiceRegistryBuilder.destroy(serviceRegistry);
   }
 }
