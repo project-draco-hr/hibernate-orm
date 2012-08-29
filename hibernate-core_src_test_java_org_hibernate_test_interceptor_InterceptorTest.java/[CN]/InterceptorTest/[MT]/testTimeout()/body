@@ -1,0 +1,22 @@
+{
+  final int TIMEOUT=2;
+  final int WAIT=TIMEOUT + 1;
+  Session s=openSession();
+  Transaction t=s.getTransaction();
+  t.setTimeout(TIMEOUT);
+  t.begin();
+  Thread.sleep(WAIT * 1000);
+  try {
+    s.persist(new User("john","test"));
+    t.commit();
+    fail("Transaction should have timed out");
+  }
+ catch (  TransactionException e) {
+    String exceptionActual=e.toString();
+    String exceptionExpected="org.hibernate.TransactionException: transaction timeout expired";
+    if (!exceptionActual.contains(exceptionExpected)) {
+      String msg=String.format("Transaction failed for the wrong reason.  Expected [%s] but received [%s]",exceptionExpected,exceptionActual);
+      fail(msg);
+    }
+  }
+}
