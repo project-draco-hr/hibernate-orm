@@ -1,14 +1,16 @@
 {
+  final Dialect dialect;
   try {
-    return (Dialect)classLoaderService.classForName(dialectName).newInstance();
+    dialect=strategySelector.resolveStrategy(Dialect.class,dialectName);
+    if (dialect == null) {
+      throw new HibernateException("Unable to construct requested dialect [" + dialectName + "]");
+    }
+    return dialect;
   }
- catch (  ClassLoadingException e) {
-    throw new HibernateException("Dialect class not found: " + dialectName,e);
-  }
-catch (  HibernateException e) {
+ catch (  HibernateException e) {
     throw e;
   }
 catch (  Exception e) {
-    throw new HibernateException("Could not instantiate dialect class",e);
+    throw new HibernateException("Unable to construct requested dialect [" + dialectName + "]",e);
   }
 }

@@ -1,7 +1,9 @@
 {
-  final Object platform=getConfiguredPlatform(configurationValues,registry);
+  final Object setting=configurationValues.get(AvailableSettings.JTA_PLATFORM);
+  final JtaPlatform platform=registry.getService(StrategySelector.class).resolveStrategy(JtaPlatform.class,setting);
   if (platform == null) {
+    LOG.debugf(" No JtaPlatform was specified, using default [%s]",NoJtaPlatform.class.getName());
     return new NoJtaPlatform();
   }
-  return registry.getService(ConfigurationService.class).cast(JtaPlatform.class,platform);
+  return platform;
 }
