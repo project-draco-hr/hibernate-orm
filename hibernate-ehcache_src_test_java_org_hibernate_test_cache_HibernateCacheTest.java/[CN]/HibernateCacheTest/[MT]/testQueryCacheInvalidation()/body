@@ -1,5 +1,5 @@
 {
-  Session s=getSessionFactory().openSession();
+  Session s=sessionFactory().openSession();
   Transaction t=s.beginTransaction();
   Item i=new Item();
   i.setName("widget");
@@ -7,11 +7,11 @@
   s.persist(i);
   t.commit();
   s.close();
-  SecondLevelCacheStatistics slcs=s.getSessionFactory().getStatistics().getSecondLevelCacheStatistics(REGION_PREFIX + Item.class.getName());
+  SecondLevelCacheStatistics slcs=sessionFactory().getStatistics().getSecondLevelCacheStatistics(REGION_PREFIX + Item.class.getName());
   assertThat(slcs.getPutCount(),equalTo(1L));
   assertThat(slcs.getElementCountInMemory(),equalTo(1L));
   assertThat(slcs.getEntries().size(),equalTo(1));
-  s=getSessionFactory().openSession();
+  s=sessionFactory().openSession();
   t=s.beginTransaction();
   i=(Item)s.get(Item.class,i.getId());
   assertThat(slcs.getHitCount(),equalTo(1L));
@@ -30,7 +30,7 @@
   }
   assertThat((String)map.get("description"),equalTo("A bog standard item"));
   assertThat((String)map.get("name"),equalTo("widget"));
-  s=getSessionFactory().openSession();
+  s=sessionFactory().openSession();
   t=s.beginTransaction();
   s.delete(i);
   t.commit();
