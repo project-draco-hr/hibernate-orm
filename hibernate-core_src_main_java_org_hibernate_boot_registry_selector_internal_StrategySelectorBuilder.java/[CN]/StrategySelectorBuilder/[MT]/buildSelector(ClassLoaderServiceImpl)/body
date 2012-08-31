@@ -3,8 +3,13 @@
   addDialects(strategySelector);
   addJtaPlatforms(strategySelector);
   addTransactionFactories(strategySelector);
-  for (  CustomRegistration customRegistration : customRegistrations) {
-    customRegistration.registerWith(strategySelector);
+  for (  AvailabilityAnnouncer announcer : classLoaderService.loadJavaServices(AvailabilityAnnouncer.class)) {
+    for (    Availability discoveredAvailability : announcer.getAvailabilities()) {
+      applyFromAvailability(strategySelector,discoveredAvailability);
+    }
+  }
+  for (  Availability explicitAvailability : explicitAvailabilities) {
+    applyFromAvailability(strategySelector,explicitAvailability);
   }
   return strategySelector;
 }
