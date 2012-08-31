@@ -1,3 +1,13 @@
 {
-  return (UserTransaction)jndiService().locate(UT_NAME);
+  try {
+    return (UserTransaction)jndiService().locate(JBOSS__UT_NAME);
+  }
+ catch (  JndiException jndiException) {
+    try {
+      return (UserTransaction)jndiService().locate(UT_NAME);
+    }
+ catch (    JndiException jndiExceptionInner) {
+      throw new JndiException("unable to find UserTransaction",jndiException);
+    }
+  }
 }
