@@ -1,5 +1,9 @@
 {
   Collection vals=(Collection)typedList.getValue();
+  Dialect dialect=session.getFactory().getDialect();
+  if (dialect.limitsParamListSize() && vals.size() >= dialect.getParamListSizeLimit()) {
+    log.warn(dialect.getClass().getName() + " limits the size of parameter lists to " + dialect.getParamListSizeLimit()+ " entries.  The given list size of "+ vals.size()+ " may cause failures.");
+  }
   Type type=typedList.getType();
   boolean isJpaPositionalParam=parameterMetadata.getNamedParameterDescriptor(name).isJpaStyle();
   String paramPrefix=isJpaPositionalParam ? "?" : ParserHelper.HQL_VARIABLE_PREFIX;
