@@ -1,19 +1,6 @@
 {
-  if (value == null) {
-    if (LOG.isTraceEnabled())     LOG.tracev("Binding null to parameter: {0}",index);
-    st.setNull(index,sqlType);
+  if (enumValueMapper == null) {
+    guessTypeOfEnumValueMapper(st.getParameterMetaData().getParameterType(index));
   }
- else {
-    boolean isOrdinal=isOrdinal(sqlType);
-    if (isOrdinal) {
-      int ordinal=((Enum<?>)value).ordinal();
-      if (LOG.isTraceEnabled())       LOG.tracev("Binding '{0}' to parameter: '{1}",ordinal,index);
-      st.setObject(index,Integer.valueOf(ordinal),sqlType);
-    }
- else {
-      String enumString=((Enum<?>)value).name();
-      if (LOG.isTraceEnabled())       LOG.tracev("Binding '{0}' to parameter: {1}",enumString,index);
-      st.setObject(index,enumString,sqlType);
-    }
-  }
+  enumValueMapper.setValue(st,(Enum)value,index);
 }
