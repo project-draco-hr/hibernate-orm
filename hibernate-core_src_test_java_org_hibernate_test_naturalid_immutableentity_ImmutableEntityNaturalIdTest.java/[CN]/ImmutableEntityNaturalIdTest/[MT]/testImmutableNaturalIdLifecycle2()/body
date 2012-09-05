@@ -1,0 +1,23 @@
+{
+  Building b1=new Building();
+  b1.setName("Computer Science");
+  b1.setAddress("1210 W. Dayton St.");
+  b1.setCity("Madison");
+  b1.setState("WI");
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  s.persist(b1);
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  NaturalIdLoadAccess naturalIdLoader=s.byNaturalId(Building.class);
+  naturalIdLoader.using("address","1210 W. Dayton St.").using("city","Madison").using("state","WI");
+  Building building=(Building)naturalIdLoader.getReference();
+  assertNotNull(building);
+  s.delete(building);
+  building=(Building)naturalIdLoader.load();
+  assertNull(building);
+  tx.commit();
+  s.close();
+}
