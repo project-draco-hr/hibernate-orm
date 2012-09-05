@@ -1,8 +1,9 @@
 {
   Collection vals=(Collection)typedList.getValue();
-  Dialect dialect=session.getFactory().getDialect();
-  if (dialect.limitsParamListSize() && vals.size() >= dialect.getParamListSizeLimit()) {
-    log.warn(dialect.getClass().getName() + " limits the size of parameter lists to " + dialect.getParamListSizeLimit()+ " entries.  The given list size of "+ vals.size()+ " may cause failures.");
+  final Dialect dialect=session.getFactory().getDialect();
+  final int inExprLimit=dialect.getInExpressionCountLimit();
+  if (inExprLimit > 0 && vals.size() > inExprLimit) {
+    log.tooManyInExpressions(dialect.getClass().getName(),inExprLimit,name,vals.size());
   }
   Type type=typedList.getType();
   boolean isJpaPositionalParam=parameterMetadata.getNamedParameterDescriptor(name).isJpaStyle();
