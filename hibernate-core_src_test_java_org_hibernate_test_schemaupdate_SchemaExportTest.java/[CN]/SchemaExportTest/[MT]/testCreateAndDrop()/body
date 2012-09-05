@@ -3,7 +3,12 @@
   cfg.addResource(MAPPING);
   SchemaExport schemaExport=createSchemaExport(cfg);
   schemaExport.create(true,true);
-  assertEquals(0,schemaExport.getExceptions().size());
+  if (doesDialectSupportDropTableIfExist()) {
+    assertEquals(0,schemaExport.getExceptions().size());
+  }
+ else {
+    assertEquals(2,schemaExport.getExceptions().size());
+  }
   schemaExport.create(true,true);
   assertEquals(0,schemaExport.getExceptions().size());
   schemaExport.drop(true,true);
