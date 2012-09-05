@@ -1,0 +1,19 @@
+{
+  TypeDef typeDef=mappings.getTypeDef(typeName);
+  if (typeDef != null) {
+    typeName=typeDef.getTypeClass();
+    Properties allParameters=new Properties();
+    allParameters.putAll(typeDef.getParameters());
+    allParameters.putAll(parameters);
+    parameters=allParameters;
+  }
+ else   if (typeName != null && !mappings.isInSecondPass()) {
+    BasicType basicType=mappings.getTypeResolver().basic(typeName);
+    if (basicType == null) {
+      SecondPass resolveUserTypeMappingSecondPass=new ResolveUserTypeMappingSecondPass(simpleValue,typeName,mappings,parameters);
+      mappings.addSecondPass(resolveUserTypeMappingSecondPass);
+    }
+  }
+  if (!parameters.isEmpty())   simpleValue.setTypeParameters(parameters);
+  if (typeName != null)   simpleValue.setTypeName(typeName);
+}
