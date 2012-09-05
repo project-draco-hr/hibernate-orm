@@ -10,9 +10,24 @@
       if (element.isAnnotationPresent(Id.class) && element.isAnnotationPresent(Column.class)) {
         String columnName=element.getAnnotation(Column.class).name();
         for (        XProperty prop : declaringClass.getDeclaredProperties(AccessType.FIELD.getType())) {
-          if (prop.isAnnotationPresent(JoinColumn.class) && prop.getAnnotation(JoinColumn.class).name().equals(columnName) && !prop.isAnnotationPresent(MapsId.class)) {
-            PropertyData specJPropertyData=new PropertyInferredData(declaringClass,prop,propertyAccessor,mappings.getReflectionManager());
-            mappings.addPropertyAnnotatedWithMapsIdSpecj(entity,specJPropertyData,element.toString());
+          if (!prop.isAnnotationPresent(MapsId.class)) {
+            boolean isRequiredAnnotationPresent=false;
+            JoinColumns groupAnnotation=prop.getAnnotation(JoinColumns.class);
+            if ((prop.isAnnotationPresent(JoinColumn.class) && prop.getAnnotation(JoinColumn.class).name().equals(columnName))) {
+              isRequiredAnnotationPresent=true;
+            }
+ else             if (prop.isAnnotationPresent(JoinColumns.class)) {
+              for (              JoinColumn columnAnnotation : groupAnnotation.value()) {
+                if (columnName.equals(columnAnnotation.name())) {
+                  isRequiredAnnotationPresent=true;
+                  break;
+                }
+              }
+            }
+            if (isRequiredAnnotationPresent) {
+              PropertyData specJPropertyData=new PropertyInferredData(declaringClass,prop,propertyAccessor,mappings.getReflectionManager());
+              mappings.addPropertyAnnotatedWithMapsIdSpecj(entity,specJPropertyData,element.toString());
+            }
           }
         }
       }
