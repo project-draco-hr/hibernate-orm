@@ -8,5 +8,13 @@
   if (InputStream.class.isInstance(value)) {
     return fromBytes(DataHelper.extractBytes((InputStream)value));
   }
+  if (Blob.class.isInstance(value)) {
+    try {
+      return fromBytes(DataHelper.extractBytes(((Blob)value).getBinaryStream()));
+    }
+ catch (    SQLException e) {
+      throw new HibernateException(e);
+    }
+  }
   throw unknownWrap(value.getClass());
 }
