@@ -2,8 +2,20 @@
   if (value == null) {
     return null;
   }
-  if (!Blob.class.isAssignableFrom(value.getClass())) {
-    throw unknownWrap(value.getClass());
+  if (Blob.class.isAssignableFrom(value.getClass())) {
+    return options.getLobCreator().wrap((Blob)value);
   }
-  return options.getLobCreator().wrap((Blob)value);
+ else   if (byte[].class.isAssignableFrom(value.getClass())) {
+    return options.getLobCreator().createBlob((byte[])value);
+  }
+ else   if (InputStream.class.isAssignableFrom(value.getClass())) {
+    InputStream inputStream=(InputStream)value;
+    try {
+      return options.getLobCreator().createBlob(inputStream,inputStream.available());
+    }
+ catch (    IOException e) {
+      throw unknownWrap(value.getClass());
+    }
+  }
+  throw unknownWrap(value.getClass());
 }
