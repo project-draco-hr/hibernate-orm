@@ -7,16 +7,21 @@
       boolean isExtraLazy=withTemporarySessionIfNeeded(new LazyInitializationWork<Boolean>(){
         @Override public Boolean doWork(){
           CollectionEntry entry=session.getPersistenceContext().getCollectionEntry(AbstractPersistentCollection.this);
-          CollectionPersister persister=entry.getLoadedPersister();
-          if (persister.isExtraLazy()) {
-            if (hasQueuedOperations()) {
-              session.flush();
+          if (entry != null) {
+            CollectionPersister persister=entry.getLoadedPersister();
+            if (persister.isExtraLazy()) {
+              if (hasQueuedOperations()) {
+                session.flush();
+              }
+              cachedSize=persister.getSize(entry.getLoadedKey(),session);
+              return true;
             }
-            cachedSize=persister.getSize(entry.getLoadedKey(),session);
-            return true;
+ else {
+              read();
+            }
           }
  else {
-            read();
+            throwLazyInitializationExceptionIfNotConnected();
           }
           return false;
         }
