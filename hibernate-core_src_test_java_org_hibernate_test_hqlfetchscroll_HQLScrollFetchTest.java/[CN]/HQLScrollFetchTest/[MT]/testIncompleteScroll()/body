@@ -1,39 +1,33 @@
 {
-  try {
-    insertTestData();
-    Session s=openSession();
-    ScrollableResults results=s.createQuery(QUERY + " order by p.name asc").scroll();
-    results.next();
-    Parent p=(Parent)results.get(0);
-    assertResultFromOneUser(p);
-    Parent pOther=null;
-    Child cOther=null;
-    for (    Object entity : ((SessionImplementor)s).getPersistenceContext().getEntitiesByKey().values()) {
-      if (Parent.class.isInstance(entity)) {
-        if (entity != p) {
-          if (pOther != null) {
-            fail("unexpected parent found.");
-          }
-          pOther=(Parent)entity;
+  Session s=openSession();
+  ScrollableResults results=s.createQuery(QUERY + " order by p.name asc").scroll();
+  results.next();
+  Parent p=(Parent)results.get(0);
+  assertResultFromOneUser(p);
+  Parent pOther=null;
+  Child cOther=null;
+  for (  Object entity : ((SessionImplementor)s).getPersistenceContext().getEntitiesByKey().values()) {
+    if (Parent.class.isInstance(entity)) {
+      if (entity != p) {
+        if (pOther != null) {
+          fail("unexpected parent found.");
         }
-      }
- else       if (Child.class.isInstance(entity)) {
-        if (!p.getChildren().contains(entity)) {
-          if (cOther != null) {
-            fail("unexpected child entity found");
-          }
-          cOther=(Child)entity;
-        }
-      }
- else {
-        fail("unexpected type of entity.");
+        pOther=(Parent)entity;
       }
     }
-    assertNull(pOther);
-    assertNull(cOther);
-    s.close();
+ else     if (Child.class.isInstance(entity)) {
+      if (!p.getChildren().contains(entity)) {
+        if (cOther != null) {
+          fail("unexpected child entity found");
+        }
+        cOther=(Child)entity;
+      }
+    }
+ else {
+      fail("unexpected type of entity.");
+    }
   }
-  finally {
-    deleteAll();
-  }
+  assertNull(pOther);
+  assertNull(cOther);
+  s.close();
 }
