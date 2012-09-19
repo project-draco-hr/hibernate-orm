@@ -2,14 +2,17 @@
   if (value == null) {
     return null;
   }
-  if (byte[].class.isAssignableFrom(type)) {
+ else   if (byte[].class.isAssignableFrom(type)) {
     return (X)toBytes(value);
   }
-  if (InputStream.class.isAssignableFrom(type)) {
+ else   if (InputStream.class.isAssignableFrom(type)) {
     return (X)new ByteArrayInputStream(toBytes(value));
   }
-  if (BinaryStream.class.isAssignableFrom(type)) {
+ else   if (BinaryStream.class.isAssignableFrom(type)) {
     return (X)new BinaryStreamImpl(toBytes(value));
+  }
+ else   if (Blob.class.isAssignableFrom(type)) {
+    return (X)options.getLobCreator().createBlob(toBytes(value));
   }
   throw unknownUnwrap(type);
 }
