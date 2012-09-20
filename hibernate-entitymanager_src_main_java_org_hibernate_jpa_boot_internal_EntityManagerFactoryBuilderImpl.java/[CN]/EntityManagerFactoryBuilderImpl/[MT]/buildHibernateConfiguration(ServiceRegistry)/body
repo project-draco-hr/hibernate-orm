@@ -9,7 +9,8 @@
   if (sessionFactoryInterceptor != null) {
     cfg.setInterceptor(sessionFactoryInterceptor);
   }
-  final IdentifierGeneratorStrategyProvider strategyProvider=instantiateCustomClassFromConfiguration(props.get(AvailableSettings.IDENTIFIER_GENERATOR_STRATEGY_PROVIDER),IdentifierGeneratorStrategyProvider.class,serviceRegistry);
+  final Object strategyProviderValue=props.get(AvailableSettings.IDENTIFIER_GENERATOR_STRATEGY_PROVIDER);
+  final IdentifierGeneratorStrategyProvider strategyProvider=strategyProviderValue == null ? null : serviceRegistry.getService(StrategySelector.class).resolveStrategy(IdentifierGeneratorStrategyProvider.class,strategyProviderValue);
   if (strategyProvider != null) {
     final MutableIdentifierGeneratorFactory identifierGeneratorFactory=cfg.getIdentifierGeneratorFactory();
     for (    Map.Entry<String,Class<?>> entry : strategyProvider.getStrategies().entrySet()) {

@@ -1,29 +1,34 @@
 {
   applyJdbcConnectionProperties();
   applyTransactionProperties();
-  final Object validationFactory=configurationValues.get(AvailableSettings.VALIDATION_FACTORY);
+  Object validationFactory=this.validatorFactory;
+  if (validationFactory == null) {
+    validationFactory=configurationValues.get(AvailableSettings.VALIDATION_FACTORY);
+  }
   if (validationFactory != null) {
     BeanValidationIntegrator.validateFactory(validationFactory);
+    serviceRegistryBuilder.applySetting(AvailableSettings.VALIDATION_FACTORY,validationFactory);
   }
   if ("true".equals(configurationValues.get(Environment.FLUSH_BEFORE_COMPLETION))) {
     serviceRegistryBuilder.applySetting(Environment.FLUSH_BEFORE_COMPLETION,"false");
     LOG.definingFlushBeforeCompletionIgnoredInHem(Environment.FLUSH_BEFORE_COMPLETION);
   }
+  final StrategySelector strategySelector=serviceRegistryBuilder.getBootstrapServiceRegistry().getService(StrategySelector.class);
   for (  Object oEntry : configurationValues.entrySet()) {
     Map.Entry entry=(Map.Entry)oEntry;
     if (entry.getKey() instanceof String) {
       final String keyString=(String)entry.getKey();
       if (AvailableSettings.INTERCEPTOR.equals(keyString)) {
-        sessionFactoryInterceptor=instantiateCustomClassFromConfiguration(entry.getValue(),Interceptor.class,bootstrapServiceRegistry);
+        sessionFactoryInterceptor=strategySelector.resolveStrategy(Interceptor.class,entry.getValue());
       }
  else       if (AvailableSettings.SESSION_INTERCEPTOR.equals(keyString)) {
-        settings.setSessionInterceptorClass(loadSessionInterceptorClass(entry.getValue(),bootstrapServiceRegistry));
+        settings.setSessionInterceptorClass(loadSessionInterceptorClass(entry.getValue(),strategySelector));
       }
  else       if (AvailableSettings.NAMING_STRATEGY.equals(keyString)) {
-        namingStrategy=instantiateCustomClassFromConfiguration(entry.getValue(),NamingStrategy.class,bootstrapServiceRegistry);
+        namingStrategy=strategySelector.resolveStrategy(NamingStrategy.class,entry.getValue());
       }
  else       if (AvailableSettings.SESSION_FACTORY_OBSERVER.equals(keyString)) {
-        suppliedSessionFactoryObserver=instantiateCustomClassFromConfiguration(entry.getValue(),SessionFactoryObserver.class,bootstrapServiceRegistry);
+        suppliedSessionFactoryObserver=strategySelector.resolveStrategy(SessionFactoryObserver.class,entry.getValue());
       }
  else       if (AvailableSettings.DISCARD_PC_ON_CLOSE.equals(keyString)) {
         settings.setReleaseResourcesOnCloseEnabled("true".equals(entry.getValue()));
