@@ -1,26 +1,24 @@
 {
-  readWriteLock.readLock().lock();
-  try {
-    for (    Serializable space : (Set<Serializable>)spaces) {
-      Long lastUpdate=(Long)region.get(space);
-      if (lastUpdate == null) {
-        if (factory != null && factory.getStatistics().isStatisticsEnabled()) {
-          factory.getStatisticsImplementor().updateTimestampsCacheMiss();
-        }
-      }
- else {
-        if (LOG.isDebugEnabled()) {
-          LOG.debugf("[%s] last update timestamp: %s",space,lastUpdate + ", result set timestamp: " + timestamp);
-        }
-        if (factory != null && factory.getStatistics().isStatisticsEnabled()) {
-          factory.getStatisticsImplementor().updateTimestampsCacheHit();
-        }
-        if (lastUpdate >= timestamp)         return false;
+  final boolean debug=LOG.isDebugEnabled();
+  final boolean stats=factory != null && factory.getStatistics().isStatisticsEnabled();
+  for (  Serializable space : (Set<Serializable>)spaces) {
+    Long lastUpdate=(Long)region.get(space);
+    if (lastUpdate == null) {
+      if (stats) {
+        factory.getStatisticsImplementor().updateTimestampsCacheMiss();
       }
     }
-    return true;
+ else {
+      if (debug) {
+        LOG.debugf("[%s] last update timestamp: %s",space,lastUpdate + ", result set timestamp: " + timestamp);
+      }
+      if (stats) {
+        factory.getStatisticsImplementor().updateTimestampsCacheHit();
+      }
+      if (lastUpdate >= timestamp) {
+        return false;
+      }
+    }
   }
-  finally {
-    readWriteLock.readLock().unlock();
-  }
+  return true;
 }

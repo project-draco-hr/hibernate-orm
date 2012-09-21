@@ -1,16 +1,14 @@
 {
-  readWriteLock.writeLock().lock();
-  try {
-    Long ts=region.nextTimestamp() + region.getTimeout();
-    for (    Serializable space : spaces) {
+  final boolean debug=LOG.isDebugEnabled();
+  final boolean stats=factory != null && factory.getStatistics().isStatisticsEnabled();
+  final Long ts=region.nextTimestamp() + region.getTimeout();
+  for (  Serializable space : spaces) {
+    if (debug) {
       LOG.debugf("Pre-invalidating space [%s], timestamp: %s",space,ts);
-      region.put(space,ts);
-      if (factory != null && factory.getStatistics().isStatisticsEnabled()) {
-        factory.getStatisticsImplementor().updateTimestampsCachePut();
-      }
     }
-  }
-  finally {
-    readWriteLock.writeLock().unlock();
+    region.put(space,ts);
+    if (stats) {
+      factory.getStatisticsImplementor().updateTimestampsCachePut();
+    }
   }
 }
