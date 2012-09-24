@@ -1,0 +1,24 @@
+{
+  if (LOG.isTraceEnabled()) {
+    LOG.tracev("Dehydrating entity: {0}",MessageHelper.infoString(this,id,getFactory()));
+  }
+  for (int i=0; i < entityMetamodel.getPropertySpan(); i++) {
+    if (includeProperty[i] && isPropertyOfTable(i,j) && !lobProperties.contains(i)) {
+      getPropertyTypes()[i].nullSafeSet(ps,fields[i],index,includeColumns[i],session);
+      index+=ArrayHelper.countTrue(includeColumns[i]);
+    }
+  }
+  if (!isUpdate) {
+    index+=dehydrateId(id,rowId,ps,session,index);
+  }
+  for (  int i : lobProperties) {
+    if (includeProperty[i] && isPropertyOfTable(i,j)) {
+      getPropertyTypes()[i].nullSafeSet(ps,fields[i],index,includeColumns[i],session);
+      index+=ArrayHelper.countTrue(includeColumns[i]);
+    }
+  }
+  if (isUpdate) {
+    index+=dehydrateId(id,rowId,ps,session,index);
+  }
+  return index;
+}

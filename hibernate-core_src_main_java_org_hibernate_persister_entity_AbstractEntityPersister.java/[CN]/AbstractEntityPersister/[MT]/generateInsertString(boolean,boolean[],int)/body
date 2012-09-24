@@ -1,7 +1,7 @@
 {
   Insert insert=new Insert(getFactory().getDialect()).setTableName(getTableName(j));
   for (int i=0; i < entityMetamodel.getPropertySpan(); i++) {
-    if (includeProperty[i] && isPropertyOfTable(i,j)) {
+    if (includeProperty[i] && isPropertyOfTable(i,j) && !lobProperties.contains(i)) {
       insert.addColumns(getPropertyColumnNames(i),propertyColumnInsertable[i],propertyColumnWriters[i]);
     }
   }
@@ -16,6 +16,11 @@
   }
   if (getFactory().getSettings().isCommentsEnabled()) {
     insert.setComment("insert " + getEntityName());
+  }
+  for (  int i : lobProperties) {
+    if (includeProperty[i] && isPropertyOfTable(i,j)) {
+      insert.addColumns(getPropertyColumnNames(i),propertyColumnInsertable[i],propertyColumnWriters[i]);
+    }
   }
   String result=insert.toStatementString();
   if (j == 0 && identityInsert && useInsertSelectIdentity()) {
