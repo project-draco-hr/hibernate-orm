@@ -1,0 +1,24 @@
+{
+  String[] mappings={"cache/infinispan/functional/Item.hbm.xml","cache/infinispan/functional/Customer.hbm.xml","cache/infinispan/functional/Contact.hbm.xml"};
+  for (  String mapping : mappings)   cfg.addResource("org/hibernate/test/" + mapping);
+  Class<?>[] annotatedClasses=getAnnotatedClasses();
+  if (annotatedClasses != null) {
+    for (    Class<?> annotatedClass : annotatedClasses) {
+      cfg.addAnnotatedClass(annotatedClass);
+    }
+  }
+  cfg.buildMappings();
+  Iterator it=cfg.getClassMappings();
+  String cacheStrategy="transactional";
+  while (it.hasNext()) {
+    PersistentClass clazz=(PersistentClass)it.next();
+    if (!clazz.isInherited()) {
+      cfg.setCacheConcurrencyStrategy(clazz.getEntityName(),cacheStrategy);
+    }
+  }
+  it=cfg.getCollectionMappings();
+  while (it.hasNext()) {
+    Collection coll=(Collection)it.next();
+    cfg.setCollectionCacheConcurrencyStrategy(coll.getRole(),cacheStrategy);
+  }
+}

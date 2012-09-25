@@ -1,0 +1,19 @@
+{
+  provider=getProvider();
+  updatedIds=new ConcurrentHashSet<Integer>();
+  removeIds=new ConcurrentLinkedQueue<Integer>();
+  Configuration cfg=new Configuration();
+  cfg.setProperty(Environment.USE_SECOND_LEVEL_CACHE,"true");
+  cfg.setProperty(Environment.USE_QUERY_CACHE,"true");
+  configureCache(cfg);
+  configureMappings(cfg);
+  cfg.setProperty(Environment.DRIVER,"com.mysql.jdbc.Driver");
+  cfg.setProperty(Environment.URL,"jdbc:mysql://localhost:3306/hibernate");
+  cfg.setProperty(Environment.DIALECT,"org.hibernate.dialect.MySQL5InnoDBDialect");
+  cfg.setProperty(Environment.USER,"root");
+  cfg.setProperty(Environment.PASS,"password");
+  cfg.setProperty(Environment.HBM2DDL_AUTO,"create-drop");
+  StandardServiceRegistryImpl registry=ServiceRegistryBuilder.buildServiceRegistry(cfg.getProperties());
+  sessionFactory=cfg.buildSessionFactory(registry);
+  tm=com.arjuna.ats.jta.TransactionManager.transactionManager();
+}

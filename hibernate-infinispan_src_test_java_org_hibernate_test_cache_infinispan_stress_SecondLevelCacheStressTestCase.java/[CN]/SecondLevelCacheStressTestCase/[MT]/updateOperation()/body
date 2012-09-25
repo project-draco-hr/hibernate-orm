@@ -1,0 +1,27 @@
+{
+  return new Operation("UPDATE"){
+    @Override boolean call(    final int run) throws Exception {
+      return captureThrowables(new Callable<Boolean>(){
+        @Override public Boolean call() throws Exception {
+          return withTx(tm,new Callable<Boolean>(){
+            @Override public Boolean call() throws Exception {
+              Session s=sessionFactory.openSession();
+              s.getTransaction().begin();
+              int id=RANDOM.nextInt(numEntities) + 1;
+              Family family=(Family)s.load(Family.class,id);
+              String newSecondName="Arrizabalaga-" + run;
+              family.setSecondName(newSecondName);
+              s.getTransaction().commit();
+              s.close();
+              updatedIds.add(id);
+              return true;
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+;
+}

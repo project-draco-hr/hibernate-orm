@@ -1,0 +1,13 @@
+{
+  Configuration cfg=new Configuration();
+  cfg.setProperty(Environment.USE_SECOND_LEVEL_CACHE,"true");
+  cfg.setProperty(Environment.USE_QUERY_CACHE,"true");
+  cfg.setProperty(Environment.CACHE_REGION_FACTORY,"org.hibernate.cache.infinispan.InfinispanRegionFactory");
+  cfg.setProperty(Environment.JTA_PLATFORM,"org.hibernate.service.jta.platform.internal.JBossStandAloneJtaPlatform");
+  cfg.setProperty(Environment.USE_MINIMAL_PUTS,"false");
+  configureMappings(cfg);
+  cfg.setProperty(Environment.HBM2DDL_AUTO,"create-drop");
+  StandardServiceRegistryImpl registry=ServiceRegistryBuilder.buildServiceRegistry(cfg.getProperties());
+  sessionFactory=cfg.buildSessionFactory(registry);
+  tm=com.arjuna.ats.jta.TransactionManager.transactionManager();
+}

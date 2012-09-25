@@ -4,12 +4,12 @@
   localEnvironment.prepare();
   localEntityRegion=localEnvironment.getEntityRegion(REGION_NAME,getCacheDataDescription());
   localAccessStrategy=localEntityRegion.buildAccessStrategy(getAccessType());
-  invalidation=localEntityRegion.getCacheAdapter().isClusteredInvalidation();
-  synchronous=localEntityRegion.getCacheAdapter().isSynchronous();
+  invalidation=Caches.isInvalidationCache(localEntityRegion.getCache());
+  synchronous=Caches.isSynchronousCache(localEntityRegion.getCache());
   avoidConcurrentFlush();
   remoteEnvironment=new NodeEnvironment(cfg);
   remoteEnvironment.prepare();
   remoteEntityRegion=remoteEnvironment.getEntityRegion(REGION_NAME,getCacheDataDescription());
   remoteAccessStrategy=remoteEntityRegion.buildAccessStrategy(getAccessType());
-  waitForClusterToForm(localEntityRegion.getCacheAdapter().getCache(),remoteEntityRegion.getCacheAdapter().getCache());
+  waitForClusterToForm(localEntityRegion.getCache(),remoteEntityRegion.getCache());
 }

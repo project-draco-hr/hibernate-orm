@@ -1,14 +1,14 @@
 {
   final String KEY=KEY_BASE + testCount++;
-  assertEquals(0,getValidKeyCount(localEntityRegion.getCacheAdapter().keySet()));
-  assertEquals(0,getValidKeyCount(remoteEntityRegion.getCacheAdapter().keySet()));
+  assertEquals(0,getValidKeyCount(localEntityRegion.getCache().keySet()));
+  assertEquals(0,getValidKeyCount(remoteEntityRegion.getCache().keySet()));
   assertNull("local is clean",localAccessStrategy.get(KEY,System.currentTimeMillis()));
   assertNull("remote is clean",remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
   localAccessStrategy.putFromLoad(KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
   assertEquals(VALUE1,localAccessStrategy.get(KEY,System.currentTimeMillis()));
   remoteAccessStrategy.putFromLoad(KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
   assertEquals(VALUE1,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
-  CacheHelper.withinTx(localEntityRegion.getTransactionManager(),new Callable<Void>(){
+  Caches.withinTx(localEntityRegion.getTransactionManager(),new Callable<Void>(){
     @Override public Void call() throws Exception {
       if (evict)       localAccessStrategy.evict(KEY);
  else       localAccessStrategy.remove(KEY);
@@ -17,7 +17,7 @@
   }
 );
   assertEquals(null,localAccessStrategy.get(KEY,System.currentTimeMillis()));
-  assertEquals(0,getValidKeyCount(localEntityRegion.getCacheAdapter().keySet()));
+  assertEquals(0,getValidKeyCount(localEntityRegion.getCache().keySet()));
   assertEquals(null,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
-  assertEquals(0,getValidKeyCount(remoteEntityRegion.getCacheAdapter().keySet()));
+  assertEquals(0,getValidKeyCount(remoteEntityRegion.getCache().keySet()));
 }

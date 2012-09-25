@@ -1,0 +1,19 @@
+{
+  barrier.await();
+  try {
+    long startNanos=System.nanoTime();
+    long endNanos=startNanos + runningTimeout;
+    int runs=0;
+    long missCount=0;
+    while (callOperation(endNanos,runs)) {
+      boolean hit=op.call(runs);
+      if (!hit)       missCount++;
+      runs++;
+    }
+    perf.addStats(op.name,runs,System.nanoTime() - startNanos,missCount);
+  }
+  finally {
+    barrier.await();
+  }
+  return null;
+}
