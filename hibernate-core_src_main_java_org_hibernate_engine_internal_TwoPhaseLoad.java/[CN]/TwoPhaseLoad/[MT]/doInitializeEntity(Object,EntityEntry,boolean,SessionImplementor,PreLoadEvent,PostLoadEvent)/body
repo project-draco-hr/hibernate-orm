@@ -63,13 +63,6 @@
     persistenceContext.setEntryStatus(entityEntry,Status.MANAGED);
   }
   persister.afterInitialize(entity,entityEntry.isLoadedWithLazyPropertiesUnfetched(),session);
-  if (session.isEventSource()) {
-    postLoadEvent.setEntity(entity).setId(id).setPersister(persister);
-    final EventListenerGroup<PostLoadEventListener> listenerGroup=session.getFactory().getServiceRegistry().getService(EventListenerRegistry.class).getEventListenerGroup(EventType.POST_LOAD);
-    for (    PostLoadEventListener listener : listenerGroup.listeners()) {
-      listener.onPostLoad(postLoadEvent);
-    }
-  }
   if (LOG.isDebugEnabled()) {
     LOG.debugf("Done materializing entity %s",MessageHelper.infoString(persister,id,session.getFactory()));
   }
