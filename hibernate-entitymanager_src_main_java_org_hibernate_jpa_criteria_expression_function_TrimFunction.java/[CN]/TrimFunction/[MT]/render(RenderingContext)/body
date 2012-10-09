@@ -1,3 +1,10 @@
 {
-  return new StringBuilder().append("trim(").append(trimspec.name()).append(' ').append(((Renderable)trimCharacter).render(renderingContext)).append(" from ").append(((Renderable)trimSource).render(renderingContext)).append(')').toString();
+  String renderedTrimChar;
+  if (trimCharacter.getClass().isAssignableFrom(LiteralExpression.class)) {
+    renderedTrimChar=((LiteralExpression<Character>)trimCharacter).getLiteral().toString();
+  }
+ else {
+    renderedTrimChar=((Renderable)trimCharacter).render(renderingContext);
+  }
+  return new StringBuilder().append("trim(").append(trimspec.name()).append(' ').append(renderedTrimChar).append(" from ").append(((Renderable)trimSource).render(renderingContext)).append(')').toString();
 }
