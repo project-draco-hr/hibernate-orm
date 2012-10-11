@@ -1,6 +1,7 @@
 {
   SessionImplementor originalSession=null;
   boolean isTempSession=false;
+  boolean isJTA=false;
   if (session == null) {
     if (specjLazyLoad) {
       session=openTemporarySessionForLoading();
@@ -31,6 +32,10 @@
     }
   }
   if (isTempSession) {
+    isJTA=session.getTransactionCoordinator().getTransactionContext().getTransactionEnvironment().getTransactionFactory().compatibleWithJtaSynchronization();
+    if (!isJTA) {
+      ((Session)session).beginTransaction();
+    }
     session.getPersistenceContext().addUninitializedDetachedCollection(session.getFactory().getCollectionPersister(getRole()),this);
   }
   try {
@@ -39,6 +44,9 @@
   finally {
     if (isTempSession) {
       try {
+        if (!isJTA) {
+          ((Session)session).getTransaction().commit();
+        }
         ((Session)session).close();
       }
  catch (      Exception e) {

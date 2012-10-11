@@ -6,11 +6,18 @@
     try {
       SessionFactoryImplementor sf=(SessionFactoryImplementor)SessionFactoryRegistry.INSTANCE.getSessionFactory(sessionFactoryUuid);
       SessionImplementor session=(SessionImplementor)sf.openSession();
+      boolean isJTA=session.getTransactionCoordinator().getTransactionContext().getTransactionEnvironment().getTransactionFactory().compatibleWithJtaSynchronization();
+      if (!isJTA) {
+        ((Session)session).beginTransaction();
+      }
       try {
         target=session.immediateLoad(entityName,id);
       }
   finally {
         try {
+          if (!isJTA) {
+            ((Session)session).getTransaction().commit();
+          }
           ((Session)session).close();
         }
  catch (        Exception e) {
