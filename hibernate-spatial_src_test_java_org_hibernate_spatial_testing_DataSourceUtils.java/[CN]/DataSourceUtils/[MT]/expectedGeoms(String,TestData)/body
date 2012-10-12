@@ -1,12 +1,12 @@
 {
   Map<Integer,Geometry> result=new HashMap<Integer,Geometry>();
-  EWKTReader parser=new EWKTReader();
+  WktDecoder<org.geolatte.geom.Geometry> decoder=Wkt.newWktDecoder();
   for (  TestDataElement testDataElement : testData) {
     if (testDataElement.type.equalsIgnoreCase(type)) {
       try {
-        result.put(testDataElement.id,parser.read(testDataElement.wkt));
+        result.put(testDataElement.id,JTS.to(decoder.decode(testDataElement.wkt)));
       }
- catch (      ParseException e) {
+ catch (      WktDecodeException e) {
         System.out.println(String.format("Parsing WKT fails for case %d : %s",testDataElement.id,testDataElement.wkt));
         throw new RuntimeException(e);
       }
