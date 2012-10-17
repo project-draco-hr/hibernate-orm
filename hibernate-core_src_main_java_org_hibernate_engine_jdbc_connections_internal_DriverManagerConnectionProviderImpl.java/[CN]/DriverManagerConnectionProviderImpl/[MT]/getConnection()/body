@@ -1,6 +1,6 @@
 {
   final boolean traceEnabled=LOG.isTraceEnabled();
-  if (traceEnabled)   LOG.tracev("Total checked-out connections: {0}",checkedOut);
+  if (traceEnabled)   LOG.tracev("Total checked-out connections: {0}",checkedOut.intValue());
 synchronized (pool) {
     if (!pool.isEmpty()) {
       int last=pool.size() - 1;
@@ -12,7 +12,7 @@ synchronized (pool) {
       if (pooled.getAutoCommit() != autocommit) {
         pooled.setAutoCommit(autocommit);
       }
-      checkedOut++;
+      checkedOut.incrementAndGet();
       return pooled;
     }
   }
@@ -28,6 +28,6 @@ synchronized (pool) {
   if (debugEnabled) {
     LOG.debugf("Created connection to: %s, Isolation Level: %s",url,conn.getTransactionIsolation());
   }
-  checkedOut++;
+  checkedOut.incrementAndGet();
   return conn;
 }
