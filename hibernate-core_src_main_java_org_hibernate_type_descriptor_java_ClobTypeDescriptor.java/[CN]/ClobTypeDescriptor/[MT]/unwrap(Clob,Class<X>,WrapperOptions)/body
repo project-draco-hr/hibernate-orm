@@ -6,7 +6,12 @@
     return null;
   }
   if (CharacterStream.class.isAssignableFrom(type)) {
-    return (X)new CharacterStreamImpl(DataHelper.extractString(value));
+    if (ClobImplementer.class.isInstance(value)) {
+      return (X)((ClobImplementer)value).getUnderlyingStream();
+    }
+ else {
+      return (X)new CharacterStreamImpl(DataHelper.extractString(value));
+    }
   }
   final Clob clob=WrappedClob.class.isInstance(value) ? ((WrappedClob)value).getWrappedClob() : value;
   return (X)clob;

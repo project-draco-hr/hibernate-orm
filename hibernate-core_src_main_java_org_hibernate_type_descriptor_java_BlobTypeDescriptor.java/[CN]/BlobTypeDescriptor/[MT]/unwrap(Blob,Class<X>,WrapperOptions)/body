@@ -4,10 +4,20 @@
   }
   try {
     if (BinaryStream.class.isAssignableFrom(type)) {
-      return (X)new BinaryStreamImpl(DataHelper.extractBytes(value.getBinaryStream()));
+      if (BlobImplementer.class.isInstance(value)) {
+        return (X)((BlobImplementer)value).getUnderlyingStream();
+      }
+ else {
+        return (X)new BinaryStreamImpl(DataHelper.extractBytes(value.getBinaryStream()));
+      }
     }
  else     if (byte[].class.isAssignableFrom(type)) {
-      return (X)DataHelper.extractBytes(value.getBinaryStream());
+      if (BlobImplementer.class.isInstance(value)) {
+        return (X)((BlobImplementer)value).getUnderlyingStream().getBytes();
+      }
+ else {
+        return (X)DataHelper.extractBytes(value.getBinaryStream());
+      }
     }
  else     if (Blob.class.isAssignableFrom(type)) {
       final Blob blob=WrappedBlob.class.isInstance(value) ? ((WrappedBlob)value).getWrappedBlob() : value;
