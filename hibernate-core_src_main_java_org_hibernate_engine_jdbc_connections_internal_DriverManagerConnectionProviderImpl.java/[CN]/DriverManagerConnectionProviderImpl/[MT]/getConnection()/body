@@ -1,9 +1,10 @@
 {
-  LOG.tracev("Total checked-out connections: {0}",checkedOut);
+  final boolean traceEnabled=LOG.isTraceEnabled();
+  if (traceEnabled)   LOG.tracev("Total checked-out connections: {0}",checkedOut);
 synchronized (pool) {
     if (!pool.isEmpty()) {
       int last=pool.size() - 1;
-      LOG.tracev("Using pooled JDBC connection, pool size: {0}",last);
+      if (traceEnabled)       LOG.tracev("Using pooled JDBC connection, pool size: {0}",last);
       Connection pooled=pool.remove(last);
       if (isolation != null) {
         pooled.setTransactionIsolation(isolation.intValue());
@@ -15,7 +16,8 @@ synchronized (pool) {
       return pooled;
     }
   }
-  LOG.debug("Opening new JDBC connection");
+  final boolean debugEnabled=LOG.isDebugEnabled();
+  if (debugEnabled)   LOG.debug("Opening new JDBC connection");
   Connection conn=DriverManager.getConnection(url,connectionProps);
   if (isolation != null) {
     conn.setTransactionIsolation(isolation.intValue());
@@ -23,7 +25,7 @@ synchronized (pool) {
   if (conn.getAutoCommit() != autocommit) {
     conn.setAutoCommit(autocommit);
   }
-  if (LOG.isDebugEnabled()) {
+  if (debugEnabled) {
     LOG.debugf("Created connection to: %s, Isolation Level: %s",url,conn.getTransactionIsolation());
   }
   checkedOut++;
