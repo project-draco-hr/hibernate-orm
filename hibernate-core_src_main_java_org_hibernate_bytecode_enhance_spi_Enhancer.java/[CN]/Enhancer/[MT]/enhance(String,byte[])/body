@@ -1,0 +1,31 @@
+{
+  final CtClass managedCtClass;
+  try {
+    managedCtClass=classPool.makeClassIfNew(new ByteArrayInputStream(originalBytes));
+  }
+ catch (  IOException e) {
+    log.unableToBuildEnhancementMetamodel(className);
+    return originalBytes;
+  }
+  enhance(managedCtClass);
+  DataOutputStream out=null;
+  try {
+    ByteArrayOutputStream byteStream=new ByteArrayOutputStream();
+    out=new DataOutputStream(byteStream);
+    managedCtClass.toBytecode(out);
+    return byteStream.toByteArray();
+  }
+ catch (  Exception e) {
+    log.unableToTransformClass(e.getMessage());
+    throw new HibernateException("Unable to transform class: " + e.getMessage());
+  }
+ finally {
+    try {
+      if (out != null) {
+        out.close();
+      }
+    }
+ catch (    IOException e) {
+    }
+  }
+}

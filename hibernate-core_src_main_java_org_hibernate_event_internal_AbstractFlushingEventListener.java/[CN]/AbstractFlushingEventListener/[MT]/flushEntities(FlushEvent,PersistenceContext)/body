@@ -2,7 +2,7 @@
   LOG.trace("Flushing entities and processing referenced collections");
   final EventSource source=event.getSession();
   final Iterable<FlushEntityEventListener> flushListeners=source.getFactory().getServiceRegistry().getService(EventListenerRegistry.class).getEventListenerGroup(EventType.FLUSH_ENTITY).listeners();
-  for (  Map.Entry me : IdentityMap.concurrentEntries(persistenceContext.getEntityEntries())) {
+  for (  Map.Entry<Object,EntityEntry> me : persistenceContext.reentrantSafeEntityEntries()) {
     EntityEntry entry=(EntityEntry)me.getValue();
     Status status=entry.getStatus();
     if (status != Status.LOADING && status != Status.GONE) {

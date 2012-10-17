@@ -1,0 +1,24 @@
+{
+  final String className=managedCtClass.getName();
+  log.debugf("Enhancing %s",className);
+  if (managedCtClass.isInterface()) {
+    log.debug("skipping enhancement : interface");
+    return;
+  }
+  final String[] interfaceNames=managedCtClass.getClassFile2().getInterfaces();
+  for (  String interfaceName : interfaceNames) {
+    if (FieldHandled.class.getName().equals(interfaceName)) {
+      log.debug("skipping enhancement : already enhanced");
+      return;
+    }
+  }
+  if (enhancementContext.isEntityClass(className)) {
+    enhanceAsEntity(managedCtClass);
+  }
+ else   if (enhancementContext.isCompositeClass(className)) {
+    enhanceAsComposite(managedCtClass);
+  }
+ else {
+    log.debug("skipping enhancement : not entity or composite");
+  }
+}

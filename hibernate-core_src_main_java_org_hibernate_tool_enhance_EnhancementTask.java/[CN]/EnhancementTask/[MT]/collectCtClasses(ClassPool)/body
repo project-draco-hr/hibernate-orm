@@ -1,0 +1,24 @@
+{
+  final List<CtClass> ctClassList=new ArrayList<CtClass>();
+  final Project project=getProject();
+  for (  FileSet fileSet : filesets) {
+    final File fileSetBaseDir=fileSet.getDir(project);
+    final DirectoryScanner directoryScanner=fileSet.getDirectoryScanner(project);
+    for (    String relativeIncludedFileName : directoryScanner.getIncludedFiles()) {
+      final File javaClassFile=new File(fileSetBaseDir,relativeIncludedFileName);
+      if (!javaClassFile.exists()) {
+        continue;
+      }
+      try {
+        final CtClass ctClass=classPool.makeClass(new FileInputStream(javaClassFile));
+        collectCtClasses(ctClassList,ctClass);
+      }
+ catch (      FileNotFoundException ignore) {
+      }
+catch (      IOException e) {
+        throw new BuildException(String.format("Error processing included file [%s : %s]",fileSetBaseDir.getAbsolutePath(),relativeIncludedFileName),e);
+      }
+    }
+  }
+  return ctClassList;
+}

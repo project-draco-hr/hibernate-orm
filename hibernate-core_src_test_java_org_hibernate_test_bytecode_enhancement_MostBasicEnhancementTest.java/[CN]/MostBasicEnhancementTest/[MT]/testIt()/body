@@ -1,0 +1,14 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  s.save(new MyEntity(1L));
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  MyEntity myEntity=(MyEntity)s.load(MyEntity.class,1L);
+  assertNotNull(myEntity.hibernate_getEntityEntry());
+  s.getTransaction().commit();
+  s.close();
+  assertNull(myEntity.hibernate_getEntityEntry());
+}

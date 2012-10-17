@@ -37,14 +37,7 @@
     for (int i=0; i < count; i++) {
       rtn.entitySnapshotsByKey.put(EntityKey.deserialize(ois,session),ois.readObject());
     }
-    count=ois.readInt();
-    if (tracing)     LOG.trace("Starting deserialization of [" + count + "] entityEntries entries");
-    rtn.entityEntries=IdentityMap.instantiateSequenced(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);
-    for (int i=0; i < count; i++) {
-      Object entity=ois.readObject();
-      EntityEntry entry=EntityEntry.deserialize(ois,rtn);
-      rtn.entityEntries.put(entity,entry);
-    }
+    rtn.entityEntryContext=EntityEntryContext.deserialize(ois,rtn);
     count=ois.readInt();
     if (tracing)     LOG.trace("Starting deserialization of [" + count + "] collectionsByKey entries");
     rtn.collectionsByKey=new HashMap<CollectionKey,PersistentCollection>(count < INIT_COLL_SIZE ? INIT_COLL_SIZE : count);

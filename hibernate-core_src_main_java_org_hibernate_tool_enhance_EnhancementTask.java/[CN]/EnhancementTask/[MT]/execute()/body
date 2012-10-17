@@ -1,0 +1,22 @@
+{
+  EnhancementContext enhancementContext=new EnhancementContext(){
+    @Override public boolean isEntityClass(    String className){
+      return true;
+    }
+    @Override public boolean isCompositeClass(    String className){
+      return false;
+    }
+  }
+;
+  final ClassPool classPool=new ClassPool(false);
+  final List<CtClass> ctClassList=collectCtClasses(classPool);
+  final Enhancer enhancer=new Enhancer(enhancementContext);
+  for (  CtClass ctClass : ctClassList) {
+    try {
+      enhancer.enhance(ctClass.getName(),ctClass.toBytecode());
+    }
+ catch (    Exception e) {
+      log("Unable to enhance class : " + ctClass.getName(),e,Project.MSG_WARN);
+    }
+  }
+}

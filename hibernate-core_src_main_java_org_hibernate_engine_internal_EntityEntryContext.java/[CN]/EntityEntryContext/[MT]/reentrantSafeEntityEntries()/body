@@ -1,0 +1,13 @@
+{
+  if (dirty) {
+    reentrantSafeEntries=new MapEntryImpl[backingMap.size()];
+    int i=0;
+    for (    Map.Entry<KeyWrapper,EntityEntry> mapEntry : backingMap.entrySet()) {
+      final Object entity=mapEntry.getKey().getRealKey();
+      final EntityEntry entityEntry=ManagedEntity.class.isInstance(entity) ? ((ManagedEntity)entity).hibernate_getEntityEntry() : mapEntry.getValue();
+      reentrantSafeEntries[i++]=new MapEntryImpl(entity,entityEntry);
+    }
+    dirty=false;
+  }
+  return reentrantSafeEntries;
+}

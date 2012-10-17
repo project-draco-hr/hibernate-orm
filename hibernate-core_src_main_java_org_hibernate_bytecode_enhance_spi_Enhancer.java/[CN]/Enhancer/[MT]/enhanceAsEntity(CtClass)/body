@@ -1,0 +1,26 @@
+{
+  final ConstPool constPool=managedCtClass.getClassFile().getConstPool();
+  managedCtClass.addInterface(managedEntityCtClass);
+  final CtField entityEntryField;
+  try {
+    entityEntryField=new CtField(entityEntryCtClass,ENTITY_ENTRY_FIELD_NAME,managedCtClass);
+    managedCtClass.addField(entityEntryField);
+  }
+ catch (  CannotCompileException e) {
+    throw new EnhancementException(String.format("Could not enhance entity class [%s] to add field for holding EntityEntry",managedCtClass.getName()),e);
+  }
+  AnnotationsAttribute annotationsAttribute=getVisibleAnnotations(entityEntryField.getFieldInfo());
+  annotationsAttribute.addAnnotation(new Annotation(Transient.class.getName(),constPool));
+  try {
+    managedCtClass.addMethod(CtNewMethod.getter(ENTITY_ENTRY_GETTER_NAME,entityEntryField));
+  }
+ catch (  CannotCompileException e) {
+    throw new EnhancementException(String.format("Could not enhance entity class [%s] to add EntityEntry getter",managedCtClass.getName()),e);
+  }
+  try {
+    managedCtClass.addMethod(CtNewMethod.setter(ENTITY_ENTRY_SETTER_NAME,entityEntryField));
+  }
+ catch (  CannotCompileException e) {
+    throw new EnhancementException(String.format("Could not enhance entity class [%s] to add EntityEntry setter",managedCtClass.getName()),e);
+  }
+}
