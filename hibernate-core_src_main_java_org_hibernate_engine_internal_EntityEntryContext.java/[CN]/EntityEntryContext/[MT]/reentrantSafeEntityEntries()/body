@@ -1,11 +1,11 @@
 {
   if (dirty) {
-    reentrantSafeEntries=new MapEntryImpl[backingMap.size()];
+    reentrantSafeEntries=new EntityEntryCrossRefImpl[count];
     int i=0;
-    for (    Map.Entry<KeyWrapper,EntityEntry> mapEntry : backingMap.entrySet()) {
-      final Object entity=mapEntry.getKey().getRealKey();
-      final EntityEntry entityEntry=ManagedEntity.class.isInstance(entity) ? ((ManagedEntity)entity).hibernate_getEntityEntry() : mapEntry.getValue();
-      reentrantSafeEntries[i++]=new MapEntryImpl(entity,entityEntry);
+    ManagedEntity managedEntity=head;
+    while (managedEntity != null) {
+      reentrantSafeEntries[i++]=new EntityEntryCrossRefImpl(managedEntity.hibernate_getEntityInstance(),managedEntity.hibernate_getEntityEntry());
+      managedEntity=managedEntity.hibernate_getNextManagedEntity();
     }
     dirty=false;
   }

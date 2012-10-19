@@ -1,9 +1,14 @@
 {
-  final int count=backingMap.size();
   log.tracef("Starting serialization of [%s] EntityEntry entries",count);
   oos.writeInt(count);
-  for (  Map.Entry<KeyWrapper,EntityEntry> mapEntry : backingMap.entrySet()) {
-    oos.writeObject(mapEntry.getKey().getRealKey());
-    mapEntry.getValue().serialize(oos);
+  if (count == 0) {
+    return;
+  }
+  ManagedEntity managedEntity=head;
+  while (managedEntity != null) {
+    oos.writeBoolean(managedEntity == managedEntity.hibernate_getEntityInstance());
+    oos.writeObject(managedEntity.hibernate_getEntityInstance());
+    managedEntity.hibernate_getEntityEntry().serialize(oos);
+    managedEntity=managedEntity.hibernate_getNextManagedEntity();
   }
 }

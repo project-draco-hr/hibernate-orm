@@ -1,7 +1,10 @@
 {
-  for (  Map.Entry<KeyWrapper,EntityEntry> mapEntry : backingMap.entrySet()) {
-    final Object realKey=mapEntry.getKey().getRealKey();
-    final EntityEntry entityEntry=ManagedEntity.class.isInstance(realKey) ? ((ManagedEntity)realKey).hibernate_getEntityEntry() : mapEntry.getValue();
-    entityEntry.setLockMode(LockMode.NONE);
+  if (head == null) {
+    return;
+  }
+  ManagedEntity node=head;
+  while (node != null) {
+    node.hibernate_getEntityEntry().setLockMode(LockMode.NONE);
+    node=node.hibernate_getNextManagedEntity();
   }
 }

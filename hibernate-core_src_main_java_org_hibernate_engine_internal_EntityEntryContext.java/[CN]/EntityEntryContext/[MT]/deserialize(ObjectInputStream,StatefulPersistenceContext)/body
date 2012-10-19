@@ -1,11 +1,38 @@
 {
   final int count=ois.readInt();
   log.tracef("Starting deserialization of [%s] EntityEntry entries",count);
-  final LinkedHashMap<KeyWrapper,EntityEntry> backingMap=new LinkedHashMap<KeyWrapper,EntityEntry>(count);
+  final EntityEntryContext context=new EntityEntryContext();
+  context.count=count;
+  context.dirty=true;
+  if (count == 0) {
+    return context;
+  }
+  ManagedEntity previous=null;
   for (int i=0; i < count; i++) {
+    final boolean isEnhanced=ois.readBoolean();
     final Object entity=ois.readObject();
     final EntityEntry entry=EntityEntry.deserialize(ois,rtn);
-    backingMap.put(new KeyWrapper<Object>(entity),entry);
+    final ManagedEntity managedEntity;
+    if (isEnhanced) {
+      managedEntity=(ManagedEntity)entity;
+    }
+ else {
+      managedEntity=new ManagedEntityImpl(entity);
+      if (context.nonEnhancedEntityXref == null) {
+        context.nonEnhancedEntityXref=new IdentityHashMap<Object,ManagedEntity>();
+      }
+      context.nonEnhancedEntityXref.put(entity,managedEntity);
+    }
+    managedEntity.hibernate_setEntityEntry(entry);
+    if (previous == null) {
+      context.head=managedEntity;
+    }
+ else {
+      previous.hibernate_setNextManagedEntity(managedEntity);
+      managedEntity.hibernate_setPreviousManagedEntity(previous);
+    }
+    previous=managedEntity;
   }
-  return new EntityEntryContext(backingMap);
+  context.tail=previous;
+  return context;
 }

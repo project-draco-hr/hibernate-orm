@@ -1,11 +1,18 @@
 {
   dirty=true;
-  for (  Map.Entry<KeyWrapper,EntityEntry> mapEntry : backingMap.entrySet()) {
-    final Object realKey=mapEntry.getKey().getRealKey();
-    if (ManagedEntity.class.isInstance(realKey)) {
-      ((ManagedEntity)realKey).hibernate_setEntityEntry(null);
-    }
+  ManagedEntity node=head;
+  while (node != null) {
+    final ManagedEntity nextNode=node.hibernate_getNextManagedEntity();
+    node.hibernate_setEntityEntry(null);
+    node.hibernate_setPreviousManagedEntity(null);
+    node.hibernate_setNextManagedEntity(null);
+    node=nextNode;
   }
-  backingMap.clear();
+  if (nonEnhancedEntityXref != null) {
+    nonEnhancedEntityXref.clear();
+  }
+  head=null;
+  tail=null;
+  count=0;
   reentrantSafeEntries=null;
 }

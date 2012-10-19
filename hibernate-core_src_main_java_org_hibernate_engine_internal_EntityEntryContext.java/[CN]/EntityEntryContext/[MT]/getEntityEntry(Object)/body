@@ -1,3 +1,13 @@
 {
-  return ManagedEntity.class.isInstance(entity) ? ((ManagedEntity)entity).hibernate_getEntityEntry() : backingMap.get(new KeyWrapper<Object>(entity));
+  final ManagedEntity managedEntity;
+  if (ManagedEntity.class.isInstance(entity)) {
+    managedEntity=(ManagedEntity)entity;
+  }
+ else   if (nonEnhancedEntityXref == null) {
+    managedEntity=null;
+  }
+ else {
+    managedEntity=nonEnhancedEntityXref.get(entity);
+  }
+  return managedEntity == null ? null : managedEntity.hibernate_getEntityEntry();
 }
