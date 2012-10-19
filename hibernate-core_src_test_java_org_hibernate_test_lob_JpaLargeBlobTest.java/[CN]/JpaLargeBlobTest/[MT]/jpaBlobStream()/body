@@ -1,0 +1,15 @@
+{
+  Session session=openSession();
+  LobEntity o=new LobEntity();
+  LobHelper lh=session.getLobHelper();
+  LobInputStream lis=new LobInputStream();
+  session.getTransaction().begin();
+  Blob blob=lh.createBlob(lis,LobEntity.BLOB_LENGTH);
+  o.setBlob(blob);
+  assertFalse(lis.wasRead());
+  session.persist(o);
+  session.getTransaction().commit();
+  assertTrue(lis.wasRead());
+  session.close();
+  lis.close();
+}
