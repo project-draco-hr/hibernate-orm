@@ -1,6 +1,7 @@
 {
   SqlServerGeometry sqlServerGeom=new SqlServerGeometry();
-  sqlServerGeom.setSrid(geom.getSRID());
+  int srid=geom.getSRID();
+  sqlServerGeom.setSrid(srid < 0 ? 0 : srid);
   sqlServerGeom.setIsValid();
   if (geom.isEmpty()) {
     sqlServerGeom.setNumberOfPoints(0);
@@ -11,15 +12,14 @@
   }
   sqlServerGeom.setIsSinglePoint();
   sqlServerGeom.setNumberOfPoints(1);
-  Coordinate coordinate=geom.getCoordinate();
-  if (is3DPoint(coordinate)) {
+  if (geom.is3D()) {
     sqlServerGeom.setHasZValues();
     sqlServerGeom.allocateZValueArray();
   }
-  if (isMPoint(coordinate)) {
+  if (geom.isMeasured()) {
     sqlServerGeom.setHasMValues();
     sqlServerGeom.allocateMValueArray();
   }
-  sqlServerGeom.setCoordinate(0,coordinate);
+  sqlServerGeom.setCoordinate(0,geom.getPoints());
   return sqlServerGeom;
 }

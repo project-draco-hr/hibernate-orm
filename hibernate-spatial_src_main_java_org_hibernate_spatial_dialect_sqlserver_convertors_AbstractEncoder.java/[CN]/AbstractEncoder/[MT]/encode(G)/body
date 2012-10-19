@@ -1,17 +1,16 @@
 {
   SqlServerGeometry nativeGeom=new SqlServerGeometry();
-  nativeGeom.setSrid(geom.getSRID());
-  if (geom.isValid()) {
-    nativeGeom.setIsValid();
-  }
-  if (hasMValues(geom)) {
+  int srid=geom.getSRID();
+  nativeGeom.setSrid(srid < 0 ? 0 : srid);
+  nativeGeom.setIsValid();
+  if (geom.isMeasured()) {
     nativeGeom.setHasMValues();
   }
-  List<Coordinate> coordinates=new ArrayList<Coordinate>();
+  CountingPointSequenceBuilder coordinates=new CountingPointSequenceBuilder(geom.getDimensionalFlag());
   List<Figure> figures=new ArrayList<Figure>();
   List<Shape> shapes=new ArrayList<Shape>();
   encode(geom,-1,coordinates,figures,shapes);
-  encodePoints(nativeGeom,coordinates);
+  encodePoints(nativeGeom,coordinates.toPointSequence());
   encodeFigures(nativeGeom,figures);
   encodeShapes(nativeGeom,shapes);
   return nativeGeom;

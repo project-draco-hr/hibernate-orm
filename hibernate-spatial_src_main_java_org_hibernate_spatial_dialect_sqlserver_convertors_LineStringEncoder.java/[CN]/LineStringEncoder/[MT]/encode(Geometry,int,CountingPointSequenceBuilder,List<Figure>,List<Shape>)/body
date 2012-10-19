@@ -1,0 +1,16 @@
+{
+  if (!(geom instanceof LineString)) {
+    throw new IllegalArgumentException("Require LineString geometry");
+  }
+  if (geom.isEmpty()) {
+    shapes.add(new Shape(parentShapeIndex,-1,OpenGisType.LINESTRING));
+    return;
+  }
+  int figureOffset=figures.size();
+  int pointOffset=coordinates.getNumAdded();
+  for (  Point point : (PointSequence)geom.getPoints()) {
+    coordinates.add(point);
+  }
+  figures.add(new Figure(FigureAttribute.Stroke,pointOffset));
+  shapes.add(new Shape(parentShapeIndex,figureOffset,OpenGisType.LINESTRING));
+}
