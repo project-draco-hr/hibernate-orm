@@ -1,0 +1,15 @@
+{
+  String[] defaultGenericDataTypes=new String[]{ENTITY_KEY,COLLECTION_KEY,TIMESTAMPS_KEY,QUERY_KEY};
+  for (  String type : defaultGenericDataTypes) {
+    TypeOverrides override=overrideStatisticsIfPresent(typeOverrides.get(type),properties);
+    String cacheName=override.getCacheName();
+    ConfigurationBuilder builder=new ConfigurationBuilder();
+    applyConfiguration(cacheName,builder);
+    override.applyTo(builder);
+    configureTransactionManager(builder,cacheName,properties);
+    Configuration cfg=builder.build();
+    override.validateInfinispanConfiguration(cfg);
+    manager.defineConfiguration(cacheName,cfg);
+    definedConfigurations.add(cacheName);
+  }
+}
