@@ -2,9 +2,9 @@
   Properties p=new Properties();
   final DefaultCacheManager manager=new DefaultCacheManager();
   InfinispanRegionFactory factory=createRegionFactory(manager,p);
-  Configuration config=new Configuration();
-  config.setCacheMode(CacheMode.INVALIDATION_SYNC);
-  manager.defineConfiguration("timestamps",config);
+  ConfigurationBuilder builder=new ConfigurationBuilder();
+  builder.clustering().cacheMode(CacheMode.INVALIDATION_SYNC);
+  manager.defineConfiguration("timestamps",builder.build());
   try {
     factory.start(null,p);
     fail("Should have failed saying that invalidation is not allowed for timestamp caches.");

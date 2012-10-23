@@ -1,51 +1,61 @@
 {
-  final PutFromLoadValidator testee=new PutFromLoadValidator(new DefaultCacheManager(),null,PutFromLoadValidator.NAKED_PUT_INVALIDATION_PERIOD);
-  final CountDownLatch removeLatch=new CountDownLatch(1);
-  final CountDownLatch pferLatch=new CountDownLatch(1);
-  final AtomicReference<Object> cache=new AtomicReference<Object>("INITIAL");
-  Callable<Boolean> pferCallable=new Callable<Boolean>(){
-    public Boolean call() throws Exception {
-      testee.registerPendingPut(KEY1);
-      if (testee.acquirePutFromLoadLock(KEY1)) {
-        try {
-          removeLatch.countDown();
-          pferLatch.await();
-          cache.set("PFER");
-          return Boolean.TRUE;
-        }
+  withCacheManager(new CacheManagerCallable(TestCacheManagerFactory.createLocalCacheManager(false)){
+    @Override public void call(){
+      final PutFromLoadValidator testee=new PutFromLoadValidator(cm,null,PutFromLoadValidator.NAKED_PUT_INVALIDATION_PERIOD);
+      final CountDownLatch removeLatch=new CountDownLatch(1);
+      final CountDownLatch pferLatch=new CountDownLatch(1);
+      final AtomicReference<Object> cache=new AtomicReference<Object>("INITIAL");
+      Callable<Boolean> pferCallable=new Callable<Boolean>(){
+        public Boolean call() throws Exception {
+          testee.registerPendingPut(KEY1);
+          if (testee.acquirePutFromLoadLock(KEY1)) {
+            try {
+              removeLatch.countDown();
+              pferLatch.await();
+              cache.set("PFER");
+              return Boolean.TRUE;
+            }
   finally {
-          testee.releasePutFromLoadLock(KEY1);
+              testee.releasePutFromLoadLock(KEY1);
+            }
+          }
+          return Boolean.FALSE;
         }
       }
-      return Boolean.FALSE;
-    }
-  }
 ;
-  Callable<Void> invalidateCallable=new Callable<Void>(){
-    public Void call() throws Exception {
-      removeLatch.await();
-      if (keyOnly) {
-        testee.invalidateKey(KEY1);
-      }
+      Callable<Void> invalidateCallable=new Callable<Void>(){
+        public Void call() throws Exception {
+          removeLatch.await();
+          if (keyOnly) {
+            testee.invalidateKey(KEY1);
+          }
  else {
-        testee.invalidateRegion();
+            testee.invalidateRegion();
+          }
+          cache.set(null);
+          return null;
+        }
       }
-      cache.set(null);
-      return null;
+;
+      ExecutorService executorService=Executors.newCachedThreadPool();
+      Future<Boolean> pferFuture=executorService.submit(pferCallable);
+      Future<Void> invalidateFuture=executorService.submit(invalidateCallable);
+      try {
+        try {
+          invalidateFuture.get(1,TimeUnit.SECONDS);
+          fail("invalidateFuture did not block");
+        }
+ catch (        TimeoutException good) {
+        }
+        pferLatch.countDown();
+        assertTrue(pferFuture.get(5,TimeUnit.SECONDS));
+        invalidateFuture.get(5,TimeUnit.SECONDS);
+        assertNull(cache.get());
+      }
+ catch (      Exception e) {
+        throw new RuntimeException(e);
+      }
     }
   }
-;
-  ExecutorService executorService=Executors.newCachedThreadPool();
-  Future<Boolean> pferFuture=executorService.submit(pferCallable);
-  Future<Void> invalidateFuture=executorService.submit(invalidateCallable);
-  try {
-    invalidateFuture.get(1,TimeUnit.SECONDS);
-    fail("invalidateFuture did not block");
-  }
- catch (  TimeoutException good) {
-  }
-  pferLatch.countDown();
-  assertTrue(pferFuture.get(5,TimeUnit.SECONDS));
-  invalidateFuture.get(5,TimeUnit.SECONDS);
-  assertNull(cache.get());
+);
 }

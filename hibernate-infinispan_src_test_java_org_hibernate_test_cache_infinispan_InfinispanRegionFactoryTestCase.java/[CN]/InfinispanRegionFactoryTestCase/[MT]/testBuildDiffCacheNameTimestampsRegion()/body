@@ -3,22 +3,22 @@
   Properties p=new Properties();
   p.setProperty("hibernate.cache.infinispan.timestamps.cfg","unrecommended-timestamps");
   InfinispanRegionFactory factory=createRegionFactory(p);
-  EmbeddedCacheManager manager=factory.getCacheManager();
   try {
+    EmbeddedCacheManager manager=factory.getCacheManager();
     assertFalse(factory.getDefinedConfigurations().contains("timestamp"));
     assertTrue(factory.getDefinedConfigurations().contains("unrecommended-timestamps"));
     assertTrue(factory.getTypeOverrides().get("timestamps").getCacheName().equals("unrecommended-timestamps"));
-    Configuration config=new Configuration();
-    config.setFetchInMemoryState(false);
-    config.setCacheMode(CacheMode.REPL_SYNC);
-    manager.defineConfiguration("unrecommended-timestamps",config);
+    ConfigurationBuilder builder=new ConfigurationBuilder();
+    builder.clustering().stateTransfer().fetchInMemoryState(true);
+    builder.clustering().cacheMode(CacheMode.REPL_SYNC);
+    manager.defineConfiguration("unrecommended-timestamps",builder.build());
     TimestampsRegionImpl region=(TimestampsRegionImpl)factory.buildTimestampsRegion(timestamps,p);
     AdvancedCache cache=region.getCache();
-    Configuration cacheCfg=cache.getConfiguration();
-    assertEquals(EvictionStrategy.NONE,cacheCfg.getEvictionStrategy());
-    assertEquals(CacheMode.REPL_SYNC,cacheCfg.getCacheMode());
-    assertFalse(cacheCfg.isUseLazyDeserialization());
-    assertFalse(cacheCfg.isExposeJmxStatistics());
+    Configuration cacheCfg=cache.getCacheConfiguration();
+    assertEquals(EvictionStrategy.NONE,cacheCfg.eviction().strategy());
+    assertEquals(CacheMode.REPL_SYNC,cacheCfg.clustering().cacheMode());
+    assertFalse(cacheCfg.storeAsBinary().enabled());
+    assertFalse(cacheCfg.jmxStatistics().enabled());
   }
   finally {
     factory.stop();
