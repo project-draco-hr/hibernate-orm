@@ -1,13 +1,15 @@
 {
+  final ConstPool constPool=managedCtClass.getClassFile().getConstPool();
   final CtField nextField;
   try {
-    nextField=new CtField(managedCtClass,NEXT_FIELD_NAME,managedCtClass);
+    nextField=new CtField(managedEntityCtClass,NEXT_FIELD_NAME,managedCtClass);
     managedCtClass.addField(nextField);
   }
  catch (  CannotCompileException e) {
     throw new EnhancementException(String.format("Could not enhance entity class [%s] to add field for holding next ManagedEntity",managedCtClass.getName()),e);
   }
   nextField.setModifiers(nextField.getModifiers() | Modifier.TRANSIENT);
+  nextField.setModifiers(Modifier.setPrivate(nextField.getModifiers()));
   AnnotationsAttribute annotationsAttribute=getVisibleAnnotations(nextField.getFieldInfo());
   annotationsAttribute.addAnnotation(new Annotation(Transient.class.getName(),constPool));
   try {

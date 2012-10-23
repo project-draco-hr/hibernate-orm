@@ -1,33 +1,4 @@
 {
-  EnhancementContext enhancementContext=new EnhancementContext(){
-    @Override public boolean isEntityClass(    String className){
-      return true;
-    }
-    @Override public boolean isCompositeClass(    String className){
-      return false;
-    }
-  }
-;
-  Enhancer enhancer=new Enhancer(enhancementContext);
-  CtClass anEntityCtClass=generateCtClassForAnEntity();
-  byte[] original=anEntityCtClass.toBytecode();
-  byte[] enhanced=enhancer.enhance(anEntityCtClass.getName(),original);
-  assertFalse("entity was not enhanced",Arrays.equals(original,enhanced));
-  ClassLoader cl=new ClassLoader(){
-  }
-;
-  ClassPool cp2=new ClassPool(false);
-  cp2.appendClassPath(new LoaderClassPath(cl));
-  CtClass enhancedCtClass=cp2.makeClass(new ByteArrayInputStream(enhanced));
-  Class simpleEntityClass=enhancedCtClass.toClass(cl,this.getClass().getProtectionDomain());
-  Object simpleEntityInstance=simpleEntityClass.newInstance();
-  Method setter=simpleEntityClass.getMethod(Enhancer.ENTITY_ENTRY_SETTER_NAME,EntityEntry.class);
-  Method getter=simpleEntityClass.getMethod(Enhancer.ENTITY_ENTRY_GETTER_NAME);
-  assertNull(getter.invoke(simpleEntityInstance));
-  setter.invoke(simpleEntityInstance,makeEntityEntry());
-  assertNotNull(getter.invoke(simpleEntityInstance));
-  setter.invoke(simpleEntityInstance,new Object[]{null});
-  assertNull(getter.invoke(simpleEntityInstance));
-  Method entityInstanceGetter=simpleEntityClass.getMethod(Enhancer.ENTITY_INSTANCE_GETTER_NAME);
-  assertSame(simpleEntityInstance,entityInstanceGetter.invoke(simpleEntityInstance));
+  testFor(SimpleEntity.class);
+  testFor(SubEntity.class);
 }

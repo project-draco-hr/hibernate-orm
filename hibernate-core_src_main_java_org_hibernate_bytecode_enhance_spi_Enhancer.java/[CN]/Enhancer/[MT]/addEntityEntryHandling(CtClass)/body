@@ -1,4 +1,5 @@
 {
+  final ConstPool constPool=managedCtClass.getClassFile().getConstPool();
   final CtField entityEntryField;
   try {
     entityEntryField=new CtField(entityEntryCtClass,ENTITY_ENTRY_FIELD_NAME,managedCtClass);
@@ -8,6 +9,7 @@
     throw new EnhancementException(String.format("Could not enhance entity class [%s] to add field for holding EntityEntry",managedCtClass.getName()),e);
   }
   entityEntryField.setModifiers(entityEntryField.getModifiers() | Modifier.TRANSIENT);
+  entityEntryField.setModifiers(Modifier.setPrivate(entityEntryField.getModifiers()));
   AnnotationsAttribute annotationsAttribute=getVisibleAnnotations(entityEntryField.getFieldInfo());
   annotationsAttribute.addAnnotation(new Annotation(Transient.class.getName(),constPool));
   try {

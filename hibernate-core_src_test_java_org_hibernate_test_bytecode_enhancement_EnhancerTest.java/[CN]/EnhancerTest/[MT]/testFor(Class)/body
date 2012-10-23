@@ -1,0 +1,33 @@
+{
+  Enhancer enhancer=new Enhancer(enhancementContext);
+  CtClass entityCtClass=generateCtClassForAnEntity(entityClassToEnhance);
+  byte[] original=entityCtClass.toBytecode();
+  byte[] enhanced=enhancer.enhance(entityCtClass.getName(),original);
+  assertFalse("entity was not enhanced",Arrays.equals(original,enhanced));
+  ClassLoader cl=new ClassLoader(){
+  }
+;
+  ClassPool cp2=new ClassPool(false);
+  cp2.appendClassPath(new LoaderClassPath(cl));
+  CtClass enhancedCtClass=cp2.makeClass(new ByteArrayInputStream(enhanced));
+  Class entityClass=enhancedCtClass.toClass(cl,this.getClass().getProtectionDomain());
+  Object entityInstance=entityClass.newInstance();
+  assertTyping(ManagedEntity.class,entityInstance);
+  Method setter=entityClass.getMethod(Enhancer.ENTITY_ENTRY_SETTER_NAME,EntityEntry.class);
+  Method getter=entityClass.getMethod(Enhancer.ENTITY_ENTRY_GETTER_NAME);
+  assertNull(getter.invoke(entityInstance));
+  setter.invoke(entityInstance,makeEntityEntry());
+  assertNotNull(getter.invoke(entityInstance));
+  setter.invoke(entityInstance,new Object[]{null});
+  assertNull(getter.invoke(entityInstance));
+  Method entityInstanceGetter=entityClass.getMethod(Enhancer.ENTITY_INSTANCE_GETTER_NAME);
+  assertSame(entityInstance,entityInstanceGetter.invoke(entityInstance));
+  Method previousGetter=entityClass.getMethod(Enhancer.PREVIOUS_GETTER_NAME);
+  Method previousSetter=entityClass.getMethod(Enhancer.PREVIOUS_SETTER_NAME,ManagedEntity.class);
+  previousSetter.invoke(entityInstance,entityInstance);
+  assertSame(entityInstance,previousGetter.invoke(entityInstance));
+  Method nextGetter=entityClass.getMethod(Enhancer.PREVIOUS_GETTER_NAME);
+  Method nextSetter=entityClass.getMethod(Enhancer.PREVIOUS_SETTER_NAME,ManagedEntity.class);
+  nextSetter.invoke(entityInstance,entityInstance);
+  assertSame(entityInstance,nextGetter.invoke(entityInstance));
+}
