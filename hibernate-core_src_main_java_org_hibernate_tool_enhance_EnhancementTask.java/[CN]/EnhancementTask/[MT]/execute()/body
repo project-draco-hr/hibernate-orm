@@ -1,25 +1,15 @@
 {
-  EnhancementContext enhancementContext=new EnhancementContext(){
-    @Override public boolean isEntityClass(    String className){
-      return true;
-    }
-    @Override public boolean isCompositeClass(    String className){
-      return false;
-    }
-    @Override public boolean isPersistentField(    CtField ctField){
-      return !ctField.hasAnnotation(Transient.class);
-    }
-  }
-;
-  final ClassPool classPool=new ClassPool(false);
-  final List<CtClass> ctClassList=collectCtClasses(classPool);
-  final Enhancer enhancer=new Enhancer(enhancementContext);
-  for (  CtClass ctClass : ctClassList) {
-    try {
-      enhancer.enhance(ctClass.getName(),ctClass.toBytecode());
-    }
- catch (    Exception e) {
-      log("Unable to enhance class : " + ctClass.getName(),e,Project.MSG_WARN);
+  log("Starting Hibernate EnhancementTask execution",Project.MSG_INFO);
+  final Project project=getProject();
+  for (  FileSet fileSet : filesets) {
+    final File fileSetBaseDir=fileSet.getDir(project);
+    final DirectoryScanner directoryScanner=fileSet.getDirectoryScanner(project);
+    for (    String relativeIncludedFileName : directoryScanner.getIncludedFiles()) {
+      final File javaClassFile=new File(fileSetBaseDir,relativeIncludedFileName);
+      if (!javaClassFile.exists()) {
+        continue;
+      }
+      processClassFile(javaClassFile);
     }
   }
 }

@@ -1,0 +1,24 @@
+{
+  final FieldInfo fieldInfo=persistentField.getFieldInfo();
+  final String fieldName=fieldInfo.getName();
+  final String readerName=PERSISTENT_FIELD_READER_PREFIX + fieldName;
+  if (!enhancementContext.isLazyLoadable(persistentField)) {
+    try {
+      CtMethod reader=CtNewMethod.getter(readerName,persistentField);
+      managedCtClass.addMethod(reader);
+      return reader;
+    }
+ catch (    CannotCompileException e) {
+      throw new EnhancementException(String.format("Could not enhance entity class [%s] to add field reader method [%s]",managedCtClass.getName(),readerName),e);
+    }
+  }
+  String methodBody=typeDescriptor.buildReadInterceptionBodyFragment(fieldName) + " return this." + fieldName+ ";";
+  try {
+    CtMethod reader=CtNewMethod.make(Modifier.PRIVATE,persistentField.getType(),readerName,null,null,"{" + methodBody + "}",managedCtClass);
+    managedCtClass.addMethod(reader);
+    return reader;
+  }
+ catch (  Exception e) {
+    throw new EnhancementException(String.format("Could not enhance entity class [%s] to add field reader method [%s]",managedCtClass.getName(),readerName),e);
+  }
+}

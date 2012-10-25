@@ -1,0 +1,15 @@
+{
+  final List<CtField> persistentFieldList=new ArrayList<CtField>();
+  for (  CtField ctField : managedCtClass.getDeclaredFields()) {
+    if (Modifier.isStatic(ctField.getModifiers())) {
+      continue;
+    }
+    if (ctField.getName().startsWith("$")) {
+      continue;
+    }
+    if (enhancementContext.isPersistentField(ctField)) {
+      persistentFieldList.add(ctField);
+    }
+  }
+  return enhancementContext.order(persistentFieldList.toArray(new CtField[persistentFieldList.size()]));
+}

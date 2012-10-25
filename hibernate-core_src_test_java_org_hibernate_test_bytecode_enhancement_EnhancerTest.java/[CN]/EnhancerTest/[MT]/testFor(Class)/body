@@ -7,9 +7,9 @@
   ClassLoader cl=new ClassLoader(){
   }
 ;
-  ClassPool cp2=new ClassPool(false);
-  cp2.appendClassPath(new LoaderClassPath(cl));
-  CtClass enhancedCtClass=cp2.makeClass(new ByteArrayInputStream(enhanced));
+  ClassPool cp=new ClassPool(false);
+  cp.appendClassPath(new LoaderClassPath(cl));
+  CtClass enhancedCtClass=cp.makeClass(new ByteArrayInputStream(enhanced));
   Class entityClass=enhancedCtClass.toClass(cl,this.getClass().getProtectionDomain());
   Object entityInstance=entityClass.newInstance();
   assertTyping(ManagedEntity.class,entityInstance);
@@ -30,4 +30,19 @@
   Method nextSetter=entityClass.getMethod(Enhancer.PREVIOUS_SETTER_NAME,ManagedEntity.class);
   nextSetter.invoke(entityInstance,entityInstance);
   assertSame(entityInstance,nextGetter.invoke(entityInstance));
+  Method interceptorGetter=entityClass.getMethod(Enhancer.INTERCEPTOR_GETTER_NAME);
+  Method interceptorSetter=entityClass.getMethod(Enhancer.INTERCEPTOR_SETTER_NAME,PersistentAttributeInterceptor.class);
+  assertNull(interceptorGetter.invoke(entityInstance));
+  entityClass.getMethod("getId").invoke(entityInstance);
+  interceptorSetter.invoke(entityInstance,new LocalPersistentAttributeInterceptor());
+  assertNotNull(interceptorGetter.invoke(entityInstance));
+  entityClass.getMethod("getId").invoke(entityInstance);
+  entityClass.getMethod("setId",Long.class).invoke(entityInstance,entityClass.getMethod("getId").invoke(entityInstance));
+  entityClass.getMethod("setId",Long.class).invoke(entityInstance,1L);
+  entityClass.getMethod("isActive").invoke(entityInstance);
+  entityClass.getMethod("setActive",boolean.class).invoke(entityInstance,entityClass.getMethod("isActive").invoke(entityInstance));
+  entityClass.getMethod("setActive",boolean.class).invoke(entityInstance,true);
+  entityClass.getMethod("getSomeNumber").invoke(entityInstance);
+  entityClass.getMethod("setSomeNumber",long.class).invoke(entityInstance,entityClass.getMethod("getSomeNumber").invoke(entityInstance));
+  entityClass.getMethod("setSomeNumber",long.class).invoke(entityInstance,1L);
 }

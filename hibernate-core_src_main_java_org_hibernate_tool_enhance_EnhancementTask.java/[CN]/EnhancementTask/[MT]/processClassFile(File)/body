@@ -1,0 +1,41 @@
+{
+  try {
+    final CtClass ctClass=classPool.makeClass(new FileInputStream(javaClassFile));
+    if (!shouldInclude(ctClass)) {
+      return;
+    }
+    final byte[] enhancedBytecode;
+    try {
+      enhancedBytecode=enhancer.enhance(ctClass.getName(),ctClass.toBytecode());
+    }
+ catch (    Exception e) {
+      log("Unable to enhance class [" + ctClass.getName() + "]",e,Project.MSG_WARN);
+      return;
+    }
+    if (javaClassFile.delete()) {
+      if (!javaClassFile.createNewFile()) {
+        log("Unable to recreate class file [" + ctClass.getName() + "]",Project.MSG_INFO);
+      }
+    }
+ else {
+      log("Unable to delete class file [" + ctClass.getName() + "]",Project.MSG_INFO);
+    }
+    FileOutputStream outputStream=new FileOutputStream(javaClassFile,false);
+    try {
+      outputStream.write(enhancedBytecode);
+      outputStream.flush();
+    }
+  finally {
+      try {
+        outputStream.close();
+      }
+ catch (      IOException ignore) {
+      }
+    }
+  }
+ catch (  FileNotFoundException ignore) {
+  }
+catch (  IOException e) {
+    throw new BuildException(String.format("Error processing included file [%s]",javaClassFile.getAbsolutePath()),e);
+  }
+}

@@ -1,0 +1,46 @@
+{
+  final ConstPool constPool=managedCtClass.getClassFile().getConstPool();
+  for (  Object oMethod : managedCtClass.getClassFile().getMethods()) {
+    final MethodInfo methodInfo=(MethodInfo)oMethod;
+    final String methodName=methodInfo.getName();
+    if (methodName.startsWith(PERSISTENT_FIELD_READER_PREFIX) || methodName.startsWith(PERSISTENT_FIELD_WRITER_PREFIX) || methodName.equals(ENTITY_INSTANCE_GETTER_NAME)|| methodName.equals(ENTITY_ENTRY_GETTER_NAME)|| methodName.equals(ENTITY_ENTRY_SETTER_NAME)|| methodName.equals(PREVIOUS_GETTER_NAME)|| methodName.equals(PREVIOUS_SETTER_NAME)|| methodName.equals(NEXT_GETTER_NAME)|| methodName.equals(NEXT_SETTER_NAME)) {
+      continue;
+    }
+    final CodeAttribute codeAttr=methodInfo.getCodeAttribute();
+    if (codeAttr == null) {
+      continue;
+    }
+    try {
+      CodeIterator itr=codeAttr.iterator();
+      while (itr.hasNext()) {
+        int index=itr.next();
+        int op=itr.byteAt(index);
+        if (op != Opcode.PUTFIELD && op != Opcode.GETFIELD) {
+          continue;
+        }
+        int constIndex=itr.u16bitAt(index + 1);
+        final String fieldName=constPool.getFieldrefName(constIndex);
+        final PersistentAttributeDescriptor attributeDescriptor=attributeDescriptorMap.get(fieldName);
+        if (attributeDescriptor == null) {
+          continue;
+        }
+        log.tracef("Transforming access to field [%s] from method [%s]",fieldName,methodName);
+        if (op == Opcode.GETFIELD) {
+          int read_method_index=constPool.addMethodrefInfo(constPool.getThisClassInfo(),attributeDescriptor.getReader().getName(),attributeDescriptor.getReader().getSignature());
+          itr.writeByte(Opcode.INVOKESPECIAL,index);
+          itr.write16bit(read_method_index,index + 1);
+        }
+ else {
+          int write_method_index=constPool.addMethodrefInfo(constPool.getThisClassInfo(),attributeDescriptor.getWriter().getName(),attributeDescriptor.getWriter().getSignature());
+          itr.writeByte(Opcode.INVOKESPECIAL,index);
+          itr.write16bit(write_method_index,index + 1);
+        }
+      }
+      StackMapTable smt=MapMaker.make(classPool,methodInfo);
+      methodInfo.getCodeAttribute().setAttribute(smt);
+    }
+ catch (    BadBytecode e) {
+      throw new EnhancementException("Unable to perform field access transformation in method : " + methodName,e);
+    }
+  }
+}

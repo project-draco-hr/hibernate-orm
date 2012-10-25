@@ -1,0 +1,23 @@
+{
+  final FieldInfo fieldInfo=persistentField.getFieldInfo();
+  final String fieldName=fieldInfo.getName();
+  final String writerName=PERSISTENT_FIELD_WRITER_PREFIX + fieldName;
+  final CtMethod writer;
+  try {
+    if (!enhancementContext.isLazyLoadable(persistentField)) {
+      writer=CtNewMethod.setter(writerName,persistentField);
+    }
+ else {
+      String methodBody=typeDescriptor.buildWriteInterceptionBodyFragment(fieldName);
+      writer=CtNewMethod.make(Modifier.PRIVATE,CtClass.voidType,writerName,new CtClass[]{persistentField.getType()},null,"{" + methodBody + "}",managedCtClass);
+    }
+    if (enhancementContext.doDirtyCheckingInline(managedCtClass)) {
+      writer.insertBefore(typeDescriptor.buildInLineDirtyCheckingBodyFragment(fieldName));
+    }
+    managedCtClass.addMethod(writer);
+    return writer;
+  }
+ catch (  Exception e) {
+    throw new EnhancementException(String.format("Could not enhance entity class [%s] to add field writer method [%s]",managedCtClass.getName(),writerName),e);
+  }
+}

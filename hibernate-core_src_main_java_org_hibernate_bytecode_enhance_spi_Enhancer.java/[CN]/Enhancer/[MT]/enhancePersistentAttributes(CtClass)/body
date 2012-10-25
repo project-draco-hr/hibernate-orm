@@ -1,11 +1,11 @@
 {
-  final IdentityHashMap<CtField,FieldVirtualReadWritePair> fieldToMethodsXref=new IdentityHashMap<CtField,FieldVirtualReadWritePair>();
-  for (  CtField ctField : managedCtClass.getFields()) {
-    if (!enhancementContext.isPersistentField(ctField)) {
-      continue;
-    }
-    final FieldVirtualReadWritePair methodPair=addReadAndWriteMethod(managedCtClass,ctField);
-    fieldToMethodsXref.put(ctField,methodPair);
+  addInterceptorHandling(managedCtClass);
+  if (enhancementContext.doDirtyCheckingInline(managedCtClass)) {
+    addInLineDirtyHandling(managedCtClass);
   }
-  transformFieldAccessesIntoReadsAndWrites(managedCtClass,fieldToMethodsXref);
+  final IdentityHashMap<String,PersistentAttributeDescriptor> attrDescriptorMap=new IdentityHashMap<String,PersistentAttributeDescriptor>();
+  for (  CtField persistentField : collectPersistentFields(managedCtClass)) {
+    attrDescriptorMap.put(persistentField.getName(),enhancePersistentAttribute(managedCtClass,persistentField));
+  }
+  transformFieldAccessesIntoReadsAndWrites(managedCtClass,attrDescriptorMap);
 }

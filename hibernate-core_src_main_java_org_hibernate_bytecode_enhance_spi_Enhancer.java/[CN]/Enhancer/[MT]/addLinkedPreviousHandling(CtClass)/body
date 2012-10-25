@@ -1,27 +1,3 @@
 {
-  final ConstPool constPool=managedCtClass.getClassFile().getConstPool();
-  final CtField previousField;
-  try {
-    previousField=new CtField(managedEntityCtClass,PREVIOUS_FIELD_NAME,managedCtClass);
-    managedCtClass.addField(previousField);
-  }
- catch (  CannotCompileException e) {
-    throw new EnhancementException(String.format("Could not enhance entity class [%s] to add field for holding previous ManagedEntity",managedCtClass.getName()),e);
-  }
-  previousField.setModifiers(previousField.getModifiers() | Modifier.TRANSIENT);
-  previousField.setModifiers(Modifier.setPrivate(previousField.getModifiers()));
-  AnnotationsAttribute annotationsAttribute=getVisibleAnnotations(previousField.getFieldInfo());
-  annotationsAttribute.addAnnotation(new Annotation(Transient.class.getName(),constPool));
-  try {
-    managedCtClass.addMethod(CtNewMethod.getter(PREVIOUS_GETTER_NAME,previousField));
-  }
- catch (  CannotCompileException e) {
-    throw new EnhancementException(String.format("Could not enhance entity class [%s] to add previous ManagedEntity getter",managedCtClass.getName()),e);
-  }
-  try {
-    managedCtClass.addMethod(CtNewMethod.setter(PREVIOUS_SETTER_NAME,previousField));
-  }
- catch (  CannotCompileException e) {
-    throw new EnhancementException(String.format("Could not enhance entity class [%s] to add previous ManagedEntity setter",managedCtClass.getName()),e);
-  }
+  addFieldWithGetterAndSetter(managedCtClass,managedEntityCtClass,PREVIOUS_FIELD_NAME,PREVIOUS_GETTER_NAME,PREVIOUS_SETTER_NAME);
 }
