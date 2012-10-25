@@ -1,4 +1,9 @@
 {
-  boolean useLimitOffset=supportsLimit() && supportsLimitOffset() && LimitHelper.hasFirstRow(selection)&& LimitHelper.hasMaxRows(selection);
-  return dialect.getLimitString(sql,useLimitOffset ? LimitHelper.getFirstRow(selection) : 0,getMaxOrLimit());
+  if (LimitHelper.useLimit(this,selection)) {
+    boolean useLimitOffset=LimitHelper.hasFirstRow(selection);
+    return new StringBuilder(sql.length() + 20).append(sql).append(useLimitOffset ? " limit ?, ?" : " limit ?").toString();
+  }
+ else {
+    return sql;
+  }
 }
