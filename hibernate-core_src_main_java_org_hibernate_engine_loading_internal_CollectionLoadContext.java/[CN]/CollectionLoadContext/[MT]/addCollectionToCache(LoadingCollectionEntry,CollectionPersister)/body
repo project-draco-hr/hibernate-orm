@@ -2,7 +2,7 @@
   final SessionImplementor session=getLoadContext().getPersistenceContext().getSession();
   final SessionFactoryImplementor factory=session.getFactory();
   if (LOG.isDebugEnabled()) {
-    LOG.debugf("Caching collection: %s",MessageHelper.collectionInfoString(persister,lce.getKey(),factory));
+    LOG.debugf("Caching collection: %s",MessageHelper.collectionInfoString(persister,lce.getCollection(),lce.getKey(),session));
   }
   if (!session.getEnabledFilters().isEmpty() && persister.isAffectedByEnabledFilters(session)) {
     LOG.debug("Refusing to add to cache due to enabled filters");
@@ -20,7 +20,7 @@
         }
       }
       if (collectionOwner == null) {
-        throw new HibernateException("Unable to resolve owner of loading collection [" + MessageHelper.collectionInfoString(persister,lce.getKey(),factory) + "] for second level caching");
+        throw new HibernateException("Unable to resolve owner of loading collection [" + MessageHelper.collectionInfoString(persister,lce.getCollection(),lce.getKey(),session) + "] for second level caching");
       }
     }
     version=getLoadContext().getPersistenceContext().getEntry(collectionOwner).getVersion();

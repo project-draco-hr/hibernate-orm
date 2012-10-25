@@ -1,0 +1,22 @@
+{
+  StringBuilder s=new StringBuilder();
+  s.append('[');
+  if (persister == null) {
+    s.append("<unreferenced>");
+  }
+ else {
+    s.append(persister.getRole());
+    s.append('#');
+    Type ownerIdentifierType=persister.getOwnerEntityPersister().getIdentifierType();
+    Serializable ownerKey;
+    if (collectionKey.getClass().isAssignableFrom(ownerIdentifierType.getReturnedClass())) {
+      ownerKey=collectionKey;
+    }
+ else {
+      ownerKey=session.getPersistenceContext().getEntry(collection.getOwner()).getId();
+    }
+    s.append(ownerIdentifierType.toLoggableString(ownerKey,session.getFactory()));
+  }
+  s.append(']');
+  return s.toString();
+}
