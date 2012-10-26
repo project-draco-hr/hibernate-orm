@@ -4,31 +4,30 @@
   int i=1;
   int end=-1;
   boolean checkForEnd=false;
-  LinkedHashMap<CollectionEntry,PersistentCollection> map=batchLoadableCollections.get(collectionPersister);
+  final LinkedHashMap<CollectionEntry,PersistentCollection> map=batchLoadableCollections.get(collectionPersister.getRole());
   if (map != null) {
     for (    Entry<CollectionEntry,PersistentCollection> me : map.entrySet()) {
-      CollectionEntry ce=me.getKey();
-      PersistentCollection collection=me.getValue();
-      if (!collection.wasInitialized()) {
-        if (checkForEnd && i == end) {
-          return keys;
-        }
-        final boolean isEqual=collectionPersister.getKeyType().isEqual(id,ce.getLoadedKey(),collectionPersister.getFactory());
-        if (isEqual) {
-          end=i;
-        }
- else         if (!isCached(ce.getLoadedKey(),collectionPersister)) {
-          keys[i++]=ce.getLoadedKey();
-        }
-        if (i == batchSize) {
-          i=1;
-          if (end != -1) {
-            checkForEnd=true;
-          }
-        }
-      }
- else {
+      final CollectionEntry ce=me.getKey();
+      final PersistentCollection collection=me.getValue();
+      if (collection.wasInitialized()) {
         LOG.warn("Encountered initialized collection in BatchFetchQueue, this should not happen.");
+        continue;
+      }
+      if (checkForEnd && i == end) {
+        return keys;
+      }
+      final boolean isEqual=collectionPersister.getKeyType().isEqual(id,ce.getLoadedKey(),collectionPersister.getFactory());
+      if (isEqual) {
+        end=i;
+      }
+ else       if (!isCached(ce.getLoadedKey(),collectionPersister)) {
+        keys[i++]=ce.getLoadedKey();
+      }
+      if (i == batchSize) {
+        i=1;
+        if (end != -1) {
+          checkForEnd=true;
+        }
       }
     }
   }
