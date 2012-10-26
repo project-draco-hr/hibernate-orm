@@ -1,15 +1,25 @@
 {
-  PutFromLoadValidator testee=new PutFromLoadValidator(new DefaultCacheManager(),transactional ? tm : null,PutFromLoadValidator.NAKED_PUT_INVALIDATION_PERIOD);
-  if (transactional) {
-    tm.begin();
-  }
-  boolean lockable=testee.acquirePutFromLoadLock(KEY1);
-  try {
-    assertTrue(lockable);
-  }
+  withCacheManager(new CacheManagerCallable(TestCacheManagerFactory.createLocalCacheManager(false)){
+    @Override public void call(){
+      try {
+        PutFromLoadValidator testee=new PutFromLoadValidator(cm,transactional ? tm : null,PutFromLoadValidator.NAKED_PUT_INVALIDATION_PERIOD);
+        if (transactional) {
+          tm.begin();
+        }
+        boolean lockable=testee.acquirePutFromLoadLock(KEY1);
+        try {
+          assertTrue(lockable);
+        }
   finally {
-    if (lockable) {
-      testee.releasePutFromLoadLock(KEY1);
+          if (lockable) {
+            testee.releasePutFromLoadLock(KEY1);
+          }
+        }
+      }
+ catch (      Exception e) {
+        throw new RuntimeException(e);
+      }
     }
   }
+);
 }

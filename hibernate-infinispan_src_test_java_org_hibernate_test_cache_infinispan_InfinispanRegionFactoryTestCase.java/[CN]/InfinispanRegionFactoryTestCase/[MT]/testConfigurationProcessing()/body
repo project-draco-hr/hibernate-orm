@@ -12,24 +12,29 @@
   p.setProperty("hibernate.cache.infinispan.com.acme.Person.addresses.expiration.lifespan","120000");
   p.setProperty("hibernate.cache.infinispan.com.acme.Person.addresses.expiration.max_idle","60000");
   p.setProperty("hibernate.cache.infinispan.query.cfg","my-query-cache");
-  p.setProperty("hibernate.cache.infinispan.query.eviction.strategy","FIFO");
+  p.setProperty("hibernate.cache.infinispan.query.eviction.strategy","LIRS");
   p.setProperty("hibernate.cache.infinispan.query.eviction.wake_up_interval","3000");
   p.setProperty("hibernate.cache.infinispan.query.eviction.max_entries","10000");
   InfinispanRegionFactory factory=createRegionFactory(p);
-  assertEquals("entity",factory.getTypeOverrides().get("entity").getCacheName());
-  assertEquals("entity",factory.getTypeOverrides().get("collection").getCacheName());
-  assertEquals("timestamps",factory.getTypeOverrides().get("timestamps").getCacheName());
-  assertEquals("person-cache",factory.getTypeOverrides().get(person).getCacheName());
-  assertEquals(EvictionStrategy.LRU,factory.getTypeOverrides().get(person).getEvictionStrategy());
-  assertEquals(2000,factory.getTypeOverrides().get(person).getEvictionWakeUpInterval());
-  assertEquals(5000,factory.getTypeOverrides().get(person).getEvictionMaxEntries());
-  assertEquals(60000,factory.getTypeOverrides().get(person).getExpirationLifespan());
-  assertEquals(30000,factory.getTypeOverrides().get(person).getExpirationMaxIdle());
-  assertEquals("person-addresses-cache",factory.getTypeOverrides().get(addresses).getCacheName());
-  assertEquals(120000,factory.getTypeOverrides().get(addresses).getExpirationLifespan());
-  assertEquals(60000,factory.getTypeOverrides().get(addresses).getExpirationMaxIdle());
-  assertEquals("my-query-cache",factory.getTypeOverrides().get("query").getCacheName());
-  assertEquals(EvictionStrategy.FIFO,factory.getTypeOverrides().get("query").getEvictionStrategy());
-  assertEquals(3000,factory.getTypeOverrides().get("query").getEvictionWakeUpInterval());
-  assertEquals(10000,factory.getTypeOverrides().get("query").getEvictionMaxEntries());
+  try {
+    assertEquals("entity",factory.getTypeOverrides().get("entity").getCacheName());
+    assertEquals("entity",factory.getTypeOverrides().get("collection").getCacheName());
+    assertEquals("timestamps",factory.getTypeOverrides().get("timestamps").getCacheName());
+    assertEquals("person-cache",factory.getTypeOverrides().get(person).getCacheName());
+    assertEquals(EvictionStrategy.LRU,factory.getTypeOverrides().get(person).getEvictionStrategy());
+    assertEquals(2000,factory.getTypeOverrides().get(person).getEvictionWakeUpInterval());
+    assertEquals(5000,factory.getTypeOverrides().get(person).getEvictionMaxEntries());
+    assertEquals(60000,factory.getTypeOverrides().get(person).getExpirationLifespan());
+    assertEquals(30000,factory.getTypeOverrides().get(person).getExpirationMaxIdle());
+    assertEquals("person-addresses-cache",factory.getTypeOverrides().get(addresses).getCacheName());
+    assertEquals(120000,factory.getTypeOverrides().get(addresses).getExpirationLifespan());
+    assertEquals(60000,factory.getTypeOverrides().get(addresses).getExpirationMaxIdle());
+    assertEquals("my-query-cache",factory.getTypeOverrides().get("query").getCacheName());
+    assertEquals(EvictionStrategy.LIRS,factory.getTypeOverrides().get("query").getEvictionStrategy());
+    assertEquals(3000,factory.getTypeOverrides().get("query").getEvictionWakeUpInterval());
+    assertEquals(10000,factory.getTypeOverrides().get("query").getEvictionMaxEntries());
+  }
+  finally {
+    factory.stop();
+  }
 }

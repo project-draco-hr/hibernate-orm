@@ -1,22 +1,32 @@
 {
-  PutFromLoadValidator testee=new TestValidator(transactional ? tm : null,100);
-  if (removeRegion) {
-    testee.invalidateRegion();
-  }
+  withCacheManager(new CacheManagerCallable(TestCacheManagerFactory.createLocalCacheManager(false)){
+    @Override public void call(){
+      PutFromLoadValidator testee=new TestValidator(cm,transactional ? tm : null,100);
+      if (removeRegion) {
+        testee.invalidateRegion();
+      }
  else {
-    testee.invalidateKey(KEY1);
-  }
-  if (transactional) {
-    tm.begin();
-  }
-  Thread.sleep(110);
-  boolean lockable=testee.acquirePutFromLoadLock(KEY1);
-  try {
-    assertTrue(lockable);
-  }
+        testee.invalidateKey(KEY1);
+      }
+      try {
+        if (transactional) {
+          tm.begin();
+        }
+        Thread.sleep(110);
+        boolean lockable=testee.acquirePutFromLoadLock(KEY1);
+        try {
+          assertTrue(lockable);
+        }
   finally {
-    if (lockable) {
-      testee.releasePutFromLoadLock(KEY1);
+          if (lockable) {
+            testee.releasePutFromLoadLock(KEY1);
+          }
+        }
+      }
+ catch (      Exception e) {
+        throw new RuntimeException(e);
+      }
     }
   }
+);
 }

@@ -1,38 +1,52 @@
 {
-  final PutFromLoadValidator testee=new PutFromLoadValidator(new DefaultCacheManager(),transactional ? tm : null,PutFromLoadValidator.NAKED_PUT_INVALIDATION_PERIOD);
-  final CountDownLatch registeredLatch=new CountDownLatch(3);
-  final CountDownLatch finishedLatch=new CountDownLatch(3);
-  final AtomicInteger success=new AtomicInteger();
-  Runnable r=new Runnable(){
-    public void run(){
-      try {
-        if (transactional) {
-          tm.begin();
-        }
-        testee.registerPendingPut(KEY1);
-        registeredLatch.countDown();
-        registeredLatch.await(5,TimeUnit.SECONDS);
-        if (testee.acquirePutFromLoadLock(KEY1)) {
+  withCacheManager(new CacheManagerCallable(TestCacheManagerFactory.createLocalCacheManager(false)){
+    @Override public void call(){
+      final PutFromLoadValidator testee=new PutFromLoadValidator(cm,transactional ? tm : null,PutFromLoadValidator.NAKED_PUT_INVALIDATION_PERIOD);
+      final CountDownLatch registeredLatch=new CountDownLatch(3);
+      final CountDownLatch finishedLatch=new CountDownLatch(3);
+      final AtomicInteger success=new AtomicInteger();
+      Runnable r=new Runnable(){
+        public void run(){
           try {
-            success.incrementAndGet();
-          }
+            if (transactional) {
+              tm.begin();
+            }
+            testee.registerPendingPut(KEY1);
+            registeredLatch.countDown();
+            registeredLatch.await(5,TimeUnit.SECONDS);
+            if (testee.acquirePutFromLoadLock(KEY1)) {
+              try {
+                log.trace("Put from load lock acquired for key = " + KEY1);
+                success.incrementAndGet();
+              }
   finally {
-            testee.releasePutFromLoadLock(KEY1);
+                testee.releasePutFromLoadLock(KEY1);
+              }
+            }
+ else {
+              log.trace("Unable to acquired putFromLoad lock for key = " + KEY1);
+            }
+            finishedLatch.countDown();
+          }
+ catch (          Exception e) {
+            e.printStackTrace();
           }
         }
-        finishedLatch.countDown();
       }
- catch (      Exception e) {
-        e.printStackTrace();
+;
+      ExecutorService executor=Executors.newFixedThreadPool(3);
+      testee.invalidateRegion();
+      executor.execute(r);
+      executor.execute(r);
+      executor.execute(r);
+      try {
+        finishedLatch.await(5,TimeUnit.SECONDS);
       }
+ catch (      InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      assertEquals("All threads succeeded",3,success.get());
     }
   }
-;
-  ExecutorService executor=Executors.newFixedThreadPool(3);
-  testee.invalidateRegion();
-  executor.execute(r);
-  executor.execute(r);
-  executor.execute(r);
-  finishedLatch.await(5,TimeUnit.SECONDS);
-  assertEquals("All threads succeeded",3,success.get());
+);
 }

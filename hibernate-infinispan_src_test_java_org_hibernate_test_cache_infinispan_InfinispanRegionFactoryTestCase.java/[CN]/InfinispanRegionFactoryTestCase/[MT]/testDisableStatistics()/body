@@ -8,34 +8,32 @@
   p.setProperty("hibernate.cache.infinispan.entity.eviction.wake_up_interval","3000");
   p.setProperty("hibernate.cache.infinispan.entity.eviction.max_entries","10000");
   InfinispanRegionFactory factory=createRegionFactory(p);
-  EmbeddedCacheManager manager=factory.getCacheManager();
   try {
-    assertFalse(manager.getGlobalConfiguration().isExposeGlobalJmxStatistics());
     EntityRegionImpl region=(EntityRegionImpl)factory.buildEntityRegion("com.acme.Address",p,null);
     AdvancedCache cache=region.getCache();
     assertFalse(factory.getTypeOverrides().get("entity").isExposeStatistics());
-    assertFalse(cache.getConfiguration().isExposeJmxStatistics());
+    assertFalse(cache.getCacheConfiguration().jmxStatistics().enabled());
     region=(EntityRegionImpl)factory.buildEntityRegion("com.acme.Person",p,null);
     cache=region.getCache();
     assertFalse(factory.getTypeOverrides().get("com.acme.Person").isExposeStatistics());
-    assertFalse(cache.getConfiguration().isExposeJmxStatistics());
+    assertFalse(cache.getCacheConfiguration().jmxStatistics().enabled());
     final String query="org.hibernate.cache.internal.StandardQueryCache";
     QueryResultsRegionImpl queryRegion=(QueryResultsRegionImpl)factory.buildQueryResultsRegion(query,p);
     cache=queryRegion.getCache();
     assertFalse(factory.getTypeOverrides().get("query").isExposeStatistics());
-    assertFalse(cache.getConfiguration().isExposeJmxStatistics());
+    assertFalse(cache.getCacheConfiguration().jmxStatistics().enabled());
     final String timestamps="org.hibernate.cache.spi.UpdateTimestampsCache";
-    Configuration config=new Configuration();
-    config.setFetchInMemoryState(false);
-    manager.defineConfiguration("timestamps",config);
+    ConfigurationBuilder builder=new ConfigurationBuilder();
+    builder.clustering().stateTransfer().fetchInMemoryState(true);
+    factory.getCacheManager().defineConfiguration("timestamps",builder.build());
     TimestampsRegionImpl timestampsRegion=(TimestampsRegionImpl)factory.buildTimestampsRegion(timestamps,p);
     cache=timestampsRegion.getCache();
     assertFalse(factory.getTypeOverrides().get("timestamps").isExposeStatistics());
-    assertFalse(cache.getConfiguration().isExposeJmxStatistics());
+    assertFalse(cache.getCacheConfiguration().jmxStatistics().enabled());
     CollectionRegionImpl collectionRegion=(CollectionRegionImpl)factory.buildCollectionRegion("com.acme.Person.addresses",p,null);
     cache=collectionRegion.getCache();
     assertFalse(factory.getTypeOverrides().get("collection").isExposeStatistics());
-    assertFalse(cache.getConfiguration().isExposeJmxStatistics());
+    assertFalse(cache.getCacheConfiguration().jmxStatistics().enabled());
   }
   finally {
     factory.stop();

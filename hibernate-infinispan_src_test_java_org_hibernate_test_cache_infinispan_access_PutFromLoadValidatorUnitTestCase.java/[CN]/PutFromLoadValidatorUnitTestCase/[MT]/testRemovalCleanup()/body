@@ -1,10 +1,15 @@
 {
-  TestValidator testee=new TestValidator(null,200);
-  testee.invalidateKey("KEY1");
-  testee.invalidateKey("KEY2");
-  expectRemovalLenth(2,testee,60000l);
-  assertEquals(2,testee.getRemovalQueueLength());
-  expectRemovalLenth(2,testee,60000l);
-  assertEquals(2,testee.getRemovalQueueLength());
-  expectRemovalLenth(2,testee,60000l);
+  withCacheManager(new CacheManagerCallable(TestCacheManagerFactory.createLocalCacheManager(false)){
+    @Override public void call(){
+      TestValidator testee=new TestValidator(cm,null,200);
+      testee.invalidateKey("KEY1");
+      testee.invalidateKey("KEY2");
+      expectRemovalLenth(2,testee,60000l);
+      assertEquals(2,testee.getRemovalQueueLength());
+      expectRemovalLenth(2,testee,60000l);
+      assertEquals(2,testee.getRemovalQueueLength());
+      expectRemovalLenth(2,testee,60000l);
+    }
+  }
+);
 }

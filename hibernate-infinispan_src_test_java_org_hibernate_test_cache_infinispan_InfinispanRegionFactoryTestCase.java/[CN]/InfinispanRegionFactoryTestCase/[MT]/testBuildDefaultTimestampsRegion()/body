@@ -2,20 +2,16 @@
   final String timestamps="org.hibernate.cache.spi.UpdateTimestampsCache";
   Properties p=new Properties();
   InfinispanRegionFactory factory=createRegionFactory(p);
-  EmbeddedCacheManager manager=factory.getCacheManager();
   try {
     assertTrue(factory.getDefinedConfigurations().contains("timestamps"));
     assertTrue(factory.getTypeOverrides().get("timestamps").getCacheName().equals("timestamps"));
-    Configuration config=new Configuration();
-    config.setFetchInMemoryState(false);
-    manager.defineConfiguration("timestamps",config);
     TimestampsRegionImpl region=(TimestampsRegionImpl)factory.buildTimestampsRegion(timestamps,p);
     AdvancedCache cache=region.getCache();
-    Configuration cacheCfg=cache.getConfiguration();
-    assertEquals(EvictionStrategy.NONE,cacheCfg.getEvictionStrategy());
-    assertEquals(CacheMode.REPL_ASYNC,cacheCfg.getCacheMode());
-    assertTrue(cacheCfg.isUseLazyDeserialization());
-    assertFalse(cacheCfg.isExposeJmxStatistics());
+    Configuration cacheCfg=cache.getCacheConfiguration();
+    assertEquals(EvictionStrategy.NONE,cacheCfg.eviction().strategy());
+    assertEquals(CacheMode.REPL_ASYNC,cacheCfg.clustering().cacheMode());
+    assertTrue(cacheCfg.storeAsBinary().enabled());
+    assertFalse(cacheCfg.jmxStatistics().enabled());
   }
   finally {
     factory.stop();
