@@ -1,56 +1,10 @@
 {
-  coordinateSharedCacheCleanup(session);
-  createTemporaryTableIfNecessary(persister,session);
-  try {
-    PreparedStatement ps=null;
-    int resultCount=0;
-    try {
-      try {
-        ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(idInsertSelect,false);
-        Iterator whereParams=getIdSelectParameterSpecifications().iterator();
-        int sum=1;
-        while (whereParams.hasNext()) {
-          sum+=((ParameterSpecification)whereParams.next()).bind(ps,parameters,session,sum);
-        }
-        resultCount=ps.executeUpdate();
-      }
-  finally {
-        if (ps != null) {
-          ps.close();
-        }
-      }
-    }
- catch (    SQLException e) {
-      throw getFactory().getSQLExceptionHelper().convert(e,"could not insert/select ids for bulk update",idInsertSelect);
-    }
-    for (int i=0; i < updates.length; i++) {
-      if (updates[i] == null) {
-        continue;
-      }
-      try {
-        try {
-          ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(updates[i],false);
-          if (hqlParameters[i] != null) {
-            int position=1;
-            for (int x=0; x < hqlParameters[i].length; x++) {
-              position+=hqlParameters[i][x].bind(ps,parameters,session,position);
-            }
-          }
-          ps.executeUpdate();
-        }
-  finally {
-          if (ps != null) {
-            ps.close();
-          }
-        }
-      }
- catch (      SQLException e) {
-        throw getFactory().getSQLExceptionHelper().convert(e,"error performing bulk update",updates[i]);
-      }
-    }
-    return resultCount;
+  BulkOperationCleanupAction action=new BulkOperationCleanupAction(session,updateHandler.getTargetedQueryable());
+  if (session.isEventSource()) {
+    ((EventSource)session).getActionQueue().addAction(action);
   }
-  finally {
-    dropTemporaryTableIfNecessary(persister,session);
+ else {
+    action.getAfterTransactionCompletionProcess().doAfterTransactionCompletion(true,session);
   }
+  return updateHandler.execute(session,parameters);
 }

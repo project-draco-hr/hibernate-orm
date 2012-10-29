@@ -1,0 +1,11 @@
+{
+  TemporaryTableCreationWork work=new TemporaryTableCreationWork(persister);
+  if (shouldIsolateTemporaryTableDDL(session)) {
+    session.getTransactionCoordinator().getTransaction().createIsolationDelegate().delegateWork(work,session.getFactory().getSettings().isDataDefinitionInTransactionSupported());
+  }
+ else {
+    final Connection connection=session.getTransactionCoordinator().getJdbcCoordinator().getLogicalConnection().getShareableConnectionProxy();
+    work.execute(connection);
+    session.getTransactionCoordinator().getJdbcCoordinator().getLogicalConnection().afterStatementExecution();
+  }
+}

@@ -1,0 +1,56 @@
+{
+  prepareForUse(targetedPersister,session);
+  try {
+    PreparedStatement ps=null;
+    int resultCount=0;
+    try {
+      try {
+        ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(idInsertSelect,false);
+        int sum=1;
+        sum+=handlePrependedParametersOnIdSelection(ps,session,sum);
+        for (        ParameterSpecification parameterSpecification : idSelectParameterSpecifications) {
+          sum+=parameterSpecification.bind(ps,queryParameters,session,sum);
+        }
+        resultCount=ps.executeUpdate();
+      }
+  finally {
+        if (ps != null) {
+          ps.close();
+        }
+      }
+    }
+ catch (    SQLException e) {
+      throw convert(e,"could not insert/select ids for bulk update",idInsertSelect);
+    }
+    for (int i=0; i < updates.length; i++) {
+      if (updates[i] == null) {
+        continue;
+      }
+      try {
+        try {
+          ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(updates[i],false);
+          if (assignmentParameterSpecifications[i] != null) {
+            int position=1;
+            for (int x=0; x < assignmentParameterSpecifications[i].length; x++) {
+              position+=assignmentParameterSpecifications[i][x].bind(ps,queryParameters,session,position);
+            }
+            handleAddedParametersOnUpdate(ps,session,position);
+          }
+          ps.executeUpdate();
+        }
+  finally {
+          if (ps != null) {
+            ps.close();
+          }
+        }
+      }
+ catch (      SQLException e) {
+        throw convert(e,"error performing bulk update",updates[i]);
+      }
+    }
+    return resultCount;
+  }
+  finally {
+    releaseFromUse(targetedPersister,session);
+  }
+}

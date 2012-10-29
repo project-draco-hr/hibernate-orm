@@ -1,0 +1,40 @@
+{
+  super(factory,walker);
+  UpdateStatement updateStatement=(UpdateStatement)walker.getAST();
+  FromElement fromElement=updateStatement.getFromClause().getFromElement();
+  this.targetedPersister=fromElement.getQueryable();
+  final String bulkTargetAlias=fromElement.getTableAlias();
+  final ProcessedWhereClause processedWhereClause=processWhereClause(updateStatement.getWhereClause());
+  this.idSelectParameterSpecifications=processedWhereClause.getIdSelectParameterSpecifications();
+  this.idInsertSelect=generateIdInsertSelect(targetedPersister,bulkTargetAlias,processedWhereClause);
+  log.tracev("Generated ID-INSERT-SELECT SQL (multi-table update) : {0}",idInsertSelect);
+  String[] tableNames=targetedPersister.getConstraintOrderedTableNameClosure();
+  String[][] columnNames=targetedPersister.getContraintOrderedTableKeyColumnClosure();
+  String idSubselect=generateIdSubselect(targetedPersister);
+  updates=new String[tableNames.length];
+  assignmentParameterSpecifications=new ParameterSpecification[tableNames.length][];
+  for (int tableIndex=0; tableIndex < tableNames.length; tableIndex++) {
+    boolean affected=false;
+    final List<ParameterSpecification> parameterList=new ArrayList<ParameterSpecification>();
+    final Update update=new Update(factory().getDialect()).setTableName(tableNames[tableIndex]).setWhere("(" + StringHelper.join(", ",columnNames[tableIndex]) + ") IN ("+ idSubselect+ ")");
+    if (factory().getSettings().isCommentsEnabled()) {
+      update.setComment("bulk update");
+    }
+    final List<AssignmentSpecification> assignmentSpecifications=walker.getAssignmentSpecifications();
+    for (    AssignmentSpecification assignmentSpecification : assignmentSpecifications) {
+      if (assignmentSpecification.affectsTable(tableNames[tableIndex])) {
+        affected=true;
+        update.appendAssignmentFragment(assignmentSpecification.getSqlAssignmentFragment());
+        if (assignmentSpecification.getParameters() != null) {
+          for (int paramIndex=0; paramIndex < assignmentSpecification.getParameters().length; paramIndex++) {
+            parameterList.add(assignmentSpecification.getParameters()[paramIndex]);
+          }
+        }
+      }
+    }
+    if (affected) {
+      updates[tableIndex]=update.toStatementString();
+      assignmentParameterSpecifications[tableIndex]=parameterList.toArray(new ParameterSpecification[parameterList.size()]);
+    }
+  }
+}

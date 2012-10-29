@@ -1,43 +1,4 @@
 {
-  super(walker,null);
-  if (!walker.getSessionFactoryHelper().getFactory().getDialect().supportsTemporaryTables()) {
-    throw new HibernateException("cannot doAfterTransactionCompletion multi-table updates using dialect not supporting temp tables");
-  }
-  UpdateStatement updateStatement=(UpdateStatement)walker.getAST();
-  FromElement fromElement=updateStatement.getFromClause().getFromElement();
-  String bulkTargetAlias=fromElement.getTableAlias();
-  this.persister=fromElement.getQueryable();
-  this.idInsertSelect=generateIdInsertSelect(persister,bulkTargetAlias,updateStatement.getWhereClause());
-  LOG.tracev("Generated ID-INSERT-SELECT SQL (multi-table update) : {0}",idInsertSelect);
-  String[] tableNames=persister.getConstraintOrderedTableNameClosure();
-  String[][] columnNames=persister.getContraintOrderedTableKeyColumnClosure();
-  String idSubselect=generateIdSubselect(persister);
-  List assignmentSpecifications=walker.getAssignmentSpecifications();
-  updates=new String[tableNames.length];
-  hqlParameters=new ParameterSpecification[tableNames.length][];
-  for (int tableIndex=0; tableIndex < tableNames.length; tableIndex++) {
-    boolean affected=false;
-    List parameterList=new ArrayList();
-    Update update=new Update(getFactory().getDialect()).setTableName(tableNames[tableIndex]).setWhere("(" + StringHelper.join(", ",columnNames[tableIndex]) + ") IN ("+ idSubselect+ ")");
-    if (getFactory().getSettings().isCommentsEnabled()) {
-      update.setComment("bulk update");
-    }
-    final Iterator itr=assignmentSpecifications.iterator();
-    while (itr.hasNext()) {
-      final AssignmentSpecification specification=(AssignmentSpecification)itr.next();
-      if (specification.affectsTable(tableNames[tableIndex])) {
-        affected=true;
-        update.appendAssignmentFragment(specification.getSqlAssignmentFragment());
-        if (specification.getParameters() != null) {
-          for (int paramIndex=0; paramIndex < specification.getParameters().length; paramIndex++) {
-            parameterList.add(specification.getParameters()[paramIndex]);
-          }
-        }
-      }
-    }
-    if (affected) {
-      updates[tableIndex]=update.toStatementString();
-      hqlParameters[tableIndex]=(ParameterSpecification[])parameterList.toArray(new ParameterSpecification[0]);
-    }
-  }
+  MultiTableBulkIdStrategy strategy=walker.getSessionFactoryHelper().getFactory().getSettings().getMultiTableBulkIdStrategy();
+  this.updateHandler=strategy.buildUpdateHandler(walker.getSessionFactoryHelper().getFactory(),walker);
 }

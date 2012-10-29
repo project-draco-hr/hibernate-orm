@@ -1,0 +1,35 @@
+{
+  try {
+    Connection connection=connectionAccess.obtainConnection();
+    try {
+      Statement statement=connection.createStatement();
+      for (      Table idTableDefinition : idTableDefinitions) {
+        if (cleanUpTables) {
+          if (tableCleanUpDdl == null) {
+            tableCleanUpDdl=new ArrayList<String>();
+          }
+          tableCleanUpDdl.add(idTableDefinition.sqlDropString(dialect,null,null));
+        }
+        try {
+          statement.execute(idTableDefinition.sqlCreateString(dialect,mapping,null,null));
+        }
+ catch (        SQLException e) {
+          log.debugf("Error attempting to export id-table [%s] : %s",idTableDefinition.getName(),e.getMessage());
+        }
+      }
+    }
+ catch (    SQLException e) {
+      log.error("Unable to use JDBC Connection to create Statement",e);
+    }
+ finally {
+      try {
+        connectionAccess.releaseConnection(connection);
+      }
+ catch (      SQLException ignore) {
+      }
+    }
+  }
+ catch (  SQLException e) {
+    log.error("Unable obtain JDBC Connection",e);
+  }
+}

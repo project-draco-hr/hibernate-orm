@@ -12,6 +12,11 @@
   properties.putAll(jdbcServices.getDialect().getDefaultProperties());
   properties.putAll(props);
   settings.setJtaPlatform(serviceRegistry.getService(JtaPlatform.class));
+  MultiTableBulkIdStrategy multiTableBulkIdStrategy=serviceRegistry.getService(StrategySelector.class).resolveStrategy(MultiTableBulkIdStrategy.class,properties.getProperty(AvailableSettings.HQL_BULK_ID_STRATEGY));
+  if (multiTableBulkIdStrategy == null) {
+    multiTableBulkIdStrategy=jdbcServices.getDialect().supportsTemporaryTables() ? TemporaryTableBulkIdStrategy.INSTANCE : new PersistentTableBulkIdStrategy();
+  }
+  settings.setMultiTableBulkIdStrategy(multiTableBulkIdStrategy);
   boolean flushBeforeCompletion=ConfigurationHelper.getBoolean(AvailableSettings.FLUSH_BEFORE_COMPLETION,properties);
   if (debugEnabled) {
     LOG.debugf("Automatic flush during beforeCompletion(): %s",enabledDisabled(flushBeforeCompletion));

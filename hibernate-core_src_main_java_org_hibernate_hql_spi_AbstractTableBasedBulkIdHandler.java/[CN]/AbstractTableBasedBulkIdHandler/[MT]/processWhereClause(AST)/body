@@ -1,0 +1,17 @@
+{
+  if (whereClause.getNumberOfChildren() != 0) {
+    try {
+      SqlGenerator sqlGenerator=new SqlGenerator(sessionFactory);
+      sqlGenerator.whereClause(whereClause);
+      String userWhereClause=sqlGenerator.getSQL().substring(7);
+      List<ParameterSpecification> idSelectParameterSpecifications=sqlGenerator.getCollectedParameters();
+      return new ProcessedWhereClause(userWhereClause,idSelectParameterSpecifications);
+    }
+ catch (    RecognitionException e) {
+      throw new HibernateException("Unable to generate id select for DML operation",e);
+    }
+  }
+ else {
+    return ProcessedWhereClause.NO_WHERE_CLAUSE;
+  }
+}

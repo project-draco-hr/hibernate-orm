@@ -1,48 +1,10 @@
 {
-  coordinateSharedCacheCleanup(session);
-  createTemporaryTableIfNecessary(persister,session);
-  try {
-    PreparedStatement ps=null;
-    int resultCount=0;
-    try {
-      try {
-        ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(idInsertSelect,false);
-        Iterator paramSpecifications=getIdSelectParameterSpecifications().iterator();
-        int pos=1;
-        while (paramSpecifications.hasNext()) {
-          final ParameterSpecification paramSpec=(ParameterSpecification)paramSpecifications.next();
-          pos+=paramSpec.bind(ps,parameters,session,pos);
-        }
-        resultCount=ps.executeUpdate();
-      }
-  finally {
-        if (ps != null) {
-          ps.close();
-        }
-      }
-    }
- catch (    SQLException e) {
-      throw getFactory().getSQLExceptionHelper().convert(e,"could not insert/select ids for bulk delete",idInsertSelect);
-    }
-    for (int i=0; i < deletes.length; i++) {
-      try {
-        try {
-          ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(deletes[i],false);
-          ps.executeUpdate();
-        }
-  finally {
-          if (ps != null) {
-            ps.close();
-          }
-        }
-      }
- catch (      SQLException e) {
-        throw getFactory().getSQLExceptionHelper().convert(e,"error performing bulk delete",deletes[i]);
-      }
-    }
-    return resultCount;
+  BulkOperationCleanupAction action=new BulkOperationCleanupAction(session,deleteHandler.getTargetedQueryable());
+  if (session.isEventSource()) {
+    ((EventSource)session).getActionQueue().addAction(action);
   }
-  finally {
-    dropTemporaryTableIfNecessary(persister,session);
+ else {
+    action.getAfterTransactionCompletionProcess().doAfterTransactionCompletion(true,session);
   }
+  return deleteHandler.execute(session,parameters);
 }

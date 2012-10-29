@@ -1,0 +1,14 @@
+{
+  Table idTable=new Table(entityMapping.getTemporaryIdTableName());
+  Iterator itr=entityMapping.getIdentityTable().getPrimaryKey().getColumnIterator();
+  while (itr.hasNext()) {
+    Column column=(Column)itr.next();
+    idTable.addColumn(column.clone());
+  }
+  Column sessionIdColumn=new Column("hib_sess_id");
+  sessionIdColumn.setSqlType("CHAR(36)");
+  sessionIdColumn.setComment("Used to hold the Hibernate Session identifier");
+  idTable.addColumn(sessionIdColumn);
+  idTable.setComment("Used to hold id values for the " + entityMapping.getEntityName() + " class");
+  return idTable;
+}

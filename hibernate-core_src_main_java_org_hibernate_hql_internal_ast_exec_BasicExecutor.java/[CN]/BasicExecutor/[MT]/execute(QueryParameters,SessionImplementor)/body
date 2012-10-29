@@ -1,5 +1,11 @@
 {
-  coordinateSharedCacheCleanup(session);
+  BulkOperationCleanupAction action=new BulkOperationCleanupAction(session,persister);
+  if (session.isEventSource()) {
+    ((EventSource)session).getActionQueue().addAction(action);
+  }
+ else {
+    action.getAfterTransactionCompletionProcess().doAfterTransactionCompletion(true,session);
+  }
   PreparedStatement st=null;
   RowSelection selection=parameters.getRowSelection();
   try {
@@ -25,6 +31,6 @@
     }
   }
  catch (  SQLException sqle) {
-    throw getFactory().getSQLExceptionHelper().convert(sqle,"could not execute update query",sql);
+    throw factory.getSQLExceptionHelper().convert(sqle,"could not execute update query",sql);
   }
 }
