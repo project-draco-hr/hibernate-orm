@@ -1,7 +1,8 @@
 {
   return new TableBasedDeleteHandlerImpl(factory,walker){
     @Override protected String extraIdSelectValues(){
-      return "cast(? as char)";
+      final Dialect dialect=factory().getDialect();
+      return dialect.requiresCastingOfParametersInSelectClause() ? dialect.cast("?",Types.CHAR,36) : "?";
     }
     @Override protected String generateIdSubselect(    Queryable persister){
       return super.generateIdSubselect(persister) + " where hib_sess_id=?";
