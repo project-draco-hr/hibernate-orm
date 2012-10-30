@@ -1,3 +1,12 @@
 {
-  return (ValueBinder<X>)new MySQLGeometryValueBinder(javaTypeDescriptor);
+  return new BasicBinder<X>(javaTypeDescriptor,this){
+    @Override protected void doBind(    PreparedStatement st,    X value,    int index,    WrapperOptions options) throws SQLException {
+      WkbEncoder encoder=Wkb.newEncoder(Wkb.Dialect.MYSQL_WKB);
+      Geometry geometry=getJavaDescriptor().unwrap(value,Geometry.class,options);
+      ByteBuffer buffer=encoder.encode(geometry,ByteOrder.NDR);
+      byte[] bytes=(buffer == null ? null : buffer.toByteArray());
+      st.setBytes(index,bytes);
+    }
+  }
+;
 }

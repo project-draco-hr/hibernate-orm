@@ -1,3 +1,15 @@
 {
-  return decoder.toJTS(o);
+  ByteBuffer buffer=null;
+  if (object instanceof PGobject) {
+    buffer=ByteBuffer.from(((PGobject)object).getValue());
+  }
+ else   if (object instanceof byte[]) {
+    byte[] bytes=(byte[])object;
+    ByteBuffer.from(bytes);
+  }
+ else {
+    throw new IllegalStateException("Received object of type " + object.getClass().getCanonicalName());
+  }
+  WkbDecoder decoder=Wkb.newDecoder(Wkb.Dialect.POSTGIS_EWKB_1);
+  return JTS.to(decoder.decode(buffer));
 }

@@ -1,0 +1,12 @@
+{
+  if (object == null) {
+    return null;
+  }
+  ByteBuffer buffer=null;
+  if (object instanceof PGobject) {
+    buffer=ByteBuffer.from(((PGobject)object).getValue());
+    WkbDecoder decoder=Wkb.newDecoder(Wkb.Dialect.POSTGIS_EWKB_1);
+    return decoder.decode(buffer);
+  }
+  throw new IllegalStateException("Received object of type " + object.getClass().getCanonicalName());
+}
