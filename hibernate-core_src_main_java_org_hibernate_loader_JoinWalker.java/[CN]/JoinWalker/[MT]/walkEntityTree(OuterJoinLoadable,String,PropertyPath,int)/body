@@ -9,4 +9,13 @@
       walkComponentTree((CompositeType)type,i,0,persister,alias,path.append(persister.getSubclassPropertyName(i)),currentDepth);
     }
   }
+  final Type idType=persister.getIdentifierType();
+  if (idType.isComponentType()) {
+    final CompositeType cidType=(CompositeType)idType;
+    if (cidType.isEmbedded()) {
+      if (persister.getEntityMetamodel().getIdentifierProperty().isEmbedded()) {
+        walkComponentTree(cidType,-1,0,persister,alias,path.append(""),currentDepth);
+      }
+    }
+  }
 }
