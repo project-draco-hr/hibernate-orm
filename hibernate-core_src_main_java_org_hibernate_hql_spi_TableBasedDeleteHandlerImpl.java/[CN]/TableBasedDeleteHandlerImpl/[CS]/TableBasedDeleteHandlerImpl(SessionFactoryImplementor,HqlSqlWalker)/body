@@ -1,22 +1,3 @@
 {
-  super(factory,walker);
-  DeleteStatement deleteStatement=(DeleteStatement)walker.getAST();
-  FromElement fromElement=deleteStatement.getFromClause().getFromElement();
-  this.targetedPersister=fromElement.getQueryable();
-  final String bulkTargetAlias=fromElement.getTableAlias();
-  final ProcessedWhereClause processedWhereClause=processWhereClause(deleteStatement.getWhereClause());
-  this.idSelectParameterSpecifications=processedWhereClause.getIdSelectParameterSpecifications();
-  this.idInsertSelect=generateIdInsertSelect(targetedPersister,bulkTargetAlias,processedWhereClause);
-  log.tracev("Generated ID-INSERT-SELECT SQL (multi-table delete) : {0}",idInsertSelect);
-  String[] tableNames=targetedPersister.getConstraintOrderedTableNameClosure();
-  String[][] columnNames=targetedPersister.getContraintOrderedTableKeyColumnClosure();
-  String idSubselect=generateIdSubselect(targetedPersister);
-  deletes=new String[tableNames.length];
-  for (int i=tableNames.length - 1; i >= 0; i--) {
-    final Delete delete=new Delete().setTableName(tableNames[i]).setWhere("(" + StringHelper.join(", ",columnNames[i]) + ") IN ("+ idSubselect+ ")");
-    if (factory().getSettings().isCommentsEnabled()) {
-      delete.setComment("bulk delete");
-    }
-    deletes[i]=delete.toStatementString();
-  }
+  this(factory,walker,null,null);
 }
