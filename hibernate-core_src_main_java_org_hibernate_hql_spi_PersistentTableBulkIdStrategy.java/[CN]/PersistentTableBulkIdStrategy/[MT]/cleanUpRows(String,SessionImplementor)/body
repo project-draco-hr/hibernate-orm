@@ -1,0 +1,23 @@
+{
+  final String sql="delete from " + tableName + " where hib_sess_id=?";
+  try {
+    PreparedStatement ps=null;
+    try {
+      ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,false);
+      bindSessionIdentifier(ps,session,1);
+      ps.executeUpdate();
+    }
+  finally {
+      if (ps != null) {
+        try {
+          ps.close();
+        }
+ catch (        Throwable ignore) {
+        }
+      }
+    }
+  }
+ catch (  SQLException e) {
+    throw convert(session.getFactory(),e,"Unable to clean up id table [" + tableName + "]",sql);
+  }
+}

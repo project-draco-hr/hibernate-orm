@@ -1,0 +1,33 @@
+{
+  if (!cleanUpTables || tableCleanUpDdl == null) {
+    return;
+  }
+  try {
+    Connection connection=connectionAccess.obtainConnection();
+    try {
+      Statement statement=connection.createStatement();
+      for (      String cleanupDdl : tableCleanUpDdl) {
+        try {
+          jdbcServices.getSqlStatementLogger().logStatement(cleanupDdl);
+          statement.execute(cleanupDdl);
+        }
+ catch (        SQLException e) {
+          log.debugf("Error attempting to cleanup id-table : [%s]",e.getMessage());
+        }
+      }
+    }
+ catch (    SQLException e) {
+      log.error("Unable to use JDBC Connection to create Statement",e);
+    }
+ finally {
+      try {
+        connectionAccess.releaseConnection(connection);
+      }
+ catch (      SQLException ignore) {
+      }
+    }
+  }
+ catch (  SQLException e) {
+    log.error("Unable obtain JDBC Connection",e);
+  }
+}

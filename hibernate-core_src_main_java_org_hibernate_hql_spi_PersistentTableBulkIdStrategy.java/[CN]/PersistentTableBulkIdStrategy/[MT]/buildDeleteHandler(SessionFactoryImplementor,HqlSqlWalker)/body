@@ -1,24 +1,20 @@
 {
   return new TableBasedDeleteHandlerImpl(factory,walker){
-    @Override protected String extraIdSelectValues(){
-      final Dialect dialect=factory().getDialect();
-      return dialect.requiresCastingOfParametersInSelectClause() ? dialect.cast("?",Types.CHAR,36) : "?";
+    @Override protected void addAnyExtraIdSelectValues(    SelectValues selectClause){
+      selectClause.addParameter(Types.CHAR,36);
     }
     @Override protected String generateIdSubselect(    Queryable persister){
       return super.generateIdSubselect(persister) + " where hib_sess_id=?";
     }
     @Override protected int handlePrependedParametersOnIdSelection(    PreparedStatement ps,    SessionImplementor session,    int pos) throws SQLException {
-      if (!AbstractSessionImpl.class.isInstance(session)) {
-        throw new HibernateException("Only available on SessionImpl instances");
-      }
-      UUIDCharType.INSTANCE.set(ps,((AbstractSessionImpl)session).getSessionIdentifier(),pos,session);
+      bindSessionIdentifier(ps,session,pos);
       return 1;
     }
     @Override protected void handleAddedParametersOnDelete(    PreparedStatement ps,    SessionImplementor session) throws SQLException {
-      if (!AbstractSessionImpl.class.isInstance(session)) {
-        throw new HibernateException("Only available on SessionImpl instances");
-      }
-      UUIDCharType.INSTANCE.set(ps,((AbstractSessionImpl)session).getSessionIdentifier(),1,session);
+      bindSessionIdentifier(ps,session,1);
+    }
+    @Override protected void releaseFromUse(    Queryable persister,    SessionImplementor session){
+      cleanUpRows(determineIdTableName(persister),session);
     }
   }
 ;
