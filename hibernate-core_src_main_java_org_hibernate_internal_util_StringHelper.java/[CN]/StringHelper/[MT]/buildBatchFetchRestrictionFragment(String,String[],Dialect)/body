@@ -1,0 +1,27 @@
+{
+  if (columnNames.length == 1) {
+    return new StringBuilder(StringHelper.qualify(alias,columnNames[0])).append(" in (").append(BATCH_ID_PLACEHOLDER).append(")");
+  }
+ else {
+    if (dialect.supportsRowValueConstructorSyntaxInInList()) {
+      StringBuilder builder=new StringBuilder();
+      builder.append("(");
+      boolean firstPass=true;
+      String deliminator="";
+      for (      String columnName : columnNames) {
+        builder.append(deliminator).append(StringHelper.qualify(alias,columnName));
+        if (firstPass) {
+          firstPass=false;
+          deliminator=",";
+        }
+      }
+      builder.append(") in (");
+      builder.append(BATCH_ID_PLACEHOLDER);
+      builder.append(")");
+      return builder;
+    }
+ else {
+      return new StringBuilder("(").append(BATCH_ID_PLACEHOLDER).append(")");
+    }
+  }
+}

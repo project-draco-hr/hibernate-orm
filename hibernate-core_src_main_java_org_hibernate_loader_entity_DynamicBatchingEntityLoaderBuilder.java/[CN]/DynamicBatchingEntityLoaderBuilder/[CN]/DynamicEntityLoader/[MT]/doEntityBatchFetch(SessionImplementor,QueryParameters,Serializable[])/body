@@ -1,0 +1,32 @@
+{
+  final String sql=StringHelper.expandBatchIdPlaceholder(sqlTemplate,ids,alias,persister.getKeyColumnNames(),getFactory().getDialect());
+  try {
+    final PersistenceContext persistenceContext=session.getPersistenceContext();
+    boolean defaultReadOnlyOrig=persistenceContext.isDefaultReadOnly();
+    if (queryParameters.isReadOnlyInitialized()) {
+      persistenceContext.setDefaultReadOnly(queryParameters.isReadOnly());
+    }
+ else {
+      queryParameters.setReadOnly(persistenceContext.isDefaultReadOnly());
+    }
+    persistenceContext.beforeLoad();
+    List results;
+    try {
+      try {
+        results=doTheLoad(sql,queryParameters,session);
+      }
+  finally {
+        persistenceContext.afterLoad();
+      }
+      persistenceContext.initializeNonLazyCollections();
+      log.debug("Done batch load");
+      return results;
+    }
+  finally {
+      persistenceContext.setDefaultReadOnly(defaultReadOnlyOrig);
+    }
+  }
+ catch (  SQLException sqle) {
+    throw session.getFactory().getSQLExceptionHelper().convert(sqle,"could not load an entity batch: " + MessageHelper.infoString(getEntityPersisters()[0],ids,session.getFactory()),sql);
+  }
+}

@@ -1,0 +1,34 @@
+{
+  if (LOG.isDebugEnabled())   LOG.debugf("Batch loading collection: %s",MessageHelper.collectionInfoString(getCollectionPersisters()[0],ids,getFactory()));
+  final Type[] idTypes=new Type[ids.length];
+  Arrays.fill(idTypes,type);
+  final QueryParameters queryParameters=new QueryParameters(idTypes,ids,ids);
+  final String sql=StringHelper.expandBatchIdPlaceholder(sqlTemplate,ids,alias,collectionPersister().getKeyColumnNames(),getFactory().getDialect());
+  try {
+    final PersistenceContext persistenceContext=session.getPersistenceContext();
+    boolean defaultReadOnlyOrig=persistenceContext.isDefaultReadOnly();
+    if (queryParameters.isReadOnlyInitialized()) {
+      persistenceContext.setDefaultReadOnly(queryParameters.isReadOnly());
+    }
+ else {
+      queryParameters.setReadOnly(persistenceContext.isDefaultReadOnly());
+    }
+    persistenceContext.beforeLoad();
+    try {
+      try {
+        doTheLoad(sql,queryParameters,session);
+      }
+  finally {
+        persistenceContext.afterLoad();
+      }
+      persistenceContext.initializeNonLazyCollections();
+    }
+  finally {
+      persistenceContext.setDefaultReadOnly(defaultReadOnlyOrig);
+    }
+  }
+ catch (  SQLException e) {
+    throw getFactory().getSQLExceptionHelper().convert(e,"could not initialize a collection batch: " + MessageHelper.collectionInfoString(collectionPersister(),ids,getFactory()),sql);
+  }
+  LOG.debug("Done batch load");
+}
