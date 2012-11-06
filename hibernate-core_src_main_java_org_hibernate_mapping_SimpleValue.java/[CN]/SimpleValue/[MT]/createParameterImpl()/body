@@ -4,16 +4,8 @@
     for (int i=0; i < columns.size(); i++) {
       columnsNames[i]=((Column)columns.get(i)).getName();
     }
-    AccessType accessType=AccessType.getAccessStrategy(typeParameters.getProperty(DynamicParameterizedType.ACCESS_TYPE));
-    final Class classEntity=ReflectHelper.classForName(typeParameters.getProperty(DynamicParameterizedType.ENTITY));
-    final String propertyName=typeParameters.getProperty(DynamicParameterizedType.PROPERTY);
-    Annotation[] annotations;
-    if (accessType == AccessType.FIELD) {
-      annotations=((Field)new DirectPropertyAccessor().getGetter(classEntity,propertyName).getMember()).getAnnotations();
-    }
- else {
-      annotations=ReflectHelper.getGetter(classEntity,propertyName).getMethod().getAnnotations();
-    }
+    final XProperty xProperty=(XProperty)typeParameters.get(DynamicParameterizedType.XPROPERTY);
+    final Annotation[] annotations=xProperty.getAnnotations();
     typeParameters.put(DynamicParameterizedType.PARAMETER_TYPE,new ParameterTypeImpl(ReflectHelper.classForName(typeParameters.getProperty(DynamicParameterizedType.RETURNED_CLASS)),annotations,table.getCatalog(),table.getSchema(),table.getName(),Boolean.valueOf(typeParameters.getProperty(DynamicParameterizedType.IS_PRIMARY_KEY)),columnsNames));
   }
  catch (  ClassNotFoundException cnfe) {
