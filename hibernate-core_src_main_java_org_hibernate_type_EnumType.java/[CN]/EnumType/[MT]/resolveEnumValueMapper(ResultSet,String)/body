@@ -1,0 +1,22 @@
+{
+  if (enumValueMapper == null) {
+    try {
+      resolveEnumValueMapper(rs.getMetaData().getColumnType(rs.findColumn(name)));
+    }
+ catch (    Exception e) {
+      LOG.debugf("JDBC driver threw exception calling java.sql.ResultSetMetaData.getColumnType; " + "using fallback determination [%s] : %s",enumClass.getName(),e.getMessage());
+      try {
+        Object value=rs.getObject(name);
+        if (Number.class.isInstance(value)) {
+          treatAsOrdinal();
+        }
+ else {
+          treatAsNamed();
+        }
+      }
+ catch (      SQLException ignore) {
+        treatAsOrdinal();
+      }
+    }
+  }
+}
