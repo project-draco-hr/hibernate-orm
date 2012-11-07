@@ -1,34 +1,36 @@
 {
-  if (entityRegionMap != null) {
-    for (    final EntityRegionImpl region : entityRegionMap.values()) {
-      Caches.withinTx(region.getTransactionManager(),new Callable<Void>(){
-        @Override public Void call() throws Exception {
-          region.getCache().withFlags(Flag.CACHE_MODE_LOCAL).clear();
-          return null;
+  try {
+    if (entityRegionMap != null) {
+      for (      EntityRegionImpl region : entityRegionMap.values()) {
+        try {
+          region.getCache().stop();
+        }
+ catch (        Exception e) {
         }
       }
-);
-      region.getCache().stop();
+      entityRegionMap.clear();
     }
-    entityRegionMap.clear();
-  }
-  if (collectionRegionMap != null) {
-    for (    final CollectionRegionImpl collectionRegion : collectionRegionMap.values()) {
-      Caches.withinTx(collectionRegion.getTransactionManager(),new Callable<Void>(){
-        @Override public Void call() throws Exception {
-          collectionRegion.getCache().withFlags(Flag.CACHE_MODE_LOCAL).clear();
-          return null;
+    if (collectionRegionMap != null) {
+      for (      CollectionRegionImpl reg : collectionRegionMap.values()) {
+        try {
+          reg.getCache().stop();
+        }
+ catch (        Exception e) {
         }
       }
-);
-      collectionRegion.getCache().stop();
+      collectionRegionMap.clear();
     }
-    collectionRegionMap.clear();
   }
-  if (regionFactory != null) {
-    regionFactory.stop();
-  }
-  if (serviceRegistry != null) {
-    serviceRegistry.destroy();
+  finally {
+    try {
+      if (regionFactory != null) {
+        regionFactory.stop();
+      }
+    }
+  finally {
+      if (serviceRegistry != null) {
+        serviceRegistry.destroy();
+      }
+    }
   }
 }
