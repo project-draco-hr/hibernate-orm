@@ -2,6 +2,9 @@
   if (LOG.isTraceEnabled()) {
     LOG.tracev("Evicting {0}",MessageHelper.infoString(persister));
   }
+  if (persister.hasNaturalIdentifier()) {
+    session.getPersistenceContext().getNaturalIdHelper().handleEviction(object,persister,key.getIdentifier());
+  }
   if (persister.hasCollections()) {
     new EvictVisitor(session).process(object,persister);
   }

@@ -2,16 +2,22 @@
   if (!synchronizationEnabled) {
     return;
   }
-  if (!isTransactionInProgress()) {
+  if (entityPersister.getEntityMetamodel().hasImmutableNaturalId()) {
     return;
   }
-  if (entityPersister.getEntityMetamodel().hasImmutableNaturalId()) {
+  if (!isTransactionInProgress()) {
     return;
   }
   for (  Serializable pk : getPersistenceContext().getNaturalIdHelper().getCachedPkResolutions(entityPersister)) {
     final EntityKey entityKey=generateEntityKey(pk,entityPersister);
     final Object entity=getPersistenceContext().getEntity(entityKey);
     final EntityEntry entry=getPersistenceContext().getEntry(entity);
+    if (entry == null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Cached natural-id/pk resolution linked to null EntityEntry in persistence context : " + MessageHelper.infoString(entityPersister,pk,getFactory()));
+      }
+      continue;
+    }
     if (!entry.requiresDirtyCheck(entity)) {
       continue;
     }
