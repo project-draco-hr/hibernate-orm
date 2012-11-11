@@ -12,11 +12,14 @@
     }
     CodeIterator iter=codeAttr.iterator();
     while (iter.hasNext()) {
-      int pos=iter.next();
-      pos=transformInvokevirtualsIntoGetfields(classfile,iter,pos);
-      pos=transformInvokevirtualsIntoPutfields(classfile,iter,pos);
+      try {
+        int pos=iter.next();
+        pos=transformInvokevirtualsIntoGetfields(classfile,iter,pos);
+        pos=transformInvokevirtualsIntoPutfields(classfile,iter,pos);
+      }
+ catch (      BadBytecode e) {
+        throw new CannotCompileException(e);
+      }
     }
-    StackMapTable smt=MapMaker.make(ClassPool.getDefault(),minfo);
-    minfo.getCodeAttribute().setAttribute(smt);
   }
 }
