@@ -13,13 +13,16 @@
         Properties typeParameters=((SimpleValue)value).getTypeParameters();
         Element type_mapping=prop_mapping.addElement("type");
         type_mapping.addAttribute("name",typeName);
-        for (        Object object : typeParameters.keySet()) {
-          String keyType=(String)object;
-          String property=typeParameters.getProperty(keyType);
-          if (property != null) {
-            Element type_param=type_mapping.addElement("param");
-            type_param.addAttribute("name",keyType);
-            type_param.setText(property);
+        if ("org.hibernate.type.EnumType".equals(typeName)) {
+          mapEnumerationType(type_mapping,type,typeParameters);
+        }
+ else {
+          for (          Object object : typeParameters.keySet()) {
+            String keyType=(String)object;
+            String property=typeParameters.getProperty(keyType);
+            if (property != null) {
+              type_mapping.addElement("param").addAttribute("name",keyType).setText(property);
+            }
           }
         }
       }
