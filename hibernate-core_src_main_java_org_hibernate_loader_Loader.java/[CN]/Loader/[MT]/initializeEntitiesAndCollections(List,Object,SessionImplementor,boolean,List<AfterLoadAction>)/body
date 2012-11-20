@@ -1,0 +1,48 @@
+{
+  final CollectionPersister[] collectionPersisters=getCollectionPersisters();
+  if (collectionPersisters != null) {
+    for (int i=0; i < collectionPersisters.length; i++) {
+      if (collectionPersisters[i].isArray()) {
+        endCollectionLoad(resultSetId,session,collectionPersisters[i]);
+      }
+    }
+  }
+  final PreLoadEvent pre;
+  final PostLoadEvent post;
+  if (session.isEventSource()) {
+    pre=new PreLoadEvent((EventSource)session);
+    post=new PostLoadEvent((EventSource)session);
+  }
+ else {
+    pre=null;
+    post=null;
+  }
+  if (hydratedObjects != null) {
+    int hydratedObjectsSize=hydratedObjects.size();
+    LOG.tracev("Total objects hydrated: {0}",hydratedObjectsSize);
+    for (int i=0; i < hydratedObjectsSize; i++) {
+      TwoPhaseLoad.initializeEntity(hydratedObjects.get(i),readOnly,session,pre,post);
+    }
+  }
+  if (collectionPersisters != null) {
+    for (int i=0; i < collectionPersisters.length; i++) {
+      if (!collectionPersisters[i].isArray()) {
+        endCollectionLoad(resultSetId,session,collectionPersisters[i]);
+      }
+    }
+  }
+  if (hydratedObjects != null) {
+    for (    Object hydratedObject : hydratedObjects) {
+      TwoPhaseLoad.postLoad(hydratedObject,session,post);
+      if (afterLoadActions != null) {
+        for (        AfterLoadAction afterLoadAction : afterLoadActions) {
+          final EntityEntry entityEntry=session.getPersistenceContext().getEntry(hydratedObject);
+          if (entityEntry == null) {
+            throw new HibernateException("Could not locate EntityEntry immediately after two-phase load");
+          }
+          afterLoadAction.afterLoad(session,hydratedObject,(Loadable)entityEntry.getPersister());
+        }
+      }
+    }
+  }
+}

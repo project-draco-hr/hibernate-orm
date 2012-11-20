@@ -1,0 +1,20 @@
+{
+  final LockOptions lockOptions=parameters.getLockOptions();
+  final RowSelection rowSelection=parameters.getRowSelection();
+  final LimitHandler limitHandler=dialect.buildLimitHandler(sql,rowSelection);
+  if (LimitHelper.useLimit(limitHandler,rowSelection)) {
+    if (!dialect.supportsLockingAndPaging()) {
+      LOG.delayedLockingDueToPaging();
+      afterLoadActions.add(new AfterLoadAction(){
+        private final LockOptions originalLockOptions=lockOptions.makeCopy();
+        @Override public void afterLoad(        SessionImplementor session,        Object entity,        Loadable persister){
+          ((Session)session).buildLockRequest(originalLockOptions).lock(persister.getEntityName(),entity);
+        }
+      }
+);
+      parameters.setLockOptions(new LockOptions());
+    }
+    return true;
+  }
+  return false;
+}

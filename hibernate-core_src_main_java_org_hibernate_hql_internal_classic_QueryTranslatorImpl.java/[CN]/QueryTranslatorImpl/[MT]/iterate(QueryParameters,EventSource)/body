@@ -3,7 +3,8 @@
   long startTime=0;
   if (stats)   startTime=System.currentTimeMillis();
   try {
-    final ResultSet rs=executeQueryStatement(queryParameters,false,session);
+    final List<AfterLoadAction> afterLoadActions=new ArrayList<AfterLoadAction>();
+    final ResultSet rs=executeQueryStatement(queryParameters,false,afterLoadActions,session);
     final PreparedStatement st=(PreparedStatement)rs.getStatement();
     HolderInstantiator hi=HolderInstantiator.createClassicHolderInstantiator(holderConstructor,queryParameters.getResultTransformer());
     Iterator result=new IteratorImpl(rs,st,session,queryParameters.isReadOnly(session),returnTypes,getColumnNames(),hi);

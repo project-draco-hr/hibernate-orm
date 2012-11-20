@@ -1,10 +1,11 @@
 {
   final RowSelection selection=queryParameters.getRowSelection();
   final int maxRows=LimitHelper.hasMaxRows(selection) ? selection.getMaxRows() : Integer.MAX_VALUE;
-  final ResultSet rs=executeQueryStatement(sql,queryParameters,false,session);
+  final List<AfterLoadAction> afterLoadActions=Collections.emptyList();
+  final ResultSet rs=executeQueryStatement(sql,queryParameters,false,afterLoadActions,session);
   final Statement st=rs.getStatement();
   try {
-    processResultSet(rs,queryParameters,session,true,null,maxRows);
+    processResultSet(rs,queryParameters,session,true,null,maxRows,afterLoadActions);
   }
   finally {
     st.close();

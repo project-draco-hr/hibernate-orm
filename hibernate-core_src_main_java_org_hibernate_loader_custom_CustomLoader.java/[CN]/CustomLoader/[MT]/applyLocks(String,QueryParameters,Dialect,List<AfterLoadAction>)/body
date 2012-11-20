@@ -1,0 +1,15 @@
+{
+  final LockOptions lockOptions=parameters.getLockOptions();
+  if (lockOptions == null || (lockOptions.getLockMode() == LockMode.NONE && lockOptions.getAliasLockCount() == 0)) {
+    return sql;
+  }
+  afterLoadActions.add(new AfterLoadAction(){
+    private final LockOptions originalLockOptions=lockOptions.makeCopy();
+    @Override public void afterLoad(    SessionImplementor session,    Object entity,    Loadable persister){
+      ((Session)session).buildLockRequest(originalLockOptions).lock(persister.getEntityName(),entity);
+    }
+  }
+);
+  parameters.getLockOptions().setLockMode(LockMode.READ);
+  return sql;
+}
