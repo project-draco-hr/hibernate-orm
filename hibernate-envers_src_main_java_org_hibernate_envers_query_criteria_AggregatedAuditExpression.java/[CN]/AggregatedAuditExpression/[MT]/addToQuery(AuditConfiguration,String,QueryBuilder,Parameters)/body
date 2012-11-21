@@ -1,9 +1,10 @@
 {
   String propertyName=propertyNameGetter.get(auditCfg);
   CriteriaTools.checkPropertyNotARelation(auditCfg,entityName,propertyName);
+  Parameters subParams=parameters.addSubParameters(Parameters.AND);
   QueryBuilder subQb=qb.newSubQueryBuilder();
   for (  AuditCriterion versionsCriteria : criterions) {
-    versionsCriteria.addToQuery(auditCfg,entityName,qb,parameters);
+    versionsCriteria.addToQuery(auditCfg,entityName,qb,subParams);
     versionsCriteria.addToQuery(auditCfg,entityName,subQb,subQb.getRootParameters());
   }
 switch (mode) {
@@ -13,5 +14,5 @@ case MIN:
 case MAX:
 subQb.addProjection("max",propertyName,false);
 }
-parameters.addWhere(propertyName,"=",subQb);
+subParams.addWhere(propertyName,"=",subQb);
 }
