@@ -1,13 +1,8 @@
 {
   try {
-    Reader characterStream=value.getCharacterStream();
-    long length=value.length();
-    if (length > Integer.MAX_VALUE) {
-      return extractString(characterStream,Integer.MAX_VALUE);
-    }
- else {
-      return extractString(characterStream,(int)length);
-    }
+    final Reader characterStream=value.getCharacterStream();
+    final long length=determineLengthForBufferSizing(value);
+    return length > Integer.MAX_VALUE ? extractString(characterStream,Integer.MAX_VALUE) : extractString(characterStream,(int)length);
   }
  catch (  SQLException e) {
     throw new HibernateException("Unable to access lob stream",e);
