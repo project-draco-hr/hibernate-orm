@@ -1,21 +1,13 @@
 {
   try {
-    boolean mucked=false;
-    if (getSpecifiedMaxResults() != 1 && !(SQLQuery.class.isAssignableFrom(query.getClass()))) {
-      mucked=true;
-      query.setMaxResults(2);
-    }
-    List<X> result=query.list();
-    if (mucked) {
-      query.setMaxResults(getSpecifiedMaxResults());
-    }
+    final List<X> result=query.list();
     if (result.size() == 0) {
       NoResultException nre=new NoResultException("No entity found for query");
       getEntityManager().handlePersistenceException(nre);
       throw nre;
     }
  else     if (result.size() > 1) {
-      Set<X> uniqueResult=new HashSet<X>(result);
+      final Set<X> uniqueResult=new HashSet<X>(result);
       if (uniqueResult.size() > 1) {
         NonUniqueResultException nure=new NonUniqueResultException("result returns more than one elements");
         getEntityManager().handlePersistenceException(nure);
