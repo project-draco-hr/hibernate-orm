@@ -3,24 +3,20 @@
   if (lockOptions == null || (lockOptions.getLockMode() == LockMode.NONE && lockOptions.getAliasLockCount() == 0)) {
     return sql;
   }
-  final RowSelection rowSelection=parameters.getRowSelection();
-  final LimitHandler limitHandler=dialect.buildLimitHandler(sql,rowSelection);
-  if (LimitHelper.useLimit(limitHandler,rowSelection)) {
-    if (!dialect.supportsLockingAndPaging()) {
-      LOG.delayedLockingDueToPaging();
-      final LockOptions lockOptionsToUse=new LockOptions();
-      lockOptionsToUse.setLockMode(lockOptions.getEffectiveLockMode("this_"));
-      lockOptionsToUse.setTimeOut(lockOptions.getTimeOut());
-      lockOptionsToUse.setScope(lockOptions.getScope());
-      afterLoadActions.add(new AfterLoadAction(){
-        @Override public void afterLoad(        SessionImplementor session,        Object entity,        Loadable persister){
-          ((Session)session).buildLockRequest(lockOptionsToUse).lock(persister.getEntityName(),entity);
-        }
+  if (dialect.useFollowOnLocking()) {
+    LOG.usingFollowOnLocking();
+    final LockOptions lockOptionsToUse=new LockOptions();
+    lockOptionsToUse.setLockMode(lockOptions.getEffectiveLockMode("this_"));
+    lockOptionsToUse.setTimeOut(lockOptions.getTimeOut());
+    lockOptionsToUse.setScope(lockOptions.getScope());
+    afterLoadActions.add(new AfterLoadAction(){
+      @Override public void afterLoad(      SessionImplementor session,      Object entity,      Loadable persister){
+        ((Session)session).buildLockRequest(lockOptionsToUse).lock(persister.getEntityName(),entity);
       }
-);
-      parameters.setLockOptions(new LockOptions());
-      return sql;
     }
+);
+    parameters.setLockOptions(new LockOptions());
+    return sql;
   }
   final LockOptions locks=new LockOptions(lockOptions.getLockMode());
   locks.setScope(lockOptions.getScope());

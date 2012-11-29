@@ -1,0 +1,16 @@
+{
+  if (dialect.useFollowOnLocking()) {
+    LOG.usingFollowOnLocking();
+    final LockOptions lockOptions=parameters.getLockOptions();
+    afterLoadActions.add(new AfterLoadAction(){
+      private final LockOptions originalLockOptions=lockOptions.makeCopy();
+      @Override public void afterLoad(      SessionImplementor session,      Object entity,      Loadable persister){
+        ((Session)session).buildLockRequest(originalLockOptions).lock(persister.getEntityName(),entity);
+      }
+    }
+);
+    parameters.setLockOptions(new LockOptions());
+    return true;
+  }
+  return false;
+}
