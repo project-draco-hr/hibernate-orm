@@ -1,11 +1,13 @@
 {
   if (dialect.useFollowOnLocking()) {
     LOG.usingFollowOnLocking();
-    final LockOptions lockOptions=parameters.getLockOptions();
+    final LockMode lockMode=determineFollowOnLockMode(parameters.getLockOptions());
+    final LockOptions lockOptions=new LockOptions(lockMode);
+    lockOptions.setTimeOut(parameters.getLockOptions().getTimeOut());
+    lockOptions.setScope(parameters.getLockOptions().getScope());
     afterLoadActions.add(new AfterLoadAction(){
-      private final LockOptions originalLockOptions=lockOptions.makeCopy();
       @Override public void afterLoad(      SessionImplementor session,      Object entity,      Loadable persister){
-        ((Session)session).buildLockRequest(originalLockOptions).lock(persister.getEntityName(),entity);
+        ((Session)session).buildLockRequest(lockOptions).lock(persister.getEntityName(),entity);
       }
     }
 );
