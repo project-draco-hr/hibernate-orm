@@ -7,7 +7,17 @@
     LOG.unableToBuildEnhancementMetamodel(className);
     return classfileBuffer;
   }
-  FieldTransformer transformer=getFieldTransformer(classfile);
+  ClassPool cp=new ClassPool();
+  cp.appendSystemPath();
+  cp.appendClassPath(new ClassClassPath(this.getClass()));
+  cp.appendClassPath(new ClassClassPath(classfile.getClass()));
+  try {
+    cp.makeClassIfNew(new ByteArrayInputStream(classfileBuffer));
+  }
+ catch (  IOException e) {
+    throw new RuntimeException(e.getMessage(),e);
+  }
+  FieldTransformer transformer=getFieldTransformer(classfile,cp);
   if (transformer != null) {
     LOG.debugf("Enhancing %s",className);
     DataOutputStream out=null;
