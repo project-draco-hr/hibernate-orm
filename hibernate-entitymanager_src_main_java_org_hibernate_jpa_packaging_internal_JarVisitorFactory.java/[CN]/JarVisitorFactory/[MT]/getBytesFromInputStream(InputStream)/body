@@ -1,14 +1,10 @@
 {
-  int size;
-  byte[] tmpByte=new byte[4096];
-  byte[] entryBytes=new byte[0];
-  for (; ; ) {
-    size=inputStream.read(tmpByte);
-    if (size == -1)     break;
-    byte[] current=new byte[entryBytes.length + size];
-    System.arraycopy(entryBytes,0,current,0,entryBytes.length);
-    System.arraycopy(tmpByte,0,current,entryBytes.length,size);
-    entryBytes=current;
+  ByteArrayOutputStream buffer=new ByteArrayOutputStream();
+  int numBytes;
+  byte[] data=new byte[4096];
+  while ((numBytes=inputStream.read(data,0,data.length)) != -1) {
+    buffer.write(data,0,numBytes);
   }
-  return entryBytes;
+  buffer.flush();
+  return buffer.toByteArray();
 }
