@@ -28,14 +28,13 @@
         buf.append(" not null");
       }
     }
-    boolean useUniqueConstraint=col.isUnique() && (col.isNullable() || dialect.supportsNotNullUnique());
-    if (useUniqueConstraint) {
-      if (dialect.supportsUnique()) {
-        buf.append(" unique");
-      }
- else {
+    if (col.isUnique() && (col.isNullable() || dialect.supportsNotNullUnique())) {
+      if (dialect.supportsUniqueConstraintInCreateAlterTable()) {
         UniqueKey uk=getOrCreateUniqueKey(col.getQuotedName(dialect) + '_');
         uk.addColumn(col);
+      }
+ else       if (dialect.supportsUnique()) {
+        buf.append(" unique");
       }
     }
     if (col.hasCheckConstraint() && dialect.supportsColumnCheck()) {

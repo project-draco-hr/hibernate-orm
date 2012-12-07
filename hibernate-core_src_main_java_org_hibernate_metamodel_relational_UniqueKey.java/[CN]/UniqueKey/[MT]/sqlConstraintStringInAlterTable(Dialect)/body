@@ -1,6 +1,6 @@
 {
+  if (isCreationVetoed(dialect))   return null;
   StringBuilder buf=new StringBuilder(dialect.getAddUniqueConstraintString(getName())).append('(');
-  boolean nullable=false;
   boolean first=true;
   for (  Column column : getColumns()) {
     if (first) {
@@ -9,10 +9,7 @@
  else {
       buf.append(", ");
     }
-    if (!nullable && column.isNullable()) {
-      nullable=true;
-    }
     buf.append(column.getColumnName().encloseInQuotesIfQuoted(dialect));
   }
-  return !nullable || dialect.supportsNotNullUnique() ? buf.append(')').toString() : null;
+  return buf.append(')').toString();
 }

@@ -1,6 +1,6 @@
 {
+  if (isCreationVetoed(dialect))   return null;
   StringBuilder buf=new StringBuilder("unique (");
-  boolean hadNullableColumn=false;
   boolean first=true;
   for (  Column column : getColumns()) {
     if (first) {
@@ -9,10 +9,7 @@
  else {
       buf.append(", ");
     }
-    if (!hadNullableColumn && column.isNullable()) {
-      hadNullableColumn=true;
-    }
     buf.append(column.getColumnName().encloseInQuotesIfQuoted(dialect));
   }
-  return !hadNullableColumn || dialect.supportsNotNullUnique() ? buf.append(')').toString() : null;
+  return buf.append(')').toString();
 }
