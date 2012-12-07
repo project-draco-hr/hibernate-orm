@@ -17,7 +17,7 @@
   for (int i=0; i < tables.length; i++) {
     final String tableName=dialect.quote(normalizer.normalizeIdentifierQuoting(tables[i]));
     if (tables.length > 1) {
-      buf.append("select ").append(column).append(" from ");
+      buf.append("select max(").append(column).append(") as mx from ");
     }
     buf.append(Table.qualify(catalog,schema,tableName));
     if (i < tables.length - 1) {
@@ -26,7 +26,7 @@
   }
   if (tables.length > 1) {
     buf.insert(0,"( ").append(" ) ids_");
-    column="ids_." + column;
+    column="ids_.mx";
   }
   sql="select max(" + column + ") from "+ buf.toString();
 }
