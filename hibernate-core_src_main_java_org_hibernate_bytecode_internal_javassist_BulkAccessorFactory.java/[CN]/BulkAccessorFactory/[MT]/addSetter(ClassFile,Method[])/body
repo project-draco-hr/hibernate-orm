@@ -4,6 +4,7 @@
   String desc=GET_SETTER_DESC;
   MethodInfo mi=new MethodInfo(cp,GENERATED_SETTER_NAME,desc);
   Bytecode code=new Bytecode(cp,4,6);
+  StackMapTable stackmap=null;
   if (setters.length > 0) {
     int start, end;
     code.addIconst(0);
@@ -54,7 +55,8 @@
     end=code.currentPc();
     code.addOpcode(Opcode.RETURN);
     int throwableType_index=cp.addClassInfo(THROWABLE_CLASS_NAME);
-    code.addExceptionHandler(start,end,code.currentPc(),throwableType_index);
+    int handler_pc=code.currentPc();
+    code.addExceptionHandler(start,end,handler_pc,throwableType_index);
     code.addAstore(5);
     code.addNew(BULKEXCEPTION_CLASS_NAME);
     code.addOpcode(Opcode.DUP);
@@ -63,11 +65,22 @@
     String cons_desc="(Ljava/lang/Throwable;I)V";
     code.addInvokespecial(BULKEXCEPTION_CLASS_NAME,MethodInfo.nameInit,cons_desc);
     code.addOpcode(Opcode.ATHROW);
+    StackMapTable.Writer writer=new StackMapTable.Writer(32);
+    int[] localTags={StackMapTable.OBJECT,StackMapTable.OBJECT,StackMapTable.OBJECT,StackMapTable.INTEGER};
+    int[] localData={cp.getThisClassInfo(),cp.addClassInfo("java/lang/Object"),cp.addClassInfo("[Ljava/lang/Object;"),0};
+    int[] stackTags={StackMapTable.OBJECT};
+    int[] stackData={throwableType_index};
+    writer.fullFrame(handler_pc,localTags,localData,stackTags,stackData);
+    stackmap=writer.toStackMapTable(cp);
   }
  else {
     code.addOpcode(Opcode.RETURN);
   }
-  mi.setCodeAttribute(code.toCodeAttribute());
+  CodeAttribute ca=code.toCodeAttribute();
+  if (stackmap != null) {
+    ca.setAttribute(stackmap);
+  }
+  mi.setCodeAttribute(ca);
   mi.setAccessFlags(AccessFlag.PUBLIC);
   classfile.addMethod(mi);
 }
