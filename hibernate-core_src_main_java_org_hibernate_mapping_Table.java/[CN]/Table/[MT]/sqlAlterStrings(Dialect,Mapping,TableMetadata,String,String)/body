@@ -17,7 +17,9 @@
  else {
         alter.append(" not null");
       }
-      dialect.getUniqueDelegate().applyUnique(this,column,alter);
+      if (column.isUnique()) {
+        alter.append(dialect.getUniqueDelegate().applyUniqueToColumn(this,column));
+      }
       if (column.hasCheckConstraint() && dialect.supportsColumnCheck()) {
         alter.append(" check(").append(column.getCheckConstraint()).append(")");
       }
