@@ -40,14 +40,8 @@
         buf.append(" not null");
       }
     }
-    if (col.isUnique() && (col.isNullable() || dialect.supportsNotNullUnique())) {
-      if (dialect.supportsUniqueConstraintInCreateAlterTable()) {
-        UniqueKey uk=getOrCreateUniqueKey(col.getColumnName().encloseInQuotesIfQuoted(dialect) + '_');
-        uk.addColumn(col);
-      }
- else       if (dialect.supportsUnique()) {
-        buf.append(" unique");
-      }
+    if (col.isUnique()) {
+      buf.append(dialect.getUniqueDelegate().applyUniqueToColumn(this,col));
     }
     if (col.getCheckCondition() != null && dialect.supportsColumnCheck()) {
       buf.append(" check (").append(col.getCheckCondition()).append(")");
@@ -60,14 +54,7 @@
   if (hasPrimaryKey) {
     buf.append(", ").append(getPrimaryKey().sqlConstraintStringInCreateTable(dialect));
   }
-  if (dialect.supportsUniqueConstraintInCreateAlterTable()) {
-    for (    UniqueKey uk : uniqueKeys.values()) {
-      String constraint=uk.sqlConstraintStringInCreateTable(dialect);
-      if (constraint != null) {
-        buf.append(", ").append(constraint);
-      }
-    }
-  }
+  buf.append(dialect.getUniqueDelegate().applyUniquesToTable(this));
   if (dialect.supportsTableCheck()) {
     for (    CheckConstraint checkConstraint : checkConstraints) {
       buf.append(", check (").append(checkConstraint).append(')');
