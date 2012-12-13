@@ -6,7 +6,11 @@
   oneToOne.setForeignKeyType(constrained ? ForeignKeyDirection.FOREIGN_KEY_FROM_PARENT : ForeignKeyDirection.FOREIGN_KEY_TO_PARENT);
   initOuterJoinFetchSetting(node,oneToOne);
   initLaziness(node,oneToOne,mappings,true);
-  oneToOne.setEmbedded("true".equals(node.attributeValue("embed-xml")));
+  String embed=node.attributeValue("embed-xml");
+  if (!StringHelper.isEmpty(embed) && !"true".equals(embed)) {
+    LOG.embedXmlAttributesNoLongerSupported();
+  }
+  oneToOne.setEmbedded("true".equals(embed));
   Attribute fkNode=node.attribute("foreign-key");
   if (fkNode != null)   oneToOne.setForeignKeyName(fkNode.getValue());
   Attribute ukName=node.attribute("property-ref");
