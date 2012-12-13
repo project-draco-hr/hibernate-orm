@@ -12,7 +12,13 @@
       return (A)getSession().get(entityClass,(Serializable)primaryKey);
     }
   }
- catch (  ObjectDeletedException e) {
+ catch (  EntityNotFoundException ignored) {
+    if (LOG.isDebugEnabled()) {
+      LOG.ignoringEntityNotFound(entityClass != null ? entityClass.getName() : null,ignored);
+    }
+    return null;
+  }
+catch (  ObjectDeletedException e) {
     return null;
   }
 catch (  ObjectNotFoundException e) {
