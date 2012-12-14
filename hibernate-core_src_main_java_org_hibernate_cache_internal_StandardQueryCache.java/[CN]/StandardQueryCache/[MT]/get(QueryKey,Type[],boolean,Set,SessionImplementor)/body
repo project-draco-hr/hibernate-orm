@@ -1,17 +1,18 @@
 {
-  LOG.debugf("Checking cached query results in region: %s",cacheRegion.getName());
+  final boolean debugEnabled=LOG.isDebugEnabled();
+  if (debugEnabled)   LOG.debugf("Checking cached query results in region: %s",cacheRegion.getName());
   List cacheable=(List)cacheRegion.get(key);
-  logCachedResultDetails(key,spaces,returnTypes,cacheable);
+  if (tracing)   logCachedResultDetails(key,spaces,returnTypes,cacheable);
   if (cacheable == null) {
-    LOG.debug("Query results were not found in cache");
+    if (debugEnabled)     LOG.debug("Query results were not found in cache");
     return null;
   }
   Long timestamp=(Long)cacheable.get(0);
   if (!isNaturalKeyLookup && !isUpToDate(spaces,timestamp)) {
-    LOG.debug("Cached query results were not up-to-date");
+    if (debugEnabled)     LOG.debug("Cached query results were not up-to-date");
     return null;
   }
-  LOG.debug("Returning cached query results");
+  if (debugEnabled)   LOG.debug("Returning cached query results");
   final boolean singleResult=returnTypes.length == 1;
   for (int i=1; i < cacheable.size(); i++) {
     if (singleResult) {
@@ -30,11 +31,11 @@
  else {
         result.add(TypeHelper.assemble((Serializable[])cacheable.get(i),returnTypes,session,null));
       }
-      logCachedResultRowDetails(returnTypes,result.get(i - 1));
+      if (tracing)       logCachedResultRowDetails(returnTypes,result.get(i - 1));
     }
  catch (    RuntimeException ex) {
       if (isNaturalKeyLookup && (UnresolvableObjectException.class.isInstance(ex) || EntityNotFoundException.class.isInstance(ex))) {
-        LOG.debug("Unable to reassemble cached result set");
+        if (debugEnabled)         LOG.debug("Unable to reassemble cached result set");
         cacheRegion.evict(key);
         return null;
       }
