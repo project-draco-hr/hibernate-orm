@@ -5,8 +5,7 @@
       return buildIgnore(skip);
     }
   }
-  SkipForDialect skipForDialectAnn=Helper.locateAnnotation(SkipForDialect.class,frameworkMethod,getTestClass());
-  if (skipForDialectAnn != null) {
+  for (  SkipForDialect skipForDialectAnn : Helper.collectAnnotations(SkipForDialect.class,SkipForDialects.class,frameworkMethod,getTestClass())) {
     for (    Class<? extends Dialect> dialectClass : skipForDialectAnn.value()) {
       if (skipForDialectAnn.strictMatching()) {
         if (dialectClass.equals(dialect.getClass())) {
@@ -20,8 +19,7 @@
       }
     }
   }
-  RequiresDialect requiresDialectAnn=Helper.locateAnnotation(RequiresDialect.class,frameworkMethod,getTestClass());
-  if (requiresDialectAnn != null) {
+  for (  RequiresDialect requiresDialectAnn : Helper.collectAnnotations(RequiresDialect.class,RequiresDialects.class,frameworkMethod,getTestClass())) {
     boolean foundMatch=false;
     for (    Class<? extends Dialect> dialectClass : requiresDialectAnn.value()) {
       foundMatch=requiresDialectAnn.strictMatching() ? dialectClass.equals(dialect.getClass()) : dialectClass.isInstance(dialect);
