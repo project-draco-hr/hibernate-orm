@@ -15,12 +15,10 @@
   for (int i=1; i <= ordinalParamCount; i++) {
     ordinalParamDescriptors[i - 1]=new OrdinalParameterDescriptor(i,parameterTranslations.supportsOrdinalParameterMetadata() ? parameterTranslations.getOrdinalParameterExpectedType(i) : null,locations[i - 1]);
   }
-  Iterator itr=recognizer.getNamedParameterDescriptionMap().entrySet().iterator();
   Map<String,NamedParameterDescriptor> namedParamDescriptorMap=new HashMap<String,NamedParameterDescriptor>();
-  while (itr.hasNext()) {
-    final Map.Entry entry=(Map.Entry)itr.next();
-    final String name=(String)entry.getKey();
-    final ParamLocationRecognizer.NamedParameterDescription description=(ParamLocationRecognizer.NamedParameterDescription)entry.getValue();
+  Map<String,ParamLocationRecognizer.NamedParameterDescription> map=recognizer.getNamedParameterDescriptionMap();
+  for (  final String name : map.keySet()) {
+    final ParamLocationRecognizer.NamedParameterDescription description=map.get(name);
     namedParamDescriptorMap.put(name,new NamedParameterDescriptor(name,parameterTranslations.getNamedParameterExpectedType(name),description.buildPositionsArray(),description.isJpaStyle()));
   }
   return new ParameterMetadata(ordinalParamDescriptors,namedParamDescriptorMap);
