@@ -1,0 +1,23 @@
+{
+  EntityPersister persister=(EntityPersister)sessionFactory().getClassMetadata(MyReferenceData.class);
+  assertFalse(persister.isMutable());
+  assertTrue(persister.buildCacheEntry(null,null,null,null).isReferenceEntry());
+  assertFalse(persister.hasProxy());
+  final MyReferenceData myReferenceData=new MyReferenceData(1,"first item","abc");
+  Session s=openSession();
+  s.beginTransaction();
+  s.save(myReferenceData);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  MyReferenceData loaded=(MyReferenceData)s.load(MyReferenceData.class,1);
+  s.getTransaction().commit();
+  s.close();
+  assertTrue("The two instances were different references",myReferenceData == loaded);
+  s=openSession();
+  s.beginTransaction();
+  s.delete(myReferenceData);
+  s.getTransaction().commit();
+  s.close();
+}

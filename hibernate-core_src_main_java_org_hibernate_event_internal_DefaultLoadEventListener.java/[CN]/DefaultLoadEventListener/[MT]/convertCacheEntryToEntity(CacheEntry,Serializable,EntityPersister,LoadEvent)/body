@@ -1,0 +1,58 @@
+{
+  final EventSource session=event.getSession();
+  final SessionFactoryImplementor factory=session.getFactory();
+  final EntityPersister subclassPersister=factory.getEntityPersister(entry.getSubclass());
+  if (LOG.isTraceEnabled()) {
+    LOG.tracef("Converting second-level cache entry [%s] into entity : %s",entry,MessageHelper.infoString(persister,entityId,factory));
+  }
+  final Object entity;
+  if (entry.isReferenceEntry()) {
+    final Object optionalObject=event.getInstanceToLoad();
+    if (optionalObject != null) {
+      throw new HibernateException(String.format("Attempt to load entity [%s] from cache using provided object instance, but cache " + "is storing references",MessageHelper.infoString(persister,entityId,factory)));
+    }
+    entity=((ReferenceCacheEntryImpl)entry).getReference();
+    if (entity == null) {
+      throw new IllegalStateException("Reference cache entry contained null : " + MessageHelper.infoString(persister,entityId,factory));
+    }
+  }
+ else {
+    final Object optionalObject=event.getInstanceToLoad();
+    entity=optionalObject == null ? session.instantiate(subclassPersister,entityId) : optionalObject;
+  }
+  final EntityKey entityKey=session.generateEntityKey(entityId,subclassPersister);
+  TwoPhaseLoad.addUninitializedCachedEntity(entityKey,entity,subclassPersister,LockMode.NONE,entry.areLazyPropertiesUnfetched(),entry.getVersion(),session);
+  final PersistenceContext persistenceContext=session.getPersistenceContext();
+  final Object[] values;
+  final Object version;
+  final boolean isReadOnly;
+  if (entry.isReferenceEntry()) {
+    values=null;
+    version=null;
+    isReadOnly=true;
+  }
+ else {
+    final Type[] types=subclassPersister.getPropertyTypes();
+    values=((StandardCacheEntryImpl)entry).assemble(entity,entityId,subclassPersister,session.getInterceptor(),session);
+    if (((StandardCacheEntryImpl)entry).isDeepCopyNeeded()) {
+      TypeHelper.deepCopy(values,types,subclassPersister.getPropertyUpdateability(),values,session);
+    }
+    version=Versioning.getVersion(values,subclassPersister);
+    LOG.tracef("Cached Version : %s",version);
+    final Object proxy=persistenceContext.getProxy(entityKey);
+    if (proxy != null) {
+      isReadOnly=((HibernateProxy)proxy).getHibernateLazyInitializer().isReadOnly();
+    }
+ else {
+      isReadOnly=session.isDefaultReadOnly();
+    }
+  }
+  persistenceContext.addEntry(entity,(isReadOnly ? Status.READ_ONLY : Status.MANAGED),values,null,entityId,version,LockMode.NONE,true,subclassPersister,false,entry.areLazyPropertiesUnfetched());
+  subclassPersister.afterInitialize(entity,entry.areLazyPropertiesUnfetched(),session);
+  persistenceContext.initializeNonLazyCollections();
+  PostLoadEvent postLoadEvent=new PostLoadEvent(session).setEntity(entity).setId(entityId).setPersister(persister);
+  for (  PostLoadEventListener listener : postLoadEventListeners(session)) {
+    listener.onPostLoad(postLoadEvent);
+  }
+  return entity;
+}

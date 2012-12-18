@@ -30,7 +30,7 @@
       LOG.debugf("Adding entity to second-level cache: %s",MessageHelper.infoString(persister,id,session.getFactory()));
     }
     Object version=Versioning.getVersion(hydratedState,persister);
-    CacheEntry entry=new CacheEntry(hydratedState,persister,entityEntry.isLoadedWithLazyPropertiesUnfetched(),version,session,entity);
+    CacheEntry entry=persister.buildCacheEntry(entity,hydratedState,version,session);
     CacheKey cacheKey=session.generateCacheKey(id,persister.getIdentifierType(),persister.getRootEntityName());
     if (session.getPersistenceContext().wasInsertedDuringTransaction(persister,id)) {
       persister.getCacheAccessStrategy().update(cacheKey,persister.getCacheEntryStructure().structure(entry),version,version);

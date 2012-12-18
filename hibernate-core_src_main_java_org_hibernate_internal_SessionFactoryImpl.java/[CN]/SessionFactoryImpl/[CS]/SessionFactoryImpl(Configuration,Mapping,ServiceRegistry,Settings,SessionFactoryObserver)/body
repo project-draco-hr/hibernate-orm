@@ -68,6 +68,7 @@ class IntegratorObserver implements SessionFactoryObserver {
     }
   }
   final String cacheRegionPrefix=settings.getCacheRegionPrefix() == null ? "" : settings.getCacheRegionPrefix() + ".";
+  final PersisterFactory persisterFactory=serviceRegistry.getService(PersisterFactory.class);
   entityPersisters=new HashMap();
   Map entityAccessStrategies=new HashMap();
   Map<String,ClassMetadata> classMeta=new HashMap<String,ClassMetadata>();
@@ -107,7 +108,7 @@ class IntegratorObserver implements SessionFactoryObserver {
         }
       }
     }
-    EntityPersister cp=serviceRegistry.getService(PersisterFactory.class).createEntityPersister(model,accessStrategy,naturalIdAccessStrategy,this,mapping);
+    EntityPersister cp=persisterFactory.createEntityPersister(model,accessStrategy,naturalIdAccessStrategy,this,mapping);
     entityPersisters.put(model.getEntityName(),cp);
     classMeta.put(model.getEntityName(),cp.getClassMetadata());
   }
@@ -128,7 +129,7 @@ class IntegratorObserver implements SessionFactoryObserver {
       entityAccessStrategies.put(cacheRegionName,accessStrategy);
       cacheAccess.addCacheRegion(cacheRegionName,collectionRegion);
     }
-    CollectionPersister persister=serviceRegistry.getService(PersisterFactory.class).createCollectionPersister(cfg,model,accessStrategy,this);
+    CollectionPersister persister=persisterFactory.createCollectionPersister(cfg,model,accessStrategy,this);
     collectionPersisters.put(model.getRole(),persister);
     tmpCollectionMetadata.put(model.getRole(),persister.getCollectionMetadata());
     Type indexType=persister.getIndexType();
