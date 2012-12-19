@@ -18,7 +18,8 @@
         alter.append(" not null");
       }
       if (column.isUnique()) {
-        dialect.getUniqueDelegate().generateUniqueKey(this,column);
+        UniqueKey uk=getOrCreateUniqueKey(column.getQuotedName(dialect) + '_');
+        uk.addColumn(column);
         alter.append(dialect.getUniqueDelegate().applyUniqueToColumn(column));
       }
       if (column.hasCheckConstraint() && dialect.supportsColumnCheck()) {

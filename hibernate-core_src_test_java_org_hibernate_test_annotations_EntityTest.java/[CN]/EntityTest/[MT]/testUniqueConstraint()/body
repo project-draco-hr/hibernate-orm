@@ -9,9 +9,6 @@
   sky.color="green";
   sky.day="monday";
   sky.month="March";
-  s.persist(sky);
-  tx.commit();
-  s.close();
   Sky otherSky=new Sky();
   otherSky.id=new Long(id++);
   otherSky.color="red";
@@ -22,23 +19,15 @@
   sameSky.color="green";
   sameSky.day="monday";
   sameSky.month="March";
+  s.save(sky);
+  s.flush();
+  s.save(otherSky);
+  tx.commit();
+  s.close();
   s=openSession();
   tx=s.beginTransaction();
   try {
-    s.persist(otherSky);
-    tx.commit();
-    fail("unique constraints not respected");
-  }
- catch (  HibernateException e) {
-  }
- finally {
-    if (tx != null)     tx.rollback();
-    s.close();
-  }
-  s=openSession();
-  tx=s.beginTransaction();
-  try {
-    s.persist(sameSky);
+    s.save(sameSky);
     tx.commit();
     fail("unique constraints not respected");
   }
