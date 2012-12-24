@@ -1,0 +1,26 @@
+{
+  EntityManager em=entityManagerFactory().createEntityManager();
+  em.getTransaction().begin();
+  Book book=new Book();
+  em.persist(book);
+  em.flush();
+  em.clear();
+  Book proxy=em.getReference(Book.class,book.getId());
+  assertTrue(proxy instanceof HibernateProxy);
+  assertEquals(book.getId(),em.getEntityManagerFactory().getPersistenceUnitUtil().getIdentifier(proxy));
+  em.getTransaction().rollback();
+  em.close();
+  em=entityManagerFactory().createEntityManager();
+  em.getTransaction().begin();
+  Author author=new Author();
+  Article article=new Article(author);
+  em.persist(author);
+  em.persist(article);
+  em.flush();
+  em.clear();
+  article=em.find(Article.class,article.getId());
+  assertTrue(article.getAuthor() instanceof HibernateProxy);
+  assertEquals(author.getId(),em.getEntityManagerFactory().getPersistenceUnitUtil().getIdentifier(article.getAuthor()));
+  em.getTransaction().rollback();
+  em.close();
+}
