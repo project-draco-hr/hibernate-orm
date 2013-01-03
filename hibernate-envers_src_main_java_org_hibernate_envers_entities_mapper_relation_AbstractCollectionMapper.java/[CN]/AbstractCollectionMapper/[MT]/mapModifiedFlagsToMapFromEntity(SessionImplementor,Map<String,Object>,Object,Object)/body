@@ -1,7 +1,10 @@
 {
   PropertyData propertyData=commonCollectionMapperData.getCollectionReferencingPropertyData();
   if (propertyData.isUsingModifiedFlag()) {
-    if (isFromNullToEmptyOrFromEmptyToNull((PersistentCollection)newObj,(Serializable)oldObj)) {
+    if (isNotPersistentCollection(newObj) || isNotPersistentCollection(oldObj)) {
+      data.put(propertyData.getModifiedFlagPropertyName(),!Tools.objectsEqual(newObj,oldObj));
+    }
+ else     if (isFromNullToEmptyOrFromEmptyToNull((PersistentCollection)newObj,(Serializable)oldObj)) {
       data.put(propertyData.getModifiedFlagPropertyName(),true);
     }
  else {
