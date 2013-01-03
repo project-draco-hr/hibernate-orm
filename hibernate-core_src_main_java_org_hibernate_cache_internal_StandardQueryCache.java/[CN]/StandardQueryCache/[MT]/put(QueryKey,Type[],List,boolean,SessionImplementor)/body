@@ -3,17 +3,15 @@
     return false;
   }
   long ts=cacheRegion.nextTimestamp();
-  LOG.debugf("Caching query results in region: %s; timestamp=%s",cacheRegion.getName(),ts);
+  if (DEBUGGING)   LOG.debugf("Caching query results in region: %s; timestamp=%s",cacheRegion.getName(),ts);
   List cacheable=new ArrayList(result.size() + 1);
-  if (tracing) {
-    logCachedResultDetails(key,null,returnTypes,cacheable);
-  }
+  logCachedResultDetails(key,null,returnTypes,cacheable);
   cacheable.add(ts);
   final boolean singleResult=returnTypes.length == 1;
   for (  Object aResult : result) {
     Serializable cacheItem=singleResult ? returnTypes[0].disassemble(aResult,session,null) : TypeHelper.disassemble((Object[])aResult,returnTypes,null,session,null);
     cacheable.add(cacheItem);
-    if (tracing)     logCachedResultRowDetails(returnTypes,aResult);
+    logCachedResultRowDetails(returnTypes,aResult);
   }
   cacheRegion.put(key,cacheable);
   return true;
