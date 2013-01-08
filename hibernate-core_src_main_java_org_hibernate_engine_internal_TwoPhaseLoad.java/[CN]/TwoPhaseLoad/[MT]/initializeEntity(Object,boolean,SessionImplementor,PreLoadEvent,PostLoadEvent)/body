@@ -1,6 +1,9 @@
 {
   final PersistenceContext persistenceContext=session.getPersistenceContext();
   final EntityEntry entityEntry=persistenceContext.getEntry(entity);
+  if (entityEntry == null) {
+    throw new AssertionFailure("possible non-threadsafe access to the session");
+  }
   final EntityPersister persister=entityEntry.getPersister();
   final Serializable id=entityEntry.getId();
   doInitializeEntity(entity,entityEntry,readOnly,session,preLoadEvent,postLoadEvent);
