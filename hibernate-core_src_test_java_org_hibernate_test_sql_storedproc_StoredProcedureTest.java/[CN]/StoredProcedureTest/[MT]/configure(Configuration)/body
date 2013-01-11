@@ -1,0 +1,45 @@
+{
+  super.configure(configuration);
+  configuration.addAuxiliaryDatabaseObject(new AuxiliaryDatabaseObject(){
+    @Override public void addDialectScope(    String dialectName){
+    }
+    @Override public boolean appliesToDialect(    Dialect dialect){
+      return H2Dialect.class.isInstance(dialect);
+    }
+    @Override public String sqlCreateString(    Dialect dialect,    Mapping p,    String defaultCatalog,    String defaultSchema){
+      return "CREATE ALIAS findOneUser AS $$\n" + "import org.h2.tools.SimpleResultSet;\n" + "import java.sql.*;\n"+ "@CODE\n"+ "ResultSet findOneUser() {\n"+ "    SimpleResultSet rs = new SimpleResultSet();\n"+ "    rs.addColumn(\"ID\", Types.INTEGER, 10, 0);\n"+ "    rs.addColumn(\"NAME\", Types.VARCHAR, 255, 0);\n"+ "    rs.addRow(1, \"Steve\");\n"+ "    return rs;\n"+ "}\n"+ "$$";
+    }
+    @Override public String sqlDropString(    Dialect dialect,    String defaultCatalog,    String defaultSchema){
+      return "DROP ALIAS findUser IF EXISTS";
+    }
+  }
+);
+  configuration.addAuxiliaryDatabaseObject(new AuxiliaryDatabaseObject(){
+    @Override public void addDialectScope(    String dialectName){
+    }
+    @Override public boolean appliesToDialect(    Dialect dialect){
+      return H2Dialect.class.isInstance(dialect);
+    }
+    @Override public String sqlCreateString(    Dialect dialect,    Mapping p,    String defaultCatalog,    String defaultSchema){
+      return "CREATE ALIAS findUsers AS $$\n" + "import org.h2.tools.SimpleResultSet;\n" + "import java.sql.*;\n"+ "@CODE\n"+ "ResultSet findUsers() {\n"+ "    SimpleResultSet rs = new SimpleResultSet();\n"+ "    rs.addColumn(\"ID\", Types.INTEGER, 10, 0);\n"+ "    rs.addColumn(\"NAME\", Types.VARCHAR, 255, 0);\n"+ "    rs.addRow(1, \"Steve\");\n"+ "    rs.addRow(2, \"John\");\n"+ "    rs.addRow(3, \"Jane\");\n"+ "    return rs;\n"+ "}\n"+ "$$";
+    }
+    @Override public String sqlDropString(    Dialect dialect,    String defaultCatalog,    String defaultSchema){
+      return "DROP ALIAS findUser IF EXISTS";
+    }
+  }
+);
+  configuration.addAuxiliaryDatabaseObject(new AuxiliaryDatabaseObject(){
+    @Override public void addDialectScope(    String dialectName){
+    }
+    @Override public boolean appliesToDialect(    Dialect dialect){
+      return H2Dialect.class.isInstance(dialect);
+    }
+    @Override public String sqlCreateString(    Dialect dialect,    Mapping p,    String defaultCatalog,    String defaultSchema){
+      return "CREATE ALIAS findUserRange AS $$\n" + "import org.h2.tools.SimpleResultSet;\n" + "import java.sql.*;\n"+ "@CODE\n"+ "ResultSet findUserRange(int start, int end) {\n"+ "    SimpleResultSet rs = new SimpleResultSet();\n"+ "    rs.addColumn(\"ID\", Types.INTEGER, 10, 0);\n"+ "    rs.addColumn(\"NAME\", Types.VARCHAR, 255, 0);\n"+ "    for ( int i = start; i < end; i++ ) {\n"+ "        rs.addRow(1, \"User \" + i );\n"+ "    }\n"+ "    return rs;\n"+ "}\n"+ "$$";
+    }
+    @Override public String sqlDropString(    Dialect dialect,    String defaultCatalog,    String defaultSchema){
+      return "DROP ALIAS findUser IF EXISTS";
+    }
+  }
+);
+}

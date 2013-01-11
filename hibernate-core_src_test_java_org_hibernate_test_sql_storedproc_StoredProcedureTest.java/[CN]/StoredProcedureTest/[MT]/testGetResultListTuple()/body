@@ -1,0 +1,32 @@
+{
+  Session session=openSession();
+  session.beginTransaction();
+  Call query=session.createStoredProcedureCall("findUsers");
+  Outputs outputs=query.getOutputs();
+  assertTrue("Checking Outputs has more returns",outputs.hasMoreReturns());
+  Return nextReturn=outputs.getNextReturn();
+  assertNotNull(nextReturn);
+  ExtraAssertions.assertClassAssignability(ResultSetReturn.class,nextReturn.getClass());
+  ResultSetReturn resultSetReturn=(ResultSetReturn)nextReturn;
+  List results=resultSetReturn.getResultList();
+  assertEquals(3,results.size());
+  for (  Object result : results) {
+    ExtraAssertions.assertTyping(Object[].class,result);
+    Integer id=(Integer)((Object[])result)[0];
+    String name=(String)((Object[])result)[1];
+    if (id.equals(1)) {
+      assertEquals("Steve",name);
+    }
+ else     if (id.equals(2)) {
+      assertEquals("John",name);
+    }
+ else     if (id.equals(3)) {
+      assertEquals("Jane",name);
+    }
+ else {
+      fail("Unexpected id value found [" + id + "]");
+    }
+  }
+  session.getTransaction().commit();
+  session.close();
+}

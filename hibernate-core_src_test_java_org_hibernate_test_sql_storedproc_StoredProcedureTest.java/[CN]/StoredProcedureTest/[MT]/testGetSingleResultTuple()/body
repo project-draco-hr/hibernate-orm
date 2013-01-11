@@ -1,0 +1,17 @@
+{
+  Session session=openSession();
+  session.beginTransaction();
+  Call query=session.createStoredProcedureCall("findOneUser");
+  Outputs outputs=query.getOutputs();
+  assertTrue("Checking Outputs has more returns",outputs.hasMoreReturns());
+  Return nextReturn=outputs.getNextReturn();
+  assertNotNull(nextReturn);
+  ExtraAssertions.assertClassAssignability(ResultSetReturn.class,nextReturn.getClass());
+  ResultSetReturn resultSetReturn=(ResultSetReturn)nextReturn;
+  Object result=resultSetReturn.getSingleResult();
+  ExtraAssertions.assertTyping(Object[].class,result);
+  String name=(String)((Object[])result)[1];
+  assertEquals("Steve",name);
+  session.getTransaction().commit();
+  session.close();
+}

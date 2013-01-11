@@ -1,0 +1,30 @@
+{
+  Session session=openSession();
+  session.beginTransaction();
+{
+    Call query=session.createStoredProcedureCall("findUserRange");
+    query.registerParameter(1,Integer.class,ParameterMode.IN);
+    query.registerParameter(2,Integer.class,ParameterMode.IN).bindValue(2);
+    Outputs outputs=query.getOutputs();
+    try {
+      outputs.hasMoreReturns();
+      fail("Expecting failure due to missing parameter bind");
+    }
+ catch (    JDBCException expected) {
+    }
+  }
+{
+    Call query=session.createStoredProcedureCall("findUserRange");
+    query.registerParameter("start",Integer.class,ParameterMode.IN);
+    query.registerParameter("end",Integer.class,ParameterMode.IN).bindValue(2);
+    Outputs outputs=query.getOutputs();
+    try {
+      outputs.hasMoreReturns();
+      fail("Expecting failure due to missing parameter bind");
+    }
+ catch (    JDBCException expected) {
+    }
+  }
+  session.getTransaction().commit();
+  session.close();
+}

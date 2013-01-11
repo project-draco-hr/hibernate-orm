@@ -1,0 +1,19 @@
+{
+  if (mode == ParameterMode.IN) {
+    throw new ParameterMisuseException("IN parameter not valid for output extraction");
+  }
+ else   if (mode == ParameterMode.REF_CURSOR) {
+    throw new ParameterMisuseException("REF_CURSOR parameters should be accessed via results");
+  }
+  try {
+    if (ProcedureParameterExtractionAware.class.isInstance(hibernateType)) {
+      return (T)((ProcedureParameterExtractionAware)hibernateType).extract(statement,startIndex,session());
+    }
+ else {
+      return (T)statement.getObject(startIndex);
+    }
+  }
+ catch (  SQLException e) {
+    throw procedureCall.session().getFactory().getSQLExceptionHelper().convert(e,"Unable to extract OUT/INOUT parameter value");
+  }
+}
