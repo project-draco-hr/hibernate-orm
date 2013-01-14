@@ -1,0 +1,33 @@
+{
+  if (currentReturnDescriptor == null) {
+    final boolean isResultSet;
+    if (executed) {
+      try {
+        isResultSet=jdbcStatement.getMoreResults();
+      }
+ catch (      SQLException e) {
+        throw convert(e,"Error calling CallableStatement.getMoreResults");
+      }
+    }
+ else {
+      try {
+        isResultSet=jdbcStatement.execute();
+      }
+ catch (      SQLException e) {
+        throw convert(e,"Error calling CallableStatement.execute");
+      }
+      executed=true;
+    }
+    int updateCount=-1;
+    if (!isResultSet) {
+      try {
+        updateCount=jdbcStatement.getUpdateCount();
+      }
+ catch (      SQLException e) {
+        throw convert(e,"Error calling CallableStatement.getUpdateCount");
+      }
+    }
+    currentReturnDescriptor=buildCurrentReturnDescriptor(isResultSet,updateCount);
+  }
+  return hasMoreReturns(currentReturnDescriptor);
+}

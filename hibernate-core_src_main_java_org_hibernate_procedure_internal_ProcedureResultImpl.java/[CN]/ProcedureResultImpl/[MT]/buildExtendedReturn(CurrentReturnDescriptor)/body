@@ -1,0 +1,13 @@
+{
+  this.refCursorParamIndex++;
+  ResultSet resultSet;
+  int refCursorParamIndex=((ProcedureCurrentReturnDescriptor)returnDescriptor).refCursorParamIndex;
+  ParameterRegistrationImplementor refCursorParam=refCursorParameters[refCursorParamIndex];
+  if (refCursorParam.getName() != null) {
+    resultSet=procedureCall.getSession().getFactory().getServiceRegistry().getService(RefCursorSupport.class).getResultSet(callableStatement,refCursorParam.getName());
+  }
+ else {
+    resultSet=procedureCall.getSession().getFactory().getServiceRegistry().getService(RefCursorSupport.class).getResultSet(callableStatement,refCursorParam.getPosition());
+  }
+  return new ResultSetReturn(this,resultSet);
+}
