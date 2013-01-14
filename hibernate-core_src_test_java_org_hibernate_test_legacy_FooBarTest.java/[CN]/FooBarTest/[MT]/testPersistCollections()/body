@@ -152,34 +152,35 @@
   assertTrue(baz.getTopGlarchez().size() == 2);
   assertTrue(baz.getCascadingBars().size() == 1);
   txn.commit();
-  s2=(Session)SerializationHelper.deserialize(SerializationHelper.serialize(s));
+  final Session s3=(Session)SerializationHelper.deserialize(SerializationHelper.serialize(s));
   s.close();
-  txn2=s2.beginTransaction();
-  baz=(Baz)s2.load(Baz.class,baz.getCode());
-  assertEquals(3,((Long)s2.createQuery("select count(*) from Bar").iterate().next()).longValue());
-  s2.delete(baz);
-  s2.delete(baz.getTopGlarchez().get(Character.valueOf('G')));
-  s2.delete(baz.getTopGlarchez().get(Character.valueOf('H')));
-  int rows=s2.doReturningWork(new AbstractReturningWork<Integer>(){
+  txn2=s3.beginTransaction();
+  baz=(Baz)s3.load(Baz.class,baz.getCode());
+  assertEquals(3,((Long)s3.createQuery("select count(*) from Bar").iterate().next()).longValue());
+  s3.delete(baz);
+  s3.delete(baz.getTopGlarchez().get(Character.valueOf('G')));
+  s3.delete(baz.getTopGlarchez().get(Character.valueOf('H')));
+  int rows=s3.doReturningWork(new AbstractReturningWork<Integer>(){
     @Override public Integer execute(    Connection connection) throws SQLException {
       final String sql="update " + getDialect().openQuote() + "glarchez"+ getDialect().closeQuote()+ " set baz_map_id=null where baz_map_index='a'";
-      return connection.createStatement().executeUpdate(sql);
+      Statement st=connection.createStatement();
+      return st.executeUpdate(sql);
     }
   }
 );
   assertTrue(rows == 1);
-  assertEquals(2,doDelete(s2,"from Bar bar"));
+  assertEquals(2,doDelete(s3,"from Bar bar"));
   FooProxy[] arr=baz.getFooArray();
   assertTrue("new array of objects",arr.length == 4 && arr[1].getKey().equals(foo.getKey()));
   for (int i=1; i < arr.length; i++) {
-    if (arr[i] != null)     s2.delete(arr[i]);
+    if (arr[i] != null)     s3.delete(arr[i]);
   }
-  s2.load(Qux.class,new Long(666));
-  assertEquals(1,doDelete(s2,"from Glarch g"));
+  s3.load(Qux.class,new Long(666));
+  assertEquals(1,doDelete(s3,"from Glarch g"));
   txn2.commit();
-  s2.disconnect();
-  Session s3=(Session)SerializationHelper.deserialize(SerializationHelper.serialize(s2));
-  s2.close();
-  assertTrue(s3.load(Qux.class,new Long(666)) != null);
+  s3.disconnect();
+  Session s4=(Session)SerializationHelper.deserialize(SerializationHelper.serialize(s3));
   s3.close();
+  assertTrue(s4.load(Qux.class,new Long(666)) != null);
+  s4.close();
 }

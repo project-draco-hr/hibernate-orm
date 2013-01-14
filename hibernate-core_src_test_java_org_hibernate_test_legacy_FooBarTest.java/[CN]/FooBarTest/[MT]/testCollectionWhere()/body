@@ -13,23 +13,24 @@
   s.save(baz);
   s.getTransaction().commit();
   s.close();
-  s=openSession();
-  s.beginTransaction();
-  baz=(Baz)s.load(Baz.class,baz.getCode());
+  final Session s2=openSession();
+  s2.beginTransaction();
+  baz=(Baz)s2.load(Baz.class,baz.getCode());
   assertTrue(baz.getFooArray().length == 1);
-  assertTrue(s.createQuery("from Baz baz join baz.fooArray foo").list().size() == 1);
-  assertTrue(s.createQuery("from Foo foo").list().size() == 2);
-  assertTrue(s.createFilter(baz.getFooArray(),"").list().size() == 1);
-  doDelete(s,"from Foo foo");
+  assertTrue(s2.createQuery("from Baz baz join baz.fooArray foo").list().size() == 1);
+  assertTrue(s2.createQuery("from Foo foo").list().size() == 2);
+  assertTrue(s2.createFilter(baz.getFooArray(),"").list().size() == 1);
+  doDelete(s2,"from Foo foo");
   final String bazid=baz.getCode();
-  s.delete(baz);
-  int rows=s.doReturningWork(new AbstractReturningWork<Integer>(){
+  s2.delete(baz);
+  int rows=s2.doReturningWork(new AbstractReturningWork<Integer>(){
     @Override public Integer execute(    Connection connection) throws SQLException {
-      return connection.createStatement().executeUpdate("delete from FOO_ARRAY where id_='" + bazid + "' and i>=8");
+      Statement st=connection.createStatement();
+      return st.executeUpdate("delete from FOO_ARRAY where id_='" + bazid + "' and i>=8");
     }
   }
 );
   assertTrue(rows == 1);
-  s.getTransaction().commit();
-  s.close();
+  s2.getTransaction().commit();
+  s2.close();
 }

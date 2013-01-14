@@ -1,14 +1,14 @@
 {
-  Session session=openSession();
+  final Session session=openSession();
   session.beginTransaction();
   session.doWork(new Work(){
     @Override public void execute(    Connection connection) throws SQLException {
       PreparedStatement ps=null;
       try {
-        ps=connection.prepareStatement("INSERT INTO T_MEMBERSHIP (user_id, group_id) VALUES (?, ?)");
+        ps=((SessionImplementor)session).getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement("INSERT INTO T_MEMBERSHIP (user_id, group_id) VALUES (?, ?)");
         ps.setLong(1,52134241);
         ps.setLong(2,5342);
-        ps.executeUpdate();
+        ((SessionImplementor)session).getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().executeUpdate(ps);
         fail("INSERT should have failed");
       }
  catch (      ConstraintViolationException ignore) {
@@ -16,7 +16,7 @@
  finally {
         if (ps != null) {
           try {
-            ps.close();
+            ((SessionImplementor)session).getTransactionCoordinator().getJdbcCoordinator().release(ps);
           }
  catch (          Throwable ignore) {
           }

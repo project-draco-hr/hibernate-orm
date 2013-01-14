@@ -11,7 +11,7 @@
     PreparedStatement ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(generateIdByUniqueKeySelectString(uniquePropertyName));
     try {
       propertyType.nullSafeSet(ps,key,1,session);
-      ResultSet rs=ps.executeQuery();
+      ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(ps);
       try {
         if (!rs.next()) {
           return null;
@@ -19,11 +19,11 @@
         return (Serializable)getIdentifierType().nullSafeGet(rs,getIdentifierAliases(),session,null);
       }
   finally {
-        rs.close();
+        session.getTransactionCoordinator().getJdbcCoordinator().release(rs);
       }
     }
   finally {
-      ps.close();
+      session.getTransactionCoordinator().getJdbcCoordinator().release(ps);
     }
   }
  catch (  SQLException e) {

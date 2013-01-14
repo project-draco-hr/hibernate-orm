@@ -1,18 +1,11 @@
 {
+  session.getTransactionCoordinator().getJdbcCoordinator().release(ps);
   try {
-    ps.close();
+    session.getPersistenceContext().getLoadContexts().cleanup(resultSet);
   }
- catch (  SQLException sqle) {
-    throw session.getFactory().getSQLExceptionHelper().convert(sqle,"could not close results");
-  }
- finally {
-    try {
-      session.getPersistenceContext().getLoadContexts().cleanup(resultSet);
-    }
- catch (    Throwable ignore) {
-      if (LOG.isTraceEnabled()) {
-        LOG.tracev("Exception trying to cleanup load context : {0}",ignore.getMessage());
-      }
+ catch (  Throwable ignore) {
+    if (LOG.isTraceEnabled()) {
+      LOG.tracev("Exception trying to cleanup load context : {0}",ignore.getMessage());
     }
   }
 }

@@ -4,19 +4,19 @@
     try {
       getKeyType().nullSafeSet(st,key,1,session);
       indexOrElementType.nullSafeSet(st,indexOrElement,keyColumnNames.length + 1,session);
-      ResultSet rs=st.executeQuery();
+      ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(st);
       try {
         return rs.next();
       }
   finally {
-        rs.close();
+        session.getTransactionCoordinator().getJdbcCoordinator().release(rs);
       }
     }
  catch (    TransientObjectException e) {
       return false;
     }
  finally {
-      st.close();
+      session.getTransactionCoordinator().getJdbcCoordinator().release(st);
     }
   }
  catch (  SQLException sqle) {

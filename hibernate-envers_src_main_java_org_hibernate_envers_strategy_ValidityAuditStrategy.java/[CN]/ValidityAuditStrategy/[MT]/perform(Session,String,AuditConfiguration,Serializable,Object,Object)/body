@@ -34,7 +34,7 @@
     final String updateSql=update.toStatementString();
     int rowCount=session.doReturningWork(new ReturningWork<Integer>(){
       @Override public Integer execute(      Connection connection) throws SQLException {
-        PreparedStatement preparedStatement=connection.prepareStatement(updateSql);
+        PreparedStatement preparedStatement=sessionImplementor.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(updateSql);
         try {
           int index=1;
           final Number revisionNumber=auditCfg.getRevisionInfoNumberReader().getRevisionNumber(revision);
@@ -52,15 +52,10 @@
           index+=idType.getColumnSpan(sessionImplementor.getFactory());
           final Type revType=rootAuditedEntityQueryable.getPropertyType(auditCfg.getAuditEntCfg().getRevisionNumberPath());
           revType.nullSafeSet(preparedStatement,revisionNumber,index,sessionImplementor);
-          return preparedStatement.executeUpdate();
+          return sessionImplementor.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().executeUpdate(preparedStatement);
         }
   finally {
-          try {
-            preparedStatement.close();
-          }
- catch (          SQLException e) {
-            log.debug("Could not release prepared statement : " + e.getMessage());
-          }
+          sessionImplementor.getTransactionCoordinator().getJdbcCoordinator().release(preparedStatement);
         }
       }
     }

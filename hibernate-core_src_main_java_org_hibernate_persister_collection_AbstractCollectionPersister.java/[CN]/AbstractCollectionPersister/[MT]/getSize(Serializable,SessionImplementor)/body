@@ -3,16 +3,16 @@
     PreparedStatement st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sqlSelectSizeString);
     try {
       getKeyType().nullSafeSet(st,key,1,session);
-      ResultSet rs=st.executeQuery();
+      ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(st);
       try {
         return rs.next() ? rs.getInt(1) - baseIndex : 0;
       }
   finally {
-        rs.close();
+        session.getTransactionCoordinator().getJdbcCoordinator().release(rs);
       }
     }
   finally {
-      st.close();
+      session.getTransactionCoordinator().getJdbcCoordinator().release(st);
     }
   }
  catch (  SQLException sqle) {

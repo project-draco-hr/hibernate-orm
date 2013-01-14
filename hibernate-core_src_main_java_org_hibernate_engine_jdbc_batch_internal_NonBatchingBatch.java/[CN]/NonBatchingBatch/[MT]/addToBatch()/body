@@ -3,14 +3,9 @@
   for (  Map.Entry<String,PreparedStatement> entry : getStatements().entrySet()) {
     try {
       final PreparedStatement statement=entry.getValue();
-      final int rowCount=statement.executeUpdate();
+      final int rowCount=jdbcCoordinator.getResultSetReturn().executeUpdate(statement);
       getKey().getExpectation().verifyOutcome(rowCount,statement,0);
-      try {
-        statement.close();
-      }
- catch (      SQLException e) {
-        LOG.debug("Unable to close non-batched batch statement",e);
-      }
+      jdbcCoordinator.release(statement);
     }
  catch (    SQLException e) {
       LOG.debug("SQLException escaped proxy",e);

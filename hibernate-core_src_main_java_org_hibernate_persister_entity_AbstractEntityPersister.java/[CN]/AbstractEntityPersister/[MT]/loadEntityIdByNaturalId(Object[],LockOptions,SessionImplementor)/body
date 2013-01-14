@@ -17,7 +17,7 @@
           positions+=type.getColumnSpan(session.getFactory());
         }
       }
-      ResultSet rs=ps.executeQuery();
+      ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(ps);
       try {
         if (!rs.next()) {
           return null;
@@ -25,11 +25,11 @@
         return (Serializable)getIdentifierType().hydrate(rs,getIdentifierAliases(),session,null);
       }
   finally {
-        rs.close();
+        session.getTransactionCoordinator().getJdbcCoordinator().release(rs);
       }
     }
   finally {
-      ps.close();
+      session.getTransactionCoordinator().getJdbcCoordinator().release(ps);
     }
   }
  catch (  SQLException e) {

@@ -1,10 +1,11 @@
 {
-  Session s=openSession();
+  final Session s=openSession();
   s.beginTransaction();
   String defaultCollationName=s.doReturningWork(new ReturningWork<String>(){
     @Override public String execute(    Connection connection) throws SQLException {
       String databaseName=connection.getCatalog();
-      ResultSet rs=connection.createStatement().executeQuery("SELECT collation_name FROM sys.databases WHERE name = '" + databaseName + "';");
+      Statement st=((SessionImplementor)s).getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().createStatement();
+      ResultSet rs=((SessionImplementor)s).getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(st,"SELECT collation_name FROM sys.databases WHERE name = '" + databaseName + "';");
       while (rs.next()) {
         return rs.getString("collation_name");
       }
@@ -14,29 +15,29 @@
 );
   s.getTransaction().commit();
   s.close();
-  s=openSession();
-  String databaseName=s.doReturningWork(new ReturningWork<String>(){
+  Session s2=openSession();
+  String databaseName=s2.doReturningWork(new ReturningWork<String>(){
     @Override public String execute(    Connection connection) throws SQLException {
       return connection.getCatalog();
     }
   }
 );
-  s.createSQLQuery("ALTER DATABASE " + databaseName + " set single_user with rollback immediate").executeUpdate();
-  s.createSQLQuery("ALTER DATABASE " + databaseName + " COLLATE Latin1_General_CS_AS").executeUpdate();
-  s.createSQLQuery("ALTER DATABASE " + databaseName + " set multi_user").executeUpdate();
-  Transaction tx=s.beginTransaction();
+  s2.createSQLQuery("ALTER DATABASE " + databaseName + " set single_user with rollback immediate").executeUpdate();
+  s2.createSQLQuery("ALTER DATABASE " + databaseName + " COLLATE Latin1_General_CS_AS").executeUpdate();
+  s2.createSQLQuery("ALTER DATABASE " + databaseName + " set multi_user").executeUpdate();
+  Transaction tx=s2.beginTransaction();
   for (int i=1; i <= 20; i++) {
-    s.persist(new Product2(i,"Kit" + i));
+    s2.persist(new Product2(i,"Kit" + i));
   }
-  s.flush();
-  s.clear();
-  List list=s.createQuery("from Product2 where description like 'Kit%'").setFirstResult(2).setMaxResults(2).list();
+  s2.flush();
+  s2.clear();
+  List list=s2.createQuery("from Product2 where description like 'Kit%'").setFirstResult(2).setMaxResults(2).list();
   assertEquals(2,list.size());
   tx.rollback();
-  s.close();
-  s=openSession();
-  s.createSQLQuery("ALTER DATABASE " + databaseName + " set single_user with rollback immediate").executeUpdate();
-  s.createSQLQuery("ALTER DATABASE " + databaseName + " COLLATE "+ defaultCollationName).executeUpdate();
-  s.createSQLQuery("ALTER DATABASE " + databaseName + " set multi_user").executeUpdate();
-  s.close();
+  s2.close();
+  s2=openSession();
+  s2.createSQLQuery("ALTER DATABASE " + databaseName + " set single_user with rollback immediate").executeUpdate();
+  s2.createSQLQuery("ALTER DATABASE " + databaseName + " COLLATE "+ defaultCollationName).executeUpdate();
+  s2.createSQLQuery("ALTER DATABASE " + databaseName + " set multi_user").executeUpdate();
+  s2.close();
 }

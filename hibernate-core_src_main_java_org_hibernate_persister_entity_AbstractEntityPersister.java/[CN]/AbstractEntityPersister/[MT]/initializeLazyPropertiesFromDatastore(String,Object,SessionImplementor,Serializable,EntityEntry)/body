@@ -11,7 +11,7 @@
         if (lazySelect != null) {
           ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(lazySelect);
           getIdentifierType().nullSafeSet(ps,id,1,session);
-          rs=ps.executeQuery();
+          rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(ps);
           rs.next();
         }
         final Object[] snapshot=entry.getLoadedState();
@@ -24,13 +24,13 @@
       }
   finally {
         if (rs != null) {
-          rs.close();
+          session.getTransactionCoordinator().getJdbcCoordinator().release(rs);
         }
       }
     }
   finally {
       if (ps != null) {
-        ps.close();
+        session.getTransactionCoordinator().getJdbcCoordinator().release(ps);
       }
     }
     LOG.trace("Done initializing lazy properties");

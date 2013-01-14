@@ -1,0 +1,29 @@
+{
+  Session session=openSession();
+  SessionImplementor sessionImpl=(SessionImplementor)session;
+  JdbcCoordinator jdbcCoord=sessionImpl.getTransactionCoordinator().getJdbcCoordinator();
+  try {
+    Statement statement=jdbcCoord.getStatementPreparer().createStatement();
+    jdbcCoord.getResultSetReturn().execute(statement,"drop table SANDBOX_JDBC_TST if exists");
+    jdbcCoord.getResultSetReturn().execute(statement,"create table SANDBOX_JDBC_TST ( ID integer, NAME varchar(100) )");
+    assertTrue(jdbcCoord.hasRegisteredResources());
+    assertTrue(jdbcCoord.getLogicalConnection().isPhysicallyConnected());
+    jdbcCoord.release(statement);
+    assertFalse(jdbcCoord.hasRegisteredResources());
+    assertTrue(jdbcCoord.getLogicalConnection().isPhysicallyConnected());
+    PreparedStatement ps=jdbcCoord.getStatementPreparer().prepareStatement("insert into SANDBOX_JDBC_TST( ID, NAME ) values ( ?, ? )");
+    ps.setLong(1,1);
+    ps.setString(2,"name");
+    jdbcCoord.getResultSetReturn().execute(ps);
+    ps=jdbcCoord.getStatementPreparer().prepareStatement("select * from SANDBOX_JDBC_TST");
+    jdbcCoord.getResultSetReturn().extract(ps);
+    assertTrue(jdbcCoord.hasRegisteredResources());
+  }
+ catch (  SQLException e) {
+    fail("incorrect exception type : sqlexception");
+  }
+ finally {
+    session.close();
+  }
+  assertFalse(jdbcCoord.hasRegisteredResources());
+}

@@ -1,27 +1,27 @@
 {
-  Session session=openSession();
+  final Session session=openSession();
   session.beginTransaction();
   session.doWork(new Work(){
     public void execute(    Connection connection) throws SQLException {
       Statement statement=null;
       try {
-        statement=connection.createStatement();
+        statement=((SessionImplementor)session).getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().createStatement();
         ResultSet resultSet=null;
         try {
-          resultSet=statement.executeQuery("select * from T_JDBC_PERSON");
+          resultSet=((SessionImplementor)session).getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(statement,"select * from T_JDBC_PERSON");
         }
   finally {
-          releaseQuietly(resultSet);
+          releaseQuietly(((SessionImplementor)session),resultSet);
         }
         try {
-          resultSet=statement.executeQuery("select * from T_JDBC_BOAT");
+          ((SessionImplementor)session).getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(statement,"select * from T_JDBC_BOAT");
         }
   finally {
-          releaseQuietly(resultSet);
+          releaseQuietly(((SessionImplementor)session),resultSet);
         }
       }
   finally {
-        releaseQuietly(statement);
+        releaseQuietly(((SessionImplementor)session),statement);
       }
     }
   }

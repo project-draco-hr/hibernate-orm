@@ -1,6 +1,6 @@
 {
   try {
-    ResultSet rs=st.executeQuery();
+    ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(st);
     rs=wrapResultSetIfEnabled(rs,session);
     if (!limitHandler.supportsLimitOffset() || !LimitHelper.useLimit(limitHandler,selection)) {
       advance(rs,selection);
@@ -11,7 +11,7 @@
     return rs;
   }
  catch (  SQLException sqle) {
-    st.close();
+    session.getTransactionCoordinator().getJdbcCoordinator().release(st);
     throw sqle;
   }
 }

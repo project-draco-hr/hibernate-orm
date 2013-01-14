@@ -4,7 +4,7 @@
     try {
       getKeyType().nullSafeSet(st,key,1,session);
       getIndexType().nullSafeSet(st,incrementIndexByBase(index),keyColumnNames.length + 1,session);
-      ResultSet rs=st.executeQuery();
+      ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(st);
       try {
         if (rs.next()) {
           return getElementType().nullSafeGet(rs,elementColumnAliases,session,owner);
@@ -14,11 +14,11 @@
         }
       }
   finally {
-        rs.close();
+        session.getTransactionCoordinator().getJdbcCoordinator().release(rs);
       }
     }
   finally {
-      st.close();
+      session.getTransactionCoordinator().getJdbcCoordinator().release(st);
     }
   }
  catch (  SQLException sqle) {

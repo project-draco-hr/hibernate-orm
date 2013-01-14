@@ -10,16 +10,17 @@
   s.load(im,im.getId());
   s.getTransaction().commit();
   s.close();
-  s=openSession();
-  s.beginTransaction();
-  s.load(im,im.getId());
-  assertEquals("cached object identity",im,s.createQuery("from Immutable im where im = ?").setParameter(0,im,s.getTypeHelper().entity(Immutable.class)).uniqueResult());
-  s.doWork(new AbstractWork(){
+  final Session s2=openSession();
+  s2.beginTransaction();
+  s2.load(im,im.getId());
+  assertEquals("cached object identity",im,s2.createQuery("from Immutable im where im = ?").setParameter(0,im,s2.getTypeHelper().entity(Immutable.class)).uniqueResult());
+  s2.doWork(new AbstractWork(){
     @Override public void execute(    Connection connection) throws SQLException {
-      connection.createStatement().executeUpdate("delete from immut");
+      Statement st=connection.createStatement();
+      st.executeUpdate("delete from immut");
     }
   }
 );
-  s.getTransaction().commit();
-  s.close();
+  s2.getTransaction().commit();
+  s2.close();
 }

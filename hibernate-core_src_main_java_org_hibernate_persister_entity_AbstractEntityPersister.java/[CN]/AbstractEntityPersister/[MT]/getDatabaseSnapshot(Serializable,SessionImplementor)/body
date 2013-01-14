@@ -6,7 +6,7 @@
     PreparedStatement ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(getSQLSnapshotSelectString());
     try {
       getIdentifierType().nullSafeSet(ps,id,1,session);
-      ResultSet rs=ps.executeQuery();
+      ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(ps);
       try {
         if (!rs.next()) {
           return null;
@@ -22,11 +22,11 @@
         return values;
       }
   finally {
-        rs.close();
+        session.getTransactionCoordinator().getJdbcCoordinator().release(rs);
       }
     }
   finally {
-      ps.close();
+      session.getTransactionCoordinator().getJdbcCoordinator().release(ps);
     }
   }
  catch (  SQLException e) {

@@ -2,7 +2,7 @@
   PreparedStatement ps=null;
   try {
     ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(timestampSelectString,false);
-    ResultSet rs=ps.executeQuery();
+    ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(ps);
     rs.next();
     Timestamp ts=rs.getTimestamp(1);
     if (LOG.isTraceEnabled()) {
@@ -15,12 +15,7 @@
   }
  finally {
     if (ps != null) {
-      try {
-        ps.close();
-      }
- catch (      SQLException sqle) {
-        LOG.unableToCleanUpPreparedStatement(sqle);
-      }
+      session.getTransactionCoordinator().getJdbcCoordinator().release(ps);
     }
   }
 }

@@ -1,0 +1,41 @@
+{
+  Session session=openSession();
+  SessionImplementor sessionImpl=(SessionImplementor)session;
+  LogicalConnectionImpl logicalConnection=new LogicalConnectionImpl(null,ConnectionReleaseMode.AFTER_STATEMENT,services,new JdbcConnectionAccessImpl(services.getConnectionProvider()));
+  JdbcCoordinatorImpl jdbcCoord=new JdbcCoordinatorImpl(logicalConnection,sessionImpl.getTransactionCoordinator());
+  JournalingConnectionObserver observer=new JournalingConnectionObserver();
+  logicalConnection.addObserver(observer);
+  try {
+    PreparedStatement ps=jdbcCoord.getStatementPreparer().prepareStatement("insert into SANDBOX_JDBC_TST( ID, NAME ) values ( ?, ? )");
+    ps.setLong(1,1);
+    ps.setString(2,"name");
+    jdbcCoord.getResultSetReturn().execute(ps);
+    assertTrue(jdbcCoord.hasRegisteredResources());
+    assertEquals(1,observer.getPhysicalConnectionObtainedCount());
+    assertEquals(0,observer.getPhysicalConnectionReleasedCount());
+    jdbcCoord.release(ps);
+    assertFalse(jdbcCoord.hasRegisteredResources());
+    assertEquals(1,observer.getPhysicalConnectionObtainedCount());
+    assertEquals(1,observer.getPhysicalConnectionReleasedCount());
+    jdbcCoord.disableReleases();
+    ps=jdbcCoord.getStatementPreparer().prepareStatement("select * from SANDBOX_JDBC_TST");
+    jdbcCoord.getResultSetReturn().extract(ps);
+    assertTrue(jdbcCoord.hasRegisteredResources());
+    assertEquals(2,observer.getPhysicalConnectionObtainedCount());
+    assertEquals(1,observer.getPhysicalConnectionReleasedCount());
+    jdbcCoord.release(ps);
+    assertFalse(jdbcCoord.hasRegisteredResources());
+    assertEquals(2,observer.getPhysicalConnectionObtainedCount());
+    assertEquals(1,observer.getPhysicalConnectionReleasedCount());
+  }
+ catch (  SQLException sqle) {
+    fail("incorrect exception type : sqlexception");
+  }
+ finally {
+    jdbcCoord.close();
+    session.close();
+  }
+  assertFalse(jdbcCoord.hasRegisteredResources());
+  assertEquals(2,observer.getPhysicalConnectionObtainedCount());
+  assertEquals(2,observer.getPhysicalConnectionReleasedCount());
+}

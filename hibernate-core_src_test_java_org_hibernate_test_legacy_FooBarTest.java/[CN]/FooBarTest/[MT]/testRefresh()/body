@@ -1,5 +1,5 @@
 {
-  Session s=openSession();
+  final Session s=openSession();
   s.beginTransaction();
   Foo foo=new Foo();
   s.save(foo);
@@ -7,7 +7,8 @@
   s.doWork(new AbstractWork(){
     @Override public void execute(    Connection connection) throws SQLException {
       final String sql="update " + getDialect().openQuote() + "foos"+ getDialect().closeQuote()+ " set long_ = -3";
-      connection.createStatement().executeUpdate(sql);
+      Statement st=connection.createStatement();
+      st.executeUpdate(sql);
     }
   }
 );

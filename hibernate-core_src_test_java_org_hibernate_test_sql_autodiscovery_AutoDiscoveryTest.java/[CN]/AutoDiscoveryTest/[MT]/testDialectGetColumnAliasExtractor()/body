@@ -1,10 +1,11 @@
 {
   Session session=openSession();
+  final SessionImplementor sessionImplementor=(SessionImplementor)session;
   session.beginTransaction();
   session.doWork(new Work(){
     @Override public void execute(    Connection connection) throws SQLException {
-      PreparedStatement ps=connection.prepareStatement(QUERY_STRING);
-      ResultSet rs=ps.executeQuery();
+      PreparedStatement ps=sessionImplementor.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(QUERY_STRING);
+      ResultSet rs=sessionImplementor.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(ps);
       try {
         ResultSetMetaData metadata=rs.getMetaData();
         String column1Alias=getDialect().getColumnAliasExtractor().extractColumnAlias(metadata,1);
@@ -12,8 +13,8 @@
         Assert.assertFalse("bad dialect.getColumnAliasExtractor impl",column1Alias.equals(column2Alias));
       }
   finally {
-        rs.close();
-        ps.close();
+        sessionImplementor.getTransactionCoordinator().getJdbcCoordinator().release(rs);
+        sessionImplementor.getTransactionCoordinator().getJdbcCoordinator().release(ps);
       }
     }
   }

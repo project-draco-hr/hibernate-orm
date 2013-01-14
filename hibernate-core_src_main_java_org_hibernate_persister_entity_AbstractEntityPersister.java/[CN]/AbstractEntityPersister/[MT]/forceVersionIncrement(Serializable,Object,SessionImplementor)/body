@@ -15,13 +15,13 @@
       getVersionType().nullSafeSet(st,nextVersion,1,session);
       getIdentifierType().nullSafeSet(st,id,2,session);
       getVersionType().nullSafeSet(st,currentVersion,2 + getIdentifierColumnSpan(),session);
-      int rows=st.executeUpdate();
+      int rows=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().executeUpdate(st);
       if (rows != 1) {
         throw new StaleObjectStateException(getEntityName(),id);
       }
     }
   finally {
-      st.close();
+      session.getTransactionCoordinator().getJdbcCoordinator().release(st);
     }
   }
  catch (  SQLException sqle) {

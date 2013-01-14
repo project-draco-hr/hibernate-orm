@@ -3,8 +3,9 @@
   String tableNamePattern=generateFinalNamePattern(meta,SOME_ENTITY_TABLE_NAME);
   String columnNamePattern=generateFinalNamePattern(meta,columnName);
   ResultSet columnInfo=meta.getColumns(null,null,tableNamePattern,columnNamePattern);
+  s.getTransactionCoordinator().getJdbcCoordinator().register(columnInfo);
   assertTrue(columnInfo.next());
   int dataType=columnInfo.getInt("DATA_TYPE");
-  columnInfo.close();
+  s.getTransactionCoordinator().getJdbcCoordinator().release(columnInfo);
   assertEquals(columnName,JdbcTypeNameMapper.getTypeName(expectedJdbcTypeCode),JdbcTypeNameMapper.getTypeName(dataType));
 }

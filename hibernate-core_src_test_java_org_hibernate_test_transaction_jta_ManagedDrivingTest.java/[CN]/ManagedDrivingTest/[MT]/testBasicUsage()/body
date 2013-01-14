@@ -8,21 +8,16 @@
   final TransactionCoordinatorImpl transactionCoordinator=new TransactionCoordinatorImpl(null,transactionContext);
   final JournalingTransactionObserver transactionObserver=new JournalingTransactionObserver();
   transactionCoordinator.addObserver(transactionObserver);
-  final LogicalConnectionImplementor logicalConnection=transactionCoordinator.getJdbcCoordinator().getLogicalConnection();
-  Connection connection=logicalConnection.getShareableConnectionProxy();
-  try {
-    Statement statement=connection.createStatement();
-    statement.execute("drop table SANDBOX_JDBC_TST if exists");
-    statement.execute("create table SANDBOX_JDBC_TST ( ID integer, NAME varchar(100) )");
-    assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
-    assertTrue(logicalConnection.isPhysicallyConnected());
-    statement.close();
-    assertFalse(logicalConnection.getResourceRegistry().hasRegisteredResources());
-    assertFalse(logicalConnection.isPhysicallyConnected());
-  }
- catch (  SQLException sqle) {
-    fail("incorrect exception type : SQLException");
-  }
+  JdbcCoordinator jdbcCoordinator=transactionCoordinator.getJdbcCoordinator();
+  LogicalConnectionImplementor logicalConnection=jdbcCoordinator.getLogicalConnection();
+  Statement statement=jdbcCoordinator.getStatementPreparer().createStatement();
+  jdbcCoordinator.getResultSetReturn().execute(statement,"drop table SANDBOX_JDBC_TST if exists");
+  jdbcCoordinator.getResultSetReturn().execute(statement,"create table SANDBOX_JDBC_TST ( ID integer, NAME varchar(100) )");
+  assertTrue(jdbcCoordinator.hasRegisteredResources());
+  assertTrue(logicalConnection.isPhysicallyConnected());
+  jdbcCoordinator.release(statement);
+  assertFalse(jdbcCoordinator.hasRegisteredResources());
+  assertFalse(logicalConnection.isPhysicallyConnected());
   JtaPlatform instance=serviceRegistry.getService(JtaPlatform.class);
   TransactionManager transactionManager=instance.retrieveTransactionManager();
   transactionManager.begin();
@@ -30,27 +25,27 @@
   txn.begin();
   assertEquals(1,transactionObserver.getBegins());
   assertFalse(txn.isInitiator());
-  connection=logicalConnection.getShareableConnectionProxy();
   try {
-    PreparedStatement ps=connection.prepareStatement("insert into SANDBOX_JDBC_TST( ID, NAME ) values ( ?, ? )");
+    PreparedStatement ps=jdbcCoordinator.getStatementPreparer().prepareStatement("insert into SANDBOX_JDBC_TST( ID, NAME ) values ( ?, ? )");
     ps.setLong(1,1);
     ps.setString(2,"name");
-    ps.execute();
-    assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
-    ps.close();
-    assertFalse(logicalConnection.getResourceRegistry().hasRegisteredResources());
-    ps=connection.prepareStatement("select * from SANDBOX_JDBC_TST");
-    ps.executeQuery();
-    connection.prepareStatement("delete from SANDBOX_JDBC_TST").execute();
-    assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    jdbcCoordinator.getResultSetReturn().execute(ps);
+    assertTrue(jdbcCoordinator.hasRegisteredResources());
+    jdbcCoordinator.release(ps);
+    assertFalse(jdbcCoordinator.hasRegisteredResources());
+    ps=jdbcCoordinator.getStatementPreparer().prepareStatement("select * from SANDBOX_JDBC_TST");
+    jdbcCoordinator.getResultSetReturn().extract(ps);
+    ps=jdbcCoordinator.getStatementPreparer().prepareStatement("delete from SANDBOX_JDBC_TST");
+    jdbcCoordinator.getResultSetReturn().execute(ps);
+    assertTrue(jdbcCoordinator.hasRegisteredResources());
     assertTrue(logicalConnection.isPhysicallyConnected());
     txn.commit();
-    assertTrue(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    assertTrue(jdbcCoordinator.hasRegisteredResources());
     assertTrue(logicalConnection.isPhysicallyConnected());
     assertEquals(0,transactionObserver.getBeforeCompletions());
     assertEquals(0,transactionObserver.getAfterCompletions());
     transactionManager.commit();
-    assertFalse(logicalConnection.getResourceRegistry().hasRegisteredResources());
+    assertFalse(jdbcCoordinator.hasRegisteredResources());
     assertFalse(logicalConnection.isPhysicallyConnected());
     assertEquals(1,transactionObserver.getBeforeCompletions());
     assertEquals(1,transactionObserver.getAfterCompletions());

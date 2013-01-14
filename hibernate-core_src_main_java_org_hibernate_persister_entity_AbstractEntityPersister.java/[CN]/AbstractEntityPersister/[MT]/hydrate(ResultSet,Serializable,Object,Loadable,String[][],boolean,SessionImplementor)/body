@@ -13,7 +13,7 @@
       if (sql != null) {
         sequentialSelect=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql);
         rootPersister.getIdentifierType().nullSafeSet(sequentialSelect,id,1,session);
-        sequentialResultSet=sequentialSelect.executeQuery();
+        sequentialResultSet=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(sequentialSelect);
         if (!sequentialResultSet.next()) {
           sequentialSelectEmpty=true;
         }
@@ -44,13 +44,13 @@
       }
     }
     if (sequentialResultSet != null) {
-      sequentialResultSet.close();
+      session.getTransactionCoordinator().getJdbcCoordinator().release(sequentialResultSet);
     }
     return values;
   }
   finally {
     if (sequentialSelect != null) {
-      sequentialSelect.close();
+      session.getTransactionCoordinator().getJdbcCoordinator().release(sequentialSelect);
     }
   }
 }

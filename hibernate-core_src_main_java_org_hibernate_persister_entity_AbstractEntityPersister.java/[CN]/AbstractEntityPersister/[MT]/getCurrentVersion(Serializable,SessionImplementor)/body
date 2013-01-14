@@ -6,7 +6,7 @@
     PreparedStatement st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(getVersionSelectString());
     try {
       getIdentifierType().nullSafeSet(st,id,1,session);
-      ResultSet rs=st.executeQuery();
+      ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(st);
       try {
         if (!rs.next()) {
           return null;
@@ -17,11 +17,11 @@
         return getVersionType().nullSafeGet(rs,getVersionColumnName(),session,null);
       }
   finally {
-        rs.close();
+        session.getTransactionCoordinator().getJdbcCoordinator().release(rs);
       }
     }
   finally {
-      st.close();
+      session.getTransactionCoordinator().getJdbcCoordinator().release(st);
     }
   }
  catch (  SQLException e) {

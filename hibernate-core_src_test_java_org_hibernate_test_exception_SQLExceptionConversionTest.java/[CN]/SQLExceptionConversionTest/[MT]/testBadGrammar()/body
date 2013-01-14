@@ -1,12 +1,12 @@
 {
-  Session session=openSession();
+  final Session session=openSession();
   session.beginTransaction();
   session.doWork(new Work(){
     @Override public void execute(    Connection connection) throws SQLException {
       PreparedStatement ps=null;
       try {
-        ps=connection.prepareStatement("SELECT user_id, user_name FROM tbl_no_there");
-        ps.executeQuery();
+        ps=((SessionImplementor)session).getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement("SELECT user_id, user_name FROM tbl_no_there");
+        ((SessionImplementor)session).getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(ps);
         fail("SQL compilation should have failed");
       }
  catch (      SQLGrammarException ignored) {
@@ -14,7 +14,7 @@
  finally {
         if (ps != null) {
           try {
-            ps.close();
+            ((SessionImplementor)session).getTransactionCoordinator().getJdbcCoordinator().release(ps);
           }
  catch (          Throwable ignore) {
           }

@@ -1,4 +1,10 @@
 {
-  logicalConnection.afterTransaction();
   transactionTimeOutInstant=-1;
+  if (connectionReleaseMode() == ConnectionReleaseMode.AFTER_STATEMENT || connectionReleaseMode() == ConnectionReleaseMode.AFTER_TRANSACTION) {
+    if (hasRegisteredResources()) {
+      LOG.forcingContainerResourceCleanup();
+      releaseResources();
+    }
+    getLogicalConnection().aggressiveRelease();
+  }
 }

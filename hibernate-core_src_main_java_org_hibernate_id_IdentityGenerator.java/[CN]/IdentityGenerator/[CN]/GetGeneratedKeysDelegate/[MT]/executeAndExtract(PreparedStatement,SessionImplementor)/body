@@ -1,0 +1,13 @@
+{
+  session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().executeUpdate(insert);
+  ResultSet rs=null;
+  try {
+    rs=insert.getGeneratedKeys();
+    return IdentifierGeneratorHelper.getGeneratedIdentity(rs,persister.getRootTableKeyColumnNames()[0],persister.getIdentifierType());
+  }
+  finally {
+    if (rs != null) {
+      session.getTransactionCoordinator().getJdbcCoordinator().release(rs);
+    }
+  }
+}

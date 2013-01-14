@@ -1,21 +1,11 @@
 {
-  Connection connection=getLogicalConnection().getDistinctConnectionProxy();
+  Connection connection=getLogicalConnection().getConnection();
   try {
     T result=work.accept(new WorkExecutor<T>(),connection);
-    getLogicalConnection().afterStatementExecution();
+    afterStatementExecution();
     return result;
   }
  catch (  SQLException e) {
     throw sqlExceptionHelper().convert(e,"error executing work");
-  }
- finally {
-    try {
-      if (!connection.isClosed()) {
-        connection.close();
-      }
-    }
- catch (    SQLException e) {
-      LOG.debug("Error closing connection proxy",e);
-    }
   }
 }
