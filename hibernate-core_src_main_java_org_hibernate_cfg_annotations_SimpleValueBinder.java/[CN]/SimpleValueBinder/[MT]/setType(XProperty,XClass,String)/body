@@ -12,6 +12,7 @@
   Properties typeParameters=this.typeParameters;
   typeParameters.clear();
   String type=BinderHelper.ANNOTATION_STRING_DEFAULT;
+  final boolean isNationalized=property.isAnnotationPresent(Nationalized.class) || mappings.useNationalizedCharacterData();
   Type annType=property.getAnnotation(Type.class);
   if (annType != null) {
     setExplicitType(annType);
@@ -49,19 +50,22 @@ explicitType=type;
 }
  else if (property.isAnnotationPresent(Lob.class)) {
 if (mappings.getReflectionManager().equals(returnedClassOrElement,java.sql.Clob.class)) {
-type="clob";
+type=isNationalized ? StandardBasicTypes.NCLOB.getName() : StandardBasicTypes.CLOB.getName();
+}
+ else if (mappings.getReflectionManager().equals(returnedClassOrElement,java.sql.NClob.class)) {
+type=StandardBasicTypes.NCLOB.getName();
 }
  else if (mappings.getReflectionManager().equals(returnedClassOrElement,java.sql.Blob.class)) {
 type="blob";
 }
  else if (mappings.getReflectionManager().equals(returnedClassOrElement,String.class)) {
-type=StandardBasicTypes.MATERIALIZED_CLOB.getName();
+type=isNationalized ? StandardBasicTypes.MATERIALIZED_NCLOB.getName() : StandardBasicTypes.MATERIALIZED_CLOB.getName();
 }
  else if (mappings.getReflectionManager().equals(returnedClassOrElement,Character.class) && isArray) {
-type=CharacterArrayClobType.class.getName();
+type=isNationalized ? CharacterArrayNClobType.class.getName() : CharacterArrayClobType.class.getName();
 }
  else if (mappings.getReflectionManager().equals(returnedClassOrElement,char.class) && isArray) {
-type=PrimitiveCharacterArrayClobType.class.getName();
+type=isNationalized ? PrimitiveCharacterArrayNClobType.class.getName() : PrimitiveCharacterArrayClobType.class.getName();
 }
  else if (mappings.getReflectionManager().equals(returnedClassOrElement,Byte.class) && isArray) {
 type=WrappedMaterializedBlobType.class.getName();
@@ -85,6 +89,21 @@ throw new AnnotationException(String.format("Attribute [%s.%s] was annotated as 
 }
 type=EnumType.class.getName();
 explicitType=type;
+}
+ else if (isNationalized) {
+if (mappings.getReflectionManager().equals(returnedClassOrElement,String.class)) {
+type=StringNVarcharType.INSTANCE.getName();
+explicitType=type;
+}
+ else if (mappings.getReflectionManager().equals(returnedClassOrElement,Character.class)) {
+if (isArray) {
+type=StringNVarcharType.INSTANCE.getName();
+}
+ else {
+type=CharacterNCharType.INSTANCE.getName();
+}
+explicitType=type;
+}
 }
 if (columns == null) {
 throw new AssertionFailure("SimpleValueBinder.setColumns should be set before SimpleValueBinder.setType");

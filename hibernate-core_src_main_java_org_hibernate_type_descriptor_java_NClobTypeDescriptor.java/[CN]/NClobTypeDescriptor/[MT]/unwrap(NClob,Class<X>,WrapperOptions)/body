@@ -1,0 +1,18 @@
+{
+  if (!(NClob.class.isAssignableFrom(type) || CharacterStream.class.isAssignableFrom(type))) {
+    throw unknownUnwrap(type);
+  }
+  if (value == null) {
+    return null;
+  }
+  if (CharacterStream.class.isAssignableFrom(type)) {
+    if (NClobImplementer.class.isInstance(value)) {
+      return (X)((NClobImplementer)value).getUnderlyingStream();
+    }
+ else {
+      return (X)new CharacterStreamImpl(DataHelper.extractString(value));
+    }
+  }
+  final NClob clob=WrappedNClob.class.isInstance(value) ? ((WrappedNClob)value).getWrappedNClob() : value;
+  return (X)clob;
+}
