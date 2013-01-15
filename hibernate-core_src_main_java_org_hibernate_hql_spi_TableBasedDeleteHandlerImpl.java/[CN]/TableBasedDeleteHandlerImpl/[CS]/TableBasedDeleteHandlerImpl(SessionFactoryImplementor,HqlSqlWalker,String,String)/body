@@ -8,15 +8,20 @@
   this.idSelectParameterSpecifications=processedWhereClause.getIdSelectParameterSpecifications();
   this.idInsertSelect=generateIdInsertSelect(targetedPersister,bulkTargetAlias,processedWhereClause);
   log.tracev("Generated ID-INSERT-SELECT SQL (multi-table delete) : {0}",idInsertSelect);
+  final String idSubselect=generateIdSubselect(targetedPersister);
+  deletes=new ArrayList<String>();
+  for (  Type type : targetedPersister.getPropertyTypes()) {
+    if (type.isCollectionType()) {
+      CollectionType cType=(CollectionType)type;
+      AbstractCollectionPersister cPersister=(AbstractCollectionPersister)factory.getCollectionPersister(cType.getRole());
+      if (cPersister.isManyToMany()) {
+        deletes.add(generateDelete(cPersister.getTableName(),cPersister.getKeyColumnNames(),idSubselect));
+      }
+    }
+  }
   String[] tableNames=targetedPersister.getConstraintOrderedTableNameClosure();
   String[][] columnNames=targetedPersister.getContraintOrderedTableKeyColumnClosure();
-  String idSubselect=generateIdSubselect(targetedPersister);
-  deletes=new String[tableNames.length];
-  for (int i=tableNames.length - 1; i >= 0; i--) {
-    final Delete delete=new Delete().setTableName(tableNames[i]).setWhere("(" + StringHelper.join(", ",columnNames[i]) + ") IN ("+ idSubselect+ ")");
-    if (factory().getSettings().isCommentsEnabled()) {
-      delete.setComment("bulk delete");
-    }
-    deletes[i]=delete.toStatementString();
+  for (int i=0; i < tableNames.length; i++) {
+    deletes.add(generateDelete(tableNames[i],columnNames[i],idSubselect));
   }
 }
