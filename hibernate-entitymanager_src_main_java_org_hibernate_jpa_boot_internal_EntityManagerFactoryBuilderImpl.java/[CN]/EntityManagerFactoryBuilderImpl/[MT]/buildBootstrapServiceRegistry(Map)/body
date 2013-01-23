@@ -8,13 +8,18 @@
       bootstrapServiceRegistryBuilder.with(integrator);
     }
   }
-  ClassLoader classLoader=(ClassLoader)integrationSettings.get(org.hibernate.cfg.AvailableSettings.APP_CLASSLOADER);
-  if (classLoader != null) {
+  ClassLoader classLoader;
+  ClassLoader appClassLoader=(ClassLoader)integrationSettings.get(org.hibernate.cfg.AvailableSettings.APP_CLASSLOADER);
+  if (providedClassLoader != null) {
+    classLoader=providedClassLoader;
+  }
+ else   if (appClassLoader != null) {
+    classLoader=appClassLoader;
     integrationSettings.remove(org.hibernate.cfg.AvailableSettings.APP_CLASSLOADER);
   }
  else {
     classLoader=persistenceUnit.getClassLoader();
   }
-  bootstrapServiceRegistryBuilder.withApplicationClassLoader(classLoader);
+  bootstrapServiceRegistryBuilder.with(classLoader);
   return bootstrapServiceRegistryBuilder.build();
 }
