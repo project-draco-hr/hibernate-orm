@@ -1,0 +1,14 @@
+{
+  final AggregatedCollectionEventListener.EventEntry eventEntry=collectionListenerIntegrator.getListener().getEventEntryList().get(eventIndex);
+  final AbstractCollectionEvent event=eventEntry.getEvent();
+  assertTyping(expectedEventType,event);
+  assertEquals(expectedOwner.getClass().getName(),event.getAffectedOwnerEntityName());
+  assertEquals(expectedOwner.getId(),event.getAffectedOwnerIdOrNull());
+  if (event instanceof PreCollectionUpdateEvent || event instanceof PreCollectionRemoveEvent || event instanceof PostCollectionRecreateEvent) {
+    List<Identifiable> snapshot=(List)eventEntry.getSnapshotAtTimeOfEventHandling();
+    for (    Identifiable element : snapshot) {
+      assertEquals(expectedOwner.getClass().getName(),event.getAffectedOwnerEntityName());
+      assertEquals(expectedOwner.getId(),event.getAffectedOwnerIdOrNull());
+    }
+  }
+}
