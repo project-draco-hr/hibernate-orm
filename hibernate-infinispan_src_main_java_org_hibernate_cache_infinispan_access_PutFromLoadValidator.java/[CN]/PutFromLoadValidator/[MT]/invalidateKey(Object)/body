@@ -17,7 +17,7 @@
   RecentRemoval removal=new RecentRemoval(key,this.nakedPutInvalidationPeriod);
   recentRemovals.put(key,removal.timestamp);
   RecentRemoval toClean=null;
-  boolean attemptClean=removal.timestamp.longValue() > earliestRemovalTimestamp;
+  boolean attemptClean=removal.timestamp > earliestRemovalTimestamp;
   removalsLock.lock();
   try {
     removalsQueue.add(removal);
@@ -25,7 +25,7 @@
       if (removalsQueue.size() > 1) {
         toClean=removalsQueue.remove(0);
       }
-      earliestRemovalTimestamp=removalsQueue.get(0).timestamp.longValue();
+      earliestRemovalTimestamp=removalsQueue.get(0).timestamp;
     }
   }
   finally {
