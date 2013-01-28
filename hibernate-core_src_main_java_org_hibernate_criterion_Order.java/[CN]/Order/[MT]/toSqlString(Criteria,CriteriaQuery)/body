@@ -3,6 +3,7 @@
   Type type=criteriaQuery.getTypeUsingProjection(criteria,propertyName);
   StringBuilder fragment=new StringBuilder();
   for (int i=0; i < columns.length; i++) {
+    final StringBuilder expression=new StringBuilder();
     SessionFactoryImplementor factory=criteriaQuery.getFactory();
     boolean lower=false;
     if (ignoreCase) {
@@ -10,11 +11,11 @@
       lower=sqlType == Types.VARCHAR || sqlType == Types.CHAR || sqlType == Types.LONGVARCHAR;
     }
     if (lower) {
-      fragment.append(factory.getDialect().getLowercaseFunction()).append('(');
+      expression.append(factory.getDialect().getLowercaseFunction()).append('(');
     }
-    fragment.append(columns[i]);
-    if (lower)     fragment.append(')');
-    fragment.append(ascending ? " asc" : " desc");
+    expression.append(columns[i]);
+    if (lower)     expression.append(')');
+    fragment.append(factory.getDialect().renderOrderByElement(expression.toString(),null,ascending ? "asc" : "desc",nullPrecedence != null ? nullPrecedence : factory.getSettings().getDefaultNullPrecedence()));
     if (i < columns.length - 1)     fragment.append(", ");
   }
   return fragment.toString();
