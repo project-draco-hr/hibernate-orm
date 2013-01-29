@@ -1,9 +1,10 @@
 {
   try {
-    sources=new MetadataSources(new StandardServiceRegistryBuilder().buildServiceRegistry());
+    sources=new MetadataSources(new StandardServiceRegistryBuilder().build());
+    MetadataBuilder metadataBuilder=sources.getMetadataBuilder();
     Resources resourcesAnnotation=origFrameworkMethod.getAnnotation(Resources.class);
     if (resourcesAnnotation != null) {
-      sources.getMetadataBuilder().with(resourcesAnnotation.cacheMode());
+      metadataBuilder.with(resourcesAnnotation.cacheMode());
       for (      Class<?> annotatedClass : resourcesAnnotation.annotatedClasses()) {
         sources.addAnnotatedClass(annotatedClass);
       }
@@ -11,7 +12,7 @@
         sources.addResource(resourcesAnnotation.ormXmlPath());
       }
     }
-    meta=(MetadataImpl)sources.buildMetadata();
+    meta=(MetadataImpl)metadataBuilder.build();
   }
  catch (  final Throwable t) {
     setupError=t;

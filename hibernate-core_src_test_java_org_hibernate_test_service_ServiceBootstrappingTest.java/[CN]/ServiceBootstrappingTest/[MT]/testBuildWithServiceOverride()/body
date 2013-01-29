@@ -1,11 +1,11 @@
 {
-  StandardServiceRegistryImpl serviceRegistry=(StandardServiceRegistryImpl)new StandardServiceRegistryBuilder().applySettings(ConnectionProviderBuilder.getConnectionProviderProperties()).buildServiceRegistry();
+  StandardServiceRegistryImpl serviceRegistry=(StandardServiceRegistryImpl)new StandardServiceRegistryBuilder().applySettings(ConnectionProviderBuilder.getConnectionProviderProperties()).build();
   JdbcServices jdbcServices=serviceRegistry.getService(JdbcServices.class);
   assertTrue(jdbcServices.getDialect() instanceof H2Dialect);
   assertTrue(jdbcServices.getConnectionProvider().isUnwrappableAs(DriverManagerConnectionProviderImpl.class));
   Properties props=ConnectionProviderBuilder.getConnectionProviderProperties();
   props.setProperty(Environment.DIALECT,H2Dialect.class.getName());
-  serviceRegistry=(StandardServiceRegistryImpl)new StandardServiceRegistryBuilder().applySettings(props).addService(ConnectionProvider.class,new UserSuppliedConnectionProviderImpl()).buildServiceRegistry();
+  serviceRegistry=(StandardServiceRegistryImpl)new StandardServiceRegistryBuilder().applySettings(props).addService(ConnectionProvider.class,new UserSuppliedConnectionProviderImpl()).build();
   jdbcServices=serviceRegistry.getService(JdbcServices.class);
   assertTrue(jdbcServices.getDialect() instanceof H2Dialect);
   assertTrue(jdbcServices.getConnectionProvider().isUnwrappableAs(UserSuppliedConnectionProviderImpl.class));

@@ -1,0 +1,20 @@
+{
+  final LinkedHashSet<ClassLoader> orderedClassLoaderSet=new LinkedHashSet<ClassLoader>();
+  if (providedClassLoaders != null) {
+    for (    ClassLoader classLoader : providedClassLoaders) {
+      if (classLoader != null) {
+        orderedClassLoaderSet.add(classLoader);
+      }
+    }
+  }
+  orderedClassLoaderSet.add(ClassLoaderServiceImpl.class.getClassLoader());
+  final ClassLoader tccl=locateTCCL();
+  if (tccl != null) {
+    orderedClassLoaderSet.add(tccl);
+  }
+  final ClassLoader sysClassLoader=locateSystemClassLoader();
+  if (sysClassLoader != null) {
+    orderedClassLoaderSet.add(sysClassLoader);
+  }
+  this.aggregatedClassLoader=new AggregatedClassLoader(orderedClassLoaderSet);
+}

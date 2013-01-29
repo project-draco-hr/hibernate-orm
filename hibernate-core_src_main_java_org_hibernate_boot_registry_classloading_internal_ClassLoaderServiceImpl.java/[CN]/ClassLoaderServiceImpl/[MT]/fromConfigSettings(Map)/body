@@ -1,3 +1,14 @@
 {
-  return new ClassLoaderServiceImpl((ClassLoader)configVales.get(AvailableSettings.APP_CLASSLOADER),(ClassLoader)configVales.get(AvailableSettings.RESOURCES_CLASSLOADER),(ClassLoader)configVales.get(AvailableSettings.HIBERNATE_CLASSLOADER),(ClassLoader)configVales.get(AvailableSettings.ENVIRONMENT_CLASSLOADER));
+  final List<ClassLoader> providedClassLoaders=new ArrayList<ClassLoader>();
+  final Collection<ClassLoader> classLoaders=(Collection<ClassLoader>)configVales.get(AvailableSettings.CLASSLOADERS);
+  if (classLoaders != null) {
+    for (    ClassLoader classLoader : classLoaders) {
+      providedClassLoaders.add(classLoader);
+    }
+  }
+  addIfSet(providedClassLoaders,AvailableSettings.APP_CLASSLOADER,configVales);
+  addIfSet(providedClassLoaders,AvailableSettings.RESOURCES_CLASSLOADER,configVales);
+  addIfSet(providedClassLoaders,AvailableSettings.HIBERNATE_CLASSLOADER,configVales);
+  addIfSet(providedClassLoaders,AvailableSettings.ENVIRONMENT_CLASSLOADER,configVales);
+  return new ClassLoaderServiceImpl(providedClassLoaders);
 }
