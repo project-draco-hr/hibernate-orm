@@ -1,0 +1,18 @@
+{
+  EntityManager em=getEntityManager();
+  em.getTransaction().begin();
+  ListRefEdEntity parent=new ListRefEdEntity(1,"initial data");
+  parent.setReffering(new ArrayList<ListRefIngEntity>());
+  em.persist(parent);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  parent=em.find(ListRefEdEntity.class,parent.getId());
+  ListRefIngEntity child=new ListRefIngEntity(1,"initial data",parent);
+  em.persist(child);
+  parent.setData("updated data");
+  parent=em.merge(parent);
+  em.getTransaction().commit();
+  parentId=parent.getId();
+  childId=child.getId();
+  em.close();
+}
