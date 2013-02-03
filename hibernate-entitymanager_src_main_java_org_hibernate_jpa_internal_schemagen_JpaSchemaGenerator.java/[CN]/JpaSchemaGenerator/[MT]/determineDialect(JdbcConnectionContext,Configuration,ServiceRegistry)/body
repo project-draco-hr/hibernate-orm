@@ -1,0 +1,20 @@
+{
+  final String explicitDbName=hibernateConfiguration.getProperty(AvailableSettings.SCHEMA_GEN_DB_NAME);
+  final String explicitDbMajor=hibernateConfiguration.getProperty(AvailableSettings.SCHEMA_GEN_DB_MAJOR_VERSION);
+  final String explicitDbMinor=hibernateConfiguration.getProperty(AvailableSettings.SCHEMA_GEN_DB_MINOR_VERSION);
+  if (StringHelper.isNotEmpty(explicitDbName)) {
+    serviceRegistry.getService(DatabaseInfoDialectResolver.class).resolve(new DatabaseInfoDialectResolver.DatabaseInfo(){
+      @Override public String getDatabaseName(){
+        return explicitDbName;
+      }
+      @Override public int getDatabaseMajorVersion(){
+        return StringHelper.isEmpty(explicitDbMajor) ? NO_VERSION : Integer.parseInt(explicitDbMajor);
+      }
+      @Override public int getDatabaseMinorVersion(){
+        return StringHelper.isEmpty(explicitDbMinor) ? NO_VERSION : Integer.parseInt(explicitDbMinor);
+      }
+    }
+);
+  }
+  return serviceRegistry.getService(JdbcServices.class).getDialect();
+}

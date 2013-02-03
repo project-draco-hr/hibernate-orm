@@ -1,0 +1,37 @@
+{
+  final Connection providedConnection=(Connection)hibernateConfiguration.getProperties().get(AvailableSettings.SCHEMA_GEN_CONNECTION);
+  if (providedConnection != null) {
+    return new JdbcConnectionContext(new JdbcConnectionAccess(){
+      @Override public Connection obtainConnection() throws SQLException {
+        return providedConnection;
+      }
+      @Override public void releaseConnection(      Connection connection) throws SQLException {
+      }
+      @Override public boolean supportsAggressiveRelease(){
+        return false;
+      }
+    }
+);
+  }
+  final ConnectionProvider connectionProvider=serviceRegistry.getService(ConnectionProvider.class);
+  if (connectionProvider != null) {
+    return new JdbcConnectionContext(new JdbcConnectionAccess(){
+      @Override public Connection obtainConnection() throws SQLException {
+        return connectionProvider.getConnection();
+      }
+      @Override public void releaseConnection(      Connection connection) throws SQLException {
+        connectionProvider.closeConnection(connection);
+      }
+      @Override public boolean supportsAggressiveRelease(){
+        return connectionProvider.supportsAggressiveRelease();
+      }
+    }
+);
+  }
+  return new JdbcConnectionContext(null){
+    @Override public Connection getJdbcConnection(){
+      throw new PersistenceException("No connection information supplied");
+    }
+  }
+;
+}

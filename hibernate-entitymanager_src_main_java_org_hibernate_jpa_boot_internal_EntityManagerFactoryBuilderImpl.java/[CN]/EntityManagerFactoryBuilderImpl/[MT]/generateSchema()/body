@@ -1,0 +1,14 @@
+{
+  processProperties();
+  final ServiceRegistry serviceRegistry=buildServiceRegistry();
+  final ClassLoaderService classLoaderService=serviceRegistry.getService(ClassLoaderService.class);
+  ((ClassLoaderServiceImpl)classLoaderService).withTccl(new ClassLoaderServiceImpl.Work(){
+    @Override public Object perform(){
+      final Configuration hibernateConfiguration=buildHibernateConfiguration(serviceRegistry);
+      JpaSchemaGenerator.performGeneration(hibernateConfiguration,serviceRegistry);
+      return null;
+    }
+  }
+);
+  cancel();
+}
