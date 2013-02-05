@@ -30,8 +30,9 @@
   String table="";
   String catalog="";
   List<UniqueConstraintHolder> uniqueConstraints=new ArrayList<UniqueConstraintHolder>();
+  javax.persistence.Table tabAnn=null;
   if (clazzToProcess.isAnnotationPresent(javax.persistence.Table.class)) {
-    javax.persistence.Table tabAnn=clazzToProcess.getAnnotation(javax.persistence.Table.class);
+    tabAnn=clazzToProcess.getAnnotation(javax.persistence.Table.class);
     table=tabAnn.name();
     schema=tabAnn.schema();
     catalog=tabAnn.catalog();
@@ -114,4 +115,5 @@
   mappings.addSecondPass(new SecondaryTableSecondPass(entityBinder,propertyHolder,clazzToProcess));
   entityBinder.processComplementaryTableDefinitions(clazzToProcess.getAnnotation(org.hibernate.annotations.Table.class));
   entityBinder.processComplementaryTableDefinitions(clazzToProcess.getAnnotation(org.hibernate.annotations.Tables.class));
+  entityBinder.processComplementaryTableDefinitions(tabAnn);
 }

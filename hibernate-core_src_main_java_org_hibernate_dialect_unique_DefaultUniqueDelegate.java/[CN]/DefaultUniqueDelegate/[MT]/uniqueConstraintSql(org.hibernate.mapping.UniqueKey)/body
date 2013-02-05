@@ -1,10 +1,13 @@
 {
   StringBuilder sb=new StringBuilder();
   sb.append(" unique (");
-  Iterator columnIterator=uniqueKey.getColumnIterator();
+  Iterator<org.hibernate.mapping.Column> columnIterator=uniqueKey.columnIterator();
   while (columnIterator.hasNext()) {
-    org.hibernate.mapping.Column column=(org.hibernate.mapping.Column)columnIterator.next();
+    org.hibernate.mapping.Column column=columnIterator.next();
     sb.append(column.getQuotedName(dialect));
+    if (uniqueKey.getColumnOrderMap().containsKey(column)) {
+      sb.append(" ").append(uniqueKey.getColumnOrderMap().get(column));
+    }
     if (columnIterator.hasNext()) {
       sb.append(", ");
     }
