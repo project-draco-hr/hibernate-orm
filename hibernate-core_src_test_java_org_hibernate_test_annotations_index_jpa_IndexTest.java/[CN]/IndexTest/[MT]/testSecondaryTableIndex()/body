@@ -1,0 +1,16 @@
+{
+  PersistentClass entity=configuration().getClassMapping(Book.class.getName());
+  Join join=(Join)entity.getJoinIterator().next();
+  Iterator<Index> itr=join.getTable().getIndexIterator();
+  assertTrue(itr.hasNext());
+  Index index=itr.next();
+  assertFalse(itr.hasNext());
+  assertTrue("index name is not generated",StringHelper.isNotEmpty(index.getName()));
+  assertEquals(2,index.getColumnSpan());
+  Iterator<Column> columnIterator=index.getColumnIterator();
+  Column column=columnIterator.next();
+  assertEquals("summ_size",column.getName());
+  column=columnIterator.next();
+  assertEquals("text",column.getName());
+  assertSame(join.getTable(),index.getTable());
+}
