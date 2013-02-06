@@ -1,0 +1,37 @@
+{
+  final List<GenerationSource> generationSourceList=new ArrayList<GenerationSource>();
+  final boolean createSchemas=ConfigurationHelper.getBoolean(AvailableSettings.SCHEMA_GEN_CREATE_SCHEMAS,hibernateConfiguration.getProperties(),false);
+  if (createSchemas) {
+    generationSourceList.add(new CreateSchemaCommandSource(hibernateConfiguration,dialect));
+  }
+  SchemaGenSource sourceType=SchemaGenSource.interpret(hibernateConfiguration.getProperty(AvailableSettings.SCHEMA_GEN_CREATE_SOURCE));
+  final Object createScriptSourceSetting=hibernateConfiguration.getProperties().get(AvailableSettings.SCHEMA_GEN_CREATE_SCRIPT_SOURCE);
+  if (sourceType == null) {
+    if (createScriptSourceSetting != null) {
+      sourceType=SchemaGenSource.SCRIPTS;
+    }
+ else {
+      sourceType=SchemaGenSource.METADATA;
+    }
+  }
+  final ImportSqlCommandExtractor scriptCommandExtractor=serviceRegistry.getService(ImportSqlCommandExtractor.class);
+  if (sourceType == SchemaGenSource.METADATA) {
+    generationSourceList.add(new MetadataSource(hibernateConfiguration,dialect,true));
+  }
+ else   if (sourceType == SchemaGenSource.SCRIPTS) {
+    generationSourceList.add(new ScriptSource(createScriptSourceSetting,scriptCommandExtractor));
+  }
+ else   if (sourceType == SchemaGenSource.METADATA_THEN_SCRIPTS) {
+    generationSourceList.add(new MetadataSource(hibernateConfiguration,dialect,true));
+    generationSourceList.add(new ScriptSource(createScriptSourceSetting,scriptCommandExtractor));
+  }
+ else   if (sourceType == SchemaGenSource.SCRIPTS_THEN_METADATA) {
+    generationSourceList.add(new ScriptSource(createScriptSourceSetting,scriptCommandExtractor));
+    generationSourceList.add(new MetadataSource(hibernateConfiguration,dialect,true));
+  }
+  final Object importScriptSetting=hibernateConfiguration.getProperties().get(AvailableSettings.SCHEMA_GEN_LOAD_SCRIPT_SOURCE);
+  if (importScriptSetting != null) {
+    generationSourceList.add(new ImportScriptSource(importScriptSetting,scriptCommandExtractor));
+  }
+  return generationSourceList;
+}

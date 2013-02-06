@@ -1,0 +1,17 @@
+{
+  final Dialect dialect;
+  final StrategySelector strategySelector=serviceRegistry.getService(StrategySelector.class);
+  try {
+    dialect=strategySelector.resolveStrategy(Dialect.class,dialectName);
+    if (dialect == null) {
+      throw new HibernateException("Unable to construct requested dialect [" + dialectName + "]");
+    }
+    return dialect;
+  }
+ catch (  HibernateException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    throw new HibernateException("Unable to construct requested dialect [" + dialectName + "]",e);
+  }
+}

@@ -1,0 +1,14 @@
+{
+  DialectResolver dialectResolver=serviceRegistry.getService(DialectResolver.class);
+  try {
+    final DatabaseMetaData databaseMetaData=jdbcConnectionContext.getJdbcConnection().getMetaData();
+    final Dialect dialect=dialectResolver.resolveDialect(databaseMetaData);
+    if (dialect == null) {
+      throw new HibernateException("Unable to determine Dialect to use [name=" + databaseMetaData.getDatabaseProductName() + ", majorVersion="+ databaseMetaData.getDatabaseMajorVersion()+ "]; user must register resolver or explicitly set 'hibernate.dialect'");
+    }
+    return dialect;
+  }
+ catch (  SQLException sqlException) {
+    throw new HibernateException("Unable to access java.sql.DatabaseMetaData to determine appropriate Dialect to use",sqlException);
+  }
+}
