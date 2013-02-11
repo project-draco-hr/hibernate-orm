@@ -1,28 +1,19 @@
 {
-  try {
-    Class clazz;
-    int version;
+  Class tmAccessClass=null;
+  WebSphereEnvironment webSphereEnvironment=null;
+  for (  WebSphereEnvironment check : WebSphereEnvironment.values()) {
     try {
-      clazz=Class.forName("com.ibm.ws.Transaction.TransactionManagerFactory");
-      version=5;
-      LOG.debug("WebSphere 5.1");
+      tmAccessClass=Class.forName(check.getTmAccessClassName());
+      webSphereEnvironment=check;
+      log.debugf("WebSphere version : %s",webSphereEnvironment.getWebSphereVersion());
+      break;
     }
- catch (    Exception e) {
-      try {
-        clazz=Class.forName("com.ibm.ejs.jts.jta.TransactionManagerFactory");
-        version=5;
-        LOG.debug("WebSphere 5.0");
-      }
- catch (      Exception e2) {
-        clazz=Class.forName("com.ibm.ejs.jts.jta.JTSXA");
-        version=4;
-        LOG.debug("WebSphere 4");
-      }
+ catch (    Exception ignore) {
     }
-    transactionManagerAccessClass=clazz;
-    webSphereVersion=version;
   }
- catch (  Exception e) {
-    throw new JtaPlatformException("Could not locate WebSphere TransactionManager access class",e);
+  if (webSphereEnvironment == null) {
+    throw new JtaPlatformException("Could not locate WebSphere TransactionManager access class");
   }
+  this.transactionManagerAccessClass=tmAccessClass;
+  this.webSphereEnvironment=webSphereEnvironment;
 }

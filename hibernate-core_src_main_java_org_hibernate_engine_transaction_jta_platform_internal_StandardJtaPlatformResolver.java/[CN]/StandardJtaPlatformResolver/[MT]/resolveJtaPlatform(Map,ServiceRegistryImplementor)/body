@@ -1,0 +1,44 @@
+{
+  final ClassLoaderService classLoaderService=registry.getService(ClassLoaderService.class);
+  for (  JtaPlatformProvider provider : classLoaderService.loadJavaServices(JtaPlatformProvider.class)) {
+    final JtaPlatform providedPlatform=provider.getProvidedJtaPlatform();
+    if (providedPlatform != null) {
+      return providedPlatform;
+    }
+  }
+  try {
+    classLoaderService.classForName(JBossStandAloneJtaPlatform.JBOSS_TM_CLASS_NAME);
+    classLoaderService.classForName(JBossStandAloneJtaPlatform.JBOSS_UT_CLASS_NAME);
+    return new JBossStandAloneJtaPlatform();
+  }
+ catch (  ClassLoadingException ignore) {
+  }
+  try {
+    classLoaderService.classForName(BitronixJtaPlatform.TM_CLASS_NAME);
+    return new BitronixJtaPlatform();
+  }
+ catch (  ClassLoadingException ignore) {
+  }
+  try {
+    classLoaderService.classForName(JOnASJtaPlatform.TM_CLASS_NAME);
+    return new JOnASJtaPlatform();
+  }
+ catch (  ClassLoadingException ignore) {
+  }
+  try {
+    classLoaderService.classForName(JOTMJtaPlatform.TM_CLASS_NAME);
+    return new JOTMJtaPlatform();
+  }
+ catch (  ClassLoadingException ignore) {
+  }
+  for (  WebSphereJtaPlatform.WebSphereEnvironment webSphereEnvironment : WebSphereJtaPlatform.WebSphereEnvironment.values()) {
+    try {
+      Class accessClass=classLoaderService.classForName(webSphereEnvironment.getTmAccessClassName());
+      return new WebSphereJtaPlatform(accessClass,webSphereEnvironment);
+    }
+ catch (    ClassLoadingException ignore) {
+    }
+  }
+  log.debugf("Could not resolve JtaPlatform, using default [%s]",NoJtaPlatform.class.getName());
+  return NoJtaPlatform.INSTANCE;
+}
