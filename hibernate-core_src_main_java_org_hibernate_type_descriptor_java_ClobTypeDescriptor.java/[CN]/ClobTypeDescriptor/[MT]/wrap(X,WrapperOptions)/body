@@ -2,8 +2,12 @@
   if (value == null) {
     return null;
   }
-  if (!Clob.class.isAssignableFrom(value.getClass())) {
-    throw unknownWrap(value.getClass());
+  if (Clob.class.isAssignableFrom(value.getClass())) {
+    return options.getLobCreator().wrap((Clob)value);
   }
-  return options.getLobCreator().wrap((Clob)value);
+ else   if (Reader.class.isAssignableFrom(value.getClass())) {
+    Reader reader=(Reader)value;
+    return options.getLobCreator().createClob(DataHelper.extractString(reader));
+  }
+  throw unknownWrap(value.getClass());
 }
