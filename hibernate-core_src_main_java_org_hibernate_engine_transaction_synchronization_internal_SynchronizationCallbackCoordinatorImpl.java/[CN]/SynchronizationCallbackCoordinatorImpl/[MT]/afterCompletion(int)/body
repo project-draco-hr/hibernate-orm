@@ -1,14 +1,9 @@
 {
-  LOG.tracev("Transaction after completion callback [status={0}]",status);
-  try {
-    afterCompletionAction.doAction(transactionCoordinator,status);
-    transactionCoordinator.afterTransaction(null,status);
+  if (!settings.isJtaTrackByThread() || isRegistrationThread()) {
+    doAfterCompletion(status);
   }
-  finally {
-    reset();
-    if (transactionContext().shouldAutoClose() && !transactionContext().isClosed()) {
-      LOG.trace("Automatically closing session");
-      transactionContext().managedClose();
-    }
+ else   if (JtaStatusHelper.isRollback(status)) {
+    LOG.warnv("Transaction afterCompletion called by a background thread! Delaying action until the original thread can handle it. [status={0}]",status);
+    delayedCompletionHandlingStatus=status;
   }
 }

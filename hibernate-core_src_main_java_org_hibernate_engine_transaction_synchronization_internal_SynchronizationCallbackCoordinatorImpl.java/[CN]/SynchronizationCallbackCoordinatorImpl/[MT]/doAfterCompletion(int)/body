@@ -1,0 +1,14 @@
+{
+  LOG.tracev("Transaction after completion callback [status={0}]",status);
+  try {
+    afterCompletionAction.doAction(transactionCoordinator,status);
+    transactionCoordinator.afterTransaction(null,status);
+  }
+  finally {
+    reset();
+    if (transactionContext().shouldAutoClose() && !transactionContext().isClosed()) {
+      LOG.trace("Automatically closing session");
+      transactionContext().managedClose();
+    }
+  }
+}
