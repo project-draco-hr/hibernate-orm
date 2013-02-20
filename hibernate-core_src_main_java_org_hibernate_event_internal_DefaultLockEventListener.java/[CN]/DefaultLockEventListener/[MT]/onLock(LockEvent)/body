@@ -5,6 +5,9 @@
   if (event.getLockMode() == LockMode.WRITE) {
     throw new HibernateException("Invalid lock mode for lock()");
   }
+  if (event.getLockMode() == LockMode.UPGRADE_SKIPLOCKED) {
+    LOG.explicitSkipLockedLockCombo();
+  }
   SessionImplementor source=event.getSession();
   Object entity=source.getPersistenceContext().unproxyAndReassociate(event.getObject());
   EntityEntry entry=source.getPersistenceContext().getEntry(entity);
