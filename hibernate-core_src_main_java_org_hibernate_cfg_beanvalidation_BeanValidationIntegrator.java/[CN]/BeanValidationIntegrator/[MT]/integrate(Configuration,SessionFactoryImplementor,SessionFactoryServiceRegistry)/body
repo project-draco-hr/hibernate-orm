@@ -1,16 +1,49 @@
 {
   final Set<ValidationMode> modes=ValidationMode.getModes(configuration.getProperties().get(MODE_PROPERTY));
+  if (modes.size() > 1) {
+    LOG.multipleValidationModes(ValidationMode.loggable(modes));
+  }
+  if (modes.size() == 1 && modes.contains(ValidationMode.NONE)) {
+    return;
+  }
   final ClassLoaderService classLoaderService=serviceRegistry.getService(ClassLoaderService.class);
-  Dialect dialect=serviceRegistry.getService(JdbcServices.class).getDialect();
-  boolean isBeanValidationAvailable;
-  try {
-    classLoaderService.classForName(BV_CHECK_CLASS);
-    isBeanValidationAvailable=true;
+  if (isBeanValidationApiAvailable(classLoaderService)) {
+    try {
+      final Class typeSafeActivatorClass=loadTypeSafeActivatorClass(classLoaderService);
+      @SuppressWarnings("unchecked") final Method activateMethod=typeSafeActivatorClass.getMethod(ACTIVATE_METHOD_NAME,ActivationContext.class);
+      final ActivationContext activationContext=new ActivationContext(){
+        @Override public Set<ValidationMode> getValidationModes(){
+          return modes;
+        }
+        @Override public Configuration getConfiguration(){
+          return configuration;
+        }
+        @Override public SessionFactoryImplementor getSessionFactory(){
+          return sessionFactory;
+        }
+        @Override public SessionFactoryServiceRegistry getServiceRegistry(){
+          return serviceRegistry;
+        }
+      }
+;
+      try {
+        activateMethod.invoke(null,activationContext);
+      }
+ catch (      InvocationTargetException e) {
+        if (HibernateException.class.isInstance(e.getTargetException())) {
+          throw ((HibernateException)e.getTargetException());
+        }
+        throw new IntegrationException("Error activating Bean Validation integration",e.getTargetException());
+      }
+catch (      Exception e) {
+        throw new IntegrationException("Error activating Bean Validation integration",e);
+      }
+    }
+ catch (    NoSuchMethodException e) {
+      throw new HibernateException("Unable to locate TypeSafeActivator#activate method",e);
+    }
   }
- catch (  Exception e) {
-    isBeanValidationAvailable=false;
+ else {
+    validateMissingBeanValidationApi(modes);
   }
-  final Class typeSafeActivatorClass=loadTypeSafeActivatorClass(serviceRegistry);
-  applyRelationalConstraints(modes,isBeanValidationAvailable,typeSafeActivatorClass,configuration,dialect);
-  applyHibernateListeners(modes,isBeanValidationAvailable,typeSafeActivatorClass,configuration,sessionFactory,serviceRegistry);
 }

@@ -1,0 +1,12 @@
+{
+  final Properties properties=activationContext.getConfiguration().getProperties();
+  if (!ConfigurationHelper.getBoolean(BeanValidationIntegrator.APPLY_CONSTRAINTS,properties,true)) {
+    LOG.debug("Skipping application of relational constraints from legacy Hibernate Validator");
+    return;
+  }
+  final Set<ValidationMode> modes=activationContext.getValidationModes();
+  if (!(modes.contains(ValidationMode.DDL) || modes.contains(ValidationMode.AUTO))) {
+    return;
+  }
+  applyRelationalConstraints(activationContext.getConfiguration().createMappings().getClasses().values(),properties,activationContext.getServiceRegistry().getService(JdbcServices.class).getDialect());
+}

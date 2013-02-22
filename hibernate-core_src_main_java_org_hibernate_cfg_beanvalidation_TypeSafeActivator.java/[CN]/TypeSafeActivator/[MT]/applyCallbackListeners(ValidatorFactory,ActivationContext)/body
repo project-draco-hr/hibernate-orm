@@ -1,0 +1,16 @@
+{
+  final Set<ValidationMode> modes=activationContext.getValidationModes();
+  if (!(modes.contains(ValidationMode.CALLBACK) || modes.contains(ValidationMode.AUTO))) {
+    return;
+  }
+  if (activationContext.getConfiguration().getProperty(Environment.CHECK_NULLABILITY) == null) {
+    activationContext.getSessionFactory().getSettings().setCheckNullability(false);
+  }
+  final BeanValidationEventListener listener=new BeanValidationEventListener(validatorFactory,activationContext.getConfiguration().getProperties());
+  final EventListenerRegistry listenerRegistry=activationContext.getServiceRegistry().getService(EventListenerRegistry.class);
+  listenerRegistry.addDuplicationStrategy(DuplicationStrategyImpl.INSTANCE);
+  listenerRegistry.appendListeners(EventType.PRE_INSERT,listener);
+  listenerRegistry.appendListeners(EventType.PRE_UPDATE,listener);
+  listenerRegistry.appendListeners(EventType.PRE_DELETE,listener);
+  listener.initialize(activationContext.getConfiguration());
+}
