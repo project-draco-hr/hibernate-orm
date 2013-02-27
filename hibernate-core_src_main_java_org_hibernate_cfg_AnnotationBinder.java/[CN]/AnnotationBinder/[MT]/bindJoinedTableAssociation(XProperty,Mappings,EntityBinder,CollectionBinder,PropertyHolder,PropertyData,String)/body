@@ -11,6 +11,7 @@
     final UniqueConstraint[] uniqueConstraints;
     final JoinColumn[] joins;
     final JoinColumn[] inverseJoins;
+    final javax.persistence.Index[] jpaIndexes;
     if (collectionTable != null) {
       catalog=collectionTable.catalog();
       schema=collectionTable.schema();
@@ -18,6 +19,7 @@
       uniqueConstraints=collectionTable.uniqueConstraints();
       joins=collectionTable.joinColumns();
       inverseJoins=null;
+      jpaIndexes=collectionTable.indexes();
     }
  else {
       catalog=assocTable.catalog();
@@ -26,8 +28,12 @@
       uniqueConstraints=assocTable.uniqueConstraints();
       joins=assocTable.joinColumns();
       inverseJoins=assocTable.inverseJoinColumns();
+      jpaIndexes=assocTable.indexes();
     }
     collectionBinder.setExplicitAssociationTable(true);
+    if (jpaIndexes != null && jpaIndexes.length > 0) {
+      associationTableBinder.setJpaIndex(jpaIndexes);
+    }
     if (!BinderHelper.isEmptyAnnotationValue(schema)) {
       associationTableBinder.setSchema(schema);
     }
@@ -38,6 +44,7 @@
       associationTableBinder.setName(tableName);
     }
     associationTableBinder.setUniqueConstraints(uniqueConstraints);
+    associationTableBinder.setJpaIndex(jpaIndexes);
     annJoins=joins.length == 0 ? null : joins;
     annInverseJoins=inverseJoins == null || inverseJoins.length == 0 ? null : inverseJoins;
   }

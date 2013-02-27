@@ -1,0 +1,24 @@
+{
+  schema=BinderHelper.isEmptyAnnotationValue(schema) ? mappings.getSchemaName() : schema;
+  catalog=BinderHelper.isEmptyAnnotationValue(catalog) ? mappings.getCatalogName() : catalog;
+  String realTableName=mappings.getObjectNameNormalizer().normalizeDatabaseIdentifier(nameSource.getExplicitName(),namingStrategyHelper);
+  final Table table;
+  if (denormalizedSuperTable != null) {
+    table=mappings.addDenormalizedTable(schema,catalog,realTableName,isAbstract,subselect,denormalizedSuperTable);
+  }
+ else {
+    table=mappings.addTable(schema,catalog,realTableName,subselect,isAbstract);
+  }
+  if (CollectionHelper.isNotEmpty(uniqueConstraints)) {
+    mappings.addUniqueConstraintHolders(table,uniqueConstraints);
+  }
+  if (CollectionHelper.isNotEmpty(jpaIndexHolders)) {
+    mappings.addJpaIndexHolders(table,jpaIndexHolders);
+  }
+  if (constraints != null)   table.addCheckConstraint(constraints);
+  final String logicalName=nameSource.getLogicalName();
+  if (logicalName != null) {
+    mappings.addTableBinding(schema,catalog,logicalName,realTableName,denormalizedSuperTable);
+  }
+  return table;
+}

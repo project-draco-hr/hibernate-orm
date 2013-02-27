@@ -58,4 +58,13 @@
       buildUniqueKeyFromColumnNames(table,keyName,holder.getColumns());
     }
   }
+  for (  Table table : jpaIndexHoldersByTable.keySet()) {
+    final List<JPAIndexHolder> jpaIndexHolders=jpaIndexHoldersByTable.get(table);
+    int uniqueIndexPerTable=0;
+    for (    JPAIndexHolder holder : jpaIndexHolders) {
+      uniqueIndexPerTable++;
+      final String keyName=StringHelper.isEmpty(holder.getName()) ? "idx_" + table.getName() + "_"+ uniqueIndexPerTable : holder.getName();
+      buildUniqueKeyFromColumnNames(table,keyName,holder.getColumns(),holder.getOrdering(),holder.isUnique());
+    }
+  }
 }

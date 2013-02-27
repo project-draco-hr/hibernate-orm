@@ -1,0 +1,16 @@
+{
+  PersistentClass entity=configuration().getClassMapping(Alias.class.getName());
+  Property property=entity.getProperty("characters");
+  Bag set=(Bag)property.getValue();
+  Table collectionTable=set.getCollectionTable();
+  Iterator<UniqueKey> itr=collectionTable.getUniqueKeyIterator();
+  assertTrue(itr.hasNext());
+  UniqueKey index=itr.next();
+  assertFalse(itr.hasNext());
+  assertTrue("index name is not generated",StringHelper.isNotEmpty(index.getName()));
+  assertEquals(1,index.getColumnSpan());
+  Iterator<Column> columnIterator=index.getColumnIterator();
+  Column column=columnIterator.next();
+  assertEquals("characters_id",column.getName());
+  assertSame(collectionTable,index.getTable());
+}
