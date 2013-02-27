@@ -6,6 +6,7 @@
     pkname=((Column)getPrimaryKey().getColumnIterator().next()).getQuotedName(dialect);
   }
   Iterator iter=getColumnIterator();
+  int uniqueIndexInteger=0;
   while (iter.hasNext()) {
     Column col=(Column)iter.next();
     buf.append(col.getQuotedName(dialect)).append(' ');
@@ -29,7 +30,8 @@
       }
     }
     if (col.isUnique()) {
-      UniqueKey uk=getOrCreateUniqueKey(col.getQuotedName(dialect) + '_');
+      uniqueIndexInteger++;
+      UniqueKey uk=getOrCreateUniqueKey("uc_" + name + "_"+ uniqueIndexInteger);
       uk.addColumn(col);
       buf.append(dialect.getUniqueDelegate().applyUniqueToColumn(col));
     }
