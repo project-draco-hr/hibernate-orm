@@ -18,7 +18,13 @@ synchronized (pool) {
   }
   final boolean debugEnabled=LOG.isDebugEnabled();
   if (debugEnabled)   LOG.debug("Opening new JDBC connection");
-  Connection conn=DriverManager.getConnection(url,connectionProps);
+  Connection conn;
+  if (driver != null) {
+    conn=driver.connect(url,connectionProps);
+  }
+ else {
+    conn=DriverManager.getConnection(url,connectionProps);
+  }
   if (isolation != null) {
     conn.setTransactionIsolation(isolation.intValue());
   }

@@ -6,22 +6,22 @@
   }
  else   if (serviceRegistry != null) {
     try {
-      serviceRegistry.getService(ClassLoaderService.class).classForName(driverClassName);
+      driver=(Driver)serviceRegistry.getService(ClassLoaderService.class).classForName(driverClassName).newInstance();
     }
- catch (    ClassLoadingException e) {
-      throw new ClassLoadingException("Specified JDBC Driver " + driverClassName + " class not found",e);
+ catch (    Exception e) {
+      throw new ClassLoadingException("Specified JDBC Driver " + driverClassName + " could not be loaded",e);
     }
   }
  else {
     try {
-      Class.forName(driverClassName);
+      driver=(Driver)Class.forName(driverClassName).newInstance();
     }
- catch (    ClassNotFoundException cnfe) {
+ catch (    Exception e1) {
       try {
-        ReflectHelper.classForName(driverClassName);
+        driver=(Driver)ReflectHelper.classForName(driverClassName).newInstance();
       }
- catch (      ClassNotFoundException e) {
-        throw new HibernateException("Specified JDBC Driver " + driverClassName + " class not found",e);
+ catch (      Exception e2) {
+        throw new HibernateException("Specified JDBC Driver " + driverClassName + " could not be loaded",e2);
       }
     }
   }
