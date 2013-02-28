@@ -1,7 +1,14 @@
 {
   final ClassLoaderService classLoaderService;
   if (providedClassLoaderService == null) {
-    classLoaderService=new ClassLoaderServiceImpl(providedClassLoaders);
+    final Set<ClassLoader> classLoaders=new HashSet<ClassLoader>();
+    if (providedClassLoaders != null) {
+      classLoaders.addAll(providedClassLoaders);
+    }
+    if (ClassLoaderHelper.overridenClassLoader != null) {
+      classLoaders.add(ClassLoaderHelper.overridenClassLoader);
+    }
+    classLoaderService=new ClassLoaderServiceImpl(classLoaders);
   }
  else {
     classLoaderService=providedClassLoaderService;
