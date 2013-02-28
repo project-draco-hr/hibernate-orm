@@ -1,0 +1,29 @@
+{
+  EntityManager em=getEntityManager();
+  em.getTransaction().begin();
+  DarkCharacter darkCharacter=new DarkCharacter(1,1);
+  em.persist(darkCharacter);
+  em.getTransaction().commit();
+  id=darkCharacter.getId();
+  em.getTransaction().begin();
+  darkCharacter=em.find(DarkCharacter.class,darkCharacter.getId());
+  darkCharacter.getNames().add(new Name("Action","Hank"));
+  darkCharacter=em.merge(darkCharacter);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  darkCharacter=em.find(DarkCharacter.class,darkCharacter.getId());
+  darkCharacter.getNames().add(new Name("Green","Lantern"));
+  darkCharacter=em.merge(darkCharacter);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  darkCharacter=em.find(DarkCharacter.class,darkCharacter.getId());
+  darkCharacter.getNames().remove(new Name("Action","Hank"));
+  darkCharacter=em.merge(darkCharacter);
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  darkCharacter=em.find(DarkCharacter.class,darkCharacter.getId());
+  darkCharacter.getNames().clear();
+  darkCharacter=em.merge(darkCharacter);
+  em.getTransaction().commit();
+  em.close();
+}

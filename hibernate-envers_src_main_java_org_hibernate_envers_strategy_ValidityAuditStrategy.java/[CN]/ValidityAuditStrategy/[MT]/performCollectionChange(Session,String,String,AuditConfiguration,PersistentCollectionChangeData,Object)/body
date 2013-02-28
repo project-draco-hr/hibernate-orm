@@ -1,0 +1,31 @@
+{
+  final QueryBuilder qb=new QueryBuilder(persistentCollectionChangeData.getEntityName(),MIDDLE_ENTITY_ALIAS);
+  final String originalIdPropName=auditCfg.getAuditEntCfg().getOriginalIdPropName();
+  final Map<String,Object> originalId=(Map<String,Object>)persistentCollectionChangeData.getData().get(originalIdPropName);
+  final String revisionFieldName=auditCfg.getAuditEntCfg().getRevisionFieldName();
+  final String revisionTypePropName=auditCfg.getAuditEntCfg().getRevisionTypePropName();
+  for (  Map.Entry<String,Object> originalIdEntry : originalId.entrySet()) {
+    if (!revisionFieldName.equals(originalIdEntry.getKey()) && !revisionTypePropName.equals(originalIdEntry.getKey())) {
+      qb.getRootParameters().addWhereWithParam(originalIdPropName + "." + originalIdEntry.getKey(),true,"=",originalIdEntry.getValue());
+    }
+  }
+  final SessionFactoryImplementor sessionFactory=((SessionImplementor)session).getFactory();
+  final Type propertyType=sessionFactory.getEntityPersister(entityName).getPropertyType(propertyName);
+  if (propertyType.isCollectionType()) {
+    CollectionType collectionPropertyType=(CollectionType)propertyType;
+    if (collectionPropertyType.getElementType(sessionFactory) instanceof ComponentType) {
+      for (      Map.Entry<String,Object> dataEntry : persistentCollectionChangeData.getData().entrySet()) {
+        if (!originalIdPropName.equals(dataEntry.getKey())) {
+          qb.getRootParameters().addWhereWithParam(dataEntry.getKey(),true,"=",dataEntry.getValue());
+        }
+      }
+    }
+  }
+  addEndRevisionNullRestriction(auditCfg,qb.getRootParameters());
+  final List<Object> l=qb.toQuery(session).setLockOptions(LockOptions.UPGRADE).list();
+  if (l.size() > 0) {
+    updateLastRevision(session,auditCfg,l,originalId,persistentCollectionChangeData.getEntityName(),revision);
+  }
+  session.save(persistentCollectionChangeData.getEntityName(),persistentCollectionChangeData.getData());
+  sessionCacheCleaner.scheduleAuditDataRemoval(session,persistentCollectionChangeData.getData());
+}

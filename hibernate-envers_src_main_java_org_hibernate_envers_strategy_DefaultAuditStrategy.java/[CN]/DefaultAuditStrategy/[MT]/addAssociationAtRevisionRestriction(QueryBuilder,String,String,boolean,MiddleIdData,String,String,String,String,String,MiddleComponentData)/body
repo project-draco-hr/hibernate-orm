@@ -1,0 +1,13 @@
+{
+  Parameters rootParameters=rootQueryBuilder.getRootParameters();
+  QueryBuilder maxEeRevQb=rootQueryBuilder.newSubQueryBuilder(versionsMiddleEntityName,MIDDLE_ENTITY_ALIAS_DEF_AUD_STR);
+  maxEeRevQb.addProjection("max",revisionPropertyPath,false);
+  Parameters maxEeRevQbParameters=maxEeRevQb.getRootParameters();
+  maxEeRevQbParameters.addWhereWithNamedParam(revisionPropertyPath,"<=",REVISION_PARAMETER);
+  String ee2OriginalIdPropertyPath=MIDDLE_ENTITY_ALIAS_DEF_AUD_STR + "." + originalIdPropertyName;
+  referencingIdData.getPrefixedMapper().addIdsEqualToQuery(maxEeRevQbParameters,eeOriginalIdPropertyPath,ee2OriginalIdPropertyPath);
+  for (  MiddleComponentData componentData : componentDatas) {
+    componentData.getComponentMapper().addMiddleEqualToQuery(maxEeRevQbParameters,eeOriginalIdPropertyPath,alias1,ee2OriginalIdPropertyPath,MIDDLE_ENTITY_ALIAS_DEF_AUD_STR);
+  }
+  rootParameters.addWhere(revisionProperty,addAlias,"=",maxEeRevQb);
+}
