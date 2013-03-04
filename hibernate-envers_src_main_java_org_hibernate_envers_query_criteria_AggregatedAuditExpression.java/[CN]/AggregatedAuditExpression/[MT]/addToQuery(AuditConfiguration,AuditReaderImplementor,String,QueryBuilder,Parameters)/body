@@ -1,0 +1,22 @@
+{
+  String propertyName=CriteriaTools.determinePropertyName(auditCfg,versionsReader,entityName,propertyNameGetter);
+  CriteriaTools.checkPropertyNotARelation(auditCfg,entityName,propertyName);
+  Parameters subParams=parameters.addSubParameters(Parameters.AND);
+  QueryBuilder subQb=qb.newSubQueryBuilder();
+  for (  AuditCriterion versionsCriteria : criterions) {
+    versionsCriteria.addToQuery(auditCfg,versionsReader,entityName,qb,subParams);
+    versionsCriteria.addToQuery(auditCfg,versionsReader,entityName,subQb,subQb.getRootParameters());
+  }
+switch (mode) {
+case MIN:
+    subQb.addProjection("min",propertyName,false);
+  break;
+case MAX:
+subQb.addProjection("max",propertyName,false);
+}
+if (correlate) {
+final String originalIdPropertyName=auditCfg.getAuditEntCfg().getOriginalIdPropName();
+auditCfg.getEntCfg().get(entityName).getIdMapper().addIdsEqualToQuery(subQb.getRootParameters(),subQb.getRootAlias() + "." + originalIdPropertyName,qb.getRootAlias() + "." + originalIdPropertyName);
+}
+subParams.addWhere(propertyName,"=",subQb);
+}
