@@ -1,0 +1,14 @@
+{
+  final CollectionDefinition collectionDefinition=attributeDefinition.toCollectionDefinition();
+  final CollectionAliases collectionAliases=new GeneratedCollectionAliases(collectionDefinition.getCollectionPersister(),Integer.toString(currentSuffixBase++) + '_');
+  final Type elementType=collectionDefinition.getCollectionPersister().getElementType();
+  final EntityAliases elementAliases;
+  if (elementType.isEntityType()) {
+    final EntityType entityElementType=(EntityType)elementType;
+    elementAliases=new DefaultEntityAliases((Loadable)entityElementType.getAssociatedJoinable(sessionFactory()),Integer.toString(currentSuffixBase++) + '_');
+  }
+ else {
+    elementAliases=null;
+  }
+  return new CollectionFetch(sessionFactory(),createImplicitAlias(),LockMode.NONE,(AbstractFetchOwner)fetchOwner,fetchStrategy,attributeDefinition.getName(),collectionAliases,elementAliases);
+}

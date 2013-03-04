@@ -1,0 +1,15 @@
+{
+  final CollectionPersister persister=collectionDefinition.getCollectionPersister();
+  final String collectionRole=persister.getRole();
+  final CollectionAliases collectionAliases=new GeneratedCollectionAliases(collectionDefinition.getCollectionPersister(),Integer.toString(currentSuffixBase++) + '_');
+  final Type elementType=collectionDefinition.getCollectionPersister().getElementType();
+  final EntityAliases elementAliases;
+  if (elementType.isEntityType()) {
+    final EntityType entityElementType=(EntityType)elementType;
+    elementAliases=new DefaultEntityAliases((Loadable)entityElementType.getAssociatedJoinable(sessionFactory()),Integer.toString(currentSuffixBase++) + '_');
+  }
+ else {
+    elementAliases=null;
+  }
+  return new CollectionReturn(sessionFactory(),rootAlias,LockMode.NONE,persister.getOwnerEntityPersister().getEntityName(),StringHelper.unqualify(collectionRole),collectionAliases,elementAliases);
+}

@@ -1,0 +1,20 @@
+{
+  if (!loadQueryInfluencers.hasEnabledFetchProfiles()) {
+    return null;
+  }
+  final String fullPath=path.getFullPath();
+  final String rootPropertyName=((OuterJoinLoadable)persister).getSubclassPropertyName(propertyNumber);
+  int pos=fullPath.lastIndexOf(rootPropertyName);
+  final String relativePropertyPath=pos >= 0 ? fullPath.substring(pos) : rootPropertyName;
+  final String fetchRole=persister.getEntityName() + "." + relativePropertyPath;
+  Iterator profiles=loadQueryInfluencers.getEnabledFetchProfileNames().iterator();
+  while (profiles.hasNext()) {
+    final String profileName=(String)profiles.next();
+    final FetchProfile profile=loadQueryInfluencers.getSessionFactory().getFetchProfile(profileName);
+    final Fetch fetch=profile.getFetchByRole(fetchRole);
+    if (fetch != null && Fetch.Style.JOIN == fetch.getStyle()) {
+      return FetchStyle.JOIN;
+    }
+  }
+  return null;
+}

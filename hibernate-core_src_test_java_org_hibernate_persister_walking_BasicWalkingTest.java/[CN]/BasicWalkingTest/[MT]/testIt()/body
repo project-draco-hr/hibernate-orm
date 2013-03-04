@@ -1,0 +1,37 @@
+{
+  EntityPersister ep=(EntityPersister)sessionFactory().getClassMetadata(Message.class);
+  MetadataDrivenModelGraphVisitor.visitEntity(new AssociationVisitationStrategy(){
+    private int depth=0;
+    @Override public void start(){
+      System.out.println(">> Start");
+    }
+    @Override public void finish(){
+      System.out.println("<< Finish");
+    }
+    @Override public void startingEntity(    EntityDefinition entityDefinition){
+      System.out.println(String.format("%s Starting entity (%s)",StringHelper.repeat(">>",++depth),entityDefinition.toString()));
+    }
+    @Override public void finishingEntity(    EntityDefinition entityDefinition){
+      System.out.println(String.format("%s Finishing entity (%s)",StringHelper.repeat("<<",depth--),entityDefinition.toString()));
+    }
+    @Override public void startingCollection(    CollectionDefinition collectionDefinition){
+      System.out.println(String.format("%s Starting collection (%s)",StringHelper.repeat(">>",++depth),collectionDefinition.toString()));
+    }
+    @Override public void finishingCollection(    CollectionDefinition collectionDefinition){
+      System.out.println(String.format("%s Finishing collection (%s)",StringHelper.repeat(">>",depth--),collectionDefinition.toString()));
+    }
+    @Override public void startingComposite(    CompositeDefinition compositeDefinition){
+      System.out.println(String.format("%s Starting composite (%s)",StringHelper.repeat(">>",++depth),compositeDefinition.toString()));
+    }
+    @Override public void finishingComposite(    CompositeDefinition compositeDefinition){
+      System.out.println(String.format("%s Finishing composite (%s)",StringHelper.repeat(">>",depth--),compositeDefinition.toString()));
+    }
+    @Override public boolean startingAttribute(    AttributeDefinition attributeDefinition){
+      System.out.println(String.format("%s Handling attribute (%s)",StringHelper.repeat(">>",depth + 1),attributeDefinition.toString()));
+      return true;
+    }
+    @Override public void finishingAttribute(    AttributeDefinition attributeDefinition){
+    }
+  }
+,ep);
+}

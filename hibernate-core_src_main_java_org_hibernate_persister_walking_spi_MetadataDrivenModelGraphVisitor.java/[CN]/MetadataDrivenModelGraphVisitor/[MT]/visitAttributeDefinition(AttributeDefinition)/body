@@ -1,0 +1,21 @@
+{
+  final PropertyPath subPath=currentPropertyPath.append(attributeDefinition.getName());
+  log.debug("Visiting attribute path : " + subPath.getFullPath());
+  final boolean continueWalk=strategy.startingAttribute(attributeDefinition);
+  if (continueWalk) {
+    final PropertyPath old=currentPropertyPath;
+    currentPropertyPath=subPath;
+    try {
+      if (attributeDefinition.getType().isAssociationType()) {
+        visitAssociation((AssociationAttributeDefinition)attributeDefinition);
+      }
+ else       if (attributeDefinition.getType().isComponentType()) {
+        visitCompositeDefinition((CompositeDefinition)attributeDefinition);
+      }
+    }
+  finally {
+      currentPropertyPath=old;
+    }
+  }
+  strategy.finishingAttribute(attributeDefinition);
+}

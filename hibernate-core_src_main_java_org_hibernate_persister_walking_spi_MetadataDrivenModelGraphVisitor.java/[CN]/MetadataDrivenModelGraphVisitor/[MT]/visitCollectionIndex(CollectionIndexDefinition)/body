@@ -1,0 +1,19 @@
+{
+  if (collectionIndexDefinition == null) {
+    return;
+  }
+  log.debug("Visiting collection index :  " + currentPropertyPath.getFullPath());
+  currentPropertyPath=currentPropertyPath.append("<key>");
+  try {
+    final Type collectionIndexType=collectionIndexDefinition.getType();
+    if (collectionIndexType.isComponentType()) {
+      visitCompositeDefinition(collectionIndexDefinition.toCompositeDefinition());
+    }
+ else     if (collectionIndexType.isAssociationType()) {
+      visitEntityDefinition(collectionIndexDefinition.toEntityDefinition());
+    }
+  }
+  finally {
+    currentPropertyPath=currentPropertyPath.getParent();
+  }
+}

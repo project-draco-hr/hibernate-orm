@@ -1,0 +1,26 @@
+{
+  if (!hasIndex()) {
+    return null;
+  }
+  return new CollectionIndexDefinition(){
+    @Override public CollectionDefinition getCollectionDefinition(){
+      return AbstractCollectionPersister.this;
+    }
+    @Override public Type getType(){
+      return getIndexType();
+    }
+    @Override public EntityDefinition toEntityDefinition(){
+      if (getType().isComponentType()) {
+        throw new IllegalStateException("Cannot treat composite collection index type as entity");
+      }
+      return (EntityPersister)((AssociationType)getIndexType()).getAssociatedJoinable(getFactory());
+    }
+    @Override public CompositeDefinition toCompositeDefinition(){
+      if (!getType().isComponentType()) {
+        throw new IllegalStateException("Cannot treat entity collection index type as composite");
+      }
+      throw new NotYetImplementedException();
+    }
+  }
+;
+}

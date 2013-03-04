@@ -1,0 +1,17 @@
+{
+  final FetchStrategy fetchStrategy=determineFetchPlan(attributeDefinition);
+  if (fetchStrategy.getTiming() != FetchTiming.IMMEDIATE) {
+    return false;
+  }
+  final FetchOwner fetchOwner=fetchOwnerStack.peekLast();
+  fetchOwner.validateFetchPlan(fetchStrategy);
+  final Fetch associationFetch;
+  if (attributeDefinition.isCollection()) {
+    associationFetch=buildCollectionFetch(fetchOwner,attributeDefinition,fetchStrategy);
+  }
+ else {
+    associationFetch=buildEntityFetch(fetchOwner,attributeDefinition,fetchStrategy);
+  }
+  fetchOwnerStack.addLast(associationFetch);
+  return true;
+}
