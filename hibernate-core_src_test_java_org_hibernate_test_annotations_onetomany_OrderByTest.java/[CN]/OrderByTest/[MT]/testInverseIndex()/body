@@ -1,0 +1,36 @@
+{
+  final CollectionPersister transactionsPersister=sessionFactory().getCollectionPersister(BankAccount.class.getName() + ".transactions");
+  assertTrue(transactionsPersister.isInverse());
+  Session s=openSession();
+  s.getTransaction().begin();
+  BankAccount account=new BankAccount();
+  account.addTransaction("zzzzz");
+  account.addTransaction("aaaaa");
+  account.addTransaction("mmmmm");
+  s.save(account);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.getTransaction().begin();
+  try {
+    final QueryableCollection queryableCollection=(QueryableCollection)transactionsPersister;
+    SimpleSelect select=new SimpleSelect(getDialect()).setTableName(queryableCollection.getTableName()).addColumn("code").addColumn("transactions_index");
+    PreparedStatement preparedStatement=((SessionImplementor)s).getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(select.toStatementString());
+    ResultSet resultSet=((SessionImplementor)s).getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(preparedStatement);
+    Map<Integer,String> valueMap=new HashMap<Integer,String>();
+    while (resultSet.next()) {
+      final String code=resultSet.getString(1);
+      assertFalse("code column was null",resultSet.wasNull());
+      final int indx=resultSet.getInt(2);
+      assertFalse("List index column was null",resultSet.wasNull());
+      valueMap.put(indx,code);
+    }
+    assertEquals(3,valueMap.size());
+    assertEquals("zzzzz",valueMap.get(0));
+    assertEquals("aaaaa",valueMap.get(1));
+    assertEquals("mmmmm",valueMap.get(2));
+  }
+ catch (  SQLException e) {
+    fail(e.getMessage());
+  }
+}

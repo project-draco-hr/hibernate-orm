@@ -1,0 +1,61 @@
+{
+  if (isInverse && hasIndex && !indexContainsFormula) {
+    try {
+      Iterator entries=collection.entries(this);
+      if (entries.hasNext()) {
+        Expectation expectation=Expectations.appropriateExpectation(getUpdateCheckStyle());
+        int i=0;
+        int count=0;
+        while (entries.hasNext()) {
+          final Object entry=entries.next();
+          if (collection.entryExists(entry,i)) {
+            int offset=1;
+            PreparedStatement st=null;
+            boolean callable=isUpdateCallable();
+            boolean useBatch=expectation.canBeBatched();
+            String sql=getSQLUpdateRowString();
+            if (useBatch) {
+              if (recreateBatchKey == null) {
+                recreateBatchKey=new BasicBatchKey(getRole() + "#RECREATE",expectation);
+              }
+              st=session.getTransactionCoordinator().getJdbcCoordinator().getBatch(recreateBatchKey).getBatchStatement(sql,callable);
+            }
+ else {
+              st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,callable);
+            }
+            try {
+              offset+=expectation.prepare(st);
+              if (hasIdentifier) {
+                offset=writeIdentifier(st,collection.getIdentifier(entry,i),offset,session);
+              }
+              offset=writeIndex(st,collection.getIndex(entry,i,this),offset,session);
+              offset=writeElement(st,collection.getElement(entry),offset,session);
+              if (useBatch) {
+                session.getTransactionCoordinator().getJdbcCoordinator().getBatch(recreateBatchKey).addToBatch();
+              }
+ else {
+                expectation.verifyOutcome(session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().executeUpdate(st),st,-1);
+              }
+              count++;
+            }
+ catch (            SQLException sqle) {
+              if (useBatch) {
+                session.getTransactionCoordinator().getJdbcCoordinator().abortBatch();
+              }
+              throw sqle;
+            }
+ finally {
+              if (!useBatch) {
+                session.getTransactionCoordinator().getJdbcCoordinator().release(st);
+              }
+            }
+          }
+          i++;
+        }
+      }
+    }
+ catch (    SQLException sqle) {
+      throw sqlExceptionHelper.convert(sqle,"could not update collection: " + MessageHelper.collectionInfoString(this,collection,id,session),getSQLUpdateRowString());
+    }
+  }
+}
