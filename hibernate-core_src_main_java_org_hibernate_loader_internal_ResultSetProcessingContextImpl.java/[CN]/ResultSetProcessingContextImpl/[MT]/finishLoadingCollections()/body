@@ -1,0 +1,16 @@
+{
+  LoadPlanVisitor.visit(loadPlan,new LoadPlanVisitationStrategyAdapter(){
+    @Override public void handleCollectionReturn(    CollectionReturn rootCollectionReturn){
+      endLoadingArray(rootCollectionReturn.getCollectionPersister());
+    }
+    @Override public void startingCollectionFetch(    CollectionFetch collectionFetch){
+      endLoadingArray(collectionFetch.getCollectionPersister());
+    }
+    private void endLoadingArray(    CollectionPersister persister){
+      if (!persister.isArray()) {
+        session.getPersistenceContext().getLoadContexts().getCollectionLoadContext(resultSet).endLoadingCollections(persister);
+      }
+    }
+  }
+);
+}

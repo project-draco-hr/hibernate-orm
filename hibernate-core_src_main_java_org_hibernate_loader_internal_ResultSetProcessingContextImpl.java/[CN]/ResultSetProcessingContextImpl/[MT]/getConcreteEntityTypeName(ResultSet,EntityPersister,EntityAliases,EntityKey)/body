@@ -1,0 +1,12 @@
+{
+  final Loadable loadable=(Loadable)persister;
+  if (!loadable.hasSubclasses()) {
+    return persister.getEntityName();
+  }
+  final Object discriminatorValue=loadable.getDiscriminatorType().nullSafeGet(rs,entityAliases.getSuffixedDiscriminatorAlias(),session,null);
+  final String result=loadable.getSubclassForDiscriminatorValue(discriminatorValue);
+  if (result == null) {
+    throw new WrongClassException("Discriminator: " + discriminatorValue,entityKey.getIdentifier(),persister.getEntityName());
+  }
+  return result;
+}

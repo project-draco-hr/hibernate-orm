@@ -1,0 +1,46 @@
+{
+  handlePotentiallyEmptyCollectionRootReturns(queryParameters.getCollectionKeys(),resultSet,session);
+  final int maxRows;
+  final RowSelection selection=queryParameters.getRowSelection();
+  if (LimitHelper.hasMaxRows(selection)) {
+    maxRows=selection.getMaxRows();
+    LOG.tracef("Limiting ResultSet processing to just %s rows",maxRows);
+  }
+ else {
+    maxRows=Integer.MAX_VALUE;
+  }
+  final ResultSetProcessingContextImpl context=new ResultSetProcessingContextImpl(resultSet,session,loadPlan,readOnly,true,queryParameters,namedParameterContext,hadSubselectFetches);
+  final List loadResults=new ArrayList();
+  final int rootReturnCount=loadPlan.getReturns().size();
+  LOG.trace("Processing result set");
+  int count;
+  for (count=0; count < maxRows && resultSet.next(); count++) {
+    LOG.debugf("Starting ResultSet row #%s",count);
+    Object logicalRow;
+    if (rootReturnCount == 1) {
+      loadPlan.getReturns().get(0).hydrate(resultSet,context);
+      loadPlan.getReturns().get(0).resolve(resultSet,context);
+      logicalRow=loadPlan.getReturns().get(0).read(resultSet,context);
+    }
+ else {
+      for (      Return rootReturn : loadPlan.getReturns()) {
+        rootReturn.hydrate(resultSet,context);
+      }
+      for (      Return rootReturn : loadPlan.getReturns()) {
+        rootReturn.resolve(resultSet,context);
+      }
+      logicalRow=new Object[rootReturnCount];
+      int pos=0;
+      for (      Return rootReturn : loadPlan.getReturns()) {
+        ((Object[])logicalRow)[pos]=rootReturn.read(resultSet,context);
+        pos++;
+      }
+    }
+    loadResults.add(logicalRow);
+    context.finishUpRow();
+  }
+  LOG.tracev("Done processing result set ({0} rows)",count);
+  context.finishUp(afterLoadActionList);
+  session.getPersistenceContext().initializeNonLazyCollections();
+  return loadResults;
+}

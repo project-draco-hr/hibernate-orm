@@ -1,0 +1,14 @@
+{
+  for (  EntityFetch fetch : identifierFetches) {
+    final IdentifierResolutionContext identifierResolutionContext=context.getIdentifierResolutionContext(fetch);
+    if (identifierResolutionContext.getEntityKey() != null) {
+      continue;
+    }
+    EntityKey fetchKey=fetch.resolveInIdentifier(resultSet,context);
+    identifierResolutionContext.registerEntityKey(fetchKey);
+  }
+  final IdentifierResolutionContext ownerIdentifierResolutionContext=context.getIdentifierResolutionContext(entityReference);
+  Serializable hydratedState=ownerIdentifierResolutionContext.getHydratedForm();
+  Serializable resolvedId=(Serializable)entityReference.getEntityPersister().getIdentifierType().resolve(hydratedState,context.getSession(),null);
+  return context.getSession().generateEntityKey(resolvedId,entityReference.getEntityPersister());
+}

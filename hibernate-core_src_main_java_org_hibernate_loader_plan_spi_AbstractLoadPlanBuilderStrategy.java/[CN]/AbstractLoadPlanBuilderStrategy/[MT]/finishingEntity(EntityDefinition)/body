@@ -1,2 +1,11 @@
 {
+  final FetchOwner poppedFetchOwner=popFromStack();
+  if (!EntityReference.class.isInstance(poppedFetchOwner)) {
+    throw new WalkingException("Mismatched FetchOwner from stack on pop");
+  }
+  final EntityReference entityReference=(EntityReference)poppedFetchOwner;
+  if (!entityReference.getEntityPersister().equals(entityDefinition.getEntityPersister())) {
+    throw new WalkingException("Mismatched FetchOwner from stack on pop");
+  }
+  log.tracef("%s Finished entity : %s",StringHelper.repeat("<<",fetchOwnerStack.size()),entityDefinition.getEntityPersister().getEntityName());
 }

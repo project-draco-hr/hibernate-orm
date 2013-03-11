@@ -1,0 +1,15 @@
+{
+  if (EntityReturn.class.isInstance(rootReturn)) {
+    strategy.handleEntityReturn((EntityReturn)rootReturn);
+    visitFetches((EntityReturn)rootReturn);
+  }
+ else   if (CollectionReturn.class.isInstance(rootReturn)) {
+    strategy.handleCollectionReturn((CollectionReturn)rootReturn);
+    final CollectionReturn collectionReturn=(CollectionReturn)rootReturn;
+    visitFetches(collectionReturn.getIndexGraph());
+    visitFetches(collectionReturn.getElementGraph());
+  }
+ else {
+    throw new IllegalStateException("Unexpected return type encountered; expecting a non-scalar root return, but found " + rootReturn.getClass().getName());
+  }
+}

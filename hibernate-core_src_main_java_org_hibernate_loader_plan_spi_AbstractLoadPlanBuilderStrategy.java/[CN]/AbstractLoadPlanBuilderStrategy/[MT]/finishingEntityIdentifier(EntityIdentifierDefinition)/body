@@ -1,0 +1,23 @@
+{
+{
+    final FetchOwner poppedFetchOwner=popFromStack();
+    if (!AbstractIdentifierAttributeCollector.class.isInstance(poppedFetchOwner)) {
+      throw new WalkingException("Unexpected state in FetchOwner stack");
+    }
+    final EntityReference entityReference=(EntityReference)poppedFetchOwner;
+    if (!entityReference.getEntityPersister().equals(entityIdentifierDefinition.getEntityDefinition().getEntityPersister())) {
+      throw new WalkingException(String.format("Encountered unexpected fetch owner [%s] in stack while processing entity identifier for [%s]",entityReference.getEntityPersister().getEntityName(),entityIdentifierDefinition.getEntityDefinition().getEntityPersister().getEntityName()));
+    }
+  }
+{
+    final FetchOwner currentFetchOwner=currentFetchOwner();
+    if (!EntityReference.class.isInstance(currentFetchOwner)) {
+      throw new WalkingException("Unexpected state in FetchOwner stack");
+    }
+    final EntityReference entityReference=(EntityReference)currentFetchOwner;
+    if (!entityReference.getEntityPersister().equals(entityIdentifierDefinition.getEntityDefinition().getEntityPersister())) {
+      throw new WalkingException(String.format("Encountered unexpected fetch owner [%s] in stack while processing entity identifier for [%s]",entityReference.getEntityPersister().getEntityName(),entityIdentifierDefinition.getEntityDefinition().getEntityPersister().getEntityName()));
+    }
+  }
+  log.tracef("%s Finished entity identifier : %s",StringHelper.repeat("<<",fetchOwnerStack.size()),entityIdentifierDefinition.getEntityDefinition().getEntityPersister().getEntityName());
+}

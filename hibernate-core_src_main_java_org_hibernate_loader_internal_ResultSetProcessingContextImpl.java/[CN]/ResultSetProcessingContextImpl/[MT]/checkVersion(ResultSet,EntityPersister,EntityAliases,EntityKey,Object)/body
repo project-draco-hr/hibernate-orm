@@ -1,0 +1,13 @@
+{
+  final Object version=session.getPersistenceContext().getEntry(entityInstance).getVersion();
+  if (version != null) {
+    VersionType versionType=persister.getVersionType();
+    Object currentVersion=versionType.nullSafeGet(resultSet,entityAliases.getSuffixedVersionAliases(),session,null);
+    if (!versionType.isEqual(version,currentVersion)) {
+      if (session.getFactory().getStatistics().isStatisticsEnabled()) {
+        session.getFactory().getStatisticsImplementor().optimisticFailure(persister.getEntityName());
+      }
+      throw new StaleObjectStateException(persister.getEntityName(),entityKey.getIdentifier());
+    }
+  }
+}

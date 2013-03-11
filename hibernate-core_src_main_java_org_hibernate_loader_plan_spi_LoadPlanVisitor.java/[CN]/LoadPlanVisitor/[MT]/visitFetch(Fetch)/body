@@ -1,0 +1,21 @@
+{
+  if (EntityFetch.class.isInstance(fetch)) {
+    strategy.startingEntityFetch((EntityFetch)fetch);
+    visitFetches((EntityFetch)fetch);
+    strategy.finishingEntityFetch((EntityFetch)fetch);
+  }
+ else   if (CollectionFetch.class.isInstance(fetch)) {
+    strategy.startingCollectionFetch((CollectionFetch)fetch);
+    visitFetches(((CollectionFetch)fetch).getIndexGraph());
+    visitFetches(((CollectionFetch)fetch).getElementGraph());
+    strategy.finishingCollectionFetch((CollectionFetch)fetch);
+  }
+ else   if (CompositeFetch.class.isInstance(fetch)) {
+    strategy.startingCompositeFetch((CompositeFetch)fetch);
+    visitFetches((CompositeFetch)fetch);
+    strategy.finishingCompositeFetch((CompositeFetch)fetch);
+  }
+ else {
+    throw new IllegalStateException("Unexpected return type encountered; expecting a fetch return, but found " + fetch.getClass().getName());
+  }
+}

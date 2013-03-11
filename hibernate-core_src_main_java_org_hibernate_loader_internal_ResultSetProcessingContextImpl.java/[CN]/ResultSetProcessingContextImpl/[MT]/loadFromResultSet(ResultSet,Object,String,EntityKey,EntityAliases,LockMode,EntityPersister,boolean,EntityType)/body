@@ -1,0 +1,21 @@
+{
+  final Serializable id=entityKey.getIdentifier();
+  final Loadable persister=(Loadable)getSession().getFactory().getEntityPersister(concreteEntityTypeName);
+  if (LOG.isTraceEnabled()) {
+    LOG.tracev("Initializing object from ResultSet: {0}",MessageHelper.infoString(persister,id,getSession().getFactory()));
+  }
+  TwoPhaseLoad.addUninitializedEntity(entityKey,entityInstance,persister,acquiredLockMode,!eagerFetch,session);
+  final String[][] cols=persister == rootPersister ? entityAliases.getSuffixedPropertyAliases() : entityAliases.getSuffixedPropertyAliases(persister);
+  final Object[] values=persister.hydrate(resultSet,id,entityInstance,(Loadable)rootPersister,cols,eagerFetch,session);
+  final Object rowId=persister.hasRowId() ? resultSet.getObject(entityAliases.getRowIdAlias()) : null;
+  if (associationType != null) {
+    String ukName=associationType.getRHSUniqueKeyPropertyName();
+    if (ukName != null) {
+      final int index=((UniqueKeyLoadable)persister).getPropertyIndex(ukName);
+      final Type type=persister.getPropertyTypes()[index];
+      EntityUniqueKey euk=new EntityUniqueKey(rootPersister.getEntityName(),ukName,type.semiResolve(values[index],session,entityInstance),type,persister.getEntityMode(),session.getFactory());
+      session.getPersistenceContext().addEntity(euk,entityInstance);
+    }
+  }
+  TwoPhaseLoad.postHydrate(persister,id,values,rowId,entityInstance,acquiredLockMode,!eagerFetch,session);
+}

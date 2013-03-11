@@ -3,15 +3,17 @@
   if (fetchStrategy.getTiming() != FetchTiming.IMMEDIATE) {
     return false;
   }
-  final FetchOwner fetchOwner=fetchOwnerStack.peekLast();
+  final FetchOwner fetchOwner=currentFetchOwner();
   fetchOwner.validateFetchPlan(fetchStrategy);
   final Fetch associationFetch;
   if (attributeDefinition.isCollection()) {
-    associationFetch=buildCollectionFetch(fetchOwner,attributeDefinition,fetchStrategy);
+    associationFetch=fetchOwner.buildCollectionFetch(attributeDefinition,fetchStrategy,this);
   }
  else {
-    associationFetch=buildEntityFetch(fetchOwner,attributeDefinition,fetchStrategy);
+    associationFetch=fetchOwner.buildEntityFetch(attributeDefinition,fetchStrategy,this);
   }
-  fetchOwnerStack.addLast(associationFetch);
+  if (FetchOwner.class.isInstance(associationFetch)) {
+    pushToStack((FetchOwner)associationFetch);
+  }
   return true;
 }
