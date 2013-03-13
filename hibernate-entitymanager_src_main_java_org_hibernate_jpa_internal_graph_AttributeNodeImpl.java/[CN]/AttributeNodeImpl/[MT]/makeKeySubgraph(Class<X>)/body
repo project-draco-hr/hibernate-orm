@@ -1,0 +1,31 @@
+{
+  if (!attribute.isCollection()) {
+    throw new IllegalArgumentException(String.format("Non-collection attribute [%s] cannot be target of key subgraph",getAttributeName()));
+  }
+  final PluralAttributeImpl pluralAttribute=(PluralAttributeImpl)attribute;
+  if (pluralAttribute.getCollectionType() != PluralAttribute.CollectionType.MAP) {
+    throw new IllegalArgumentException(String.format("Non-Map attribute [%s] cannot be target of key subgraph",getAttributeName()));
+  }
+  final AssociationType attributeType=(AssociationType)Helper.resolveType(sessionFactory(),attribute);
+  final QueryableCollection collectionPersister=(QueryableCollection)attributeType.getAssociatedJoinable(sessionFactory());
+  final Type indexType=collectionPersister.getIndexType();
+  if (!indexType.isAssociationType()) {
+    throw new IllegalArgumentException(String.format("Map index [%s] is not an entity; cannot be target of key subgraph",getAttributeName()));
+  }
+  if (keySubgraphMap == null) {
+    keySubgraphMap=new HashMap<Class,Subgraph>();
+  }
+  final AssociationType indexAssociationType=(AssociationType)indexType;
+  final EntityPersister indexEntityPersister=(EntityPersister)indexAssociationType.getAssociatedJoinable(sessionFactory());
+  if (type == null) {
+    type=indexEntityPersister.getMappedClass();
+  }
+ else {
+    if (!isTreatableAs(indexEntityPersister,type)) {
+      throw new IllegalArgumentException(String.format("Map key [%s] cannot be treated as requested type [%s] : %s",getAttributeName(),type.getName(),indexEntityPersister.getMappedClass().getName()));
+    }
+  }
+  final SubgraphImpl subgraph=new SubgraphImpl(this.entityManagerFactory,attribute.getDeclaringType(),type);
+  keySubgraphMap.put(type,subgraph);
+  return subgraph;
+}
