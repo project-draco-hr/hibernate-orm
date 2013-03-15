@@ -1,7 +1,14 @@
 {
+  log.tracef("Starting createEntityManagerFactory for persistenceUnitName %s",persistenceUnitName);
   if (environmentProperties != null) {
     properties.putAll(environmentProperties);
   }
   final EntityManagerFactoryBuilder builder=getEntityManagerFactoryBuilderOrNull(persistenceUnitName,properties);
-  return builder == null ? null : builder.build();
+  if (builder == null) {
+    log.trace("Could not obtain matching EntityManagerFactoryBuilder, returning null");
+    return null;
+  }
+ else {
+    return builder.build();
+  }
 }

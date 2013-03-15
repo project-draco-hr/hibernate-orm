@@ -1,10 +1,14 @@
 {
-  String providerName=integration == null ? null : (String)integration.get(AvailableSettings.PROVIDER);
-  if (providerName == null) {
-    providerName=persistenceUnit.getProviderClassName();
+  final String integrationProviderName=extractProviderName(integration);
+  if (integrationProviderName != null) {
+    log.debugf("Integration provided explicit PersistenceProvider [%s]",integrationProviderName);
+    return integrationProviderName;
   }
-  if (providerName != null) {
-    providerName=providerName.trim();
+  final String persistenceUnitRequestedProvider=extractProviderName(persistenceUnit);
+  if (persistenceUnitRequestedProvider != null) {
+    log.debugf("Persistence-unit [%s] requested PersistenceProvider [%s]",persistenceUnit.getName(),persistenceUnitRequestedProvider);
+    return persistenceUnitRequestedProvider;
   }
-  return providerName;
+  log.debug("No PersistenceProvider explicitly requested, assuming Hibernate");
+  return HibernatePersistenceProvider.class.getName();
 }
