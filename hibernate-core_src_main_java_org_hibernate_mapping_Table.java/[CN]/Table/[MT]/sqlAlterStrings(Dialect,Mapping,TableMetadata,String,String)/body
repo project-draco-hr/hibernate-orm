@@ -2,7 +2,6 @@
   StringBuilder root=new StringBuilder("alter table ").append(getQualifiedName(dialect,defaultCatalog,defaultSchema)).append(' ').append(dialect.getAddColumnString());
   Iterator iter=getColumnIterator();
   List results=new ArrayList();
-  int uniqueIndexInteger=0;
   while (iter.hasNext()) {
     Column column=(Column)iter.next();
     ColumnMetadata columnInfo=tableInfo.getColumnMetadata(column.getName());
@@ -19,8 +18,7 @@
         alter.append(" not null");
       }
       if (column.isUnique()) {
-        uniqueIndexInteger++;
-        UniqueKey uk=getOrCreateUniqueKey("UK_" + name + "_"+ uniqueIndexInteger);
+        UniqueKey uk=getOrCreateUniqueKey(StringHelper.randomFixedLengthHex("UK_"));
         uk.addColumn(column);
         alter.append(dialect.getUniqueDelegate().applyUniqueToColumn(column));
       }
