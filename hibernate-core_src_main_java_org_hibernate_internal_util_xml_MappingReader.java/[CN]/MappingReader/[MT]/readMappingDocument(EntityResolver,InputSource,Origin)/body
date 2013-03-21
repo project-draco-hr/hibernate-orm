@@ -1,42 +1,59 @@
 {
+  Exception failure;
   ErrorLogger errorHandler=new ErrorLogger();
-  SAXReader saxReader=new SAXReader(new DOMDocumentFactory());
+  SAXReader saxReader=new SAXReader();
   saxReader.setEntityResolver(entityResolver);
   saxReader.setErrorHandler(errorHandler);
   saxReader.setMergeAdjacentText(true);
-  Document documentTree;
   saxReader.setValidation(true);
+  Document document=null;
   try {
-    documentTree=saxReader.read(source);
-  }
- catch (  DocumentException e) {
-    throw new InvalidMappingException("Unable to read XML",origin.getType(),origin.getName(),e);
-  }
-  Element rootElement=documentTree.getRootElement();
-  if (rootElement == null) {
-    throw new InvalidMappingException("No root element",origin.getType(),origin.getName());
-  }
-  if ("entity-mappings".equals(rootElement.getName())) {
-    final String explicitVersion=rootElement.attributeValue("version");
-    final String xsdVersionString=explicitVersion == null ? ASSUMED_ORM_XSD_VERSION : explicitVersion;
-    final SupportedOrmXsdVersion xsdVersion=SupportedOrmXsdVersion.parse(xsdVersionString,origin);
-    final Schema schema=xsdVersion.getSchema();
-    try {
-      schema.newValidator().validate(new DOMSource((org.w3c.dom.Document)documentTree));
-    }
- catch (    SAXException e) {
-      throw new InvalidMappingException("Validation problem",origin.getType(),origin.getName(),e);
-    }
-catch (    IOException e) {
-      throw new InvalidMappingException("Validation problem",origin.getType(),origin.getName(),e);
-    }
-  }
- else {
+    setValidationFor(saxReader,"orm_2_1.xsd");
+    document=saxReader.read(source);
     if (errorHandler.hasErrors()) {
-      errorHandler.logErrors();
-      errorHandler.reset();
-      throw new InvalidMappingException("Error validating hibernate-mapping against DTD; see logs for details",origin.getType(),origin.getName());
+      throw errorHandler.getErrors().get(0);
+    }
+    return new XmlDocumentImpl(document,origin.getType(),origin.getName());
+  }
+ catch (  Exception e) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debugf("Problem parsing XML using orm 2.1 xsd, trying 2.0 xsd : %s",e.getMessage());
+    }
+    failure=e;
+    errorHandler.reset();
+    if (document != null) {
+      try {
+        setValidationFor(saxReader,"orm_2_0.xsd");
+        document=saxReader.read(new StringReader(document.asXML()));
+        if (errorHandler.hasErrors()) {
+          errorHandler.logErrors();
+          throw errorHandler.getErrors().get(0);
+        }
+        return new XmlDocumentImpl(document,origin.getType(),origin.getName());
+      }
+ catch (      Exception e2) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debugf("Problem parsing XML using orm 2.0 xsd, trying 1.0 xsd : %s",e2.getMessage());
+        }
+        errorHandler.reset();
+        if (document != null) {
+          try {
+            setValidationFor(saxReader,"orm_1_0.xsd");
+            document=saxReader.read(new StringReader(document.asXML()));
+            if (errorHandler.hasErrors()) {
+              errorHandler.logErrors();
+              throw errorHandler.getErrors().get(0);
+            }
+            return new XmlDocumentImpl(document,origin.getType(),origin.getName());
+          }
+ catch (          Exception e3) {
+            if (LOG.isDebugEnabled()) {
+              LOG.debugf("Problem parsing XML using orm 1.0 xsd : %s",e3.getMessage());
+            }
+          }
+        }
+      }
     }
   }
-  return new XmlDocumentImpl(documentTree,origin);
+  throw new InvalidMappingException("Unable to read XML",origin.getType(),origin.getName(),failure);
 }
