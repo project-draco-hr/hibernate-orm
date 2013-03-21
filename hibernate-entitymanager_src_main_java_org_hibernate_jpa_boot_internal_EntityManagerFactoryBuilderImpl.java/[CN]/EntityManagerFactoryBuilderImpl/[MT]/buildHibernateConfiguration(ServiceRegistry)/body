@@ -97,12 +97,20 @@ catch (    MappingException me) {
     try {
       cfg.addInputStream(new BufferedInputStream(namedInputStream.getStream()));
     }
- catch (    MappingException me) {
-      if (StringHelper.isEmpty(namedInputStream.getName())) {
-        throw me;
+ catch (    InvalidMappingException e) {
+      if (StringHelper.isNotEmpty(namedInputStream.getName())) {
+        throw new InvalidMappingException("Error while parsing file: " + namedInputStream.getName(),e.getType(),e.getPath(),e);
       }
  else {
+        throw e;
+      }
+    }
+catch (    MappingException me) {
+      if (StringHelper.isNotEmpty(namedInputStream.getName())) {
         throw new MappingException("Error while parsing file: " + namedInputStream.getName(),me);
+      }
+ else {
+        throw me;
       }
     }
   }

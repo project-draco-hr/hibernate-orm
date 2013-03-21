@@ -1,0 +1,20 @@
+{
+  final ClassFile classFile=toClassFile(entry);
+  final ClassDescriptor classDescriptor=toClassDescriptor(classFile,entry);
+  if (!context.getPersistenceUnitDescriptor().getManagedClassNames().contains(classDescriptor.getName())) {
+    if (context.isRootUrl()) {
+      if (!scanOptions.canDetectUnlistedClassesInRoot()) {
+        return;
+      }
+    }
+ else {
+      if (!scanOptions.canDetectUnlistedClassesInNonRoot()) {
+        return;
+      }
+    }
+  }
+  if (!containsClassAnnotationsOfInterest(classFile)) {
+    return;
+  }
+  notifyMatchedClass(classDescriptor);
+}

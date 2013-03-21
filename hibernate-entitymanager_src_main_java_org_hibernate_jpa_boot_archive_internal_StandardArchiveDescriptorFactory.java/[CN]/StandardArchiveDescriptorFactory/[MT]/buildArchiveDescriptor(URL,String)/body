@@ -1,0 +1,33 @@
+{
+  final String protocol=url.getProtocol();
+  if ("jar".equals(protocol)) {
+    return new JarProtocolArchiveDescriptor(this,url,entry);
+  }
+ else   if (StringHelper.isEmpty(protocol) || "file".equals(protocol) || "vfszip".equals(protocol)|| "vfsfile".equals(protocol)) {
+    final File file;
+    try {
+      final String filePart=url.getFile();
+      if (filePart != null && filePart.indexOf(' ') != -1) {
+        file=new File(url.getFile());
+      }
+ else {
+        file=new File(url.toURI().getSchemeSpecificPart());
+      }
+      if (!file.exists()) {
+        throw new IllegalArgumentException(String.format("File [%s] referenced by given URL [%s] does not exist",filePart,url.toExternalForm()));
+      }
+    }
+ catch (    URISyntaxException e) {
+      throw new IllegalArgumentException("Unable to visit JAR " + url + ". Cause: "+ e.getMessage(),e);
+    }
+    if (file.isDirectory()) {
+      return new ExplodedArchiveDescriptor(this,url,entry);
+    }
+ else {
+      return new JarFileBasedArchiveDescriptor(this,url,entry);
+    }
+  }
+ else {
+    return new JarInputStreamBasedArchiveDescriptor(this,url,entry);
+  }
+}

@@ -1,0 +1,33 @@
+{
+  MetadataSources metadataSources=new MetadataSources();
+  for (  ClassDescriptor classDescriptor : deploymentResources.getClassDescriptors()) {
+    final String className=classDescriptor.getName();
+    final ClassInfo classInfo=jandexIndex.getClassByName(DotName.createSimple(className));
+    if (classInfo == null) {
+      metadataSources.annotatedMappingClassNames.add(className);
+      continue;
+    }
+    AnnotationInstance converterAnnotation=JandexHelper.getSingleAnnotation(classInfo.annotations(),JPADotNames.CONVERTER);
+    if (converterAnnotation != null) {
+      metadataSources.converterDescriptors.add(new MetadataSources.ConverterDescriptor(className,JandexHelper.getValue(converterAnnotation,"autoApply",boolean.class)));
+    }
+ else {
+      metadataSources.annotatedMappingClassNames.add(className);
+    }
+  }
+  for (  PackageDescriptor packageDescriptor : deploymentResources.getPackageDescriptors()) {
+    metadataSources.packageNames.add(packageDescriptor.getName());
+  }
+  for (  MappingFileDescriptor mappingFileDescriptor : deploymentResources.getMappingFileDescriptors()) {
+    metadataSources.namedMappingFileInputStreams.add(mappingFileDescriptor.getStreamAccess().asNamedInputStream());
+  }
+  final String explicitHbmXmls=(String)configurationValues.remove(AvailableSettings.HBXML_FILES);
+  if (explicitHbmXmls != null) {
+    metadataSources.mappingFileResources.addAll(Arrays.asList(StringHelper.split(", ",explicitHbmXmls)));
+  }
+  final List<String> explicitOrmXml=(List<String>)configurationValues.remove(AvailableSettings.XML_FILE_NAMES);
+  if (explicitOrmXml != null) {
+    metadataSources.mappingFileResources.addAll(explicitOrmXml);
+  }
+  return metadataSources;
+}

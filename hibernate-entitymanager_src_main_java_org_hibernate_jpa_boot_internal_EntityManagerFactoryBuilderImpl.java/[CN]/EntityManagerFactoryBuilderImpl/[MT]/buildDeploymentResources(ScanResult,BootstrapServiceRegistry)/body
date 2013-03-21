@@ -1,0 +1,60 @@
+{
+  final ArrayList<MappingFileDescriptor> mappingFileDescriptors=new ArrayList<MappingFileDescriptor>();
+  final Set<String> nonLocatedMappingFileNames=new HashSet<String>();
+  final List<String> explicitMappingFileNames=persistenceUnit.getMappingFileNames();
+  if (explicitMappingFileNames != null) {
+    nonLocatedMappingFileNames.addAll(explicitMappingFileNames);
+  }
+  for (  MappingFileDescriptor mappingFileDescriptor : scanResult.getLocatedMappingFiles()) {
+    mappingFileDescriptors.add(mappingFileDescriptor);
+    nonLocatedMappingFileNames.remove(mappingFileDescriptor.getName());
+  }
+  for (  String name : nonLocatedMappingFileNames) {
+    MappingFileDescriptor descriptor=buildMappingFileDescriptor(name,bootstrapServiceRegistry);
+    mappingFileDescriptors.add(descriptor);
+  }
+  final HashMap<String,ClassDescriptor> classDescriptorMap=new HashMap<String,ClassDescriptor>();
+  final HashMap<String,PackageDescriptor> packageDescriptorMap=new HashMap<String,PackageDescriptor>();
+  for (  ClassDescriptor classDescriptor : scanResult.getLocatedClasses()) {
+    classDescriptorMap.put(classDescriptor.getName(),classDescriptor);
+  }
+  for (  PackageDescriptor packageDescriptor : scanResult.getLocatedPackages()) {
+    packageDescriptorMap.put(packageDescriptor.getName(),packageDescriptor);
+  }
+  final List<String> explicitClassNames=persistenceUnit.getManagedClassNames();
+  if (explicitClassNames != null) {
+    for (    String explicitClassName : explicitClassNames) {
+      if (classDescriptorMap.containsKey(explicitClassName)) {
+        continue;
+      }
+      if (packageDescriptorMap.containsKey(explicitClassName)) {
+        continue;
+      }
+      final String classFileName=explicitClassName.replace('.','/') + ".class";
+      final URL classFileUrl=bootstrapServiceRegistry.getService(ClassLoaderService.class).locateResource(classFileName);
+      if (classFileUrl != null) {
+        classDescriptorMap.put(explicitClassName,new ClassDescriptorImpl(explicitClassName,new UrlInputStreamAccess(classFileUrl)));
+        continue;
+      }
+      final String packageInfoFileName=explicitClassName.replace('.','/') + "/package-info.class";
+      final URL packageInfoFileUrl=bootstrapServiceRegistry.getService(ClassLoaderService.class).locateResource(packageInfoFileName);
+      if (packageInfoFileUrl != null) {
+        packageDescriptorMap.put(explicitClassName,new PackageDescriptorImpl(explicitClassName,new UrlInputStreamAccess(packageInfoFileUrl)));
+        continue;
+      }
+      LOG.debugf("Unable to resolve class [%s] named in persistence unit [%s]",explicitClassName,persistenceUnit.getName());
+    }
+  }
+  return new DeploymentResources(){
+    @Override public Iterable<ClassDescriptor> getClassDescriptors(){
+      return classDescriptorMap.values();
+    }
+    @Override public Iterable<PackageDescriptor> getPackageDescriptors(){
+      return packageDescriptorMap.values();
+    }
+    @Override public Iterable<MappingFileDescriptor> getMappingFileDescriptors(){
+      return mappingFileDescriptors;
+    }
+  }
+;
+}

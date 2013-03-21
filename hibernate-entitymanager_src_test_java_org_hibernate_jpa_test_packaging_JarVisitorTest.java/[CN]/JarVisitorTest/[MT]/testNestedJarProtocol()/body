@@ -4,33 +4,13 @@
   File nestedEarDir=buildNestedEarDir(defaultPar);
   addPackageToClasspath(nestedEar);
   String jarFileName=nestedEar.toURL().toExternalForm() + "!/defaultpar.par";
-  Filter[] filters=getFilters();
-  JarVisitor jarVisitor=new JarProtocolVisitor(new URL(jarFileName),filters,"");
-  Set entries=jarVisitor.getMatchingEntries()[1];
-  assertEquals(3,entries.size());
-  Entry entry=new Entry(org.hibernate.jpa.test.pack.defaultpar.ApplicationServer.class.getName(),null);
-  assertTrue(entries.contains(entry));
-  entry=new Entry(Version.class.getName(),null);
-  assertTrue(entries.contains(entry));
-  assertNull(((Entry)entries.iterator().next()).getInputStream());
-  assertEquals(2,jarVisitor.getMatchingEntries()[2].size());
-  for (  Entry localEntry : (Set<Entry>)jarVisitor.getMatchingEntries()[2]) {
-    assertNotNull(localEntry.getInputStream());
-    localEntry.getInputStream().close();
-  }
+  JarProtocolArchiveDescriptor archiveDescriptor=new JarProtocolArchiveDescriptor(StandardArchiveDescriptorFactory.INSTANCE,new URL(jarFileName),"");
+  AbstractScannerImpl.ResultCollector resultCollector=new AbstractScannerImpl.ResultCollector(new StandardScanOptions());
+  archiveDescriptor.visitArchive(new AbstractScannerImpl.ArchiveContextImpl(new PersistenceUnitDescriptorAdapter(),true,resultCollector));
+  validateResults(resultCollector,org.hibernate.jpa.test.pack.defaultpar.ApplicationServer.class,Version.class);
   jarFileName=nestedEarDir.toURL().toExternalForm() + "!/defaultpar.par";
-  filters=getFilters();
-  jarVisitor=new JarProtocolVisitor(new URL(jarFileName),filters,"");
-  entries=jarVisitor.getMatchingEntries()[1];
-  assertEquals(3,entries.size());
-  entry=new Entry(org.hibernate.jpa.test.pack.defaultpar.ApplicationServer.class.getName(),null);
-  assertTrue(entries.contains(entry));
-  entry=new Entry(Version.class.getName(),null);
-  assertTrue(entries.contains(entry));
-  assertNull(((Entry)entries.iterator().next()).getInputStream());
-  assertEquals(2,jarVisitor.getMatchingEntries()[2].size());
-  for (  Entry localEntry : (Set<Entry>)jarVisitor.getMatchingEntries()[2]) {
-    assertNotNull(localEntry.getInputStream());
-    localEntry.getInputStream().close();
-  }
+  archiveDescriptor=new JarProtocolArchiveDescriptor(StandardArchiveDescriptorFactory.INSTANCE,new URL(jarFileName),"");
+  resultCollector=new AbstractScannerImpl.ResultCollector(new StandardScanOptions());
+  archiveDescriptor.visitArchive(new AbstractScannerImpl.ArchiveContextImpl(new PersistenceUnitDescriptorAdapter(),true,resultCollector));
+  validateResults(resultCollector,org.hibernate.jpa.test.pack.defaultpar.ApplicationServer.class,Version.class);
 }

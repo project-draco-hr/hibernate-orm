@@ -1,0 +1,78 @@
+{
+  final JarInputStream jarInputStream;
+  try {
+    jarInputStream=new JarInputStream(getArchiveUrl().openStream());
+  }
+ catch (  Exception e) {
+    LOG.unableToFindFile(getArchiveUrl(),e);
+    return;
+  }
+  try {
+    JarEntry jarEntry;
+    while ((jarEntry=jarInputStream.getNextJarEntry()) != null) {
+      String jarEntryName=jarEntry.getName();
+      if (getEntryBasePrefix() != null && !jarEntryName.startsWith(getEntryBasePrefix())) {
+        continue;
+      }
+      if (jarEntry.isDirectory()) {
+        continue;
+      }
+      if (jarEntryName.equals(getEntryBasePrefix())) {
+        try {
+          final JarInputStream subJarInputStream=new JarInputStream(jarInputStream);
+          try {
+            ZipEntry subZipEntry=jarInputStream.getNextEntry();
+            while (subZipEntry != null) {
+              if (!subZipEntry.isDirectory()) {
+                final String subName=extractName(subZipEntry);
+                final InputStreamAccess inputStreamAccess=buildByteBasedInputStreamAccess(subName,subJarInputStream);
+                final ArchiveEntry entry=new ArchiveEntry(){
+                  @Override public String getName(){
+                    return subName;
+                  }
+                  @Override public String getNameWithinArchive(){
+                    return subName;
+                  }
+                  @Override public InputStreamAccess getStreamAccess(){
+                    return inputStreamAccess;
+                  }
+                }
+;
+                context.obtainArchiveEntryHandler(entry).handleEntry(entry,context);
+              }
+              subZipEntry=jarInputStream.getNextJarEntry();
+            }
+          }
+  finally {
+            subJarInputStream.close();
+          }
+        }
+ catch (        Exception e) {
+          throw new ArchiveException("Error accessing nested jar",e);
+        }
+      }
+ else {
+        final String entryName=extractName(jarEntry);
+        final InputStreamAccess inputStreamAccess=buildByteBasedInputStreamAccess(entryName,jarInputStream);
+        final String relativeName=extractRelativeName(jarEntry);
+        final ArchiveEntry entry=new ArchiveEntry(){
+          @Override public String getName(){
+            return entryName;
+          }
+          @Override public String getNameWithinArchive(){
+            return relativeName;
+          }
+          @Override public InputStreamAccess getStreamAccess(){
+            return inputStreamAccess;
+          }
+        }
+;
+        context.obtainArchiveEntryHandler(entry).handleEntry(entry,context);
+      }
+    }
+    jarInputStream.close();
+  }
+ catch (  IOException ioe) {
+    throw new ArchiveException(String.format("Error accessing JarInputStream [%s]",getArchiveUrl()),ioe);
+  }
+}

@@ -1,0 +1,16 @@
+{
+  final ResultCollector resultCollector=new ResultCollector(scanOptions);
+  if (persistenceUnit.getJarFileUrls() != null) {
+    for (    URL url : persistenceUnit.getJarFileUrls()) {
+      final ArchiveDescriptor descriptor=buildArchiveDescriptor(url,false,scanOptions);
+      final ArchiveContext context=buildArchiveContext(persistenceUnit,false,resultCollector);
+      descriptor.visitArchive(context);
+    }
+  }
+  if (persistenceUnit.getPersistenceUnitRootUrl() != null) {
+    final ArchiveDescriptor descriptor=buildArchiveDescriptor(persistenceUnit.getPersistenceUnitRootUrl(),true,scanOptions);
+    final ArchiveContext context=buildArchiveContext(persistenceUnit,false,resultCollector);
+    descriptor.visitArchive(context);
+  }
+  return ScanResultImpl.from(resultCollector);
+}

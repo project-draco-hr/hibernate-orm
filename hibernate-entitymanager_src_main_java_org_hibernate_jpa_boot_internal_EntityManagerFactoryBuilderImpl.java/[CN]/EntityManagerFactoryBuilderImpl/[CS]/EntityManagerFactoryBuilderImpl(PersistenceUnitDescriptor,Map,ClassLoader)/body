@@ -9,10 +9,10 @@
   this.serviceRegistryBuilder=new StandardServiceRegistryBuilder(bootstrapServiceRegistry);
   this.configurationValues=mergePropertySources(persistenceUnit,integrationSettings,bootstrapServiceRegistry);
   this.serviceRegistryBuilder.applySettings(configurationValues);
-  ScanResult scanResult=scan(bootstrapServiceRegistry);
-  Set<String> collectedManagedClassNames=collectManagedClassNames(scanResult);
-  IndexView jandexIndex=locateOrBuildJandexIndex(collectedManagedClassNames,scanResult.getPackageNames(),bootstrapServiceRegistry);
-  metadataSources=prepareMetadataSources(jandexIndex,collectedManagedClassNames,scanResult,bootstrapServiceRegistry);
+  final ScanResult scanResult=scan(bootstrapServiceRegistry);
+  final DeploymentResources deploymentResources=buildDeploymentResources(scanResult,bootstrapServiceRegistry);
+  final IndexView jandexIndex=locateOrBuildJandexIndex(deploymentResources);
+  metadataSources=prepareMetadataSources(jandexIndex,deploymentResources,bootstrapServiceRegistry);
   withValidatorFactory(configurationValues.get(AvailableSettings.VALIDATION_FACTORY));
   final boolean useClassTransformer="true".equals(configurationValues.remove(AvailableSettings.USE_CLASS_ENHANCER));
   if (useClassTransformer) {

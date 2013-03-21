@@ -1,0 +1,31 @@
+{
+  final File archiveUrlDirectory;
+  try {
+    final String filePart=getArchiveUrl().getFile();
+    if (filePart != null && filePart.indexOf(' ') != -1) {
+      archiveUrlDirectory=new File(filePart);
+    }
+ else {
+      archiveUrlDirectory=new File(getArchiveUrl().toURI().getSchemeSpecificPart());
+    }
+  }
+ catch (  URISyntaxException e) {
+    LOG.malformedUrl(getArchiveUrl(),e);
+    return null;
+  }
+  if (!archiveUrlDirectory.exists()) {
+    LOG.explodedJarDoesNotExist(getArchiveUrl());
+    return null;
+  }
+  if (!archiveUrlDirectory.isDirectory()) {
+    LOG.explodedJarNotDirectory(getArchiveUrl());
+    return null;
+  }
+  final String entryBase=getEntryBasePrefix();
+  if (entryBase != null && entryBase.length() > 0 && !"/".equals(entryBase)) {
+    return new File(archiveUrlDirectory,entryBase);
+  }
+ else {
+    return archiveUrlDirectory;
+  }
+}
