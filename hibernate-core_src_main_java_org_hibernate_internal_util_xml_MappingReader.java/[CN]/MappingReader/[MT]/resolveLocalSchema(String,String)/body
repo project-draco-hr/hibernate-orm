@@ -1,0 +1,31 @@
+{
+  URL url=ConfigHelper.findAsResource(schemaName);
+  if (url == null) {
+    throw new MappingException("Unable to locate schema [" + schemaName + "] via classpath");
+  }
+  try {
+    InputStream schemaStream=url.openStream();
+    try {
+      StreamSource source=new StreamSource(url.openStream());
+      SchemaFactory schemaFactory=SchemaFactory.newInstance(schemaLanguage);
+      return schemaFactory.newSchema(source);
+    }
+ catch (    SAXException e) {
+      throw new MappingException("Unable to load schema [" + schemaName + "]",e);
+    }
+catch (    IOException e) {
+      throw new MappingException("Unable to load schema [" + schemaName + "]",e);
+    }
+ finally {
+      try {
+        schemaStream.close();
+      }
+ catch (      IOException e) {
+        log.debugf("Problem closing schema stream - %s",e.toString());
+      }
+    }
+  }
+ catch (  IOException e) {
+    throw new MappingException("Stream error handling schema url [" + url.toExternalForm() + "]");
+  }
+}
