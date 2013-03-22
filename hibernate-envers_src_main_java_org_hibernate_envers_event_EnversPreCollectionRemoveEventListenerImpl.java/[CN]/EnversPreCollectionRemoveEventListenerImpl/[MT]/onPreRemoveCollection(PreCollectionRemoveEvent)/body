@@ -1,6 +1,10 @@
 {
   CollectionEntry collectionEntry=getCollectionEntry(event);
   if (collectionEntry != null && !collectionEntry.getLoadedPersister().isInverse()) {
-    onCollectionAction(event,null,collectionEntry.getSnapshot(),collectionEntry);
+    Serializable oldColl=collectionEntry.getSnapshot();
+    if (!event.getCollection().wasInitialized() && shouldGenerateRevision(event)) {
+      oldColl=getInitializedCollection(event);
+    }
+    onCollectionAction(event,null,oldColl,collectionEntry);
   }
 }

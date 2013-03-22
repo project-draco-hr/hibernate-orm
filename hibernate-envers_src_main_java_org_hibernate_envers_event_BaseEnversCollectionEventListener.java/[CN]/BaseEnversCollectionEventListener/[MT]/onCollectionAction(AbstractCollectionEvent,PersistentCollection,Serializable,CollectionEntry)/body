@@ -1,11 +1,8 @@
 {
-  String entityName=event.getAffectedOwnerEntityName();
-  if (!getAuditConfiguration().getGlobalCfg().isGenerateRevisionsForCollections()) {
-    return;
-  }
-  if (getAuditConfiguration().getEntCfg().isVersioned(entityName)) {
+  if (shouldGenerateRevision(event)) {
     checkIfTransactionInProgress(event.getSession());
     AuditProcess auditProcess=getAuditConfiguration().getSyncManager().get(event.getSession());
+    String entityName=event.getAffectedOwnerEntityName();
     String ownerEntityName=((AbstractCollectionPersister)collectionEntry.getLoadedPersister()).getOwnerEntityName();
     String referencingPropertyName=collectionEntry.getRole().substring(ownerEntityName.length() + 1);
     RelationDescription rd=searchForRelationDescription(entityName,referencingPropertyName);
