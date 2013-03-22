@@ -2,6 +2,11 @@
   Insert insert=identityDelegate.prepareIdentifierGeneratingInsert();
   insert.setTableName(getTableName(0));
   for (int i=0; i < entityMetamodel.getPropertySpan(); i++) {
+    if (includeProperty[i] && isPropertyOfTable(i,0) && !lobProperties.contains(i)) {
+      insert.addColumns(getPropertyColumnNames(i),propertyColumnInsertable[i],propertyColumnWriters[i]);
+    }
+  }
+  for (  int i : lobProperties) {
     if (includeProperty[i] && isPropertyOfTable(i,0)) {
       insert.addColumns(getPropertyColumnNames(i),propertyColumnInsertable[i],propertyColumnWriters[i]);
     }
