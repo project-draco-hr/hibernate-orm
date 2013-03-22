@@ -1,0 +1,40 @@
+{
+  log.tracef("In resolveEntity(%s, %s, %s, %s)",publicID,systemID,baseURI,namespace);
+  if (namespace != null) {
+    log.debugf("Interpreting namespace : %s",namespace);
+    if (INITIAL_JPA_ORM_NS.equals(namespace)) {
+      return openUrlStream(MappingReader.SupportedOrmXsdVersion.ORM_2_0.getSchemaUrl());
+    }
+ else     if (SECOND_JPA_ORM_NS.equals(namespace)) {
+      return openUrlStream(MappingReader.SupportedOrmXsdVersion.ORM_2_1.getSchemaUrl());
+    }
+  }
+  if (systemID != null) {
+    log.debugf("Interpreting systemID : %s",namespace);
+    InputStream stream=null;
+    if (systemID.startsWith(HIBERNATE_MAPPING_DTD_URL_BASE)) {
+      log.debug("Recognized hibernate namespace; attempting to resolve on classpath under org/hibernate/");
+      stream=resolveOnClassPath(systemID,HIBERNATE_MAPPING_DTD_URL_BASE);
+    }
+ else     if (systemID.startsWith(LEGACY_HIBERNATE_MAPPING_DTD_URL_BASE)) {
+      log.recognizedObsoleteHibernateNamespace(LEGACY_HIBERNATE_MAPPING_DTD_URL_BASE,HIBERNATE_MAPPING_DTD_URL_BASE);
+      log.debug("Attempting to resolve on classpath under org/hibernate/");
+      stream=resolveOnClassPath(systemID,LEGACY_HIBERNATE_MAPPING_DTD_URL_BASE);
+    }
+ else     if (systemID.startsWith(CLASSPATH_EXTENSION_URL_BASE)) {
+      log.debug("Recognized local namespace; attempting to resolve on classpath");
+      final String path=systemID.substring(CLASSPATH_EXTENSION_URL_BASE.length());
+      stream=resolveInLocalNamespace(path);
+      if (stream == null) {
+        log.debugf("Unable to resolve [%s] on classpath",systemID);
+      }
+ else {
+        log.debugf("Resolved [%s] on classpath",systemID);
+      }
+    }
+    if (stream != null) {
+      return stream;
+    }
+  }
+  return null;
+}

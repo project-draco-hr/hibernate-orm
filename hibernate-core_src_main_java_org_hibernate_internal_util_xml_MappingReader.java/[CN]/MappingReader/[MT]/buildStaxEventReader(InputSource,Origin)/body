@@ -1,0 +1,23 @@
+{
+  XMLEventReader reader=null;
+  if (source.getByteStream() != null) {
+    try {
+      reader=staxFactory().createXMLEventReader(source.getByteStream());
+    }
+ catch (    XMLStreamException e) {
+      throw new XmlInfrastructureException("Unable to create stax reader, origin = " + toLoggableString(origin),e);
+    }
+  }
+ else   if (source.getCharacterStream() != null) {
+    try {
+      reader=staxFactory().createXMLEventReader(source.getCharacterStream());
+    }
+ catch (    XMLStreamException e) {
+      throw new XmlInfrastructureException("Unable to create stax reader, origin = " + toLoggableString(origin),e);
+    }
+  }
+  if (reader == null) {
+    throw new XmlInfrastructureException("Unable to convert SAX InputStream into StAX XMLEventReader");
+  }
+  return new BufferedXMLEventReader(reader);
+}

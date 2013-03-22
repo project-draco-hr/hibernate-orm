@@ -1,0 +1,20 @@
+{
+  this.eventLimit=eventLimit;
+  if (this.eventLimit == 0) {
+    this.eventBuffer.clear();
+    this.bufferReader=null;
+  }
+ else   if (this.eventLimit > 0) {
+    int iteratorIndex=0;
+    if (this.bufferReader != null) {
+      final int nextIndex=this.bufferReader.nextIndex();
+      iteratorIndex=Math.max(0,nextIndex - (this.eventBuffer.size() - this.eventLimit));
+    }
+    while (this.eventBuffer.size() > this.eventLimit) {
+      this.eventBuffer.poll();
+    }
+    if (this.bufferReader != null) {
+      this.bufferReader=this.eventBuffer.listIterator(iteratorIndex);
+    }
+  }
+}

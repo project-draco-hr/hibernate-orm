@@ -1,0 +1,15 @@
+{
+  STAXEventReader dom4jStaxEventReader=new STAXEventReader();
+  try {
+    staxEventReader=new FilteringXMLEventReader(staxEventReader){
+      @Override protected XMLEvent filterEvent(      XMLEvent event,      boolean peek){
+        return event.getEventType() == XMLStreamConstants.COMMENT ? null : event;
+      }
+    }
+;
+    return dom4jStaxEventReader.readDocument(staxEventReader);
+  }
+ catch (  XMLStreamException e) {
+    throw new InvalidMappingException("Unable to read StAX source as dom4j Document for processing",origin,e);
+  }
+}
