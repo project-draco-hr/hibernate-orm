@@ -1,0 +1,15 @@
+{
+  if (policyConfiguration == null) {
+    policyConfiguration=locatePolicyConfiguration(contextId);
+  }
+  for (  String grantedAction : permissionDeclaration.getPermissibleAction().getImpliedActions()) {
+    final EJBMethodPermission permission=new EJBMethodPermission(permissionDeclaration.getEntityName(),grantedAction,null,null);
+    log.debugf("Adding permission [%s] to role [%s]",grantedAction,permissionDeclaration.getRole());
+    try {
+      policyConfiguration.addToRole(permissionDeclaration.getRole(),permission);
+    }
+ catch (    PolicyContextException pce) {
+      throw new HibernateException("policy context exception occurred",pce);
+    }
+  }
+}

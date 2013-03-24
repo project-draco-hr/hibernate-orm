@@ -1,14 +1,22 @@
 {
-  String contextId=secNode.attributeValue("context");
-  setProperty(Environment.JACC_CONTEXTID,contextId);
-  LOG.jaccContextId(contextId);
-  JACCConfiguration jcfg=new JACCConfiguration(contextId);
+  final String nodeContextId=secNode.attributeValue("context");
+  final String explicitContextId=getProperty(AvailableSettings.JACC_CONTEXT_ID);
+  if (explicitContextId == null) {
+    setProperty(AvailableSettings.JACC_CONTEXT_ID,nodeContextId);
+    LOG.jaccContextId(nodeContextId);
+  }
+ else {
+    if (!nodeContextId.equals(explicitContextId)) {
+      throw new HibernateException("Non-matching JACC context ids");
+    }
+  }
+  jaccPermissionDeclarations=new JaccPermissionDeclarations(nodeContextId);
   Iterator grantElements=secNode.elementIterator();
   while (grantElements.hasNext()) {
-    Element grantElement=(Element)grantElements.next();
-    String elementName=grantElement.getName();
+    final Element grantElement=(Element)grantElements.next();
+    final String elementName=grantElement.getName();
     if ("grant".equals(elementName)) {
-      jcfg.addPermission(grantElement.attributeValue("role"),grantElement.attributeValue("entity-name"),grantElement.attributeValue("actions"));
+      jaccPermissionDeclarations.addPermissionDeclaration(new GrantedPermission(grantElement.attributeValue("role"),grantElement.attributeValue("entity-name"),grantElement.attributeValue("actions")));
     }
   }
 }

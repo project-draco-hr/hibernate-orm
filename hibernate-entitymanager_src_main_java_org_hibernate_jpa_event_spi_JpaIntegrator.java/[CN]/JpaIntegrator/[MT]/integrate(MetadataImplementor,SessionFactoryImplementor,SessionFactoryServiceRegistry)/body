@@ -9,9 +9,7 @@
   }
 );
   final EventListenerRegistry eventListenerRegistry=serviceRegistry.getService(EventListenerRegistry.class);
-  boolean isSecurityEnabled=sessionFactory.getProperties().containsKey(AvailableSettings.JACC_ENABLED);
   eventListenerRegistry.addDuplicationStrategy(JPA_DUPLICATION_STRATEGY);
-  eventListenerRegistry.addDuplicationStrategy(JACC_DUPLICATION_STRATEGY);
   eventListenerRegistry.setListeners(EventType.AUTO_FLUSH,JpaAutoFlushEventListener.INSTANCE);
   eventListenerRegistry.setListeners(EventType.DELETE,new JpaDeleteEventListener());
   eventListenerRegistry.setListeners(EventType.FLUSH_ENTITY,new JpaFlushEntityEventListener());
@@ -21,13 +19,6 @@
   eventListenerRegistry.setListeners(EventType.PERSIST_ONFLUSH,new JpaPersistOnFlushEventListener());
   eventListenerRegistry.setListeners(EventType.SAVE,new JpaSaveEventListener());
   eventListenerRegistry.setListeners(EventType.SAVE_UPDATE,new JpaSaveOrUpdateEventListener());
-  if (isSecurityEnabled) {
-    final String jaccContextId=sessionFactory.getProperties().getProperty(Environment.JACC_CONTEXTID);
-    eventListenerRegistry.prependListeners(EventType.PRE_DELETE,new JACCPreDeleteEventListener(jaccContextId));
-    eventListenerRegistry.prependListeners(EventType.PRE_INSERT,new JACCPreInsertEventListener(jaccContextId));
-    eventListenerRegistry.prependListeners(EventType.PRE_UPDATE,new JACCPreUpdateEventListener(jaccContextId));
-    eventListenerRegistry.prependListeners(EventType.PRE_LOAD,new JACCPreLoadEventListener(jaccContextId));
-  }
   eventListenerRegistry.prependListeners(EventType.POST_DELETE,new JpaPostDeleteEventListener());
   eventListenerRegistry.prependListeners(EventType.POST_INSERT,new JpaPostInsertEventListener());
   eventListenerRegistry.prependListeners(EventType.POST_LOAD,new JpaPostLoadEventListener());
