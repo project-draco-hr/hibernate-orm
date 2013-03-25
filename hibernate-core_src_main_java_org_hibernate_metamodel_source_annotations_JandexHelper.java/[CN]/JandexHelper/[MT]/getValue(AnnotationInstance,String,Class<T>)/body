@@ -2,6 +2,9 @@
   if (Class.class.equals(type)) {
     throw new AssertionFailure("Annotation parameters of type Class should be retrieved as strings (fully qualified class names)");
   }
+  if (type.isPrimitive()) {
+    type=PrimitiveWrapperHelper.getDescriptorByPrimitiveType(type).getWrapperClass();
+  }
   AnnotationValue annotationValue=annotation.value(element);
   try {
     if (annotationValue != null) {
@@ -12,6 +15,6 @@
     }
   }
  catch (  ClassCastException e) {
-    throw new AssertionFailure(String.format("the annotation property %s of annotation %s is not of type %s",element,annotation.name(),type.getName()));
+    throw new AssertionFailure(String.format("the annotation property %s of annotation %s is not of type %s",element,annotation.name(),type.getName()),e);
   }
 }

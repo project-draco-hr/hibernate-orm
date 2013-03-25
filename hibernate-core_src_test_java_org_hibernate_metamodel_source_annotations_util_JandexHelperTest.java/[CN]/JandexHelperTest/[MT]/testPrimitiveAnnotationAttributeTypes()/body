@@ -1,0 +1,21 @@
+{
+@Converter(autoApply=true) class MyConverter implements AttributeConverter<URL,String> {
+    @Override public String convertToDatabaseColumn(    URL attribute){
+      return attribute.toExternalForm();
+    }
+    @Override public URL convertToEntityAttribute(    String dbData){
+      try {
+        return new URL(dbData);
+      }
+ catch (      MalformedURLException e) {
+        throw new HibernateException("Could not convert string [" + dbData + "] to url",e);
+      }
+    }
+  }
+  Index index=JandexHelper.indexForClass(classLoaderService,MyConverter.class);
+  List<AnnotationInstance> annotationInstances=index.getAnnotations(JPADotNames.CONVERTER);
+  assertTrue(annotationInstances.size() == 1);
+  AnnotationInstance annotationInstance=annotationInstances.get(0);
+  boolean value=JandexHelper.getValue(annotationInstance,"autoApply",boolean.class);
+  Assert.assertTrue(value);
+}
