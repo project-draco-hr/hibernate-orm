@@ -1,4 +1,5 @@
 {
+  final Map originalId=(Map)versionsEntity.get(verCfg.getAuditEntCfg().getOriginalIdPropName());
   for (  Object key : originalId.keySet()) {
     Object value=originalId.get(key);
     if (value instanceof HibernateProxy) {
@@ -15,7 +16,7 @@
  catch (        ClassNotFoundException e) {
           throw new AuditException(e);
         }
-        final ToOneDelegateSessionImplementor delegate=new ToOneDelegateSessionImplementor(versionsReader,entityClass,entityId,revision,verCfg);
+        final ToOneDelegateSessionImplementor delegate=new ToOneDelegateSessionImplementor(versionsReader,entityClass,entityId,revision,RevisionType.DEL.equals(versionsEntity.get(verCfg.getAuditEntCfg().getRevisionTypePropName())),verCfg);
         originalId.put(key,versionsReader.getSessionImplementor().getFactory().getEntityPersister(entityName).createProxy(entityId,delegate));
       }
     }

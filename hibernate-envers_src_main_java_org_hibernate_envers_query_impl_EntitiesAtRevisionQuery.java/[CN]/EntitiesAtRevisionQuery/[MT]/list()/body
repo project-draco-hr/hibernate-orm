@@ -4,7 +4,9 @@
   String originalIdPropertyName=verEntCfg.getOriginalIdPropName();
   MiddleIdData referencedIdData=new MiddleIdData(verEntCfg,verCfg.getEntCfg().get(entityName).getIdMappingData(),null,entityName,verCfg.getEntCfg().isVersioned(entityName));
   verCfg.getAuditStrategy().addEntityAtRevisionRestriction(verCfg.getGlobalCfg(),qb,revisionPropertyPath,verEntCfg.getRevisionEndFieldName(),true,referencedIdData,revisionPropertyPath,originalIdPropertyName,REFERENCED_ENTITY_ALIAS,REFERENCED_ENTITY_ALIAS_DEF_AUD_STR);
-  qb.getRootParameters().addWhereWithParam(verEntCfg.getRevisionTypePropName(),"<>",RevisionType.DEL);
+  if (!includeDeletions) {
+    qb.getRootParameters().addWhereWithParam(verEntCfg.getRevisionTypePropName(),"<>",RevisionType.DEL);
+  }
   for (  AuditCriterion criterion : criterions) {
     criterion.addToQuery(verCfg,versionsReader,entityName,qb,qb.getRootParameters());
   }
