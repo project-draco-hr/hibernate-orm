@@ -1,0 +1,35 @@
+{
+  Map<String,HibernateException> errors=new HashMap<String,HibernateException>();
+  log.debugf("Checking %s named HQL queries",namedQueryDefinitionMap.size());
+  for (  NamedQueryDefinition namedQueryDefinition : namedQueryDefinitionMap.values()) {
+    try {
+      log.debugf("Checking named query: %s",namedQueryDefinition.getName());
+      queryPlanCache.getHQLQueryPlan(namedQueryDefinition.getQueryString(),false,Collections.EMPTY_MAP);
+    }
+ catch (    HibernateException e) {
+      errors.put(namedQueryDefinition.getName(),e);
+    }
+  }
+  log.debugf("Checking %s named SQL queries",namedSqlQueryDefinitionMap.size());
+  for (  NamedSQLQueryDefinition namedSQLQueryDefinition : namedSqlQueryDefinitionMap.values()) {
+    try {
+      log.debugf("Checking named SQL query: %s",namedSQLQueryDefinition.getName());
+      NativeSQLQuerySpecification spec;
+      if (namedSQLQueryDefinition.getResultSetRef() != null) {
+        ResultSetMappingDefinition definition=getResultSetMappingDefinition(namedSQLQueryDefinition.getResultSetRef());
+        if (definition == null) {
+          throw new MappingException("Unable to find resultset-ref definition: " + namedSQLQueryDefinition.getResultSetRef());
+        }
+        spec=new NativeSQLQuerySpecification(namedSQLQueryDefinition.getQueryString(),definition.getQueryReturns(),namedSQLQueryDefinition.getQuerySpaces());
+      }
+ else {
+        spec=new NativeSQLQuerySpecification(namedSQLQueryDefinition.getQueryString(),namedSQLQueryDefinition.getQueryReturns(),namedSQLQueryDefinition.getQuerySpaces());
+      }
+      queryPlanCache.getNativeSQLQueryPlan(spec);
+    }
+ catch (    HibernateException e) {
+      errors.put(namedSQLQueryDefinition.getName(),e);
+    }
+  }
+  return errors;
+}
