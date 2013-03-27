@@ -3,7 +3,13 @@
   if (!loadable.hasSubclasses()) {
     return persister.getEntityName();
   }
-  final Object discriminatorValue=loadable.getDiscriminatorType().nullSafeGet(rs,entityAliases.getSuffixedDiscriminatorAlias(),session,null);
+  final Object discriminatorValue;
+  try {
+    discriminatorValue=loadable.getDiscriminatorType().nullSafeGet(rs,entityAliases.getSuffixedDiscriminatorAlias(),session,null);
+  }
+ catch (  SQLException e) {
+    throw getSession().getFactory().getJdbcServices().getSqlExceptionHelper().convert(e,"Could not read discriminator value from ResultSet");
+  }
   final String result=loadable.getSubclassForDiscriminatorValue(discriminatorValue);
   if (result == null) {
     throw new WrongClassException("Discriminator: " + discriminatorValue,entityKey.getIdentifier(),persister.getEntityName());

@@ -6,8 +6,20 @@
   }
   TwoPhaseLoad.addUninitializedEntity(entityKey,entityInstance,persister,acquiredLockMode,!eagerFetch,session);
   final String[][] cols=persister == rootPersister ? entityAliases.getSuffixedPropertyAliases() : entityAliases.getSuffixedPropertyAliases(persister);
-  final Object[] values=persister.hydrate(resultSet,id,entityInstance,(Loadable)rootPersister,cols,eagerFetch,session);
-  final Object rowId=persister.hasRowId() ? resultSet.getObject(entityAliases.getRowIdAlias()) : null;
+  final Object[] values;
+  try {
+    values=persister.hydrate(resultSet,id,entityInstance,(Loadable)rootPersister,cols,eagerFetch,session);
+  }
+ catch (  SQLException e) {
+    throw getSession().getFactory().getJdbcServices().getSqlExceptionHelper().convert(e,"Could not read entity state from ResultSet : " + entityKey);
+  }
+  final Object rowId;
+  try {
+    rowId=persister.hasRowId() ? resultSet.getObject(entityAliases.getRowIdAlias()) : null;
+  }
+ catch (  SQLException e) {
+    throw getSession().getFactory().getJdbcServices().getSqlExceptionHelper().convert(e,"Could not read entity row-id from ResultSet : " + entityKey);
+  }
   if (associationType != null) {
     String ukName=associationType.getRHSUniqueKeyPropertyName();
     if (ukName != null) {

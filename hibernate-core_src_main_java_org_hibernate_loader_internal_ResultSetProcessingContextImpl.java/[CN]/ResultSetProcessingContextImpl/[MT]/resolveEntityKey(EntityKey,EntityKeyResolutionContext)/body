@@ -1,0 +1,27 @@
+{
+  final Object existing=getSession().getEntityUsingInterceptor(entityKey);
+  if (existing != null) {
+    if (!entityKeyContext.getEntityPersister().isInstance(existing)) {
+      throw new WrongClassException("loaded object was of wrong class " + existing.getClass(),entityKey.getIdentifier(),entityKeyContext.getEntityPersister().getEntityName());
+    }
+    final LockMode requestedLockMode=entityKeyContext.getLockMode() == null ? LockMode.NONE : entityKeyContext.getLockMode();
+    if (requestedLockMode != LockMode.NONE) {
+      final LockMode currentLockMode=getSession().getPersistenceContext().getEntry(existing).getLockMode();
+      final boolean isVersionCheckNeeded=entityKeyContext.getEntityPersister().isVersioned() && currentLockMode.lessThan(requestedLockMode);
+      if (isVersionCheckNeeded) {
+        checkVersion(resultSet,entityKeyContext.getEntityPersister(),entityKeyContext.getEntityAliases(),entityKey,existing);
+        getSession().getPersistenceContext().getEntry(existing).setLockMode(requestedLockMode);
+      }
+    }
+    return existing;
+  }
+ else {
+    final String concreteEntityTypeName=getConcreteEntityTypeName(resultSet,entityKeyContext.getEntityPersister(),entityKeyContext.getEntityAliases(),entityKey);
+    final Object entityInstance=getSession().instantiate(concreteEntityTypeName,entityKey.getIdentifier());
+    final LockMode requestedLockMode=entityKeyContext.getLockMode() == null ? LockMode.NONE : entityKeyContext.getLockMode();
+    final LockMode acquiredLockMode=requestedLockMode == LockMode.NONE ? LockMode.READ : requestedLockMode;
+    loadFromResultSet(resultSet,entityInstance,concreteEntityTypeName,entityKey,entityKeyContext.getEntityAliases(),acquiredLockMode,entityKeyContext.getEntityPersister(),true,entityKeyContext.getEntityPersister().getEntityMetamodel().getEntityType());
+    registerHydratedEntity(entityKeyContext.getEntityPersister(),entityKey,entityInstance);
+    return entityInstance;
+  }
+}

@@ -2,7 +2,13 @@
   final Object version=session.getPersistenceContext().getEntry(entityInstance).getVersion();
   if (version != null) {
     VersionType versionType=persister.getVersionType();
-    Object currentVersion=versionType.nullSafeGet(resultSet,entityAliases.getSuffixedVersionAliases(),session,null);
+    final Object currentVersion;
+    try {
+      currentVersion=versionType.nullSafeGet(resultSet,entityAliases.getSuffixedVersionAliases(),session,null);
+    }
+ catch (    SQLException e) {
+      throw getSession().getFactory().getJdbcServices().getSqlExceptionHelper().convert(e,"Could not read version value from result set");
+    }
     if (!versionType.isEqual(version,currentVersion)) {
       if (session.getFactory().getStatistics().isStatisticsEnabled()) {
         session.getFactory().getStatisticsImplementor().optimisticFailure(persister.getEntityName());

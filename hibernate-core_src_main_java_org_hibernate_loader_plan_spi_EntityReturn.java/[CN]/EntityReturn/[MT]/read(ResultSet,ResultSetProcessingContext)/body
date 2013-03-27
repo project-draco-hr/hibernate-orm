@@ -4,26 +4,5 @@
   if (entityKey == null) {
     throw new AssertionFailure("Could not locate resolved EntityKey");
   }
-  final Object existing=context.getSession().getEntityUsingInterceptor(entityKey);
-  if (existing != null) {
-    if (!persister.isInstance(existing)) {
-      throw new WrongClassException("loaded object was of wrong class " + existing.getClass(),entityKey.getIdentifier(),persister.getEntityName());
-    }
-    if (getLockMode() != null && getLockMode() != LockMode.NONE) {
-      final boolean isVersionCheckNeeded=persister.isVersioned() && context.getSession().getPersistenceContext().getEntry(existing).getLockMode().lessThan(getLockMode());
-      if (isVersionCheckNeeded) {
-        context.checkVersion(resultSet,persister,entityAliases,entityKey,existing);
-        context.getSession().getPersistenceContext().getEntry(existing).setLockMode(getLockMode());
-      }
-    }
-    return existing;
-  }
- else {
-    final String concreteEntityTypeName=context.getConcreteEntityTypeName(resultSet,persister,entityAliases,entityKey);
-    final Object entityInstance=context.getSession().instantiate(concreteEntityTypeName,entityKey.getIdentifier());
-    LockMode acquiredLockMode=getLockMode() == LockMode.NONE ? LockMode.READ : getLockMode();
-    context.loadFromResultSet(resultSet,entityInstance,concreteEntityTypeName,entityKey,entityAliases,acquiredLockMode,persister,true,persister.getEntityMetamodel().getEntityType());
-    context.registerHydratedEntity(persister,entityKey,entityInstance);
-    return entityInstance;
-  }
+  return context.resolveEntityKey(entityKey,this);
 }
