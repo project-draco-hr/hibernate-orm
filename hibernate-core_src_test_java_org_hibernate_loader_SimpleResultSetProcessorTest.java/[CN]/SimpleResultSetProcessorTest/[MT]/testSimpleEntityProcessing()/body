@@ -1,19 +1,19 @@
 {
+  final EntityPersister entityPersister=sessionFactory().getEntityPersister(SimpleEntity.class.getName());
   Session session=openSession();
   session.beginTransaction();
   session.save(new SimpleEntity(1,"the only"));
   session.getTransaction().commit();
   session.close();
 {
-    final Session workSession=openSession();
-    workSession.beginTransaction();
-    final EntityPersister entityPersister=sessionFactory().getEntityPersister(SimpleEntity.class.getName());
-    final EntityLoader loader=(EntityLoader)BatchingEntityLoaderBuilder.getBuilder(sessionFactory()).buildLoader((OuterJoinLoadable)entityPersister,-1,LockMode.NONE,sessionFactory(),LoadQueryInfluencers.NONE);
-    final String sql=loader.getSQLString();
+    final EntityLoadQueryImpl queryBuilder=new EntityLoadQueryImpl(sessionFactory(),LoadQueryInfluencers.NONE,LockMode.NONE,(OuterJoinLoadable)entityPersister);
+    final String sql=queryBuilder.generateSql(1);
     final SingleRootReturnLoadPlanBuilderStrategy strategy=new SingleRootReturnLoadPlanBuilderStrategy(sessionFactory(),LoadQueryInfluencers.NONE,"abc",0);
     final LoadPlan plan=LoadPlanBuilder.buildRootEntityLoadPlan(strategy,entityPersister);
     final ResultSetProcessorImpl resultSetProcessor=new ResultSetProcessorImpl(plan);
     final List results=new ArrayList();
+    final Session workSession=openSession();
+    workSession.beginTransaction();
     workSession.doWork(new Work(){
       @Override public void execute(      Connection connection) throws SQLException {
         PreparedStatement ps=connection.prepareStatement(sql);
