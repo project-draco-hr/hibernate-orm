@@ -1,0 +1,47 @@
+{
+  Session session=openSession();
+  session.beginTransaction();
+  session.save(new SimpleEntity(1,"the only"));
+  session.getTransaction().commit();
+  session.close();
+{
+    final Session workSession=openSession();
+    workSession.beginTransaction();
+    final EntityPersister entityPersister=sessionFactory().getEntityPersister(SimpleEntity.class.getName());
+    final EntityLoader loader=(EntityLoader)BatchingEntityLoaderBuilder.getBuilder(sessionFactory()).buildLoader((OuterJoinLoadable)entityPersister,-1,LockMode.NONE,sessionFactory(),LoadQueryInfluencers.NONE);
+    final String sql=loader.getSQLString();
+    final SingleRootReturnLoadPlanBuilderStrategy strategy=new SingleRootReturnLoadPlanBuilderStrategy(sessionFactory(),LoadQueryInfluencers.NONE,"abc",0);
+    final LoadPlan plan=LoadPlanBuilder.buildRootEntityLoadPlan(strategy,entityPersister);
+    final ResultSetProcessorImpl resultSetProcessor=new ResultSetProcessorImpl(plan);
+    final List results=new ArrayList();
+    workSession.doWork(new Work(){
+      @Override public void execute(      Connection connection) throws SQLException {
+        PreparedStatement ps=connection.prepareStatement(sql);
+        ps.setInt(1,1);
+        ResultSet resultSet=ps.executeQuery();
+        results.addAll(resultSetProcessor.extractResults(resultSet,(SessionImplementor)workSession,new QueryParameters(),new NamedParameterContext(){
+          @Override public int[] getNamedParameterLocations(          String name){
+            return new int[0];
+          }
+        }
+,true,false,null,null));
+        resultSet.close();
+        ps.close();
+      }
+    }
+);
+    assertEquals(1,results.size());
+    Object result=results.get(0);
+    assertNotNull(result);
+    SimpleEntity workEntity=ExtraAssertions.assertTyping(SimpleEntity.class,result);
+    assertEquals(1,workEntity.id.intValue());
+    assertEquals("the only",workEntity.name);
+    workSession.getTransaction().commit();
+    workSession.close();
+  }
+  session=openSession();
+  session.beginTransaction();
+  session.createQuery("delete SimpleEntity").executeUpdate();
+  session.getTransaction().commit();
+  session.close();
+}

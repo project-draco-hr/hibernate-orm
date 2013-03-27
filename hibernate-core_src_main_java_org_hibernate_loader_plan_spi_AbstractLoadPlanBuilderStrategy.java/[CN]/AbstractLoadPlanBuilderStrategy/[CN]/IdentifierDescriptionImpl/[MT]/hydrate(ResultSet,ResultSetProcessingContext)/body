@@ -1,16 +1,21 @@
 {
   final IdentifierResolutionContext ownerIdentifierResolutionContext=context.getIdentifierResolutionContext(entityReference);
-  final Serializable ownerIdentifierHydratedState=ownerIdentifierResolutionContext.getHydratedForm();
-  for (  EntityFetch fetch : identifierFetches) {
-    final IdentifierResolutionContext identifierResolutionContext=context.getIdentifierResolutionContext(fetch);
-    if (identifierResolutionContext.getHydratedForm() != null) {
-      continue;
+  final Object ownerIdentifierHydratedState=ownerIdentifierResolutionContext.getHydratedForm();
+  if (ownerIdentifierHydratedState != null) {
+    for (    EntityFetch fetch : identifierFetches) {
+      final IdentifierResolutionContext identifierResolutionContext=context.getIdentifierResolutionContext(fetch);
+      if (identifierResolutionContext.getHydratedForm() != null) {
+        continue;
+      }
+      if (fetchToHydratedStateExtractorMap != null && ownerIdentifierHydratedState != null) {
+        Serializable extracted=(Serializable)fetchToHydratedStateExtractorMap.get(fetch).extract(ownerIdentifierHydratedState);
+        identifierResolutionContext.registerHydratedForm(extracted);
+        continue;
+      }
+      fetch.hydrate(resultSet,context);
     }
-    if (fetchToHydratedStateExtractorMap != null && ownerIdentifierHydratedState != null) {
-      Serializable extracted=(Serializable)fetchToHydratedStateExtractorMap.get(fetch).extract(ownerIdentifierHydratedState);
-      identifierResolutionContext.registerHydratedForm(extracted);
-      continue;
-    }
-    fetch.hydrate(resultSet,context);
+    return;
   }
+  final Object hydratedIdentifierState=entityReference.getEntityPersister().getIdentifierType().hydrate(resultSet,entityReference.getEntityAliases().getSuffixedKeyAliases(),context.getSession(),null);
+  context.getIdentifierResolutionContext(entityReference).registerHydratedForm(hydratedIdentifierState);
 }
