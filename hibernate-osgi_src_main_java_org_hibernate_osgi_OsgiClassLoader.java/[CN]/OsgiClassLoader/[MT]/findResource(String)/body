@@ -2,9 +2,20 @@
   if (resourceCache.containsKey(name)) {
     return resourceCache.get(name);
   }
-  for (  CachedBundle bundle : bundles.values()) {
+  for (  Bundle bundle : bundles) {
     try {
       URL resource=bundle.getResource(name);
+      if (resource != null) {
+        resourceCache.put(name,resource);
+        return resource;
+      }
+    }
+ catch (    Exception ignore) {
+    }
+  }
+  for (  ClassLoader classLoader : classLoaders) {
+    try {
+      URL resource=classLoader.getResource(name);
       if (resource != null) {
         resourceCache.put(name,resource);
         return resource;

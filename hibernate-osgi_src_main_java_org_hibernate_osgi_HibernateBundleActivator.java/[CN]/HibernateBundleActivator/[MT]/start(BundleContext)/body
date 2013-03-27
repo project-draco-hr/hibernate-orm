@@ -1,15 +1,11 @@
 {
-  context.addBundleListener(this);
   osgiClassLoader=new OsgiClassLoader();
+  osgiClassLoader.addBundle(FrameworkUtil.getBundle(Session.class));
+  osgiClassLoader.addBundle(FrameworkUtil.getBundle(HibernatePersistenceProvider.class));
   ClassLoaderHelper.overridenClassLoader=osgiClassLoader;
-  for (  Bundle bundle : context.getBundles()) {
-    handleBundleChange(bundle);
-  }
-  HibernatePersistenceProvider hpp=new HibernatePersistenceProvider();
-  Map map=new HashMap();
-  map.put(AvailableSettings.JTA_PLATFORM,new OsgiJtaPlatform(context));
-  hpp.setEnvironmentProperties(map);
+  osgiJtaPlatform=new OsgiJtaPlatform(context);
   Properties properties=new Properties();
   properties.put("javax.persistence.provider",HibernatePersistenceProvider.class.getName());
-  context.registerService(PersistenceProvider.class.getName(),hpp,properties);
+  context.registerService(PersistenceProvider.class.getName(),new OsgiPersistenceProviderService(osgiClassLoader,osgiJtaPlatform),properties);
+  context.registerService(SessionFactory.class.getName(),new OsgiSessionFactoryService(osgiClassLoader,osgiJtaPlatform),new Properties());
 }

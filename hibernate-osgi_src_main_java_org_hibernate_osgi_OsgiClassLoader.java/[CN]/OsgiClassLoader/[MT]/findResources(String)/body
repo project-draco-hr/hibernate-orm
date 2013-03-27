@@ -2,16 +2,46 @@
   if (resourceListCache.containsKey(name)) {
     return resourceListCache.get(name);
   }
-  for (  CachedBundle bundle : bundles.values()) {
+  final List<Enumeration<URL>> enumerations=new ArrayList<Enumeration<URL>>();
+  for (  Bundle bundle : bundles) {
     try {
       Enumeration<URL> resources=bundle.getResources(name);
       if (resources != null) {
-        resourceListCache.put(name,resources);
-        return resources;
+        enumerations.add(resources);
       }
     }
  catch (    Exception ignore) {
     }
   }
-  return null;
+  for (  ClassLoader classLoader : classLoaders) {
+    try {
+      Enumeration<URL> resources=classLoader.getResources(name);
+      if (resources != null) {
+        enumerations.add(resources);
+      }
+    }
+ catch (    Exception ignore) {
+    }
+  }
+  Enumeration<URL> aggEnumeration=new Enumeration<URL>(){
+    @Override public boolean hasMoreElements(){
+      for (      Enumeration<URL> enumeration : enumerations) {
+        if (enumeration != null && enumeration.hasMoreElements()) {
+          return true;
+        }
+      }
+      return false;
+    }
+    @Override public URL nextElement(){
+      for (      Enumeration<URL> enumeration : enumerations) {
+        if (enumeration != null && enumeration.hasMoreElements()) {
+          return enumeration.nextElement();
+        }
+      }
+      throw new NoSuchElementException();
+    }
+  }
+;
+  resourceListCache.put(name,aggEnumeration);
+  return aggEnumeration;
 }
