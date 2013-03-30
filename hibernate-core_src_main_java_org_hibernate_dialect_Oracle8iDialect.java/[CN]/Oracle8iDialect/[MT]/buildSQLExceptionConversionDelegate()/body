@@ -20,6 +20,10 @@
       if (1013 == errorCode) {
         throw new QueryTimeoutException(message,sqlException,sql);
       }
+      if (1407 == errorCode) {
+        final String constraintName=getViolatedConstraintNameExtracter().extractConstraintName(sqlException);
+        return new ConstraintViolationException(message,sqlException,sql,constraintName);
+      }
       return null;
     }
   }

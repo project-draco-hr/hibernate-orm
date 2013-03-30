@@ -11,6 +11,10 @@
         if (50200 == errorCode) {
           exception=new PessimisticLockException(message,sqlException,sql);
         }
+        if (90006 == errorCode) {
+          final String constraintName=getViolatedConstraintNameExtracter().extractConstraintName(sqlException);
+          exception=new ConstraintViolationException(message,sqlException,sql,constraintName);
+        }
         return exception;
       }
     }

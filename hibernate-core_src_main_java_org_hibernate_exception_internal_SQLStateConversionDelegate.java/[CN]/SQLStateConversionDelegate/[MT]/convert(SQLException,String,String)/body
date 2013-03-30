@@ -1,5 +1,6 @@
 {
-  String sqlState=JdbcExceptionHelper.extractSqlState(sqlException);
+  final String sqlState=JdbcExceptionHelper.extractSqlState(sqlException);
+  final int errorCode=JdbcExceptionHelper.extractErrorCode(sqlException);
   if (sqlState != null) {
     String sqlStateClassCode=JdbcExceptionHelper.determineSqlStateClassCode(sqlState);
     if (sqlStateClassCode != null) {
@@ -23,7 +24,7 @@
     if ("40XL1".equals(sqlState) || "40XL2".equals(sqlState)) {
       return new PessimisticLockException(message,sqlException,sql);
     }
-    if ("70100".equals(sqlState) || "72000".equals(sqlState)) {
+    if ("70100".equals(sqlState) || ("72000".equals(sqlState) && errorCode == 1013)) {
       throw new QueryTimeoutException(message,sqlException,sql);
     }
   }
