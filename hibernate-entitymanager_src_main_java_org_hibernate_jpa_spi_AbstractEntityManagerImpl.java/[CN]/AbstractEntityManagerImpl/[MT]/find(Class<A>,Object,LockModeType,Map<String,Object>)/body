@@ -1,15 +1,17 @@
 {
-  CacheMode previousCacheMode=getSession().getCacheMode();
+  checkOpen();
+  Session session=internalGetSession();
+  CacheMode previousCacheMode=session.getCacheMode();
   CacheMode cacheMode=determineAppropriateLocalCacheMode(properties);
   LockOptions lockOptions=null;
   try {
-    getSession().setCacheMode(cacheMode);
+    session.setCacheMode(cacheMode);
     if (lockModeType != null) {
       lockOptions=getLockRequest(lockModeType,properties);
-      return (A)getSession().get(entityClass,(Serializable)primaryKey,lockOptions);
+      return (A)session.get(entityClass,(Serializable)primaryKey,lockOptions);
     }
  else {
-      return (A)getSession().get(entityClass,(Serializable)primaryKey);
+      return (A)session.get(entityClass,(Serializable)primaryKey);
     }
   }
  catch (  EntityNotFoundException ignored) {
@@ -39,6 +41,6 @@ catch (  HibernateException he) {
     throw convert(he,lockOptions);
   }
  finally {
-    getSession().setCacheMode(previousCacheMode);
+    session.setCacheMode(previousCacheMode);
   }
 }

@@ -1,0 +1,27 @@
+{
+  if (session == null) {
+    SessionBuilderImplementor sessionBuilder=internalGetEntityManagerFactory().getSessionFactory().withOptions();
+    sessionBuilder.owner(this);
+    if (sessionInterceptorClass != null) {
+      try {
+        Interceptor interceptor=(Interceptor)sessionInterceptorClass.newInstance();
+        sessionBuilder.interceptor(interceptor);
+      }
+ catch (      InstantiationException e) {
+        throw new PersistenceException("Unable to instantiate session interceptor: " + sessionInterceptorClass,e);
+      }
+catch (      IllegalAccessException e) {
+        throw new PersistenceException("Unable to instantiate session interceptor: " + sessionInterceptorClass,e);
+      }
+catch (      ClassCastException e) {
+        throw new PersistenceException("Session interceptor does not implement Interceptor: " + sessionInterceptorClass,e);
+      }
+    }
+    sessionBuilder.autoJoinTransactions(getTransactionType() != PersistenceUnitTransactionType.JTA);
+    session=sessionBuilder.openSession();
+    if (persistenceContextType == PersistenceContextType.TRANSACTION) {
+      ((SessionImplementor)session).setAutoClear(true);
+    }
+  }
+  return session;
+}

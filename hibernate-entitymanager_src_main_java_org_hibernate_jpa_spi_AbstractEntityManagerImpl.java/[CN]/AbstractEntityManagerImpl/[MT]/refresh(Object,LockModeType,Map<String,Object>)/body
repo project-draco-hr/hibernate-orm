@@ -1,19 +1,21 @@
 {
+  checkOpen();
   checkTransactionNeeded();
-  CacheMode previousCacheMode=getSession().getCacheMode();
+  Session session=internalGetSession();
+  CacheMode previousCacheMode=session.getCacheMode();
   CacheMode localCacheMode=determineAppropriateLocalCacheMode(properties);
   LockOptions lockOptions=null;
   try {
-    getSession().setCacheMode(localCacheMode);
-    if (!getSession().contains(entity)) {
+    session.setCacheMode(localCacheMode);
+    if (!session.contains(entity)) {
       throw new IllegalArgumentException("Entity not managed");
     }
     if (lockModeType != null) {
       lockOptions=getLockRequest(lockModeType,properties);
-      getSession().refresh(entity,lockOptions);
+      session.refresh(entity,lockOptions);
     }
  else {
-      getSession().refresh(entity);
+      session.refresh(entity);
     }
   }
  catch (  MappingException e) {
@@ -23,6 +25,6 @@ catch (  HibernateException he) {
     throw convert(he,lockOptions);
   }
  finally {
-    getSession().setCacheMode(previousCacheMode);
+    session.setCacheMode(previousCacheMode);
   }
 }
