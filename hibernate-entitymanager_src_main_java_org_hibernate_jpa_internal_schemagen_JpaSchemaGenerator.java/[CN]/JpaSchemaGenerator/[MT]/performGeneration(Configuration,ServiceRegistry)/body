@@ -14,6 +14,10 @@
     final Object dropScriptTargetSetting=hibernateConfiguration.getProperties().get(AvailableSettings.SCHEMA_GEN_SCRIPTS_DROP_TARGET);
     final GenerationTarget scriptsTarget=new ScriptsTarget(createScriptTargetSetting,dropScriptTargetSetting,scriptsAction);
     final List<GenerationTarget> targets=Arrays.asList(databaseTarget,scriptsTarget);
+    final String hbm2ddl=hibernateConfiguration.getProperty(org.hibernate.cfg.AvailableSettings.HBM2DDL_AUTO);
+    if (StringHelper.isNotEmpty(hbm2ddl)) {
+      log.warnf("Hibernate hbm2ddl-auto setting was specified [%s] in combination with JPA schema-generation; " + "combination will likely cause trouble",hbm2ddl);
+    }
     try {
       doGeneration(createSourceList,dropSourceList,targets);
     }
