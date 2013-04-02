@@ -1,7 +1,10 @@
 {
+  getEntityManager().checkOpen(false);
   Parameter param=getParameter(name);
   if (param.getParameterType() != null) {
-    throw new IllegalArgumentException("Parameter type [" + param.getParameterType().getName() + "] is not assignment compatible with requested type ["+ type.getName()+ "]");
+    if (!param.getParameterType().isAssignableFrom(type)) {
+      throw new IllegalArgumentException(String.format("Parameter type [%s] is not assignment compatible with requested type [%s] for parameter named [%s]",param.getParameterType().getName(),type.getName(),name));
+    }
   }
   return param;
 }
