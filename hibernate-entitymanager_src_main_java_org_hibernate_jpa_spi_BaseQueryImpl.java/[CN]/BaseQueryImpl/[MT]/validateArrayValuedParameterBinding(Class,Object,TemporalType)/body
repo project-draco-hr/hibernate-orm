@@ -1,0 +1,18 @@
+{
+  if (!parameterType.isArray()) {
+    throw new IllegalArgumentException(String.format("Encountered array-valued parameter binding, but was expecting [%s (%s)]",parameterType.getName(),extractName(temporalType)));
+  }
+  if (value.getClass().getComponentType().isPrimitive()) {
+    if (!parameterType.getComponentType().isAssignableFrom(value.getClass().getComponentType())) {
+      throw new IllegalArgumentException(String.format("Primitive array-valued parameter bind value type [%s] did not match expected type [%s (%s)]",value.getClass().getComponentType().getName(),parameterType.getName(),extractName(temporalType)));
+    }
+  }
+ else {
+    final Object[] array=(Object[])value;
+    for (    Object element : array) {
+      if (!isValidBindValue(parameterType.getComponentType(),element,temporalType)) {
+        throw new IllegalArgumentException(String.format("Array-valued parameter value element [%s] did not match expected type [%s (%s)]",element,parameterType.getName(),extractName(temporalType)));
+      }
+    }
+  }
+}

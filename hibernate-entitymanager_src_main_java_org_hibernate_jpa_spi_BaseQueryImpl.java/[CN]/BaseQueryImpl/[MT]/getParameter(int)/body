@@ -1,7 +1,13 @@
 {
-  entityManager().checkOpen(false);
-  if (parameterBindingMap() != null) {
-    for (    ParameterImplementor<?> param : parameterBindingMap.keySet()) {
+  if (isJpaPositionalParameter(position)) {
+    return getParameter(Integer.toString(position));
+  }
+  checkOpen(false);
+  if (parameterRegistrations != null) {
+    for (    ParameterRegistration<?> param : parameterRegistrations) {
+      if (param.getPosition() == null) {
+        continue;
+      }
       if (position == param.getPosition()) {
         return param;
       }

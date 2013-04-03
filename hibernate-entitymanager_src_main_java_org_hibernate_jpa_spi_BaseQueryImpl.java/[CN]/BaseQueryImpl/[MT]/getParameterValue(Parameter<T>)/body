@@ -1,9 +1,13 @@
 {
-  entityManager().checkOpen(false);
-  if (parameterBindingMap != null) {
-    final ParameterValue boundValue=parameterBindingMap.get((ParameterImplementor)param);
-    if (boundValue != null) {
-      return (T)boundValue.getValue();
+  checkOpen(false);
+  final ParameterRegistration<T> registration=findParameterRegistration(param);
+  if (registration != null) {
+    if (!registration.isBindable()) {
+      throw new IllegalArgumentException("Passed parameter [" + param + "] is not bindable");
+    }
+    final ParameterBind<T> bind=registration.getBind();
+    if (bind != null) {
+      return bind.getValue();
     }
   }
   throw new IllegalStateException("Parameter [" + param + "] has not yet been bound");

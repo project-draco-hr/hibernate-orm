@@ -1,5 +1,13 @@
 {
-  entityManager().checkOpen(true);
-  registerParameterBinding(getParameter(name),makeBindValue(value,temporalType));
+  checkOpen(true);
+  try {
+    findParameterRegistration(name).bindValue(value,temporalType);
+  }
+ catch (  QueryParameterException e) {
+    throw new IllegalArgumentException(e);
+  }
+catch (  HibernateException he) {
+    throw entityManager.convert(he);
+  }
   return this;
 }

@@ -2,10 +2,9 @@
   if (!org.hibernate.internal.AbstractQueryImpl.class.isInstance(query)) {
     throw new IllegalStateException("Unknown query type for parameter extraction");
   }
-  HashSet<Parameter<?>> parameters=new HashSet<Parameter<?>>();
-  org.hibernate.internal.AbstractQueryImpl queryImpl=org.hibernate.internal.AbstractQueryImpl.class.cast(query);
-  for (  String name : (Set<String>)queryImpl.getParameterMetadata().getNamedParameterNames()) {
-    final NamedParameterDescriptor descriptor=queryImpl.getParameterMetadata().getNamedParameterDescriptor(name);
+  final ParameterMetadata parameterMetadata=org.hibernate.internal.AbstractQueryImpl.class.cast(query).getParameterMetadata();
+  for (  String name : (Set<String>)parameterMetadata.getNamedParameterNames()) {
+    final NamedParameterDescriptor descriptor=parameterMetadata.getNamedParameterDescriptor(name);
     Class javaType=namedParameterTypeRedefinition.get(name);
     if (javaType != null && mightNeedRedefinition(javaType)) {
       descriptor.resetExpectedType(sfi().getTypeResolver().heuristicType(javaType.getName()));
@@ -13,8 +12,7 @@
  else     if (descriptor.getExpectedType() != null) {
       javaType=descriptor.getExpectedType().getReturnedClass();
     }
-    final ParameterImpl parameter=new ParameterImpl(name,javaType);
-    parameters.add(parameter);
+    registerParameter(new ParameterRegistrationImpl(query,name,javaType));
     if (descriptor.isJpaStyle()) {
       if (jpaPositionalIndices == null) {
         jpaPositionalIndices=new HashSet<Integer>();
@@ -22,12 +20,13 @@
       jpaPositionalIndices.add(Integer.valueOf(name));
     }
   }
-  for (int i=0, max=queryImpl.getParameterMetadata().getOrdinalParameterCount(); i < max; i++) {
-    final OrdinalParameterDescriptor descriptor=queryImpl.getParameterMetadata().getOrdinalParameterDescriptor(i + 1);
-    ParameterImpl parameter=new ParameterImpl(i + 1,descriptor.getExpectedType() == null ? null : descriptor.getExpectedType().getReturnedClass());
-    parameters.add(parameter);
+  for (int i=0, max=parameterMetadata.getOrdinalParameterCount(); i < max; i++) {
+    final OrdinalParameterDescriptor descriptor=parameterMetadata.getOrdinalParameterDescriptor(i + 1);
+    Class javaType=descriptor.getExpectedType() == null ? null : descriptor.getExpectedType().getReturnedClass();
+    registerParameter(new ParameterRegistrationImpl(query,i + 1,javaType));
     Integer position=descriptor.getOrdinalPosition();
-    if (jpaPositionalIndices != null && jpaPositionalIndices.contains(position))     LOG.parameterPositionOccurredAsBothJpaAndHibernatePositionalParameter(position);
+    if (jpaPositionalIndices != null && jpaPositionalIndices.contains(position)) {
+      LOG.parameterPositionOccurredAsBothJpaAndHibernatePositionalParameter(position);
+    }
   }
-  this.parameters=java.util.Collections.unmodifiableSet(parameters);
 }

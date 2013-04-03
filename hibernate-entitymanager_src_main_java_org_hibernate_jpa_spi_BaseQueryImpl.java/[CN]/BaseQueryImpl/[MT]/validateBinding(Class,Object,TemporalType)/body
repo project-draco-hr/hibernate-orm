@@ -1,0 +1,16 @@
+{
+  if (bind == null || parameterType == null) {
+    return;
+  }
+  if (Collection.class.isInstance(bind) && !Collection.class.isAssignableFrom(parameterType)) {
+    validateCollectionValuedParameterBinding(parameterType,(Collection)bind,temporalType);
+  }
+ else   if (bind.getClass().isArray()) {
+    validateArrayValuedParameterBinding(parameterType,bind,temporalType);
+  }
+ else {
+    if (!isValidBindValue(parameterType,bind,temporalType)) {
+      throw new IllegalArgumentException(String.format("Parameter value [%s] did not match expected type [%s (%s)]",bind,parameterType.getName(),extractName(temporalType)));
+    }
+  }
+}
