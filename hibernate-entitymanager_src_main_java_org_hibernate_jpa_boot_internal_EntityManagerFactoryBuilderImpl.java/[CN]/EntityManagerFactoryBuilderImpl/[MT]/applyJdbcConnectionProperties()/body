@@ -1,12 +1,18 @@
 {
   if (dataSource != null) {
-    serviceRegistryBuilder.applySetting(Environment.DATASOURCE,dataSource);
+    serviceRegistryBuilder.applySetting(org.hibernate.cfg.AvailableSettings.DATASOURCE,dataSource);
   }
  else   if (persistenceUnit.getJtaDataSource() != null) {
-    serviceRegistryBuilder.applySetting(Environment.DATASOURCE,persistenceUnit.getJtaDataSource());
+    if (!serviceRegistryBuilder.getSettings().containsKey(org.hibernate.cfg.AvailableSettings.DATASOURCE)) {
+      serviceRegistryBuilder.applySetting(org.hibernate.cfg.AvailableSettings.DATASOURCE,persistenceUnit.getJtaDataSource());
+      configurationValues.put(AvailableSettings.JTA_DATASOURCE,persistenceUnit.getJtaDataSource());
+    }
   }
  else   if (persistenceUnit.getNonJtaDataSource() != null) {
-    serviceRegistryBuilder.applySetting(Environment.DATASOURCE,persistenceUnit.getNonJtaDataSource());
+    if (!serviceRegistryBuilder.getSettings().containsKey(org.hibernate.cfg.AvailableSettings.DATASOURCE)) {
+      serviceRegistryBuilder.applySetting(org.hibernate.cfg.AvailableSettings.DATASOURCE,persistenceUnit.getNonJtaDataSource());
+      configurationValues.put(AvailableSettings.NON_JTA_DATASOURCE,persistenceUnit.getNonJtaDataSource());
+    }
   }
  else {
     final String driver=(String)configurationValues.get(AvailableSettings.JDBC_DRIVER);
