@@ -1,0 +1,14 @@
+{
+  JoinFragment outerjoin=getDialect().createOuterJoinFragment();
+  JoinableAssociationImpl last=null;
+  for (  JoinableAssociationImpl oj : associations) {
+    if (last != null && last.isManyToManyWith(oj)) {
+      oj.addManyToManyJoin(outerjoin,(QueryableCollection)last.getJoinable());
+    }
+ else {
+      oj.addJoins(outerjoin);
+    }
+    last=oj;
+  }
+  return outerjoin;
+}

@@ -1,0 +1,27 @@
+{
+  this.propertyPath=entityFetch.getPropertyPath();
+  this.joinableType=entityFetch.getAssociationType();
+  final EntityPersister fetchSourcePersister=entityFetch.getOwner().retrieveFetchSourcePersister();
+  final int propertyNumber=fetchSourcePersister.getEntityMetamodel().getPropertyIndex(entityFetch.getOwnerPropertyName());
+  if (EntityReference.class.isInstance(entityFetch.getOwner())) {
+    this.lhsAlias=((EntityReference)entityFetch.getOwner()).getSqlTableAlias();
+  }
+ else {
+    throw new NotYetImplementedException("Cannot determine LHS alias for a FetchOwner that is not an EntityReference.");
+  }
+  final OuterJoinLoadable ownerPersister=(OuterJoinLoadable)entityFetch.getOwner().retrieveFetchSourcePersister();
+  this.lhsColumns=JoinHelper.getAliasedLHSColumnNames(entityFetch.getAssociationType(),lhsAlias,propertyNumber,ownerPersister,factory);
+  this.rhsAlias=entityFetch.getSqlTableAlias();
+  final boolean isNullable=ownerPersister.isSubclassPropertyNullable(propertyNumber);
+  if (entityFetch.getFetchStrategy().getStyle() == FetchStyle.JOIN) {
+    joinType=isNullable ? JoinType.LEFT_OUTER_JOIN : JoinType.INNER_JOIN;
+  }
+ else {
+    joinType=JoinType.NONE;
+  }
+  this.joinable=joinableType.getAssociatedJoinable(factory);
+  this.rhsColumns=JoinHelper.getRHSColumnNames(joinableType,factory);
+  this.on=joinableType.getOnCondition(rhsAlias,factory,enabledFilters) + (withClause == null || withClause.trim().length() == 0 ? "" : " and ( " + withClause + " )");
+  this.hasRestriction=hasRestriction;
+  this.enabledFilters=enabledFilters;
+}

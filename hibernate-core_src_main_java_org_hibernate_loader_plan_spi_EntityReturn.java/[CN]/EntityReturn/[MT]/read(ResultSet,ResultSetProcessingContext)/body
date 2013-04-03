@@ -1,8 +1,15 @@
 {
-  final IdentifierResolutionContext identifierResolutionContext=context.getIdentifierResolutionContext(this);
-  EntityKey entityKey=identifierResolutionContext.getEntityKey();
-  if (entityKey == null) {
-    throw new AssertionFailure("Could not locate resolved EntityKey");
+  Object objectForThisEntityReturn=null;
+  for (  IdentifierResolutionContext identifierResolutionContext : context.getIdentifierResolutionContexts()) {
+    final EntityReference entityReference=identifierResolutionContext.getEntityReference();
+    final EntityKey entityKey=identifierResolutionContext.getEntityKey();
+    if (entityKey == null) {
+      throw new AssertionFailure("Could not locate resolved EntityKey");
+    }
+    final Object object=context.resolveEntityKey(entityKey,entityReference);
+    if (this == entityReference) {
+      objectForThisEntityReturn=object;
+    }
   }
-  return context.resolveEntityKey(entityKey,this);
+  return objectForThisEntityReturn;
 }
