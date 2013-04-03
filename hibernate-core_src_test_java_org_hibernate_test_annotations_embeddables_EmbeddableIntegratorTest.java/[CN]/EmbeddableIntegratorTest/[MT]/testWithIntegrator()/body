@@ -1,5 +1,5 @@
 {
-  ServiceRegistry reg=new StandardServiceRegistryBuilder(new BootstrapServiceRegistryBuilder().with(new InvestorIntegrator()).build()).build();
+  StandardServiceRegistry reg=new StandardServiceRegistryBuilder(new BootstrapServiceRegistryBuilder().with(new InvestorIntegrator()).build()).build();
   SessionFactory sf=new Configuration().addAnnotatedClass(Investor.class).setProperty("hibernate.hbm2ddl.auto","create-drop").buildSessionFactory(reg);
   Session sess=sf.openSession();
   Investor myInv=getInvestor();
@@ -10,4 +10,6 @@
   Investor inv=(Investor)sess.get(Investor.class,2L);
   assertEquals(new BigDecimal("100"),inv.getInvestments().get(0).getAmount().getAmount());
   sess.close();
+  sf.close();
+  StandardServiceRegistryBuilder.destroy(reg);
 }

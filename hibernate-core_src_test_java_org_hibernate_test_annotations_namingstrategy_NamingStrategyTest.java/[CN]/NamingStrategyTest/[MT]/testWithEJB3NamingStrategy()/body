@@ -1,10 +1,11 @@
 {
+  SessionFactory sf=null;
   try {
     AnnotationConfiguration config=new AnnotationConfiguration();
     config.setNamingStrategy(EJB3NamingStrategy.INSTANCE);
     config.addAnnotatedClass(A.class);
     config.addAnnotatedClass(AddressEntry.class);
-    config.buildSessionFactory(serviceRegistry);
+    sf=config.buildSessionFactory(serviceRegistry);
     Mappings mappings=config.createMappings();
     boolean foundIt=false;
     for (Iterator iter=mappings.iterateTables(); iter.hasNext(); ) {
@@ -22,5 +23,10 @@
     e.printStackTrace(new PrintWriter(writer));
     log.debug(writer.toString());
     fail(e.getMessage());
+  }
+ finally {
+    if (sf != null) {
+      sf.close();
+    }
   }
 }
