@@ -1,0 +1,36 @@
+{
+  Collection<String> resources=bundleWiring.listResources("/","*",BundleWiring.LISTRESOURCES_RECURSE);
+  for (  final String resource : resources) {
+    try {
+      final InputStream inputStream=persistenceBundle.getResource(resource).openStream();
+      final InputStreamAccess inputStreamAccess=new InputStreamAccess(){
+        @Override public String getStreamName(){
+          return resource;
+        }
+        @Override public InputStream accessInputStream(){
+          return inputStream;
+        }
+        @Override public NamedInputStream asNamedInputStream(){
+          return new NamedInputStream(resource,inputStream);
+        }
+      }
+;
+      final ArchiveEntry entry=new ArchiveEntry(){
+        @Override public String getName(){
+          return resource;
+        }
+        @Override public String getNameWithinArchive(){
+          return resource;
+        }
+        @Override public InputStreamAccess getStreamAccess(){
+          return inputStreamAccess;
+        }
+      }
+;
+      context.obtainArchiveEntryHandler(entry).handleEntry(entry,context);
+    }
+ catch (    Exception e) {
+      LOG.unableToLoadScannedClassOrResource(e);
+    }
+  }
+}
