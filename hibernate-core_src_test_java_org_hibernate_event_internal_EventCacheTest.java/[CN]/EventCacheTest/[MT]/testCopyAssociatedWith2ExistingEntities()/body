@@ -1,15 +1,20 @@
 {
-  EventCache cache=new EventCache();
+  session.getTransaction().begin();
   Simple entity1=new Simple(1);
-  Simple copy1=new Simple(0);
+  session.persist(entity1);
+  Simple copy1=new Simple(1);
   cache.put(entity1,copy1);
   Simple entity2=new Simple(2);
-  Simple copy2=new Simple(0);
+  session.persist(entity2);
+  Simple copy2=new Simple(2);
   cache.put(entity2,copy2);
+  session.flush();
   try {
     cache.put(entity1,copy2);
     fail("should have thrown IllegalStateException");
   }
  catch (  IllegalStateException ex) {
+    assertTrue(ex.getMessage().startsWith("Error occurred while storing entity [org.hibernate.event.internal.EventCacheTest$Simple#1]."));
   }
+  session.getTransaction().rollback();
 }

@@ -7,29 +7,29 @@
   Object oldEntity=copyToEntityMap.put(copy,entity);
   if (oldCopy == null) {
     if (oldEntity != null) {
-      throw new IllegalStateException("An entity copy was already assigned to a different entity.");
+      throw new IllegalStateException("Error occurred while storing entity " + printEntity(entity) + ". An entity copy "+ printEntity(copy)+ " was already assigned to a different entity "+ printEntity(oldEntity)+ ".");
     }
     if (oldOperatedOn != null) {
-      throw new IllegalStateException("entityToOperatedOnFlagMap contains an entity, but entityToCopyMap does not.");
+      throw new IllegalStateException("EventCache#entityToOperatedOnFlagMap contains an entity " + printEntity(entity) + ", but EventCache#entityToCopyMap does not.");
     }
   }
  else {
     if (oldCopy != copy) {
       Object removedEntity=copyToEntityMap.remove(oldCopy);
       if (removedEntity != entity) {
-        throw new IllegalStateException("An unexpected entity was associated with the old entity copy.");
+        throw new IllegalStateException("Error occurred while storing entity " + printEntity(entity) + ". An unexpected entity "+ printEntity(removedEntity)+ " was associated with the old entity copy "+ printEntity(oldCopy)+ ".");
       }
       if (oldEntity != null) {
-        throw new IllegalStateException("A new entity copy is already associated with a different entity.");
+        throw new IllegalStateException("Error occurred while storing entity " + printEntity(entity) + ". A new entity copy "+ printEntity(copy)+ " is already associated with a different entity "+ printEntity(oldEntity)+ ".");
       }
     }
  else {
       if (oldEntity != entity) {
-        throw new IllegalStateException("An entity copy was associated with a different entity than provided.");
+        throw new IllegalStateException("An entity copy " + printEntity(copy) + " was associated with a different entity "+ printEntity(oldEntity)+ " than provided "+ printEntity(entity)+ ".");
       }
     }
     if (oldOperatedOn == null) {
-      throw new IllegalStateException("entityToCopyMap contained an entity, but entityToOperatedOnFlagMap did not.");
+      throw new IllegalStateException("EventCache#entityToCopyMap contained an entity " + printEntity(entity) + ", but EventCache#entityToOperatedOnFlagMap did not.");
     }
   }
   return oldCopy;
