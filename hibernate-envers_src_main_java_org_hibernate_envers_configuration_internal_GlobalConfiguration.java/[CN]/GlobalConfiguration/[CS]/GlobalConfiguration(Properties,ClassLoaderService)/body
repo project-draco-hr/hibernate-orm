@@ -1,0 +1,25 @@
+{
+  generateRevisionsForCollections=ConfigurationHelper.getBoolean(EnversSettings.REVISION_ON_COLLECTION_CHANGE,properties,true);
+  doNotAuditOptimisticLockingField=ConfigurationHelper.getBoolean(EnversSettings.DO_NOT_AUDIT_OPTIMISTIC_LOCKING_FIELD,properties,true);
+  storeDataAtDelete=ConfigurationHelper.getBoolean(EnversSettings.STORE_DATA_AT_DELETE,properties,false);
+  defaultSchemaName=properties.getProperty(EnversSettings.DEFAULT_SCHEMA,null);
+  defaultCatalogName=properties.getProperty(EnversSettings.DEFAULT_CATALOG,null);
+  correlatedSubqueryOperator=HSQLDialect.class.getName().equals(properties.get(Environment.DIALECT)) ? "in" : "=";
+  trackEntitiesChangedInRevision=ConfigurationHelper.getBoolean(EnversSettings.TRACK_ENTITIES_CHANGED_IN_REVISION,properties,false);
+  useRevisionEntityWithNativeId=ConfigurationHelper.getBoolean(EnversSettings.USE_REVISION_ENTITY_WITH_NATIVE_ID,properties,true);
+  hasGlobalSettingForWithModifiedFlag=properties.get(EnversSettings.GLOBAL_WITH_MODIFIED_FLAG) != null;
+  globalWithModifiedFlag=ConfigurationHelper.getBoolean(EnversSettings.GLOBAL_WITH_MODIFIED_FLAG,properties,false);
+  modifiedFlagSuffix=ConfigurationHelper.getString(EnversSettings.MODIFIED_FLAG_SUFFIX,properties,"_MOD");
+  String revisionListenerClassName=properties.getProperty(EnversSettings.REVISION_LISTENER,null);
+  if (revisionListenerClassName != null) {
+    try {
+      revisionListenerClass=ReflectionTools.loadClass(revisionListenerClassName,classLoaderService);
+    }
+ catch (    ClassLoadingException e) {
+      throw new MappingException("Revision listener class not found: " + revisionListenerClassName + ".",e);
+    }
+  }
+ else {
+    revisionListenerClass=null;
+  }
+}

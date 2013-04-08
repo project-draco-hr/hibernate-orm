@@ -1,0 +1,30 @@
+{
+  if (data == null || obj == null) {
+    return;
+  }
+  if (propertyData.getBeanName() == null) {
+    delegate.mapToEntityFromMap(verCfg,obj,data,primaryKey,versionsReader,revision);
+    return;
+  }
+  Setter setter=ReflectionTools.getSetter(obj.getClass(),propertyData);
+  boolean allNullAndSingle=true;
+  for (  Map.Entry<PropertyData,PropertyMapper> property : delegate.getProperties().entrySet()) {
+    if (data.get(property.getKey().getName()) != null || !(property.getValue() instanceof SinglePropertyMapper)) {
+      allNullAndSingle=false;
+      break;
+    }
+  }
+  if (allNullAndSingle) {
+    setter.set(obj,null,null);
+  }
+ else {
+    try {
+      Object subObj=ReflectHelper.getDefaultConstructor(componentClass).newInstance();
+      setter.set(obj,subObj,null);
+      delegate.mapToEntityFromMap(verCfg,subObj,data,primaryKey,versionsReader,revision);
+    }
+ catch (    Exception e) {
+      throw new AuditException(e);
+    }
+  }
+}

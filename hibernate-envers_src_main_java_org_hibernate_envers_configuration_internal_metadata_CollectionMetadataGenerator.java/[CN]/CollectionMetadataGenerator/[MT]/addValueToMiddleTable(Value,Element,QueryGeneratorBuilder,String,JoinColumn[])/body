@@ -1,0 +1,42 @@
+{
+  Type type=value.getType();
+  if (type instanceof ManyToOneType) {
+    String prefixRelated=prefix + "_";
+    String referencedEntityName=MappingTools.getReferencedEntityName(value);
+    IdMappingData referencedIdMapping=mainGenerator.getReferencedIdMappingData(referencingEntityName,referencedEntityName,propertyAuditingData,true);
+    if (xmlMapping != null) {
+      addRelatedToXmlMapping(xmlMapping,prefixRelated,joinColumns != null && joinColumns.length > 0 ? MetadataTools.getColumnNameIterator(joinColumns) : MetadataTools.getColumnNameIterator(value.getColumnIterator()),referencedIdMapping);
+    }
+    MiddleIdData referencedIdData=createMiddleIdData(referencedIdMapping,prefixRelated,referencedEntityName);
+    queryGeneratorBuilder.addRelation(referencedIdData);
+    return new MiddleComponentData(new MiddleRelatedComponentMapper(referencedIdData),queryGeneratorBuilder.getCurrentIndex());
+  }
+ else   if (type instanceof ComponentType) {
+    final Component component=(Component)value;
+    final Class componentClass=ReflectionTools.loadClass(component.getComponentClassName(),mainGenerator.getClassLoaderService());
+    final MiddleEmbeddableComponentMapper componentMapper=new MiddleEmbeddableComponentMapper(new MultiPropertyMapper(),componentClass);
+    final Element parentXmlMapping=xmlMapping.getParent();
+    final ComponentAuditingData auditData=new ComponentAuditingData();
+    final ReflectionManager reflectionManager=mainGenerator.getCfg().getReflectionManager();
+    new ComponentAuditedPropertiesReader(ModificationStore.FULL,new AuditedPropertiesReader.ComponentPropertiesSource(reflectionManager,component),auditData,mainGenerator.getGlobalCfg(),reflectionManager,"").read();
+    for (    String auditedPropertyName : auditData.getPropertyNames()) {
+      PropertyAuditingData nestedAuditingData=auditData.getPropertyAuditingData(auditedPropertyName);
+      mainGenerator.addValue(parentXmlMapping,component.getProperty(auditedPropertyName).getValue(),componentMapper,prefix,xmlMappingData,nestedAuditingData,true,true,true);
+    }
+    for (    String auditedPropertyName : auditData.getPropertyNames()) {
+      PropertyAuditingData nestedAuditingData=auditData.getPropertyAuditingData(auditedPropertyName);
+      mainGenerator.addValue(parentXmlMapping,component.getProperty(auditedPropertyName).getValue(),componentMapper,referencingEntityName,xmlMappingData,nestedAuditingData,true,false,true);
+    }
+    return new MiddleComponentData(componentMapper,0);
+  }
+ else {
+    boolean mapped=mainGenerator.getBasicMetadataGenerator().addBasic(xmlMapping,new PropertyAuditingData(prefix,"field",ModificationStore.FULL,RelationTargetAuditMode.AUDITED,null,null,false),value,null,true,true);
+    if (mapped) {
+      return new MiddleComponentData(new MiddleSimpleComponentMapper(mainGenerator.getVerEntCfg(),prefix),0);
+    }
+ else {
+      mainGenerator.throwUnsupportedTypeException(type,referencingEntityName,propertyName);
+      throw new AssertionError();
+    }
+  }
+}

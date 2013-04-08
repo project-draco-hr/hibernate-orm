@@ -1,0 +1,39 @@
+{
+  Element rel_id_mapping=new DefaultElement("properties");
+  Element orig_id_mapping=new DefaultElement("composite-id");
+  Property id_prop=pc.getIdentifierProperty();
+  Component id_mapper=pc.getIdentifierMapper();
+  if (id_mapper == null && id_prop == null) {
+    return null;
+  }
+  SimpleIdMapperBuilder mapper;
+  if (id_mapper != null) {
+    Class componentClass=ReflectionTools.loadClass(((Component)pc.getIdentifier()).getComponentClassName(),mainGenerator.getClassLoaderService());
+    mapper=new MultipleIdMapper(componentClass);
+    if (!addIdProperties(rel_id_mapping,(Iterator<Property>)id_mapper.getPropertyIterator(),mapper,false,audited)) {
+      return null;
+    }
+    if (!addIdProperties(orig_id_mapping,(Iterator<Property>)id_mapper.getPropertyIterator(),null,true,audited)) {
+      return null;
+    }
+  }
+ else   if (id_prop.isComposite()) {
+    Component id_component=(Component)id_prop.getValue();
+    Class embeddableClass=ReflectionTools.loadClass(id_component.getComponentClassName(),mainGenerator.getClassLoaderService());
+    mapper=new EmbeddedIdMapper(getIdPropertyData(id_prop),embeddableClass);
+    if (!addIdProperties(rel_id_mapping,(Iterator<Property>)id_component.getPropertyIterator(),mapper,false,audited)) {
+      return null;
+    }
+    if (!addIdProperties(orig_id_mapping,(Iterator<Property>)id_component.getPropertyIterator(),null,true,audited)) {
+      return null;
+    }
+  }
+ else {
+    mapper=new SingleIdMapper();
+    mainGenerator.getBasicMetadataGenerator().addBasic(rel_id_mapping,getIdPersistentPropertyAuditingData(id_prop),id_prop.getValue(),mapper,true,false);
+    mainGenerator.getBasicMetadataGenerator().addBasic(orig_id_mapping,getIdPersistentPropertyAuditingData(id_prop),id_prop.getValue(),null,true,true);
+  }
+  orig_id_mapping.addAttribute("name",mainGenerator.getVerEntCfg().getOriginalIdPropName());
+  mainGenerator.addRevisionInfoRelation(orig_id_mapping);
+  return new IdMappingData(mapper,orig_id_mapping,rel_id_mapping);
+}
