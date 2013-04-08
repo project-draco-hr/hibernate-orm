@@ -1,36 +1,45 @@
 {
   Collection<String> resources=bundleWiring.listResources("/","*",BundleWiring.LISTRESOURCES_RECURSE);
   for (  final String resource : resources) {
-    try {
-      final InputStream inputStream=persistenceBundle.getResource(resource).openStream();
-      final InputStreamAccess inputStreamAccess=new InputStreamAccess(){
-        @Override public String getStreamName(){
-          return resource;
+    if (!resource.endsWith("/")) {
+      try {
+        final InputStreamAccess inputStreamAccess=new InputStreamAccess(){
+          @Override public String getStreamName(){
+            return resource;
+          }
+          @Override public InputStream accessInputStream(){
+            return openInputStream();
+          }
+          @Override public NamedInputStream asNamedInputStream(){
+            return new NamedInputStream(resource,openInputStream());
+          }
+          private InputStream openInputStream(){
+            try {
+              return persistenceBundle.getResource(resource).openStream();
+            }
+ catch (            IOException e) {
+              throw new PersistenceException("Unable to open an InputStream on the OSGi Bundle resource!",e);
+            }
+          }
         }
-        @Override public InputStream accessInputStream(){
-          return inputStream;
-        }
-        @Override public NamedInputStream asNamedInputStream(){
-          return new NamedInputStream(resource,inputStream);
-        }
-      }
 ;
-      final ArchiveEntry entry=new ArchiveEntry(){
-        @Override public String getName(){
-          return resource;
+        final ArchiveEntry entry=new ArchiveEntry(){
+          @Override public String getName(){
+            return resource;
+          }
+          @Override public String getNameWithinArchive(){
+            return resource;
+          }
+          @Override public InputStreamAccess getStreamAccess(){
+            return inputStreamAccess;
+          }
         }
-        @Override public String getNameWithinArchive(){
-          return resource;
-        }
-        @Override public InputStreamAccess getStreamAccess(){
-          return inputStreamAccess;
-        }
-      }
 ;
-      context.obtainArchiveEntryHandler(entry).handleEntry(entry,context);
-    }
- catch (    Exception e) {
-      LOG.unableToLoadScannedClassOrResource(e);
+        context.obtainArchiveEntryHandler(entry).handleEntry(entry,context);
+      }
+ catch (      Exception e) {
+        LOG.unableToLoadScannedClassOrResource(e);
+      }
     }
   }
 }
