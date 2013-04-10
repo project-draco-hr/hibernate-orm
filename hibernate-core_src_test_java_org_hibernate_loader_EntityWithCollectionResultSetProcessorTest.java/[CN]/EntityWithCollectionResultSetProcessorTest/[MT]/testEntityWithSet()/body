@@ -1,0 +1,56 @@
+{
+  final EntityPersister entityPersister=sessionFactory().getEntityPersister(Person.class.getName());
+  Session session=openSession();
+  session.beginTransaction();
+  Person person=new Person();
+  person.id=1;
+  person.name="John Doe";
+  person.nickNames.add("Jack");
+  person.nickNames.add("Johnny");
+  session.save(person);
+  session.getTransaction().commit();
+  session.close();
+{
+    final SingleRootReturnLoadPlanBuilderStrategy strategy=new SingleRootReturnLoadPlanBuilderStrategy(sessionFactory(),LoadQueryInfluencers.NONE,"abc",0);
+    final LoadPlan plan=LoadPlanBuilder.buildRootEntityLoadPlan(strategy,entityPersister);
+    final EntityLoadQueryBuilderImpl queryBuilder=new EntityLoadQueryBuilderImpl(sessionFactory(),LoadQueryInfluencers.NONE,plan);
+    final String sql=queryBuilder.generateSql(1);
+    final ResultSetProcessorImpl resultSetProcessor=new ResultSetProcessorImpl(plan);
+    final List results=new ArrayList();
+    final Session workSession=openSession();
+    workSession.beginTransaction();
+    workSession.doWork(new Work(){
+      @Override public void execute(      Connection connection) throws SQLException {
+        PreparedStatement ps=connection.prepareStatement(sql);
+        ps.setInt(1,1);
+        ResultSet resultSet=ps.executeQuery();
+        results.addAll(resultSetProcessor.extractResults(resultSet,(SessionImplementor)workSession,new QueryParameters(),new NamedParameterContext(){
+          @Override public int[] getNamedParameterLocations(          String name){
+            return new int[0];
+          }
+        }
+,true,false,null,null));
+        resultSet.close();
+        ps.close();
+      }
+    }
+);
+    assertEquals(2,results.size());
+    Object result1=results.get(0);
+    assertSame(result1,results.get(1));
+    assertNotNull(result1);
+    Person workPerson=ExtraAssertions.assertTyping(Person.class,result1);
+    assertEquals(1,workPerson.id.intValue());
+    assertEquals(person.name,workPerson.name);
+    assertTrue(Hibernate.isInitialized(workPerson.nickNames));
+    assertEquals(2,workPerson.nickNames.size());
+    assertEquals(person.nickNames,workPerson.nickNames);
+    workSession.getTransaction().commit();
+    workSession.close();
+  }
+  session=openSession();
+  session.beginTransaction();
+  session.delete(person);
+  session.getTransaction().commit();
+  session.close();
+}

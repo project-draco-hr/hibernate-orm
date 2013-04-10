@@ -1,0 +1,42 @@
+{
+  LoadPlanVisitor.visit(loadPlan,new LoadPlanVisitationStrategyAdapter(){
+    @Override public void handleCollectionReturn(    CollectionReturn rootCollectionReturn){
+      readCollectionElement(null,null,rootCollectionReturn.getCollectionPersister(),rootCollectionReturn.getCollectionAliases(),resultSet,session);
+    }
+    @Override public void startingCollectionFetch(    CollectionFetch collectionFetch){
+      final Object owner=row[0];
+      readCollectionElement(owner,collectionFetch.getCollectionPersister().getCollectionType().getKeyOfOwner(owner,session),collectionFetch.getCollectionPersister(),collectionFetch.getCollectionAliases(),resultSet,session);
+    }
+    private void readCollectionElement(    final Object optionalOwner,    final Serializable optionalKey,    final CollectionPersister persister,    final CollectionAliases descriptor,    final ResultSet rs,    final SessionImplementor session){
+      try {
+        final PersistenceContext persistenceContext=session.getPersistenceContext();
+        final Serializable collectionRowKey=(Serializable)persister.readKey(rs,descriptor.getSuffixedKeyAliases(),session);
+        if (collectionRowKey != null) {
+          if (LOG.isDebugEnabled()) {
+            LOG.debugf("Found row of collection: %s",MessageHelper.collectionInfoString(persister,collectionRowKey,session.getFactory()));
+          }
+          Object owner=optionalOwner;
+          if (owner == null) {
+            owner=persistenceContext.getCollectionOwner(collectionRowKey,persister);
+            if (owner == null) {
+            }
+          }
+          PersistentCollection rowCollection=persistenceContext.getLoadContexts().getCollectionLoadContext(rs).getLoadingCollection(persister,collectionRowKey);
+          if (rowCollection != null) {
+            rowCollection.readFrom(rs,persister,descriptor,owner);
+          }
+        }
+ else         if (optionalKey != null) {
+          if (LOG.isDebugEnabled()) {
+            LOG.debugf("Result set contains (possibly empty) collection: %s",MessageHelper.collectionInfoString(persister,optionalKey,session.getFactory()));
+          }
+          persistenceContext.getLoadContexts().getCollectionLoadContext(rs).getLoadingCollection(persister,optionalKey);
+        }
+      }
+ catch (      SQLException sqle) {
+        throw session.getFactory().getSQLExceptionHelper().convert(sqle,"could not read next row of results");
+      }
+    }
+  }
+);
+}

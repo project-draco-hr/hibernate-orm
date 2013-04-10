@@ -6,19 +6,18 @@
     hydratedEntityRegistrationList=new ArrayList<HydratedEntityRegistration>();
   }
   hydratedEntityRegistrationList.addAll(currentRowHydratedEntityRegistrationList);
-  if (!hadSubselectFetches) {
-    return;
-  }
-  if (subselectLoadableEntityKeyMap == null) {
-    subselectLoadableEntityKeyMap=new HashMap<EntityPersister,Set<EntityKey>>();
-  }
-  for (  HydratedEntityRegistration registration : currentRowHydratedEntityRegistrationList) {
-    Set<EntityKey> entityKeys=subselectLoadableEntityKeyMap.get(registration.persister);
-    if (entityKeys == null) {
-      entityKeys=new HashSet<EntityKey>();
-      subselectLoadableEntityKeyMap.put(registration.persister,entityKeys);
+  if (hadSubselectFetches) {
+    if (subselectLoadableEntityKeyMap == null) {
+      subselectLoadableEntityKeyMap=new HashMap<EntityPersister,Set<EntityKey>>();
     }
-    entityKeys.add(registration.key);
+    for (    HydratedEntityRegistration registration : currentRowHydratedEntityRegistrationList) {
+      Set<EntityKey> entityKeys=subselectLoadableEntityKeyMap.get(registration.persister);
+      if (entityKeys == null) {
+        entityKeys=new HashSet<EntityKey>();
+        subselectLoadableEntityKeyMap.put(registration.persister,entityKeys);
+      }
+      entityKeys.add(registration.key);
+    }
   }
   currentRowHydratedEntityRegistrationList.clear();
 }
