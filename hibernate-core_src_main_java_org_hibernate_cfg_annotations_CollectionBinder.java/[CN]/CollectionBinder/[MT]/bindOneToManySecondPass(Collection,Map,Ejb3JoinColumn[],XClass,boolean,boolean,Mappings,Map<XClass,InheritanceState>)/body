@@ -8,8 +8,15 @@
   oneToMany.setIgnoreNotFound(ignoreNotFound);
   String assocClass=oneToMany.getReferencedEntityName();
   PersistentClass associatedClass=(PersistentClass)persistentClasses.get(assocClass);
-  String orderBy=buildOrderByClauseFromHql(hqlOrderBy,associatedClass,collection.getRole());
-  if (orderBy != null)   collection.setOrderBy(orderBy);
+  if (jpaOrderBy != null) {
+    final String jpaOrderByFragment=jpaOrderBy.value();
+    if (StringHelper.isNotEmpty(jpaOrderByFragment)) {
+      final String orderByFragment=buildOrderByClauseFromHql(jpaOrderBy.value(),associatedClass,collection.getRole());
+      if (StringHelper.isNotEmpty(orderByFragment)) {
+        collection.setOrderBy(orderByFragment);
+      }
+    }
+  }
   if (mappings == null) {
     throw new AssertionFailure("CollectionSecondPass for oneToMany should not be called with null mappings");
   }

@@ -20,9 +20,6 @@
   }
   defineFetchingStrategy();
   collection.setBatchSize(batchSize);
-  if (orderBy != null && hqlOrderBy != null) {
-    throw new AnnotationException("Cannot use sql order by clause in conjunction of EJB3 order by clause: " + safeCollectionRole());
-  }
   collection.setMutable(!property.isAnnotationPresent(Immutable.class));
   boolean isMappedBy=!BinderHelper.isEmptyAnnotationValue(mappedBy);
   final OptimisticLock lockAnn=property.getAnnotation(OptimisticLock.class);
@@ -32,26 +29,7 @@
   if (persisterAnn != null) {
     collection.setCollectionPersisterClass(persisterAnn.impl());
   }
-  if (orderBy != null)   collection.setOrderBy(orderBy);
-  if (isSorted) {
-    collection.setSorted(true);
-    if (comparator != null) {
-      try {
-        collection.setComparator((Comparator)comparator.newInstance());
-      }
- catch (      ClassCastException e) {
-        throw new AnnotationException("Comparator not implementing java.util.Comparator class: " + comparator.getName() + "("+ safeCollectionRole()+ ")");
-      }
-catch (      Exception e) {
-        throw new AnnotationException("Could not instantiate comparator class: " + comparator.getName() + "("+ safeCollectionRole()+ ")");
-      }
-    }
-  }
- else {
-    if (hasToBeSorted) {
-      throw new AnnotationException("A sorted collection has to define @Sort: " + safeCollectionRole());
-    }
-  }
+  applySortingAndOrdering(collection);
   if (StringHelper.isNotEmpty(cacheConcurrencyStrategy)) {
     collection.setCacheConcurrencyStrategy(cacheConcurrencyStrategy);
     collection.setCacheRegionName(cacheRegionName);

@@ -1,0 +1,56 @@
+{
+  boolean isSorted=isSortedCollection;
+  boolean hadOrderBy=false;
+  boolean hadExplicitSort=false;
+  Class<? extends Comparator> comparatorClass=null;
+  if (jpaOrderBy == null && sqlOrderBy == null) {
+    if (deprecatedSort != null) {
+      LOG.debug("Encountered deprecated @Sort annotation; use @SortNatural or @SortComparator instead.");
+      if (naturalSort != null || comparatorSort != null) {
+        throw buildIllegalSortCombination();
+      }
+      hadExplicitSort=deprecatedSort.type() != SortType.UNSORTED;
+      if (deprecatedSort.type() == SortType.NATURAL) {
+        isSorted=true;
+      }
+ else       if (deprecatedSort.type() == SortType.COMPARATOR) {
+        isSorted=true;
+        comparatorClass=deprecatedSort.comparator();
+      }
+    }
+ else     if (naturalSort != null) {
+      if (comparatorSort != null) {
+        throw buildIllegalSortCombination();
+      }
+      hadExplicitSort=true;
+    }
+ else     if (comparatorSort != null) {
+      hadExplicitSort=true;
+      comparatorClass=comparatorSort.value();
+    }
+  }
+ else {
+    if (jpaOrderBy != null && sqlOrderBy != null) {
+      throw new AnnotationException(String.format("Illegal combination of @%s and @%s on %s",javax.persistence.OrderBy.class.getName(),OrderBy.class.getName(),safeCollectionRole()));
+    }
+    hadOrderBy=true;
+    hadExplicitSort=false;
+    if (sqlOrderBy != null) {
+      collection.setOrderBy(sqlOrderBy.clause());
+    }
+  }
+  if (isSortedCollection) {
+    if (!hadExplicitSort && !hadOrderBy) {
+      throw new AnnotationException("A sorted collection must define and ordering or sorting : " + safeCollectionRole());
+    }
+  }
+  collection.setSorted(isSortedCollection || hadExplicitSort);
+  if (comparatorClass != null) {
+    try {
+      collection.setComparator(comparatorClass.newInstance());
+    }
+ catch (    Exception e) {
+      throw new AnnotationException(String.format("Could not instantiate comparator class [%s] for %s",comparatorClass.getName(),safeCollectionRole()));
+    }
+  }
+}
