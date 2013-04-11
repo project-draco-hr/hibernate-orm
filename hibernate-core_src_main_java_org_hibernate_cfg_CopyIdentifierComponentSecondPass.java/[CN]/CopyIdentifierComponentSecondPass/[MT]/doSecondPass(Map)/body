@@ -42,13 +42,18 @@
       final SimpleValue referencedValue=(SimpleValue)referencedProperty.getValue();
       value.setTypeName(referencedValue.getTypeName());
       value.setTypeParameters(referencedValue.getTypeParameters());
-      final Iterator<Column> columns=referencedValue.getColumnIterator();
+      final Iterator<Selectable> columns=referencedValue.getColumnIterator();
       if (joinColumns[0].isNameDeferred()) {
         joinColumns[0].copyReferencedStructureAndCreateDefaultJoinColumns(referencedPersistentClass,columns,value);
       }
  else {
         while (columns.hasNext()) {
-          Column column=columns.next();
+          final Selectable selectable=columns.next();
+          if (!Column.class.isInstance(selectable)) {
+            log.debug("Encountered formula definition; skipping");
+            continue;
+          }
+          final Column column=(Column)selectable;
           final Ejb3JoinColumn joinColumn;
           String logicalColumnName=null;
           if (isExplicitReference) {

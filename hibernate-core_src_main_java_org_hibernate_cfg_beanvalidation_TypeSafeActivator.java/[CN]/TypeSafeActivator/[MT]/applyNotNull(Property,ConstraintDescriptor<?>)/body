@@ -3,10 +3,15 @@
   if (NotNull.class.equals(descriptor.getAnnotation().annotationType())) {
     if (!(property.getPersistentClass() instanceof SingleTableSubclass)) {
       if (!property.isComposite()) {
-        @SuppressWarnings("unchecked") Iterator<Column> iter=property.getColumnIterator();
+        final Iterator<Selectable> iter=property.getColumnIterator();
         while (iter.hasNext()) {
-          iter.next().setNullable(false);
-          hasNotNull=true;
+          final Selectable selectable=iter.next();
+          if (Column.class.isInstance(selectable)) {
+            Column.class.cast(selectable).setNullable(false);
+          }
+ else {
+            LOG.debugf("@NotNull was applied to attribute [%s] which is defined (at least partially) " + "by formula(s); formula portions will be skipped",property.getName());
+          }
         }
       }
     }
