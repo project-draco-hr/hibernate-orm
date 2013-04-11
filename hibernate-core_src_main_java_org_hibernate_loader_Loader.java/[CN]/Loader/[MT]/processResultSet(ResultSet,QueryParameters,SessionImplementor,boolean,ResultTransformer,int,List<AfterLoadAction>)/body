@@ -10,8 +10,9 @@
   EntityKey[] keys=new EntityKey[entitySpan];
   LOG.trace("Processing result set");
   int count;
+  boolean isDebugEnabled=LOG.isDebugEnabled();
   for (count=0; count < maxRows && rs.next(); count++) {
-    LOG.debugf("Result set row: %s",count);
+    if (isDebugEnabled)     LOG.debugf("Result set row: %s",count);
     Object result=getRowFromResultSet(rs,session,queryParameters,lockModesArray,optionalObjectKey,hydratedObjects,keys,returnProxies,forcedResultTransformer);
     results.add(result);
     if (createSubselects) {
@@ -19,7 +20,7 @@
       keys=new EntityKey[entitySpan];
     }
   }
-  LOG.tracev("Done processing result set ({0} rows)",count);
+  if (LOG.isTraceEnabled())   LOG.tracev("Done processing result set ({0} rows)",count);
   initializeEntitiesAndCollections(hydratedObjects,rs,session,queryParameters.isReadOnly(session),afterLoadActions);
   if (createSubselects) {
     createSubselects(subselectResultKeys,queryParameters,session);
