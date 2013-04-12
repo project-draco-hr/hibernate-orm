@@ -3,7 +3,8 @@
   EntityPersister persister=entityEntry.getPersister();
   Serializable id=entityEntry.getId();
   Object[] hydratedState=entityEntry.getLoadedState();
-  if (LOG.isDebugEnabled()) {
+  final boolean debugEnabled=LOG.isDebugEnabled();
+  if (debugEnabled) {
     LOG.debugf("Resolving associations for %s",MessageHelper.infoString(persister,id,session.getFactory()));
   }
   Type[] types=persister.getPropertyTypes();
@@ -23,7 +24,7 @@
   persister.setPropertyValues(entity,hydratedState);
   final SessionFactoryImplementor factory=session.getFactory();
   if (persister.hasCache() && session.getCacheMode().isPutEnabled()) {
-    if (LOG.isDebugEnabled()) {
+    if (debugEnabled) {
       LOG.debugf("Adding entity to second-level cache: %s",MessageHelper.infoString(persister,id,session.getFactory()));
     }
     Object version=Versioning.getVersion(hydratedState,persister);
@@ -60,7 +61,7 @@
     persistenceContext.setEntryStatus(entityEntry,Status.MANAGED);
   }
   persister.afterInitialize(entity,entityEntry.isLoadedWithLazyPropertiesUnfetched(),session);
-  if (LOG.isDebugEnabled()) {
+  if (debugEnabled) {
     LOG.debugf("Done materializing entity %s",MessageHelper.infoString(persister,id,session.getFactory()));
   }
   if (factory.getStatistics().isStatisticsEnabled()) {

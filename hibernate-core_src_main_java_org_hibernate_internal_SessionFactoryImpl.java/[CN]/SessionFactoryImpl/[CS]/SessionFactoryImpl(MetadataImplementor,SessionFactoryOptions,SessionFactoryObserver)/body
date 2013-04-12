@@ -1,5 +1,9 @@
 {
-  LOG.debug("Building session factory");
+  final boolean traceEnabled=LOG.isTraceEnabled();
+  final boolean debugEnabled=traceEnabled || LOG.isDebugEnabled();
+  if (debugEnabled) {
+    LOG.debug("Building session factory");
+  }
   this.sessionFactoryOptions=sessionFactoryOptions;
   this.properties=createPropertiesFromMap(metadata.getServiceRegistry().getService(ConfigurationService.class).getSettings());
   this.settings=new SettingsFactory().buildSettings(properties,metadata.getServiceRegistry());
@@ -17,8 +21,10 @@
   for (  FilterDefinition filterDefinition : metadata.getFilterDefinitions()) {
     filters.put(filterDefinition.getFilterName(),filterDefinition);
   }
-  LOG.debugf("Session factory constructed with filter configurations : %s",filters);
-  LOG.debugf("Instantiating session factory with properties: %s",properties);
+  if (debugEnabled) {
+    LOG.debugf("Session factory constructed with filter configurations : %s",filters);
+    LOG.debugf("Instantiating session factory with properties: %s",properties);
+  }
   this.queryPlanCache=new QueryPlanCache(this);
 class IntegratorObserver implements SessionFactoryObserver {
     private ArrayList<Integrator> integrators=new ArrayList<Integrator>();
@@ -58,7 +64,7 @@ class IntegratorObserver implements SessionFactoryObserver {
       accessStrategy=EntityRegionAccessStrategy.class.cast(entityAccessStrategies.get(cacheRegionName));
       if (accessStrategy == null) {
         final AccessType accessType=model.getHierarchyDetails().getCaching().getAccessType();
-        if (LOG.isTraceEnabled()) {
+        if (traceEnabled) {
           LOG.tracev("Building cache for entity data [{0}]",model.getEntity().getName());
         }
         EntityRegion entityRegion=settings.getRegionFactory().buildEntityRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
@@ -86,7 +92,7 @@ class IntegratorObserver implements SessionFactoryObserver {
     final AccessType accessType=model.getCaching().getAccessType();
     CollectionRegionAccessStrategy accessStrategy=null;
     if (accessType != null && settings.isSecondLevelCacheEnabled()) {
-      if (LOG.isTraceEnabled()) {
+      if (traceEnabled) {
         LOG.tracev("Building cache for collection data [{0}]",model.getAttribute().getRole());
       }
       CollectionRegion collectionRegion=settings.getRegionFactory().buildCollectionRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
@@ -147,7 +153,9 @@ class IntegratorObserver implements SessionFactoryObserver {
     throw new AssertionFailure("Could not generate UUID");
   }
   SessionFactoryRegistry.INSTANCE.addSessionFactory(uuid,name,settings.isSessionFactoryNameAlsoJndiName(),this,serviceRegistry.getService(JndiService.class));
-  LOG.debug("Instantiated session factory");
+  if (debugEnabled) {
+    LOG.debug("Instantiated session factory");
+  }
   if (settings.isAutoCreateSchema()) {
     new SchemaExport(metadata).setImportSqlCommandExtractor(serviceRegistry.getService(ImportSqlCommandExtractor.class)).create(false,true);
   }

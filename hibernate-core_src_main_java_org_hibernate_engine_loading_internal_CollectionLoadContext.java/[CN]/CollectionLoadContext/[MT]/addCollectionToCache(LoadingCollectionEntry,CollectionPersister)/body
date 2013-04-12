@@ -1,11 +1,14 @@
 {
   final SessionImplementor session=getLoadContext().getPersistenceContext().getSession();
   final SessionFactoryImplementor factory=session.getFactory();
-  if (LOG.isDebugEnabled()) {
+  final boolean debugEnabled=LOG.isDebugEnabled();
+  if (debugEnabled) {
     LOG.debugf("Caching collection: %s",MessageHelper.collectionInfoString(persister,lce.getCollection(),lce.getKey(),session));
   }
   if (!session.getEnabledFilters().isEmpty() && persister.isAffectedByEnabledFilters(session)) {
-    LOG.debug("Refusing to add to cache due to enabled filters");
+    if (debugEnabled) {
+      LOG.debug("Refusing to add to cache due to enabled filters");
+    }
     return;
   }
   final Object version;
