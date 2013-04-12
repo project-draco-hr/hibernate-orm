@@ -1,0 +1,21 @@
+{
+  if (root == null) {
+    log.debug("Skipping load plan advising: no entity graph was specified");
+  }
+ else {
+    EntityReturn entityReturn=findRootEntityReturn(loadPlan);
+    if (entityReturn == null) {
+      log.debug("Skipping load plan advising: not able to find appropriate root entity return in load plan");
+    }
+ else {
+      final String entityName=entityReturn.getEntityPersister().getEntityName();
+      if (!root.appliesTo(entityName)) {
+        log.debugf("Skipping load plan advising: entity types did not match : [%s] and [%s]",root.getEntityType().getName(),entityName);
+      }
+ else {
+        return applyAdvice(entityReturn);
+      }
+    }
+  }
+  return loadPlan;
+}
