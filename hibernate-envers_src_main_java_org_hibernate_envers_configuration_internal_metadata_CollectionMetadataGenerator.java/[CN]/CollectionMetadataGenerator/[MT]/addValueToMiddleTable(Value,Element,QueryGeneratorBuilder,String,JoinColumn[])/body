@@ -27,13 +27,10 @@
       PropertyAuditingData nestedAuditingData=auditData.getPropertyAuditingData(auditedPropertyName);
       mainGenerator.addValue(parentXmlMapping,component.getProperty(auditedPropertyName).getValue(),componentMapper,referencingEntityName,xmlMappingData,nestedAuditingData,true,false,true);
     }
-    if (propertyValue.getCollectionType() instanceof SetType) {
-      final String auditedEmbeddableSetOrdinalPropertyName=mainGenerator.getVerEntCfg().getEmbeddableSetOrdinalPropertyName();
-      final String auditedEmbeddableSetOrdinalPropertyType="integer";
-      final SimpleValue simpleValue=new SimpleValue(component.getMappings(),component.getTable());
-      simpleValue.setTypeName(auditedEmbeddableSetOrdinalPropertyType);
-      final Element idProperty=MetadataTools.addProperty(xmlMapping,auditedEmbeddableSetOrdinalPropertyName,auditedEmbeddableSetOrdinalPropertyType,true,true);
-      MetadataTools.addColumn(idProperty,auditedEmbeddableSetOrdinalPropertyName,null,0,0,null,null,null,false);
+    if (propertyValue.isSet()) {
+      final String setOrdinalPropertyName=mainGenerator.getVerEntCfg().getEmbeddableSetOrdinalPropertyName();
+      final Element ordinalProperty=MetadataTools.addProperty(xmlMapping,setOrdinalPropertyName,"integer",true,true);
+      MetadataTools.addColumn(ordinalProperty,setOrdinalPropertyName,null,null,null,null,null,null,false);
     }
     return new MiddleComponentData(componentMapper,0);
   }
