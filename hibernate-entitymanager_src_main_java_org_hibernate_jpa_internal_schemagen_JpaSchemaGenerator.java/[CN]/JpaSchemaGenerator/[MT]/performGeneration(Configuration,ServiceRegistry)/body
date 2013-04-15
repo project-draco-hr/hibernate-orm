@@ -9,10 +9,10 @@
     final Dialect dialect=determineDialect(jdbcConnectionContext,hibernateConfiguration,serviceRegistry);
     final List<GenerationSource> createSourceList=databaseAction.includesCreate() || scriptsAction.includesCreate() ? buildCreateSourceList(hibernateConfiguration,serviceRegistry,dialect) : Collections.<GenerationSource>emptyList();
     final List<GenerationSource> dropSourceList=databaseAction.includesDrop() || scriptsAction.includesDrop() ? buildDropSourceList(hibernateConfiguration,serviceRegistry,dialect) : Collections.<GenerationSource>emptyList();
-    final GenerationTarget databaseTarget=new DatabaseTarget(jdbcConnectionContext,databaseAction);
+    final GenerationTarget databaseTarget=new GenerationTargetToDatabase(jdbcConnectionContext,databaseAction);
     final Object createScriptTargetSetting=hibernateConfiguration.getProperties().get(AvailableSettings.SCHEMA_GEN_SCRIPTS_CREATE_TARGET);
     final Object dropScriptTargetSetting=hibernateConfiguration.getProperties().get(AvailableSettings.SCHEMA_GEN_SCRIPTS_DROP_TARGET);
-    final GenerationTarget scriptsTarget=new ScriptsTarget(createScriptTargetSetting,dropScriptTargetSetting,scriptsAction);
+    final GenerationTarget scriptsTarget=new GenerationTargetToScript(createScriptTargetSetting,dropScriptTargetSetting,scriptsAction);
     final List<GenerationTarget> targets=Arrays.asList(databaseTarget,scriptsTarget);
     final String hbm2ddl=hibernateConfiguration.getProperty(org.hibernate.cfg.AvailableSettings.HBM2DDL_AUTO);
     if (StringHelper.isNotEmpty(hbm2ddl)) {

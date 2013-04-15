@@ -8,7 +8,7 @@
   final Object createScriptSourceSetting=hibernateConfiguration.getProperties().get(AvailableSettings.SCHEMA_GEN_CREATE_SCRIPT_SOURCE);
   if (sourceType == null) {
     if (createScriptSourceSetting != null) {
-      sourceType=SchemaGenSource.SCRIPTS;
+      sourceType=SchemaGenSource.SCRIPT;
     }
  else {
       sourceType=SchemaGenSource.METADATA;
@@ -16,18 +16,18 @@
   }
   final ImportSqlCommandExtractor scriptCommandExtractor=serviceRegistry.getService(ImportSqlCommandExtractor.class);
   if (sourceType == SchemaGenSource.METADATA) {
-    generationSourceList.add(new MetadataSource(hibernateConfiguration,dialect,true));
+    generationSourceList.add(new GenerationSourceFromMetadata(hibernateConfiguration,dialect,true));
   }
- else   if (sourceType == SchemaGenSource.SCRIPTS) {
-    generationSourceList.add(new ScriptSource(createScriptSourceSetting,scriptCommandExtractor));
+ else   if (sourceType == SchemaGenSource.SCRIPT) {
+    generationSourceList.add(new GenerationSourceFromScript(createScriptSourceSetting,scriptCommandExtractor));
   }
- else   if (sourceType == SchemaGenSource.METADATA_THEN_SCRIPTS) {
-    generationSourceList.add(new MetadataSource(hibernateConfiguration,dialect,true));
-    generationSourceList.add(new ScriptSource(createScriptSourceSetting,scriptCommandExtractor));
+ else   if (sourceType == SchemaGenSource.METADATA_THEN_SCRIPT) {
+    generationSourceList.add(new GenerationSourceFromMetadata(hibernateConfiguration,dialect,true));
+    generationSourceList.add(new GenerationSourceFromScript(createScriptSourceSetting,scriptCommandExtractor));
   }
- else   if (sourceType == SchemaGenSource.SCRIPTS_THEN_METADATA) {
-    generationSourceList.add(new ScriptSource(createScriptSourceSetting,scriptCommandExtractor));
-    generationSourceList.add(new MetadataSource(hibernateConfiguration,dialect,true));
+ else   if (sourceType == SchemaGenSource.SCRIPT_THEN_METADATA) {
+    generationSourceList.add(new GenerationSourceFromScript(createScriptSourceSetting,scriptCommandExtractor));
+    generationSourceList.add(new GenerationSourceFromMetadata(hibernateConfiguration,dialect,true));
   }
   final Object importScriptSetting=hibernateConfiguration.getProperties().get(AvailableSettings.SCHEMA_GEN_LOAD_SCRIPT_SOURCE);
   if (importScriptSetting != null) {
