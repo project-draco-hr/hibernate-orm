@@ -1,15 +1,10 @@
 {
   super(verEntCfg,referencingIdData,revisionTypeInId);
-  String revisionPropertyPath=verEntCfg.getRevisionNumberPath();
-  String originalIdPropertyName=verEntCfg.getOriginalIdPropName();
-  String versionsReferencedEntityName=verEntCfg.getAuditEntityName(referencedEntityName);
-  QueryBuilder qb=new QueryBuilder(versionsReferencedEntityName,REFERENCED_ENTITY_ALIAS);
-  qb.addProjection(null,REFERENCED_ENTITY_ALIAS,false,false);
-  Parameters rootParameters=qb.getRootParameters();
-  referencingIdData.getPrefixedMapper().addNamedIdEqualsToQuery(rootParameters,null,true);
-  auditStrategy.addEntityAtRevisionRestriction(globalCfg,qb,revisionPropertyPath,verEntCfg.getRevisionEndFieldName(),true,referencedIdData,revisionPropertyPath,originalIdPropertyName,REFERENCED_ENTITY_ALIAS,REFERENCED_ENTITY_ALIAS_DEF_AUD_STR);
-  rootParameters.addWhereWithNamedParam(getRevisionTypePath(),false,"!=",DEL_REVISION_TYPE_PARAMETER);
-  StringBuilder sb=new StringBuilder();
-  qb.build(sb,Collections.<String,Object>emptyMap());
-  queryString=sb.toString();
+  final QueryBuilder commonPart=commonQueryPart(verEntCfg.getAuditEntityName(referencedEntityName));
+  final QueryBuilder validQuery=commonPart.deepCopy();
+  final QueryBuilder removedQuery=commonPart.deepCopy();
+  createValidDataRestrictions(globalCfg,auditStrategy,referencedIdData,validQuery,validQuery.getRootParameters(),true);
+  createValidAndRemovedDataRestrictions(globalCfg,auditStrategy,referencedIdData,removedQuery);
+  queryString=queryToString(validQuery);
+  queryRemovedString=queryToString(removedQuery);
 }

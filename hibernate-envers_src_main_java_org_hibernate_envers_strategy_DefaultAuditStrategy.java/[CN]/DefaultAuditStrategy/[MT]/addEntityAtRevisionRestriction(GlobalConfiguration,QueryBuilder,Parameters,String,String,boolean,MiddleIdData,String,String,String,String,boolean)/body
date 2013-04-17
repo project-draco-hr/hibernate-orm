@@ -1,0 +1,9 @@
+{
+  QueryBuilder maxERevQb=rootQueryBuilder.newSubQueryBuilder(idData.getAuditEntityName(),alias2);
+  maxERevQb.addProjection("max",revisionPropertyPath,false);
+  Parameters maxERevQbParameters=maxERevQb.getRootParameters();
+  maxERevQbParameters.addWhereWithNamedParam(revisionPropertyPath,inclusive ? "<=" : "<",REVISION_PARAMETER);
+  idData.getOriginalMapper().addIdsEqualToQuery(maxERevQbParameters,alias1 + "." + originalIdPropertyName,alias2 + "." + originalIdPropertyName);
+  String subqueryOperator=globalCfg.getCorrelatedSubqueryOperator();
+  parameters.addWhere(revisionProperty,addAlias,subqueryOperator,maxERevQb);
+}

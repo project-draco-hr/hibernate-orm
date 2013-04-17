@@ -1,0 +1,12 @@
+{
+  final String revisionPropertyPath=verEntCfg.getRevisionNumberPath();
+  final String originalIdPropertyName=verEntCfg.getOriginalIdPropName();
+  final String eeOriginalIdPropertyPath=MIDDLE_ENTITY_ALIAS + "." + originalIdPropertyName;
+  final String revisionTypePropName=getRevisionTypePath();
+  auditStrategy.addEntityAtRevisionRestriction(globalCfg,qb,rootParameters,REFERENCED_ENTITY_ALIAS + "." + revisionPropertyPath,REFERENCED_ENTITY_ALIAS + "." + verEntCfg.getRevisionEndFieldName(),false,referencedIdData,revisionPropertyPath,originalIdPropertyName,REFERENCED_ENTITY_ALIAS,REFERENCED_ENTITY_ALIAS_DEF_AUD_STR,inclusive);
+  auditStrategy.addEntityAtRevisionRestriction(globalCfg,qb,rootParameters,REFERENCED_ENTITY_ALIAS + "." + revisionPropertyPath,REFERENCED_ENTITY_ALIAS + "." + verEntCfg.getRevisionEndFieldName(),false,referencedIdData,revisionPropertyPath,originalIdPropertyName,INDEX_ENTITY_ALIAS,INDEX_ENTITY_ALIAS_DEF_AUD_STR,inclusive);
+  auditStrategy.addAssociationAtRevisionRestriction(qb,rootParameters,revisionPropertyPath,verEntCfg.getRevisionEndFieldName(),true,referencingIdData,versionsMiddleEntityName,eeOriginalIdPropertyPath,revisionPropertyPath,originalIdPropertyName,MIDDLE_ENTITY_ALIAS,inclusive,componentData);
+  rootParameters.addWhereWithNamedParam(revisionTypePropName,"!=",DEL_REVISION_TYPE_PARAMETER);
+  rootParameters.addWhereWithNamedParam(REFERENCED_ENTITY_ALIAS + "." + revisionTypePropName,false,"!=",DEL_REVISION_TYPE_PARAMETER);
+  rootParameters.addWhereWithNamedParam(INDEX_ENTITY_ALIAS + "." + revisionTypePropName,false,"!=",DEL_REVISION_TYPE_PARAMETER);
+}
