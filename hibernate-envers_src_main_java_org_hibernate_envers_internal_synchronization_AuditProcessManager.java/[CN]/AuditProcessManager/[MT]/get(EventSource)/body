@@ -4,7 +4,15 @@
   if (auditProcess == null) {
     auditProcess=new AuditProcess(revisionInfoGenerator,session);
     auditProcesses.put(transaction,auditProcess);
-    session.getActionQueue().registerProcess(auditProcess);
+    session.getActionQueue().registerProcess(new BeforeTransactionCompletionProcess(){
+      public void doBeforeTransactionCompletion(      SessionImplementor session){
+        final AuditProcess process=auditProcesses.get(transaction);
+        if (process != null) {
+          process.doBeforeTransactionCompletion(session);
+        }
+      }
+    }
+);
     session.getActionQueue().registerProcess(new AfterTransactionCompletionProcess(){
       public void doAfterTransactionCompletion(      boolean success,      SessionImplementor session){
         auditProcesses.remove(transaction);

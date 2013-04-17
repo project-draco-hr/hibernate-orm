@@ -3,11 +3,13 @@
   em.getTransaction().begin();
   IntTestEntity iteToRollback=new IntTestEntity(30);
   em.persist(iteToRollback);
+  em.flush();
   Integer rollbackedIteId=iteToRollback.getId();
   em.getTransaction().rollback();
   em.getTransaction().begin();
   IntTestEntity ite2=new IntTestEntity(50);
   em.persist(ite2);
+  em.flush();
   Integer ite2Id=ite2.getId();
   em.getTransaction().commit();
   List<Number> revisionsForSavedClass=getAuditReader().getRevisions(IntTestEntity.class,ite2Id);
