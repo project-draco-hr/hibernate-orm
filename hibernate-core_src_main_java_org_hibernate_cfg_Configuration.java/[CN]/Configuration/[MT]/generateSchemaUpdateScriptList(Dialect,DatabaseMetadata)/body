@@ -1,0 +1,89 @@
+{
+  secondPassCompile();
+  String defaultCatalog=properties.getProperty(Environment.DEFAULT_CATALOG);
+  String defaultSchema=properties.getProperty(Environment.DEFAULT_SCHEMA);
+  UniqueConstraintSchemaUpdateStrategy constraintMethod=UniqueConstraintSchemaUpdateStrategy.interpret(properties.get(Environment.UNIQUE_CONSTRAINT_SCHEMA_UPDATE_STRATEGY));
+  List<SchemaUpdateScript> scripts=new ArrayList<SchemaUpdateScript>();
+  Iterator iter=getTableMappings();
+  while (iter.hasNext()) {
+    Table table=(Table)iter.next();
+    String tableSchema=(table.getSchema() == null) ? defaultSchema : table.getSchema();
+    String tableCatalog=(table.getCatalog() == null) ? defaultCatalog : table.getCatalog();
+    if (table.isPhysicalTable()) {
+      TableMetadata tableInfo=databaseMetadata.getTableMetadata(table.getName(),tableSchema,tableCatalog,table.isQuoted());
+      if (tableInfo == null) {
+        scripts.add(new SchemaUpdateScript(table.sqlCreateString(dialect,mapping,tableCatalog,tableSchema),false));
+      }
+ else {
+        Iterator<String> subiter=table.sqlAlterStrings(dialect,mapping,tableInfo,tableCatalog,tableSchema);
+        while (subiter.hasNext()) {
+          scripts.add(new SchemaUpdateScript(subiter.next(),false));
+        }
+      }
+      Iterator<String> comments=table.sqlCommentStrings(dialect,defaultCatalog,defaultSchema);
+      while (comments.hasNext()) {
+        scripts.add(new SchemaUpdateScript(comments.next(),false));
+      }
+    }
+  }
+  iter=getTableMappings();
+  while (iter.hasNext()) {
+    Table table=(Table)iter.next();
+    String tableSchema=(table.getSchema() == null) ? defaultSchema : table.getSchema();
+    String tableCatalog=(table.getCatalog() == null) ? defaultCatalog : table.getCatalog();
+    if (table.isPhysicalTable()) {
+      TableMetadata tableInfo=databaseMetadata.getTableMetadata(table.getName(),tableSchema,tableCatalog,table.isQuoted());
+      if (!constraintMethod.equals(UniqueConstraintSchemaUpdateStrategy.SKIP)) {
+        Iterator uniqueIter=table.getUniqueKeyIterator();
+        while (uniqueIter.hasNext()) {
+          final UniqueKey uniqueKey=(UniqueKey)uniqueIter.next();
+          if (tableInfo != null && StringHelper.isNotEmpty(uniqueKey.getName())) {
+            final IndexMetadata meta=tableInfo.getIndexMetadata(uniqueKey.getName());
+            if (meta != null) {
+              continue;
+            }
+          }
+          String constraintString=uniqueKey.sqlCreateString(dialect,mapping,tableCatalog,tableSchema);
+          if (constraintString != null && !constraintString.isEmpty())           if (constraintMethod.equals(UniqueConstraintSchemaUpdateStrategy.DROP_RECREATE_QUIETLY)) {
+            String constraintDropString=uniqueKey.sqlDropString(dialect,tableCatalog,tableCatalog);
+            scripts.add(new SchemaUpdateScript(constraintDropString,true));
+          }
+          scripts.add(new SchemaUpdateScript(constraintString,true));
+        }
+      }
+      if (dialect.hasAlterTable()) {
+        Iterator subIter=table.getForeignKeyIterator();
+        while (subIter.hasNext()) {
+          ForeignKey fk=(ForeignKey)subIter.next();
+          if (fk.isPhysicalConstraint()) {
+            boolean create=tableInfo == null || (tableInfo.getForeignKeyMetadata(fk) == null && (!(dialect instanceof MySQLDialect) || tableInfo.getIndexMetadata(fk.getName()) == null));
+            if (create) {
+              scripts.add(new SchemaUpdateScript(fk.sqlCreateString(dialect,mapping,tableCatalog,tableSchema),false));
+            }
+          }
+        }
+      }
+      Iterator subIter=table.getIndexIterator();
+      while (subIter.hasNext()) {
+        final Index index=(Index)subIter.next();
+        if (tableInfo != null && StringHelper.isNotEmpty(index.getName())) {
+          final IndexMetadata meta=tableInfo.getIndexMetadata(index.getName());
+          if (meta != null) {
+            continue;
+          }
+        }
+        scripts.add(new SchemaUpdateScript(index.sqlCreateString(dialect,mapping,tableCatalog,tableSchema),false));
+      }
+    }
+  }
+  iter=iterateGenerators(dialect);
+  while (iter.hasNext()) {
+    PersistentIdentifierGenerator generator=(PersistentIdentifierGenerator)iter.next();
+    Object key=generator.generatorKey();
+    if (!databaseMetadata.isSequence(key) && !databaseMetadata.isTable(key)) {
+      String[] lines=generator.sqlCreateStrings(dialect);
+      scripts.addAll(SchemaUpdateScript.fromStringArray(lines,false));
+    }
+  }
+  return scripts;
+}
