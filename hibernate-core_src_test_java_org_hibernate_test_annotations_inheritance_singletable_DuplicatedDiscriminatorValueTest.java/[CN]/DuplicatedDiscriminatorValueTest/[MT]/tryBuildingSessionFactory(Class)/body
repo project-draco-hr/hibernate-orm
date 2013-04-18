@@ -1,0 +1,20 @@
+{
+  Configuration cfg=new Configuration();
+  for (  Class annotatedClass : annotatedClasses) {
+    cfg.addAnnotatedClass(annotatedClass);
+  }
+  ServiceRegistry serviceRegistry=null;
+  SessionFactory sessionFactory=null;
+  try {
+    serviceRegistry=ServiceRegistryBuilder.buildServiceRegistry(cfg.getProperties());
+    sessionFactory=cfg.buildSessionFactory(serviceRegistry);
+  }
+  finally {
+    if (sessionFactory != null) {
+      sessionFactory.close();
+    }
+    if (serviceRegistry != null) {
+      ServiceRegistryBuilder.destroy(serviceRegistry);
+    }
+  }
+}

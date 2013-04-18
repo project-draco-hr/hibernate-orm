@@ -160,22 +160,22 @@ catch (      Exception e) {
   subclassClosure=new String[subclassSpan];
   subclassClosure[0]=getEntityName();
   if (entityBinding.isPolymorphic()) {
-    subclassesByDiscriminatorValue.put(discriminatorValue,getEntityName());
+    addSubclassByDiscriminatorValue(discriminatorValue,getEntityName());
   }
   if (entityBinding.isPolymorphic()) {
     int k=1;
     for (    EntityBinding subEntityBinding : entityBinding.getPostOrderSubEntityBindingClosure()) {
       subclassClosure[k++]=subEntityBinding.getEntity().getName();
       if (subEntityBinding.isDiscriminatorMatchValueNull()) {
-        subclassesByDiscriminatorValue.put(NULL_DISCRIMINATOR,subEntityBinding.getEntity().getName());
+        addSubclassByDiscriminatorValue(NULL_DISCRIMINATOR,subEntityBinding.getEntity().getName());
       }
  else       if (subEntityBinding.isDiscriminatorMatchValueNotNull()) {
-        subclassesByDiscriminatorValue.put(NOT_NULL_DISCRIMINATOR,subEntityBinding.getEntity().getName());
+        addSubclassByDiscriminatorValue(NOT_NULL_DISCRIMINATOR,subEntityBinding.getEntity().getName());
       }
  else {
         try {
           DiscriminatorType dtype=(DiscriminatorType)discriminatorType;
-          subclassesByDiscriminatorValue.put(dtype.stringToObject(subEntityBinding.getDiscriminatorMatchValue()),subEntityBinding.getEntity().getName());
+          addSubclassByDiscriminatorValue(dtype.stringToObject(subEntityBinding.getDiscriminatorMatchValue()),subEntityBinding.getEntity().getName());
         }
  catch (        ClassCastException cce) {
           throw new MappingException("Illegal discriminator type: " + discriminatorType.getName());
