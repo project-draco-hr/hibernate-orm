@@ -1,11 +1,11 @@
 {
   LoadPlanVisitor.visit(loadPlan,new LoadPlanVisitationStrategyAdapter(){
     @Override public void handleCollectionReturn(    CollectionReturn rootCollectionReturn){
-      readCollectionElement(null,null,rootCollectionReturn.getCollectionPersister(),rootCollectionReturn.getCollectionAliases(),resultSet,session);
+      readCollectionElement(null,null,rootCollectionReturn.getCollectionPersister(),aliasResolutionContext.resolveCollectionColumnAliases(rootCollectionReturn),resultSet,session);
     }
     @Override public void startingCollectionFetch(    CollectionFetch collectionFetch){
       final Object owner=row[0];
-      readCollectionElement(owner,collectionFetch.getCollectionPersister().getCollectionType().getKeyOfOwner(owner,session),collectionFetch.getCollectionPersister(),collectionFetch.getCollectionAliases(),resultSet,session);
+      readCollectionElement(owner,collectionFetch.getCollectionPersister().getCollectionType().getKeyOfOwner(owner,session),collectionFetch.getCollectionPersister(),aliasResolutionContext.resolveCollectionColumnAliases(collectionFetch),resultSet,session);
     }
     private void readCollectionElement(    final Object optionalOwner,    final Serializable optionalKey,    final CollectionPersister persister,    final CollectionAliases descriptor,    final ResultSet rs,    final SessionImplementor session){
       try {

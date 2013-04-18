@@ -1,0 +1,8 @@
+{
+  JoinFragment ojf=mergeOuterJoins(aliasResolutionContext);
+  Select select=new Select(getDialect()).setLockOptions(lockOptions).setSelectClause(projection == null ? getPersister().selectFragment(getAlias(aliasResolutionContext),aliasResolutionContext.resolveEntityColumnAliases(entityReturn).getSuffix()) + associationSelectString(aliasResolutionContext) : projection).setFromClause(getDialect().appendLockHint(lockOptions,getPersister().fromTableFragment(getAlias(aliasResolutionContext))) + getPersister().fromJoinFragment(getAlias(aliasResolutionContext),true,true)).setWhereClause(condition).setOuterJoins(ojf.toFromFragmentString(),ojf.toWhereFragmentString() + getWhereFragment(aliasResolutionContext)).setOrderByClause(orderBy(orderBy,aliasResolutionContext)).setGroupByClause(groupBy);
+  if (getFactory().getSettings().isCommentsEnabled()) {
+    select.setComment(getComment());
+  }
+  return select.toStatementString();
+}

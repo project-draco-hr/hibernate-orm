@@ -1,0 +1,9 @@
+{
+  final String rhsAlias=aliasResolutionContext.resolveRhsAlias(association);
+  final String[] aliasedLhsColumnNames=aliasResolutionContext.resolveAliasedLhsColumnNames(association);
+  final String manyToManyFilter=collection.getManyToManyFilterFragment(rhsAlias,association.getEnabledFilters());
+  final String on=resolveOnCondition(association,aliasResolutionContext);
+  String condition="".equals(manyToManyFilter) ? on : "".equals(on) ? manyToManyFilter : on + " and " + manyToManyFilter;
+  outerjoin.addJoin(association.getJoinable().getTableName(),rhsAlias,aliasedLhsColumnNames,association.getRhsColumns(),association.getJoinType(),condition);
+  outerjoin.addJoins(association.getJoinable().fromJoinFragment(rhsAlias,false,true),association.getJoinable().whereJoinFragment(rhsAlias,false,true));
+}

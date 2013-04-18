@@ -1,12 +1,11 @@
 {
   CollectionPersister cp=sessionFactory().getCollectionPersister(Poster.class.getName() + ".messages");
-  SingleRootReturnLoadPlanBuilderStrategy strategy=new SingleRootReturnLoadPlanBuilderStrategy(sessionFactory(),LoadQueryInfluencers.NONE,"abc",0);
+  SingleRootReturnLoadPlanBuilderStrategy strategy=new SingleRootReturnLoadPlanBuilderStrategy(sessionFactory(),LoadQueryInfluencers.NONE);
   LoadPlan plan=LoadPlanBuilder.buildRootCollectionLoadPlan(strategy,cp);
   assertFalse(plan.hasAnyScalarReturns());
   assertEquals(1,plan.getReturns().size());
   Return rtn=plan.getReturns().get(0);
   CollectionReturn collectionReturn=ExtraAssertions.assertTyping(CollectionReturn.class,rtn);
-  assertEquals("abc",collectionReturn.getAlias());
   assertNotNull(collectionReturn.getElementGraph().getFetches());
   assertEquals(1,collectionReturn.getElementGraph().getFetches().length);
   Fetch fetch=collectionReturn.getElementGraph().getFetches()[0];

@@ -8,16 +8,16 @@
     if (getLockMode() != null && getLockMode() != LockMode.NONE) {
       final boolean isVersionCheckNeeded=persister.isVersioned() && context.getSession().getPersistenceContext().getEntry(existing).getLockMode().lessThan(getLockMode());
       if (isVersionCheckNeeded) {
-        context.checkVersion(resultSet,persister,entityAliases,entityKey,existing);
+        context.checkVersion(resultSet,persister,context.getLoadQueryAliasResolutionContext().resolveEntityColumnAliases(this),entityKey,existing);
         context.getSession().getPersistenceContext().getEntry(existing).setLockMode(getLockMode());
       }
     }
   }
  else {
-    final String concreteEntityTypeName=context.getConcreteEntityTypeName(resultSet,persister,entityAliases,entityKey);
+    final String concreteEntityTypeName=context.getConcreteEntityTypeName(resultSet,persister,context.getLoadQueryAliasResolutionContext().resolveEntityColumnAliases(this),entityKey);
     final Object entityInstance=context.getSession().instantiate(concreteEntityTypeName,entityKey.getIdentifier());
     LockMode acquiredLockMode=getLockMode() == LockMode.NONE ? LockMode.READ : getLockMode();
-    context.loadFromResultSet(resultSet,entityInstance,concreteEntityTypeName,entityKey,entityAliases,acquiredLockMode,persister,getFetchStrategy().getTiming() == FetchTiming.IMMEDIATE,associationType);
+    context.loadFromResultSet(resultSet,entityInstance,concreteEntityTypeName,entityKey,context.getLoadQueryAliasResolutionContext().resolveEntityColumnAliases(this),acquiredLockMode,persister,getFetchStrategy().getTiming() == FetchTiming.IMMEDIATE,associationType);
     context.registerHydratedEntity(persister,entityKey,entityInstance);
   }
   return entityKey;

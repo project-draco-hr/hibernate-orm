@@ -1,0 +1,23 @@
+{
+  if (aliasesByReturn == null || aliasesByReturn.size() == 0) {
+    throw new IllegalArgumentException("No return aliases defined");
+  }
+  for (  Map.Entry<Return,String[]> entry : aliasesByReturn.entrySet()) {
+    final Return aReturn=entry.getKey();
+    final String[] aliases=entry.getValue();
+    if (aReturn == null) {
+      throw new IllegalArgumentException("null key found in aliasesByReturn");
+    }
+    if (aliases == null || aliases.length == 0) {
+      throw new IllegalArgumentException(String.format("No alias defined for [%s]",aReturn));
+    }
+    if ((aliases.length > 1) && (aReturn instanceof EntityReturn || aReturn instanceof CollectionReturn)) {
+      throw new IllegalArgumentException(String.format("More than 1 alias defined for [%s]",aReturn));
+    }
+    for (    String alias : aliases) {
+      if (StringHelper.isEmpty(alias)) {
+        throw new IllegalArgumentException(String.format("An alias for [%s] is null or empty.",aReturn));
+      }
+    }
+  }
+}

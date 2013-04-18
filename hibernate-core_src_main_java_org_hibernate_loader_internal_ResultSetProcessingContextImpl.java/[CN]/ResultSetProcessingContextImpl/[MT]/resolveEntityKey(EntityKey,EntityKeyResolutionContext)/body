@@ -9,18 +9,18 @@
       final LockMode currentLockMode=getSession().getPersistenceContext().getEntry(existing).getLockMode();
       final boolean isVersionCheckNeeded=entityKeyContext.getEntityPersister().isVersioned() && currentLockMode.lessThan(requestedLockMode);
       if (isVersionCheckNeeded) {
-        checkVersion(resultSet,entityKeyContext.getEntityPersister(),entityKeyContext.getEntityAliases(),entityKey,existing);
+        checkVersion(resultSet,entityKeyContext.getEntityPersister(),aliasResolutionContext.resolveEntityColumnAliases(entityKeyContext.getEntityReference()),entityKey,existing);
         getSession().getPersistenceContext().getEntry(existing).setLockMode(requestedLockMode);
       }
     }
     return existing;
   }
  else {
-    final String concreteEntityTypeName=getConcreteEntityTypeName(resultSet,entityKeyContext.getEntityPersister(),entityKeyContext.getEntityAliases(),entityKey);
+    final String concreteEntityTypeName=getConcreteEntityTypeName(resultSet,entityKeyContext.getEntityPersister(),aliasResolutionContext.resolveEntityColumnAliases(entityKeyContext.getEntityReference()),entityKey);
     final Object entityInstance=getSession().instantiate(concreteEntityTypeName,entityKey.getIdentifier());
     final LockMode requestedLockMode=entityKeyContext.getLockMode() == null ? LockMode.NONE : entityKeyContext.getLockMode();
     final LockMode acquiredLockMode=requestedLockMode == LockMode.NONE ? LockMode.READ : requestedLockMode;
-    loadFromResultSet(resultSet,entityInstance,concreteEntityTypeName,entityKey,entityKeyContext.getEntityAliases(),acquiredLockMode,entityKeyContext.getEntityPersister(),true,entityKeyContext.getEntityPersister().getEntityMetamodel().getEntityType());
+    loadFromResultSet(resultSet,entityInstance,concreteEntityTypeName,entityKey,aliasResolutionContext.resolveEntityColumnAliases(entityKeyContext.getEntityReference()),acquiredLockMode,entityKeyContext.getEntityPersister(),true,entityKeyContext.getEntityPersister().getEntityMetamodel().getEntityType());
     registerHydratedEntity(entityKeyContext.getEntityPersister(),entityKey,entityInstance);
     return entityInstance;
   }

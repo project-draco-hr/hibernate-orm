@@ -10,10 +10,16 @@
   session.save(person);
   session.getTransaction().commit();
   session.close();
+  session=openSession();
+  session.beginTransaction();
+  session.get(Person.class,person.id);
+  session.getTransaction().commit();
+  session.close();
 {
-    final SingleRootReturnLoadPlanBuilderStrategy strategy=new SingleRootReturnLoadPlanBuilderStrategy(sessionFactory(),LoadQueryInfluencers.NONE,"abc",0);
+    final SingleRootReturnLoadPlanBuilderStrategy strategy=new SingleRootReturnLoadPlanBuilderStrategy(sessionFactory(),LoadQueryInfluencers.NONE);
     final LoadPlan plan=LoadPlanBuilder.buildRootEntityLoadPlan(strategy,entityPersister);
-    final EntityLoadQueryBuilderImpl queryBuilder=new EntityLoadQueryBuilderImpl(sessionFactory(),LoadQueryInfluencers.NONE,plan);
+    final LoadQueryAliasResolutionContext aliasResolutionContext=new LoadQueryAliasResolutionContextImpl(sessionFactory(),0,Collections.singletonMap(plan.getReturns().get(0),new String[]{"abc"}));
+    final EntityLoadQueryBuilderImpl queryBuilder=new EntityLoadQueryBuilderImpl(sessionFactory(),LoadQueryInfluencers.NONE,plan,aliasResolutionContext);
     final String sql=queryBuilder.generateSql(1);
     final ResultSetProcessorImpl resultSetProcessor=new ResultSetProcessorImpl(plan);
     final List results=new ArrayList();
@@ -29,7 +35,7 @@
             return new int[0];
           }
         }
-,true,false,null,null));
+,aliasResolutionContext,true,false,null,null));
         resultSet.close();
         ps.close();
       }
