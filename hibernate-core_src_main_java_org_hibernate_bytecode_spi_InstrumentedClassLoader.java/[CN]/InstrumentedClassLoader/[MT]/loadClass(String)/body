@@ -2,17 +2,17 @@
   if (name.startsWith("java.") || classTransformer == null) {
     return getParent().loadClass(name);
   }
-  Class c=findLoadedClass(name);
+  final Class c=findLoadedClass(name);
   if (c != null) {
     return c;
   }
-  InputStream is=this.getResourceAsStream(name.replace('.','/') + ".class");
+  final InputStream is=this.getResourceAsStream(name.replace('.','/') + ".class");
   if (is == null) {
     throw new ClassNotFoundException(name + " not found");
   }
   try {
-    byte[] originalBytecode=ByteCodeHelper.readByteCode(is);
-    byte[] transformedBytecode=classTransformer.transform(getParent(),name,null,null,originalBytecode);
+    final byte[] originalBytecode=ByteCodeHelper.readByteCode(is);
+    final byte[] transformedBytecode=classTransformer.transform(getParent(),name,null,null,originalBytecode);
     if (originalBytecode == transformedBytecode) {
       return getParent().loadClass(name);
     }

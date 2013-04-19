@@ -1,19 +1,19 @@
 {
-  ConstPool cp=classfile.getConstPool();
-  int target_type_index=cp.addClassInfo(this.targetBean.getName());
-  String desc=GET_SETTER_DESC;
-  MethodInfo mi=new MethodInfo(cp,GENERATED_GETTER_NAME,desc);
-  Bytecode code=new Bytecode(cp,6,4);
+  final ConstPool constPool=classfile.getConstPool();
+  final int targetBeanConstPoolIndex=constPool.addClassInfo(this.targetBean.getName());
+  final String desc=GET_SETTER_DESC;
+  final MethodInfo getterMethodInfo=new MethodInfo(constPool,GENERATED_GETTER_NAME,desc);
+  final Bytecode code=new Bytecode(constPool,6,4);
   if (getters.length >= 0) {
     code.addAload(1);
     code.addCheckcast(this.targetBean.getName());
     code.addAstore(3);
     for (int i=0; i < getters.length; ++i) {
       if (getters[i] != null) {
-        Method getter=getters[i];
+        final Method getter=getters[i];
         code.addAload(2);
         code.addIconst(i);
-        Class returnType=getter.getReturnType();
+        final Class returnType=getter.getReturnType();
         int typeIndex=-1;
         if (returnType.isPrimitive()) {
           typeIndex=FactoryHelper.typeIndex(returnType);
@@ -21,13 +21,13 @@
           code.addOpcode(Opcode.DUP);
         }
         code.addAload(3);
-        String getter_desc=RuntimeSupport.makeDescriptor(getter);
-        String getterName=getter.getName();
+        final String getterSignature=RuntimeSupport.makeDescriptor(getter);
+        final String getterName=getter.getName();
         if (this.targetBean.isInterface()) {
-          code.addInvokeinterface(target_type_index,getterName,getter_desc,1);
+          code.addInvokeinterface(targetBeanConstPoolIndex,getterName,getterSignature,1);
         }
  else {
-          code.addInvokevirtual(target_type_index,getterName,getter_desc);
+          code.addInvokevirtual(targetBeanConstPoolIndex,getterName,getterSignature);
         }
         if (typeIndex >= 0) {
           code.addInvokespecial(FactoryHelper.wrapperTypes[typeIndex],MethodInfo.nameInit,FactoryHelper.wrapperDesc[typeIndex]);
@@ -38,7 +38,7 @@
     }
   }
   code.addOpcode(Opcode.RETURN);
-  mi.setCodeAttribute(code.toCodeAttribute());
-  mi.setAccessFlags(AccessFlag.PUBLIC);
-  classfile.addMethod(mi);
+  getterMethodInfo.setCodeAttribute(code.toCodeAttribute());
+  getterMethodInfo.setAccessFlags(AccessFlag.PUBLIC);
+  classfile.addMethod(getterMethodInfo);
 }

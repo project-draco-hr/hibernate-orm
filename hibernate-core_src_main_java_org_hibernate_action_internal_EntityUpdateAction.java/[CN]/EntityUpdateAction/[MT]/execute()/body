@@ -1,9 +1,9 @@
 {
-  Serializable id=getId();
-  EntityPersister persister=getPersister();
-  SessionImplementor session=getSession();
-  Object instance=getInstance();
-  boolean veto=preUpdate();
+  final Serializable id=getId();
+  final EntityPersister persister=getPersister();
+  final SessionImplementor session=getSession();
+  final Object instance=getInstance();
+  final boolean veto=preUpdate();
   final SessionFactoryImplementor factory=getSession().getFactory();
   Object previousVersion=this.previousVersion;
   if (persister.isVersionPropertyGenerated()) {
@@ -20,7 +20,7 @@
   if (!veto) {
     persister.update(id,state,dirtyFields,hasDirtyCollection,previousState,previousVersion,instance,rowId,session);
   }
-  EntityEntry entry=getSession().getPersistenceContext().getEntry(instance);
+  final EntityEntry entry=getSession().getPersistenceContext().getEntry(instance);
   if (entry == null) {
     throw new AssertionFailure("possible nonthreadsafe access to session");
   }
@@ -39,9 +39,9 @@
       persister.getCacheAccessStrategy().remove(ck);
     }
  else {
-      CacheEntry ce=persister.buildCacheEntry(instance,state,nextVersion,getSession());
+      final CacheEntry ce=persister.buildCacheEntry(instance,state,nextVersion,getSession());
       cacheEntry=persister.getCacheEntryStructure().structure(ce);
-      boolean put=persister.getCacheAccessStrategy().update(ck,cacheEntry,nextVersion,previousVersion);
+      final boolean put=persister.getCacheAccessStrategy().update(ck,cacheEntry,nextVersion,previousVersion);
       if (put && factory.getStatistics().isStatisticsEnabled()) {
         factory.getStatisticsImplementor().secondLevelCachePut(getPersister().getCacheAccessStrategy().getRegion().getName());
       }

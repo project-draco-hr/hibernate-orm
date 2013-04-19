@@ -1,15 +1,15 @@
 {
   for (  Map.Entry<Object,Set<AbstractEntityInsertAction>> entry : dependentActionsByTransientEntity.entrySet()) {
-    Object transientEntity=entry.getKey();
-    String transientEntityName=session.guessEntityName(transientEntity);
-    Serializable transientEntityId=session.getFactory().getEntityPersister(transientEntityName).getIdentifier(transientEntity,session);
-    String transientEntityString=MessageHelper.infoString(transientEntityName,transientEntityId);
-    Set<String> dependentEntityStrings=new TreeSet<String>();
-    Set<String> nonNullableTransientPropertyPaths=new TreeSet<String>();
+    final Object transientEntity=entry.getKey();
+    final String transientEntityName=session.guessEntityName(transientEntity);
+    final Serializable transientEntityId=session.getFactory().getEntityPersister(transientEntityName).getIdentifier(transientEntity,session);
+    final String transientEntityString=MessageHelper.infoString(transientEntityName,transientEntityId);
+    final Set<String> dependentEntityStrings=new TreeSet<String>();
+    final Set<String> nonNullableTransientPropertyPaths=new TreeSet<String>();
     for (    AbstractEntityInsertAction dependentAction : entry.getValue()) {
       dependentEntityStrings.add(MessageHelper.infoString(dependentAction.getEntityName(),dependentAction.getId()));
       for (      String path : dependenciesByAction.get(dependentAction).getNonNullableTransientPropertyPaths(transientEntity)) {
-        String fullPath=new StringBuilder(dependentAction.getEntityName().length() + path.length() + 1).append(dependentAction.getEntityName()).append('.').append(path).toString();
+        final String fullPath=dependentAction.getEntityName() + '.' + path;
         nonNullableTransientPropertyPaths.add(fullPath);
       }
     }

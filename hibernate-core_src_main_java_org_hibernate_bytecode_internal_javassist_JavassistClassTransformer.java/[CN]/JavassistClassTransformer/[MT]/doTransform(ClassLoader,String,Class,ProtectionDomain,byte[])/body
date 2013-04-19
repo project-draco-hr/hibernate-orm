@@ -7,7 +7,7 @@
     LOG.unableToBuildEnhancementMetamodel(className);
     return classfileBuffer;
   }
-  ClassPool cp=new ClassPool();
+  final ClassPool cp=new ClassPool();
   cp.appendSystemPath();
   cp.appendClassPath(new ClassClassPath(this.getClass()));
   cp.appendClassPath(new ClassClassPath(classfile.getClass()));
@@ -17,13 +17,13 @@
  catch (  IOException e) {
     throw new RuntimeException(e.getMessage(),e);
   }
-  FieldTransformer transformer=getFieldTransformer(classfile,cp);
+  final FieldTransformer transformer=getFieldTransformer(classfile,cp);
   if (transformer != null) {
     LOG.debugf("Enhancing %s",className);
     DataOutputStream out=null;
     try {
       transformer.transform(classfile);
-      ByteArrayOutputStream byteStream=new ByteArrayOutputStream();
+      final ByteArrayOutputStream byteStream=new ByteArrayOutputStream();
       out=new DataOutputStream(byteStream);
       classfile.write(out);
       return byteStream.toByteArray();
@@ -34,7 +34,9 @@
     }
  finally {
       try {
-        if (out != null)         out.close();
+        if (out != null) {
+          out.close();
+        }
       }
  catch (      IOException e) {
       }

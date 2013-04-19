@@ -1,19 +1,19 @@
 {
-  ConstPool cp=classfile.getConstPool();
-  int this_class_index=cp.getThisClassInfo();
-  MethodInfo minfo=new MethodInfo(cp,GETFIELDHANDLER_METHOD_NAME,GETFIELDHANDLER_METHOD_DESCRIPTOR);
-  Bytecode code=new Bytecode(cp,2,1);
+  final ConstPool constPool=classfile.getConstPool();
+  final int thisClassInfo=constPool.getThisClassInfo();
+  final MethodInfo getterMethodInfo=new MethodInfo(constPool,GETFIELDHANDLER_METHOD_NAME,GETFIELDHANDLER_METHOD_DESCRIPTOR);
+  final Bytecode code=new Bytecode(constPool,2,1);
   code.addAload(0);
   code.addOpcode(Opcode.GETFIELD);
-  int field_index=cp.addFieldrefInfo(this_class_index,HANDLER_FIELD_NAME,HANDLER_FIELD_DESCRIPTOR);
-  code.addIndex(field_index);
+  final int fieldIndex=constPool.addFieldrefInfo(thisClassInfo,HANDLER_FIELD_NAME,HANDLER_FIELD_DESCRIPTOR);
+  code.addIndex(fieldIndex);
   code.addOpcode(Opcode.ARETURN);
-  minfo.setCodeAttribute(code.toCodeAttribute());
-  minfo.setAccessFlags(AccessFlag.PUBLIC);
-  CodeAttribute codeAttribute=minfo.getCodeAttribute();
+  getterMethodInfo.setCodeAttribute(code.toCodeAttribute());
+  getterMethodInfo.setAccessFlags(AccessFlag.PUBLIC);
+  final CodeAttribute codeAttribute=getterMethodInfo.getCodeAttribute();
   if (codeAttribute != null) {
-    StackMapTable smt=MapMaker.make(classPool,minfo);
+    final StackMapTable smt=MapMaker.make(classPool,getterMethodInfo);
     codeAttribute.setAttribute(smt);
   }
-  classfile.addMethod(minfo);
+  classfile.addMethod(getterMethodInfo);
 }

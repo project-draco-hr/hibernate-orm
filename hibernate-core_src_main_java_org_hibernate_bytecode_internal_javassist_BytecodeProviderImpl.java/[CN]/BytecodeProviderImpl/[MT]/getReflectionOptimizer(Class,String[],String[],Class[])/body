@@ -9,7 +9,7 @@
         bulkAccessor=null;
       }
  else {
-        Object instance=fastClass.newInstance();
+        final Object instance=fastClass.newInstance();
         bulkAccessor.setPropertyValues(instance,bulkAccessor.getPropertyValues(instance));
       }
     }
@@ -19,9 +19,15 @@
     bulkAccessor=null;
     if (LOG.isDebugEnabled()) {
       int index=0;
-      if (t instanceof BulkAccessorException)       index=((BulkAccessorException)t).getIndex();
-      if (index >= 0)       LOG.debugf("Reflection optimizer disabled for: %s [%s: %s (property %s)",clazz.getName(),StringHelper.unqualify(t.getClass().getName()),t.getMessage(),setterNames[index]);
- else       LOG.debugf("Reflection optimizer disabled for: %s [%s: %s",clazz.getName(),StringHelper.unqualify(t.getClass().getName()),t.getMessage());
+      if (t instanceof BulkAccessorException) {
+        index=((BulkAccessorException)t).getIndex();
+      }
+      if (index >= 0) {
+        LOG.debugf("Reflection optimizer disabled for %s [%s: %s (property %s)]",clazz.getName(),StringHelper.unqualify(t.getClass().getName()),t.getMessage(),setterNames[index]);
+      }
+ else {
+        LOG.debugf("Reflection optimizer disabled for %s [%s: %s]",clazz.getName(),StringHelper.unqualify(t.getClass().getName()),t.getMessage());
+      }
     }
   }
   if (fastClass != null && bulkAccessor != null) {

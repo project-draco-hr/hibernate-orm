@@ -8,24 +8,24 @@
     return originalBytes;
   }
   enhance(managedCtClass);
-  DataOutputStream out=null;
+  final ByteArrayOutputStream byteStream=new ByteArrayOutputStream();
+  final DataOutputStream out;
   try {
-    ByteArrayOutputStream byteStream=new ByteArrayOutputStream();
     out=new DataOutputStream(byteStream);
-    managedCtClass.toBytecode(out);
-    return byteStream.toByteArray();
+    try {
+      managedCtClass.toBytecode(out);
+      return byteStream.toByteArray();
+    }
+  finally {
+      try {
+        out.close();
+      }
+ catch (      IOException e) {
+      }
+    }
   }
  catch (  Exception e) {
     log.unableToTransformClass(e.getMessage());
     throw new HibernateException("Unable to transform class: " + e.getMessage());
-  }
- finally {
-    try {
-      if (out != null) {
-        out.close();
-      }
-    }
- catch (    IOException e) {
-    }
   }
 }

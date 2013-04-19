@@ -1,17 +1,17 @@
 {
-  File tempFile=File.createTempFile(file.getName(),null,new File(file.getAbsoluteFile().getParent()));
+  final File tempFile=File.createTempFile(file.getName(),null,new File(file.getAbsoluteFile().getParent()));
   try {
-    FileOutputStream fout=new FileOutputStream(tempFile,false);
+    final FileOutputStream fout=new FileOutputStream(tempFile,false);
     try {
       final ZipOutputStream out=new ZipOutputStream(fout);
-      ZipEntryHandler transformer=new ZipEntryHandler(){
+      final ZipEntryHandler transformer=new ZipEntryHandler(){
         public void handleEntry(        ZipEntry entry,        byte[] byteCode) throws Exception {
           logger.debug("starting zip entry : " + entry.toString());
           if (!entry.isDirectory()) {
-            DataInputStream din=new DataInputStream(new ByteArrayInputStream(byteCode));
+            final DataInputStream din=new DataInputStream(new ByteArrayInputStream(byteCode));
             if (din.readInt() == CLASS_MAGIC) {
-              ClassDescriptor descriptor=getClassDescriptor(byteCode);
-              ClassTransformer transformer=getClassTransformer(descriptor,classNames);
+              final ClassDescriptor descriptor=getClassDescriptor(byteCode);
+              final ClassTransformer transformer=getClassTransformer(descriptor,classNames);
               if (transformer == null) {
                 logger.debug("no transformer for zip entry :  " + entry.toString());
               }
@@ -24,12 +24,12 @@
               logger.debug("ignoring zip entry : " + entry.toString());
             }
           }
-          ZipEntry outEntry=new ZipEntry(entry.getName());
+          final ZipEntry outEntry=new ZipEntry(entry.getName());
           outEntry.setMethod(entry.getMethod());
           outEntry.setComment(entry.getComment());
           outEntry.setSize(byteCode.length);
           if (outEntry.getMethod() == ZipEntry.STORED) {
-            CRC32 crc=new CRC32();
+            final CRC32 crc=new CRC32();
             crc.update(byteCode);
             outEntry.setCrc(crc.getValue());
             outEntry.setCompressedSize(byteCode.length);
@@ -40,7 +40,7 @@
         }
       }
 ;
-      ZipFileProcessor processor=new ZipFileProcessor(transformer);
+      final ZipFileProcessor processor=new ZipFileProcessor(transformer);
       processor.process(file);
       out.close();
     }
@@ -48,7 +48,7 @@
       fout.close();
     }
     if (file.delete()) {
-      File newFile=new File(tempFile.getAbsolutePath());
+      final File newFile=new File(tempFile.getAbsolutePath());
       if (!newFile.renameTo(file)) {
         throw new IOException("can not rename " + tempFile + " to "+ file);
       }

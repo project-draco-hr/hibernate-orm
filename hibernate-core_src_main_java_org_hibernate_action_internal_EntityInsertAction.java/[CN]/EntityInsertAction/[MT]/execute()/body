@@ -1,13 +1,13 @@
 {
   nullifyTransientReferencesIfNotAlready();
-  EntityPersister persister=getPersister();
-  SessionImplementor session=getSession();
-  Object instance=getInstance();
-  Serializable id=getId();
-  boolean veto=preInsert();
+  final EntityPersister persister=getPersister();
+  final SessionImplementor session=getSession();
+  final Object instance=getInstance();
+  final Serializable id=getId();
+  final boolean veto=preInsert();
   if (!veto) {
     persister.insert(id,getState(),instance,session);
-    EntityEntry entry=session.getPersistenceContext().getEntry(instance);
+    final EntityEntry entry=session.getPersistenceContext().getEntry(instance);
     if (entry == null) {
       throw new AssertionFailure("possible non-threadsafe access to session");
     }
@@ -23,10 +23,10 @@
   }
   final SessionFactoryImplementor factory=getSession().getFactory();
   if (isCachePutEnabled(persister,session)) {
-    CacheEntry ce=persister.buildCacheEntry(instance,getState(),version,session);
+    final CacheEntry ce=persister.buildCacheEntry(instance,getState(),version,session);
     cacheEntry=persister.getCacheEntryStructure().structure(ce);
     final CacheKey ck=session.generateCacheKey(id,persister.getIdentifierType(),persister.getRootEntityName());
-    boolean put=persister.getCacheAccessStrategy().insert(ck,cacheEntry,version);
+    final boolean put=persister.getCacheAccessStrategy().insert(ck,cacheEntry,version);
     if (put && factory.getStatistics().isStatisticsEnabled()) {
       factory.getStatisticsImplementor().secondLevelCachePut(getPersister().getCacheAccessStrategy().getRegion().getName());
     }
