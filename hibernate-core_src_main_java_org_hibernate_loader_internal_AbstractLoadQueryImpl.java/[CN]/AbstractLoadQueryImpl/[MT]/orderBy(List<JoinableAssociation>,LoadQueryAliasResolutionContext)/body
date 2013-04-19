@@ -1,0 +1,32 @@
+{
+  StringBuilder buf=new StringBuilder();
+  JoinableAssociation previous=null;
+  for (  JoinableAssociation association : associations) {
+    final String rhsAlias=aliasResolutionContext.resolveAssociationRhsTableAlias(association);
+    if (association.getJoinType() == JoinType.LEFT_OUTER_JOIN) {
+      if (association.getJoinable().isCollection()) {
+        final QueryableCollection queryableCollection=(QueryableCollection)association.getJoinable();
+        if (queryableCollection.hasOrdering()) {
+          final String orderByString=queryableCollection.getSQLOrderByString(rhsAlias);
+          buf.append(orderByString).append(", ");
+        }
+      }
+ else {
+        if (previous != null && previous.getJoinable().isCollection()) {
+          final QueryableCollection queryableCollection=(QueryableCollection)previous.getJoinable();
+          if (queryableCollection.isManyToMany() && previous.isManyToManyWith(association)) {
+            if (queryableCollection.hasManyToManyOrdering()) {
+              final String orderByString=queryableCollection.getManyToManyOrderByString(rhsAlias);
+              buf.append(orderByString).append(", ");
+            }
+          }
+        }
+      }
+    }
+    previous=association;
+  }
+  if (buf.length() > 0) {
+    buf.setLength(buf.length() - 2);
+  }
+  return buf.toString();
+}

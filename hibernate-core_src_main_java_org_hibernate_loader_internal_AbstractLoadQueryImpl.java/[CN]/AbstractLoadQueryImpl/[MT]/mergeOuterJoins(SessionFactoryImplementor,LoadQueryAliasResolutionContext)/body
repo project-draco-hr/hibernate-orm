@@ -1,0 +1,18 @@
+{
+  JoinFragment joinFragment=factory.getDialect().createOuterJoinFragment();
+  JoinableAssociation previous=null;
+  for (  JoinableAssociation association : associations) {
+    final String rhsAlias=aliasResolutionContext.resolveAssociationRhsTableAlias(association);
+    final String[] aliasedLhsColumnNames=aliasResolutionContext.resolveAssociationAliasedLhsColumnNames(association);
+    final String[] rhsColumnNames=JoinHelper.getRHSColumnNames(association.getAssociationType(),factory);
+    final String on=resolveOnCondition(factory,association,aliasResolutionContext);
+    if (previous != null && previous.isManyToManyWith(association)) {
+      addManyToManyJoin(joinFragment,association,(QueryableCollection)previous.getJoinable(),rhsAlias,aliasedLhsColumnNames,rhsColumnNames,on);
+    }
+ else {
+      addJoins(joinFragment,association,rhsAlias,aliasedLhsColumnNames,rhsColumnNames,on);
+    }
+    previous=association;
+  }
+  return joinFragment;
+}

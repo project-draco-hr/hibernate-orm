@@ -8,9 +8,9 @@
       JoinableAssociation association=associations.get(i);
       JoinableAssociation next=(i == associations.size() - 1) ? null : associations.get(i + 1);
       final Joinable joinable=association.getJoinable();
-      final EntityAliases currentEntityAliases=aliasResolutionContext.resolveCurrentEntityAliases(association);
-      final CollectionAliases currentCollectionAliases=aliasResolutionContext.resolveCurrentCollectionAliases(association);
-      final String selectFragment=joinable.selectFragment(next == null ? null : next.getJoinable(),next == null ? null : aliasResolutionContext.resolveRhsAlias(next),aliasResolutionContext.resolveRhsAlias(association),currentEntityAliases == null ? null : currentEntityAliases.getSuffix(),currentCollectionAliases == null ? null : currentCollectionAliases.getSuffix(),association.getJoinType() == JoinType.LEFT_OUTER_JOIN);
+      final EntityAliases currentEntityAliases=association.getCurrentEntityReference() == null ? null : aliasResolutionContext.resolveEntityColumnAliases(association.getCurrentEntityReference());
+      final CollectionAliases currentCollectionAliases=association.getCurrentCollectionReference() == null ? null : aliasResolutionContext.resolveCollectionColumnAliases(association.getCurrentCollectionReference());
+      final String selectFragment=joinable.selectFragment(next == null ? null : next.getJoinable(),next == null ? null : aliasResolutionContext.resolveAssociationRhsTableAlias(next),aliasResolutionContext.resolveAssociationRhsTableAlias(association),currentEntityAliases == null ? null : currentEntityAliases.getSuffix(),currentCollectionAliases == null ? null : currentCollectionAliases.getSuffix(),association.getJoinType() == JoinType.LEFT_OUTER_JOIN);
       if (selectFragment.trim().length() > 0) {
         buf.append(", ").append(selectFragment);
       }

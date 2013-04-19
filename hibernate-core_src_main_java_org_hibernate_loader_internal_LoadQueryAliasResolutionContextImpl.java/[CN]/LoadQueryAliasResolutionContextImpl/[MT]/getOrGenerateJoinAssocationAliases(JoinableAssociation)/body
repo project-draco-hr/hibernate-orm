@@ -4,24 +4,24 @@
     final Fetch currentFetch=joinableAssociation.getCurrentFetch();
     final String lhsAlias;
     if (EntityReference.class.isInstance(currentFetch.getOwner())) {
-      lhsAlias=resolveEntitySqlTableAlias((EntityReference)currentFetch.getOwner());
+      lhsAlias=resolveEntityTableAlias((EntityReference)currentFetch.getOwner());
     }
  else {
       throw new NotYetImplementedException("Cannot determine LHS alias for a FetchOwner that is not an EntityReference yet.");
     }
     final String rhsAlias;
     if (EntityReference.class.isInstance(currentFetch)) {
-      rhsAlias=resolveEntitySqlTableAlias((EntityReference)currentFetch);
+      rhsAlias=resolveEntityTableAlias((EntityReference)currentFetch);
     }
  else     if (CollectionReference.class.isInstance(joinableAssociation.getCurrentFetch())) {
-      rhsAlias=resolveCollectionSqlTableAlias((CollectionReference)currentFetch);
+      rhsAlias=resolveCollectionTableAlias((CollectionReference)currentFetch);
     }
  else {
       throw new NotYetImplementedException("Cannot determine RHS alis for a fetch that is not an EntityReference or CollectionReference.");
     }
     final OuterJoinLoadable fetchSourcePersister=(OuterJoinLoadable)currentFetch.getOwner().retrieveFetchSourcePersister();
     final int propertyNumber=fetchSourcePersister.getEntityMetamodel().getPropertyIndex(currentFetch.getOwnerPropertyName());
-    final String[] aliasedLhsColumnNames=JoinHelper.getAliasedLHSColumnNames(joinableAssociation.getJoinableType(),lhsAlias,propertyNumber,fetchSourcePersister,sessionFactory);
+    final String[] aliasedLhsColumnNames=JoinHelper.getAliasedLHSColumnNames(joinableAssociation.getAssociationType(),lhsAlias,propertyNumber,fetchSourcePersister,sessionFactory);
     aliases=new JoinableAssociationAliasesImpl(lhsAlias,aliasedLhsColumnNames,rhsAlias);
     aliasesByJoinableAssociation.put(joinableAssociation,aliases);
   }
