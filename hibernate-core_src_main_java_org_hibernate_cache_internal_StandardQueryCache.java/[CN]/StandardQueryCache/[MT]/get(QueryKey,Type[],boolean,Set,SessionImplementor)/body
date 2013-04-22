@@ -1,17 +1,25 @@
 {
-  if (DEBUGGING)   LOG.debugf("Checking cached query results in region: %s",cacheRegion.getName());
-  List cacheable=(List)cacheRegion.get(key);
+  if (DEBUGGING) {
+    LOG.debugf("Checking cached query results in region: %s",cacheRegion.getName());
+  }
+  final List cacheable=(List)cacheRegion.get(key);
   logCachedResultDetails(key,spaces,returnTypes,cacheable);
   if (cacheable == null) {
-    if (DEBUGGING)     LOG.debug("Query results were not found in cache");
+    if (DEBUGGING) {
+      LOG.debug("Query results were not found in cache");
+    }
     return null;
   }
-  Long timestamp=(Long)cacheable.get(0);
+  final Long timestamp=(Long)cacheable.get(0);
   if (!isNaturalKeyLookup && !isUpToDate(spaces,timestamp)) {
-    if (DEBUGGING)     LOG.debug("Cached query results were not up-to-date");
+    if (DEBUGGING) {
+      LOG.debug("Cached query results were not up-to-date");
+    }
     return null;
   }
-  if (DEBUGGING)   LOG.debug("Returning cached query results");
+  if (DEBUGGING) {
+    LOG.debug("Returning cached query results");
+  }
   final boolean singleResult=returnTypes.length == 1;
   for (int i=1; i < cacheable.size(); i++) {
     if (singleResult) {
@@ -21,7 +29,7 @@
       TypeHelper.beforeAssemble((Serializable[])cacheable.get(i),returnTypes,session);
     }
   }
-  List result=new ArrayList(cacheable.size() - 1);
+  final List result=new ArrayList(cacheable.size() - 1);
   for (int i=1; i < cacheable.size(); i++) {
     try {
       if (singleResult) {
@@ -33,10 +41,14 @@
       logCachedResultRowDetails(returnTypes,result.get(i - 1));
     }
  catch (    RuntimeException ex) {
-      if (isNaturalKeyLookup && (UnresolvableObjectException.class.isInstance(ex) || EntityNotFoundException.class.isInstance(ex))) {
-        if (DEBUGGING)         LOG.debug("Unable to reassemble cached result set");
-        cacheRegion.evict(key);
-        return null;
+      if (isNaturalKeyLookup) {
+        if (UnresolvableObjectException.class.isInstance(ex) || EntityNotFoundException.class.isInstance(ex)) {
+          if (DEBUGGING) {
+            LOG.debug("Unable to reassemble cached natural-id query result");
+          }
+          cacheRegion.evict(key);
+          return null;
+        }
       }
       throw ex;
     }

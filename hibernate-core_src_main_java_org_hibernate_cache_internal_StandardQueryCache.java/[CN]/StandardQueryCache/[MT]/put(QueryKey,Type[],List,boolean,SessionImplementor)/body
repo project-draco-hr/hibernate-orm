@@ -2,14 +2,16 @@
   if (isNaturalKeyLookup && result.isEmpty()) {
     return false;
   }
-  long ts=cacheRegion.nextTimestamp();
-  if (DEBUGGING)   LOG.debugf("Caching query results in region: %s; timestamp=%s",cacheRegion.getName(),ts);
-  List cacheable=new ArrayList(result.size() + 1);
+  final long ts=cacheRegion.nextTimestamp();
+  if (DEBUGGING) {
+    LOG.debugf("Caching query results in region: %s; timestamp=%s",cacheRegion.getName(),ts);
+  }
+  final List cacheable=new ArrayList(result.size() + 1);
   logCachedResultDetails(key,null,returnTypes,cacheable);
   cacheable.add(ts);
-  final boolean singleResult=returnTypes.length == 1;
+  final boolean isSingleResult=returnTypes.length == 1;
   for (  Object aResult : result) {
-    Serializable cacheItem=singleResult ? returnTypes[0].disassemble(aResult,session,null) : TypeHelper.disassemble((Object[])aResult,returnTypes,null,session,null);
+    final Serializable cacheItem=isSingleResult ? returnTypes[0].disassemble(aResult,session,null) : TypeHelper.disassemble((Object[])aResult,returnTypes,null,session,null);
     cacheable.add(cacheItem);
     logCachedResultRowDetails(returnTypes,aResult);
   }
