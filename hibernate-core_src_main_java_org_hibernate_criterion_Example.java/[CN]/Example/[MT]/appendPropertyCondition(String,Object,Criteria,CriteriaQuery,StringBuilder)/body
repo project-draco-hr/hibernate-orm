@@ -1,18 +1,22 @@
 {
-  Criterion crit;
+  final Criterion condition;
   if (propertyValue != null) {
-    boolean isString=propertyValue instanceof String;
+    final boolean isString=propertyValue instanceof String;
     if (isLikeEnabled && isString) {
-      crit=new LikeExpression(propertyName,(String)propertyValue,matchMode,escapeCharacter,isIgnoreCaseEnabled);
+      condition=new LikeExpression(propertyName,(String)propertyValue,matchMode,escapeCharacter,isIgnoreCaseEnabled);
     }
  else {
-      crit=new SimpleExpression(propertyName,propertyValue,"=",isIgnoreCaseEnabled && isString);
+      condition=new SimpleExpression(propertyName,propertyValue,"=",isIgnoreCaseEnabled && isString);
     }
   }
  else {
-    crit=new NullExpression(propertyName);
+    condition=new NullExpression(propertyName);
   }
-  String critCondition=crit.toSqlString(criteria,cq);
-  if (buf.length() > 1 && critCondition.trim().length() > 0)   buf.append(" and ");
-  buf.append(critCondition);
+  final String conditionFragment=condition.toSqlString(criteria,cq);
+  if (conditionFragment.trim().length() > 0) {
+    if (buf.length() > 1) {
+      buf.append(" and ");
+    }
+    buf.append(conditionFragment);
+  }
 }

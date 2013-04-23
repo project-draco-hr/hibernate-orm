@@ -1,20 +1,20 @@
 {
-  ArrayList list=new ArrayList();
-  Type type=criteriaQuery.getTypeUsingProjection(criteria,propertyName);
+  final ArrayList<TypedValue> list=new ArrayList<TypedValue>();
+  final Type type=criteriaQuery.getTypeUsingProjection(criteria,propertyName);
   if (type.isComponentType()) {
-    CompositeType actype=(CompositeType)type;
-    Type[] types=actype.getSubtypes();
-    for (int j=0; j < values.length; j++) {
-      for (int i=0; i < types.length; i++) {
-        Object subval=values[j] == null ? null : actype.getPropertyValues(values[j],EntityMode.POJO)[i];
-        list.add(new TypedValue(types[i],subval,EntityMode.POJO));
+    final CompositeType compositeType=(CompositeType)type;
+    final Type[] subTypes=compositeType.getSubtypes();
+    for (    Object value : values) {
+      for (int i=0; i < subTypes.length; i++) {
+        final Object subValue=value == null ? null : compositeType.getPropertyValues(value,EntityMode.POJO)[i];
+        list.add(new TypedValue(subTypes[i],subValue));
       }
     }
   }
  else {
-    for (int j=0; j < values.length; j++) {
-      list.add(new TypedValue(type,values[j],EntityMode.POJO));
+    for (    Object value : values) {
+      list.add(new TypedValue(type,value));
     }
   }
-  return (TypedValue[])list.toArray(new TypedValue[list.size()]);
+  return list.toArray(new TypedValue[list.size()]);
 }
