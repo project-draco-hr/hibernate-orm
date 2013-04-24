@@ -2,8 +2,6 @@
   if (!lockable.isVersioned()) {
     throw new OptimisticLockException(object,"[" + lockMode + "] not supported for non-versioned entities ["+ lockable.getEntityName()+ "]");
   }
-  EntityEntry entry=session.getPersistenceContext().getEntry(object);
-  EventSource source=(EventSource)session;
-  EntityVerifyVersionProcess verifyVersion=new EntityVerifyVersionProcess(object,entry);
-  source.getActionQueue().registerProcess(verifyVersion);
+  final EntityEntry entry=session.getPersistenceContext().getEntry(object);
+  ((EventSource)session).getActionQueue().registerProcess(new EntityVerifyVersionProcess(object,entry));
 }

@@ -31,7 +31,7 @@
     if (col.isUnique()) {
       UniqueKey uk=getOrCreateUniqueKey(StringHelper.randomFixedLengthHex("UK_"));
       uk.addColumn(col);
-      buf.append(dialect.getUniqueDelegate().applyUniqueToColumn(col));
+      buf.append(dialect.getUniqueDelegate().getColumnDefinitionUniquenessFragment(col));
     }
     if (col.hasCheckConstraint() && dialect.supportsColumnCheck()) {
       buf.append(" check (").append(col.getCheckConstraint()).append(")");
@@ -47,7 +47,7 @@
   if (hasPrimaryKey()) {
     buf.append(", ").append(getPrimaryKey().sqlConstraintString(dialect));
   }
-  buf.append(dialect.getUniqueDelegate().applyUniquesToTable(this));
+  buf.append(dialect.getUniqueDelegate().getTableCreationUniqueConstraintsFragment(this));
   if (dialect.supportsTableCheck()) {
     Iterator chiter=checkConstraints.iterator();
     while (chiter.hasNext()) {

@@ -1,20 +1,14 @@
 {
-  boolean areAllArgsParams=true;
-  Iterator itr=args.iterator();
-  while (itr.hasNext()) {
-    final String arg=(String)itr.next();
+  boolean areAllArgumentsDynamic=true;
+  for (  Object arg1 : args) {
+    final String arg=(String)arg1;
     if (!"?".equals(arg)) {
-      areAllArgsParams=false;
+      areAllArgumentsDynamic=false;
       break;
     }
   }
-  if (areAllArgsParams) {
-    return join(args.iterator(),new StringTransformer(){
-      public String transform(      String string){
-        return "cast( ? as varchar(32672) )";
-      }
-    }
-,new StringJoinTemplate(){
+  if (areAllArgumentsDynamic) {
+    return join(args.iterator(),CAST_STRING_TRANSFORMER,new StringJoinTemplate(){
       public String getBeginning(){
         return "varchar( ";
       }
@@ -28,12 +22,7 @@
 );
   }
  else {
-    return join(args.iterator(),new StringTransformer(){
-      public String transform(      String string){
-        return string;
-      }
-    }
-,new StringJoinTemplate(){
+    return join(args.iterator(),NO_TRANSFORM_STRING_TRANSFORMER,new StringJoinTemplate(){
       public String getBeginning(){
         return "(";
       }

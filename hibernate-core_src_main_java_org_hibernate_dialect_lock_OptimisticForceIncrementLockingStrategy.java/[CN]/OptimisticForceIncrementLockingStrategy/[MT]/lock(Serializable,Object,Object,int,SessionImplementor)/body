@@ -2,8 +2,6 @@
   if (!lockable.isVersioned()) {
     throw new HibernateException("[" + lockMode + "] not supported for non-versioned entities ["+ lockable.getEntityName()+ "]");
   }
-  EntityEntry entry=session.getPersistenceContext().getEntry(object);
-  EntityIncrementVersionProcess incrementVersion=new EntityIncrementVersionProcess(object,entry);
-  EventSource source=(EventSource)session;
-  source.getActionQueue().registerProcess(incrementVersion);
+  final EntityEntry entry=session.getPersistenceContext().getEntry(object);
+  ((EventSource)session).getActionQueue().registerProcess(new EntityIncrementVersionProcess(object,entry));
 }

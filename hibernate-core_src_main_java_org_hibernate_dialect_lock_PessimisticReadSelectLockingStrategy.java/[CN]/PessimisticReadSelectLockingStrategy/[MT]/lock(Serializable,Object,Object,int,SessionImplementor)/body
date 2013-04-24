@@ -1,15 +1,15 @@
 {
   final String sql=determineSql(timeout);
-  SessionFactoryImplementor factory=session.getFactory();
+  final SessionFactoryImplementor factory=session.getFactory();
   try {
     try {
-      PreparedStatement st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql);
+      final PreparedStatement st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql);
       try {
         getLockable().getIdentifierType().nullSafeSet(st,id,1,session);
         if (getLockable().isVersioned()) {
           getLockable().getVersionType().nullSafeSet(st,version,getLockable().getIdentifierType().getColumnSpan(factory) + 1,session);
         }
-        ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(st);
+        final ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(st);
         try {
           if (!rs.next()) {
             if (factory.getStatistics().isStatisticsEnabled()) {

@@ -43,7 +43,7 @@
     if (col.isUnique()) {
       UniqueKey uk=getOrCreateUniqueKey(col.getColumnName().encloseInQuotesIfQuoted(dialect) + '_');
       uk.addColumn(col);
-      buf.append(dialect.getUniqueDelegate().applyUniqueToColumn(col));
+      buf.append(dialect.getUniqueDelegate().getColumnDefinitionUniquenessFragment(col));
     }
     if (col.getCheckCondition() != null && dialect.supportsColumnCheck()) {
       buf.append(" check (").append(col.getCheckCondition()).append(")");
@@ -56,7 +56,7 @@
   if (hasPrimaryKey) {
     buf.append(", ").append(getPrimaryKey().sqlConstraintStringInCreateTable(dialect));
   }
-  buf.append(dialect.getUniqueDelegate().applyUniquesToTable(this));
+  buf.append(dialect.getUniqueDelegate().getTableCreationUniqueConstraintsFragment(this));
   if (dialect.supportsTableCheck()) {
     for (    CheckConstraint checkConstraint : checkConstraints) {
       buf.append(", check (").append(checkConstraint).append(')');
