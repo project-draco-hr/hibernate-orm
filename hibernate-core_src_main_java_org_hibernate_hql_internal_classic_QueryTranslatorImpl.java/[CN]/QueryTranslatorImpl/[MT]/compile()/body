@@ -6,7 +6,7 @@
   }
  catch (  QueryException qe) {
     if (qe.getQueryString() == null) {
-      throw generateQueryException(qe.getMessage(),qe);
+      throw qe.wrapWithQueryString(queryString);
     }
  else {
       throw qe;
@@ -18,7 +18,7 @@ catch (  MappingException me) {
 catch (  Exception e) {
     LOG.debug("Unexpected query compilation problem",e);
     e.printStackTrace();
-    throw generateQueryException("Incorrect query syntax",e);
+    throw new QueryException("Incorrect query syntax",queryString,e);
   }
   postInstantiate();
   compiled=true;
