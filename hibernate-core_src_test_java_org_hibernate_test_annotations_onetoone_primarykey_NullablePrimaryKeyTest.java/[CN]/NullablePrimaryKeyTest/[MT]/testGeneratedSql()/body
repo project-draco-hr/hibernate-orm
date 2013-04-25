@@ -1,11 +1,12 @@
 {
   ServiceRegistry serviceRegistry=null;
+  SessionFactory sf=null;
   try {
     AnnotationConfiguration config=new AnnotationConfiguration();
     config.addAnnotatedClass(Address.class);
     config.addAnnotatedClass(Person.class);
     serviceRegistry=ServiceRegistryBuilder.buildServiceRegistry(Environment.getProperties());
-    config.buildSessionFactory(serviceRegistry);
+    sf=config.buildSessionFactory(serviceRegistry);
     String[] schema=config.generateSchemaCreationScript(new SQLServerDialect());
     for (    String s : schema) {
       log.debug(s);
@@ -17,6 +18,9 @@
     Assert.fail(e.getMessage());
   }
  finally {
+    if (sf != null) {
+      sf.close();
+    }
     if (serviceRegistry != null) {
       ServiceRegistryBuilder.destroy(serviceRegistry);
     }
