@@ -1,11 +1,10 @@
 {
-  HqlParser parser=HqlParser.getInstance(hql);
+  final HqlParser parser=HqlParser.getInstance(hql);
   parser.setFilter(filter);
   LOG.debugf("parse() - HQL: %s",hql);
   parser.statement();
-  AST hqlAst=parser.getAST();
-  JavaConstantConverter converter=new JavaConstantConverter();
-  NodeTraverser walker=new NodeTraverser(converter);
+  final AST hqlAst=parser.getAST();
+  final NodeTraverser walker=new NodeTraverser(new JavaConstantConverter());
   walker.traverseDepthFirst(hqlAst);
   showHqlAst(hqlAst);
   parser.getParseErrorHandler().throwQueryException();

@@ -9,8 +9,8 @@
   }
   this.shallowQuery=shallow;
   try {
-    HqlParser parser=parse(true);
-    HqlSqlWalker w=analyze(parser,collectionRole);
+    final HqlParser parser=parse(true);
+    final HqlSqlWalker w=analyze(parser,collectionRole);
     sqlAst=(Statement)w.getAST();
     if (sqlAst.needsExecutor()) {
       statementExecutor=buildAppropriateStatementExecutor(w);
@@ -22,8 +22,12 @@
     compiled=true;
   }
  catch (  QueryException qe) {
-    qe.setQueryString(hql);
-    throw qe;
+    if (qe.getQueryString() == null) {
+      throw new QueryException(qe.getMessage(),hql,qe);
+    }
+ else {
+      throw qe;
+    }
   }
 catch (  RecognitionException e) {
     LOG.trace("Converted antlr.RecognitionException",e);

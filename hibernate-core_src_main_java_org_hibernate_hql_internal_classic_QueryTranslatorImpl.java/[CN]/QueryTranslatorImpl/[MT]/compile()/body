@@ -5,8 +5,12 @@
     renderSQL();
   }
  catch (  QueryException qe) {
-    qe.setQueryString(queryString);
-    throw qe;
+    if (qe.getQueryString() == null) {
+      throw generateQueryException(qe.getMessage(),qe);
+    }
+ else {
+      throw qe;
+    }
   }
 catch (  MappingException me) {
     throw me;
@@ -14,9 +18,7 @@ catch (  MappingException me) {
 catch (  Exception e) {
     LOG.debug("Unexpected query compilation problem",e);
     e.printStackTrace();
-    QueryException qe=new QueryException("Incorrect query syntax",e);
-    qe.setQueryString(queryString);
-    throw qe;
+    throw generateQueryException("Incorrect query syntax",e);
   }
   postInstantiate();
   compiled=true;
