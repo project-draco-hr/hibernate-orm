@@ -1,6 +1,6 @@
 {
   collection.setOwner(entity);
-  CollectionEntry ce=session.getPersistenceContext().getCollectionEntry(collection);
+  final CollectionEntry ce=session.getPersistenceContext().getCollectionEntry(collection);
   if (ce == null) {
     throw new HibernateException("Found two representations of same collection: " + type.getRole());
   }
@@ -8,13 +8,17 @@
     throw new HibernateException("Found shared references to a collection: " + type.getRole());
   }
   ce.setReached(true);
-  SessionFactoryImplementor factory=session.getFactory();
-  CollectionPersister persister=factory.getCollectionPersister(type.getRole());
+  final SessionFactoryImplementor factory=session.getFactory();
+  final CollectionPersister persister=factory.getCollectionPersister(type.getRole());
   ce.setCurrentPersister(persister);
   ce.setCurrentKey(type.getKeyOfOwner(entity,session));
   if (LOG.isDebugEnabled()) {
-    if (collection.wasInitialized())     LOG.debugf("Collection found: %s, was: %s (initialized)",MessageHelper.collectionInfoString(persister,collection,ce.getCurrentKey(),session),MessageHelper.collectionInfoString(ce.getLoadedPersister(),collection,ce.getLoadedKey(),session));
- else     LOG.debugf("Collection found: %s, was: %s (uninitialized)",MessageHelper.collectionInfoString(persister,collection,ce.getCurrentKey(),session),MessageHelper.collectionInfoString(ce.getLoadedPersister(),collection,ce.getLoadedKey(),session));
+    if (collection.wasInitialized()) {
+      LOG.debugf("Collection found: %s, was: %s (initialized)",MessageHelper.collectionInfoString(persister,collection,ce.getCurrentKey(),session),MessageHelper.collectionInfoString(ce.getLoadedPersister(),collection,ce.getLoadedKey(),session));
+    }
+ else {
+      LOG.debugf("Collection found: %s, was: %s (uninitialized)",MessageHelper.collectionInfoString(persister,collection,ce.getCurrentKey(),session),MessageHelper.collectionInfoString(ce.getLoadedPersister(),collection,ce.getLoadedKey(),session));
+    }
   }
   prepareCollectionForUpdate(collection,ce,factory);
 }

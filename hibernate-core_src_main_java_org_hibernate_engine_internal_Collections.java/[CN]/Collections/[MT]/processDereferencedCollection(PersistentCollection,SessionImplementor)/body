@@ -1,16 +1,16 @@
 {
   final PersistenceContext persistenceContext=session.getPersistenceContext();
-  CollectionEntry entry=persistenceContext.getCollectionEntry(coll);
+  final CollectionEntry entry=persistenceContext.getCollectionEntry(coll);
   final CollectionPersister loadedPersister=entry.getLoadedPersister();
   if (loadedPersister != null && LOG.isDebugEnabled()) {
     LOG.debugf("Collection dereferenced: %s",MessageHelper.collectionInfoString(loadedPersister,coll,entry.getLoadedKey(),session));
   }
-  boolean hasOrphanDelete=loadedPersister != null && loadedPersister.hasOrphanDelete();
+  final boolean hasOrphanDelete=loadedPersister != null && loadedPersister.hasOrphanDelete();
   if (hasOrphanDelete) {
     Serializable ownerId=loadedPersister.getOwnerEntityPersister().getIdentifier(coll.getOwner(),session);
     if (ownerId == null) {
       if (session.getFactory().getSettings().isIdentifierRollbackEnabled()) {
-        EntityEntry ownerEntry=persistenceContext.getEntry(coll.getOwner());
+        final EntityEntry ownerEntry=persistenceContext.getEntry(coll.getOwner());
         if (ownerEntry != null) {
           ownerId=ownerEntry.getId();
         }
@@ -19,12 +19,12 @@
         throw new AssertionFailure("Unable to determine collection owner identifier for orphan-delete processing");
       }
     }
-    EntityKey key=session.generateEntityKey(ownerId,loadedPersister.getOwnerEntityPersister());
-    Object owner=persistenceContext.getEntity(key);
+    final EntityKey key=session.generateEntityKey(ownerId,loadedPersister.getOwnerEntityPersister());
+    final Object owner=persistenceContext.getEntity(key);
     if (owner == null) {
       throw new AssertionFailure("collection owner not associated with session: " + loadedPersister.getRole());
     }
-    EntityEntry e=persistenceContext.getEntry(owner);
+    final EntityEntry e=persistenceContext.getEntry(owner);
     if (e != null && e.getStatus() != Status.DELETED && e.getStatus() != Status.GONE) {
       throw new HibernateException("A collection with cascade=\"all-delete-orphan\" was no longer referenced by the owning entity instance: " + loadedPersister.getRole());
     }

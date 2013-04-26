@@ -3,11 +3,17 @@
     return false;
   }
   Boolean isUnsaved=session.getInterceptor().isTransient(entity);
-  if (isUnsaved != null)   return isUnsaved.booleanValue();
-  EntityPersister persister=session.getEntityPersister(entityName,entity);
+  if (isUnsaved != null) {
+    return isUnsaved.booleanValue();
+  }
+  final EntityPersister persister=session.getEntityPersister(entityName,entity);
   isUnsaved=persister.isTransient(entity,session);
-  if (isUnsaved != null)   return isUnsaved.booleanValue();
-  if (assumed != null)   return assumed.booleanValue();
-  Object[] snapshot=session.getPersistenceContext().getDatabaseSnapshot(persister.getIdentifier(entity,session),persister);
+  if (isUnsaved != null) {
+    return isUnsaved.booleanValue();
+  }
+  if (assumed != null) {
+    return assumed.booleanValue();
+  }
+  final Object[] snapshot=session.getPersistenceContext().getDatabaseSnapshot(persister.getIdentifier(entity,session),persister);
   return snapshot == null;
 }

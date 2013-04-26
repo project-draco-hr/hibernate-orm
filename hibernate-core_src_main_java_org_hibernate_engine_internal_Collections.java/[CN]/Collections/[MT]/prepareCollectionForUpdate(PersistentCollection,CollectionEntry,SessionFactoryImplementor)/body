@@ -6,11 +6,11 @@
   final CollectionPersister loadedPersister=entry.getLoadedPersister();
   final CollectionPersister currentPersister=entry.getCurrentPersister();
   if (loadedPersister != null || currentPersister != null) {
-    boolean ownerChanged=loadedPersister != currentPersister || !currentPersister.getKeyType().isEqual(entry.getLoadedKey(),entry.getCurrentKey(),factory);
+    final boolean ownerChanged=loadedPersister != currentPersister || !currentPersister.getKeyType().isEqual(entry.getLoadedKey(),entry.getCurrentKey(),factory);
     if (ownerChanged) {
       final boolean orphanDeleteAndRoleChanged=loadedPersister != null && currentPersister != null && loadedPersister.hasOrphanDelete();
       if (orphanDeleteAndRoleChanged) {
-        throw new HibernateException("Don't change the reference to a collection with cascade=\"all-delete-orphan\": " + loadedPersister.getRole());
+        throw new HibernateException("Don't change the reference to a collection with delete-orphan enabled : " + loadedPersister.getRole());
       }
       if (currentPersister != null) {
         entry.setDorecreate(true);

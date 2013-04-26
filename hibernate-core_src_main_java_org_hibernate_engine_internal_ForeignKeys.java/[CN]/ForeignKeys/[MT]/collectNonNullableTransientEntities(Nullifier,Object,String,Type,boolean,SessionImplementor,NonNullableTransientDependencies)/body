@@ -3,7 +3,7 @@
     return;
   }
   if (type.isEntityType()) {
-    EntityType entityType=(EntityType)type;
+    final EntityType entityType=(EntityType)type;
     if (!isNullable && !entityType.isOneToOne() && nullifier.isNullifiable(entityType.getAssociatedEntityName(),value)) {
       nonNullableTransientEntities.add(propertyName,value);
     }
@@ -14,14 +14,14 @@
     }
   }
  else   if (type.isComponentType()) {
-    CompositeType actype=(CompositeType)type;
-    boolean[] subValueNullability=actype.getPropertyNullability();
+    final CompositeType actype=(CompositeType)type;
+    final boolean[] subValueNullability=actype.getPropertyNullability();
     if (subValueNullability != null) {
-      String[] subPropertyNames=actype.getPropertyNames();
-      Object[] subvalues=actype.getPropertyValues(value,session);
-      Type[] subtypes=actype.getSubtypes();
+      final String[] subPropertyNames=actype.getPropertyNames();
+      final Object[] subvalues=actype.getPropertyValues(value,session);
+      final Type[] subtypes=actype.getSubtypes();
       for (int j=0; j < subvalues.length; j++) {
-        collectNonNullableTransientEntities(nullifier,j,subvalues[j],subPropertyNames[j],subtypes[j],subValueNullability[j],session,nonNullableTransientEntities);
+        collectNonNullableTransientEntities(nullifier,subvalues[j],subPropertyNames[j],subtypes[j],subValueNullability[j],session,nonNullableTransientEntities);
       }
     }
   }
