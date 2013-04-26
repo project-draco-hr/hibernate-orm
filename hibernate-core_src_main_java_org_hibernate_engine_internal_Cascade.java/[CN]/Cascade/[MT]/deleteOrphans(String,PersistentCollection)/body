@@ -1,15 +1,13 @@
 {
   final Collection orphans;
   if (pc.wasInitialized()) {
-    CollectionEntry ce=eventSource.getPersistenceContext().getCollectionEntry(pc);
+    final CollectionEntry ce=eventSource.getPersistenceContext().getCollectionEntry(pc);
     orphans=ce == null ? java.util.Collections.EMPTY_LIST : ce.getOrphans(entityName,pc);
   }
  else {
     orphans=pc.getQueuedOrphans(entityName);
   }
-  final Iterator orphanIter=orphans.iterator();
-  while (orphanIter.hasNext()) {
-    Object orphan=orphanIter.next();
+  for (  Object orphan : orphans) {
     if (orphan != null) {
       LOG.tracev("Deleting orphaned entity instance: {0}",entityName);
       eventSource.delete(entityName,orphan,false,new HashSet());
