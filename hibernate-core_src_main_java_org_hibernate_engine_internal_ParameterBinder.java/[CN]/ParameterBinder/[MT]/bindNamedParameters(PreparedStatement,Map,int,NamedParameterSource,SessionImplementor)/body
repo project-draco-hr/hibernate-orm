@@ -1,18 +1,18 @@
 {
   if (namedParams != null) {
     final boolean debugEnabled=LOG.isDebugEnabled();
-    Iterator iter=namedParams.entrySet().iterator();
+    final Iterator iter=namedParams.entrySet().iterator();
     int result=0;
     while (iter.hasNext()) {
-      Map.Entry e=(Map.Entry)iter.next();
-      String name=(String)e.getKey();
-      TypedValue typedval=(TypedValue)e.getValue();
+      final Map.Entry e=(Map.Entry)iter.next();
+      final String name=(String)e.getKey();
+      final TypedValue typedVal=(TypedValue)e.getValue();
       int[] locations=source.getNamedParameterLocations(name);
-      for (int i=0; i < locations.length; i++) {
+      for (      int location : locations) {
         if (debugEnabled) {
-          LOG.debugf("bindNamedParameters() %s -> %s [%s]",typedval.getValue(),name,locations[i] + start);
+          LOG.debugf("bindNamedParameters() %s -> %s [%s]",typedVal.getValue(),name,location + start);
         }
-        typedval.getType().nullSafeSet(ps,typedval.getValue(),locations[i] + start,session);
+        typedVal.getType().nullSafeSet(ps,typedVal.getValue(),location + start,session);
       }
       result+=locations.length;
     }

@@ -1,67 +1,71 @@
 {
   final boolean tracing=LOG.isTraceEnabled();
-  if (tracing)   LOG.trace("Serializing persistent-context");
+  if (tracing) {
+    LOG.trace("Serializing persistence-context");
+  }
   oos.writeBoolean(defaultReadOnly);
   oos.writeBoolean(hasNonReadOnlyEntities);
   oos.writeInt(entitiesByKey.size());
-  if (tracing)   LOG.trace("Starting serialization of [" + entitiesByKey.size() + "] entitiesByKey entries");
-  Iterator itr=entitiesByKey.entrySet().iterator();
-  while (itr.hasNext()) {
-    Map.Entry entry=(Map.Entry)itr.next();
-    ((EntityKey)entry.getKey()).serialize(oos);
+  if (tracing) {
+    LOG.trace("Starting serialization of [" + entitiesByKey.size() + "] entitiesByKey entries");
+  }
+  for (  Map.Entry<EntityKey,Object> entry : entitiesByKey.entrySet()) {
+    entry.getKey().serialize(oos);
     oos.writeObject(entry.getValue());
   }
   oos.writeInt(entitiesByUniqueKey.size());
-  if (tracing)   LOG.trace("Starting serialization of [" + entitiesByUniqueKey.size() + "] entitiesByUniqueKey entries");
-  itr=entitiesByUniqueKey.entrySet().iterator();
-  while (itr.hasNext()) {
-    Map.Entry entry=(Map.Entry)itr.next();
-    ((EntityUniqueKey)entry.getKey()).serialize(oos);
+  if (tracing) {
+    LOG.trace("Starting serialization of [" + entitiesByUniqueKey.size() + "] entitiesByUniqueKey entries");
+  }
+  for (  Map.Entry<EntityUniqueKey,Object> entry : entitiesByUniqueKey.entrySet()) {
+    entry.getKey().serialize(oos);
     oos.writeObject(entry.getValue());
   }
   oos.writeInt(proxiesByKey.size());
-  if (tracing)   LOG.trace("Starting serialization of [" + proxiesByKey.size() + "] proxiesByKey entries");
-  itr=proxiesByKey.entrySet().iterator();
-  while (itr.hasNext()) {
-    Map.Entry entry=(Map.Entry)itr.next();
-    ((EntityKey)entry.getKey()).serialize(oos);
+  if (tracing) {
+    LOG.trace("Starting serialization of [" + proxiesByKey.size() + "] proxiesByKey entries");
+  }
+  for (  Map.Entry<EntityKey,Object> entry : proxiesByKey.entrySet()) {
+    entry.getKey().serialize(oos);
     oos.writeObject(entry.getValue());
   }
   oos.writeInt(entitySnapshotsByKey.size());
-  if (tracing)   LOG.trace("Starting serialization of [" + entitySnapshotsByKey.size() + "] entitySnapshotsByKey entries");
-  itr=entitySnapshotsByKey.entrySet().iterator();
-  while (itr.hasNext()) {
-    Map.Entry entry=(Map.Entry)itr.next();
-    ((EntityKey)entry.getKey()).serialize(oos);
+  if (tracing) {
+    LOG.trace("Starting serialization of [" + entitySnapshotsByKey.size() + "] entitySnapshotsByKey entries");
+  }
+  for (  Map.Entry<EntityKey,Object> entry : entitySnapshotsByKey.entrySet()) {
+    entry.getKey().serialize(oos);
     oos.writeObject(entry.getValue());
   }
   entityEntryContext.serialize(oos);
   oos.writeInt(collectionsByKey.size());
-  if (tracing)   LOG.trace("Starting serialization of [" + collectionsByKey.size() + "] collectionsByKey entries");
-  itr=collectionsByKey.entrySet().iterator();
-  while (itr.hasNext()) {
-    Map.Entry entry=(Map.Entry)itr.next();
-    ((CollectionKey)entry.getKey()).serialize(oos);
+  if (tracing) {
+    LOG.trace("Starting serialization of [" + collectionsByKey.size() + "] collectionsByKey entries");
+  }
+  for (  Map.Entry<CollectionKey,PersistentCollection> entry : collectionsByKey.entrySet()) {
+    entry.getKey().serialize(oos);
     oos.writeObject(entry.getValue());
   }
   oos.writeInt(collectionEntries.size());
-  if (tracing)   LOG.trace("Starting serialization of [" + collectionEntries.size() + "] collectionEntries entries");
-  itr=collectionEntries.entrySet().iterator();
-  while (itr.hasNext()) {
-    Map.Entry entry=(Map.Entry)itr.next();
+  if (tracing) {
+    LOG.trace("Starting serialization of [" + collectionEntries.size() + "] collectionEntries entries");
+  }
+  for (  Map.Entry<PersistentCollection,CollectionEntry> entry : collectionEntries.entrySet()) {
     oos.writeObject(entry.getKey());
-    ((CollectionEntry)entry.getValue()).serialize(oos);
+    entry.getValue().serialize(oos);
   }
   oos.writeInt(arrayHolders.size());
-  if (tracing)   LOG.trace("Starting serialization of [" + arrayHolders.size() + "] arrayHolders entries");
-  itr=arrayHolders.entrySet().iterator();
-  while (itr.hasNext()) {
-    Map.Entry entry=(Map.Entry)itr.next();
+  if (tracing) {
+    LOG.trace("Starting serialization of [" + arrayHolders.size() + "] arrayHolders entries");
+  }
+  for (  Map.Entry<Object,PersistentCollection> entry : arrayHolders.entrySet()) {
     oos.writeObject(entry.getKey());
     oos.writeObject(entry.getValue());
   }
   oos.writeInt(nullifiableEntityKeys.size());
-  if (tracing)   LOG.trace("Starting serialization of [" + nullifiableEntityKeys.size() + "] nullifiableEntityKey entries");
+  if (tracing) {
+    LOG.trace("Starting serialization of [" + nullifiableEntityKeys.size() + "] nullifiableEntityKey entries");
+  }
   for (  EntityKey entry : nullifiableEntityKeys) {
     entry.serialize(oos);
   }

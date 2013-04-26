@@ -1,16 +1,16 @@
 {
-  EntityPersister persister=session.getFactory().getEntityPersister(entity);
-  CollectionPersister cp=session.getFactory().getCollectionPersister(entity + '.' + property);
-  Object parent=parentsByChild.get(childEntity);
+  final EntityPersister persister=session.getFactory().getEntityPersister(entity);
+  final CollectionPersister cp=session.getFactory().getCollectionPersister(entity + '.' + property);
+  final Object parent=parentsByChild.get(childEntity);
   if (parent != null) {
     final EntityEntry entityEntry=entityEntryContext.getEntityEntry(parent);
     if (persister.isSubclassEntityName(entityEntry.getEntityName())) {
       Object index=getIndexInParent(property,childEntity,persister,cp,parent);
       if (index == null && mergeMap != null) {
-        Object unmergedInstance=mergeMap.get(parent);
-        Object unmergedChild=mergeMap.get(childEntity);
-        if (unmergedInstance != null && unmergedChild != null) {
-          index=getIndexInParent(property,unmergedChild,persister,cp,unmergedInstance);
+        final Object unMergedInstance=mergeMap.get(parent);
+        final Object unMergedChild=mergeMap.get(childEntity);
+        if (unMergedInstance != null && unMergedChild != null) {
+          index=getIndexInParent(property,unMergedChild,persister,cp,unMergedInstance);
         }
       }
       if (index != null) {
@@ -22,18 +22,20 @@
     }
   }
   for (  Entry<Object,EntityEntry> me : reentrantSafeEntityEntries()) {
-    EntityEntry ee=me.getValue();
+    final EntityEntry ee=me.getValue();
     if (persister.isSubclassEntityName(ee.getEntityName())) {
-      Object instance=me.getKey();
+      final Object instance=me.getKey();
       Object index=getIndexInParent(property,childEntity,persister,cp,instance);
       if (index == null && mergeMap != null) {
-        Object unmergedInstance=mergeMap.get(instance);
-        Object unmergedChild=mergeMap.get(childEntity);
-        if (unmergedInstance != null && unmergedChild != null) {
-          index=getIndexInParent(property,unmergedChild,persister,cp,unmergedInstance);
+        final Object unMergedInstance=mergeMap.get(instance);
+        final Object unMergedChild=mergeMap.get(childEntity);
+        if (unMergedInstance != null && unMergedChild != null) {
+          index=getIndexInParent(property,unMergedChild,persister,cp,unMergedInstance);
         }
       }
-      if (index != null)       return index;
+      if (index != null) {
+        return index;
+      }
     }
   }
   return null;
