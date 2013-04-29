@@ -5,7 +5,7 @@
   }
   final StrategySelector strategySelector=registry.getService(StrategySelector.class);
   ConnectionProvider connectionProvider=null;
-  String providerName=getConfiguredConnectionProviderName(configurationValues);
+  final String providerName=getConfiguredConnectionProviderName(configurationValues);
   if (providerName != null) {
     connectionProvider=instantiateExplicitConnectionProvider(providerName,strategySelector);
   }
@@ -36,11 +36,11 @@
     final ConnectionProvider theConnectionProvider=connectionProvider;
     new BeanInfoHelper(connectionProvider.getClass()).applyToBeanInfo(connectionProvider,new BeanInfoHelper.BeanInfoDelegate(){
       public void processBeanInfo(      BeanInfo beanInfo) throws Exception {
-        PropertyDescriptor[] descritors=beanInfo.getPropertyDescriptors();
-        for (int i=0, size=descritors.length; i < size; i++) {
-          String propertyName=descritors[i].getName();
+        final PropertyDescriptor[] descriptors=beanInfo.getPropertyDescriptors();
+        for (        PropertyDescriptor descriptor : descriptors) {
+          final String propertyName=descriptor.getName();
           if (injectionData.containsKey(propertyName)) {
-            Method method=descritors[i].getWriteMethod();
+            final Method method=descriptor.getWriteMethod();
             method.invoke(theConnectionProvider,injectionData.get(propertyName));
           }
         }
