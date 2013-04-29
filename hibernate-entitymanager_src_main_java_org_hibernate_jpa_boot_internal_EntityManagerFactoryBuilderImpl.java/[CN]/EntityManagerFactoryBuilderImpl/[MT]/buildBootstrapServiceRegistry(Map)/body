@@ -3,9 +3,14 @@
   bootstrapServiceRegistryBuilder.with(new JpaIntegrator());
   final IntegratorProvider integratorProvider=(IntegratorProvider)integrationSettings.get(INTEGRATOR_PROVIDER);
   if (integratorProvider != null) {
-    integrationSettings.remove(INTEGRATOR_PROVIDER);
     for (    Integrator integrator : integratorProvider.getIntegrators()) {
       bootstrapServiceRegistryBuilder.with(integrator);
+    }
+  }
+  final StrategyRegistrationProviderList strategyRegistrationProviderList=(StrategyRegistrationProviderList)integrationSettings.get(STRATEGY_REGISTRATION_PROVIDERS);
+  if (strategyRegistrationProviderList != null) {
+    for (    StrategyRegistrationProvider strategyRegistrationProvider : strategyRegistrationProviderList.getStrategyRegistrationProviders()) {
+      bootstrapServiceRegistryBuilder.withStrategySelectors(strategyRegistrationProvider);
     }
   }
   ClassLoader classLoader;

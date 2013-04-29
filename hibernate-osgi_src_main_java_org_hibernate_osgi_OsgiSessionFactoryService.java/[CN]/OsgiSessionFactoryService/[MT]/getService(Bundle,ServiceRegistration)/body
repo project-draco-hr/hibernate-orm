@@ -9,6 +9,10 @@
   for (  Integrator integrator : integrators) {
     builder.with(integrator);
   }
+  List<StrategyRegistrationProvider> strategyRegistrationProviders=OsgiServiceUtil.getServiceImpls(StrategyRegistrationProvider.class,context);
+  for (  StrategyRegistrationProvider strategyRegistrationProvider : strategyRegistrationProviders) {
+    builder.withStrategySelectors(strategyRegistrationProvider);
+  }
   ServiceRegistry serviceRegistry=new StandardServiceRegistryBuilder(builder.build()).applySettings(configuration.getProperties()).build();
   return configuration.buildSessionFactory(serviceRegistry);
 }
