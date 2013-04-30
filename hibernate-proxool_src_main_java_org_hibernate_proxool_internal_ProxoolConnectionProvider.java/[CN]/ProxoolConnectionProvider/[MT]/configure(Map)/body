@@ -1,11 +1,11 @@
 {
-  String jaxpFile=(String)props.get(Environment.PROXOOL_XML);
-  String propFile=(String)props.get(Environment.PROXOOL_PROPERTIES);
-  String externalConfig=(String)props.get(Environment.PROXOOL_EXISTING_POOL);
+  final String jaxpFile=(String)props.get(Environment.PROXOOL_XML);
+  final String propFile=(String)props.get(Environment.PROXOOL_PROPERTIES);
+  final String externalConfig=(String)props.get(Environment.PROXOOL_EXISTING_POOL);
   proxoolAlias=(String)props.get(Environment.PROXOOL_POOL_ALIAS);
   if ("true".equals(externalConfig)) {
     if (!StringHelper.isNotEmpty(proxoolAlias)) {
-      String msg=LOG.unableToConfigureProxoolProviderToUseExistingInMemoryPool(Environment.PROXOOL_POOL_ALIAS);
+      final String msg=LOG.unableToConfigureProxoolProviderToUseExistingInMemoryPool(Environment.PROXOOL_POOL_ALIAS);
       LOG.error(msg);
       throw new HibernateException(msg);
     }
@@ -16,7 +16,7 @@
  else   if (StringHelper.isNotEmpty(jaxpFile)) {
     LOG.configuringProxoolProviderUsingJaxpConfigurator(jaxpFile);
     if (!StringHelper.isNotEmpty(proxoolAlias)) {
-      String msg=LOG.unableToConfigureProxoolProviderToUseJaxp(Environment.PROXOOL_POOL_ALIAS);
+      final String msg=LOG.unableToConfigureProxoolProviderToUseJaxp(Environment.PROXOOL_POOL_ALIAS);
       LOG.error(msg);
       throw new HibernateException(msg);
     }
@@ -24,7 +24,7 @@
       JAXPConfigurator.configure(ConfigHelper.getConfigStreamReader(jaxpFile),false);
     }
  catch (    ProxoolException e) {
-      String msg=LOG.unableToLoadJaxpConfiguratorFile(jaxpFile);
+      final String msg=LOG.unableToLoadJaxpConfiguratorFile(jaxpFile);
       LOG.error(msg,e);
       throw new HibernateException(msg,e);
     }
@@ -34,7 +34,7 @@
  else   if (StringHelper.isNotEmpty(propFile)) {
     LOG.configuringProxoolProviderUsingPropertiesFile(propFile);
     if (!StringHelper.isNotEmpty(proxoolAlias)) {
-      String msg=LOG.unableToConfigureProxoolProviderToUsePropertiesFile(Environment.PROXOOL_POOL_ALIAS);
+      final String msg=LOG.unableToConfigureProxoolProviderToUsePropertiesFile(Environment.PROXOOL_POOL_ALIAS);
       LOG.error(msg);
       throw new HibernateException(msg);
     }
@@ -42,7 +42,7 @@
       PropertyConfigurator.configure(ConfigHelper.getConfigProperties(propFile));
     }
  catch (    ProxoolException e) {
-      String msg=LOG.unableToLoadPropertyConfiguratorFile(propFile);
+      final String msg=LOG.unableToLoadPropertyConfiguratorFile(propFile);
       LOG.error(msg,e);
       throw new HibernateException(msg,e);
     }
@@ -50,7 +50,9 @@
     LOG.configuringProxoolProviderToUsePoolAlias(proxoolAlias);
   }
   isolation=ConfigurationHelper.getInteger(Environment.ISOLATION,props);
-  if (isolation != null)   LOG.jdbcIsolationLevel(Environment.isolationLevelToString(isolation.intValue()));
+  if (isolation != null) {
+    LOG.jdbcIsolationLevel(Environment.isolationLevelToString(isolation.intValue()));
+  }
   autocommit=ConfigurationHelper.getBoolean(Environment.AUTOCOMMIT,props);
   LOG.autoCommmitMode(autocommit);
 }
