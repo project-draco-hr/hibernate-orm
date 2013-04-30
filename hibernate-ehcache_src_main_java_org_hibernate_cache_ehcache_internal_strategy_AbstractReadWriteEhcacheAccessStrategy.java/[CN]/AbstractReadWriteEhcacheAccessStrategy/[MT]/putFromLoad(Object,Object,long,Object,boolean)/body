@@ -1,10 +1,10 @@
 {
-  region.writeLock(key);
+  region().writeLock(key);
   try {
-    Lockable item=(Lockable)region.get(key);
-    boolean writeable=item == null || item.isWriteable(txTimestamp,version,versionComparator);
+    final Lockable item=(Lockable)region().get(key);
+    final boolean writeable=item == null || item.isWriteable(txTimestamp,version,versionComparator);
     if (writeable) {
-      region.put(key,new Item(value,version,region.nextTimestamp()));
+      region().put(key,new Item(value,version,region().nextTimestamp()));
       return true;
     }
  else {
@@ -12,6 +12,6 @@
     }
   }
   finally {
-    region.writeUnlock(key);
+    region().writeUnlock(key);
   }
 }

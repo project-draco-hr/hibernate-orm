@@ -1,7 +1,7 @@
 {
-  region.writeLock(key);
+  region().writeLock(key);
   try {
-    Lockable item=(Lockable)region.get(key);
+    final Lockable item=(Lockable)region().get(key);
     if (item != null && item.isUnlockable(lock)) {
       Lock lockItem=(Lock)item;
       if (lockItem.wasLockedConcurrently()) {
@@ -9,7 +9,7 @@
         return false;
       }
  else {
-        region.put(key,new Item(value,currentVersion,region.nextTimestamp()));
+        region().put(key,new Item(value,currentVersion,region().nextTimestamp()));
         return true;
       }
     }
@@ -19,6 +19,6 @@
     }
   }
   finally {
-    region.writeUnlock(key);
+    region().writeUnlock(key);
   }
 }

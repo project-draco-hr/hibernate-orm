@@ -1,13 +1,13 @@
 {
-  region.writeLock(key);
+  region().writeLock(key);
   try {
-    Lockable item=(Lockable)region.get(key);
-    long timeout=region.nextTimestamp() + region.getTimeout();
+    final Lockable item=(Lockable)region().get(key);
+    final long timeout=region().nextTimestamp() + region().getTimeout();
     final Lock lock=(item == null) ? new Lock(timeout,uuid,nextLockId(),version) : item.lock(timeout,uuid,nextLockId());
-    region.put(key,lock);
+    region().put(key,lock);
     return lock;
   }
   finally {
-    region.writeUnlock(key);
+    region().writeUnlock(key);
   }
 }
