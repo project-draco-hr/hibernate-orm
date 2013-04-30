@@ -1,18 +1,18 @@
 {
   osgiClassLoader.addBundle(requestingBundle);
-  Configuration configuration=new Configuration();
+  final Configuration configuration=new Configuration();
   configuration.getProperties().put(AvailableSettings.JTA_PLATFORM,osgiJtaPlatform);
   configuration.configure();
-  BootstrapServiceRegistryBuilder builder=new BootstrapServiceRegistryBuilder();
+  final BootstrapServiceRegistryBuilder builder=new BootstrapServiceRegistryBuilder();
   builder.with(osgiClassLoader);
-  List<Integrator> integrators=OsgiServiceUtil.getServiceImpls(Integrator.class,context);
+  final List<Integrator> integrators=OsgiServiceUtil.getServiceImpls(Integrator.class,context);
   for (  Integrator integrator : integrators) {
     builder.with(integrator);
   }
-  List<StrategyRegistrationProvider> strategyRegistrationProviders=OsgiServiceUtil.getServiceImpls(StrategyRegistrationProvider.class,context);
+  final List<StrategyRegistrationProvider> strategyRegistrationProviders=OsgiServiceUtil.getServiceImpls(StrategyRegistrationProvider.class,context);
   for (  StrategyRegistrationProvider strategyRegistrationProvider : strategyRegistrationProviders) {
     builder.withStrategySelectors(strategyRegistrationProvider);
   }
-  ServiceRegistry serviceRegistry=new StandardServiceRegistryBuilder(builder.build()).applySettings(configuration.getProperties()).build();
+  final ServiceRegistry serviceRegistry=new StandardServiceRegistryBuilder(builder.build()).applySettings(configuration.getProperties()).build();
   return configuration.buildSessionFactory(serviceRegistry);
 }

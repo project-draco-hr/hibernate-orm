@@ -1,0 +1,24 @@
+{
+  final Map settings=new HashMap();
+  if (properties != null) {
+    settings.putAll(properties);
+  }
+  settings.put(AvailableSettings.JTA_PLATFORM,osgiJtaPlatform);
+  final List<Integrator> integrators=OsgiServiceUtil.getServiceImpls(Integrator.class,context);
+  final IntegratorProvider integratorProvider=new IntegratorProvider(){
+    @Override public List<Integrator> getIntegrators(){
+      return integrators;
+    }
+  }
+;
+  settings.put(EntityManagerFactoryBuilderImpl.INTEGRATOR_PROVIDER,integratorProvider);
+  final List<StrategyRegistrationProvider> strategyRegistrationProviders=OsgiServiceUtil.getServiceImpls(StrategyRegistrationProvider.class,context);
+  final StrategyRegistrationProviderList strategyRegistrationProviderList=new StrategyRegistrationProviderList(){
+    @Override public List<StrategyRegistrationProvider> getStrategyRegistrationProviders(){
+      return strategyRegistrationProviders;
+    }
+  }
+;
+  settings.put(EntityManagerFactoryBuilderImpl.STRATEGY_REGISTRATION_PROVIDERS,strategyRegistrationProviderList);
+  return settings;
+}
