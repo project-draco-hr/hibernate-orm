@@ -1,7 +1,7 @@
 {
-  String jdbcDriverClass=(String)props.get(Environment.DRIVER);
-  String jdbcUrl=(String)props.get(Environment.URL);
-  Properties connectionProps=ConnectionProviderInitiator.getConnectionProperties(props);
+  final String jdbcDriverClass=(String)props.get(Environment.DRIVER);
+  final String jdbcUrl=(String)props.get(Environment.URL);
+  final Properties connectionProps=ConnectionProviderInitiator.getConnectionProperties(props);
   LOG.c3p0UsingDriver(jdbcDriverClass,jdbcUrl);
   LOG.connectionProperties(ConfigurationHelper.maskOut(connectionProps,"password"));
   autocommit=ConfigurationHelper.getBoolean(Environment.AUTOCOMMIT,props);
@@ -18,13 +18,13 @@
     }
   }
   try {
-    Integer minPoolSize=ConfigurationHelper.getInteger(Environment.C3P0_MIN_SIZE,props);
-    Integer maxPoolSize=ConfigurationHelper.getInteger(Environment.C3P0_MAX_SIZE,props);
-    Integer maxIdleTime=ConfigurationHelper.getInteger(Environment.C3P0_TIMEOUT,props);
-    Integer maxStatements=ConfigurationHelper.getInteger(Environment.C3P0_MAX_STATEMENTS,props);
-    Integer acquireIncrement=ConfigurationHelper.getInteger(Environment.C3P0_ACQUIRE_INCREMENT,props);
-    Integer idleTestPeriod=ConfigurationHelper.getInteger(Environment.C3P0_IDLE_TEST_PERIOD,props);
-    Properties c3props=new Properties();
+    final Integer minPoolSize=ConfigurationHelper.getInteger(Environment.C3P0_MIN_SIZE,props);
+    final Integer maxPoolSize=ConfigurationHelper.getInteger(Environment.C3P0_MAX_SIZE,props);
+    final Integer maxIdleTime=ConfigurationHelper.getInteger(Environment.C3P0_TIMEOUT,props);
+    final Integer maxStatements=ConfigurationHelper.getInteger(Environment.C3P0_MAX_STATEMENTS,props);
+    final Integer acquireIncrement=ConfigurationHelper.getInteger(Environment.C3P0_ACQUIRE_INCREMENT,props);
+    final Integer idleTestPeriod=ConfigurationHelper.getInteger(Environment.C3P0_IDLE_TEST_PERIOD,props);
+    final Properties c3props=new Properties();
     for (    Object o : props.keySet()) {
       if (!String.class.isInstance(o)) {
         continue;
@@ -44,12 +44,12 @@
     setOverwriteProperty(Environment.C3P0_MAX_STATEMENTS,C3P0_STYLE_MAX_STATEMENTS,props,c3props,maxStatements);
     setOverwriteProperty(Environment.C3P0_ACQUIRE_INCREMENT,C3P0_STYLE_ACQUIRE_INCREMENT,props,c3props,acquireIncrement);
     setOverwriteProperty(Environment.C3P0_IDLE_TEST_PERIOD,C3P0_STYLE_IDLE_CONNECTION_TEST_PERIOD,props,c3props,idleTestPeriod);
-    Integer initialPoolSize=ConfigurationHelper.getInteger(C3P0_STYLE_INITIAL_POOL_SIZE,props);
+    final Integer initialPoolSize=ConfigurationHelper.getInteger(C3P0_STYLE_INITIAL_POOL_SIZE,props);
     if (initialPoolSize == null && minPoolSize != null) {
       c3props.put(C3P0_STYLE_INITIAL_POOL_SIZE,String.valueOf(minPoolSize).trim());
     }
-    DataSource unpooled=DataSources.unpooledDataSource(jdbcUrl,connectionProps);
-    Map allProps=new HashMap();
+    final DataSource unpooled=DataSources.unpooledDataSource(jdbcUrl,connectionProps);
+    final Map allProps=new HashMap();
     allProps.putAll(props);
     allProps.putAll(c3props);
     ds=DataSources.pooledDataSource(unpooled,allProps);
@@ -58,8 +58,10 @@
     LOG.error(LOG.unableToInstantiateC3p0ConnectionPool(),e);
     throw new HibernateException(LOG.unableToInstantiateC3p0ConnectionPool(),e);
   }
-  String i=(String)props.get(Environment.ISOLATION);
-  if (i == null)   isolation=null;
+  final String i=(String)props.get(Environment.ISOLATION);
+  if (i == null) {
+    isolation=null;
+  }
  else {
     isolation=Integer.valueOf(i);
     LOG.jdbcIsolationLevel(Environment.isolationLevelToString(isolation));
