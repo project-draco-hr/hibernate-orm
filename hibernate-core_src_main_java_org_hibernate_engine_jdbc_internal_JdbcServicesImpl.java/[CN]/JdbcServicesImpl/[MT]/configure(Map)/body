@@ -15,11 +15,11 @@
   boolean lobLocatorUpdateCopy=false;
   String catalogName=null;
   String schemaName=null;
-  LinkedHashSet<TypeInfo> typeInfoSet=new LinkedHashSet<TypeInfo>();
-  boolean useJdbcMetadata=ConfigurationHelper.getBoolean("hibernate.temp.use_jdbc_metadata_defaults",configValues,true);
+  final LinkedHashSet<TypeInfo> typeInfoSet=new LinkedHashSet<TypeInfo>();
+  final boolean useJdbcMetadata=ConfigurationHelper.getBoolean("hibernate.temp.use_jdbc_metadata_defaults",configValues,true);
   if (useJdbcMetadata) {
     try {
-      Connection connection=jdbcConnectionAccess.obtainConnection();
+      final Connection connection=jdbcConnectionAccess.obtainConnection();
       try {
         DatabaseMetaData meta=connection.getMetaData();
         if (LOG.isDebugEnabled()) {
@@ -40,7 +40,7 @@
         typeInfoSet.addAll(TypeInfoExtracter.extractTypeInfo(meta));
         dialect=dialectFactory.buildDialect(configValues,connection);
         catalogName=connection.getCatalog();
-        SchemaNameResolver schemaNameResolver=determineExplicitSchemaNameResolver(configValues);
+        final SchemaNameResolver schemaNameResolver=determineExplicitSchemaNameResolver(configValues);
         if (schemaNameResolver == null) {
         }
         if (schemaNameResolver != null) {

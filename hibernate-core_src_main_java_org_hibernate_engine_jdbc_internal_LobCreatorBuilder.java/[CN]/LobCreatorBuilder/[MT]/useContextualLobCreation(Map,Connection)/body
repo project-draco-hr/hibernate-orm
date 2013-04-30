@@ -1,5 +1,5 @@
 {
-  boolean isNonContextualLobCreationRequired=ConfigurationHelper.getBoolean(Environment.NON_CONTEXTUAL_LOB_CREATION,configValues);
+  final boolean isNonContextualLobCreationRequired=ConfigurationHelper.getBoolean(Environment.NON_CONTEXTUAL_LOB_CREATION,configValues);
   if (isNonContextualLobCreationRequired) {
     LOG.disablingContextualLOBCreation(Environment.NON_CONTEXTUAL_LOB_CREATION);
     return false;
@@ -10,7 +10,7 @@
   }
   try {
     try {
-      DatabaseMetaData meta=jdbcConnection.getMetaData();
+      final DatabaseMetaData meta=jdbcConnection.getMetaData();
       if (meta.getJDBCMajorVersion() < 4) {
         LOG.disablingContextualLOBCreationSinceOldJdbcVersion(meta.getJDBCMajorVersion());
         return false;
@@ -18,13 +18,13 @@
     }
  catch (    SQLException ignore) {
     }
-    Class connectionClass=Connection.class;
-    Method createClobMethod=connectionClass.getMethod("createClob",NO_ARG_SIG);
+    final Class connectionClass=Connection.class;
+    final Method createClobMethod=connectionClass.getMethod("createClob",NO_ARG_SIG);
     if (createClobMethod.getDeclaringClass().equals(Connection.class)) {
       try {
-        Object clob=createClobMethod.invoke(jdbcConnection,NO_ARGS);
+        final Object clob=createClobMethod.invoke(jdbcConnection,NO_ARGS);
         try {
-          Method freeMethod=clob.getClass().getMethod("free",NO_ARG_SIG);
+          final Method freeMethod=clob.getClass().getMethod("free",NO_ARG_SIG);
           freeMethod.invoke(clob,NO_ARGS);
         }
  catch (        Throwable ignore) {
