@@ -1,7 +1,13 @@
 {
   AuditStrategy strategy;
   try {
-    Class<?> auditStrategyClass=ReflectionTools.loadClass(auditEntCfg.getAuditStrategyName(),classLoaderService);
+    Class<?> auditStrategyClass=null;
+    try {
+      auditStrategyClass=this.getClass().getClassLoader().loadClass(auditEntCfg.getAuditStrategyName());
+    }
+ catch (    Exception e) {
+      auditStrategyClass=ReflectionTools.loadClass(auditEntCfg.getAuditStrategyName(),classLoaderService);
+    }
     strategy=(AuditStrategy)ReflectHelper.getDefaultConstructor(auditStrategyClass).newInstance();
   }
  catch (  Exception e) {
