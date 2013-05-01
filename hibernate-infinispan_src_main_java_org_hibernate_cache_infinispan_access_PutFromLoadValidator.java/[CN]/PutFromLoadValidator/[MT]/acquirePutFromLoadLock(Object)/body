@@ -1,14 +1,14 @@
 {
   boolean valid=false;
   boolean locked=false;
-  long now=System.currentTimeMillis();
+  final long now=System.currentTimeMillis();
   try {
-    PendingPutMap pending=pendingPuts.get(key);
+    final PendingPutMap pending=pendingPuts.get(key);
     if (pending != null) {
       locked=pending.acquireLock(100,TimeUnit.MILLISECONDS);
       if (locked) {
         try {
-          PendingPut toCancel=pending.remove(getOwnerForPut());
+          final PendingPut toCancel=pending.remove(getOwnerForPut());
           if (toCancel != null) {
             valid=!toCancel.completed;
             toCancel.completed=true;
@@ -24,7 +24,7 @@
     }
  else {
       if (now > invalidationTimestamp) {
-        Long removedTime=recentRemovals.get(key);
+        final Long removedTime=recentRemovals.get(key);
         if (removedTime == null || now > removedTime) {
           registerPendingPut(key);
           locked=acquirePutFromLoadLock(key);
@@ -35,7 +35,7 @@
   }
  catch (  Throwable t) {
     if (locked) {
-      PendingPutMap toRelease=pendingPuts.get(key);
+      final PendingPutMap toRelease=pendingPuts.get(key);
       if (toRelease != null) {
         toRelease.releaseLock();
       }

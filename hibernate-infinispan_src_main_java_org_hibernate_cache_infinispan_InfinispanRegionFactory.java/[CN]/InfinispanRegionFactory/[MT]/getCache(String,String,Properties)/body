@@ -1,14 +1,19 @@
 {
   TypeOverrides regionOverride=typeOverrides.get(regionName);
   if (!definedConfigurations.contains(regionName)) {
-    String templateCacheName;
-    Configuration regionCacheCfg;
-    ConfigurationBuilder builder=new ConfigurationBuilder();
+    final String templateCacheName;
+    final ConfigurationBuilder builder=new ConfigurationBuilder();
     if (regionOverride != null) {
-      if (log.isDebugEnabled())       log.debug("Cache region specific configuration exists: " + regionOverride);
-      String cacheName=regionOverride.getCacheName();
-      if (cacheName != null)       templateCacheName=cacheName;
- else       templateCacheName=typeOverrides.get(typeKey).getCacheName();
+      if (log.isDebugEnabled()) {
+        log.debug("Cache region specific configuration exists: " + regionOverride);
+      }
+      final String cacheName=regionOverride.getCacheName();
+      if (cacheName != null) {
+        templateCacheName=cacheName;
+      }
+ else {
+        templateCacheName=typeOverrides.get(typeKey).getCacheName();
+      }
       applyConfiguration(templateCacheName,builder);
       regionOverride=overrideStatisticsIfPresent(regionOverride,properties);
       regionOverride.applyTo(builder);
@@ -22,7 +27,7 @@
     manager.defineConfiguration(regionName,builder.build());
     definedConfigurations.add(regionName);
   }
-  AdvancedCache cache=manager.getCache(regionName).getAdvancedCache();
+  final AdvancedCache cache=manager.getCache(regionName).getAdvancedCache();
   if (!cache.getStatus().allowInvocations()) {
     cache.start();
   }

@@ -1,6 +1,6 @@
 {
   boolean success=true;
-  PendingPutMap pending=pendingPuts.get(key);
+  final PendingPutMap pending=pendingPuts.get(key);
   if (pending != null) {
     if (pending.acquireLock(60,TimeUnit.SECONDS)) {
       try {
@@ -14,10 +14,10 @@
       success=false;
     }
   }
-  RecentRemoval removal=new RecentRemoval(key,this.nakedPutInvalidationPeriod);
+  final RecentRemoval removal=new RecentRemoval(key,this.nakedPutInvalidationPeriod);
   recentRemovals.put(key,removal.timestamp);
   RecentRemoval toClean=null;
-  boolean attemptClean=removal.timestamp > earliestRemovalTimestamp;
+  final boolean attemptClean=removal.timestamp > earliestRemovalTimestamp;
   removalsLock.lock();
   try {
     removalsQueue.add(removal);
