@@ -2,17 +2,17 @@
   String toEntityName;
   Serializable id;
   if (value instanceof HibernateProxy) {
-    HibernateProxy hibernateProxy=(HibernateProxy)value;
+    final HibernateProxy hibernateProxy=(HibernateProxy)value;
     toEntityName=session.bestGuessEntityName(value);
     id=hibernateProxy.getHibernateLazyInitializer().getIdentifier();
     value=EntityTools.getTargetFromProxy(session.getFactory(),hibernateProxy);
   }
  else {
     toEntityName=session.guessEntityName(value);
-    IdMapper idMapper=enversConfiguration.getEntCfg().get(toEntityName).getIdMapper();
+    final IdMapper idMapper=enversConfiguration.getEntCfg().get(toEntityName).getIdMapper();
     id=(Serializable)idMapper.mapToIdFromEntity(value);
   }
-  Set<String> toPropertyNames=enversConfiguration.getEntCfg().getToPropertyNames(fromEntityName,relDesc.getFromPropertyName(),toEntityName);
-  String toPropertyName=toPropertyNames.iterator().next();
+  final Set<String> toPropertyNames=enversConfiguration.getEntCfg().getToPropertyNames(fromEntityName,relDesc.getFromPropertyName(),toEntityName);
+  final String toPropertyName=toPropertyNames.iterator().next();
   auditProcess.addWorkUnit(new CollectionChangeWorkUnit(session,toEntityName,toPropertyName,enversConfiguration,id,value));
 }

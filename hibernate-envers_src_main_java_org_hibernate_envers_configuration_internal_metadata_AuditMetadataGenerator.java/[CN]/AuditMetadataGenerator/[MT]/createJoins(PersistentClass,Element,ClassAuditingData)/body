@@ -1,22 +1,22 @@
 {
-  Iterator<Join> joins=pc.getJoinIterator();
-  Map<Join,Element> joinElements=new HashMap<Join,Element>();
+  final Iterator<Join> joins=pc.getJoinIterator();
+  final Map<Join,Element> joinElements=new HashMap<Join,Element>();
   entitiesJoins.put(pc.getEntityName(),joinElements);
   while (joins.hasNext()) {
     Join join=joins.next();
     if (!checkPropertiesAudited(join.getPropertyIterator(),auditingData)) {
       continue;
     }
-    String originalTableName=join.getTable().getName();
+    final String originalTableName=join.getTable().getName();
     String auditTableName=auditingData.getSecondaryTableDictionary().get(originalTableName);
     if (auditTableName == null) {
       auditTableName=verEntCfg.getAuditEntityName(originalTableName);
     }
-    String schema=getSchema(auditingData.getAuditTable().schema(),join.getTable());
-    String catalog=getCatalog(auditingData.getAuditTable().catalog(),join.getTable());
-    Element joinElement=MetadataTools.createJoin(parent,auditTableName,schema,catalog);
+    final String schema=getSchema(auditingData.getAuditTable().schema(),join.getTable());
+    final String catalog=getCatalog(auditingData.getAuditTable().catalog(),join.getTable());
+    final Element joinElement=MetadataTools.createJoin(parent,auditTableName,schema,catalog);
     joinElements.put(join,joinElement);
-    Element joinKey=joinElement.addElement("key");
+    final Element joinKey=joinElement.addElement("key");
     MetadataTools.addColumns(joinKey,join.getKey().getColumnIterator());
     MetadataTools.addColumn(joinKey,verEntCfg.getRevisionFieldName(),null,null,null,null,null,null);
   }

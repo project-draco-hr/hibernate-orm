@@ -2,13 +2,13 @@
   if (!enversConfiguration.getGlobalCfg().isGenerateRevisionsForCollections()) {
     return;
   }
-  String[] propertyNames=entityPersister.getPropertyNames();
+  final String[] propertyNames=entityPersister.getPropertyNames();
   for (int i=0; i < propertyNames.length; i++) {
-    String propertyName=propertyNames[i];
-    RelationDescription relDesc=enversConfiguration.getEntCfg().getRelationDescription(entityName,propertyName);
+    final String propertyName=propertyNames[i];
+    final RelationDescription relDesc=enversConfiguration.getEntCfg().getRelationDescription(entityName,propertyName);
     if (relDesc != null && relDesc.isBidirectional() && relDesc.getRelationType() == RelationType.TO_ONE && relDesc.isInsertable()) {
-      Object oldValue=oldState == null ? null : oldState[i];
-      Object newValue=newState == null ? null : newState[i];
+      final Object oldValue=oldState == null ? null : oldState[i];
+      final Object newValue=newState == null ? null : newState[i];
       if (!EntityTools.entitiesEqual(session,relDesc.getToEntityName(),oldValue,newValue)) {
         if (newValue != null) {
           addCollectionChangeWorkUnit(auditProcess,session,entityName,relDesc,newValue);

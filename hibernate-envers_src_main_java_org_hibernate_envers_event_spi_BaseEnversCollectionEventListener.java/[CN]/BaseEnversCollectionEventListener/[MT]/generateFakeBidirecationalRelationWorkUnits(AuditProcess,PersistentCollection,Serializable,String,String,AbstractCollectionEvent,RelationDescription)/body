@@ -1,13 +1,13 @@
 {
-  List<PersistentCollectionChangeData> collectionChanges=getAuditConfiguration().getEntCfg().get(collectionEntityName).getPropertyMapper().mapCollectionChanges(event.getSession(),referencingPropertyName,newColl,oldColl,event.getAffectedOwnerIdOrNull());
-  String relatedEntityName=rd.getToEntityName();
-  IdMapper relatedIdMapper=getAuditConfiguration().getEntCfg().get(relatedEntityName).getIdMapper();
+  final List<PersistentCollectionChangeData> collectionChanges=getAuditConfiguration().getEntCfg().get(collectionEntityName).getPropertyMapper().mapCollectionChanges(event.getSession(),referencingPropertyName,newColl,oldColl,event.getAffectedOwnerIdOrNull());
+  final String relatedEntityName=rd.getToEntityName();
+  final IdMapper relatedIdMapper=getAuditConfiguration().getEntCfg().get(relatedEntityName).getIdMapper();
   for (  PersistentCollectionChangeData changeData : collectionChanges) {
-    Object relatedObj=changeData.getChangedElement();
-    Serializable relatedId=(Serializable)relatedIdMapper.mapToIdFromEntity(relatedObj);
-    RevisionType revType=(RevisionType)changeData.getData().get(getAuditConfiguration().getAuditEntCfg().getRevisionTypePropName());
-    String realRelatedEntityName=event.getSession().bestGuessEntityName(relatedObj);
-    AuditWorkUnit nestedWorkUnit=new CollectionChangeWorkUnit(event.getSession(),realRelatedEntityName,rd.getMappedByPropertyName(),getAuditConfiguration(),relatedId,relatedObj);
+    final Object relatedObj=changeData.getChangedElement();
+    final Serializable relatedId=(Serializable)relatedIdMapper.mapToIdFromEntity(relatedObj);
+    final RevisionType revType=(RevisionType)changeData.getData().get(getAuditConfiguration().getAuditEntCfg().getRevisionTypePropName());
+    final String realRelatedEntityName=event.getSession().bestGuessEntityName(relatedObj);
+    final AuditWorkUnit nestedWorkUnit=new CollectionChangeWorkUnit(event.getSession(),realRelatedEntityName,rd.getMappedByPropertyName(),getAuditConfiguration(),relatedId,relatedObj);
     auditProcess.addWorkUnit(new FakeBidirectionalRelationWorkUnit(event.getSession(),realRelatedEntityName,getAuditConfiguration(),relatedId,referencingPropertyName,event.getAffectedOwnerOrNull(),rd,revType,changeData.getChangedElementIndex(),nestedWorkUnit));
   }
   auditProcess.addWorkUnit(new CollectionChangeWorkUnit(event.getSession(),collectionEntityName,referencingPropertyName,getAuditConfiguration(),event.getAffectedOwnerIdOrNull(),event.getAffectedOwnerOrNull()));

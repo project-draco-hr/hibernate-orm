@@ -1,22 +1,22 @@
 {
   LOG.debugf("Adding audit mapping for property %s.%s: one-to-many collection, using a join column on the referenced entity",referencingEntityName,propertyName);
-  String mappedBy=getMappedBy(propertyValue);
-  IdMappingData referencedIdMapping=mainGenerator.getReferencedIdMappingData(referencingEntityName,referencedEntityName,propertyAuditingData,false);
-  IdMappingData referencingIdMapping=referencingEntityConfiguration.getIdMappingData();
-  MiddleIdData referencingIdData=createMiddleIdData(referencingIdMapping,mappedBy + "_",referencingEntityName);
-  MiddleIdData referencedIdData=createMiddleIdData(referencedIdMapping,null,referencedEntityName);
-  MiddleComponentData elementComponentData=new MiddleComponentData(new MiddleRelatedComponentMapper(referencedIdData),0);
+  final String mappedBy=getMappedBy(propertyValue);
+  final IdMappingData referencedIdMapping=mainGenerator.getReferencedIdMappingData(referencingEntityName,referencedEntityName,propertyAuditingData,false);
+  final IdMappingData referencingIdMapping=referencingEntityConfiguration.getIdMappingData();
+  final MiddleIdData referencingIdData=createMiddleIdData(referencingIdMapping,mappedBy + "_",referencingEntityName);
+  final MiddleIdData referencedIdData=createMiddleIdData(referencedIdMapping,null,referencedEntityName);
+  final MiddleComponentData elementComponentData=new MiddleComponentData(new MiddleRelatedComponentMapper(referencedIdData),0);
   MiddleComponentData indexComponentData=addIndex(null,null);
-  RelationQueryGenerator queryGenerator=new OneAuditEntityQueryGenerator(mainGenerator.getGlobalCfg(),mainGenerator.getVerEntCfg(),mainGenerator.getAuditStrategy(),referencingIdData,referencedEntityName,referencedIdData,isEmbeddableElementType());
-  CommonCollectionMapperData commonCollectionMapperData=new CommonCollectionMapperData(mainGenerator.getVerEntCfg(),referencedEntityName,propertyAuditingData.getPropertyData(),referencingIdData,queryGenerator);
+  final RelationQueryGenerator queryGenerator=new OneAuditEntityQueryGenerator(mainGenerator.getGlobalCfg(),mainGenerator.getVerEntCfg(),mainGenerator.getAuditStrategy(),referencingIdData,referencedEntityName,referencedIdData,isEmbeddableElementType());
+  final CommonCollectionMapperData commonCollectionMapperData=new CommonCollectionMapperData(mainGenerator.getVerEntCfg(),referencedEntityName,propertyAuditingData.getPropertyData(),referencingIdData,queryGenerator);
   PropertyMapper fakeBidirectionalRelationMapper;
   PropertyMapper fakeBidirectionalRelationIndexMapper;
   if (fakeOneToManyBidirectional) {
-    String auditMappedBy=propertyAuditingData.getAuditMappedBy();
-    IdMapper relMapper=referencingIdMapping.getIdMapper().prefixMappedProperties(MappingTools.createToOneRelationPrefix(auditMappedBy));
+    final String auditMappedBy=propertyAuditingData.getAuditMappedBy();
+    final IdMapper relMapper=referencingIdMapping.getIdMapper().prefixMappedProperties(MappingTools.createToOneRelationPrefix(auditMappedBy));
     fakeBidirectionalRelationMapper=new ToOneIdMapper(relMapper,new PropertyData(auditMappedBy,null,null,null),referencingEntityName,false);
     if (propertyAuditingData.getPositionMappedBy() != null) {
-      String positionMappedBy=propertyAuditingData.getPositionMappedBy();
+      final String positionMappedBy=propertyAuditingData.getPositionMappedBy();
       fakeBidirectionalRelationIndexMapper=new SinglePropertyMapper(new PropertyData(positionMappedBy,null,null,null));
       indexComponentData=new MiddleComponentData(new MiddleStraightComponentMapper(positionMappedBy),0);
     }

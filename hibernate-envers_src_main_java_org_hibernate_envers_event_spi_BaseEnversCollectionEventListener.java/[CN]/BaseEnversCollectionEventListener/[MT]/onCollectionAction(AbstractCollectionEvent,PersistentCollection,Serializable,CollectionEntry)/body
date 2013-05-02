@@ -1,16 +1,16 @@
 {
   if (shouldGenerateRevision(event)) {
     checkIfTransactionInProgress(event.getSession());
-    AuditProcess auditProcess=getAuditConfiguration().getSyncManager().get(event.getSession());
-    String entityName=event.getAffectedOwnerEntityName();
-    String ownerEntityName=((AbstractCollectionPersister)collectionEntry.getLoadedPersister()).getOwnerEntityName();
-    String referencingPropertyName=collectionEntry.getRole().substring(ownerEntityName.length() + 1);
-    RelationDescription rd=searchForRelationDescription(entityName,referencingPropertyName);
+    final AuditProcess auditProcess=getAuditConfiguration().getSyncManager().get(event.getSession());
+    final String entityName=event.getAffectedOwnerEntityName();
+    final String ownerEntityName=((AbstractCollectionPersister)collectionEntry.getLoadedPersister()).getOwnerEntityName();
+    final String referencingPropertyName=collectionEntry.getRole().substring(ownerEntityName.length() + 1);
+    final RelationDescription rd=searchForRelationDescription(entityName,referencingPropertyName);
     if (rd != null && rd.getMappedByPropertyName() != null) {
       generateFakeBidirecationalRelationWorkUnits(auditProcess,newColl,oldColl,entityName,referencingPropertyName,event,rd);
     }
  else {
-      PersistentCollectionChangeWorkUnit workUnit=new PersistentCollectionChangeWorkUnit(event.getSession(),entityName,getAuditConfiguration(),newColl,collectionEntry,oldColl,event.getAffectedOwnerIdOrNull(),referencingPropertyName);
+      final PersistentCollectionChangeWorkUnit workUnit=new PersistentCollectionChangeWorkUnit(event.getSession(),entityName,getAuditConfiguration(),newColl,collectionEntry,oldColl,event.getAffectedOwnerIdOrNull(),referencingPropertyName);
       auditProcess.addWorkUnit(workUnit);
       if (workUnit.containsWork()) {
         auditProcess.addWorkUnit(new CollectionChangeWorkUnit(event.getSession(),event.getAffectedOwnerEntityName(),referencingPropertyName,getAuditConfiguration(),event.getAffectedOwnerIdOrNull(),event.getAffectedOwnerOrNull()));

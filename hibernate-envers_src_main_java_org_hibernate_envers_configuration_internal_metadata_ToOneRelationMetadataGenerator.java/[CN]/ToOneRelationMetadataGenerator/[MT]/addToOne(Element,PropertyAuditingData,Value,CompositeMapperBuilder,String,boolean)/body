@@ -1,8 +1,8 @@
 {
-  String referencedEntityName=((ToOne)value).getReferencedEntityName();
-  IdMappingData idMapping=mainGenerator.getReferencedIdMappingData(entityName,referencedEntityName,propertyAuditingData,true);
-  String lastPropertyPrefix=MappingTools.createToOneRelationPrefix(propertyAuditingData.getName());
-  IdMapper relMapper=idMapping.getIdMapper().prefixMappedProperties(lastPropertyPrefix);
+  final String referencedEntityName=((ToOne)value).getReferencedEntityName();
+  final IdMappingData idMapping=mainGenerator.getReferencedIdMappingData(entityName,referencedEntityName,propertyAuditingData,true);
+  final String lastPropertyPrefix=MappingTools.createToOneRelationPrefix(propertyAuditingData.getName());
+  final IdMapper relMapper=idMapping.getIdMapper().prefixMappedProperties(lastPropertyPrefix);
   mainGenerator.getEntitiesConfigurations().get(entityName).addToOneRelation(propertyAuditingData.getName(),referencedEntityName,relMapper,insertable);
   boolean nonInsertableFake;
   if (!insertable && propertyAuditingData.isForceInsertable()) {
@@ -12,14 +12,14 @@
  else {
     nonInsertableFake=false;
   }
-  Element properties=(Element)idMapping.getXmlRelationMapping().clone();
+  final Element properties=(Element)idMapping.getXmlRelationMapping().clone();
   properties.addAttribute("name",propertyAuditingData.getName());
   MetadataTools.prefixNamesInPropertyElement(properties,lastPropertyPrefix,MetadataTools.getColumnNameIterator(value.getColumnIterator()),false,insertable);
   for (  Object o : properties.content()) {
-    Element element=(Element)o;
+    final Element element=(Element)o;
     element.setParent(null);
     parent.add(element);
   }
-  PropertyData propertyData=propertyAuditingData.getPropertyData();
+  final PropertyData propertyData=propertyAuditingData.getPropertyData();
   mapper.addComposite(propertyData,new ToOneIdMapper(relMapper,propertyData,referencedEntityName,nonInsertableFake));
 }

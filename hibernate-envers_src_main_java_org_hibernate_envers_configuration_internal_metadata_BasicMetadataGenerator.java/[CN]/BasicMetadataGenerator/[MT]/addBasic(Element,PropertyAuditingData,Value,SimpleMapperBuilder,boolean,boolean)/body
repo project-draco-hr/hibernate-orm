@@ -1,27 +1,27 @@
 {
-  Type type=value.getType();
+  final Type type=value.getType();
   if (type instanceof BasicType || type instanceof SerializableToBlobType || "org.hibernate.type.PrimitiveByteArrayBlobType".equals(type.getClass().getName())) {
     if (parent != null) {
-      boolean addNestedType=(value instanceof SimpleValue) && ((SimpleValue)value).getTypeParameters() != null;
+      final boolean addNestedType=(value instanceof SimpleValue) && ((SimpleValue)value).getTypeParameters() != null;
       String typeName=type.getName();
       if (typeName == null) {
         typeName=type.getClass().getName();
       }
-      Element prop_mapping=MetadataTools.addProperty(parent,propertyAuditingData.getName(),addNestedType ? null : typeName,propertyAuditingData.isForceInsertable() || insertable,key);
-      MetadataTools.addColumns(prop_mapping,value.getColumnIterator());
+      final Element propMapping=MetadataTools.addProperty(parent,propertyAuditingData.getName(),addNestedType ? null : typeName,propertyAuditingData.isForceInsertable() || insertable,key);
+      MetadataTools.addColumns(propMapping,value.getColumnIterator());
       if (addNestedType) {
-        Properties typeParameters=((SimpleValue)value).getTypeParameters();
-        Element type_mapping=prop_mapping.addElement("type");
-        type_mapping.addAttribute("name",typeName);
+        final Properties typeParameters=((SimpleValue)value).getTypeParameters();
+        final Element typeMapping=propMapping.addElement("type");
+        typeMapping.addAttribute("name",typeName);
         if ("org.hibernate.type.EnumType".equals(typeName)) {
-          mapEnumerationType(type_mapping,type,typeParameters);
+          mapEnumerationType(typeMapping,type,typeParameters);
         }
  else {
           for (          Object object : typeParameters.keySet()) {
-            String keyType=(String)object;
-            String property=typeParameters.getProperty(keyType);
+            final String keyType=(String)object;
+            final String property=typeParameters.getProperty(keyType);
             if (property != null) {
-              type_mapping.addElement("param").addAttribute("name",keyType).setText(property);
+              typeMapping.addElement("param").addAttribute("name",keyType).setText(property);
             }
           }
         }

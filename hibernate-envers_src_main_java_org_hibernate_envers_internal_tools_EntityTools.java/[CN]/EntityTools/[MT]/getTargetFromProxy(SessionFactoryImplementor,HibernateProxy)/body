@@ -2,11 +2,10 @@
   if (!proxy.getHibernateLazyInitializer().isUninitialized() || activeProxySession(proxy)) {
     return proxy.getHibernateLazyInitializer().getImplementation();
   }
-  SessionImplementor sessionImplementor=proxy.getHibernateLazyInitializer().getSession();
-  Session tempSession=sessionImplementor == null ? sessionFactoryImplementor.openTemporarySession() : sessionImplementor.getFactory().openTemporarySession();
+  final SessionImplementor sessionImplementor=proxy.getHibernateLazyInitializer().getSession();
+  final Session tempSession=sessionImplementor == null ? sessionFactoryImplementor.openTemporarySession() : sessionImplementor.getFactory().openTemporarySession();
   try {
-    Object target=tempSession.get(proxy.getHibernateLazyInitializer().getEntityName(),proxy.getHibernateLazyInitializer().getIdentifier());
-    return target;
+    return tempSession.get(proxy.getHibernateLazyInitializer().getEntityName(),proxy.getHibernateLazyInitializer().getIdentifier());
   }
   finally {
     tempSession.close();

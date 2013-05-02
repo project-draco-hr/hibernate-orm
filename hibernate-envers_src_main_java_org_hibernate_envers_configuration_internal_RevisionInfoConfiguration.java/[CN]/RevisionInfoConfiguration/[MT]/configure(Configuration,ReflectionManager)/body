@@ -1,8 +1,8 @@
 {
-  Iterator<PersistentClass> classes=cfg.getClassMappings();
   boolean revisionEntityFound=false;
   RevisionInfoGenerator revisionInfoGenerator=null;
   Class<?> revisionInfoClass=null;
+  final Iterator<PersistentClass> classes=cfg.getClassMappings();
   while (classes.hasNext()) {
     PersistentClass pc=classes.next();
     XClass clazz;
@@ -12,7 +12,7 @@
  catch (    ClassNotFoundException e) {
       throw new MappingException(e);
     }
-    RevisionEntity revisionEntity=clazz.getAnnotation(RevisionEntity.class);
+    final RevisionEntity revisionEntity=clazz.getAnnotation(RevisionEntity.class);
     if (revisionEntity != null) {
       if (revisionEntityFound) {
         throw new MappingException("Only one entity may be annotated with @RevisionEntity!");
@@ -21,9 +21,9 @@
         throw new MappingException("An entity annotated with @RevisionEntity cannot be audited!");
       }
       revisionEntityFound=true;
-      MutableBoolean revisionNumberFound=new MutableBoolean();
-      MutableBoolean revisionTimestampFound=new MutableBoolean();
-      MutableBoolean modifiedEntityNamesFound=new MutableBoolean();
+      final MutableBoolean revisionNumberFound=new MutableBoolean();
+      final MutableBoolean revisionTimestampFound=new MutableBoolean();
+      final MutableBoolean modifiedEntityNamesFound=new MutableBoolean();
       searchForRevisionInfoCfg(clazz,reflectionManager,revisionNumberFound,revisionTimestampFound,modifiedEntityNamesFound);
       if (!revisionNumberFound.isSet()) {
         throw new MappingException("An entity annotated with @RevisionEntity must have a field annotated " + "with @RevisionNumber!");
@@ -33,7 +33,7 @@
       }
       revisionInfoEntityName=pc.getEntityName();
       revisionInfoClass=pc.getMappedClass();
-      Class<? extends RevisionListener> revisionListenerClass=getRevisionListenerClass(revisionEntity.value());
+      final Class<? extends RevisionListener> revisionListenerClass=getRevisionListenerClass(revisionEntity.value());
       revisionInfoTimestampType=pc.getProperty(revisionInfoTimestampData.getName()).getType();
       if (globalCfg.isTrackEntitiesChangedInRevision() || (globalCfg.isUseRevisionEntityWithNativeId() && DefaultTrackingModifiedEntitiesRevisionEntity.class.isAssignableFrom(revisionInfoClass)) || (!globalCfg.isUseRevisionEntityWithNativeId() && SequenceIdTrackingModifiedEntitiesRevisionEntity.class.isAssignableFrom(revisionInfoClass))|| modifiedEntityNamesFound.isSet()) {
         revisionInfoGenerator=new DefaultTrackingModifiedEntitiesRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,revisionListenerClass,revisionInfoTimestampData,isTimestampAsDate(),modifiedEntityNamesData);
@@ -45,7 +45,7 @@
     }
   }
   Document revisionInfoXmlMapping=null;
-  Class<? extends RevisionListener> revisionListenerClass=getRevisionListenerClass(RevisionListener.class);
+  final Class<? extends RevisionListener> revisionListenerClass=getRevisionListenerClass(RevisionListener.class);
   if (revisionInfoGenerator == null) {
     if (globalCfg.isTrackEntitiesChangedInRevision()) {
       revisionInfoClass=globalCfg.isUseRevisionEntityWithNativeId() ? DefaultTrackingModifiedEntitiesRevisionEntity.class : SequenceIdTrackingModifiedEntitiesRevisionEntity.class;
