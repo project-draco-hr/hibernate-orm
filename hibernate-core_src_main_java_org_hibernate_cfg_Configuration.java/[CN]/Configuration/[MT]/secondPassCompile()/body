@@ -54,17 +54,13 @@
     final Table table=tableListEntry.getKey();
     final List<UniqueConstraintHolder> uniqueConstraints=tableListEntry.getValue();
     for (    UniqueConstraintHolder holder : uniqueConstraints) {
-      final String keyName=StringHelper.isEmpty(holder.getName()) ? StringHelper.randomFixedLengthHex("UK_") : holder.getName();
-      buildUniqueKeyFromColumnNames(table,keyName,holder.getColumns());
+      buildUniqueKeyFromColumnNames(table,holder.getName(),holder.getColumns());
     }
   }
   for (  Table table : jpaIndexHoldersByTable.keySet()) {
     final List<JPAIndexHolder> jpaIndexHolders=jpaIndexHoldersByTable.get(table);
-    int uniqueIndexPerTable=0;
     for (    JPAIndexHolder holder : jpaIndexHolders) {
-      uniqueIndexPerTable++;
-      final String keyName=StringHelper.isEmpty(holder.getName()) ? "idx_" + table.getName() + "_"+ uniqueIndexPerTable : holder.getName();
-      buildUniqueKeyFromColumnNames(table,keyName,holder.getColumns(),holder.getOrdering(),holder.isUnique());
+      buildUniqueKeyFromColumnNames(table,holder.getName(),holder.getColumns(),holder.getOrdering(),holder.isUnique());
     }
   }
   Thread.currentThread().setContextClassLoader(tccl);

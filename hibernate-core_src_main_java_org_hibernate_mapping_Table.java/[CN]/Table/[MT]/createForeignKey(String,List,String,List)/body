@@ -3,19 +3,19 @@
   ForeignKey fk=(ForeignKey)foreignKeys.get(key);
   if (fk == null) {
     fk=new ForeignKey();
-    if (keyName != null) {
-      fk.setName(keyName);
-    }
- else {
-      fk.setName(StringHelper.randomFixedLengthHex("FK_"));
-    }
     fk.setTable(this);
-    foreignKeys.put(key,fk);
     fk.setReferencedEntityName(referencedEntityName);
     fk.addColumns(keyColumns.iterator());
     if (referencedColumns != null) {
       fk.addReferencedColumns(referencedColumns.iterator());
     }
+    if (keyName != null) {
+      fk.setName(keyName);
+    }
+ else {
+      fk.setName(Constraint.generateName(fk.generatedConstraintNamePrefix(),this,keyColumns));
+    }
+    foreignKeys.put(key,fk);
   }
   if (keyName != null) {
     fk.setName(keyName);

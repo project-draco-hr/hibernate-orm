@@ -1,5 +1,4 @@
 {
-  keyName=normalizer.normalizeIdentifierQuoting(keyName);
   int size=columnNames.length;
   Column[] columns=new Column[size];
   Set<Column> unbound=new HashSet<Column>();
@@ -15,6 +14,10 @@
       unboundNoLogical.add(new Column(column));
     }
   }
+  if (StringHelper.isEmpty(keyName)) {
+    keyName=Constraint.generateName("UK_",table,columns);
+  }
+  keyName=normalizer.normalizeIdentifierQuoting(keyName);
   if (unique) {
     UniqueKey uk=table.getOrCreateUniqueKey(keyName);
     for (int i=0; i < columns.length; i++) {
