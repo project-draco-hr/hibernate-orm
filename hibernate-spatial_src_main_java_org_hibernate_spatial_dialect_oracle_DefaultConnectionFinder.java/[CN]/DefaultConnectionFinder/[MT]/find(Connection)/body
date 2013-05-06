@@ -2,14 +2,14 @@
   if (con == null) {
     return null;
   }
-  if (oracleConnectionClass.isInstance(con)) {
+  if (ORACLE_CONNECTION_CLASS.isInstance(con)) {
     return con;
   }
   for (  Method method : con.getClass().getMethods()) {
     if (method.getReturnType().isAssignableFrom(java.sql.Connection.class) && method.getParameterTypes().length == 0) {
       try {
         method.setAccessible(true);
-        Connection oc=find((Connection)(method.invoke(con,new Object[]{})));
+        final Connection oc=find((Connection)(method.invoke(con,new Object[]{})));
         if (oc == null) {
           throw new FinderException(String.format("Tried retrieving OracleConnection from %s using method %s, but received null.",con.getClass().getCanonicalName(),method.getName()));
         }

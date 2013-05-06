@@ -1,7 +1,7 @@
 {
   List<LinearRing> holes=new ArrayList<LinearRing>();
-  List<Polygon> polygons=new ArrayList<Polygon>();
-  ElemInfo info=SDOGeom.getInfo();
+  final List<Polygon> polygons=new ArrayList<Polygon>();
+  final ElemInfo info=sdoGeom.getInfo();
   LinearRing shell=null;
   int i=0;
   while (i < info.getSize()) {
@@ -9,18 +9,18 @@
     int numCompounds=0;
     if (info.getElementType(i).isCompound()) {
       numCompounds=info.getNumCompounds(i);
-      cs=add(cs,getCompoundCSeq(i + 1,i + numCompounds,SDOGeom));
+      cs=add(cs,getCompoundCSeq(i + 1,i + numCompounds,sdoGeom));
     }
  else {
-      cs=add(cs,getElementCSeq(i,SDOGeom,false));
+      cs=add(cs,getElementCSeq(i,sdoGeom,false));
     }
     if (info.getElementType(i).isInteriorRing()) {
-      LinearRing lr=getGeometryFactory().createLinearRing(cs);
+      final LinearRing lr=getGeometryFactory().createLinearRing(cs);
       holes.add(lr);
     }
  else {
       if (shell != null) {
-        Polygon polygon=getGeometryFactory().createPolygon(shell,holes.toArray(new LinearRing[holes.size()]));
+        final Polygon polygon=getGeometryFactory().createPolygon(shell,holes.toArray(new LinearRing[holes.size()]));
         polygons.add(polygon);
         shell=null;
       }
@@ -30,9 +30,8 @@
     i+=1 + numCompounds;
   }
   if (shell != null) {
-    Polygon polygon=getGeometryFactory().createPolygon(shell,holes.toArray(new LinearRing[holes.size()]));
+    final Polygon polygon=getGeometryFactory().createPolygon(shell,holes.toArray(new LinearRing[holes.size()]));
     polygons.add(polygon);
   }
-  MultiPolygon multiPolygon=getGeometryFactory().createMultiPolygon(polygons.toArray(new Polygon[polygons.size()]));
-  return multiPolygon;
+  return getGeometryFactory().createMultiPolygon(polygons.toArray(new Polygon[polygons.size()]));
 }

@@ -1,20 +1,20 @@
 {
-  ClassLoader loader=Thread.currentThread().getContextClassLoader();
-  String propfileLoc=getClass().getCanonicalName() + ".properties";
-  URL propfile=loader.getResource(propfileLoc);
+  final ClassLoader loader=Thread.currentThread().getContextClassLoader();
+  final String propfileLoc=getClass().getCanonicalName() + ".properties";
+  final URL propfile=loader.getResource(propfileLoc);
   if (propfile != null) {
     InputStream is=null;
     LOG.info("properties file found: " + propfile);
     try {
       loader.getResource(getClass().getCanonicalName());
       is=propfile.openStream();
-      PropertyFileReader reader=new PropertyFileReader(is);
-      Properties props=reader.getProperties();
-      String ccn=props.getProperty(CONNECTION_FINDER_PROPERTY);
+      final PropertyFileReader reader=new PropertyFileReader(is);
+      final Properties props=reader.getProperties();
+      final String ccn=props.getProperty(CONNECTION_FINDER_PROPERTY);
       if (ccn != null) {
         try {
-          Class clazz=Thread.currentThread().getContextClassLoader().loadClass(ccn);
-          ConnectionFinder cf=(ConnectionFinder)clazz.newInstance();
+          final Class clazz=Thread.currentThread().getContextClassLoader().loadClass(ccn);
+          final ConnectionFinder cf=(ConnectionFinder)clazz.newInstance();
           OracleJDBCTypeFactory.setConnectionFinder(cf);
           LOG.info("Setting ConnectionFinder to " + ccn);
         }
