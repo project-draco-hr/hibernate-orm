@@ -1,3 +1,20 @@
 {
-  this(session,procedureName,collectQueryReturns(resultClasses));
+  super(session);
+  this.procedureName=procedureName;
+  final List<NativeSQLQueryReturn> collectedQueryReturns=new ArrayList<NativeSQLQueryReturn>();
+  final Set<String> collectedQuerySpaces=new HashSet<String>();
+  Util.resolveResultClasses(new Util.ResultClassesResolutionContext(){
+    @Override public SessionFactoryImplementor getSessionFactory(){
+      return session.getFactory();
+    }
+    @Override public void addQueryReturns(    NativeSQLQueryReturn... queryReturns){
+      Collections.addAll(collectedQueryReturns,queryReturns);
+    }
+    @Override public void addQuerySpaces(    String... spaces){
+      Collections.addAll(collectedQuerySpaces,spaces);
+    }
+  }
+,resultClasses);
+  this.queryReturns=collectedQueryReturns.toArray(new NativeSQLQueryReturn[collectedQueryReturns.size()]);
+  this.synchronizedQuerySpaces=collectedQuerySpaces;
 }
