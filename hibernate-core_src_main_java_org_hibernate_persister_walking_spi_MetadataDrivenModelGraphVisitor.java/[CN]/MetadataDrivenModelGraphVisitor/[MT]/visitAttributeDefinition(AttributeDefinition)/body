@@ -2,8 +2,9 @@
   final PropertyPath subPath=currentPropertyPath.append(attributeDefinition.getName());
   log.debug("Visiting attribute path : " + subPath.getFullPath());
   final boolean continueWalk;
-  if (attributeDefinition.getType().isAssociationType()) {
-    continueWalk=!isDuplicateAssociationKey(((AssociationAttributeDefinition)attributeDefinition).getAssociationKey()) && strategy.startingAttribute(attributeDefinition);
+  if (attributeDefinition.getType().isAssociationType() && isDuplicateAssociationKey(((AssociationAttributeDefinition)attributeDefinition).getAssociationKey())) {
+    log.debug("Property path deemed to be circular : " + subPath.getFullPath());
+    continueWalk=false;
   }
  else {
     continueWalk=strategy.startingAttribute(attributeDefinition);
