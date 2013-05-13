@@ -1,0 +1,47 @@
+{
+  final String cardId="ace-of-spades";
+  Session session=openSession();
+  session.beginTransaction();
+  Card card=new Card(cardId);
+  final CardField cardField=new CardField(card,1);
+  session.persist(card);
+  session.persist(cardField);
+  session.getTransaction().commit();
+  session.close();
+  session=openSession();
+  session.beginTransaction();
+  Card cardProxy=(Card)session.load(Card.class,cardId);
+  final CardFieldPK cardFieldPK=new CardFieldPK(cardProxy,1);
+  CardField cardFieldGotten=(CardField)session.get(CardField.class,cardFieldPK);
+  session.getTransaction().commit();
+  session.close();
+  final EntityPersister entityPersister=sessionFactory().getEntityPersister(CardField.class.getName());
+  final List results=getResults(entityPersister,new Callback(){
+    @Override public void bind(    PreparedStatement ps) throws SQLException {
+      ps.setString(1,cardField.primaryKey.card.id);
+      ps.setInt(2,cardField.primaryKey.fieldNumber);
+    }
+    @Override public QueryParameters getQueryParameters(){
+      QueryParameters qp=new QueryParameters();
+      qp.setPositionalParameterTypes(new Type[]{entityPersister.getIdentifierType()});
+      qp.setPositionalParameterValues(new Object[]{cardFieldPK});
+      qp.setOptionalObject(null);
+      qp.setOptionalEntityName(entityPersister.getEntityName());
+      qp.setOptionalId(cardFieldPK);
+      qp.setLockOptions(LockOptions.NONE);
+      return qp;
+    }
+  }
+);
+  assertEquals(1,results.size());
+  Object result=results.get(0);
+  assertNotNull(result);
+  CardField cardFieldWork=ExtraAssertions.assertTyping(CardField.class,result);
+  assertEquals(cardFieldGotten,cardFieldWork);
+  session=openSession();
+  session.beginTransaction();
+  session.createQuery("delete CardField").executeUpdate();
+  session.createQuery("delete Card").executeUpdate();
+  session.getTransaction().commit();
+  session.close();
+}

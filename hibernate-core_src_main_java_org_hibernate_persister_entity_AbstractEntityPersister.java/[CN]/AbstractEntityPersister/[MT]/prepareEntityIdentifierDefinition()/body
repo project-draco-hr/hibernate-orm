@@ -1,27 +1,13 @@
 {
   final Type idType=getIdentifierType();
   if (!idType.isComponentType()) {
-    entityIdentifierDefinition=buildSimpleEncapsulatedIdentifierDefinition();
+    entityIdentifierDefinition=EntityIdentifierDefinitionHelper.buildSimpleEncapsulatedIdentifierDefinition(this);
     return;
   }
   final CompositeType cidType=(CompositeType)idType;
   if (!cidType.isEmbedded()) {
-    entityIdentifierDefinition=buildEncapsulatedCompositeIdentifierDefinition();
+    entityIdentifierDefinition=EntityIdentifierDefinitionHelper.buildEncapsulatedCompositeIdentifierDefinition(this);
     return;
   }
-  entityIdentifierDefinition=new NonEncapsulatedEntityIdentifierDefinition(){
-    @Override public Iterable<AttributeDefinition> getAttributes(){
-      throw new NotYetImplementedException();
-    }
-    @Override public Class getSeparateIdentifierMappingClass(){
-      throw new NotYetImplementedException();
-    }
-    @Override public boolean isEncapsulated(){
-      return false;
-    }
-    @Override public EntityDefinition getEntityDefinition(){
-      return AbstractEntityPersister.this;
-    }
-  }
-;
+  entityIdentifierDefinition=EntityIdentifierDefinitionHelper.buildNonEncapsulatedCompositeIdentifierDefinition(this);
 }

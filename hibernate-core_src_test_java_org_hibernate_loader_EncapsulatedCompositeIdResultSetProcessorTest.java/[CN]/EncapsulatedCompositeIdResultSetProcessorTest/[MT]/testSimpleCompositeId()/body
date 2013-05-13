@@ -1,0 +1,37 @@
+{
+  Session session=openSession();
+  session.beginTransaction();
+  Parent parent=new Parent();
+  parent.id=new ParentPK();
+  parent.id.firstName="Joe";
+  parent.id.lastName="Blow";
+  session.save(parent);
+  session.getTransaction().commit();
+  session.close();
+  session=openSession();
+  session.beginTransaction();
+  Parent parentGotten=(Parent)session.get(Parent.class,parent.id);
+  assertEquals(parent,parentGotten);
+  session.getTransaction().commit();
+  session.close();
+  final List results=getResults(sessionFactory().getEntityPersister(Parent.class.getName()),new Callback(){
+    @Override public void bind(    PreparedStatement ps) throws SQLException {
+      ps.setString(1,"Joe");
+      ps.setString(2,"Blow");
+    }
+    @Override public QueryParameters getQueryParameters(){
+      return new QueryParameters();
+    }
+  }
+);
+  assertEquals(1,results.size());
+  Object result=results.get(0);
+  assertNotNull(result);
+  Parent parentWork=ExtraAssertions.assertTyping(Parent.class,result);
+  assertEquals(parent,parentWork);
+  session=openSession();
+  session.beginTransaction();
+  session.createQuery("delete Parent").executeUpdate();
+  session.getTransaction().commit();
+  session.close();
+}
