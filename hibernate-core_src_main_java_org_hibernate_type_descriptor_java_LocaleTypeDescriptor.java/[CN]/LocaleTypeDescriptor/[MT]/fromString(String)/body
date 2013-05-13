@@ -1,12 +1,32 @@
 {
-  final StringTokenizer tokens=new StringTokenizer(string,"_");
-  final String language=tokens.hasMoreTokens() && string.charAt(0) != '_' ? tokens.nextToken() : "";
-  final String country=tokens.hasMoreTokens() && string.charAt(string.indexOf(language) + language.length() + 1) != '_' ? tokens.nextToken() : "";
-  String variant="";
-  String sep="";
-  while (tokens.hasMoreTokens()) {
-    variant+=sep + tokens.nextToken();
-    sep="_";
+  if (string == null || string.isEmpty()) {
+    return null;
   }
-  return new Locale(language,country,variant);
+  int found=0, position=0;
+  char[] chars=string.toCharArray();
+  for (int i=0; i < chars.length; i++) {
+    if (chars[i] == '_') {
+switch (found) {
+case 0:
+        string=new String(chars,position,i - position);
+      position=i + 1;
+    break;
+case 1:
+  if (chars.length > i + 1) {
+    return new Locale(string,new String(chars,position,i - position),new String(chars,i + 1,chars.length - i - 1));
+  }
+ else {
+    return new Locale(string,new String(chars,position,i - position),"");
+  }
+}
+found++;
+}
+}
+switch (found) {
+case 0:
+return new Locale(string);
+case 1:
+return new Locale(string,new String(chars,position,chars.length - position));
+}
+return null;
 }
