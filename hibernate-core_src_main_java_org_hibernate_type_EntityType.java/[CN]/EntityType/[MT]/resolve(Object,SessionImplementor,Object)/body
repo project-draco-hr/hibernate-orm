@@ -2,18 +2,13 @@
   if (isNotEmbedded(session)) {
     return value;
   }
-  if (value == null) {
-    return null;
-  }
- else {
-    if (isNull(owner,session)) {
-      return null;
-    }
+  if (value != null && !isNull(owner,session)) {
     if (isReferenceToPrimaryKey()) {
       return resolveIdentifier((Serializable)value,session);
     }
- else {
+ else     if (uniqueKeyPropertyName != null) {
       return loadByUniqueKey(getAssociatedEntityName(),uniqueKeyPropertyName,value,session);
     }
   }
+  return null;
 }

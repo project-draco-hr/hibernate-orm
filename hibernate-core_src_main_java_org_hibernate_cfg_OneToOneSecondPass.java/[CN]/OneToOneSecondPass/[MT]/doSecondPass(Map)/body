@@ -85,14 +85,18 @@
  else {
         propertyHolder.addProperty(prop,inferredData.getDeclaringClass());
       }
+      value.setReferencedPropertyName(mappedBy);
       boolean referencesDerivedId=false;
       try {
         referencesDerivedId=otherSide.getIdentifier() instanceof Component && ((Component)otherSide.getIdentifier()).getProperty(mappedBy) != null;
       }
  catch (      MappingException e) {
       }
-      String referencedPropertyName=referencesDerivedId ? null : mappedBy;
-      value.setReferencedPropertyName(referencedPropertyName);
+      boolean referenceToPrimaryKey=referencesDerivedId || mappedBy == null;
+      value.setReferenceToPrimaryKey(referenceToPrimaryKey);
+      if (referencesDerivedId) {
+        ((ManyToOne)otherSideProperty.getValue()).setReferenceToPrimaryKey(false);
+      }
       String propertyRef=value.getReferencedPropertyName();
       if (propertyRef != null) {
         mappings.addUniquePropertyReference(value.getReferencedEntityName(),propertyRef);
