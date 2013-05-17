@@ -12,11 +12,30 @@
       }
       return getElementPersister();
     }
-    @Override public CompositionDefinition toCompositeDefinition(){
+    @Override public CompositionElementDefinition toCompositeElementDefinition(){
+      final String propertyName=role.substring(entityName.length() + 1);
+      final int propertyIndex=ownerPersister.getEntityMetamodel().getPropertyIndex(propertyName);
       if (!getType().isComponentType()) {
         throw new IllegalStateException("Cannot treat entity collection element type as composite");
       }
-      throw new NotYetImplementedException();
+      return new CompositionElementDefinition(){
+        @Override public String getName(){
+          return "";
+        }
+        @Override public Type getType(){
+          return getElementType();
+        }
+        @Override public AttributeSource getSource(){
+          return getOwnerEntityPersister();
+        }
+        @Override public Iterable<AttributeDefinition> getAttributes(){
+          return CompositionSingularSubAttributesHelper.getCompositionElementSubAttributes(this);
+        }
+        @Override public CollectionDefinition getCollectionDefinition(){
+          return AbstractCollectionPersister.this;
+        }
+      }
+;
     }
   }
 ;

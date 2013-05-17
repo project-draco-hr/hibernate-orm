@@ -1,0 +1,45 @@
+{
+  return new Iterable<AttributeDefinition>(){
+    @Override public Iterator<AttributeDefinition> iterator(){
+      return new Iterator<AttributeDefinition>(){
+        private final int numberOfAttributes=getType().getSubtypes().length;
+        private int currentSubAttributeNumber=0;
+        private int currentColumnPosition=0;
+        @Override public boolean hasNext(){
+          return currentSubAttributeNumber < numberOfAttributes;
+        }
+        @Override public AttributeDefinition next(){
+          final int subAttributeNumber=currentSubAttributeNumber;
+          currentSubAttributeNumber++;
+          final String name=getType().getPropertyNames()[subAttributeNumber];
+          final Type type=getType().getSubtypes()[subAttributeNumber];
+          int columnPosition=currentColumnPosition;
+          currentColumnPosition+=type.getColumnSpan(sessionFactory());
+          if (type.isAssociationType()) {
+            final AssociationKey associationKey;
+            final AssociationType aType=(AssociationType)type;
+            final Joinable joinable=aType.getAssociatedJoinable(sessionFactory());
+            if (aType.getForeignKeyDirection() == ForeignKeyDirection.FOREIGN_KEY_FROM_PARENT) {
+              associationKey=new AssociationKey(getLHSTableName(aType,attributeNumber(),(OuterJoinLoadable)locateOwningPersister()),getLHSColumnNames(aType,attributeNumber(),columnPosition,(OuterJoinLoadable)locateOwningPersister(),sessionFactory()));
+            }
+ else {
+              associationKey=new AssociationKey(joinable.getTableName(),getRHSColumnNames(aType,sessionFactory()));
+            }
+            return new CompositeBasedAssociationAttribute(AbstractCompositionAttribute.this,sessionFactory(),subAttributeNumber,name,(AssociationType)type,new BaselineAttributeInformation.Builder().setInsertable(AbstractCompositionAttribute.this.isInsertable()).setUpdateable(AbstractCompositionAttribute.this.isUpdateable()).setInsertGenerated(AbstractCompositionAttribute.this.isInsertGenerated()).setUpdateGenerated(AbstractCompositionAttribute.this.isUpdateGenerated()).setNullable(getType().getPropertyNullability()[subAttributeNumber]).setDirtyCheckable(true).setVersionable(AbstractCompositionAttribute.this.isVersionable()).setCascadeStyle(getType().getCascadeStyle(subAttributeNumber)).setFetchMode(getType().getFetchMode(subAttributeNumber)).createInformation(),AbstractCompositionAttribute.this.attributeNumber(),associationKey);
+          }
+ else           if (type.isComponentType()) {
+            return new CompositionBasedCompositionAttribute(AbstractCompositionAttribute.this,sessionFactory(),subAttributeNumber,name,(CompositeType)type,new BaselineAttributeInformation.Builder().setInsertable(AbstractCompositionAttribute.this.isInsertable()).setUpdateable(AbstractCompositionAttribute.this.isUpdateable()).setInsertGenerated(AbstractCompositionAttribute.this.isInsertGenerated()).setUpdateGenerated(AbstractCompositionAttribute.this.isUpdateGenerated()).setNullable(getType().getPropertyNullability()[subAttributeNumber]).setDirtyCheckable(true).setVersionable(AbstractCompositionAttribute.this.isVersionable()).setCascadeStyle(getType().getCascadeStyle(subAttributeNumber)).setFetchMode(getType().getFetchMode(subAttributeNumber)).createInformation());
+          }
+ else {
+            return new CompositeBasedBasicAttribute(AbstractCompositionAttribute.this,sessionFactory(),subAttributeNumber,name,type,new BaselineAttributeInformation.Builder().setInsertable(AbstractCompositionAttribute.this.isInsertable()).setUpdateable(AbstractCompositionAttribute.this.isUpdateable()).setInsertGenerated(AbstractCompositionAttribute.this.isInsertGenerated()).setUpdateGenerated(AbstractCompositionAttribute.this.isUpdateGenerated()).setNullable(getType().getPropertyNullability()[subAttributeNumber]).setDirtyCheckable(true).setVersionable(AbstractCompositionAttribute.this.isVersionable()).setCascadeStyle(getType().getCascadeStyle(subAttributeNumber)).setFetchMode(getType().getFetchMode(subAttributeNumber)).createInformation());
+          }
+        }
+        @Override public void remove(){
+          throw new UnsupportedOperationException("Remove operation not supported here");
+        }
+      }
+;
+    }
+  }
+;
+}

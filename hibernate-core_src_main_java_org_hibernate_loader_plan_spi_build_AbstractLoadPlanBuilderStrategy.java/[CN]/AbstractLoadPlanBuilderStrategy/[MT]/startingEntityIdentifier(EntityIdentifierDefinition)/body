@@ -6,7 +6,12 @@
   }
   final FetchOwner identifierAttributeCollector;
   if (entityIdentifierDefinition.isEncapsulated()) {
-    identifierAttributeCollector=new EncapsulatedIdentifierAttributeCollector(entityReference);
+    if (entityIdentifierDefinition.getEntityDefinition().getEntityPersister().getIdentifierType().isComponentType()) {
+      identifierAttributeCollector=new EncapsulatedCompositeIdentifierAttributeCollector(entityReference);
+    }
+ else {
+      identifierAttributeCollector=new EncapsulatedIdentifierAttributeCollector(entityReference);
+    }
   }
  else {
     identifierAttributeCollector=new NonEncapsulatedIdentifierAttributeCollector(entityReference);

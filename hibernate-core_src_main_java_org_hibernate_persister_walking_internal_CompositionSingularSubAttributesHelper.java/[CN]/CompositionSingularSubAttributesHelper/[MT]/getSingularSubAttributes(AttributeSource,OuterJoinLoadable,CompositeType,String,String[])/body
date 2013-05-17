@@ -1,0 +1,96 @@
+{
+  return new Iterable<AttributeDefinition>(){
+    @Override public Iterator<AttributeDefinition> iterator(){
+      return new Iterator<AttributeDefinition>(){
+        private final int numberOfAttributes=compositeType.getSubtypes().length;
+        private int currentSubAttributeNumber=0;
+        private int currentColumnPosition=0;
+        @Override public boolean hasNext(){
+          return currentSubAttributeNumber < numberOfAttributes;
+        }
+        @Override public AttributeDefinition next(){
+          final int subAttributeNumber=currentSubAttributeNumber;
+          currentSubAttributeNumber++;
+          final String name=compositeType.getPropertyNames()[subAttributeNumber];
+          final Type type=compositeType.getSubtypes()[subAttributeNumber];
+          final int columnPosition=currentColumnPosition;
+          final int columnSpan=type.getColumnSpan(ownerEntityPersister.getFactory());
+          final String[] subAttributeLhsColumns=ArrayHelper.slice(lhsColumns,columnPosition,columnSpan);
+          currentColumnPosition+=columnSpan;
+          if (type.isAssociationType()) {
+            final AssociationType aType=(AssociationType)type;
+            return new AssociationAttributeDefinition(){
+              @Override public AssociationKey getAssociationKey(){
+                return new AssociationKey(lhsTableName,subAttributeLhsColumns);
+              }
+              @Override public boolean isCollection(){
+                return false;
+              }
+              @Override public EntityDefinition toEntityDefinition(){
+                return (EntityPersister)aType.getAssociatedJoinable(ownerEntityPersister.getFactory());
+              }
+              @Override public CollectionDefinition toCollectionDefinition(){
+                throw new WalkingException("A collection cannot be mapped to a composite ID sub-attribute.");
+              }
+              @Override public FetchStrategy determineFetchPlan(              LoadQueryInfluencers loadQueryInfluencers,              PropertyPath propertyPath){
+                return new FetchStrategy(FetchTiming.IMMEDIATE,FetchStyle.JOIN);
+              }
+              @Override public CascadeStyle determineCascadeStyle(){
+                return CascadeStyles.NONE;
+              }
+              @Override public HydratedCompoundValueHandler getHydratedCompoundValueExtractor(){
+                return null;
+              }
+              @Override public String getName(){
+                return name;
+              }
+              @Override public Type getType(){
+                return type;
+              }
+              @Override public AttributeSource getSource(){
+                return source;
+              }
+            }
+;
+          }
+ else           if (type.isComponentType()) {
+            return new CompositionDefinition(){
+              @Override public String getName(){
+                return name;
+              }
+              @Override public Type getType(){
+                return type;
+              }
+              @Override public AttributeSource getSource(){
+                return this;
+              }
+              @Override public Iterable<AttributeDefinition> getAttributes(){
+                return CompositionSingularSubAttributesHelper.getSingularSubAttributes(this,ownerEntityPersister,(CompositeType)type,lhsTableName,subAttributeLhsColumns);
+              }
+            }
+;
+          }
+ else {
+            return new AttributeDefinition(){
+              @Override public String getName(){
+                return name;
+              }
+              @Override public Type getType(){
+                return type;
+              }
+              @Override public AttributeSource getSource(){
+                return source;
+              }
+            }
+;
+          }
+        }
+        @Override public void remove(){
+          throw new UnsupportedOperationException("Remove operation not supported here");
+        }
+      }
+;
+    }
+  }
+;
+}

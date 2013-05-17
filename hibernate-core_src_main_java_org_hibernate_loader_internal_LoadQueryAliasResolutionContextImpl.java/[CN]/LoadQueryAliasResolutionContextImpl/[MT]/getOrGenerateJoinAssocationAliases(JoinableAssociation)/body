@@ -6,9 +6,18 @@
     if (EntityReference.class.isInstance(currentFetch.getOwner())) {
       lhsAlias=resolveEntityTableAlias((EntityReference)currentFetch.getOwner());
     }
- else {
-      throw new NotYetImplementedException("Cannot determine LHS alias for a FetchOwner that is not an EntityReference yet.");
+ else     if (CompositeElementGraph.class.isInstance(currentFetch.getOwner())) {
+      CompositeElementGraph compositeElementGraph=(CompositeElementGraph)currentFetch.getOwner();
+      lhsAlias=resolveCollectionTableAlias(compositeElementGraph.getCollectionReference());
     }
+ else     if (CompositeIndexGraph.class.isInstance(currentFetch.getOwner())) {
+      CompositeIndexGraph compositeIndexGraph=(CompositeIndexGraph)currentFetch.getOwner();
+      lhsAlias=resolveCollectionTableAlias(compositeIndexGraph.getCollectionReference());
+    }
+ else {
+      throw new NotYetImplementedException("Cannot determine LHS alias for FetchOwner.");
+    }
+    final String[] aliasedLhsColumnNames=StringHelper.qualify(lhsAlias,currentFetch.getColumnNames());
     final String rhsAlias;
     if (EntityReference.class.isInstance(currentFetch)) {
       rhsAlias=resolveEntityTableAlias((EntityReference)currentFetch);
@@ -19,9 +28,6 @@
  else {
       throw new NotYetImplementedException("Cannot determine RHS alis for a fetch that is not an EntityReference or CollectionReference.");
     }
-    final OuterJoinLoadable fetchSourcePersister=(OuterJoinLoadable)currentFetch.getOwner().retrieveFetchSourcePersister();
-    final int propertyNumber=fetchSourcePersister.getEntityMetamodel().getPropertyIndex(currentFetch.getOwnerPropertyName());
-    final String[] aliasedLhsColumnNames=JoinHelper.getAliasedLHSColumnNames(joinableAssociation.getAssociationType(),lhsAlias,propertyNumber,fetchSourcePersister,sessionFactory);
     aliases=new JoinableAssociationAliasesImpl(lhsAlias,aliasedLhsColumnNames,rhsAlias);
     aliasesByJoinableAssociation.put(joinableAssociation,aliases);
   }
