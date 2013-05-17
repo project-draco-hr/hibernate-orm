@@ -12,8 +12,22 @@
 ;
   thread.start();
   latch.await();
-  em.persist(new Book("The Book of Foo",1));
-  assertEquals("The background thread did not clear the session as expected!",0,em.createQuery("from Book").getResultList().size());
-  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
+  boolean caught=false;
+  try {
+    em.persist(new Book("The Book of Foo",1));
+  }
+ catch (  PersistenceException e) {
+    caught=e.getCause().getClass().equals(HibernateException.class);
+  }
+  assertTrue(caught);
+  caught=false;
+  try {
+    em.createQuery("from Book").getResultList();
+  }
+ catch (  PersistenceException e) {
+    caught=e.getCause().getClass().equals(GenericJDBCException.class);
+  }
+  assertTrue(caught);
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().rollback();
   em.close();
 }
