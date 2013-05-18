@@ -21,7 +21,7 @@
     try {
       final Connection connection=jdbcConnectionAccess.obtainConnection();
       try {
-        DatabaseMetaData meta=connection.getMetaData();
+        final DatabaseMetaData meta=connection.getMetaData();
         if (LOG.isDebugEnabled()) {
           LOG.debugf("Database ->\n" + "       name : %s\n" + "    version : %s\n"+ "      major : %s\n"+ "      minor : %s",meta.getDatabaseProductName(),meta.getDatabaseProductVersion(),meta.getDatabaseMajorVersion(),meta.getDatabaseMinorVersion());
           LOG.debugf("Driver ->\n" + "       name : %s\n" + "    version : %s\n"+ "      major : %s\n"+ "      minor : %s",meta.getDriverName(),meta.getDriverVersion(),meta.getDriverMajorVersion(),meta.getDriverMinorVersion());
@@ -37,7 +37,7 @@
         extraKeywordsString=meta.getSQLKeywords();
         sqlStateType=meta.getSQLStateType();
         lobLocatorUpdateCopy=meta.locatorsUpdateCopy();
-        typeInfoSet.addAll(TypeInfoExtracter.extractTypeInfo(meta));
+        typeInfoSet.addAll(TypeInfo.extractTypeInfo(meta));
         dialect=dialectFactory.buildDialect(configValues,connection);
         catalogName=connection.getCatalog();
         final SchemaNameResolver schemaNameResolver=determineExplicitSchemaNameResolver(configValues);
