@@ -1,0 +1,21 @@
+{
+  final GenerationState generationState=locateGenerationState(callback.getTenantIdentifier());
+  if (generationState.hiValue == null) {
+    generationState.value=callback.getNextValue();
+    if (generationState.value.lt(1)) {
+      log.pooledOptimizerReportedInitialValue(generationState.value);
+    }
+    if ((initialValue == -1 && generationState.value.lt(incrementSize)) || generationState.value.eq(initialValue)) {
+      generationState.hiValue=callback.getNextValue();
+    }
+ else {
+      generationState.hiValue=generationState.value;
+      generationState.value=generationState.hiValue.copy().subtract(incrementSize);
+    }
+  }
+ else   if (!generationState.hiValue.gt(generationState.value)) {
+    generationState.hiValue=callback.getNextValue();
+    generationState.value=generationState.hiValue.copy().subtract(incrementSize);
+  }
+  return generationState.value.makeValueThenIncrement();
+}

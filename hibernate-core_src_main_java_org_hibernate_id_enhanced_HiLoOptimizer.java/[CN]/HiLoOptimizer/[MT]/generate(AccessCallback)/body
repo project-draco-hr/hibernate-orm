@@ -1,0 +1,16 @@
+{
+  final GenerationState generationState=locateGenerationState(callback.getTenantIdentifier());
+  if (generationState.lastSourceValue == null) {
+    generationState.lastSourceValue=callback.getNextValue();
+    while (generationState.lastSourceValue.lt(1)) {
+      generationState.lastSourceValue=callback.getNextValue();
+    }
+    generationState.upperLimit=generationState.lastSourceValue.copy().multiplyBy(incrementSize).increment();
+    generationState.value=generationState.upperLimit.copy().subtract(incrementSize);
+  }
+ else   if (!generationState.upperLimit.gt(generationState.value)) {
+    generationState.lastSourceValue=callback.getNextValue();
+    generationState.upperLimit=generationState.lastSourceValue.copy().multiplyBy(incrementSize).increment();
+  }
+  return generationState.value.makeValueThenIncrement();
+}

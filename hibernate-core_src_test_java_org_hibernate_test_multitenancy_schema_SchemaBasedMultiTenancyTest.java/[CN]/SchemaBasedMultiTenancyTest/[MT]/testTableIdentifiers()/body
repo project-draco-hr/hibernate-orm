@@ -1,0 +1,27 @@
+{
+  Session session=getNewSession("jboss");
+  session.beginTransaction();
+  Invoice orderJboss=new Invoice();
+  session.save(orderJboss);
+  Assert.assertEquals(Long.valueOf(1),orderJboss.getId());
+  session.getTransaction().commit();
+  session.close();
+  session=getNewSession("acme");
+  session.beginTransaction();
+  Invoice orderAcme=new Invoice();
+  session.save(orderAcme);
+  Assert.assertEquals(Long.valueOf(1),orderAcme.getId());
+  session.getTransaction().commit();
+  session.close();
+  session=getNewSession("jboss");
+  session.beginTransaction();
+  session.delete(orderJboss);
+  session.getTransaction().commit();
+  session.close();
+  session=getNewSession("acme");
+  session.beginTransaction();
+  session.delete(orderAcme);
+  session.getTransaction().commit();
+  session.close();
+  sessionFactory.getStatisticsImplementor().clear();
+}

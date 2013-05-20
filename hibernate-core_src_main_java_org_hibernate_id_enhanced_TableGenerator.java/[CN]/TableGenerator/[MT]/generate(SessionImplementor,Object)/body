@@ -4,14 +4,14 @@
     @Override public IntegralDataTypeHolder getNextValue(){
       return session.getTransactionCoordinator().getTransaction().createIsolationDelegate().delegateWork(new AbstractReturningWork<IntegralDataTypeHolder>(){
         @Override public IntegralDataTypeHolder execute(        Connection connection) throws SQLException {
-          IntegralDataTypeHolder value=IdentifierGeneratorHelper.getIntegralDataTypeHolder(identifierType.getReturnedClass());
+          final IntegralDataTypeHolder value=IdentifierGeneratorHelper.getIntegralDataTypeHolder(identifierType.getReturnedClass());
           int rows;
           do {
             statementLogger.logStatement(selectQuery,FormatStyle.BASIC.getFormatter());
             PreparedStatement selectPS=connection.prepareStatement(selectQuery);
             try {
               selectPS.setString(1,segmentValue);
-              ResultSet selectRS=selectPS.executeQuery();
+              final ResultSet selectRS=selectPS.executeQuery();
               if (!selectRS.next()) {
                 value.initialize(initialValue);
                 PreparedStatement insertPS=null;
@@ -41,7 +41,7 @@
               selectPS.close();
             }
             statementLogger.logStatement(updateQuery,FormatStyle.BASIC.getFormatter());
-            PreparedStatement updatePS=connection.prepareStatement(updateQuery);
+            final PreparedStatement updatePS=connection.prepareStatement(updateQuery);
             try {
               final IntegralDataTypeHolder updateValue=value.copy();
               if (optimizer.applyIncrementSizeToSourceValues()) {
@@ -69,6 +69,9 @@
         }
       }
 ,true);
+    }
+    @Override public String getTenantIdentifier(){
+      return session.getTenantIdentifier();
     }
   }
 );

@@ -1,15 +1,13 @@
 {
-  String sequencePerEntitySuffix=ConfigurationHelper.getString(CONFIG_SEQUENCE_PER_ENTITY_SUFFIX,params,DEF_SEQUENCE_SUFFIX);
+  final String sequencePerEntitySuffix=ConfigurationHelper.getString(CONFIG_SEQUENCE_PER_ENTITY_SUFFIX,params,DEF_SEQUENCE_SUFFIX);
   String sequenceName=ConfigurationHelper.getBoolean(CONFIG_PREFER_SEQUENCE_PER_ENTITY,params,false) ? params.getProperty(JPA_ENTITY_NAME) + sequencePerEntitySuffix : DEF_SEQUENCE_NAME;
-  ObjectNameNormalizer normalizer=(ObjectNameNormalizer)params.get(IDENTIFIER_NORMALIZER);
+  final ObjectNameNormalizer normalizer=(ObjectNameNormalizer)params.get(IDENTIFIER_NORMALIZER);
   sequenceName=ConfigurationHelper.getString(SEQUENCE_PARAM,params,sequenceName);
   if (sequenceName.indexOf('.') < 0) {
     sequenceName=normalizer.normalizeIdentifierQuoting(sequenceName);
-    String schemaName=params.getProperty(SCHEMA);
-    String catalogName=params.getProperty(CATALOG);
+    final String schemaName=params.getProperty(SCHEMA);
+    final String catalogName=params.getProperty(CATALOG);
     sequenceName=Table.qualify(dialect.quote(catalogName),dialect.quote(schemaName),dialect.quote(sequenceName));
-  }
- else {
   }
   return sequenceName;
 }

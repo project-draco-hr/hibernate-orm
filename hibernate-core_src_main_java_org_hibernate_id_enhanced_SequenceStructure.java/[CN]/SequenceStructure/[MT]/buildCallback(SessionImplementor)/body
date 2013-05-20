@@ -3,12 +3,12 @@
     @Override public IntegralDataTypeHolder getNextValue(){
       accessCounter++;
       try {
-        PreparedStatement st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql);
+        final PreparedStatement st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql);
         try {
-          ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(st);
+          final ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(st);
           try {
             rs.next();
-            IntegralDataTypeHolder value=IdentifierGeneratorHelper.getIntegralDataTypeHolder(numberType);
+            final IntegralDataTypeHolder value=IdentifierGeneratorHelper.getIntegralDataTypeHolder(numberType);
             value.initialize(rs,1);
             if (LOG.isDebugEnabled()) {
               LOG.debugf("Sequence value obtained: %s",value.makeValue());
@@ -30,6 +30,9 @@
  catch (      SQLException sqle) {
         throw session.getFactory().getSQLExceptionHelper().convert(sqle,"could not get next sequence value",sql);
       }
+    }
+    @Override public String getTenantIdentifier(){
+      return session.getTenantIdentifier();
     }
   }
 ;

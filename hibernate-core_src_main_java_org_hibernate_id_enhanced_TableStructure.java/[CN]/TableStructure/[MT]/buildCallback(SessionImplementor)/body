@@ -4,15 +4,15 @@
       return session.getTransactionCoordinator().getTransaction().createIsolationDelegate().delegateWork(new AbstractReturningWork<IntegralDataTypeHolder>(){
         @Override public IntegralDataTypeHolder execute(        Connection connection) throws SQLException {
           final SqlStatementLogger statementLogger=session.getFactory().getServiceRegistry().getService(JdbcServices.class).getSqlStatementLogger();
-          IntegralDataTypeHolder value=IdentifierGeneratorHelper.getIntegralDataTypeHolder(numberType);
+          final IntegralDataTypeHolder value=IdentifierGeneratorHelper.getIntegralDataTypeHolder(numberType);
           int rows;
           do {
             statementLogger.logStatement(selectQuery,FormatStyle.BASIC.getFormatter());
             PreparedStatement selectStatement=connection.prepareStatement(selectQuery);
             try {
-              ResultSet selectRS=selectStatement.executeQuery();
+              final ResultSet selectRS=selectStatement.executeQuery();
               if (!selectRS.next()) {
-                String err="could not read a hi value - you need to populate the table: " + tableName;
+                final String err="could not read a hi value - you need to populate the table: " + tableName;
                 LOG.error(err);
                 throw new IdentifierGenerationException(err);
               }
@@ -27,7 +27,7 @@
               selectStatement.close();
             }
             statementLogger.logStatement(updateQuery,FormatStyle.BASIC.getFormatter());
-            PreparedStatement updatePS=connection.prepareStatement(updateQuery);
+            final PreparedStatement updatePS=connection.prepareStatement(updateQuery);
             try {
               final int increment=applyIncrementSizeToSourceValues ? incrementSize : 1;
               final IntegralDataTypeHolder updateValue=value.copy().add(increment);
@@ -49,6 +49,9 @@
         }
       }
 ,true);
+    }
+    @Override public String getTenantIdentifier(){
+      return session.getTenantIdentifier();
     }
   }
 ;
