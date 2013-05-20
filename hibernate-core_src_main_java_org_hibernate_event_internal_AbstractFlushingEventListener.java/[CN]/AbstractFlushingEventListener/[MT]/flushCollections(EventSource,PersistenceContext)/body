@@ -23,6 +23,9 @@
       session.getInterceptor().onCollectionUpdate(coll,ce.getLoadedKey());
       actionQueue.addAction(new CollectionUpdateAction(coll,ce.getLoadedPersister(),ce.getLoadedKey(),ce.isSnapshotEmpty(coll),session));
     }
+    if (!coll.wasInitialized() && coll.hasQueuedOperations()) {
+      actionQueue.addAction(new QueuedOperationCollectionAction(coll,ce.getLoadedPersister(),ce.getLoadedKey(),session));
+    }
   }
   actionQueue.sortCollectionActions();
 }
