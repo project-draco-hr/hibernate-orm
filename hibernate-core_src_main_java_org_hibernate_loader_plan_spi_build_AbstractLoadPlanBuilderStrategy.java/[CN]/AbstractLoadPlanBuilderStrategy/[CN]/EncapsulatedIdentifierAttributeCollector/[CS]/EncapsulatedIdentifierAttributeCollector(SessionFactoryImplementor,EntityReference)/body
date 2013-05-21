@@ -1,0 +1,29 @@
+{
+  super(sessionFactory,entityReference);
+  this.propertyPath=((FetchOwner)entityReference).getPropertyPath();
+  final boolean isCompositeType=entityReference.getEntityPersister().getIdentifierType().isComponentType();
+  this.delegate=new FetchOwnerDelegate(){
+    @Override public boolean isNullable(    Fetch fetch){
+      if (!isCompositeType) {
+        throw new IllegalStateException("Non-composite ID cannot have fetches.");
+      }
+      return true;
+    }
+    @Override public Type getType(    Fetch fetch){
+      if (!isCompositeType) {
+        throw new IllegalStateException("Non-composite ID cannot have fetches.");
+      }
+      if (!fetch.getOwnerPropertyName().equals(entityReference.getEntityPersister().getIdentifierPropertyName())) {
+        throw new IllegalArgumentException(String.format("Fetch owner property name [%s] is not the same as the identifier prop" + fetch.getOwnerPropertyName(),entityReference.getEntityPersister().getIdentifierPropertyName()));
+      }
+      return entityReference.getEntityPersister().getIdentifierType();
+    }
+    @Override public String[] getColumnNames(    Fetch fetch){
+      if (!isCompositeType) {
+        throw new IllegalStateException("Non-composite ID cannot have fetches.");
+      }
+      return ((Loadable)entityReference.getEntityPersister()).getIdentifierColumnNames();
+    }
+  }
+;
+}
