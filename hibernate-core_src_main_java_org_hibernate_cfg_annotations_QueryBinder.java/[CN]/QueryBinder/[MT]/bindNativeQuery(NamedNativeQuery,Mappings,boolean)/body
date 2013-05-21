@@ -4,9 +4,9 @@
     throw new AnnotationException("A named query must have a name when used in class or package level");
   }
   String resultSetMapping=queryAnn.resultSetMapping();
-  QueryHint[] hints=queryAnn.hints();
+  QueryHintDefinition hints=new QueryHintDefinition(queryAnn.hints());
   String queryName=queryAnn.query();
-  NamedSQLQueryDefinitionBuilder builder=new NamedSQLQueryDefinitionBuilder(queryAnn.name()).setQuery(queryName).setQuerySpaces(null).setCacheable(getBoolean(queryName,"org.hibernate.cacheable",hints)).setCacheRegion(getString(queryName,"org.hibernate.cacheRegion",hints)).setTimeout(getTimeout(queryName,hints)).setFetchSize(getInteger(queryName,"org.hibernate.fetchSize",hints)).setFlushMode(getFlushMode(queryName,hints)).setCacheMode(getCacheMode(queryName,hints)).setReadOnly(getBoolean(queryName,"org.hibernate.readOnly",hints)).setComment(getString(queryName,"org.hibernate.comment",hints)).setParameterTypes(null).setCallable(getBoolean(queryName,"org.hibernate.callable",hints));
+  NamedSQLQueryDefinitionBuilder builder=new NamedSQLQueryDefinitionBuilder(queryAnn.name()).setQuery(queryName).setQuerySpaces(null).setCacheable(hints.getBoolean(queryName,QueryHints.CACHEABLE)).setCacheRegion(hints.getString(queryName,QueryHints.CACHE_REGION)).setTimeout(hints.getTimeout(queryName)).setFetchSize(hints.getInteger(queryName,QueryHints.FETCH_SIZE)).setFlushMode(hints.getFlushMode(queryName)).setCacheMode(hints.getCacheMode(queryName)).setReadOnly(hints.getBoolean(queryName,QueryHints.READ_ONLY)).setComment(hints.getString(queryName,QueryHints.COMMENT)).setParameterTypes(null).setCallable(hints.getBoolean(queryName,QueryHints.CALLABLE));
   if (!BinderHelper.isEmptyAnnotationValue(resultSetMapping)) {
     builder.setResultSetRef(resultSetMapping).createNamedQueryDefinition();
   }
