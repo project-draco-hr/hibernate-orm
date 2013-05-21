@@ -1,19 +1,19 @@
 {
-  SessionImplementor session=getLoadContext().getPersistenceContext().getSession();
+  final SessionImplementor session=getLoadContext().getPersistenceContext().getSession();
   if (!loadContexts.hasLoadingCollectionEntries() && localLoadingCollectionKeys.isEmpty()) {
     return;
   }
-  List matches=null;
-  Iterator iter=localLoadingCollectionKeys.iterator();
-  while (iter.hasNext()) {
-    final CollectionKey collectionKey=(CollectionKey)iter.next();
+  List<LoadingCollectionEntry> matches=null;
+  final Iterator itr=localLoadingCollectionKeys.iterator();
+  while (itr.hasNext()) {
+    final CollectionKey collectionKey=(CollectionKey)itr.next();
     final LoadingCollectionEntry lce=loadContexts.locateLoadingCollectionEntry(collectionKey);
     if (lce == null) {
       LOG.loadingCollectionKeyNotFound(collectionKey);
     }
  else     if (lce.getResultSet() == resultSet && lce.getPersister() == persister) {
       if (matches == null) {
-        matches=new ArrayList();
+        matches=new ArrayList<LoadingCollectionEntry>();
       }
       matches.add(lce);
       if (lce.getCollection().getOwner() == null) {
@@ -21,7 +21,7 @@
       }
       LOG.tracev("Removing collection load entry [{0}]",lce);
       loadContexts.unregisterLoadingCollectionXRef(collectionKey);
-      iter.remove();
+      itr.remove();
     }
   }
   endLoadingCollections(persister,matches);

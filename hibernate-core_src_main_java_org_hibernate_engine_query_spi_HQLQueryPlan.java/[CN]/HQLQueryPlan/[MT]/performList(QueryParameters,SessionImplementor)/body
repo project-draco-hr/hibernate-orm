@@ -3,12 +3,12 @@
     LOG.tracev("Find: {0}",getSourceQuery());
     queryParameters.traceParameters(session.getFactory());
   }
-  boolean hasLimit=queryParameters.getRowSelection() != null && queryParameters.getRowSelection().definesLimits();
-  boolean needsLimit=hasLimit && translators.length > 1;
-  QueryParameters queryParametersToUse;
+  final boolean hasLimit=queryParameters.getRowSelection() != null && queryParameters.getRowSelection().definesLimits();
+  final boolean needsLimit=hasLimit && translators.length > 1;
+  final QueryParameters queryParametersToUse;
   if (needsLimit) {
     LOG.needsLimit();
-    RowSelection selection=new RowSelection();
+    final RowSelection selection=new RowSelection();
     selection.setFetchSize(queryParameters.getRowSelection().getFetchSize());
     selection.setTimeout(queryParameters.getRowSelection().getTimeout());
     queryParametersToUse=queryParameters.createCopyUsing(selection);
@@ -16,11 +16,11 @@
  else {
     queryParametersToUse=queryParameters;
   }
-  List combinedResults=new ArrayList();
-  IdentitySet distinction=new IdentitySet();
+  final List combinedResults=new ArrayList();
+  final IdentitySet distinction=new IdentitySet();
   int includedCount=-1;
   translator_loop:   for (  QueryTranslator translator : translators) {
-    List tmp=translator.list(session,queryParametersToUse);
+    final List tmp=translator.list(session,queryParametersToUse);
     if (needsLimit) {
       final int first=queryParameters.getRowSelection().getFirstRow() == null ? 0 : queryParameters.getRowSelection().getFirstRow();
       final int max=queryParameters.getRowSelection().getMaxRows() == null ? -1 : queryParameters.getRowSelection().getMaxRows();

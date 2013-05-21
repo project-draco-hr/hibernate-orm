@@ -1,22 +1,22 @@
 {
-  long start=System.currentTimeMillis();
-  ParamLocationRecognizer recognizer=ParamLocationRecognizer.parseLocations(hql);
-  long end=System.currentTimeMillis();
+  final long start=System.currentTimeMillis();
+  final ParamLocationRecognizer recognizer=ParamLocationRecognizer.parseLocations(hql);
+  final long end=System.currentTimeMillis();
   if (LOG.isTraceEnabled()) {
     LOG.tracev("HQL param location recognition took {0} mills ({1})",(end - start),hql);
   }
   int ordinalParamCount=parameterTranslations.getOrdinalParameterCount();
-  int[] locations=ArrayHelper.toIntArray(recognizer.getOrdinalParameterLocationList());
+  final int[] locations=ArrayHelper.toIntArray(recognizer.getOrdinalParameterLocationList());
   if (parameterTranslations.supportsOrdinalParameterMetadata() && locations.length != ordinalParamCount) {
     throw new HibernateException("ordinal parameter mismatch");
   }
   ordinalParamCount=locations.length;
-  OrdinalParameterDescriptor[] ordinalParamDescriptors=new OrdinalParameterDescriptor[ordinalParamCount];
+  final OrdinalParameterDescriptor[] ordinalParamDescriptors=new OrdinalParameterDescriptor[ordinalParamCount];
   for (int i=1; i <= ordinalParamCount; i++) {
     ordinalParamDescriptors[i - 1]=new OrdinalParameterDescriptor(i,parameterTranslations.supportsOrdinalParameterMetadata() ? parameterTranslations.getOrdinalParameterExpectedType(i) : null,locations[i - 1]);
   }
-  Map<String,NamedParameterDescriptor> namedParamDescriptorMap=new HashMap<String,NamedParameterDescriptor>();
-  Map<String,ParamLocationRecognizer.NamedParameterDescription> map=recognizer.getNamedParameterDescriptionMap();
+  final Map<String,NamedParameterDescriptor> namedParamDescriptorMap=new HashMap<String,NamedParameterDescriptor>();
+  final Map<String,ParamLocationRecognizer.NamedParameterDescription> map=recognizer.getNamedParameterDescriptionMap();
   for (  final String name : map.keySet()) {
     final ParamLocationRecognizer.NamedParameterDescription description=map.get(name);
     namedParamDescriptorMap.put(name,new NamedParameterDescriptor(name,parameterTranslations.getNamedParameterExpectedType(name),description.buildPositionsArray(),description.isJpaStyle()));
