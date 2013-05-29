@@ -1,0 +1,33 @@
+{
+  final List<GenerationSource> generationSourceList=new ArrayList<GenerationSource>();
+  SchemaGenSource sourceType=SchemaGenSource.interpret(hibernateConfiguration.getProperty(AvailableSettings.SCHEMA_GEN_DROP_SOURCE));
+  final Object dropScriptSourceSetting=hibernateConfiguration.getProperties().get(AvailableSettings.SCHEMA_GEN_DROP_SCRIPT_SOURCE);
+  if (sourceType == null) {
+    if (dropScriptSourceSetting != null) {
+      sourceType=SchemaGenSource.SCRIPT;
+    }
+ else {
+      sourceType=SchemaGenSource.METADATA;
+    }
+  }
+  final boolean includesScripts=sourceType != SchemaGenSource.METADATA;
+  if (includesScripts && dropScriptSourceSetting == null) {
+    throw new PersistenceException("Schema generation configuration indicated to include CREATE scripts, but no script was specified");
+  }
+  final ScriptSourceInput scriptSourceInput=includesScripts ? interpretScriptSourceSetting(dropScriptSourceSetting) : null;
+  if (sourceType == SchemaGenSource.METADATA) {
+    generationSourceList.add(new GenerationSourceFromMetadata(hibernateConfiguration,dialect,false));
+  }
+ else   if (sourceType == SchemaGenSource.SCRIPT) {
+    generationSourceList.add(new GenerationSourceFromScript(scriptSourceInput,scriptCommandExtractor));
+  }
+ else   if (sourceType == SchemaGenSource.METADATA_THEN_SCRIPT) {
+    generationSourceList.add(new GenerationSourceFromMetadata(hibernateConfiguration,dialect,false));
+    generationSourceList.add(new GenerationSourceFromScript(scriptSourceInput,scriptCommandExtractor));
+  }
+ else   if (sourceType == SchemaGenSource.SCRIPT_THEN_METADATA) {
+    generationSourceList.add(new GenerationSourceFromScript(scriptSourceInput,scriptCommandExtractor));
+    generationSourceList.add(new GenerationSourceFromMetadata(hibernateConfiguration,dialect,false));
+  }
+  return generationSourceList;
+}

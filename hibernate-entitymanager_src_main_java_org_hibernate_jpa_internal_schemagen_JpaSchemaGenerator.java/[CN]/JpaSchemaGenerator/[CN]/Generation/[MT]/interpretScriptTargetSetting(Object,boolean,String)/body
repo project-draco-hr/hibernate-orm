@@ -1,0 +1,26 @@
+{
+  if (actionIndicatedScripting) {
+    if (scriptTargetSetting == null) {
+      throw new PersistenceException("Scripting was requested, but no target was specified");
+    }
+    if (Writer.class.isInstance(scriptTargetSetting)) {
+      return new ScriptTargetOutputToWriter((Writer)scriptTargetSetting);
+    }
+ else {
+      final String scriptTargetSettingString=scriptTargetSetting.toString();
+      try {
+        final URL url=new URL(scriptTargetSettingString);
+        return new ScriptTargetOutputToUrl(url);
+      }
+ catch (      MalformedURLException ignore) {
+      }
+      return new ScriptTargetOutputToFile(new File(scriptTargetSettingString));
+    }
+  }
+ else {
+    if (scriptTargetSetting != null) {
+      log.debugf("Value was specified for '%s' [%s], but scripting action was not requested",settingName,scriptTargetSetting);
+    }
+    return NoOpScriptTargetOutput.INSTANCE;
+  }
+}

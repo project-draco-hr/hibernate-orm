@@ -1,0 +1,16 @@
+{
+  if (Reader.class.isInstance(scriptSourceSetting)) {
+    return new ScriptSourceInputFromReader((Reader)scriptSourceSetting);
+  }
+ else {
+    final String scriptSourceSettingString=scriptSourceSetting.toString();
+    log.debugf("Attempting to resolve script source setting : %s",scriptSourceSettingString);
+    log.trace("Trying as URL...");
+    final URL url=classLoaderService.locateResource(scriptSourceSettingString);
+    if (url != null) {
+      return new ScriptSourceInputFromUrl(url);
+    }
+    final File file=new File(scriptSourceSettingString);
+    return new ScriptSourceInputFromFile(file);
+  }
+}

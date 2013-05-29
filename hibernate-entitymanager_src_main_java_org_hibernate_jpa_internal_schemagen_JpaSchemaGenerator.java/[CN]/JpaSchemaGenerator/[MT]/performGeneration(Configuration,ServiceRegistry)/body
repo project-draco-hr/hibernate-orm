@@ -1,33 +1,3 @@
 {
-  final SchemaGenAction databaseAction=SchemaGenAction.interpret(hibernateConfiguration.getProperty(AvailableSettings.SCHEMA_GEN_DATABASE_ACTION));
-  final SchemaGenAction scriptsAction=SchemaGenAction.interpret(hibernateConfiguration.getProperty(AvailableSettings.SCHEMA_GEN_SCRIPTS_ACTION));
-  if (databaseAction == SchemaGenAction.NONE && scriptsAction == SchemaGenAction.NONE) {
-    return;
-  }
-  final JdbcConnectionContext jdbcConnectionContext=determineAppropriateJdbcConnectionContext(hibernateConfiguration,serviceRegistry);
-  try {
-    final Dialect dialect=determineDialect(jdbcConnectionContext,hibernateConfiguration,serviceRegistry);
-    final List<GenerationSource> createSourceList=databaseAction.includesCreate() || scriptsAction.includesCreate() ? buildCreateSourceList(hibernateConfiguration,serviceRegistry,dialect) : Collections.<GenerationSource>emptyList();
-    final List<GenerationSource> dropSourceList=databaseAction.includesDrop() || scriptsAction.includesDrop() ? buildDropSourceList(hibernateConfiguration,serviceRegistry,dialect) : Collections.<GenerationSource>emptyList();
-    final GenerationTarget databaseTarget=new GenerationTargetToDatabase(jdbcConnectionContext,databaseAction);
-    final Object createScriptTargetSetting=hibernateConfiguration.getProperties().get(AvailableSettings.SCHEMA_GEN_SCRIPTS_CREATE_TARGET);
-    final Object dropScriptTargetSetting=hibernateConfiguration.getProperties().get(AvailableSettings.SCHEMA_GEN_SCRIPTS_DROP_TARGET);
-    final GenerationTarget scriptsTarget=new GenerationTargetToScript(createScriptTargetSetting,dropScriptTargetSetting,scriptsAction);
-    final List<GenerationTarget> targets=Arrays.asList(databaseTarget,scriptsTarget);
-    final String hbm2ddl=hibernateConfiguration.getProperty(org.hibernate.cfg.AvailableSettings.HBM2DDL_AUTO);
-    if (StringHelper.isNotEmpty(hbm2ddl)) {
-      log.warnf("Hibernate hbm2ddl-auto setting was specified [%s] in combination with JPA schema-generation; " + "combination will likely cause trouble",hbm2ddl);
-    }
-    try {
-      doGeneration(createSourceList,dropSourceList,targets);
-    }
-  finally {
-      releaseTargets(targets);
-      releaseSources(createSourceList);
-      releaseSources(dropSourceList);
-    }
-  }
-  finally {
-    releaseJdbcConnectionContext(jdbcConnectionContext);
-  }
+  new Generation(serviceRegistry).execute(hibernateConfiguration);
 }
