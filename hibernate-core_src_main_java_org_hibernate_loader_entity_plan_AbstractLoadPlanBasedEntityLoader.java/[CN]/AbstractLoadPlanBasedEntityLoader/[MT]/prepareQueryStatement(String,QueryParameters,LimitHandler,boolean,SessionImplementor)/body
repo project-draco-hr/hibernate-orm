@@ -1,0 +1,53 @@
+{
+  final Dialect dialect=getFactory().getDialect();
+  final RowSelection selection=queryParameters.getRowSelection();
+  final boolean useLimit=LimitHelper.useLimit(limitHandler,selection);
+  final boolean hasFirstRow=LimitHelper.hasFirstRow(selection);
+  final boolean useLimitOffset=hasFirstRow && useLimit && limitHandler.supportsLimitOffset();
+  final boolean callable=queryParameters.isCallable();
+  final ScrollMode scrollMode=getScrollMode(scroll,hasFirstRow,useLimitOffset,queryParameters);
+  final PreparedStatement st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareQueryStatement(sql,callable,scrollMode);
+  try {
+    int col=1;
+    col+=limitHandler.bindLimitParametersAtStartOfQuery(st,col);
+    if (callable) {
+      col=dialect.registerResultSetOutParameter((CallableStatement)st,col);
+    }
+    col+=bindParameterValues(st,queryParameters,col,session);
+    col+=limitHandler.bindLimitParametersAtEndOfQuery(st,col);
+    limitHandler.setMaxRows(st);
+    if (selection != null) {
+      if (selection.getTimeout() != null) {
+        st.setQueryTimeout(selection.getTimeout());
+      }
+      if (selection.getFetchSize() != null) {
+        st.setFetchSize(selection.getFetchSize());
+      }
+    }
+    final LockOptions lockOptions=queryParameters.getLockOptions();
+    if (lockOptions != null) {
+      if (lockOptions.getTimeOut() != LockOptions.WAIT_FOREVER) {
+        if (!dialect.supportsLockTimeouts()) {
+          if (log.isDebugEnabled()) {
+            log.debugf("Lock timeout [%s] requested but dialect reported to not support lock timeouts",lockOptions.getTimeOut());
+          }
+        }
+ else         if (dialect.isLockTimeoutParameterized()) {
+          st.setInt(col++,lockOptions.getTimeOut());
+        }
+      }
+    }
+    if (log.isTraceEnabled()) {
+      log.tracev("Bound [{0}] parameters total",col);
+    }
+  }
+ catch (  SQLException sqle) {
+    session.getTransactionCoordinator().getJdbcCoordinator().release(st);
+    throw sqle;
+  }
+catch (  HibernateException he) {
+    session.getTransactionCoordinator().getJdbcCoordinator().release(st);
+    throw he;
+  }
+  return st;
+}

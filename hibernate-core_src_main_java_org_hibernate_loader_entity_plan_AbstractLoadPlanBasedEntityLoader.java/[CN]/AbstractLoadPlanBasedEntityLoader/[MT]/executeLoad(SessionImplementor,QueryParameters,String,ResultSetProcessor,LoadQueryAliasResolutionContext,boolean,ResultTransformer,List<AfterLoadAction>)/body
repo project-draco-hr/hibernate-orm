@@ -1,0 +1,31 @@
+{
+  final PersistenceContext persistenceContext=session.getPersistenceContext();
+  final boolean defaultReadOnlyOrig=persistenceContext.isDefaultReadOnly();
+  if (queryParameters.isReadOnlyInitialized()) {
+    persistenceContext.setDefaultReadOnly(queryParameters.isReadOnly());
+  }
+ else {
+    queryParameters.setReadOnly(persistenceContext.isDefaultReadOnly());
+  }
+  persistenceContext.beforeLoad();
+  try {
+    List results;
+    try {
+      final SqlStatementWrapper wrapper=executeQueryStatement(sql,queryParameters,false,afterLoadActions,session);
+      results=resultSetProcessor.extractResults(NoOpLoadPlanAdvisor.INSTANCE,wrapper.getResultSet(),session,queryParameters,new NamedParameterContext(){
+        @Override public int[] getNamedParameterLocations(        String name){
+          return AbstractLoadPlanBasedEntityLoader.this.getNamedParameterLocs(name);
+        }
+      }
+,aliasResolutionContext,returnProxies,queryParameters.isReadOnly(),forcedResultTransformer,afterLoadActions);
+    }
+  finally {
+      persistenceContext.afterLoad();
+    }
+    persistenceContext.initializeNonLazyCollections();
+    return results;
+  }
+  finally {
+    persistenceContext.setDefaultReadOnly(defaultReadOnlyOrig);
+  }
+}
