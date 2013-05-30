@@ -6,62 +6,60 @@
   final Dialect dialect=sessionImplementor.getFactory().getDialect();
   session.save(auditedEntityName,data);
   sessionCacheCleaner.scheduleAuditDataRemoval(session,data);
-  if (getRevisionType(auditCfg,data) != RevisionType.ADD) {
-    final Queryable productionEntityQueryable=getQueryable(entityName,sessionImplementor);
-    final Queryable rootProductionEntityQueryable=getQueryable(productionEntityQueryable.getRootEntityName(),sessionImplementor);
-    final Queryable auditedEntityQueryable=getQueryable(auditedEntityName,sessionImplementor);
-    final Queryable rootAuditedEntityQueryable=getQueryable(auditedEntityQueryable.getRootEntityName(),sessionImplementor);
-    final Queryable revisionInfoEntityQueryable=getQueryable(revisionInfoEntityName,sessionImplementor);
-    final String updateTableName;
-    if (UnionSubclassEntityPersister.class.isInstance(rootProductionEntityQueryable)) {
-      updateTableName=auditedEntityQueryable.getSubclassTableName(0);
-    }
+  final Queryable productionEntityQueryable=getQueryable(entityName,sessionImplementor);
+  final Queryable rootProductionEntityQueryable=getQueryable(productionEntityQueryable.getRootEntityName(),sessionImplementor);
+  final Queryable auditedEntityQueryable=getQueryable(auditedEntityName,sessionImplementor);
+  final Queryable rootAuditedEntityQueryable=getQueryable(auditedEntityQueryable.getRootEntityName(),sessionImplementor);
+  final Queryable revisionInfoEntityQueryable=getQueryable(revisionInfoEntityName,sessionImplementor);
+  final String updateTableName;
+  if (UnionSubclassEntityPersister.class.isInstance(rootProductionEntityQueryable)) {
+    updateTableName=auditedEntityQueryable.getSubclassTableName(0);
+  }
  else {
-      updateTableName=rootAuditedEntityQueryable.getTableName();
-    }
-    autoFlushIfRequired(sessionImplementor,rootAuditedEntityQueryable,revisionInfoEntityQueryable);
-    final Type revisionInfoIdType=sessionImplementor.getFactory().getEntityPersister(revisionInfoEntityName).getIdentifierType();
-    final String revEndColumnName=rootAuditedEntityQueryable.toColumns(auditCfg.getAuditEntCfg().getRevisionEndFieldName())[0];
-    final boolean isRevisionEndTimestampEnabled=auditCfg.getAuditEntCfg().isRevisionEndTimestampEnabled();
-    final Update update=new Update(dialect).setTableName(updateTableName);
-    update.addColumn(revEndColumnName);
-    if (isRevisionEndTimestampEnabled) {
-      update.addColumn(rootAuditedEntityQueryable.toColumns(auditCfg.getAuditEntCfg().getRevisionEndTimestampFieldName())[0]);
-    }
-    update.addPrimaryKeyColumns(rootProductionEntityQueryable.getIdentifierColumnNames());
-    update.addWhereColumn(rootAuditedEntityQueryable.toColumns(auditCfg.getAuditEntCfg().getRevisionNumberPath())[0],"<> ?");
-    update.addWhereColumn(revEndColumnName," is null");
-    final String updateSql=update.toStatementString();
-    int rowCount=session.doReturningWork(new ReturningWork<Integer>(){
-      @Override public Integer execute(      Connection connection) throws SQLException {
-        PreparedStatement preparedStatement=sessionImplementor.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(updateSql);
-        try {
-          int index=1;
-          final Number revisionNumber=auditCfg.getRevisionInfoNumberReader().getRevisionNumber(revision);
-          revisionInfoIdType.nullSafeSet(preparedStatement,revisionNumber,index,sessionImplementor);
-          index+=revisionInfoIdType.getColumnSpan(sessionImplementor.getFactory());
-          if (isRevisionEndTimestampEnabled) {
-            final Object revEndTimestampObj=revisionTimestampGetter.get(revision);
-            final Date revisionEndTimestamp=convertRevEndTimestampToDate(revEndTimestampObj);
-            final Type revEndTsType=rootAuditedEntityQueryable.getPropertyType(auditCfg.getAuditEntCfg().getRevisionEndTimestampFieldName());
-            revEndTsType.nullSafeSet(preparedStatement,revisionEndTimestamp,index,sessionImplementor);
-            index+=revEndTsType.getColumnSpan(sessionImplementor.getFactory());
-          }
-          final Type idType=rootProductionEntityQueryable.getIdentifierType();
-          idType.nullSafeSet(preparedStatement,id,index,sessionImplementor);
-          index+=idType.getColumnSpan(sessionImplementor.getFactory());
-          final Type revType=rootAuditedEntityQueryable.getPropertyType(auditCfg.getAuditEntCfg().getRevisionNumberPath());
-          revType.nullSafeSet(preparedStatement,revisionNumber,index,sessionImplementor);
-          return sessionImplementor.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().executeUpdate(preparedStatement);
+    updateTableName=rootAuditedEntityQueryable.getTableName();
+  }
+  autoFlushIfRequired(sessionImplementor,rootAuditedEntityQueryable,revisionInfoEntityQueryable);
+  final Type revisionInfoIdType=sessionImplementor.getFactory().getEntityPersister(revisionInfoEntityName).getIdentifierType();
+  final String revEndColumnName=rootAuditedEntityQueryable.toColumns(auditCfg.getAuditEntCfg().getRevisionEndFieldName())[0];
+  final boolean isRevisionEndTimestampEnabled=auditCfg.getAuditEntCfg().isRevisionEndTimestampEnabled();
+  final Update update=new Update(dialect).setTableName(updateTableName);
+  update.addColumn(revEndColumnName);
+  if (isRevisionEndTimestampEnabled) {
+    update.addColumn(rootAuditedEntityQueryable.toColumns(auditCfg.getAuditEntCfg().getRevisionEndTimestampFieldName())[0]);
+  }
+  update.addPrimaryKeyColumns(rootProductionEntityQueryable.getIdentifierColumnNames());
+  update.addWhereColumn(rootAuditedEntityQueryable.toColumns(auditCfg.getAuditEntCfg().getRevisionNumberPath())[0],"<> ?");
+  update.addWhereColumn(revEndColumnName," is null");
+  final String updateSql=update.toStatementString();
+  int rowCount=session.doReturningWork(new ReturningWork<Integer>(){
+    @Override public Integer execute(    Connection connection) throws SQLException {
+      PreparedStatement preparedStatement=sessionImplementor.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(updateSql);
+      try {
+        int index=1;
+        final Number revisionNumber=auditCfg.getRevisionInfoNumberReader().getRevisionNumber(revision);
+        revisionInfoIdType.nullSafeSet(preparedStatement,revisionNumber,index,sessionImplementor);
+        index+=revisionInfoIdType.getColumnSpan(sessionImplementor.getFactory());
+        if (isRevisionEndTimestampEnabled) {
+          final Object revEndTimestampObj=revisionTimestampGetter.get(revision);
+          final Date revisionEndTimestamp=convertRevEndTimestampToDate(revEndTimestampObj);
+          final Type revEndTsType=rootAuditedEntityQueryable.getPropertyType(auditCfg.getAuditEntCfg().getRevisionEndTimestampFieldName());
+          revEndTsType.nullSafeSet(preparedStatement,revisionEndTimestamp,index,sessionImplementor);
+          index+=revEndTsType.getColumnSpan(sessionImplementor.getFactory());
         }
+        final Type idType=rootProductionEntityQueryable.getIdentifierType();
+        idType.nullSafeSet(preparedStatement,id,index,sessionImplementor);
+        index+=idType.getColumnSpan(sessionImplementor.getFactory());
+        final Type revType=rootAuditedEntityQueryable.getPropertyType(auditCfg.getAuditEntCfg().getRevisionNumberPath());
+        revType.nullSafeSet(preparedStatement,revisionNumber,index,sessionImplementor);
+        return sessionImplementor.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().executeUpdate(preparedStatement);
+      }
   finally {
-          sessionImplementor.getTransactionCoordinator().getJdbcCoordinator().release(preparedStatement);
-        }
+        sessionImplementor.getTransactionCoordinator().getJdbcCoordinator().release(preparedStatement);
       }
     }
+  }
 );
-    if (rowCount != 1) {
-      throw new RuntimeException("Cannot update previous revision for entity " + auditedEntityName + " and id "+ id);
-    }
+  if (rowCount != 1 && getRevisionType(auditCfg,data) != RevisionType.ADD) {
+    throw new RuntimeException("Cannot update previous revision for entity " + auditedEntityName + " and id "+ id);
   }
 }
