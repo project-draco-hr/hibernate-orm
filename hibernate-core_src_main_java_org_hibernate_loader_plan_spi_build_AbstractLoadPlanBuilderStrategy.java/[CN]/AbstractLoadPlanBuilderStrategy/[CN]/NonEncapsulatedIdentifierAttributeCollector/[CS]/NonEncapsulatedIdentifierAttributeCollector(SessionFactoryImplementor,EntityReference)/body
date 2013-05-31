@@ -1,5 +1,36 @@
 {
   super(sessionfactory,entityReference);
   this.propertyPath=((FetchOwner)entityReference).getPropertyPath().append("<id>");
-  this.fetchOwnerDelegate=new CompositeFetchOwnerDelegate(entityReference.getEntityPersister().getFactory(),(CompositeType)entityReference.getEntityPersister().getIdentifierType(),((Loadable)entityReference.getEntityPersister()).getIdentifierColumnNames());
+  this.fetchOwnerDelegate=new AbstractFetchOwnerDelegate(){
+    final boolean isCompositeType=entityReference.getEntityPersister().getIdentifierType().isComponentType();
+    final CompositeType idType=(CompositeType)entityReference.getEntityPersister().getIdentifierType();
+    @Override protected FetchMetadata buildFetchMetadata(    Fetch fetch){
+      if (!isCompositeType) {
+        throw new WalkingException("Non-composite identifier cannot be a fetch owner");
+      }
+      final int subPropertyIndex=locateSubPropertyIndex(idType,fetch.getOwnerPropertyName());
+      return new FetchMetadata(){
+        final Type subType=idType.getSubtypes()[subPropertyIndex];
+        @Override public boolean isNullable(){
+          return false;
+        }
+        @Override public Type getType(){
+          return subType;
+        }
+        @Override public String[] toSqlSelectFragments(        String alias){
+          throw new WalkingException("Should not be called");
+        }
+      }
+;
+    }
+    private int locateSubPropertyIndex(    CompositeType idType,    String ownerPropertyName){
+      for (int i=0; i < idType.getPropertyNames().length; i++) {
+        if (ownerPropertyName.equals(idType.getPropertyNames()[i])) {
+          return i;
+        }
+      }
+      throw new IllegalStateException(String.format("Unable to locate fetched attribute [%s] as part of composite identifier [%s]",ownerPropertyName,getPropertyPath().getFullPath()));
+    }
+  }
+;
 }

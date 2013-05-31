@@ -3,5 +3,10 @@
   this.collectionReference=collectionReference;
   this.collectionPersister=collectionReference.getCollectionPersister();
   this.propertyPath=collectionPath.append("<index>");
-  this.fetchOwnerDelegate=new CompositeFetchOwnerDelegate(sessionFactory,(CompositeType)collectionPersister.getIndexType(),((QueryableCollection)collectionPersister).getIndexColumnNames());
+  this.fetchOwnerDelegate=new CompositeFetchOwnerDelegate(sessionFactory,(CompositeType)collectionPersister.getIndexType(),new CompositeFetchOwnerDelegate.PropertyMappingDelegate(){
+    @Override public String[] toSqlSelectFragments(    String alias){
+      return ((QueryableCollection)collectionPersister).getIndexColumnNames(alias);
+    }
+  }
+);
 }

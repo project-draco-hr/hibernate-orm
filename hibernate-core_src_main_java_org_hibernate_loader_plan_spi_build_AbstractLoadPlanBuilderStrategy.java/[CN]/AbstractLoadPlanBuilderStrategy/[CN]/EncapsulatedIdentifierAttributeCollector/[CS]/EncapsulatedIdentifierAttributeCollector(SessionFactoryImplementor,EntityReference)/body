@@ -1,28 +1,27 @@
 {
   super(sessionFactory,entityReference);
   this.propertyPath=((FetchOwner)entityReference).getPropertyPath();
-  final boolean isCompositeType=entityReference.getEntityPersister().getIdentifierType().isComponentType();
-  this.delegate=new FetchOwnerDelegate(){
-    @Override public boolean isNullable(    Fetch fetch){
+  this.delegate=new AbstractFetchOwnerDelegate(){
+    final boolean isCompositeType=entityReference.getEntityPersister().getIdentifierType().isComponentType();
+    @Override protected FetchMetadata buildFetchMetadata(    Fetch fetch){
       if (!isCompositeType) {
-        throw new IllegalStateException("Non-composite ID cannot have fetches.");
-      }
-      return true;
-    }
-    @Override public Type getType(    Fetch fetch){
-      if (!isCompositeType) {
-        throw new IllegalStateException("Non-composite ID cannot have fetches.");
+        throw new WalkingException("Non-composite identifier cannot be a fetch owner");
       }
       if (!fetch.getOwnerPropertyName().equals(entityReference.getEntityPersister().getIdentifierPropertyName())) {
         throw new IllegalArgumentException(String.format("Fetch owner property name [%s] is not the same as the identifier prop" + fetch.getOwnerPropertyName(),entityReference.getEntityPersister().getIdentifierPropertyName()));
       }
-      return entityReference.getEntityPersister().getIdentifierType();
-    }
-    @Override public String[] getColumnNames(    Fetch fetch){
-      if (!isCompositeType) {
-        throw new IllegalStateException("Non-composite ID cannot have fetches.");
+      return new FetchMetadata(){
+        @Override public boolean isNullable(){
+          return false;
+        }
+        @Override public Type getType(){
+          return entityReference.getEntityPersister().getIdentifierType();
+        }
+        @Override public String[] toSqlSelectFragments(        String alias){
+          throw new WalkingException("Should not be called");
+        }
       }
-      return ((Loadable)entityReference.getEntityPersister()).getIdentifierColumnNames();
+;
     }
   }
 ;

@@ -1,0 +1,19 @@
+{
+  final Integer propertyIndex=entityPersister.getEntityMetamodel().getPropertyIndexOrNull(fetch.getOwnerPropertyName());
+  if (propertyIndex == null) {
+    final Type idType=entityPersister.getIdentifierType();
+    if (CompositeType.class.isInstance(idType)) {
+      final CompositeType cidType=(CompositeType)idType;
+      if (entityPersister.hasIdentifierProperty()) {
+        throw new WalkingException("Expecting different FetchOwnerDelegate type for encapsulated composite id case");
+      }
+ else {
+        return new NonEncapsulatedIdentifierAttributeFetchMetadata(entityPersister,cidType,fetch.getOwnerPropertyName());
+      }
+    }
+  }
+ else {
+    return new NonIdentifierAttributeFetchMetadata(entityPersister,fetch.getOwnerPropertyName(),propertyIndex.intValue());
+  }
+  throw new WalkingException("Could not locate metadata about given fetch [" + fetch + "] in its owning persister");
+}

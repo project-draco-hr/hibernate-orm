@@ -1,0 +1,19 @@
+{
+  int subIndex=-1;
+  int selectFragmentRangeStart=0;
+  int selectFragmentRangeEnd=-1;
+  for (int i=0; i < compositeType.getPropertyNames().length; i++) {
+    final Type type=compositeType.getSubtypes()[i];
+    final int typeColSpan=type.getColumnSpan(sessionFactory);
+    if (compositeType.getPropertyNames()[i].equals(fetch.getOwnerPropertyName())) {
+      subIndex=i;
+      selectFragmentRangeEnd=selectFragmentRangeStart + typeColSpan;
+      break;
+    }
+    selectFragmentRangeStart+=typeColSpan;
+  }
+  if (subIndex < 0) {
+    throw new WalkingException(String.format("Owner property [%s] not found in composite properties [%s]",fetch.getOwnerPropertyName(),Arrays.asList(compositeType.getPropertyNames())));
+  }
+  return new FetchMetadataImpl(compositeType,subIndex,propertyMappingDelegate,selectFragmentRangeStart,selectFragmentRangeEnd);
+}
