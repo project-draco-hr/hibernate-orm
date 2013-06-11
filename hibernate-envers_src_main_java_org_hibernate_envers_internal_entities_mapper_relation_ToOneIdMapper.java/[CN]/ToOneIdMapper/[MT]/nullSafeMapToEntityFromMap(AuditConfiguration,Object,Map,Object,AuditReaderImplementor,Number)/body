@@ -7,7 +7,17 @@
     }
  else {
       final EntityInfo referencedEntity=getEntityInfo(verCfg,referencedEntityName);
-      value=ToOneEntityLoader.createProxyOrLoadImmediate(versionsReader,referencedEntity.getEntityClass(),referencedEntityName,entityId,revision,RevisionType.DEL.equals(data.get(verCfg.getAuditEntCfg().getRevisionTypePropName())),verCfg);
+      boolean ignoreNotFound=false;
+      if (!referencedEntity.isAudited()) {
+        final String referencingEntityName=verCfg.getEntCfg().getEntityNameForVersionsEntityName((String)data.get("$type$"));
+        ignoreNotFound=verCfg.getEntCfg().get(referencingEntityName).getRelationDescription(getPropertyData().getName()).isIgnoreNotFound();
+      }
+      if (ignoreNotFound) {
+        value=ToOneEntityLoader.loadImmediate(versionsReader,referencedEntity.getEntityClass(),referencedEntityName,entityId,revision,RevisionType.DEL.equals(data.get(verCfg.getAuditEntCfg().getRevisionTypePropName())),verCfg);
+      }
+ else {
+        value=ToOneEntityLoader.createProxyOrLoadImmediate(versionsReader,referencedEntity.getEntityClass(),referencedEntityName,entityId,revision,RevisionType.DEL.equals(data.get(verCfg.getAuditEntCfg().getRevisionTypePropName())),verCfg);
+      }
     }
   }
   setPropertyValue(obj,value);
