@@ -1,35 +1,3 @@
 {
-  log.tracef("Attempting to obtain correct EntityManagerFactoryBuilder for persistenceUnitName : %s",persistenceUnitName);
-  final Map integration=wrap(properties);
-  final List<ParsedPersistenceXmlDescriptor> units;
-  try {
-    units=PersistenceXmlParser.locatePersistenceUnits(integration);
-  }
- catch (  RuntimeException e) {
-    log.debug("Unable to locate persistence units",e);
-    throw e;
-  }
-catch (  Exception e) {
-    log.debug("Unable to locate persistence units",e);
-    throw new PersistenceException("Unable to locate persistence units",e);
-  }
-  log.debugf("Located and parsed %s persistence units; checking each",units.size());
-  if (persistenceUnitName == null && units.size() > 1) {
-    throw new PersistenceException("No name provided and multiple persistence units found");
-  }
-  for (  ParsedPersistenceXmlDescriptor persistenceUnit : units) {
-    log.debugf("Checking persistence-unit [name=%s, explicit-provider=%s] against incoming persistence unit name [%s]",persistenceUnit.getName(),persistenceUnit.getProviderClassName(),persistenceUnitName);
-    final boolean matches=persistenceUnitName == null || persistenceUnit.getName().equals(persistenceUnitName);
-    if (!matches) {
-      log.debug("Excluding from consideration due to name mis-match");
-      continue;
-    }
-    if (!ProviderChecker.isProvider(persistenceUnit,properties)) {
-      log.debug("Excluding from consideration due to provider mis-match");
-      continue;
-    }
-    return Bootstrap.getEntityManagerFactoryBuilder(persistenceUnit,integration);
-  }
-  log.debug("Found no matching persistence units");
-  return null;
+  return getEntityManagerFactoryBuilderOrNull(persistenceUnitName,properties,null);
 }

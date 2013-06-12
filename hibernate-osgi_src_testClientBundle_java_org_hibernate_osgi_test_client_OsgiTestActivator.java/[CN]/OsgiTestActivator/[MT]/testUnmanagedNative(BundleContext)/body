@@ -1,0 +1,44 @@
+{
+  try {
+    final ServiceReference sr=context.getServiceReference(SessionFactory.class.getName());
+    final SessionFactory sf=(SessionFactory)context.getService(sr);
+    final Session s=sf.openSession();
+    DataPoint dp=new DataPoint();
+    dp.setName("Brett");
+    s.getTransaction().begin();
+    s.persist(dp);
+    s.getTransaction().commit();
+    s.clear();
+    s.getTransaction().begin();
+    List<DataPoint> results=s.createQuery("from DataPoint").list();
+    if (results.size() == 0 || !results.get(0).getName().equals("Brett")) {
+      testResult.addFailure("Native Hibernate: Unexpected data returned!");
+    }
+    dp=results.get(0);
+    dp.setName("Brett2");
+    s.update(dp);
+    s.getTransaction().commit();
+    s.clear();
+    s.getTransaction().begin();
+    results=s.createQuery("from DataPoint").list();
+    if (results.size() == 0 || !results.get(0).getName().equals("Brett2")) {
+      testResult.addFailure("Native Hibernate: The update/merge failed!");
+    }
+    s.getTransaction().commit();
+    s.clear();
+    s.getTransaction().begin();
+    s.createQuery("delete from DataPoint").executeUpdate();
+    s.getTransaction().commit();
+    s.clear();
+    s.getTransaction().begin();
+    results=s.createQuery("from DataPoint").list();
+    if (results.size() > 0) {
+      testResult.addFailure("Native Hibernate: The delete failed!");
+    }
+    s.getTransaction().commit();
+    s.close();
+  }
+ catch (  Exception e) {
+    testResult.addFailure("Exception: " + e.getMessage(),e);
+  }
+}

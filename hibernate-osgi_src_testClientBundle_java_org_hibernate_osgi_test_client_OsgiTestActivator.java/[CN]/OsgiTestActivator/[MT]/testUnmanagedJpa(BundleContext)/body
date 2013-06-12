@@ -1,0 +1,45 @@
+{
+  try {
+    final ServiceReference serviceReference=context.getServiceReference(PersistenceProvider.class.getName());
+    final PersistenceProvider persistenceProvider=(PersistenceProvider)context.getService(serviceReference);
+    final EntityManagerFactory emf=persistenceProvider.createEntityManagerFactory("hibernate-osgi-test",null);
+    final EntityManager em=emf.createEntityManager();
+    DataPoint dp=new DataPoint();
+    dp.setName("Brett");
+    em.getTransaction().begin();
+    em.persist(dp);
+    em.getTransaction().commit();
+    em.clear();
+    em.getTransaction().begin();
+    List<DataPoint> results=em.createQuery("from DataPoint").getResultList();
+    if (results.size() == 0 || !results.get(0).getName().equals("Brett")) {
+      testResult.addFailure("Unmanaged JPA: Unexpected data returned!");
+    }
+    dp=results.get(0);
+    dp.setName("Brett2");
+    em.merge(dp);
+    em.getTransaction().commit();
+    em.clear();
+    em.getTransaction().begin();
+    results=em.createQuery("from DataPoint").getResultList();
+    if (results.size() == 0 || !results.get(0).getName().equals("Brett2")) {
+      testResult.addFailure("Unmanaged JPA: The update/merge failed!");
+    }
+    em.getTransaction().commit();
+    em.clear();
+    em.getTransaction().begin();
+    em.createQuery("delete from DataPoint").executeUpdate();
+    em.getTransaction().commit();
+    em.clear();
+    em.getTransaction().begin();
+    results=em.createQuery("from DataPoint").getResultList();
+    if (results.size() > 0) {
+      testResult.addFailure("Unmanaged JPA: The delete failed!");
+    }
+    em.getTransaction().commit();
+    em.close();
+  }
+ catch (  Exception e) {
+    testResult.addFailure("Exception: " + e.getMessage(),e);
+  }
+}

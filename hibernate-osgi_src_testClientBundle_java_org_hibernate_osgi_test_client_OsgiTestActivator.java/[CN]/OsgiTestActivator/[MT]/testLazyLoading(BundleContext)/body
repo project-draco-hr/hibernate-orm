@@ -1,0 +1,23 @@
+{
+  try {
+    final ServiceReference sr=context.getServiceReference(SessionFactory.class.getName());
+    final SessionFactory sf=(SessionFactory)context.getService(sr);
+    final Session s=sf.openSession();
+    DataPoint dp=new DataPoint();
+    dp.setName("Brett");
+    s.getTransaction().begin();
+    s.persist(dp);
+    s.getTransaction().commit();
+    s.clear();
+    s.getTransaction().begin();
+    dp=(DataPoint)s.load(DataPoint.class,new Long(dp.getId()));
+    if (dp == null || !dp.getName().equals("Brett")) {
+      testResult.addFailure("Native Hibernate: Lazy loading/proxy failed!");
+    }
+    s.getTransaction().commit();
+    s.close();
+  }
+ catch (  Exception e) {
+    testResult.addFailure("Exception: " + e.getMessage(),e);
+  }
+}
