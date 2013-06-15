@@ -1,0 +1,26 @@
+{
+  Session session=openSession();
+  session.beginTransaction();
+  EmployeeGroup employeegroup=new EmployeeGroup(new EmployeeGroupId("a","b"));
+  employeegroup.addEmployee(new Employee("stliu"));
+  employeegroup.addEmployee(new Employee("david"));
+  session.save(employeegroup);
+  employeegroup=new EmployeeGroup(new EmployeeGroupId("c","d"));
+  employeegroup.addEmployee(new Employee("gail"));
+  employeegroup.addEmployee(new Employee("steve"));
+  session.save(employeegroup);
+  session.getTransaction().commit();
+  session.close();
+  session=openSession();
+  List<EmployeeGroupId> parameters=new ArrayList<EmployeeGroupId>();
+  parameters.add(new EmployeeGroupId("a","b"));
+  parameters.add(new EmployeeGroupId("c","d"));
+  parameters.add(new EmployeeGroupId("e","f"));
+  List result=session.createQuery("select eg from EmployeeGroup eg where eg.id in (:employeegroupIds)").setParameterList("employeegroupIds",parameters).list();
+  Assert.assertEquals(2,result.size());
+  employeegroup=(EmployeeGroup)result.get(0);
+  Assert.assertEquals("a",employeegroup.getId().getGroupName());
+  Assert.assertNotNull(employeegroup.getEmployees());
+  Assert.assertEquals(2,employeegroup.getEmployees().size());
+  session.close();
+}

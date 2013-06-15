@@ -7,14 +7,12 @@
     return sql;
   }
   final LockOptions locks=new LockOptions(lockOptions.getLockMode());
-  final Map keyColumnNames=dialect.forUpdateOfColumns() ? new HashMap() : null;
+  final Map<String,String[]> keyColumnNames=dialect.forUpdateOfColumns() ? new HashMap<String,String[]>() : null;
   locks.setScope(lockOptions.getScope());
   locks.setTimeOut(lockOptions.getTimeOut());
-  final Iterator itr=sqlAliasByEntityAlias.entrySet().iterator();
-  while (itr.hasNext()) {
-    final Map.Entry entry=(Map.Entry)itr.next();
-    final String userAlias=(String)entry.getKey();
-    final String drivingSqlAlias=(String)entry.getValue();
+  for (  Map.Entry<String,String> entry : sqlAliasByEntityAlias.entrySet()) {
+    final String userAlias=entry.getKey();
+    final String drivingSqlAlias=entry.getValue();
     if (drivingSqlAlias == null) {
       throw new IllegalArgumentException("could not locate alias to apply lock mode : " + userAlias);
     }
