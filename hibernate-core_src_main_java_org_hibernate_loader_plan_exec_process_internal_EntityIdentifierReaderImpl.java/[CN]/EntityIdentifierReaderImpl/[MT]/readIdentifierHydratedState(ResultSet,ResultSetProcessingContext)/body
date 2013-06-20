@@ -1,0 +1,22 @@
+{
+  final String[] columnNames;
+  if (EntityFetch.class.isInstance(entityReference) && !FetchStrategyHelper.isJoinFetched(((EntityFetch)entityReference).getFetchStrategy())) {
+    final EntityFetch fetch=(EntityFetch)entityReference;
+    final FetchOwner fetchOwner=fetch.getOwner();
+    if (EntityReference.class.isInstance(fetchOwner)) {
+      throw new NotYetImplementedException();
+    }
+ else {
+      throw new WalkingException("Cannot locate association column names");
+    }
+  }
+ else {
+    columnNames=context.getAliasResolutionContext().resolveAliases(entityReference).getColumnAliases().getSuffixedKeyAliases();
+  }
+  try {
+    return entityReference.getEntityPersister().getIdentifierType().hydrate(resultSet,columnNames,context.getSession(),null);
+  }
+ catch (  Exception e) {
+    throw new HibernateException("Encountered problem trying to hydrate identifier for entity [" + entityReference.getEntityPersister() + "]",e);
+  }
+}

@@ -1,0 +1,9 @@
+{
+  super(sessionFactory,owner,fetchedAttribute,fetchStrategy);
+  this.persister=sessionFactory.getEntityPersister(getFetchedType().getAssociatedEntityName());
+  if (persister == null) {
+    throw new WalkingException(String.format("Unable to locate EntityPersister [%s] for fetch [%s]",getFetchedType().getAssociatedEntityName(),fetchedAttribute.getName()));
+  }
+  this.sqlSelectFragmentResolver=new EntityPersisterBasedSqlSelectFragmentResolver((Queryable)persister);
+  this.lockMode=lockMode;
+}

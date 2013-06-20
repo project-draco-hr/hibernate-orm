@@ -1,0 +1,41 @@
+{
+  JoinableAssociationAliasesImpl aliases=aliasesByJoinableAssociation.get(joinableAssociation);
+  if (aliases == null) {
+    final Fetch currentFetch=joinableAssociation.getCurrentFetch();
+    final String lhsAlias;
+    if (AnyFetch.class.isInstance(currentFetch)) {
+      throw new WalkingException("Any type should never be joined!");
+    }
+ else     if (EntityReference.class.isInstance(currentFetch.getOwner())) {
+      lhsAlias=resolveAliases((EntityReference)currentFetch.getOwner()).getTableAlias();
+    }
+ else     if (CompositeFetch.class.isInstance(currentFetch.getOwner())) {
+      lhsAlias=resolveAliases(locateCompositeFetchEntityReferenceSource((CompositeFetch)currentFetch.getOwner())).getTableAlias();
+    }
+ else     if (CompositeElementGraph.class.isInstance(currentFetch.getOwner())) {
+      CompositeElementGraph compositeElementGraph=(CompositeElementGraph)currentFetch.getOwner();
+      lhsAlias=resolveAliases(compositeElementGraph.getCollectionReference()).getElementTableAlias();
+    }
+ else     if (CompositeIndexGraph.class.isInstance(currentFetch.getOwner())) {
+      CompositeIndexGraph compositeIndexGraph=(CompositeIndexGraph)currentFetch.getOwner();
+      lhsAlias=resolveAliases(compositeIndexGraph.getCollectionReference()).getElementTableAlias();
+    }
+ else {
+      throw new NotYetImplementedException("Cannot determine LHS alias for FetchOwner.");
+    }
+    final String[] aliasedLhsColumnNames=currentFetch.toSqlSelectFragments(lhsAlias);
+    final String rhsAlias;
+    if (EntityReference.class.isInstance(currentFetch)) {
+      rhsAlias=resolveAliases((EntityReference)currentFetch).getTableAlias();
+    }
+ else     if (CollectionReference.class.isInstance(joinableAssociation.getCurrentFetch())) {
+      rhsAlias=resolveAliases((CollectionReference)currentFetch).getCollectionTableAlias();
+    }
+ else {
+      throw new NotYetImplementedException("Cannot determine RHS alis for a fetch that is not an EntityReference or CollectionReference.");
+    }
+    aliases=new JoinableAssociationAliasesImpl(lhsAlias,aliasedLhsColumnNames,rhsAlias);
+    aliasesByJoinableAssociation.put(joinableAssociation,aliases);
+  }
+  return aliases;
+}

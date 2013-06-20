@@ -1,0 +1,22 @@
+{
+  if (AnyFetch.class.isInstance(fetchOwner)) {
+    throw new WalkingException("Any type should never be joined!");
+  }
+ else   if (EntityReference.class.isInstance(fetchOwner)) {
+    return aliasResolutionContext.resolveAliases((EntityReference)fetchOwner).getTableAlias();
+  }
+ else   if (CompositeFetch.class.isInstance(fetchOwner)) {
+    return aliasResolutionContext.resolveAliases(locateCompositeFetchEntityReferenceSource((CompositeFetch)fetchOwner)).getTableAlias();
+  }
+ else   if (CompositeElementGraph.class.isInstance(fetchOwner)) {
+    final CompositeElementGraph compositeElementGraph=(CompositeElementGraph)fetchOwner;
+    return aliasResolutionContext.resolveAliases(compositeElementGraph.getCollectionReference()).getCollectionTableAlias();
+  }
+ else   if (CompositeIndexGraph.class.isInstance(fetchOwner)) {
+    final CompositeIndexGraph compositeIndexGraph=(CompositeIndexGraph)fetchOwner;
+    return aliasResolutionContext.resolveAliases(compositeIndexGraph.getCollectionReference()).getCollectionTableAlias();
+  }
+ else {
+    throw new NotYetImplementedException("Cannot determine LHS alias for FetchOwner.");
+  }
+}

@@ -1,0 +1,21 @@
+{
+  LoadPlanVisitor.visit(loadPlan,new LoadPlanVisitationStrategyAdapter(){
+    @Override public void startingEntityFetch(    EntityFetch entityFetch){
+      entityReferenceReaders.add(new EntityReferenceReader(entityFetch));
+    }
+    @Override public void startingCollectionFetch(    CollectionFetch collectionFetch){
+      collectionReferenceReaders.add(new CollectionReferenceReader(collectionFetch));
+    }
+  }
+);
+  final List<ReturnReader> readers=new ArrayList<ReturnReader>();
+  for (  Return rtn : loadPlan.getReturns()) {
+    final ReturnReader returnReader=buildReturnReader(rtn);
+    if (EntityReferenceReader.class.isInstance(returnReader)) {
+      entityReferenceReaders.add((EntityReferenceReader)returnReader);
+    }
+    readers.add(returnReader);
+  }
+  this.returnReaders=readers;
+  this.numberOfReturns=readers.size();
+}

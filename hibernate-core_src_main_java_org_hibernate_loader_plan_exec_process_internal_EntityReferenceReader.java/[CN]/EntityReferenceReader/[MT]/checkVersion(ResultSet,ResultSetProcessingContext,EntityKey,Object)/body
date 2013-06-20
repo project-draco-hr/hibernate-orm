@@ -1,0 +1,11 @@
+{
+  final LockMode requestedLockMode=context.resolveLockMode(entityReference);
+  if (requestedLockMode != LockMode.NONE) {
+    final LockMode currentLockMode=context.getSession().getPersistenceContext().getEntry(existing).getLockMode();
+    final boolean isVersionCheckNeeded=entityReference.getEntityPersister().isVersioned() && currentLockMode.lessThan(requestedLockMode);
+    if (isVersionCheckNeeded) {
+      checkVersion(context.getSession(),resultSet,entityReference.getEntityPersister(),context.getAliasResolutionContext().resolveAliases(entityReference).getColumnAliases(),entityKey,existing);
+      context.getSession().getPersistenceContext().getEntry(existing).setLockMode(requestedLockMode);
+    }
+  }
+}

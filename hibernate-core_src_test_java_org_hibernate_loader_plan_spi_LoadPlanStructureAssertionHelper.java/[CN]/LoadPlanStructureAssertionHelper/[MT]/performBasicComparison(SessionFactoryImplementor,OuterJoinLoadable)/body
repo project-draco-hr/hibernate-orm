@@ -1,0 +1,24 @@
+{
+  final LoadQueryInfluencers influencers=LoadQueryInfluencers.NONE;
+  final LockMode lockMode=LockMode.NONE;
+  final int batchSize=1;
+  final EntityJoinWalker walker=new EntityJoinWalker(persister,persister.getKeyColumnNames(),batchSize,lockMode,sf,influencers);
+  SingleRootReturnLoadPlanBuilderStrategy strategy=new SingleRootReturnLoadPlanBuilderStrategy(sf,influencers);
+  LoadPlan plan=LoadPlanBuilder.buildRootEntityLoadPlan(strategy,persister);
+  LoadQueryDetails details=LoadQueryDetails.makeForBatching(persister.getKeyColumnNames(),plan,sf,new QueryBuildingParameters(){
+    @Override public LoadQueryInfluencers getQueryInfluencers(){
+      return influencers;
+    }
+    @Override public int getBatchSize(){
+      return batchSize;
+    }
+    @Override public LockMode getLockMode(){
+      return lockMode;
+    }
+    @Override public LockOptions getLockOptions(){
+      return null;
+    }
+  }
+);
+  compare(walker,details);
+}

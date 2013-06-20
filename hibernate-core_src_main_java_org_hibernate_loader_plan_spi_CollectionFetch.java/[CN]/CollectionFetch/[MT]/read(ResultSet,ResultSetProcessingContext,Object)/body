@@ -1,0 +1,29 @@
+{
+  final Serializable collectionRowKey=(Serializable)getCollectionPersister().readKey(resultSet,context.getAliasResolutionContext().resolveAliases(this).getCollectionColumnAliases().getSuffixedKeyAliases(),context.getSession());
+  final PersistenceContext persistenceContext=context.getSession().getPersistenceContext();
+  if (collectionRowKey == null) {
+    final EntityKey ownerEntityKey=findOwnerEntityKey(context);
+    if (ownerEntityKey == null) {
+      throw new IllegalStateException("Could not locate owner's EntityKey during attempt to read collection element fro JDBC row : " + getPropertyPath().getFullPath());
+    }
+    if (log.isDebugEnabled()) {
+      log.debugf("Result set contains (possibly empty) collection: %s",MessageHelper.collectionInfoString(getCollectionPersister(),ownerEntityKey,context.getSession().getFactory()));
+    }
+    persistenceContext.getLoadContexts().getCollectionLoadContext(resultSet).getLoadingCollection(getCollectionPersister(),ownerEntityKey);
+  }
+ else {
+    if (log.isDebugEnabled()) {
+      log.debugf("Found row of collection: %s",MessageHelper.collectionInfoString(getCollectionPersister(),collectionRowKey,context.getSession().getFactory()));
+    }
+    PersistentCollection rowCollection=persistenceContext.getLoadContexts().getCollectionLoadContext(resultSet).getLoadingCollection(getCollectionPersister(),collectionRowKey);
+    final CollectionAliases descriptor=context.getAliasResolutionContext().resolveAliases(this).getCollectionColumnAliases();
+    if (rowCollection != null) {
+      final Object element=rowCollection.readFrom(resultSet,getCollectionPersister(),descriptor,owner);
+      if (getElementGraph() != null) {
+        for (        Fetch fetch : getElementGraph().getFetches()) {
+          fetch.read(resultSet,context,element);
+        }
+      }
+    }
+  }
+}

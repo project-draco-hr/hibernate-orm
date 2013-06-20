@@ -40,12 +40,10 @@
   session.getTransaction().commit();
   session.close();
 {
-    final SingleRootReturnLoadPlanBuilderStrategy strategy=new SingleRootReturnLoadPlanBuilderStrategy(sessionFactory(),LoadQueryInfluencers.NONE);
-    final LoadPlan plan=LoadPlanBuilder.buildRootEntityLoadPlan(strategy,entityPersister);
-    final LoadQueryAliasResolutionContext aliasResolutionContext=new LoadQueryAliasResolutionContextImpl(sessionFactory(),0,Collections.singletonMap(plan.getReturns().get(0),new String[]{"abc"}));
-    final EntityLoadQueryBuilderImpl queryBuilder=new EntityLoadQueryBuilderImpl(LoadQueryInfluencers.NONE,plan);
-    final String sql=queryBuilder.generateSql(1,sessionFactory(),aliasResolutionContext);
-    final ResultSetProcessorImpl resultSetProcessor=new ResultSetProcessorImpl(plan);
+    final LoadPlan plan=Helper.INSTANCE.buildLoadPlan(sessionFactory(),entityPersister);
+    final AliasResolutionContext aliasResolutionContext=new AliasResolutionContextImpl(sessionFactory(),0);
+    final String sql=Helper.INSTANCE.generateSql(sessionFactory(),plan,aliasResolutionContext);
+    final ResultSetProcessorImpl resultSetProcessor=new ResultSetProcessorImpl(plan,true);
     final List results=new ArrayList();
     final Session workSession=openSession();
     workSession.beginTransaction();

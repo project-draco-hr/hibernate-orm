@@ -33,7 +33,6 @@
   this.jdbcServices=this.serviceRegistry.getService(JdbcServices.class);
   this.dialect=this.jdbcServices.getDialect();
   this.cacheAccess=this.serviceRegistry.getService(CacheImplementor.class);
-  final RegionFactory regionFactory=cacheAccess.getRegionFactory();
   this.sqlFunctionRegistry=new SQLFunctionRegistry(getDialect(),cfg.getSqlFunctions());
   if (observer != null) {
     this.observer.addObserver(observer);
@@ -71,6 +70,8 @@ class IntegratorObserver implements SessionFactoryObserver {
       identifierGenerators.put(model.getEntityName(),generator);
     }
   }
+  imports=new HashMap<String,String>(cfg.getImports());
+  final RegionFactory regionFactory=cacheAccess.getRegionFactory();
   final String cacheRegionPrefix=settings.getCacheRegionPrefix() == null ? "" : settings.getCacheRegionPrefix() + ".";
   final PersisterFactory persisterFactory=serviceRegistry.getService(PersisterFactory.class);
   entityPersisters=new HashMap();
@@ -165,16 +166,11 @@ class IntegratorObserver implements SessionFactoryObserver {
   }
   collectionRolesByEntityParticipant=Collections.unmodifiableMap(tmpEntityToCollectionRoleMap);
   this.namedQueryRepository=new NamedQueryRepository(cfg.getNamedQueries().values(),cfg.getNamedSQLQueries().values(),cfg.getSqlResultSetMappings().values(),toProcedureCallMementos(cfg.getNamedProcedureCallMap(),cfg.getSqlResultSetMappings()));
-  imports=new HashMap<String,String>(cfg.getImports());
-  Iterator iter=entityPersisters.values().iterator();
-  while (iter.hasNext()) {
-    final EntityPersister persister=((EntityPersister)iter.next());
+  for (  EntityPersister persister : entityPersisters.values()) {
     persister.postInstantiate();
     registerEntityNameResolvers(persister);
   }
-  iter=collectionPersisters.values().iterator();
-  while (iter.hasNext()) {
-    final CollectionPersister persister=((CollectionPersister)iter.next());
+  for (  CollectionPersister persister : collectionPersisters.values()) {
     persister.postInstantiate();
   }
   name=settings.getSessionFactoryName();

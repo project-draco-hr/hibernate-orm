@@ -21,9 +21,10 @@ catch (  IllegalArgumentException iae) {
       throw new PropertyAccessException(iae,"Null value was assigned to a property of primitive type",true,clazz,propertyName);
     }
  else {
+      final Class expectedType=method.getParameterTypes()[0];
       LOG.illegalPropertySetterArgument(clazz.getName(),propertyName);
-      LOG.expectedType(method.getParameterTypes()[0].getName(),value == null ? null : value.getClass().getName());
-      throw new PropertyAccessException(iae,"IllegalArgumentException occurred while calling",true,clazz,propertyName);
+      LOG.expectedType(expectedType.getName(),value == null ? null : value.getClass().getName());
+      throw new PropertySetterAccessException(iae,clazz,propertyName,expectedType,target,value);
     }
   }
 }

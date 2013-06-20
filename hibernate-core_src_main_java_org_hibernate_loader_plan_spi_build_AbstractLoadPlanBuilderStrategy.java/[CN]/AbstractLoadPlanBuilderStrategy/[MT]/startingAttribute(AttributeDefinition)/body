@@ -2,14 +2,15 @@
   log.tracef("%s Starting attribute %s",StringHelper.repeat(">>",fetchOwnerStack.size()),attributeDefinition);
   final Type attributeType=attributeDefinition.getType();
   final boolean isComponentType=attributeType.isComponentType();
-  final boolean isBasicType=!(isComponentType || attributeType.isAssociationType());
+  final boolean isAssociationType=attributeType.isAssociationType();
+  final boolean isBasicType=!(isComponentType || isAssociationType);
   if (isBasicType) {
     return true;
   }
- else   if (isComponentType) {
-    return handleCompositeAttribute((CompositionDefinition)attributeDefinition);
+ else   if (isAssociationType) {
+    return handleAssociationAttribute((AssociationAttributeDefinition)attributeDefinition);
   }
  else {
-    return handleAssociationAttribute((AssociationAttributeDefinition)attributeDefinition);
+    return handleCompositeAttribute((CompositionDefinition)attributeDefinition);
   }
 }

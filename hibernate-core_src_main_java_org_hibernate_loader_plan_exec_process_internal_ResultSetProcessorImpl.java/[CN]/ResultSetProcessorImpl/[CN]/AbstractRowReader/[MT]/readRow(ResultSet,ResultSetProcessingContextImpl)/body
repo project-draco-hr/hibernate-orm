@@ -1,0 +1,29 @@
+{
+  final List<EntityReferenceReader> entityReferenceReaders=getEntityReferenceReaders();
+  final List<CollectionReferenceReader> collectionReferenceReaders=getCollectionReferenceReaders();
+  final boolean hasEntityReferenceReaders=entityReferenceReaders != null && entityReferenceReaders.size() > 0;
+  final boolean hasCollectionReferenceReaders=collectionReferenceReaders != null && collectionReferenceReaders.size() > 0;
+  if (hasEntityReferenceReaders) {
+    for (    EntityReferenceReader entityReferenceReader : entityReferenceReaders) {
+      entityReferenceReader.hydrateIdentifier(resultSet,context);
+    }
+    for (    EntityReferenceReader entityReferenceReader : entityReferenceReaders) {
+      entityReferenceReader.resolveEntityKey(resultSet,context);
+    }
+    for (    EntityReferenceReader entityReferenceReader : entityReferenceReaders) {
+      entityReferenceReader.hydrateEntityState(resultSet,context);
+    }
+  }
+  Object logicalRow=readLogicalRow(resultSet,context);
+  if (hasEntityReferenceReaders) {
+    for (    EntityReferenceReader entityReferenceReader : entityReferenceReaders) {
+      entityReferenceReader.finishUpRow(resultSet,context);
+    }
+  }
+  if (hasCollectionReferenceReaders) {
+    for (    CollectionReferenceReader collectionReferenceReader : collectionReferenceReaders) {
+      collectionReferenceReader.finishUpRow(resultSet,context);
+    }
+  }
+  return logicalRow;
+}

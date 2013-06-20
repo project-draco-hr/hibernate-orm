@@ -1,17 +1,17 @@
 {
-  final ResultSetProcessingContext.IdentifierResolutionContext identifierResolutionContext=context.getIdentifierResolutionContext(this);
-  EntityKey entityKey=identifierResolutionContext.getEntityKey();
+  final ResultSetProcessingContext.EntityReferenceProcessingState entityReferenceProcessingState=context.getProcessingState(this);
+  EntityKey entityKey=entityReferenceProcessingState.getEntityKey();
   if (entityKey == null) {
     entityKey=identifierDescription.resolve(resultSet,context);
     if (entityKey == null) {
-      if (getEntityType().isOneToOne()) {
-        final EntityKey ownersEntityKey=context.getIdentifierResolutionContext((EntityReference)getOwner()).getEntityKey();
+      if (getFetchedType().isOneToOne()) {
+        final EntityKey ownersEntityKey=context.getProcessingState((EntityReference)getOwner()).getEntityKey();
         if (ownersEntityKey != null) {
-          context.getSession().getPersistenceContext().addNullProperty(ownersEntityKey,getEntityType().getPropertyName());
+          context.getSession().getPersistenceContext().addNullProperty(ownersEntityKey,getFetchedType().getPropertyName());
         }
       }
     }
-    identifierResolutionContext.registerEntityKey(entityKey);
+    entityReferenceProcessingState.registerEntityKey(entityKey);
     for (    Fetch fetch : getFetches()) {
       fetch.resolve(resultSet,context);
     }

@@ -1,0 +1,26 @@
+{
+  if (scope == null) {
+    return null;
+  }
+  String entityName=null;
+  Object entity=object;
+  if (entity instanceof HibernateProxy) {
+    final LazyInitializer initializer=((HibernateProxy)entity).getHibernateLazyInitializer();
+    if (initializer.isUninitialized()) {
+      entityName=initializer.getEntityName();
+    }
+    entity=initializer.getImplementation();
+  }
+  if (entityName == null) {
+    for (    EntityNameResolver resolver : scope.resolveFactory().iterateEntityNameResolvers()) {
+      entityName=resolver.resolveEntityName(entity);
+      if (entityName != null) {
+        break;
+      }
+    }
+  }
+  if (entityName == null) {
+    entityName=object.getClass().getName();
+  }
+  return scope.resolveFactory().getEntityPersister(entityName);
+}

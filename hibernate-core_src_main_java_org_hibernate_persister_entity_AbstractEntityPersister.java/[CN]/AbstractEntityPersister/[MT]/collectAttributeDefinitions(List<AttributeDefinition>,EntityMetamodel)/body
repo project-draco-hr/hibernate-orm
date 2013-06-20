@@ -1,0 +1,21 @@
+{
+  for (int i=0; i < metamodel.getPropertySpan(); i++) {
+    definitions.add(metamodel.getProperties()[i]);
+  }
+  final Set<String> subClassEntityNames=metamodel.getSubclassEntityNames();
+  if (subClassEntityNames == null) {
+    return;
+  }
+  for (  String subClassEntityName : subClassEntityNames) {
+    if (metamodel.getName().equals(subClassEntityName)) {
+      continue;
+    }
+    try {
+      final EntityPersister subClassEntityPersister=factory.getEntityPersister(subClassEntityName);
+      collectAttributeDefinitions(definitions,subClassEntityPersister.getEntityMetamodel());
+    }
+ catch (    MappingException e) {
+      throw new IllegalStateException(String.format("Could not locate subclass EntityPersister [%s] while processing EntityPersister [%s]",subClassEntityName,metamodel.getName()),e);
+    }
+  }
+}

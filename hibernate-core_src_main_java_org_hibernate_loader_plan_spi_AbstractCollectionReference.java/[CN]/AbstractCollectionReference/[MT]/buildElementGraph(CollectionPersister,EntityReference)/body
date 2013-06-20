@@ -1,0 +1,19 @@
+{
+  final Type type=persister.getElementType();
+  if (type.isAssociationType()) {
+    if (type.isEntityType()) {
+      final EntityType elementEntityType=(EntityType)type;
+      if (ownerEntityReference != null) {
+        final boolean sameType=elementEntityType.getAssociatedEntityName().equals(ownerEntityReference.getEntityPersister().getEntityName());
+        if (sameType) {
+          return new BidirectionalEntityElementGraph(sessionFactory(),this,getPropertyPath(),ownerEntityReference);
+        }
+      }
+      return new EntityElementGraph(sessionFactory(),this,getPropertyPath());
+    }
+  }
+ else   if (type.isComponentType()) {
+    return new CompositeElementGraph(sessionFactory(),this,getPropertyPath());
+  }
+  return null;
+}

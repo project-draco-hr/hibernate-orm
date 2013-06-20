@@ -1,0 +1,10 @@
+{
+  final String rhsAlias=aliasResolutionContext.resolveAliases(fetch).getTableAlias();
+  final String[] rhsColumnNames=JoinHelper.getRHSColumnNames(fetch.getFetchedType(),factory);
+  final String lhsTableAlias=resolveLhsTableAlias(fetchOwner,fetch,aliasResolutionContext);
+  final String[] aliasedLhsColumnNames=fetch.toSqlSelectFragments(lhsTableAlias);
+  final String additionalJoinConditions=resolveAdditionalJoinCondition(factory,rhsAlias,fetchOwner,fetch,buildingParameters.getQueryInfluencers(),aliasResolutionContext);
+  final Joinable joinable=(Joinable)fetch.getEntityPersister();
+  addJoins(joinFragment,joinable,fetch.isNullable() ? JoinType.LEFT_OUTER_JOIN : JoinType.INNER_JOIN,rhsAlias,rhsColumnNames,aliasedLhsColumnNames,additionalJoinConditions);
+  selectStatementBuilder.appendSelectClauseFragment(joinable.selectFragment(null,null,rhsAlias,aliasResolutionContext.resolveAliases(fetch).getColumnAliases().getSuffix(),null,true));
+}
