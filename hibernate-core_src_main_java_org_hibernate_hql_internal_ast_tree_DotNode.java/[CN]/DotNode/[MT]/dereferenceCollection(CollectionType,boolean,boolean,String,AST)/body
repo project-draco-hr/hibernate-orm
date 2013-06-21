@@ -6,9 +6,21 @@
   QueryableCollection queryableCollection=getSessionFactoryHelper().requireQueryableCollection(role);
   String propName=getPath();
   FromClause currentFromClause=getWalker().getCurrentFromClause();
-  if (getWalker().getStatementType() != SqlTokenTypes.SELECT && indexed && classAlias == null) {
-    String alias=getLhs().getFromElement().getQueryable().getTableName();
-    columns=getFromElement().toColumns(alias,propertyPath,false,true);
+  final FromElement lhsFromElement=getLhs().getFromElement();
+  if (getWalker().getStatementType() != SqlTokenTypes.SELECT) {
+    if (isFromElementUpdateOrDeleteRoot(lhsFromElement)) {
+      boolean useAlias=false;
+      if (getWalker().getStatementType() != SqlTokenTypes.INSERT) {
+        final Queryable persister=lhsFromElement.getQueryable();
+        if (persister.isMultiTable()) {
+          useAlias=true;
+        }
+      }
+      if (!useAlias) {
+        final String lhsTableName=lhsFromElement.getQueryable().getTableName();
+        columns=getFromElement().toColumns(lhsTableName,propertyPath,false,true);
+      }
+    }
   }
   FromElementFactory factory=new FromElementFactory(currentFromClause,getLhs().getFromElement(),propName,classAlias,getColumns(),implicitJoin);
   FromElement elem=factory.createCollection(queryableCollection,role,joinType,fetch,indexed);
