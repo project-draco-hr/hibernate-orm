@@ -1,6 +1,6 @@
 {
-  Session s=openSession();
-  Transaction tx=s.beginTransaction();
+  final Session s=openSession();
+  final Transaction tx=s.beginTransaction();
   Item item;
   Bid bid;
   item=new Item();
@@ -25,7 +25,7 @@
   bid.item=item;
   s.persist(bid);
   s.flush();
-  Criteria criteria=s.createCriteria(Item.class).addOrder(org.hibernate.criterion.Order.asc("this.name")).createAlias("this.bids","i_bid",JoinType.LEFT_OUTER_JOIN).setProjection(Projections.projectionList().add(Projections.property("this.name"),"item_name").add(Projections.property("i_bid.amount"),"bid_amount")).setResultTransformer(new ResultTransformer(){
+  final Criteria criteria=s.createCriteria(Item.class).addOrder(org.hibernate.criterion.Order.asc("this.name")).createAlias("this.bids","i_bid",JoinType.LEFT_OUTER_JOIN).setProjection(Projections.projectionList().add(Projections.property("this.name"),"item_name").add(Projections.property("i_bid.amount"),"bid_amount")).setResultTransformer(new ResultTransformer(){
     boolean first=true;
     Object[] previous;
     @Override public Object transformTuple(    Object[] tuple,    String[] aliases){
@@ -34,8 +34,8 @@
         previous=tuple;
       }
  else {
-        String previousName=(String)previous[0];
-        String name=(String)tuple[0];
+        final String previousName=(String)previous[0];
+        final String name=(String)tuple[0];
         Assert.assertTrue("The resultset tuples should be ordered by item name, as specified on the Criteria",previousName.compareTo(name) < 1);
         previous=tuple;
       }
@@ -46,7 +46,7 @@
     }
   }
 );
-  List<Object> results=criteria.list();
+  criteria.list();
   tx.rollback();
   s.close();
 }
