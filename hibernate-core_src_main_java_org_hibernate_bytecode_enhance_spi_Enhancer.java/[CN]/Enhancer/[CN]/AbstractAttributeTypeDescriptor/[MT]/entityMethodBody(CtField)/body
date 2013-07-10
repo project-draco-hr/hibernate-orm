@@ -1,0 +1,30 @@
+{
+  StringBuilder inlineBuilder=new StringBuilder();
+  try {
+    inlineBuilder.append("if ( $$_hibernate_getInterceptor() != null ");
+    if (currentValue.getType().isPrimitive() || currentValue.getType().isEnum()) {
+      inlineBuilder.append("&& " + currentValue.getName() + " != $1)");
+    }
+ else     if (currentValue.getType().getName().startsWith("java.lang") || currentValue.getType().getName().startsWith("java.math.Big") || currentValue.getType().getName().startsWith("java.sql.Time")|| currentValue.getType().getName().startsWith("java.sql.Date")|| currentValue.getType().getName().startsWith("java.util.Date")|| currentValue.getType().getName().startsWith("java.util.Calendar")) {
+      inlineBuilder.append("&& ((" + currentValue.getName() + " == null) || (!"+ currentValue.getName()+ ".equals( $1))))");
+    }
+ else {
+      for (      CtClass ctClass : currentValue.getType().getInterfaces()) {
+        if (ctClass.getName().equals("java.util.Collection")) {
+          if (currentValue.getAnnotation(OneToMany.class) != null || currentValue.getAnnotation(ManyToMany.class) != null || currentValue.getAnnotation(ElementCollection.class) != null) {
+            return "";
+          }
+        }
+      }
+      inlineBuilder.append("&& ((" + currentValue.getName() + " == null) || (!"+ currentValue.getName()+ ".equals( $1))))");
+    }
+    inlineBuilder.append(EnhancerConstants.TRACKER_CHANGER_NAME + "(\"" + currentValue.getName()+ "\");");
+  }
+ catch (  NotFoundException e) {
+    e.printStackTrace();
+  }
+catch (  ClassNotFoundException e) {
+    e.printStackTrace();
+  }
+  return inlineBuilder.toString();
+}

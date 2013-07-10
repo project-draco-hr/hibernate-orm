@@ -1,0 +1,29 @@
+{
+  try {
+    if (javaClassFile.delete()) {
+      if (!javaClassFile.createNewFile()) {
+        log("Unable to recreate class file [" + javaClassFile.getName() + "]",Project.MSG_INFO);
+      }
+    }
+ else {
+      log("Unable to delete class file [" + javaClassFile.getName() + "]",Project.MSG_INFO);
+    }
+    FileOutputStream outputStream=new FileOutputStream(javaClassFile,false);
+    try {
+      outputStream.write(result);
+      outputStream.flush();
+    }
+  finally {
+      try {
+        outputStream.close();
+      }
+ catch (      IOException ignore) {
+      }
+    }
+  }
+ catch (  FileNotFoundException ignore) {
+  }
+catch (  IOException e) {
+    throw new BuildException(String.format("Error processing included file [%s]",javaClassFile.getAbsolutePath()),e);
+  }
+}

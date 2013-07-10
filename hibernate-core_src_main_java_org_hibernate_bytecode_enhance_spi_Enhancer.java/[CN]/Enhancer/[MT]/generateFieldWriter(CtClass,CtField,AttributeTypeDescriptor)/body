@@ -11,8 +11,21 @@
       final String methodBody=typeDescriptor.buildWriteInterceptionBodyFragment(fieldName);
       writer=CtNewMethod.make(Modifier.PRIVATE,CtClass.voidType,writerName,new CtClass[]{persistentField.getType()},null,"{" + methodBody + "}",managedCtClass);
     }
-    if (enhancementContext.doDirtyCheckingInline(managedCtClass)) {
-      writer.insertBefore(typeDescriptor.buildInLineDirtyCheckingBodyFragment(fieldName));
+    if (enhancementContext.doDirtyCheckingInline(managedCtClass) && !isComposite) {
+      writer.insertBefore(typeDescriptor.buildInLineDirtyCheckingBodyFragment(persistentField));
+    }
+    if (isComposite) {
+      StringBuilder builder=new StringBuilder();
+      builder.append(" if(  ").append(EnhancerConstants.TRACKER_COMPOSITE_FIELD_NAME).append(" != null) ").append(EnhancerConstants.TRACKER_COMPOSITE_FIELD_NAME).append(".callOwner(\".").append(persistentField.getName()).append("\");");
+      writer.insertBefore(builder.toString());
+    }
+    if (persistentField.getAnnotation(Embedded.class) != null) {
+      if (!doClassInheritCompositeOwner(managedCtClass)) {
+        managedCtClass.addInterface(classPool.get("org.hibernate.engine.spi.CompositeOwner"));
+      }
+      if (isComposite)       createTrackChangeCompositeMethod(managedCtClass);
+      writer.insertBefore(cleanupPreviousOwner(persistentField));
+      writer.insertAfter(compositeMethodBody(persistentField));
     }
     managedCtClass.addMethod(writer);
     return writer;

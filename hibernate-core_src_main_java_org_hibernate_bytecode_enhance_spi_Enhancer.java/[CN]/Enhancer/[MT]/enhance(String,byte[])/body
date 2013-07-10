@@ -7,25 +7,6 @@
     log.unableToBuildEnhancementMetamodel(className);
     return originalBytes;
   }
-  enhance(managedCtClass);
-  final ByteArrayOutputStream byteStream=new ByteArrayOutputStream();
-  final DataOutputStream out;
-  try {
-    out=new DataOutputStream(byteStream);
-    try {
-      managedCtClass.toBytecode(out);
-      return byteStream.toByteArray();
-    }
-  finally {
-      try {
-        out.close();
-      }
- catch (      IOException e) {
-      }
-    }
-  }
- catch (  Exception e) {
-    log.unableToTransformClass(e.getMessage());
-    throw new HibernateException("Unable to transform class: " + e.getMessage());
-  }
+  enhance(managedCtClass,false);
+  return getByteCode(managedCtClass);
 }

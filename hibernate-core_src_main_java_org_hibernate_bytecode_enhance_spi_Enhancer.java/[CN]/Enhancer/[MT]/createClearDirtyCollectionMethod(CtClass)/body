@@ -1,0 +1,11 @@
+{
+  StringBuilder builder=new StringBuilder();
+  builder.append("private void ").append(EnhancerConstants.TRACKER_COLLECTION_CLEAR_NAME).append("() { if(").append(EnhancerConstants.TRACKER_COLLECTION_NAME).append(" == null)").append(EnhancerConstants.TRACKER_COLLECTION_NAME).append(" = new org.hibernate.bytecode.enhance.spi.CollectionTracker();");
+  for (  CtField ctField : collectCollectionFields(managedCtClass)) {
+    if (!enhancementContext.isMappedCollection(ctField)) {
+      builder.append("if(").append(ctField.getName()).append(" != null) ").append(EnhancerConstants.TRACKER_COLLECTION_NAME).append(".add(\"").append(ctField.getName()).append("\", ").append(ctField.getName()).append(".size());");
+    }
+  }
+  builder.append("}");
+  managedCtClass.addMethod(CtNewMethod.make(builder.toString(),managedCtClass));
+}

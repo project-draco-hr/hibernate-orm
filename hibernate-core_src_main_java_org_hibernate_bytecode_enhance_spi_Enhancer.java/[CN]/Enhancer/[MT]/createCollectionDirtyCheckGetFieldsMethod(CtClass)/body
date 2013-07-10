@@ -1,0 +1,10 @@
+{
+  StringBuilder collectionFieldDirtyFieldMethod=new StringBuilder("private void ").append(EnhancerConstants.TRACKER_COLLECTION_CHANGED_FIELD_NAME).append("(java.util.Set trackerSet) { if(").append(EnhancerConstants.TRACKER_COLLECTION_NAME).append(" == null) return; else {");
+  for (  CtField ctField : collectCollectionFields(managedCtClass)) {
+    if (!ctField.getName().startsWith("$$_hibernate") && !enhancementContext.isMappedCollection(ctField)) {
+      collectionFieldDirtyFieldMethod.append("if(").append(EnhancerConstants.TRACKER_COLLECTION_NAME).append(".getSize(\"").append(ctField.getName()).append("\") != ").append(ctField.getName()).append(".size()) trackerSet.add(\"").append(ctField.getName()).append("\");");
+    }
+  }
+  collectionFieldDirtyFieldMethod.append("}}");
+  managedCtClass.addMethod(CtNewMethod.make(collectionFieldDirtyFieldMethod.toString(),managedCtClass));
+}

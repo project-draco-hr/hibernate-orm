@@ -1,0 +1,10 @@
+{
+  StringBuilder builder=new StringBuilder("private boolean ").append(EnhancerConstants.TRACKER_COLLECTION_CHANGED_NAME).append("() { if ($$_hibernate_getInterceptor() == null || ").append(EnhancerConstants.TRACKER_COLLECTION_NAME).append(" == null) return false; ");
+  for (  CtField ctField : collectCollectionFields(managedCtClass)) {
+    if (!enhancementContext.isMappedCollection(ctField)) {
+      builder.append("if(").append(EnhancerConstants.TRACKER_COLLECTION_NAME).append(".getSize(\"").append(ctField.getName()).append("\") != ").append(ctField.getName()).append(".size()) return true;");
+    }
+  }
+  builder.append("return false; }");
+  managedCtClass.addMethod(CtNewMethod.make(builder.toString(),managedCtClass));
+}

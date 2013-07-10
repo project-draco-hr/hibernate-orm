@@ -8,18 +8,25 @@
   final Object[] loadedState=entry.getLoadedState();
   int[] dirtyProperties=session.getInterceptor().findDirty(entity,id,values,loadedState,persister.getPropertyNames(),persister.getPropertyTypes());
   if (dirtyProperties == null) {
-class DirtyCheckContextImpl implements CustomEntityDirtinessStrategy.DirtyCheckContext {
-      int[] found=null;
-      @Override public void doDirtyChecking(      CustomEntityDirtinessStrategy.AttributeChecker attributeChecker){
-        found=new DirtyCheckAttributeInfoImpl(event).visitAttributes(attributeChecker);
-        if (found != null && found.length == 0) {
-          found=null;
-        }
+    if (entity instanceof SelfDirtinessTracker) {
+      if (((SelfDirtinessTracker)entity).$$_hibernate_hasDirtyAttributes()) {
+        dirtyProperties=persister.resolveAttributeIndexes(((SelfDirtinessTracker)entity).$$_hibernate_getDirtyAttributes());
       }
     }
-    DirtyCheckContextImpl context=new DirtyCheckContextImpl();
-    session.getFactory().getCustomEntityDirtinessStrategy().findDirty(entity,persister,(Session)session,context);
-    dirtyProperties=context.found;
+ else {
+class DirtyCheckContextImpl implements CustomEntityDirtinessStrategy.DirtyCheckContext {
+        int[] found=null;
+        @Override public void doDirtyChecking(        CustomEntityDirtinessStrategy.AttributeChecker attributeChecker){
+          found=new DirtyCheckAttributeInfoImpl(event).visitAttributes(attributeChecker);
+          if (found != null && found.length == 0) {
+            found=null;
+          }
+        }
+      }
+      DirtyCheckContextImpl context=new DirtyCheckContextImpl();
+      session.getFactory().getCustomEntityDirtinessStrategy().findDirty(entity,persister,(Session)session,context);
+      dirtyProperties=context.found;
+    }
   }
   event.setDatabaseSnapshot(null);
   final boolean interceptorHandledDirtyCheck;
