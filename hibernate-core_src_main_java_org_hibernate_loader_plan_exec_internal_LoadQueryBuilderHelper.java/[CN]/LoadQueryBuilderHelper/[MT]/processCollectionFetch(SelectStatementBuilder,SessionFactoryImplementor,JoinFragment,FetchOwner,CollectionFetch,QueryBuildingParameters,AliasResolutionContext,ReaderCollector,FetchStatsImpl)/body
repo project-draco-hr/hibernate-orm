@@ -1,0 +1,84 @@
+{
+  stats.processingFetch(fetch);
+  final CollectionReferenceAliases aliases=aliasResolutionContext.resolveAliases(fetch);
+  if (fetch.getCollectionPersister().isManyToMany()) {
+    final QueryableCollection queryableCollection=(QueryableCollection)fetch.getCollectionPersister();
+    final Joinable joinableCollection=(Joinable)fetch.getCollectionPersister();
+    final String ownerTableAlias=resolveLhsTableAlias(fetchOwner,fetch,aliasResolutionContext);
+    final String collectionTableAlias=aliases.getCollectionTableAlias();
+    final String elementTableAlias=aliases.getElementTableAlias();
+{
+      final String filterFragment=((Joinable)fetch.getCollectionPersister()).filterFragment(collectionTableAlias,buildingParameters.getQueryInfluencers().getEnabledFilters());
+      joinFragment.addJoin(joinableCollection.getTableName(),collectionTableAlias,StringHelper.qualify(ownerTableAlias,extractJoinable(fetchOwner).getKeyColumnNames()),queryableCollection.getKeyColumnNames(),fetch.isNullable() ? JoinType.LEFT_OUTER_JOIN : JoinType.INNER_JOIN,filterFragment);
+      joinFragment.addJoins(joinableCollection.fromJoinFragment(collectionTableAlias,false,true),joinableCollection.whereJoinFragment(collectionTableAlias,false,true));
+      selectStatementBuilder.appendSelectClauseFragment(joinableCollection.selectFragment((Joinable)queryableCollection.getElementPersister(),ownerTableAlias,collectionTableAlias,aliases.getEntityElementColumnAliases().getSuffix(),aliases.getCollectionColumnAliases().getSuffix(),true));
+    }
+{
+      final String additionalJoinConditions=resolveAdditionalJoinCondition(factory,elementTableAlias,fetchOwner,fetch,buildingParameters.getQueryInfluencers(),aliasResolutionContext);
+      final String manyToManyFilter=fetch.getCollectionPersister().getManyToManyFilterFragment(collectionTableAlias,buildingParameters.getQueryInfluencers().getEnabledFilters());
+      final String condition;
+      if ("".equals(manyToManyFilter)) {
+        condition=additionalJoinConditions;
+      }
+ else       if ("".equals(additionalJoinConditions)) {
+        condition=manyToManyFilter;
+      }
+ else {
+        condition=additionalJoinConditions + " and " + manyToManyFilter;
+      }
+      final OuterJoinLoadable elementPersister=(OuterJoinLoadable)queryableCollection.getElementPersister();
+      addJoins(joinFragment,elementPersister,JoinType.LEFT_OUTER_JOIN,elementTableAlias,elementPersister.getIdentifierColumnNames(),StringHelper.qualify(collectionTableAlias,queryableCollection.getElementColumnNames()),condition);
+      selectStatementBuilder.appendSelectClauseFragment(elementPersister.selectFragment(aliases.getElementTableAlias(),aliases.getEntityElementColumnAliases().getSuffix()));
+    }
+    final String manyToManyOrdering=queryableCollection.getManyToManyOrderByString(collectionTableAlias);
+    if (StringHelper.isNotEmpty(manyToManyOrdering)) {
+      selectStatementBuilder.appendOrderByFragment(manyToManyOrdering);
+    }
+    final String ordering=queryableCollection.getSQLOrderByString(collectionTableAlias);
+    if (StringHelper.isNotEmpty(ordering)) {
+      selectStatementBuilder.appendOrderByFragment(ordering);
+    }
+    final EntityReferenceAliases entityReferenceAliases=new EntityReferenceAliases(){
+      @Override public String getTableAlias(){
+        return aliases.getElementTableAlias();
+      }
+      @Override public EntityAliases getColumnAliases(){
+        return aliases.getEntityElementColumnAliases();
+      }
+    }
+;
+    final EntityReference elementEntityReference=(EntityReference)fetch.getElementGraph();
+    readerCollector.addReader(new EntityReferenceReader(elementEntityReference,entityReferenceAliases,buildIdentifierReader(selectStatementBuilder,factory,joinFragment,elementEntityReference,buildingParameters,aliasResolutionContext,readerCollector,entityReferenceAliases,stats)));
+  }
+ else {
+    final QueryableCollection queryableCollection=(QueryableCollection)fetch.getCollectionPersister();
+    final Joinable joinableCollection=(Joinable)fetch.getCollectionPersister();
+    final String rhsTableAlias=aliases.getElementTableAlias();
+    final String[] rhsColumnNames=JoinHelper.getRHSColumnNames(fetch.getFetchedType(),factory);
+    final String lhsTableAlias=resolveLhsTableAlias(fetchOwner,fetch,aliasResolutionContext);
+    final String[] aliasedLhsColumnNames=fetch.toSqlSelectFragments(lhsTableAlias);
+    final String on=resolveAdditionalJoinCondition(factory,rhsTableAlias,fetchOwner,fetch,buildingParameters.getQueryInfluencers(),aliasResolutionContext);
+    addJoins(joinFragment,joinableCollection,fetch.isNullable() ? JoinType.LEFT_OUTER_JOIN : JoinType.INNER_JOIN,rhsTableAlias,rhsColumnNames,aliasedLhsColumnNames,on);
+    selectStatementBuilder.appendSelectClauseFragment(queryableCollection.selectFragment(rhsTableAlias,aliases.getCollectionColumnAliases().getSuffix()));
+    if (fetch.getCollectionPersister().isOneToMany()) {
+      final OuterJoinLoadable elementPersister=(OuterJoinLoadable)queryableCollection.getElementPersister();
+      selectStatementBuilder.appendSelectClauseFragment(elementPersister.selectFragment(aliases.getElementTableAlias(),aliases.getEntityElementColumnAliases().getSuffix()));
+      final EntityReferenceAliases entityReferenceAliases=new EntityReferenceAliases(){
+        @Override public String getTableAlias(){
+          return aliases.getElementTableAlias();
+        }
+        @Override public EntityAliases getColumnAliases(){
+          return aliases.getEntityElementColumnAliases();
+        }
+      }
+;
+      final EntityReference elementEntityReference=(EntityReference)fetch.getElementGraph();
+      readerCollector.addReader(new EntityReferenceReader(elementEntityReference,entityReferenceAliases,buildIdentifierReader(selectStatementBuilder,factory,joinFragment,elementEntityReference,buildingParameters,aliasResolutionContext,readerCollector,entityReferenceAliases,stats)));
+    }
+    final String ordering=queryableCollection.getSQLOrderByString(rhsTableAlias);
+    if (StringHelper.isNotEmpty(ordering)) {
+      selectStatementBuilder.appendOrderByFragment(ordering);
+    }
+  }
+  readerCollector.addReader(new CollectionReferenceReader(fetch,aliases));
+}

@@ -1,0 +1,16 @@
+{
+  if (BidirectionalEntityFetch.class.isInstance(fetch)) {
+    log.tracef("Skipping bi-directional entity fetch [%s]",fetch);
+    return;
+  }
+  stats.processingFetch(fetch);
+  final EntityReferenceAliases aliases=renderSqlFragments(selectStatementBuilder,factory,joinFragment,fetchOwner,fetch,buildingParameters,aliasResolutionContext);
+  final EntityIdentifierReader identifierReader=buildIdentifierReader(selectStatementBuilder,factory,joinFragment,fetch,buildingParameters,aliasResolutionContext,readerCollector,aliases,stats);
+  if (fetch.getFetchedType().isOneToOne()) {
+    readerCollector.addReader(new OneToOneFetchReader(fetch,aliases,identifierReader,(EntityReference)fetchOwner));
+  }
+ else {
+    readerCollector.addReader(new EntityReferenceReader(fetch,aliases,identifierReader));
+  }
+  processJoinFetches(selectStatementBuilder,factory,joinFragment,fetch,buildingParameters,aliasResolutionContext,readerCollector,stats);
+}

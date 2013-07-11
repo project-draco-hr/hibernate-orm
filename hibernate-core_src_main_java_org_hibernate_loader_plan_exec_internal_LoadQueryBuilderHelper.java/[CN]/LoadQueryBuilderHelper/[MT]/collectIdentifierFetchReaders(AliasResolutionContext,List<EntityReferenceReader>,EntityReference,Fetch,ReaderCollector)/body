@@ -1,0 +1,19 @@
+{
+  if (CompositeFetch.class.isInstance(fetch)) {
+    for (    Fetch subFetch : ((CompositeFetch)fetch).getFetches()) {
+      collectIdentifierFetchReaders(aliasResolutionContext,readers,entityReference,subFetch,readerCollector);
+    }
+  }
+ else   if (!EntityReference.class.isInstance(fetch)) {
+    throw new IllegalStateException(String.format("Non-entity (and non-composite) fetch [%s] was found as part of entity identifier : %s",fetch,entityReference.getEntityPersister().getEntityName()));
+  }
+ else {
+    final EntityReference fetchedEntityReference=(EntityReference)fetch;
+    final EntityReferenceAliases fetchedAliases=aliasResolutionContext.resolveAliases(fetchedEntityReference);
+    if (BidirectionalEntityFetch.class.isInstance(fetchedEntityReference)) {
+      return;
+    }
+    final EntityReferenceReader reader=new EntityReferenceReader(fetchedEntityReference,aliasResolutionContext.resolveAliases(fetchedEntityReference),new EntityIdentifierReaderImpl(fetchedEntityReference,fetchedAliases,Collections.<EntityReferenceReader>emptyList()));
+    readerCollector.addReader(reader);
+  }
+}

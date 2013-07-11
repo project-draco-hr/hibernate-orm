@@ -1,14 +1,15 @@
 {
   final PropertyPath subPath=currentPropertyPath.append(attributeDefinition.getName());
   log.debug("Visiting attribute path : " + subPath.getFullPath());
-  final boolean continueWalk;
-  if (attributeDefinition.getType().isAssociationType() && isDuplicateAssociationKey(((AssociationAttributeDefinition)attributeDefinition).getAssociationKey())) {
-    log.debug("Property path deemed to be circular : " + subPath.getFullPath());
-    continueWalk=false;
+  if (attributeDefinition.getType().isAssociationType()) {
+    final AssociationKey associationKey=((AssociationAttributeDefinition)attributeDefinition).getAssociationKey();
+    if (isDuplicateAssociationKey(associationKey)) {
+      log.debug("Property path deemed to be circular : " + subPath.getFullPath());
+      strategy.foundCircularAssociationKey(associationKey,attributeDefinition);
+      return;
+    }
   }
- else {
-    continueWalk=strategy.startingAttribute(attributeDefinition);
-  }
+  final boolean continueWalk=strategy.startingAttribute(attributeDefinition);
   if (continueWalk) {
     final PropertyPath old=currentPropertyPath;
     currentPropertyPath=subPath;

@@ -1,0 +1,16 @@
+{
+  final CollectionPersister persister=collectionQuerySpace.getCollectionPersister();
+  final Type type=persister.getElementType();
+  if (type.isAssociationType()) {
+    if (type.isEntityType()) {
+      final EntityPersister indexPersister=persister.getFactory().getEntityPersister(((EntityType)type).getAssociatedEntityName());
+      final CollectionElementEntityJoin join=collectionQuerySpace.addElementEntityJoin(indexPersister,loadPlanBuildingContext);
+      return new CollectionFetchableElementEntityGraph(this,indexPersister,join);
+    }
+  }
+ else   if (type.isComponentType()) {
+    final CollectionElementCompositeJoin join=collectionQuerySpace.addElementCompositeJoin((CompositeType)type,loadPlanBuildingContext);
+    return new CollectionFetchableElementCompositeGraph(this,join);
+  }
+  return null;
+}

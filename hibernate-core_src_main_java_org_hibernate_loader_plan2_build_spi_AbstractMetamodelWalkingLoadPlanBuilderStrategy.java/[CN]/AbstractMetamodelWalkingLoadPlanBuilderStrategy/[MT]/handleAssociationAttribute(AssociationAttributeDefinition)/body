@@ -1,0 +1,21 @@
+{
+  final FetchStrategy fetchStrategy=determineFetchStrategy(attributeDefinition);
+  if (fetchStrategy.getStyle() != FetchStyle.JOIN) {
+    return false;
+  }
+  final ExpandingFetchSource currentSource=currentSource();
+  currentSource.validateFetchPlan(fetchStrategy,attributeDefinition);
+  final AssociationAttributeDefinition.AssociationNature nature=attributeDefinition.getAssociationNature();
+  if (nature == AssociationAttributeDefinition.AssociationNature.ANY) {
+    return false;
+  }
+  if (nature == AssociationAttributeDefinition.AssociationNature.ENTITY) {
+    EntityFetch fetch=currentSource.buildEntityFetch(attributeDefinition,fetchStrategy,this);
+    pushToStack((ExpandingFetchSource)fetch);
+  }
+ else {
+    CollectionFetch fetch=currentSource.buildCollectionFetch(attributeDefinition,fetchStrategy,this);
+    pushToCollectionStack(fetch);
+  }
+  return true;
+}

@@ -1,8 +1,8 @@
 {
   final LoadPlan plan=Helper.INSTANCE.buildLoadPlan(sessionFactory(),entityPersister);
-  final AliasResolutionContext aliasResolutionContext=new AliasResolutionContextImpl(sessionFactory(),0);
-  final String sql=Helper.INSTANCE.generateSql(sessionFactory(),plan,aliasResolutionContext);
-  final ResultSetProcessorImpl resultSetProcessor=new ResultSetProcessorImpl(plan,true);
+  final LoadQueryDetails queryDetails=Helper.INSTANCE.buildLoadQueryDetails(plan,sessionFactory());
+  final String sql=queryDetails.getSqlStatement();
+  final ResultSetProcessor resultSetProcessor=queryDetails.getResultSetProcessor();
   final List results=new ArrayList();
   final Session workSession=openSession();
   workSession.beginTransaction();
@@ -12,12 +12,12 @@
       PreparedStatement ps=connection.prepareStatement(sql);
       callback.bind(ps);
       ResultSet resultSet=ps.executeQuery();
-      results.addAll(resultSetProcessor.extractResults(NoOpLoadPlanAdvisor.INSTANCE,resultSet,(SessionImplementor)workSession,callback.getQueryParameters(),new NamedParameterContext(){
+      results.addAll(resultSetProcessor.extractResults(resultSet,(SessionImplementor)workSession,callback.getQueryParameters(),new NamedParameterContext(){
         @Override public int[] getNamedParameterLocations(        String name){
           return new int[0];
         }
       }
-,aliasResolutionContext,true,false,null,null));
+,true,false,null,null));
       resultSet.close();
       ps.close();
     }

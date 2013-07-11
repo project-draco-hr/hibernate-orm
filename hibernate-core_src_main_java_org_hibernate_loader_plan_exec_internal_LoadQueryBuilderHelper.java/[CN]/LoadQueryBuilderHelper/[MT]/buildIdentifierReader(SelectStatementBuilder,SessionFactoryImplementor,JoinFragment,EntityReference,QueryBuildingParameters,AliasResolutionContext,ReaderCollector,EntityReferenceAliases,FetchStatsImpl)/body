@@ -1,0 +1,16 @@
+{
+  final List<EntityReferenceReader> identifierFetchReaders=new ArrayList<EntityReferenceReader>();
+  final ReaderCollector identifierFetchReaderCollector=new ReaderCollector(){
+    @Override public void addReader(    CollectionReferenceReader collectionReferenceReader){
+      throw new IllegalStateException("Identifier cannot contain collection fetches");
+    }
+    @Override public void addReader(    EntityReferenceReader entityReferenceReader){
+      identifierFetchReaders.add(entityReferenceReader);
+    }
+  }
+;
+  for (  Fetch fetch : entityReference.getIdentifierDescription().getFetches()) {
+    processFetch(selectStatementBuilder,factory,joinFragment,(FetchOwner)entityReference,fetch,buildingParameters,aliasResolutionContext,identifierFetchReaderCollector,stats);
+  }
+  return new EntityIdentifierReaderImpl(entityReference,aliases,identifierFetchReaders);
+}

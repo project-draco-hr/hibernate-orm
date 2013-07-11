@@ -1,0 +1,13 @@
+{
+  final JoinFragment joinFragment=factory.getDialect().createOuterJoinFragment();
+  final FetchStatsImpl stats=new FetchStatsImpl();
+  if (EntityReference.class.isInstance(fetchOwner)) {
+    final EntityReference fetchOwnerAsEntityReference=(EntityReference)fetchOwner;
+    for (    Fetch fetch : fetchOwnerAsEntityReference.getIdentifierDescription().getFetches()) {
+      processFetch(selectStatementBuilder,factory,joinFragment,fetchOwner,fetch,buildingParameters,aliasResolutionContext,readerCollector,stats);
+    }
+  }
+  processJoinFetches(selectStatementBuilder,factory,joinFragment,fetchOwner,buildingParameters,aliasResolutionContext,readerCollector,stats);
+  selectStatementBuilder.setOuterJoins(joinFragment.toFromFragmentString(),joinFragment.toWhereFragmentString());
+  return stats;
+}

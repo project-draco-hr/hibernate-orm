@@ -1,6 +1,12 @@
 {
   final SelectStatementBuilder select=new SelectStatementBuilder(factory.getDialect());
   applyRootReturnSpecifics(select,keyColumnNames,rootReturn,factory,buildingParameters,aliasResolutionContext);
-  LoadQueryBuilderHelper.applyJoinFetches(select,factory,rootReturn,buildingParameters,aliasResolutionContext);
+  LoadQueryBuilderHelper.applyJoinFetches(select,factory,rootReturn,buildingParameters,aliasResolutionContext,new ReaderCollector(){
+    @Override public void addReader(    CollectionReferenceReader collectionReferenceReader){
+    }
+    @Override public void addReader(    EntityReferenceReader entityReferenceReader){
+    }
+  }
+);
   return select.toStatementString();
 }

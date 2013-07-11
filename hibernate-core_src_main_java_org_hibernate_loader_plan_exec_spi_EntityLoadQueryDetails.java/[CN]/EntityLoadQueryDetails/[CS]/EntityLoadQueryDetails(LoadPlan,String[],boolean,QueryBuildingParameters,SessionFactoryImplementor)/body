@@ -1,0 +1,13 @@
+{
+  this.loadPlan=loadPlan;
+  final SelectStatementBuilder select=new SelectStatementBuilder(factory.getDialect());
+  final EntityReturn rootReturn=Helper.INSTANCE.extractRootReturn(loadPlan,EntityReturn.class);
+  final AliasResolutionContext aliasResolutionContext=new AliasResolutionContextImpl(factory);
+  final ReaderCollectorImpl readerCollector=new ReaderCollectorImpl();
+  final String[] keyColumnNamesToUse=keyColumnNames != null ? keyColumnNames : ((Queryable)rootReturn.getEntityPersister()).getIdentifierColumnNames();
+  applyRootReturnSpecifics(select,keyColumnNamesToUse,rootReturn,factory,buildingParameters,aliasResolutionContext);
+  readerCollector.addReader(new EntityReturnReader(rootReturn,aliasResolutionContext.resolveAliases(rootReturn),new EntityIdentifierReaderImpl(rootReturn,aliasResolutionContext.resolveAliases(rootReturn),Collections.<EntityReferenceReader>emptyList())));
+  FetchStats fetchStats=LoadQueryBuilderHelper.applyJoinFetches(select,factory,rootReturn,buildingParameters,aliasResolutionContext,readerCollector);
+  this.sqlStatement=select.toStatementString();
+  this.resultSetProcessor=new ResultSetProcessorImpl(loadPlan,readerCollector.buildRowReader(),fetchStats.hasSubselectFetches());
+}
