@@ -53,7 +53,7 @@
   assertFalse(Hibernate.isInitialized(gavin.getThings()));
   assertEquals(((Thing)gavin.getThings().get(0)).getDescription(),"some thing");
   s.clear();
-  thing=(Thing)s.get(Thing.class,new Long(thing.getId()));
+  thing=(Thing)s.get(Thing.class,thing.getId());
   assertFalse(Hibernate.isInitialized(thing.getOwner()));
   assertEquals(thing.getOwner().getIdentity(),"gavin");
   thing.getOwner().getThings().remove(thing);
@@ -61,14 +61,14 @@
   x23y4.getThings().add(thing);
   s.flush();
   s.clear();
-  thing=(Thing)s.get(Thing.class,new Long(thing.getId()));
+  thing=(Thing)s.get(Thing.class,thing.getId());
   assertFalse(Hibernate.isInitialized(thing.getOwner()));
   assertEquals(thing.getOwner().getIdentity(),"x23y4$$hu%3");
   s.delete(thing);
   x23y4=(Alien)s.createCriteria(Alien.class).uniqueResult();
   s.delete(x23y4.getHive());
-  s.delete(s.get(Location.class,new Long(mel.getId())));
-  s.delete(s.get(Location.class,new Long(mars.getId())));
+  s.delete(s.get(Location.class,mel.getId()));
+  s.delete(s.get(Location.class,mars.getId()));
   assertTrue(s.createQuery("from Being").list().isEmpty());
   t.commit();
   s.close();

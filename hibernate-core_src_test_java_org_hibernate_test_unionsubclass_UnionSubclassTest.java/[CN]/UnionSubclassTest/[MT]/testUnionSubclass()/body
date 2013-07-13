@@ -29,8 +29,8 @@
   assertEquals(s.createQuery("from Alien").list().size(),1);
   s.clear();
   List beings=s.createQuery("from Being b left join fetch b.location").list();
-  for (Iterator iter=beings.iterator(); iter.hasNext(); ) {
-    Being b=(Being)iter.next();
+  for (  Object being : beings) {
+    Being b=(Being)being;
     assertTrue(Hibernate.isInitialized(b.getLocation()));
     assertNotNull(b.getLocation().getName());
     assertNotNull(b.getIdentity());
@@ -39,8 +39,8 @@
   assertEquals(beings.size(),2);
   s.clear();
   beings=s.createQuery("from Being").list();
-  for (Iterator iter=beings.iterator(); iter.hasNext(); ) {
-    Being b=(Being)iter.next();
+  for (  Object being : beings) {
+    Being b=(Being)being;
     assertFalse(Hibernate.isInitialized(b.getLocation()));
     assertNotNull(b.getLocation().getName());
     assertNotNull(b.getIdentity());
@@ -50,13 +50,12 @@
   s.clear();
   List locations=s.createQuery("from Location").list();
   int count=0;
-  for (Iterator iter=locations.iterator(); iter.hasNext(); ) {
-    Location l=(Location)iter.next();
+  for (  Object location : locations) {
+    Location l=(Location)location;
     assertNotNull(l.getName());
-    Iterator iter2=l.getBeings().iterator();
-    while (iter2.hasNext()) {
+    for (    Object o : l.getBeings()) {
       count++;
-      assertSame(((Being)iter2.next()).getLocation(),l);
+      assertSame(((Being)o).getLocation(),l);
     }
   }
   assertEquals(count,2);
@@ -64,20 +63,19 @@
   s.clear();
   locations=s.createQuery("from Location loc left join fetch loc.beings").list();
   count=0;
-  for (Iterator iter=locations.iterator(); iter.hasNext(); ) {
-    Location l=(Location)iter.next();
+  for (  Object location : locations) {
+    Location l=(Location)location;
     assertNotNull(l.getName());
-    Iterator iter2=l.getBeings().iterator();
-    while (iter2.hasNext()) {
+    for (    Object o : l.getBeings()) {
       count++;
-      assertSame(((Being)iter2.next()).getLocation(),l);
+      assertSame(((Being)o).getLocation(),l);
     }
   }
   assertEquals(count,2);
   assertEquals(locations.size(),3);
   s.clear();
-  gavin=(Human)s.get(Human.class,new Long(gavin.getId()));
-  atl=(Location)s.get(Location.class,new Long(atl.getId()));
+  gavin=(Human)s.get(Human.class,gavin.getId());
+  atl=(Location)s.get(Location.class,atl.getId());
   atl.addBeing(gavin);
   assertEquals(s.createQuery("from Human h where h.location.name like '%GA'").list().size(),1);
   s.delete(gavin);
