@@ -5,20 +5,25 @@
   cfg.addAnnotatedClass(Key.class);
   cfg.addAnnotatedClass(PrimaryKey.class);
   SessionFactoryImplementor sf=(SessionFactoryImplementor)cfg.buildSessionFactory();
-  final OuterJoinLoadable cardFieldPersister=(OuterJoinLoadable)sf.getClassMetadata(CardField.class);
-  doCompare(sf,cardFieldPersister);
-  final LoadPlan loadPlan=LoadPlanStructureAssertionHelper.INSTANCE.buildLoadPlan(sf,cardFieldPersister);
-  assertEquals(LoadPlan.Disposition.ENTITY_LOADER,loadPlan.getDisposition());
-  assertEquals(1,loadPlan.getReturns().size());
-  final EntityReturn cardFieldReturn=assertTyping(EntityReturn.class,loadPlan.getReturns().get(0));
-  assertEquals(0,cardFieldReturn.getFetches().length);
-  assertTrue(cardFieldReturn.getIdentifierDescription().hasFetches());
-  final FetchSource cardFieldIdAsFetchSource=assertTyping(FetchSource.class,cardFieldReturn.getIdentifierDescription());
-  assertEquals(2,cardFieldIdAsFetchSource.getFetches().length);
-  final EntityFetch cardFieldIdCardFetch=assertTyping(EntityFetch.class,cardFieldIdAsFetchSource.getFetches()[0]);
-  assertFalse(cardFieldIdCardFetch.getIdentifierDescription().hasFetches());
-  assertEquals(0,cardFieldIdCardFetch.getFetches().length);
-  final EntityFetch cardFieldIdKeyFetch=assertTyping(EntityFetch.class,cardFieldIdAsFetchSource.getFetches()[1]);
-  assertFalse(cardFieldIdKeyFetch.getIdentifierDescription().hasFetches());
-  assertEquals(0,cardFieldIdKeyFetch.getFetches().length);
+  try {
+    final OuterJoinLoadable cardFieldPersister=(OuterJoinLoadable)sf.getClassMetadata(CardField.class);
+    doCompare(sf,cardFieldPersister);
+    final LoadPlan loadPlan=LoadPlanStructureAssertionHelper.INSTANCE.buildLoadPlan(sf,cardFieldPersister);
+    assertEquals(LoadPlan.Disposition.ENTITY_LOADER,loadPlan.getDisposition());
+    assertEquals(1,loadPlan.getReturns().size());
+    final EntityReturn cardFieldReturn=assertTyping(EntityReturn.class,loadPlan.getReturns().get(0));
+    assertEquals(0,cardFieldReturn.getFetches().length);
+    assertTrue(cardFieldReturn.getIdentifierDescription().hasFetches());
+    final FetchSource cardFieldIdAsFetchSource=assertTyping(FetchSource.class,cardFieldReturn.getIdentifierDescription());
+    assertEquals(2,cardFieldIdAsFetchSource.getFetches().length);
+    final EntityFetch cardFieldIdCardFetch=assertTyping(EntityFetch.class,cardFieldIdAsFetchSource.getFetches()[0]);
+    assertFalse(cardFieldIdCardFetch.getIdentifierDescription().hasFetches());
+    assertEquals(0,cardFieldIdCardFetch.getFetches().length);
+    final EntityFetch cardFieldIdKeyFetch=assertTyping(EntityFetch.class,cardFieldIdAsFetchSource.getFetches()[1]);
+    assertFalse(cardFieldIdKeyFetch.getIdentifierDescription().hasFetches());
+    assertEquals(0,cardFieldIdKeyFetch.getFetches().length);
+  }
+  finally {
+    sf.close();
+  }
 }

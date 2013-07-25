@@ -1,5 +1,7 @@
 {
-  final NestedCompositeFetchImpl fetch=new NestedCompositeFetchImpl(this,attributeDefinition.getType(),getPropertyPath(),getFetchLeftHandSideUid());
+  final ExpandingQuerySpace leftHandSide=(ExpandingQuerySpace)resolveCompositeQuerySpace(loadPlanBuildingContext);
+  final Join join=leftHandSide.addCompositeJoin(attributeDefinition,loadPlanBuildingContext.getQuerySpaces().generateImplicitUid());
+  final NestedCompositeFetchImpl fetch=new NestedCompositeFetchImpl(this,attributeDefinition.getType(),(CompositeQuerySpace)join.getRightHandSide(),allowCollectionFetches,getPropertyPath());
   addFetch(fetch);
   return fetch;
 }
