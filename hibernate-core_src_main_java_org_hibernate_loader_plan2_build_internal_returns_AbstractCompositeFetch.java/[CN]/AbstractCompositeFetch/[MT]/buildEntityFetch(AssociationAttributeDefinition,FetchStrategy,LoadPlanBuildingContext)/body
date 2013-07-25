@@ -1,0 +1,12 @@
+{
+  final EntityType fetchedType=(EntityType)attributeDefinition.getType();
+  final EntityPersister fetchedPersister=loadPlanBuildingContext.getSessionFactory().getEntityPersister(fetchedType.getAssociatedEntityName());
+  if (fetchedPersister == null) {
+    throw new WalkingException(String.format("Unable to locate EntityPersister [%s] for fetch [%s]",fetchedType.getAssociatedEntityName(),attributeDefinition.getName()));
+  }
+  final ExpandingQuerySpace leftHandSide=(ExpandingQuerySpace)loadPlanBuildingContext.getQuerySpaces().getQuerySpaceByUid(getFetchLeftHandSideUid());
+  final Join join=leftHandSide.addEntityJoin(attributeDefinition,fetchedPersister,loadPlanBuildingContext.getQuerySpaces().generateImplicitUid(),attributeDefinition.isNullable());
+  final EntityFetch fetch=new EntityFetchImpl(this,attributeDefinition,fetchStrategy,join);
+  addFetch(fetch);
+  return fetch;
+}

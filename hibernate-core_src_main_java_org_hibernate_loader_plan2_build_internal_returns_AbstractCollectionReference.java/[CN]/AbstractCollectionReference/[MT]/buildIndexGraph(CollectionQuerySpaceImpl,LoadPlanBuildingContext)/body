@@ -1,0 +1,18 @@
+{
+  final CollectionPersister persister=collectionQuerySpace.getCollectionPersister();
+  if (persister.hasIndex()) {
+    final Type type=persister.getIndexType();
+    if (type.isAssociationType()) {
+      if (type.isEntityType()) {
+        final EntityPersister indexPersister=persister.getFactory().getEntityPersister(((EntityType)type).getAssociatedEntityName());
+        final Join join=collectionQuerySpace.addIndexEntityJoin(indexPersister,loadPlanBuildingContext);
+        return new CollectionFetchableIndexEntityGraph(this,join);
+      }
+    }
+ else     if (type.isComponentType()) {
+      final Join join=collectionQuerySpace.addIndexCompositeJoin((CompositeType)type,loadPlanBuildingContext);
+      return new CollectionFetchableIndexCompositeGraph(this,join);
+    }
+  }
+  return null;
+}

@@ -1,0 +1,24 @@
+{
+  final String leftHandSideUid=join.getLeftHandSide().getUid();
+  final String leftHandSideTableAlias=aliasResolutionContext.resolveSqlTableAliasFromQuerySpaceUid(leftHandSideUid);
+  if (leftHandSideTableAlias == null) {
+    throw new IllegalStateException("QuerySpace with that UID was not yet registered in the AliasResolutionContext");
+  }
+  final String[] aliasedLhsColumnNames=join.resolveAliasedLeftHandSideJoinConditionColumns(leftHandSideTableAlias);
+  final CollectionQuerySpace rightHandSide=(CollectionQuerySpace)join.getRightHandSide();
+  final CollectionReferenceAliases aliases=aliasResolutionContext.generateCollectionReferenceAliases(rightHandSide.getUid(),rightHandSide.getCollectionPersister());
+  if (rightHandSide.getCollectionPersister().isOneToMany() || rightHandSide.getCollectionPersister().isManyToMany()) {
+    Join collectionElementJoin=null;
+    for (    Join collectionJoin : rightHandSide.getJoins()) {
+      collectionElementJoin=collectionJoin;
+    }
+    if (collectionElementJoin == null) {
+      throw new IllegalStateException(String.format("Could not locate collection element join within collection join [%s : %s]",rightHandSide.getUid(),rightHandSide.getCollectionPersister()));
+    }
+    aliasResolutionContext.registerQuerySpaceAliases(collectionElementJoin.getRightHandSide().getUid(),new EntityReferenceAliasesImpl(aliases.getElementTableAlias(),aliases.getEntityElementColumnAliases()));
+  }
+  if (rightHandSide.getCollectionPersister().isOneToMany()) {
+    return;
+  }
+  renderSqlJoinToCollectionTable(aliases,rightHandSide,aliasedLhsColumnNames,join,joinFragment);
+}

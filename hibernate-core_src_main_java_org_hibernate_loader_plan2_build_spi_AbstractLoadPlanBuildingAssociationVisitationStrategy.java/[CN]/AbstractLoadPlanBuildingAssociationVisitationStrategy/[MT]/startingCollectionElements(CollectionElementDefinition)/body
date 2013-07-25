@@ -1,0 +1,17 @@
+{
+  final CollectionReference collectionReference=collectionReferenceStack.peekFirst();
+  final CollectionFetchableElement elementGraph=collectionReference.getElementGraph();
+  final Type elementType=elementDefinition.getType();
+  final boolean expectFetchSourceElements=(elementType.isAssociationType() || elementType.isComponentType()) && !elementType.isAnyType();
+  if (expectFetchSourceElements) {
+    if (elementGraph == null) {
+      throw new IllegalStateException("Expecting CollectionFetchableElement, but element graph was null : " + elementDefinition.getCollectionDefinition().getCollectionPersister().getRole());
+    }
+    pushToStack((ExpandingFetchSource)elementGraph);
+  }
+ else {
+    if (elementGraph != null) {
+      throw new IllegalStateException("Not expecting CollectionFetchableElement, but element graph was non-null : " + elementDefinition.getCollectionDefinition().getCollectionPersister().getRole());
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  final String leftHandSideUid=join.getLeftHandSide().getUid();
+  final String leftHandSideTableAlias=aliasResolutionContext.resolveSqlTableAliasFromQuerySpaceUid(leftHandSideUid);
+  if (leftHandSideTableAlias == null) {
+    throw new IllegalStateException("QuerySpace with that UID was not yet registered in the AliasResolutionContext");
+  }
+  final String[] aliasedLhsColumnNames=join.resolveAliasedLeftHandSideJoinConditionColumns(leftHandSideTableAlias);
+  final EntityQuerySpace rightHandSide=(EntityQuerySpace)join.getRightHandSide();
+  EntityReferenceAliases aliases=aliasResolutionContext.resolveEntityReferenceAliases(rightHandSide.getUid());
+  if (aliases == null) {
+    aliases=aliasResolutionContext.generateEntityReferenceAliases(rightHandSide.getUid(),rightHandSide.getEntityPersister());
+  }
+  final String[] rhsColumnNames=join.resolveNonAliasedRightHandSideJoinConditionColumns();
+  final String rhsTableAlias=aliases.getTableAlias();
+  final String additionalJoinConditions=resolveAdditionalJoinCondition(rhsTableAlias,join.getAnyAdditionalJoinConditions(rhsTableAlias),(Joinable)rightHandSide.getEntityPersister());
+  final Joinable joinable=(Joinable)rightHandSide.getEntityPersister();
+  addJoins(joinFragment,joinable,join.isRightHandSideOptional() ? JoinType.LEFT_OUTER_JOIN : JoinType.INNER_JOIN,aliases.getTableAlias(),rhsColumnNames,aliasedLhsColumnNames,additionalJoinConditions);
+}

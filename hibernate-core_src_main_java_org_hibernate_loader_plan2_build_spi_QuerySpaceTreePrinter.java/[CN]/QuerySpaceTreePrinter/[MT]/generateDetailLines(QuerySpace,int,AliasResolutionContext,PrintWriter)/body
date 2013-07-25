@@ -1,0 +1,22 @@
+{
+  printWriter.println(TreePrinterHelper.INSTANCE.generateNodePrefix(depth) + extractDetails(querySpace));
+  if (aliasResolutionContext == null) {
+    return;
+  }
+  printWriter.println(TreePrinterHelper.INSTANCE.generateNodePrefix(depth + detailDepthOffset) + "SQL table alias mapping - " + aliasResolutionContext.resolveSqlTableAliasFromQuerySpaceUid(querySpace.getUid()));
+  final EntityReferenceAliases entityAliases=aliasResolutionContext.resolveEntityReferenceAliases(querySpace.getUid());
+  final CollectionReferenceAliases collectionReferenceAliases=aliasResolutionContext.resolveCollectionReferenceAliases(querySpace.getUid());
+  if (entityAliases != null) {
+    printWriter.println(TreePrinterHelper.INSTANCE.generateNodePrefix(depth + detailDepthOffset) + "alias suffix - " + entityAliases.getColumnAliases().getSuffix());
+    printWriter.println(TreePrinterHelper.INSTANCE.generateNodePrefix(depth + detailDepthOffset) + "suffixed key columns - {" + StringHelper.join(", ",entityAliases.getColumnAliases().getSuffixedKeyAliases())+ "}");
+  }
+  if (collectionReferenceAliases != null) {
+    printWriter.println(TreePrinterHelper.INSTANCE.generateNodePrefix(depth + detailDepthOffset) + "alias suffix - " + collectionReferenceAliases.getCollectionColumnAliases().getSuffix());
+    printWriter.println(TreePrinterHelper.INSTANCE.generateNodePrefix(depth + detailDepthOffset) + "suffixed key columns - {" + StringHelper.join(", ",collectionReferenceAliases.getCollectionColumnAliases().getSuffixedKeyAliases())+ "}");
+    final EntityAliases elementAliases=collectionReferenceAliases.getEntityElementColumnAliases();
+    if (elementAliases != null) {
+      printWriter.println(TreePrinterHelper.INSTANCE.generateNodePrefix(depth + detailDepthOffset) + "entity-element alias suffix - " + elementAliases.getSuffix());
+      printWriter.println(TreePrinterHelper.INSTANCE.generateNodePrefix(depth + detailDepthOffset) + elementAliases.getSuffix() + "entity-element suffixed key columns - "+ StringHelper.join(", ",elementAliases.getSuffixedKeyAliases()));
+    }
+  }
+}

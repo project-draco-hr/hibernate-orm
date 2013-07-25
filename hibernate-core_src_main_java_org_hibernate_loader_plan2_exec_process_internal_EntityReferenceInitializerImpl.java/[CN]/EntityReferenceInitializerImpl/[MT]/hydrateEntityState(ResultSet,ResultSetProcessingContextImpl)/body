@@ -1,0 +1,40 @@
+{
+  final EntityReferenceProcessingState processingState=context.getProcessingState(entityReference);
+  if (processingState.isMissingIdentifier()) {
+    handleMissingIdentifier(context);
+    return;
+  }
+  final EntityKey entityKey=processingState.getEntityKey();
+  if (entityKey == null) {
+    handleMissingIdentifier(context);
+    return;
+  }
+  if (processingState.getEntityInstance() != null) {
+    return;
+  }
+  final Object existing=context.getSession().getEntityUsingInterceptor(entityKey);
+  if (existing != null) {
+    if (!entityReference.getEntityPersister().isInstance(existing)) {
+      throw new WrongClassException("loaded object was of wrong class " + existing.getClass(),entityKey.getIdentifier(),entityReference.getEntityPersister().getEntityName());
+    }
+    checkVersion(resultSet,context,entityKey,existing);
+    processingState.registerEntityInstance(existing);
+    return;
+  }
+  Object optionalEntityInstance=null;
+  if (isReturn && context.shouldUseOptionalEntityInformation()) {
+    final EntityKey optionalEntityKey=ResultSetProcessorHelper.getOptionalObjectKey(context.getQueryParameters(),context.getSession());
+    if (optionalEntityKey != null) {
+      if (optionalEntityKey.equals(entityKey)) {
+        optionalEntityInstance=context.getQueryParameters().getOptionalObject();
+      }
+    }
+  }
+  final String concreteEntityTypeName=getConcreteEntityTypeName(resultSet,context,entityKey);
+  final Object entityInstance=optionalEntityInstance != null ? optionalEntityInstance : context.getSession().instantiate(concreteEntityTypeName,entityKey.getIdentifier());
+  processingState.registerEntityInstance(entityInstance);
+  log.trace("hydrating entity state");
+  final LockMode requestedLockMode=context.resolveLockMode(entityReference);
+  final LockMode lockModeToAcquire=requestedLockMode == LockMode.NONE ? LockMode.READ : requestedLockMode;
+  loadFromResultSet(resultSet,context,entityInstance,concreteEntityTypeName,entityKey,lockModeToAcquire);
+}

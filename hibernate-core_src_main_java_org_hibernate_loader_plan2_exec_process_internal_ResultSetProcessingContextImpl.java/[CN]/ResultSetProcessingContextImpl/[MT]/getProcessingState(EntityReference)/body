@@ -1,0 +1,55 @@
+{
+  if (identifierResolutionContextMap == null) {
+    identifierResolutionContextMap=new IdentityHashMap<EntityReference,EntityReferenceProcessingState>();
+  }
+  EntityReferenceProcessingState context=identifierResolutionContextMap.get(entityReference);
+  if (context == null) {
+    context=new EntityReferenceProcessingState(){
+      private boolean wasMissingIdentifier;
+      private Object identifierHydratedForm;
+      private EntityKey entityKey;
+      private Object[] hydratedState;
+      private Object entityInstance;
+      @Override public EntityReference getEntityReference(){
+        return entityReference;
+      }
+      @Override public void registerMissingIdentifier(){
+        if (!EntityFetch.class.isInstance(entityReference)) {
+          throw new IllegalStateException("Missing return row identifier");
+        }
+        ResultSetProcessingContextImpl.this.registerNonExists((EntityFetch)entityReference);
+        wasMissingIdentifier=true;
+      }
+      @Override public boolean isMissingIdentifier(){
+        return wasMissingIdentifier;
+      }
+      @Override public void registerIdentifierHydratedForm(      Object identifierHydratedForm){
+        this.identifierHydratedForm=identifierHydratedForm;
+      }
+      @Override public Object getIdentifierHydratedForm(){
+        return identifierHydratedForm;
+      }
+      @Override public void registerEntityKey(      EntityKey entityKey){
+        this.entityKey=entityKey;
+      }
+      @Override public EntityKey getEntityKey(){
+        return entityKey;
+      }
+      @Override public void registerHydratedState(      Object[] hydratedState){
+        this.hydratedState=hydratedState;
+      }
+      @Override public Object[] getHydratedState(){
+        return hydratedState;
+      }
+      @Override public void registerEntityInstance(      Object entityInstance){
+        this.entityInstance=entityInstance;
+      }
+      @Override public Object getEntityInstance(){
+        return entityInstance;
+      }
+    }
+;
+    identifierResolutionContextMap.put(entityReference,context);
+  }
+  return context;
+}

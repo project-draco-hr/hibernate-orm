@@ -1,0 +1,34 @@
+{
+  final List<EntityReferenceInitializer> entityReferenceInitializers=getEntityReferenceInitializers();
+  final List<CollectionReferenceInitializer> arrayReferenceInitializers=getArrayReferenceInitializers();
+  final List<CollectionReferenceInitializer> collectionReferenceInitializers=getCollectionReferenceInitializers();
+  final boolean hasEntityReferenceInitializers=entityReferenceInitializers != null && entityReferenceInitializers.size() > 0;
+  if (hasEntityReferenceInitializers) {
+    for (    EntityReferenceInitializer entityReferenceInitializer : entityReferenceInitializers) {
+      entityReferenceInitializer.hydrateIdentifier(resultSet,context);
+    }
+    for (    EntityReferenceInitializer entityReferenceInitializer : entityReferenceInitializers) {
+      entityReferenceInitializer.resolveEntityKey(resultSet,context);
+    }
+    for (    EntityReferenceInitializer entityReferenceInitializer : entityReferenceInitializers) {
+      entityReferenceInitializer.hydrateEntityState(resultSet,context);
+    }
+  }
+  Object logicalRow=readLogicalRow(resultSet,context);
+  if (hasEntityReferenceInitializers) {
+    for (    EntityReferenceInitializer entityReferenceInitializer : entityReferenceInitializers) {
+      entityReferenceInitializer.finishUpRow(resultSet,context);
+    }
+  }
+  if (collectionReferenceInitializers != null) {
+    for (    CollectionReferenceInitializer collectionReferenceInitializer : collectionReferenceInitializers) {
+      collectionReferenceInitializer.finishUpRow(resultSet,context);
+    }
+  }
+  if (arrayReferenceInitializers != null) {
+    for (    CollectionReferenceInitializer arrayReferenceInitializer : arrayReferenceInitializers) {
+      arrayReferenceInitializer.finishUpRow(resultSet,context);
+    }
+  }
+  return logicalRow;
+}

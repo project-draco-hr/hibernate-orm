@@ -1,0 +1,17 @@
+{
+  this.loadPlan=loadPlan;
+  if (log.isDebugEnabled()) {
+    log.debug(LoadPlanTreePrinter.INSTANCE.toString(loadPlan));
+  }
+  final SelectStatementBuilder select=new SelectStatementBuilder(factory.getDialect());
+  final EntityReturn rootReturn=Helper.INSTANCE.extractRootReturn(loadPlan,EntityReturn.class);
+  final AliasResolutionContextImpl aliasResolutionContext=new AliasResolutionContextImpl(factory);
+  final ReaderCollectorImpl readerCollector=new ReaderCollectorImpl();
+  final LoadQueryJoinAndFetchProcessor helper=new LoadQueryJoinAndFetchProcessor(aliasResolutionContext,buildingParameters,factory);
+  final String[] keyColumnNamesToUse=keyColumnNames != null ? keyColumnNames : ((Queryable)rootReturn.getEntityPersister()).getIdentifierColumnNames();
+  processQuerySpaces(loadPlan.getQuerySpaces(),select,keyColumnNamesToUse,helper,aliasResolutionContext,buildingParameters,factory);
+  final FetchStats fetchStats=processReturnAndFetches(rootReturn,select,helper,readerCollector,aliasResolutionContext);
+  LoadPlanTreePrinter.INSTANCE.logTree(loadPlan,aliasResolutionContext);
+  this.sqlStatement=select.toStatementString();
+  this.resultSetProcessor=new ResultSetProcessorImpl(loadPlan,readerCollector.buildRowReader(),fetchStats.hasSubselectFetches());
+}

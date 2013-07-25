@@ -1,0 +1,25 @@
+{
+  Configuration cfg=new Configuration();
+  cfg.addAnnotatedClass(Card.class);
+  cfg.addAnnotatedClass(CardField.class);
+  cfg.addAnnotatedClass(Key.class);
+  cfg.addAnnotatedClass(PrimaryKey.class);
+  final SessionFactoryImplementor sf=(SessionFactoryImplementor)cfg.buildSessionFactory();
+  final OuterJoinLoadable cardPersister=(OuterJoinLoadable)sf.getClassMetadata(Card.class);
+  doCompare(sf,cardPersister);
+  final LoadPlan cardLoadPlan=LoadPlanStructureAssertionHelper.INSTANCE.buildLoadPlan(sf,cardPersister);
+  assertEquals(LoadPlan.Disposition.ENTITY_LOADER,cardLoadPlan.getDisposition());
+  assertEquals(1,cardLoadPlan.getReturns().size());
+  final EntityReturn cardReturn=assertTyping(EntityReturn.class,cardLoadPlan.getReturns().get(0));
+  assertFalse(cardReturn.getIdentifierDescription().hasFetches());
+  assertEquals(1,cardReturn.getFetches().length);
+  final CollectionFetch fieldsFetch=assertTyping(CollectionFetch.class,cardReturn.getFetches()[0]);
+  assertNotNull(fieldsFetch.getElementGraph());
+  final CollectionFetchableElementEntityGraph cardFieldElementGraph=assertTyping(CollectionFetchableElementEntityGraph.class,fieldsFetch.getElementGraph());
+  assertEquals(0,cardFieldElementGraph.getFetches().length);
+  assertTrue(cardFieldElementGraph.getIdentifierDescription().hasFetches());
+  final FetchSource cardFieldElementGraphIdAsFetchSource=assertTyping(FetchSource.class,cardFieldElementGraph.getIdentifierDescription());
+  assertEquals(1,cardFieldElementGraphIdAsFetchSource.getFetches().length);
+  EntityFetch keyFetch=assertTyping(EntityFetch.class,cardFieldElementGraphIdAsFetchSource.getFetches()[0]);
+  assertEquals(Key.class.getName(),keyFetch.getEntityPersister().getEntityName());
+}

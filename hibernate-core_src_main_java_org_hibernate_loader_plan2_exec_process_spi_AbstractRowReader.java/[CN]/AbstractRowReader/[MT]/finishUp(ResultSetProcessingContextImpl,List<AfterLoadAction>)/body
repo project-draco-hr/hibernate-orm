@@ -1,0 +1,17 @@
+{
+  final List<HydratedEntityRegistration> hydratedEntityRegistrations=context.getHydratedEntityRegistrationList();
+  finishLoadingArrays(context);
+  final PreLoadEvent preLoadEvent;
+  final PostLoadEvent postLoadEvent;
+  if (context.getSession().isEventSource()) {
+    preLoadEvent=new PreLoadEvent((EventSource)context.getSession());
+    postLoadEvent=new PostLoadEvent((EventSource)context.getSession());
+  }
+ else {
+    preLoadEvent=null;
+    postLoadEvent=null;
+  }
+  performTwoPhaseLoad(preLoadEvent,context,hydratedEntityRegistrations);
+  finishLoadingCollections(context);
+  postLoad(postLoadEvent,context,hydratedEntityRegistrations,afterLoadActionList);
+}

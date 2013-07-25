@@ -1,0 +1,13 @@
+{
+  final EntityPersister persister=entityQuerySpace.getEntityPersister();
+  final EntityIdentifierDefinition identifierDefinition=persister.getEntityKeyDefinition();
+  if (identifierDefinition.isEncapsulated()) {
+    final EncapsulatedEntityIdentifierDefinition encapsulatedIdentifierDefinition=(EncapsulatedEntityIdentifierDefinition)identifierDefinition;
+    final Type idAttributeType=encapsulatedIdentifierDefinition.getAttributeDefinition().getType();
+    if (!CompositeType.class.isInstance(idAttributeType)) {
+      return new SimpleEntityIdentifierDescriptionImpl();
+    }
+  }
+  final Join join=((ExpandingEntityQuerySpace)entityQuerySpace).makeCompositeIdentifierJoin();
+  return identifierDefinition.isEncapsulated() ? buildEncapsulatedCompositeIdentifierDescription(join) : buildNonEncapsulatedCompositeIdentifierDescription(join);
+}

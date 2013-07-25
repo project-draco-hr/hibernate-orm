@@ -1,0 +1,20 @@
+{
+  final ExpandingFetchSource current=currentSource();
+  if (!EntityIdentifierDescription.class.isInstance(current)) {
+    return;
+  }
+  final ExpandingFetchSource popped=popFromStack();
+  if (!ExpandingEntityIdentifierDescription.class.isInstance(popped)) {
+    throw new WalkingException("Unexpected state in FetchSource stack");
+  }
+  final ExpandingEntityIdentifierDescription identifierDescription=(ExpandingEntityIdentifierDescription)popped;
+  final ExpandingFetchSource entitySource=currentSource();
+  if (!EntityReference.class.isInstance(entitySource)) {
+    throw new WalkingException("Unexpected state in FetchSource stack");
+  }
+  final EntityReference entityReference=(EntityReference)entitySource;
+  if (entityReference.getIdentifierDescription() != identifierDescription) {
+    throw new WalkingException(String.format("Encountered unexpected fetch owner [%s] in stack while processing entity identifier for [%s]",entityReference.getEntityPersister().getEntityName(),entityIdentifierDefinition.getEntityDefinition().getEntityPersister().getEntityName()));
+  }
+  log.tracef("%s Finished entity identifier : %s",StringHelper.repeat("<<",fetchSourceStack.size()),entityIdentifierDefinition.getEntityDefinition().getEntityPersister().getEntityName());
+}

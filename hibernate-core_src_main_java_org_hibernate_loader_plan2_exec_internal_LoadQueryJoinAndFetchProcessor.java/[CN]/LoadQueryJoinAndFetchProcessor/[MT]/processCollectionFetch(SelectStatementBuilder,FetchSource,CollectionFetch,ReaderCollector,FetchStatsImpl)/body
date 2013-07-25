@@ -1,0 +1,60 @@
+{
+  fetchStats.processingFetch(fetch);
+  final CollectionReferenceAliases aliases=aliasResolutionContext.resolveCollectionReferenceAliases(fetch.getQuerySpaceUid());
+  final QueryableCollection queryableCollection=(QueryableCollection)fetch.getCollectionPersister();
+  final Joinable joinableCollection=(Joinable)fetch.getCollectionPersister();
+  if (fetch.getCollectionPersister().isManyToMany()) {
+    final String ownerTableAlias=aliasResolutionContext.resolveSqlTableAliasFromQuerySpaceUid(fetchSource.getQuerySpaceUid());
+    final String collectionTableAlias=aliases.getCollectionTableAlias();
+    final String elementTableAlias=aliases.getElementTableAlias();
+    selectStatementBuilder.appendSelectClauseFragment(joinableCollection.selectFragment((Joinable)queryableCollection.getElementPersister(),ownerTableAlias,collectionTableAlias,aliases.getEntityElementColumnAliases().getSuffix(),aliases.getCollectionColumnAliases().getSuffix(),true));
+    final OuterJoinLoadable elementPersister=(OuterJoinLoadable)queryableCollection.getElementPersister();
+    selectStatementBuilder.appendSelectClauseFragment(elementPersister.selectFragment(elementTableAlias,aliases.getEntityElementColumnAliases().getSuffix()));
+    final String manyToManyOrdering=queryableCollection.getManyToManyOrderByString(collectionTableAlias);
+    if (StringHelper.isNotEmpty(manyToManyOrdering)) {
+      selectStatementBuilder.appendOrderByFragment(manyToManyOrdering);
+    }
+    final String ordering=queryableCollection.getSQLOrderByString(collectionTableAlias);
+    if (StringHelper.isNotEmpty(ordering)) {
+      selectStatementBuilder.appendOrderByFragment(ordering);
+    }
+    final EntityReferenceAliases entityReferenceAliases=new EntityReferenceAliases(){
+      @Override public String getTableAlias(){
+        return aliases.getElementTableAlias();
+      }
+      @Override public EntityAliases getColumnAliases(){
+        return aliases.getEntityElementColumnAliases();
+      }
+    }
+;
+    aliasResolutionContext.registerQuerySpaceAliases(fetch.getQuerySpaceUid(),entityReferenceAliases);
+    readerCollector.add(new EntityReferenceInitializerImpl((EntityReference)fetch.getElementGraph(),entityReferenceAliases));
+  }
+ else {
+    final String rhsTableAlias=aliases.getElementTableAlias();
+    selectStatementBuilder.appendSelectClauseFragment(queryableCollection.selectFragment(rhsTableAlias,aliases.getCollectionColumnAliases().getSuffix()));
+    if (fetch.getCollectionPersister().isOneToMany()) {
+      final OuterJoinLoadable elementPersister=(OuterJoinLoadable)queryableCollection.getElementPersister();
+      selectStatementBuilder.appendSelectClauseFragment(elementPersister.selectFragment(aliases.getElementTableAlias(),aliases.getEntityElementColumnAliases().getSuffix()));
+      final EntityReferenceAliases entityReferenceAliases=new EntityReferenceAliases(){
+        @Override public String getTableAlias(){
+          return aliases.getElementTableAlias();
+        }
+        @Override public EntityAliases getColumnAliases(){
+          return aliases.getEntityElementColumnAliases();
+        }
+      }
+;
+      aliasResolutionContext.registerQuerySpaceAliases(fetch.getQuerySpaceUid(),entityReferenceAliases);
+      readerCollector.add(new EntityReferenceInitializerImpl((EntityReference)fetch.getElementGraph(),entityReferenceAliases));
+    }
+    final String ordering=queryableCollection.getSQLOrderByString(rhsTableAlias);
+    if (StringHelper.isNotEmpty(ordering)) {
+      selectStatementBuilder.appendOrderByFragment(ordering);
+    }
+  }
+  if (fetch.getElementGraph() != null) {
+    processFetches(fetch.getElementGraph(),selectStatementBuilder,readerCollector);
+  }
+  readerCollector.add(new CollectionReferenceInitializerImpl(fetch,aliases));
+}

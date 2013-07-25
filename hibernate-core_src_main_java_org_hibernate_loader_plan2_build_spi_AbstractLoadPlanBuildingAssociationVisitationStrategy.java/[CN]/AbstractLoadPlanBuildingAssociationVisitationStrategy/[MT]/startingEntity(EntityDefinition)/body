@@ -1,0 +1,15 @@
+{
+  log.tracef("%s Starting entity : %s",StringHelper.repeat(">>",fetchSourceStack.size()),entityDefinition.getEntityPersister().getEntityName());
+  final boolean isRoot=fetchSourceStack.isEmpty();
+  if (!isRoot) {
+    return;
+  }
+  if (!supportsRootEntityReturns()) {
+    throw new HibernateException("This strategy does not support root entity returns");
+  }
+  final EntityReturnImpl entityReturn=new EntityReturnImpl(entityDefinition,this);
+  addRootReturn(entityReturn);
+  pushToStack(entityReturn);
+  final Joinable entityPersister=(Joinable)entityDefinition.getEntityPersister();
+  associationKeyRegistered(new AssociationKey(entityPersister.getTableName(),entityPersister.getKeyColumnNames()));
+}

@@ -1,0 +1,20 @@
+{
+  log.tracef("%s Starting collection : %s",StringHelper.repeat(">>",fetchSourceStack.size()),collectionDefinition.getCollectionPersister().getRole());
+  final boolean isRoot=fetchSourceStack.isEmpty();
+  if (!isRoot) {
+    return;
+  }
+  if (!supportsRootCollectionReturns()) {
+    throw new HibernateException("This strategy does not support root collection returns");
+  }
+  final CollectionReturn collectionReturn=new CollectionReturnImpl(collectionDefinition,this);
+  pushToCollectionStack(collectionReturn);
+  addRootReturn(collectionReturn);
+  if (collectionReturn.getElementGraph() != null) {
+    if (EntityReference.class.isInstance(collectionReturn.getElementGraph())) {
+      final EntityReference entityReference=(EntityReference)collectionReturn.getElementGraph();
+      final Joinable entityPersister=(Joinable)entityReference.getEntityPersister();
+      associationKeyRegistered(new AssociationKey(entityPersister.getTableName(),entityPersister.getKeyColumnNames()));
+    }
+  }
+}

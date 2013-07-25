@@ -1,0 +1,17 @@
+{
+  final EntityReferenceProcessingState processingState=context.getProcessingState(entityReference);
+  if (context.shouldUseOptionalEntityInformation()) {
+    if (isReturn) {
+      final EntityKey entityKey=ResultSetProcessorHelper.getOptionalObjectKey(context.getQueryParameters(),context.getSession());
+      if (entityKey != null) {
+        processingState.registerEntityKey(entityKey);
+        return;
+      }
+    }
+  }
+  Object identifierHydratedForm=processingState.getIdentifierHydratedForm();
+  if (identifierHydratedForm == null) {
+    identifierHydratedForm=readIdentifierHydratedState(resultSet,context);
+    processingState.registerIdentifierHydratedForm(identifierHydratedForm);
+  }
+}
