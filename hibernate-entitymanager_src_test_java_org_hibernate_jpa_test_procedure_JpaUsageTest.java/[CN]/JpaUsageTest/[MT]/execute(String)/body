@@ -1,0 +1,26 @@
+{
+  final SessionFactoryImplementor sf=entityManagerFactory().unwrap(SessionFactoryImplementor.class);
+  final Connection conn;
+  try {
+    conn=sf.getConnectionProvider().getConnection();
+    try {
+      Statement statement=conn.createStatement();
+      statement.execute(sql);
+      try {
+        statement.close();
+      }
+ catch (      SQLException ignore) {
+      }
+    }
+  finally {
+      try {
+        sf.getConnectionProvider().closeConnection(conn);
+      }
+ catch (      SQLException ignore) {
+      }
+    }
+  }
+ catch (  SQLException e) {
+    throw new RuntimeException("Unable to execute SQL : " + sql);
+  }
+}
