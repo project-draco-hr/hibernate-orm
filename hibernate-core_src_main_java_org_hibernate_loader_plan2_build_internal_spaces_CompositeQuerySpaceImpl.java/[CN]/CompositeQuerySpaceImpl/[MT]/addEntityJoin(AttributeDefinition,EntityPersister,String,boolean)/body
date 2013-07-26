@@ -1,8 +1,9 @@
 {
-  final EntityQuerySpaceImpl rhs=new EntityQuerySpaceImpl(persister,querySpaceUid,getQuerySpaces(),sessionFactory());
+  final boolean required=canJoinsBeRequired() && !optional;
+  final EntityQuerySpaceImpl rhs=new EntityQuerySpaceImpl(persister,querySpaceUid,getQuerySpaces(),required,sessionFactory());
   getQuerySpaces().registerQuerySpace(rhs);
   final String propertyPath=attributeDefinition.getName();
-  final JoinImpl join=new JoinImpl(this,propertyPath,rhs,Helper.INSTANCE.determineRhsColumnNames((EntityType)attributeDefinition.getType(),sessionFactory()),optional);
+  final JoinImpl join=new JoinImpl(this,propertyPath,rhs,Helper.INSTANCE.determineRhsColumnNames((EntityType)attributeDefinition.getType(),sessionFactory()),required);
   internalGetJoins().add(join);
   return join;
 }

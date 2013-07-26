@@ -1,7 +1,8 @@
 {
-  final CompositeQuerySpaceImpl rhs=new CompositeQuerySpaceImpl(new CompositePropertyMapping(compositionDefinition.getType(),(PropertyMapping)this.getEntityPersister(),compositionDefinition.getName()),querySpaceUid,getQuerySpaces(),sessionFactory());
+  final boolean required=canJoinsBeRequired() && !compositionDefinition.isNullable();
+  final CompositeQuerySpaceImpl rhs=new CompositeQuerySpaceImpl(new CompositePropertyMapping(compositionDefinition.getType(),(PropertyMapping)this.getEntityPersister(),compositionDefinition.getName()),querySpaceUid,getQuerySpaces(),required,sessionFactory());
   getQuerySpaces().registerQuerySpace(rhs);
-  final JoinImpl join=new JoinImpl(this,compositionDefinition.getName(),rhs,null,compositionDefinition.isNullable());
+  final JoinImpl join=new JoinImpl(this,compositionDefinition.getName(),rhs,null,required);
   internalGetJoins().add(join);
   return join;
 }

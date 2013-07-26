@@ -1,7 +1,8 @@
 {
-  final CollectionQuerySpaceImpl rhs=new CollectionQuerySpaceImpl(collectionPersister,querySpaceUid,getQuerySpaces(),sessionFactory());
+  final boolean required=canJoinsBeRequired() && !attributeDefinition.isNullable();
+  final CollectionQuerySpaceImpl rhs=new CollectionQuerySpaceImpl(collectionPersister,querySpaceUid,getQuerySpaces(),required,sessionFactory());
   getQuerySpaces().registerQuerySpace(rhs);
-  final JoinImpl join=new JoinImpl(this,attributeDefinition.getName(),rhs,((CollectionType)attributeDefinition.getType()).getAssociatedJoinable(sessionFactory()).getKeyColumnNames(),attributeDefinition.isNullable());
+  final JoinImpl join=new JoinImpl(this,attributeDefinition.getName(),rhs,((CollectionType)attributeDefinition.getType()).getAssociatedJoinable(sessionFactory()).getKeyColumnNames(),required);
   internalGetJoins().add(join);
   return join;
 }
