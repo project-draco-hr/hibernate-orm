@@ -1,6 +1,14 @@
 {
   if (jdbcConnection != null) {
     try {
+      if (!jdbcConnection.getAutoCommit()) {
+        jdbcConnection.commit();
+      }
+    }
+ catch (    SQLException e) {
+      log.debug("Unable to commit JDBC transaction used for JPA schema export; may or may not be a problem");
+    }
+    try {
       jdbcConnectionAccess.releaseConnection(jdbcConnection);
     }
  catch (    SQLException e) {
