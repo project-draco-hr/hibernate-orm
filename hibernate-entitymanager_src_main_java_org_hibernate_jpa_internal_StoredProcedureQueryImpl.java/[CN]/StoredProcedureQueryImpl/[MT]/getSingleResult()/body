@@ -1,7 +1,10 @@
 {
-  final Return nextReturn=outputs().getNextReturn();
-  if (!nextReturn.isResultSet()) {
-    return null;
+  final List resultList=getResultList();
+  if (resultList == null || resultList.isEmpty()) {
+    throw new NoResultException(String.format("Call to stored procedure [%s] returned no results",procedureCall.getProcedureName()));
   }
-  return ((ResultSetReturn)nextReturn).getSingleResult();
+ else   if (resultList.size() > 1) {
+    throw new NonUniqueResultException(String.format("Call to stored procedure [%s] returned multiple results",procedureCall.getProcedureName()));
+  }
+  return resultList.get(0);
 }

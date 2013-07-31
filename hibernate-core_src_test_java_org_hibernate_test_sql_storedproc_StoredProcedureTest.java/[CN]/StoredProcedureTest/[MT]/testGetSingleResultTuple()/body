@@ -3,13 +3,11 @@
   session.beginTransaction();
   ProcedureCall query=session.createStoredProcedureCall("findOneUser");
   ProcedureResult procedureResult=query.getResult();
-  assertTrue("Checking ProcedureResult has more returns",procedureResult.hasMoreReturns());
-  Return nextReturn=procedureResult.getNextReturn();
-  assertNotNull(nextReturn);
-  ExtraAssertions.assertClassAssignability(ResultSetReturn.class,nextReturn.getClass());
-  ResultSetReturn resultSetReturn=(ResultSetReturn)nextReturn;
+  Return currentReturn=procedureResult.getCurrentReturn();
+  assertNotNull(currentReturn);
+  ResultSetReturn resultSetReturn=assertTyping(ResultSetReturn.class,currentReturn);
   Object result=resultSetReturn.getSingleResult();
-  ExtraAssertions.assertTyping(Object[].class,result);
+  assertTyping(Object[].class,result);
   String name=(String)((Object[])result)[1];
   assertEquals("Steve",name);
   session.getTransaction().commit();

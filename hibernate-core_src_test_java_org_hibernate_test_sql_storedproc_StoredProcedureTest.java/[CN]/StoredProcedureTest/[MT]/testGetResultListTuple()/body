@@ -3,15 +3,13 @@
   session.beginTransaction();
   ProcedureCall query=session.createStoredProcedureCall("findUsers");
   ProcedureResult procedureResult=query.getResult();
-  assertTrue("Checking ProcedureResult has more returns",procedureResult.hasMoreReturns());
-  Return nextReturn=procedureResult.getNextReturn();
-  assertNotNull(nextReturn);
-  ExtraAssertions.assertClassAssignability(ResultSetReturn.class,nextReturn.getClass());
-  ResultSetReturn resultSetReturn=(ResultSetReturn)nextReturn;
+  Return currentReturn=procedureResult.getCurrentReturn();
+  assertNotNull(currentReturn);
+  ResultSetReturn resultSetReturn=assertTyping(ResultSetReturn.class,currentReturn);
   List results=resultSetReturn.getResultList();
   assertEquals(3,results.size());
   for (  Object result : results) {
-    ExtraAssertions.assertTyping(Object[].class,result);
+    assertTyping(Object[].class,result);
     Integer id=(Integer)((Object[])result)[0];
     String name=(String)((Object[])result)[1];
     if (id.equals(1)) {

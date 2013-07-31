@@ -1,7 +1,10 @@
 {
-  final Return nextReturn=outputs().getNextReturn();
-  if (!nextReturn.isResultSet()) {
-    return null;
+  final Return rtn=outputs().getCurrentReturn();
+  if (!ResultSetReturn.class.isInstance(rtn)) {
+    throw new IllegalStateException("Current CallableStatement was not a ResultSet, but getResultList was called");
   }
-  return ((ResultSetReturn)nextReturn).getResultList();
+  if (outputs().hasMoreReturns()) {
+    outputs().getNextReturn();
+  }
+  return ((ResultSetReturn)rtn).getResultList();
 }

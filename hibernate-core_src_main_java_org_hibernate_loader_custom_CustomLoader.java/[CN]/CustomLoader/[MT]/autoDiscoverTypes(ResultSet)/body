@@ -7,13 +7,7 @@
     for (int i=0; i < rowProcessor.columnProcessors.length; i++) {
       rowProcessor.columnProcessors[i].performDiscovery(metadata,types,aliases);
     }
-    final HashSet<String> aliasesSet=new HashSet<String>();
-    for (    String alias : aliases) {
-      boolean alreadyExisted=!aliasesSet.add(alias);
-      if (alreadyExisted) {
-        throw new NonUniqueDiscoveredSqlAliasException("Encountered a duplicated sql alias [" + alias + "] during auto-discovery of a native-sql query");
-      }
-    }
+    validateAliases(aliases);
     resultTypes=ArrayHelper.toTypeArray(types);
     transformerAliases=ArrayHelper.toStringArray(aliases);
   }
