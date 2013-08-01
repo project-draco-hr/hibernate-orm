@@ -32,7 +32,10 @@
     }
     if (entityNaturalIdResolutionCache == null) {
       entityNaturalIdResolutionCache=new NaturalIdResolutionCache(persister);
-      naturalIdResolutionCacheMap.put(persister,entityNaturalIdResolutionCache);
+      NaturalIdResolutionCache existingCache=naturalIdResolutionCacheMap.putIfAbsent(persister,entityNaturalIdResolutionCache);
+      if (existingCache != null) {
+        entityNaturalIdResolutionCache=existingCache;
+      }
     }
     entityNaturalIdResolutionCache.pkToNaturalIdMap.put(pk,cachedNaturalId);
     entityNaturalIdResolutionCache.naturalIdToPkMap.put(cachedNaturalId,pk);
