@@ -29,8 +29,14 @@
         Index index=(Index)subIter.next();
         script.add(index.sqlCreateString(dialect,mapping,defaultCatalog,defaultSchema));
       }
+    }
+  }
+  iter=getTableMappings();
+  while (iter.hasNext()) {
+    Table table=(Table)iter.next();
+    if (table.isPhysicalTable()) {
       if (dialect.hasAlterTable()) {
-        subIter=table.getForeignKeyIterator();
+        Iterator subIter=table.getForeignKeyIterator();
         while (subIter.hasNext()) {
           ForeignKey fk=(ForeignKey)subIter.next();
           if (fk.isPhysicalConstraint()) {
