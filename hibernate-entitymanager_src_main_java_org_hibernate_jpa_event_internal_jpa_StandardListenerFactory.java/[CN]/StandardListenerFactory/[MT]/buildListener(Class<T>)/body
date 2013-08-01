@@ -7,7 +7,10 @@
  catch (    Exception e) {
       throw new PersistenceException("Unable to create instance of " + listenerClass.getName() + " as a JPA callback listener",e);
     }
-    listenerInstances.put(listenerClass,listenerInstance);
+    Object existing=listenerInstances.putIfAbsent(listenerClass,listenerInstance);
+    if (existing != null) {
+      listenerInstance=existing;
+    }
   }
   return (T)listenerInstance;
 }
