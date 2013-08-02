@@ -1,62 +1,11 @@
 {
-  LOG.trace("Dedeserializing action-queue");
+  LOG.trace("Deserializing action-queue");
   ActionQueue rtn=new ActionQueue(session);
   rtn.unresolvedInsertions=UnresolvedEntityInsertActions.deserialize(ois,session);
-  int queueSize=ois.readInt();
-  LOG.tracev("Starting deserialization of [{0}] insertions entries",queueSize);
-  rtn.insertions=new ArrayList<Executable>(queueSize);
-  for (int i=0; i < queueSize; i++) {
-    EntityAction action=(EntityAction)ois.readObject();
-    action.afterDeserialize(session);
-    rtn.insertions.add(action);
-  }
-  queueSize=ois.readInt();
-  LOG.tracev("Starting deserialization of [{0}] deletions entries",queueSize);
-  rtn.deletions=new ArrayList<EntityDeleteAction>(queueSize);
-  for (int i=0; i < queueSize; i++) {
-    EntityDeleteAction action=(EntityDeleteAction)ois.readObject();
-    action.afterDeserialize(session);
-    rtn.deletions.add(action);
-  }
-  queueSize=ois.readInt();
-  LOG.tracev("Starting deserialization of [{0}] updates entries",queueSize);
-  rtn.updates=new ArrayList<Executable>(queueSize);
-  for (int i=0; i < queueSize; i++) {
-    EntityAction action=(EntityAction)ois.readObject();
-    action.afterDeserialize(session);
-    rtn.updates.add(action);
-  }
-  queueSize=ois.readInt();
-  LOG.tracev("Starting deserialization of [{0}] collectionUpdates entries",queueSize);
-  rtn.collectionUpdates=new ArrayList<Executable>(queueSize);
-  for (int i=0; i < queueSize; i++) {
-    CollectionAction action=(CollectionAction)ois.readObject();
-    action.afterDeserialize(session);
-    rtn.collectionUpdates.add(action);
-  }
-  queueSize=ois.readInt();
-  LOG.tracev("Starting deserialization of [{0}] collectionRemovals entries",queueSize);
-  rtn.collectionRemovals=new ArrayList<Executable>(queueSize);
-  for (int i=0; i < queueSize; i++) {
-    CollectionAction action=(CollectionAction)ois.readObject();
-    action.afterDeserialize(session);
-    rtn.collectionRemovals.add(action);
-  }
-  queueSize=ois.readInt();
-  LOG.tracev("Starting deserialization of [{0}] collectionCreations entries",queueSize);
-  rtn.collectionCreations=new ArrayList<Executable>(queueSize);
-  for (int i=0; i < queueSize; i++) {
-    CollectionAction action=(CollectionAction)ois.readObject();
-    action.afterDeserialize(session);
-    rtn.collectionCreations.add(action);
-  }
-  queueSize=ois.readInt();
-  LOG.tracev("Starting deserialization of [{0}] collectionQueuedOps entries",queueSize);
-  rtn.collectionQueuedOps=new ArrayList<Executable>(queueSize);
-  for (int i=0; i < queueSize; i++) {
-    CollectionAction action=(CollectionAction)ois.readObject();
-    action.afterDeserialize(session);
-    rtn.collectionQueuedOps.add(action);
+  for (  ExecutableList<?> l : rtn.executableLists) {
+    l.readExternal(ois);
+    LOG.tracev("Deserialized [{0}] entries",l.size());
+    l.afterDeserialize(session);
   }
   return rtn;
 }

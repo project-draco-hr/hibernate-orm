@@ -1,0 +1,24 @@
+{
+  this.latestBatches=new HashMap<String,Integer>();
+  this.entityBatchNumber=new HashMap<Object,Integer>(insertions.size() + 1,1.0f);
+  this.actionBatches=new HashMap<Integer,List<AbstractEntityInsertAction>>();
+  for (  AbstractEntityInsertAction action : insertions) {
+    String entityName=action.getEntityName();
+    Object currentEntity=action.getInstance();
+    Integer batchNumber;
+    if (latestBatches.containsKey(entityName)) {
+      batchNumber=findBatchNumber(action,entityName);
+    }
+ else {
+      batchNumber=actionBatches.size();
+      latestBatches.put(entityName,batchNumber);
+    }
+    entityBatchNumber.put(currentEntity,batchNumber);
+    addToBatch(batchNumber,action);
+  }
+  insertions.clear();
+  for (int i=0; i < actionBatches.size(); i++) {
+    List<AbstractEntityInsertAction> batch=actionBatches.get(i);
+    insertions.addAll(batch);
+  }
+}

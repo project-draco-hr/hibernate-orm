@@ -1,0 +1,21 @@
+{
+  try {
+    for (    E e : list) {
+      try {
+        e.execute();
+      }
+  finally {
+        beforeTransactionProcesses.register(e.getBeforeTransactionCompletionProcess());
+        afterTransactionProcesses.register(e.getAfterTransactionCompletionProcess());
+      }
+    }
+  }
+  finally {
+    if (session.getFactory().getSettings().isQueryCacheEnabled()) {
+      Set<Serializable> propertySpaces=list.getPropertySpaces();
+      invalidateSpaces(propertySpaces.toArray(new Serializable[propertySpaces.size()]));
+    }
+  }
+  list.clear();
+  session.getTransactionCoordinator().getJdbcCoordinator().executeBatch();
+}

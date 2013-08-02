@@ -1,4 +1,22 @@
 {
   this.session=session;
-  init();
+  unresolvedInsertions=new UnresolvedEntityInsertActions();
+  insertions=new ExecutableList<AbstractEntityInsertAction>(INIT_QUEUE_LIST_SIZE,new InsertActionSorter());
+  deletions=new ExecutableList<EntityDeleteAction>(INIT_QUEUE_LIST_SIZE);
+  updates=new ExecutableList<EntityUpdateAction>(INIT_QUEUE_LIST_SIZE);
+  collectionCreations=new ExecutableList<CollectionRecreateAction>(INIT_QUEUE_LIST_SIZE);
+  collectionRemovals=new ExecutableList<CollectionRemoveAction>(INIT_QUEUE_LIST_SIZE);
+  collectionUpdates=new ExecutableList<CollectionUpdateAction>(INIT_QUEUE_LIST_SIZE);
+  collectionQueuedOps=new ExecutableList<QueuedOperationCollectionAction>(INIT_QUEUE_LIST_SIZE);
+  List<ExecutableList<?>> tmp=new ArrayList<ExecutableList<?>>(7);
+  tmp.add(insertions);
+  tmp.add(updates);
+  tmp.add(collectionQueuedOps);
+  tmp.add(collectionRemovals);
+  tmp.add(collectionUpdates);
+  tmp.add(collectionCreations);
+  tmp.add(deletions);
+  executableLists=Collections.unmodifiableList(tmp);
+  afterTransactionProcesses=new AfterTransactionCompletionProcessQueue(session);
+  beforeTransactionProcesses=new BeforeTransactionCompletionProcessQueue(session);
 }
