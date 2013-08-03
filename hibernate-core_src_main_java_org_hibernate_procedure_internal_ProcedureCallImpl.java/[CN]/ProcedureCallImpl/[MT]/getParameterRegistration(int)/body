@@ -1,11 +1,11 @@
 {
   if (parameterStrategy != ParameterStrategy.POSITIONAL) {
-    throw new IllegalArgumentException("Positions were not used to register parameters with this stored procedure call");
+    throw new ParameterStrategyException("Attempt to access positional parameter [" + position + "] but ProcedureCall using named parameters");
   }
-  try {
-    return registeredParameters.get(position);
+  for (  ParameterRegistrationImplementor parameter : registeredParameters) {
+    if (position == parameter.getPosition()) {
+      return parameter;
+    }
   }
- catch (  Exception e) {
-    throw new QueryException("Could not locate parameter registered using that position [" + position + "]");
-  }
+  throw new NoSuchParameterException("Could not locate parameter registered using that position [" + position + "]");
 }

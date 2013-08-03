@@ -1,0 +1,24 @@
+{
+  EntityManager em=entityManagerFactory.createEntityManager();
+  em.getTransaction().begin();
+  try {
+    try {
+      StoredProcedureQuery query=em.createNamedStoredProcedureQuery("positional-param");
+      query.setParameter(99,1);
+      fail("Expecting an exception");
+    }
+ catch (    IllegalArgumentException expected) {
+    }
+    try {
+      StoredProcedureQuery query=em.createNamedStoredProcedureQuery("positional-param");
+      query.setParameter("does-not-exist",1);
+      fail("Expecting an exception");
+    }
+ catch (    IllegalArgumentException expected) {
+    }
+  }
+  finally {
+    em.getTransaction().commit();
+    em.close();
+  }
+}
