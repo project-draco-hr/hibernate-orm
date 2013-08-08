@@ -7,7 +7,7 @@
  else {
       entityPersister=session.getFactory().getEntityPersister(optionalEntityName);
     }
-    if (entityPersister.isInstance(optionalId)) {
+    if (entityPersister.isInstance(optionalId) && !entityPersister.getEntityMetamodel().getIdentifierProperty().isVirtual() && entityPersister.getEntityMetamodel().getIdentifierProperty().isEmbedded()) {
       final Serializable identifierState=((CompositeType)entityPersister.getIdentifierType()).getPropertyValues(optionalId,session);
       return session.generateEntityKey(identifierState,entityPersister);
     }
