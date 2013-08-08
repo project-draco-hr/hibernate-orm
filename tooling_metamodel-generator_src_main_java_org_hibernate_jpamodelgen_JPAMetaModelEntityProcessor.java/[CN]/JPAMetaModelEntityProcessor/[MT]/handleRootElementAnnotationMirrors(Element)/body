@@ -11,13 +11,12 @@
       context.logMessage(Diagnostic.Kind.OTHER,msg);
       continue;
     }
+    boolean requiresLazyMemberInitialization=false;
     AnnotationMetaEntity metaEntity;
-    if (TypeUtils.containsAnnotation(element,Constants.EMBEDDABLE)) {
-      metaEntity=new AnnotationEmbeddable((TypeElement)element,context);
+    if (TypeUtils.containsAnnotation(element,Constants.EMBEDDABLE) || TypeUtils.containsAnnotation(element,Constants.MAPPED_SUPERCLASS)) {
+      requiresLazyMemberInitialization=true;
     }
- else {
-      metaEntity=new AnnotationMetaEntity((TypeElement)element,context);
-    }
+    metaEntity=new AnnotationMetaEntity((TypeElement)element,context,requiresLazyMemberInitialization);
     if (alreadyExistingMetaEntity != null) {
       metaEntity.mergeInMembers(alreadyExistingMetaEntity.getMembers());
     }
