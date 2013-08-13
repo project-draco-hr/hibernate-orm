@@ -1,2 +1,17 @@
 {
+  Session s=openSession();
+  s.getTransaction().begin();
+  s.createSQLQuery("CREATE SYNONYM test_synonym FOR test_entity").executeUpdate();
+  s.getTransaction().commit();
+  s.close();
+  Configuration cfg=new Configuration();
+  cfg.addAnnotatedClass(TestEntityWithSynonym.class);
+  cfg.setProperty(AvailableSettings.ENABLE_SYNONYMS,"true");
+  SchemaValidator schemaValidator=new SchemaValidator(cfg);
+  schemaValidator.validate();
+  s=openSession();
+  s.getTransaction().begin();
+  s.createSQLQuery("DROP SYNONYM test_synonym FORCE").executeUpdate();
+  s.getTransaction().commit();
+  s.close();
 }
