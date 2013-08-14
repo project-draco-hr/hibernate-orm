@@ -3,7 +3,12 @@
     handleCompositeJoin(join,joinFragment);
   }
  else   if (EntityQuerySpace.class.isInstance(join.getRightHandSide())) {
-    if (join.getLeftHandSide().getDisposition() != QuerySpace.Disposition.COLLECTION || !CollectionQuerySpace.class.cast(join.getLeftHandSide()).getCollectionPersister().isOneToMany()) {
+    if (join.getLeftHandSide().getDisposition() == QuerySpace.Disposition.COLLECTION && CollectionQuerySpace.class.cast(join.getLeftHandSide()).getCollectionPersister().isManyToMany()) {
+      final CollectionQuerySpace leftHandSide=(CollectionQuerySpace)join.getLeftHandSide();
+      final CollectionReferenceAliases aliases=aliasResolutionContext.resolveCollectionReferenceAliases(leftHandSide.getUid());
+      renderManyToManyJoin(aliases,leftHandSide,join,joinFragment);
+    }
+ else     if (join.getLeftHandSide().getDisposition() != QuerySpace.Disposition.COLLECTION || !CollectionQuerySpace.class.cast(join.getLeftHandSide()).getCollectionPersister().isOneToMany()) {
       renderEntityJoin(join,joinFragment);
     }
   }
