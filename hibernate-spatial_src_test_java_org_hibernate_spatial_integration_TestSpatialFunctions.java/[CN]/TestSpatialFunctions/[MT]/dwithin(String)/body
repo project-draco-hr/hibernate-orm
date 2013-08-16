@@ -6,6 +6,12 @@
   Map<Integer,Boolean> dbexpected=expectationsFactory.getDwithin(expectationsFactory.getTestPoint(),distance);
   String hql=format("SELECT id, dwithin(geom, :filter, :distance) from " + "org.hibernate.spatial.integration.%s.GeomEntity where dwithin(geom, :filter, :distance) = true " + "and srid(geom) = 4326",pckg);
   Map<String,Object> params=createQueryParams("filter",expectationsFactory.getTestPoint());
-  params.put("distance",30.0);
+  if (getDialect() instanceof OracleSpatial10gDialect) {
+    hql="SELECT id, issimple(geom) from org.hibernate.spatial.integration.GeomEntity where dwithin(geom, :filter, :distance) = true and srid(geom) = 4326";
+    params.put("distance","distance = 30");
+  }
+ else {
+    params.put("distance",30.0);
+  }
   retrieveHQLResultsAndCompare(dbexpected,hql,params,pckg);
 }

@@ -29,17 +29,12 @@ break;
 default :
 throw new IllegalArgumentException("undefined SpatialRelation passed (" + spatialRelation + ")");
 }
-StringBuffer buffer;
-if (negate) {
-buffer=new StringBuffer("CASE WHEN SDO_RELATE(");
+final StringBuffer buffer=new StringBuffer("CASE SDO_RELATE(").append(arg1).append(",").append(arg2).append(",'mask=" + mask + "') ");
+if (!negate) {
+buffer.append(" WHEN 'TRUE' THEN 1 ELSE 0 END");
 }
  else {
-buffer=new StringBuffer("SDO_RELATE(");
-}
-buffer.append(arg1);
-buffer.append(",").append(arg2).append(",'mask=" + mask + "') ");
-if (negate) {
-buffer.append(" = 'TRUE' THEN 'FALSE' ELSE 'TRUE' END");
+buffer.append(" WHEN 'TRUE' THEN 0 ELSE 1 END");
 }
 return buffer.toString();
 }

@@ -1,0 +1,21 @@
+{
+  final String cfKey=HibernateSpatialConfiguration.AvailableSettings.CONNECTION_FINDER;
+  final String className=configService.getSetting(cfKey,new ConfigurationService.Converter<String>(){
+    @Override public String convert(    Object value){
+      if (value instanceof String) {
+        return (String)value;
+      }
+      return value.toString();
+    }
+  }
+,null);
+  if (className == null) {
+    return null;
+  }
+  try {
+    return (ConnectionFinder)classLoaderService.classForName(className).newInstance();
+  }
+ catch (  Exception e) {
+    throw new HibernateException(" Could not instantiate ConnectionFinder: " + className,e);
+  }
+}
