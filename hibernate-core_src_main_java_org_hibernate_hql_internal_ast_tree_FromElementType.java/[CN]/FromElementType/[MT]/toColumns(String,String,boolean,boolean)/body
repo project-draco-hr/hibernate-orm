@@ -13,9 +13,6 @@
   if (fromElement.getWalker().getStatementType() == HqlSqlTokenTypes.SELECT) {
     return propertyMapping.toColumns(tableAlias,path);
   }
-  if (fromElement.getWalker().getCurrentClauseType() == HqlSqlTokenTypes.SELECT) {
-    return propertyMapping.toColumns(tableAlias,path);
-  }
   if (fromElement.getWalker().isSubQuery()) {
     if (isCorrelation()) {
       if (isMultiTable()) {
@@ -23,6 +20,9 @@
       }
       return propertyMapping.toColumns(extractTableName(),path);
     }
+    return propertyMapping.toColumns(tableAlias,path);
+  }
+  if (fromElement.getWalker().getCurrentTopLevelClauseType() == HqlSqlTokenTypes.SELECT) {
     return propertyMapping.toColumns(tableAlias,path);
   }
   if (isManipulationQuery() && isMultiTable() && inWhereClause()) {
