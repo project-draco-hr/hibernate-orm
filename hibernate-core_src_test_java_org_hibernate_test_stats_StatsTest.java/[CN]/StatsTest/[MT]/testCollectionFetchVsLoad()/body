@@ -1,5 +1,5 @@
 {
-  SessionFactory sf=buildBaseConfiguration().setProperty(AvailableSettings.HBM2DDL_AUTO,"create").buildSessionFactory();
+  SessionFactory sf=buildBaseConfiguration().setProperty(AvailableSettings.HBM2DDL_AUTO,"create-drop").buildSessionFactory();
   Session s=sf.openSession();
   Transaction tx=s.beginTransaction();
   Continent europe=fillDb(s);
@@ -32,7 +32,7 @@
   tx.commit();
   s.close();
   sf.close();
-  Configuration cfg=buildBaseConfiguration();
+  Configuration cfg=buildBaseConfiguration().setProperty(AvailableSettings.HBM2DDL_AUTO,"create-drop");
   cfg.buildMappings();
   Collection coll=cfg.getCollectionMapping(Continent.class.getName() + ".countries");
   coll.setFetchMode(FetchMode.JOIN);
@@ -54,7 +54,7 @@
   s.close();
   sf.close();
   sf.close();
-  cfg=buildBaseConfiguration();
+  cfg=buildBaseConfiguration().setProperty(AvailableSettings.HBM2DDL_AUTO,"create-drop");
   cfg.buildMappings();
   coll=cfg.getCollectionMapping(Continent.class.getName() + ".countries");
   coll.setFetchMode(FetchMode.SELECT);
