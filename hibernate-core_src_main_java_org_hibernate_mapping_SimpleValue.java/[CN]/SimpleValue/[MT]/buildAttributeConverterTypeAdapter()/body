@@ -1,0 +1,18 @@
+{
+  final Class entityAttributeJavaType=jpaAttributeConverterDefinition.getEntityAttributeType();
+  final Class databaseColumnJavaType=jpaAttributeConverterDefinition.getDatabaseColumnType();
+  final JavaTypeDescriptor entityAttributeJavaTypeDescriptor=JavaTypeDescriptorRegistry.INSTANCE.getDescriptor(entityAttributeJavaType);
+  final int jdbcTypeCode=JdbcTypeJavaClassMappings.INSTANCE.determineJdbcTypeCodeForJavaClass(databaseColumnJavaType);
+  final SqlTypeDescriptor sqlTypeDescriptor=SqlTypeDescriptorRegistry.INSTANCE.getDescriptor(jdbcTypeCode);
+  final JavaTypeDescriptor intermediateJavaTypeDescriptor=JavaTypeDescriptorRegistry.INSTANCE.getDescriptor(databaseColumnJavaType);
+  final SqlTypeDescriptor sqlTypeDescriptorAdapter=new AttributeConverterSqlTypeDescriptorAdapter(jpaAttributeConverterDefinition.getAttributeConverter(),sqlTypeDescriptor,intermediateJavaTypeDescriptor);
+  final String name="BasicType adapter for AttributeConverter<" + entityAttributeJavaType + ","+ databaseColumnJavaType+ ">";
+  final Type type=new AbstractSingleColumnStandardBasicType(sqlTypeDescriptorAdapter,entityAttributeJavaTypeDescriptor){
+    @Override public String getName(){
+      return name;
+    }
+  }
+;
+  log.debug("Created : " + name);
+  return type;
+}

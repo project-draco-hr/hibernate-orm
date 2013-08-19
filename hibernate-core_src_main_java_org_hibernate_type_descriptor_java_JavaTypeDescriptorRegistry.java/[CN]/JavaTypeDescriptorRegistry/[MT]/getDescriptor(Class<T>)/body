@@ -6,15 +6,15 @@
   if (descriptor != null) {
     return descriptor;
   }
-  for (  Map.Entry<Class,JavaTypeDescriptor> entry : descriptorsByClass.entrySet()) {
-    if (cls.isAssignableFrom(entry.getKey())) {
-      return entry.getValue();
-    }
-  }
   if (Serializable.class.isAssignableFrom(cls)) {
     return new SerializableTypeDescriptor(cls);
   }
- else {
-    return new FallbackJavaTypeDescriptor<T>(cls);
+  for (  Map.Entry<Class,JavaTypeDescriptor> entry : descriptorsByClass.entrySet()) {
+    if (entry.getKey().isAssignableFrom(cls)) {
+      log.debugf("Using  cached JavaTypeDescriptor instance for Java class [%s]",cls.getName());
+      return entry.getValue();
+    }
   }
+  log.warnf("Could not find matching type descriptor for requested Java class [%s]; using fallback",cls.getName());
+  return new FallbackJavaTypeDescriptor<T>(cls);
 }
