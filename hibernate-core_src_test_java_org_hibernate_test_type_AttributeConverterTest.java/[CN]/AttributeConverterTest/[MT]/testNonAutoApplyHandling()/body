@@ -1,0 +1,14 @@
+{
+  Configuration cfg=new Configuration();
+  cfg.addAttributeConverter(NotAutoAppliedConverter.class,false);
+  cfg.addAnnotatedClass(Tester.class);
+  cfg.buildMappings();
+  PersistentClass tester=cfg.getClassMapping(Tester.class.getName());
+  Property nameProp=tester.getProperty("name");
+  SimpleValue nameValue=(SimpleValue)nameProp.getValue();
+  Type type=nameValue.getType();
+  assertNotNull(type);
+  if (AttributeConverterTypeAdapter.class.isInstance(type)) {
+    fail("AttributeConverter with autoApply=false was auto applied");
+  }
+}
