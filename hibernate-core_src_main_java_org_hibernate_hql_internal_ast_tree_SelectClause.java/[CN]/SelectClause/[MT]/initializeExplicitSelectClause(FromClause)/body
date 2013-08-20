@@ -4,6 +4,9 @@
   }
   ArrayList queryReturnTypeList=new ArrayList();
   SelectExpression[] selectExpressions=collectSelectExpressions();
+  if (getParameterPositions().size() > 0 && getWalker().getStatementType() != HqlSqlTokenTypes.INSERT) {
+    throw new QueryException("Parameters are only supported in SELECT clauses when used as part of a INSERT INTO DML statement");
+  }
   for (int i=0; i < selectExpressions.length; i++) {
     SelectExpression selectExpression=selectExpressions[i];
     if (AggregatedSelectExpression.class.isInstance(selectExpression)) {
@@ -12,6 +15,12 @@
       scalarSelect=true;
     }
  else {
+      boolean inSubquery=selectExpression instanceof QueryNode && ((QueryNode)selectExpression).getFromClause().getParentFromClause() != null;
+      if (getWalker().getStatementType() == HqlSqlTokenTypes.INSERT && inSubquery) {
+        if (((QueryNode)selectExpression).getSelectClause().getParameterPositions().size() > 0) {
+          throw new QueryException("Use of parameters in subqueries of INSERT INTO DML statements is not supported.");
+        }
+      }
       Type type=selectExpression.getDataType();
       if (type == null) {
         throw new IllegalStateException("No data type for node: " + selectExpression.getClass().getName() + " "+ new ASTPrinter(SqlTokenTypes.class).showAsString((AST)selectExpression,""));
