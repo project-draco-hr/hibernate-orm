@@ -1,0 +1,56 @@
+{
+  byte[] enhancedBytecode=null;
+  InputStream is=null;
+  CtClass clas=null;
+  try {
+    is=new FileInputStream(file.toString());
+    clas=getClassPool().makeClass(is);
+    if (!clas.hasAnnotation(Entity.class)) {
+      getLog().debug("Class $file not an annotated Entity class. skipping...");
+    }
+ else {
+      enhancedBytecode=enhancer.enhance(clas.getName(),clas.toBytecode());
+    }
+  }
+ catch (  Exception e) {
+    getLog().error("Unable to enhance class [${file.toString()}]",e);
+    return;
+  }
+ finally {
+    try {
+      if (null != is)       is.close();
+    }
+ catch (    IOException ioe) {
+    }
+  }
+  if (null != enhancedBytecode) {
+    if (file.delete()) {
+      try {
+        if (!file.createNewFile()) {
+          getLog().error("Unable to recreate class file [" + clas.getName() + "]");
+        }
+      }
+ catch (      IOException ioe) {
+      }
+    }
+ else {
+      getLog().error("Unable to delete class file [" + clas.getName() + "]");
+    }
+    FileOutputStream outputStream=null;
+    try {
+      outputStream=new FileOutputStream(file,false);
+      outputStream.write(enhancedBytecode);
+      outputStream.flush();
+    }
+ catch (    IOException ioe) {
+    }
+ finally {
+      try {
+        if (outputStream != null)         outputStream.close();
+        clas.detach();
+      }
+ catch (      IOException ignore) {
+      }
+    }
+  }
+}

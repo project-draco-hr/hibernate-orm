@@ -1,0 +1,47 @@
+{
+  getLog().info("Started enhance plugin.....");
+  File root=new File(this.dir);
+  walkDir(root);
+  Enhancer enhancer=new Enhancer(new EnhancementContext(){
+    private ClassLoader overridden;
+    public ClassLoader getLoadingClassLoader(){
+      if (null == this.overridden) {
+        return getClass().getClassLoader();
+      }
+ else {
+        return this.overridden;
+      }
+    }
+    public void setClassLoader(    ClassLoader loader){
+      this.overridden=loader;
+    }
+    public boolean isEntityClass(    CtClass classDescriptor){
+      return true;
+    }
+    public boolean hasLazyLoadableAttributes(    CtClass classDescriptor){
+      return true;
+    }
+    public boolean isLazyLoadable(    CtField field){
+      return true;
+    }
+    public boolean isCompositeClass(    CtClass classDescriptor){
+      return false;
+    }
+    public boolean doDirtyCheckingInline(    CtClass classDescriptor){
+      return false;
+    }
+    public CtField[] order(    CtField[] fields){
+      return fields;
+    }
+    public boolean isPersistentField(    CtField ctField){
+      return !ctField.hasAnnotation(Transient.class);
+    }
+  }
+);
+  if (0 < classes.size()) {
+    for (    File file : classes) {
+      enhanceClass(enhancer,file);
+    }
+  }
+  getLog().info("Enhance plugin completed.");
+}
