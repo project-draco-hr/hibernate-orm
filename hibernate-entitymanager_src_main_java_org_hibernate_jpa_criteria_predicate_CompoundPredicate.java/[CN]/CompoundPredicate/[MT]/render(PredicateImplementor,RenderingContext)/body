@@ -1,0 +1,19 @@
+{
+  if (!predicate.isJunction()) {
+    throw new IllegalStateException("CompoundPredicate.render should only be used to render junctions");
+  }
+  if (predicate.getExpressions().isEmpty()) {
+    boolean implicitTrue=predicate.getOperator() == BooleanOperator.AND;
+    return implicitTrue ? "1=1" : "0=1";
+  }
+  if (predicate.getExpressions().size() == 1) {
+    return ((Renderable)predicate.getExpressions().get(0)).render(renderingContext);
+  }
+  final StringBuilder buffer=new StringBuilder();
+  String sep="";
+  for (  Expression expression : predicate.getExpressions()) {
+    buffer.append(sep).append("( ").append(((Renderable)expression).render(renderingContext)).append(" )");
+    sep=operatorTextWithSeparator(predicate.getOperator());
+  }
+  return buffer.toString();
+}
