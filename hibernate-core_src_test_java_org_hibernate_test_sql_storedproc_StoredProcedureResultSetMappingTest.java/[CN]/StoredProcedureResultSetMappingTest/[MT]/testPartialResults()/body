@@ -1,0 +1,18 @@
+{
+  Configuration cfg=new Configuration().addAnnotatedClass(Employee.class).setProperty(AvailableSettings.HBM2DDL_AUTO,"create-drop");
+  cfg.addAuxiliaryDatabaseObject(new ProcedureDefinition());
+  SessionFactory sf=cfg.buildSessionFactory();
+  try {
+    Session session=sf.openSession();
+    session.beginTransaction();
+    ProcedureCall call=session.createStoredProcedureCall("allEmployeeNames","id-fname-lname");
+    ProcedureOutputs outputs=call.getResult();
+    ResultSetOutput output=ExtraAssertions.assertTyping(ResultSetOutput.class,outputs.getCurrent());
+    assertEquals(3,output.getResultList().size());
+    session.getTransaction().commit();
+    session.close();
+  }
+  finally {
+    sf.close();
+  }
+}
