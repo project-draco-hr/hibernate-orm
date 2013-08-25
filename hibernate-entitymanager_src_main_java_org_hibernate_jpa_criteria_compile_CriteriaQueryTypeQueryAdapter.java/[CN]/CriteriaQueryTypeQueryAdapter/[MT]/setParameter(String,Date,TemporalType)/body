@@ -1,9 +1,7 @@
 {
   entityManager.checkOpen(true);
-  Parameter parameter=resolveExplicitCriteriaParameterName(name);
-  if (!Date.class.isAssignableFrom(parameter.getParameterType())) {
-    throw new IllegalArgumentException("Named parameter [" + name + "] type mismatch; expecting ["+ Date.class.getName()+ "], found ["+ parameter.getParameterType().getName()+ "]");
-  }
-  setParameter(parameter,date,temporalType);
+  ExplicitParameterInfo parameterInfo=locateParameterByName(name);
+  parameterInfo.validateDateBind();
+  jpqlQuery.setParameter(name,date,temporalType);
   return this;
 }

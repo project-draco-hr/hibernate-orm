@@ -2,12 +2,13 @@
   final String jpaqlString=renderQuery(renderingContext);
   return new CriteriaInterpretation(){
     @Override @SuppressWarnings("unchecked") public Query buildCompiledQuery(    HibernateEntityManagerImplementor entityManager,    final InterpretedParameterMetadata interpretedParameterMetadata){
-      QueryImpl jpaqlQuery=entityManager.createQuery(jpaqlString,null,null,new HibernateEntityManagerImplementor.Options(){
+      final Map<String,Class> implicitParameterTypes=extractTypeMap(interpretedParameterMetadata.implicitParameterBindings());
+      QueryImpl jpaqlQuery=entityManager.createQuery(jpaqlString,null,null,new HibernateEntityManagerImplementor.QueryOptions(){
         @Override public List<ValueHandlerFactory.ValueHandler> getValueHandlers(){
           return null;
         }
         @Override public Map<String,Class> getNamedParameterExplicitTypes(){
-          return interpretedParameterMetadata.implicitParameterTypes();
+          return implicitParameterTypes;
         }
         @Override public ResultMetadataValidator getResultMetadataValidator(){
           return null;
@@ -18,6 +19,13 @@
         implicitParameterBinding.bind(jpaqlQuery);
       }
       return jpaqlQuery;
+    }
+    private Map<String,Class> extractTypeMap(    List<ImplicitParameterBinding> implicitParameterBindings){
+      final HashMap<String,Class> map=new HashMap<String,Class>();
+      for (      ImplicitParameterBinding implicitParameter : implicitParameterBindings) {
+        map.put(implicitParameter.getParameterName(),implicitParameter.getJavaType());
+      }
+      return map;
     }
   }
 ;

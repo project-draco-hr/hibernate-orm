@@ -1,4 +1,10 @@
 {
   entityManager.checkOpen(false);
-  return (T)jpaqlQuery.getParameterValue(mapToNamedParameter(param));
+  final ExplicitParameterInfo parameterInfo=resolveParameterInfo(param);
+  if (parameterInfo.isNamed()) {
+    return (T)jpqlQuery.getParameterValue(parameterInfo.getName());
+  }
+ else {
+    return (T)jpqlQuery.getParameterValue(parameterInfo.getPosition());
+  }
 }
