@@ -1,5 +1,14 @@
 {
   entityManager().checkOpen(true);
-  registerParameter(new ParameterRegistrationImpl(this,procedureCall.registerParameter(parameterName,type,mode)));
+  try {
+    registerParameter(new ParameterRegistrationImpl(this,procedureCall.registerParameter(parameterName,type,mode)));
+  }
+ catch (  HibernateException he) {
+    throw entityManager().convert(he);
+  }
+catch (  RuntimeException e) {
+    entityManager().markForRollbackOnly();
+    throw e;
+  }
   return this;
 }
