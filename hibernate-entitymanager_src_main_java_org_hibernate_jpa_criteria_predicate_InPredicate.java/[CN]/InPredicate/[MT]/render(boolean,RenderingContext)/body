@@ -1,6 +1,15 @@
 {
   final StringBuilder buffer=new StringBuilder();
-  buffer.append(((Renderable)getExpression()).render(renderingContext));
+  final Expression exp=getExpression();
+  if (ParameterExpressionImpl.class.isInstance(exp)) {
+    final ParameterExpressionImpl parameterExpression=(ParameterExpressionImpl)exp;
+    final SessionFactoryImplementor sfi=criteriaBuilder().getEntityManagerFactory().unwrap(SessionFactoryImplementor.class);
+    final Type mappingType=sfi.getTypeResolver().heuristicType(parameterExpression.getParameterType().getName());
+    buffer.append("cast(").append(parameterExpression.render(renderingContext)).append(" as ").append(mappingType.getName()).append(")");
+  }
+ else {
+    buffer.append(((Renderable)getExpression()).render(renderingContext));
+  }
   if (isNegated) {
     buffer.append(" not");
   }
