@@ -12,7 +12,8 @@
   }
   final String[] rhsColumnNames=join.resolveNonAliasedRightHandSideJoinConditionColumns();
   final String rhsTableAlias=aliases.getTableAlias();
-  final String additionalJoinConditions=resolveAdditionalJoinCondition(rhsTableAlias,join.getAnyAdditionalJoinConditions(rhsTableAlias),(Joinable)rightHandSide.getEntityPersister());
+  final AssociationType associationType=join instanceof JoinDefinedByMetadata ? ((JoinDefinedByMetadata)join).getJoinedAssociationPropertyType() : null;
+  final String additionalJoinConditions=resolveAdditionalJoinCondition(rhsTableAlias,join.getAnyAdditionalJoinConditions(rhsTableAlias),(Joinable)rightHandSide.getEntityPersister(),associationType);
   final Joinable joinable=(Joinable)rightHandSide.getEntityPersister();
   addJoins(joinFragment,joinable,join.isRightHandSideRequired() ? JoinType.INNER_JOIN : JoinType.LEFT_OUTER_JOIN,aliases.getTableAlias(),rhsColumnNames,aliasedLhsColumnNames,additionalJoinConditions);
 }

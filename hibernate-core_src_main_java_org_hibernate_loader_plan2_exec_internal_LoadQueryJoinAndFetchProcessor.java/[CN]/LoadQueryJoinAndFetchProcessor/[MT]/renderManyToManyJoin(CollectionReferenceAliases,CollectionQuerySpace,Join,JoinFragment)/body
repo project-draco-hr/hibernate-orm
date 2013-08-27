@@ -10,7 +10,8 @@
     throw new IllegalStateException("Collection element (many-to-many) table alias cannot be empty");
   }
 {
-    final String additionalJoinConditions=resolveAdditionalJoinCondition(elementTableAlias,join.getAnyAdditionalJoinConditions(elementTableAlias),queryableCollection);
+    final AssociationType associationType=join instanceof JoinDefinedByMetadata ? ((JoinDefinedByMetadata)join).getJoinedAssociationPropertyType() : null;
+    final String additionalJoinConditions=resolveAdditionalJoinCondition(elementTableAlias,join.getAnyAdditionalJoinConditions(elementTableAlias),queryableCollection,associationType);
     final String manyToManyFilter=persister.getManyToManyFilterFragment(elementTableAlias,buildingParameters.getQueryInfluencers().getEnabledFilters());
     final String condition;
     if (StringHelper.isEmpty(manyToManyFilter)) {
