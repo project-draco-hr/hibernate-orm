@@ -2,32 +2,11 @@
   final SqlStatementLogger sqlStatementLogger=serviceRegistry.getService(JdbcServices.class).getSqlStatementLogger();
   final Connection providedConnection=(Connection)hibernateConfiguration.getProperties().get(AvailableSettings.SCHEMA_GEN_CONNECTION);
   if (providedConnection != null) {
-    return new JdbcConnectionContext(new JdbcConnectionAccess(){
-      @Override public Connection obtainConnection() throws SQLException {
-        return providedConnection;
-      }
-      @Override public void releaseConnection(      Connection connection) throws SQLException {
-      }
-      @Override public boolean supportsAggressiveRelease(){
-        return false;
-      }
-    }
-,sqlStatementLogger);
+    return new JdbcConnectionContext(new ProvidedJdbcConnectionAccess(providedConnection),sqlStatementLogger);
   }
   final ConnectionProvider connectionProvider=serviceRegistry.getService(ConnectionProvider.class);
   if (connectionProvider != null) {
-    return new JdbcConnectionContext(new JdbcConnectionAccess(){
-      @Override public Connection obtainConnection() throws SQLException {
-        return connectionProvider.getConnection();
-      }
-      @Override public void releaseConnection(      Connection connection) throws SQLException {
-        connectionProvider.closeConnection(connection);
-      }
-      @Override public boolean supportsAggressiveRelease(){
-        return connectionProvider.supportsAggressiveRelease();
-      }
-    }
-,sqlStatementLogger);
+    return new JdbcConnectionContext(new ConnectionProviderJdbcConnectionAccess(connectionProvider),sqlStatementLogger);
   }
   return new JdbcConnectionContext(null,sqlStatementLogger){
     @Override public Connection getJdbcConnection(){
