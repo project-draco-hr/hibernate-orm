@@ -1,0 +1,22 @@
+{
+  final PersistenceUnitDescriptorAdapter pu=new PersistenceUnitDescriptorAdapter(){
+    @Override public List<String> getManagedClassNames(){
+      return Arrays.asList(Super.class.getName(),Sub.class.getName());
+    }
+    @Override public List<String> getMappingFileNames(){
+      return Arrays.asList("org/hibernate/jpa/test/convert/simple-override2.xml");
+    }
+  }
+;
+  final Map settings=new HashMap();
+  EntityManagerFactory emf=Bootstrap.getEntityManagerFactoryBuilder(pu,settings).build();
+  final SessionFactoryImplementor sfi=emf.unwrap(SessionFactoryImplementor.class);
+  try {
+    final EntityPersister ep=sfi.getEntityPersister(Sub.class.getName());
+    Type type=ep.getPropertyType("it");
+    assertTyping(StringType.class,type);
+  }
+  finally {
+    emf.close();
+  }
+}

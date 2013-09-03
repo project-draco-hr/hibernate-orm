@@ -1,0 +1,24 @@
+{
+  final PersistenceUnitDescriptorAdapter pu=new PersistenceUnitDescriptorAdapter(){
+    @Override public List<String> getManagedClassNames(){
+      return Arrays.asList(Super.class.getName(),Sub.class.getName());
+    }
+  }
+;
+  final Map settings=Collections.emptyMap();
+  EntityManagerFactory emf=Bootstrap.getEntityManagerFactoryBuilder(pu,settings).build();
+  final SessionFactoryImplementor sfi=emf.unwrap(SessionFactoryImplementor.class);
+  try {
+    final EntityPersister ep=sfi.getEntityPersister(Sub.class.getName());
+    Type type=ep.getPropertyType("it");
+    try {
+      assertTyping(StringType.class,type);
+      fail("Expected AttributeConverter to be applied");
+    }
+ catch (    AssertionError expected) {
+    }
+  }
+  finally {
+    emf.close();
+  }
+}
