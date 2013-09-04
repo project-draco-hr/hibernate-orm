@@ -1,0 +1,16 @@
+{
+  for (  Element converterElement : converterElements) {
+    try {
+      final String className=converterElement.attributeValue("class");
+      final Class<? extends AttributeConverter> attributeConverterClass=ReflectHelper.classForName(className);
+      final AttributeConverter attributeConverter=attributeConverterClass.newInstance();
+      final String autoApplyAttribute=converterElement.attributeValue("auto-apply");
+      final boolean autoApply=autoApplyAttribute != null ? Boolean.parseBoolean(autoApplyAttribute) : false;
+      final AttributeConverterDefinition attrDef=new AttributeConverterDefinition(attributeConverter,autoApply);
+      localAttributeConverterDefintions.put(className,attrDef);
+    }
+ catch (    Exception e) {
+      throw new AnnotationException("Unable to process a converter -- check your xml configuration.",e);
+    }
+  }
+}

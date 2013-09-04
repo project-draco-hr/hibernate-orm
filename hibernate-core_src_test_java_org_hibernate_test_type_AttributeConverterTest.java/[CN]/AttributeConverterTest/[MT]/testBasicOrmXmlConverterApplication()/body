@@ -1,0 +1,17 @@
+{
+  Configuration cfg=new Configuration();
+  cfg.addAnnotatedClass(Tester.class);
+  cfg.addURL(ConfigHelper.findAsResource("org/hibernate/test/type/orm.xml"));
+  cfg.buildMappings();
+{
+    PersistentClass tester=cfg.getClassMapping(Tester.class.getName());
+    Property nameProp=tester.getProperty("name");
+    SimpleValue nameValue=(SimpleValue)nameProp.getValue();
+    Type type=nameValue.getType();
+    assertNotNull(type);
+    assertTyping(BasicType.class,type);
+    AbstractStandardBasicType basicType=assertTyping(AbstractStandardBasicType.class,type);
+    assertSame(StringTypeDescriptor.INSTANCE,basicType.getJavaTypeDescriptor());
+    assertEquals(Types.CLOB,basicType.getSqlTypeDescriptor().getSqlType());
+  }
+}
