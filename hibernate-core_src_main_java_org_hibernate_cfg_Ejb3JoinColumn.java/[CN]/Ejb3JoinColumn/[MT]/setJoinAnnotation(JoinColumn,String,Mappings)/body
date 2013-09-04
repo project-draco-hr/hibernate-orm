@@ -4,6 +4,7 @@
   }
  else {
     setImplicit(false);
+    final ObjectNameNormalizer nameNormalizer=mappings.getObjectNameNormalizer();
     if (!BinderHelper.isEmptyAnnotationValue(annJoin.columnDefinition()))     setSqlType(annJoin.columnDefinition());
     if (!BinderHelper.isEmptyAnnotationValue(annJoin.name()))     setLogicalColumnName(annJoin.name());
     setNullable(annJoin.nullable());
@@ -11,6 +12,7 @@
     setInsertable(annJoin.insertable());
     setUpdatable(annJoin.updatable());
     setReferencedColumn(annJoin.referencedColumnName());
-    setSecondaryTableName(annJoin.table());
+    final String tableName=!BinderHelper.isEmptyAnnotationValue(annJoin.table()) ? nameNormalizer.normalizeIdentifierQuoting(mappings.getNamingStrategy().tableName(annJoin.table())) : "";
+    setSecondaryTableName(tableName);
   }
 }
