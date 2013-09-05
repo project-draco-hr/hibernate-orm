@@ -1,0 +1,20 @@
+{
+  Session s=openSession();
+  s.getTransaction().begin();
+  User user=new User();
+  House house=new House();
+  user.setHouse(house);
+  s.persist(house);
+  s.persist(user);
+  s.getTransaction().commit();
+  s.clear();
+  s=openSession();
+  s.getTransaction().begin();
+  user=(User)s.get(User.class,user.getId());
+  assertNotNull(user);
+  assertNotNull(user.getHouse());
+  assertEquals(user.getHouse().getId(),user.getHouse1());
+  assertEquals(user.getHouse().getId(),user.getHouse2());
+  s.getTransaction().commit();
+  s.close();
+}
