@@ -5,6 +5,12 @@
   ((ClassLoaderServiceImpl)classLoaderService).withTccl(new ClassLoaderServiceImpl.Work(){
     @Override public Object perform(){
       final Configuration hibernateConfiguration=buildHibernateConfiguration(serviceRegistry);
+      try {
+        hibernateConfiguration.buildSessionFactory(serviceRegistry);
+      }
+ catch (      MappingException e) {
+        throw persistenceException("Unable to build Hibernate SessionFactory",e);
+      }
       JpaSchemaGenerator.performGeneration(hibernateConfiguration,serviceRegistry);
       return null;
     }
