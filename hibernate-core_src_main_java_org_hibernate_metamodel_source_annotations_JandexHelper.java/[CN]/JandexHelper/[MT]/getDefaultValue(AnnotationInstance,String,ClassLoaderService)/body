@@ -1,0 +1,24 @@
+{
+  String name=annotation.name().toString();
+  String fqElement=name + '.' + element;
+  Object val=DEFAULT_VALUES_BY_ELEMENT.get(fqElement);
+  if (val != null) {
+    return val;
+  }
+  try {
+    val=classLoaderService.classForName(name).getMethod(element).getDefaultValue();
+    if (val != null) {
+      if (val instanceof Class) {
+        val=((Class)val).getName();
+      }
+    }
+    DEFAULT_VALUES_BY_ELEMENT.put(fqElement,val);
+    return val;
+  }
+ catch (  RuntimeException error) {
+    throw error;
+  }
+catch (  Exception error) {
+    throw new AssertionFailure(String.format("The annotation %s does not define a parameter '%s'",name,element),error);
+  }
+}
