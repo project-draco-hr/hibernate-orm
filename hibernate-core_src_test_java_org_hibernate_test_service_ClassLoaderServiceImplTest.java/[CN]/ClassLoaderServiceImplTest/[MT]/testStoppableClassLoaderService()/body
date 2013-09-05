@@ -1,0 +1,15 @@
+{
+  final BootstrapServiceRegistryBuilder bootstrapBuilder=new BootstrapServiceRegistryBuilder();
+  bootstrapBuilder.with(new TestClassLoader());
+  final ServiceRegistry serviceRegistry=new StandardServiceRegistryBuilder(bootstrapBuilder.build()).build();
+  final ClassLoaderService classLoaderService=serviceRegistry.getService(ClassLoaderService.class);
+  TestIntegrator testIntegrator1=findTestIntegrator(classLoaderService);
+  assertNotNull(testIntegrator1);
+  TestIntegrator testIntegrator2=findTestIntegrator(classLoaderService);
+  assertNotNull(testIntegrator2);
+  assertSame(testIntegrator1,testIntegrator2);
+  StandardServiceRegistryBuilder.destroy(serviceRegistry);
+  testIntegrator2=findTestIntegrator(classLoaderService);
+  assertNotNull(testIntegrator2);
+  assertNotSame(testIntegrator1,testIntegrator2);
+}

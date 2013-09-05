@@ -1,9 +1,15 @@
 {
-  ServiceLoader<S> serviceLoader=ServiceLoader.load(serviceContract,aggregatedClassLoader);
+  ServiceLoader<S> serviceLoader;
+  if (serviceLoaders.containsKey(serviceContract)) {
+    serviceLoader=serviceLoaders.get(serviceContract);
+  }
+ else {
+    serviceLoader=ServiceLoader.load(serviceContract,aggregatedClassLoader);
+    serviceLoaders.put(serviceContract,serviceLoader);
+  }
   final LinkedHashSet<S> services=new LinkedHashSet<S>();
   for (  S service : serviceLoader) {
     services.add(service);
   }
-  serviceLoaders.add(serviceLoader);
   return services;
 }
