@@ -9,10 +9,8 @@
   }
  catch (  IllegalArgumentException e) {
   }
-  em.getTransaction().commit();
-  em.clear();
-  em.getTransaction().begin();
-  em.remove(em.find(Item.class,item.getName()));
-  em.getTransaction().commit();
+  assertTrue("thrown IllegalArgumentException should of caused transaction to be marked for rollback only",true == em.getTransaction().getRollbackOnly());
+  em.getTransaction().rollback();
+  assertNull("entity should not of been saved to database since IllegalArgumentException should of" + "caused transaction to be marked for rollback only",em.find(Item.class,item.getName()));
   em.close();
 }

@@ -1,9 +1,7 @@
 {
   checkOpen();
+  checkTransactionNeeded();
   LockOptions lockOptions=null;
-  if (!isTransactionInProgress()) {
-    throw new TransactionRequiredException("no transaction is in progress");
-  }
   try {
     if (!contains(entity)) {
       throw new IllegalArgumentException("entity not in the persistence context");
@@ -11,7 +9,7 @@
     lockOptions=getLockRequest(lockModeType,properties);
     internalGetSession().buildLockRequest(lockOptions).lock(entity);
   }
- catch (  HibernateException he) {
-    throw convert(he,lockOptions);
+ catch (  RuntimeException e) {
+    throw convert(e,lockOptions);
   }
 }

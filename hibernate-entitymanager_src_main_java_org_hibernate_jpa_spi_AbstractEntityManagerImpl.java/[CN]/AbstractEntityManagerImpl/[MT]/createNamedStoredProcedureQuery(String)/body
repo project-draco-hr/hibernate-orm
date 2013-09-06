@@ -1,14 +1,19 @@
 {
   checkOpen();
-  final ProcedureCallMemento memento=((SessionImplementor)internalGetSession()).getFactory().getNamedQueryRepository().getNamedProcedureCallMemento(name);
-  if (memento == null) {
-    throw new IllegalArgumentException("No @NamedStoredProcedureQuery was found with that name : " + name);
-  }
-  final StoredProcedureQueryImpl jpaImpl=new StoredProcedureQueryImpl(memento,this);
-  if (memento.getHintsMap() != null) {
-    for (    Map.Entry<String,Object> hintEntry : memento.getHintsMap().entrySet()) {
-      jpaImpl.setHint(hintEntry.getKey(),hintEntry.getValue());
+  try {
+    final ProcedureCallMemento memento=((SessionImplementor)internalGetSession()).getFactory().getNamedQueryRepository().getNamedProcedureCallMemento(name);
+    if (memento == null) {
+      throw new IllegalArgumentException("No @NamedStoredProcedureQuery was found with that name : " + name);
     }
+    final StoredProcedureQueryImpl jpaImpl=new StoredProcedureQueryImpl(memento,this);
+    if (memento.getHintsMap() != null) {
+      for (      Map.Entry<String,Object> hintEntry : memento.getHintsMap().entrySet()) {
+        jpaImpl.setHint(hintEntry.getKey(),hintEntry.getValue());
+      }
+    }
+    return jpaImpl;
   }
-  return jpaImpl;
+ catch (  RuntimeException e) {
+    throw convert(e);
+  }
 }

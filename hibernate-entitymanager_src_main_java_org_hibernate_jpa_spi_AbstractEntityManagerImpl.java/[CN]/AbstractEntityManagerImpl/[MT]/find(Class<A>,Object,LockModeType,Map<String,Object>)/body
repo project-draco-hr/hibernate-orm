@@ -8,6 +8,9 @@
     session.setCacheMode(cacheMode);
     if (lockModeType != null) {
       lockOptions=getLockRequest(lockModeType,properties);
+      if (!LockModeType.NONE.equals(lockModeType)) {
+        checkTransactionNeeded();
+      }
       return (A)session.get(entityClass,(Serializable)primaryKey,lockOptions);
     }
  else {
@@ -29,16 +32,16 @@ catch (  ObjectNotFoundException e) {
     throw new IllegalArgumentException(e.getMessage(),e);
   }
 catch (  MappingException e) {
-    throw new IllegalArgumentException(e.getMessage(),e);
+    throw convert(new IllegalArgumentException(e.getMessage(),e));
   }
 catch (  TypeMismatchException e) {
-    throw new IllegalArgumentException(e.getMessage(),e);
+    throw convert(new IllegalArgumentException(e.getMessage(),e));
   }
 catch (  ClassCastException e) {
-    throw new IllegalArgumentException(e.getMessage(),e);
+    throw convert(new IllegalArgumentException(e.getMessage(),e));
   }
-catch (  HibernateException he) {
-    throw convert(he,lockOptions);
+catch (  RuntimeException e) {
+    throw convert(e,lockOptions);
   }
  finally {
     session.setCacheMode(previousCacheMode);

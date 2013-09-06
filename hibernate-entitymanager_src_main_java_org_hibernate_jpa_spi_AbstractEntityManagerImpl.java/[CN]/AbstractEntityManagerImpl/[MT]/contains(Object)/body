@@ -2,14 +2,14 @@
   checkOpen();
   try {
     if (entity != null && !(entity instanceof HibernateProxy) && internalGetSession().getSessionFactory().getClassMetadata(entity.getClass()) == null) {
-      throw new IllegalArgumentException("Not an entity:" + entity.getClass());
+      throw convert(new IllegalArgumentException("Not an entity:" + entity.getClass()));
     }
     return internalGetSession().contains(entity);
   }
  catch (  MappingException e) {
     throw new IllegalArgumentException(e.getMessage(),e);
   }
-catch (  HibernateException he) {
-    throw convert(he);
+catch (  RuntimeException e) {
+    throw convert(e);
   }
 }
