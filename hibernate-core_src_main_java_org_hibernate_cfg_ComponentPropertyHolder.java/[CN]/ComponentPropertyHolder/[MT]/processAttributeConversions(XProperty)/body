@@ -1,0 +1,49 @@
+{
+  final Map<String,AttributeConversionInfo> infoMap=new HashMap<String,AttributeConversionInfo>();
+  final XClass embeddableXClass=embeddedXProperty.getType();
+{
+    final Convert convertAnnotation=embeddableXClass.getAnnotation(Convert.class);
+    if (convertAnnotation != null) {
+      final AttributeConversionInfo info=new AttributeConversionInfo(convertAnnotation,embeddableXClass);
+      if (StringHelper.isEmpty(info.getAttributeName())) {
+        throw new IllegalStateException("@Convert placed on @Embeddable must define attributeName");
+      }
+      infoMap.put(info.getAttributeName(),info);
+    }
+  }
+{
+    final Converts convertsAnnotation=embeddableXClass.getAnnotation(Converts.class);
+    if (convertsAnnotation != null) {
+      for (      Convert convertAnnotation : convertsAnnotation.value()) {
+        final AttributeConversionInfo info=new AttributeConversionInfo(convertAnnotation,embeddableXClass);
+        if (StringHelper.isEmpty(info.getAttributeName())) {
+          throw new IllegalStateException("@Converts placed on @Embeddable must define attributeName");
+        }
+        infoMap.put(info.getAttributeName(),info);
+      }
+    }
+  }
+{
+    final Convert convertAnnotation=embeddedXProperty.getAnnotation(Convert.class);
+    if (convertAnnotation != null) {
+      final AttributeConversionInfo info=new AttributeConversionInfo(convertAnnotation,embeddableXClass);
+      if (StringHelper.isEmpty(info.getAttributeName())) {
+        throw new IllegalStateException("Convert placed on Embedded attribute must define (sub)attributeName");
+      }
+      infoMap.put(info.getAttributeName(),info);
+    }
+  }
+{
+    final Converts convertsAnnotation=embeddedXProperty.getAnnotation(Converts.class);
+    if (convertsAnnotation != null) {
+      for (      Convert convertAnnotation : convertsAnnotation.value()) {
+        final AttributeConversionInfo info=new AttributeConversionInfo(convertAnnotation,embeddableXClass);
+        if (StringHelper.isEmpty(info.getAttributeName())) {
+          throw new IllegalStateException("Convert placed on Embedded attribute must define (sub)attributeName");
+        }
+        infoMap.put(info.getAttributeName(),info);
+      }
+    }
+  }
+  return infoMap;
+}

@@ -45,7 +45,7 @@
   }
   if (simpleValue.getTypeName() != null && simpleValue.getTypeName().length() > 0 && simpleValue.getMappings().getTypeResolver().basic(simpleValue.getTypeName()) == null) {
     try {
-      Class typeClass=ReflectHelper.classForName(simpleValue.getTypeName());
+      Class typeClass=StandardClassLoaderDelegateImpl.INSTANCE.classForName(simpleValue.getTypeName());
       if (typeClass != null && DynamicParameterizedType.class.isAssignableFrom(typeClass)) {
         Properties parameters=simpleValue.getTypeParameters();
         if (parameters == null) {
@@ -61,8 +61,8 @@
         simpleValue.setTypeParameters(parameters);
       }
     }
- catch (    ClassNotFoundException cnfe) {
-      throw new MappingException("Could not determine type for: " + simpleValue.getTypeName(),cnfe);
+ catch (    ClassLoadingException e) {
+      throw new MappingException("Could not determine type for: " + simpleValue.getTypeName(),e);
     }
   }
 }

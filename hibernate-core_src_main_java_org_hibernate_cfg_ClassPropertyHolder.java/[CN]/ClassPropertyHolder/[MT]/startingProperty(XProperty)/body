@@ -1,0 +1,35 @@
+{
+  if (property == null) {
+    return;
+  }
+  final String propertyName=property.getName();
+  if (attributeConversionInfoMap.containsKey(propertyName)) {
+    return;
+  }
+{
+    final Convert convertAnnotation=property.getAnnotation(Convert.class);
+    if (convertAnnotation != null) {
+      final AttributeConversionInfo info=new AttributeConversionInfo(convertAnnotation,property);
+      if (StringHelper.isEmpty(info.getAttributeName())) {
+        attributeConversionInfoMap.put(propertyName,info);
+      }
+ else {
+        attributeConversionInfoMap.put(propertyName + '.' + info.getAttributeName(),info);
+      }
+    }
+  }
+{
+    final Converts convertsAnnotation=property.getAnnotation(Converts.class);
+    if (convertsAnnotation != null) {
+      for (      Convert convertAnnotation : convertsAnnotation.value()) {
+        final AttributeConversionInfo info=new AttributeConversionInfo(convertAnnotation,property);
+        if (StringHelper.isEmpty(info.getAttributeName())) {
+          attributeConversionInfoMap.put(propertyName,info);
+        }
+ else {
+          attributeConversionInfoMap.put(propertyName + '.' + info.getAttributeName(),info);
+        }
+      }
+    }
+  }
+}

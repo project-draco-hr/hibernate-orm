@@ -1,0 +1,119 @@
+{
+  if (returnedClass == null) {
+    return;
+  }
+  XClass returnedClassOrElement=returnedClass;
+  boolean isArray=false;
+  if (property.isArray()) {
+    returnedClassOrElement=property.getElementClass();
+    isArray=true;
+  }
+  this.xproperty=property;
+  Properties typeParameters=this.typeParameters;
+  typeParameters.clear();
+  String type=BinderHelper.ANNOTATION_STRING_DEFAULT;
+  final boolean isNationalized=property.isAnnotationPresent(Nationalized.class) || mappings.useNationalizedCharacterData();
+  Type annType=property.getAnnotation(Type.class);
+  if (annType != null) {
+    setExplicitType(annType);
+    type=explicitType;
+  }
+ else   if ((!key && property.isAnnotationPresent(Temporal.class)) || (key && property.isAnnotationPresent(MapKeyTemporal.class))) {
+    boolean isDate;
+    if (mappings.getReflectionManager().equals(returnedClassOrElement,Date.class)) {
+      isDate=true;
+    }
+ else     if (mappings.getReflectionManager().equals(returnedClassOrElement,Calendar.class)) {
+      isDate=false;
+    }
+ else {
+      throw new AnnotationException("@Temporal should only be set on a java.util.Date or java.util.Calendar property: " + StringHelper.qualify(persistentClassName,propertyName));
+    }
+    final TemporalType temporalType=getTemporalType(property);
+switch (temporalType) {
+case DATE:
+      type=isDate ? "date" : "calendar_date";
+    break;
+case TIME:
+  type="time";
+if (!isDate) {
+  throw new NotYetImplementedException("Calendar cannot persist TIME only" + StringHelper.qualify(persistentClassName,propertyName));
+}
+break;
+case TIMESTAMP:
+type=isDate ? "timestamp" : "calendar";
+break;
+default :
+throw new AssertionFailure("Unknown temporal type: " + temporalType);
+}
+explicitType=type;
+}
+ else if (property.isAnnotationPresent(Lob.class)) {
+if (mappings.getReflectionManager().equals(returnedClassOrElement,java.sql.Clob.class)) {
+type=isNationalized ? StandardBasicTypes.NCLOB.getName() : StandardBasicTypes.CLOB.getName();
+}
+ else if (mappings.getReflectionManager().equals(returnedClassOrElement,java.sql.NClob.class)) {
+type=StandardBasicTypes.NCLOB.getName();
+}
+ else if (mappings.getReflectionManager().equals(returnedClassOrElement,java.sql.Blob.class)) {
+type="blob";
+}
+ else if (mappings.getReflectionManager().equals(returnedClassOrElement,String.class)) {
+type=isNationalized ? StandardBasicTypes.MATERIALIZED_NCLOB.getName() : StandardBasicTypes.MATERIALIZED_CLOB.getName();
+}
+ else if (mappings.getReflectionManager().equals(returnedClassOrElement,Character.class) && isArray) {
+type=isNationalized ? CharacterArrayNClobType.class.getName() : CharacterArrayClobType.class.getName();
+}
+ else if (mappings.getReflectionManager().equals(returnedClassOrElement,char.class) && isArray) {
+type=isNationalized ? PrimitiveCharacterArrayNClobType.class.getName() : PrimitiveCharacterArrayClobType.class.getName();
+}
+ else if (mappings.getReflectionManager().equals(returnedClassOrElement,Byte.class) && isArray) {
+type=WrappedMaterializedBlobType.class.getName();
+}
+ else if (mappings.getReflectionManager().equals(returnedClassOrElement,byte.class) && isArray) {
+type=StandardBasicTypes.MATERIALIZED_BLOB.getName();
+}
+ else if (mappings.getReflectionManager().toXClass(Serializable.class).isAssignableFrom(returnedClassOrElement)) {
+type=SerializableToBlobType.class.getName();
+typeParameters.setProperty(SerializableToBlobType.CLASS_NAME,returnedClassOrElement.getName());
+}
+ else {
+type="blob";
+}
+explicitType=type;
+}
+ else if ((!key && property.isAnnotationPresent(Enumerated.class)) || (key && property.isAnnotationPresent(MapKeyEnumerated.class))) {
+final Class attributeJavaType=mappings.getReflectionManager().toClass(returnedClassOrElement);
+if (!Enum.class.isAssignableFrom(attributeJavaType)) {
+throw new AnnotationException(String.format("Attribute [%s.%s] was annotated as enumerated, but its java type is not an enum [%s]",declaringClassName,xproperty.getName(),attributeJavaType.getName()));
+}
+type=EnumType.class.getName();
+explicitType=type;
+}
+ else if (isNationalized) {
+if (mappings.getReflectionManager().equals(returnedClassOrElement,String.class)) {
+type=StringNVarcharType.INSTANCE.getName();
+explicitType=type;
+}
+ else if (mappings.getReflectionManager().equals(returnedClassOrElement,Character.class)) {
+if (isArray) {
+type=StringNVarcharType.INSTANCE.getName();
+}
+ else {
+type=CharacterNCharType.INSTANCE.getName();
+}
+explicitType=type;
+}
+}
+if (columns == null) {
+throw new AssertionFailure("SimpleValueBinder.setColumns should be set before SimpleValueBinder.setType");
+}
+if (BinderHelper.ANNOTATION_STRING_DEFAULT.equals(type)) {
+if (returnedClassOrElement.isEnum()) {
+type=EnumType.class.getName();
+}
+}
+defaultType=BinderHelper.isEmptyAnnotationValue(type) ? returnedClassName : type;
+this.typeParameters=typeParameters;
+applyAttributeConverter(property,attributeConverterDefinition);
+}

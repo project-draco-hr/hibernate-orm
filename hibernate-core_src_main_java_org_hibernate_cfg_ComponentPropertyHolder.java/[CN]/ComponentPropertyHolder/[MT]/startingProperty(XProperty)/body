@@ -1,0 +1,28 @@
+{
+  if (property == null) {
+    return;
+  }
+  if (virtual) {
+    return;
+  }
+  final String path=embeddedAttributeName + '.' + property.getName();
+  if (attributeConversionInfoMap.containsKey(path)) {
+    return;
+  }
+{
+    final Convert convertAnnotation=property.getAnnotation(Convert.class);
+    if (convertAnnotation != null) {
+      final AttributeConversionInfo info=new AttributeConversionInfo(convertAnnotation,property);
+      attributeConversionInfoMap.put(property.getName(),info);
+    }
+  }
+{
+    final Converts convertsAnnotation=property.getAnnotation(Converts.class);
+    if (convertsAnnotation != null) {
+      for (      Convert convertAnnotation : convertsAnnotation.value()) {
+        final AttributeConversionInfo info=new AttributeConversionInfo(convertAnnotation,property);
+        attributeConversionInfoMap.put(property.getName(),info);
+      }
+    }
+  }
+}

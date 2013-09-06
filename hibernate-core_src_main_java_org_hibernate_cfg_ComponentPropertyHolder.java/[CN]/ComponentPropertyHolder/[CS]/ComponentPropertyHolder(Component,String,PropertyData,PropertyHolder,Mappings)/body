@@ -1,7 +1,16 @@
 {
   super(path,parent,inferredData.getPropertyClass(),mappings);
-  final XProperty property=inferredData.getProperty();
-  setCurrentProperty(property);
+  final XProperty embeddedXProperty=inferredData.getProperty();
+  setCurrentProperty(embeddedXProperty);
   this.component=component;
-  this.isOrWithinEmbeddedId=parent.isOrWithinEmbeddedId() || (property != null && (property.isAnnotationPresent(Id.class) || property.isAnnotationPresent(EmbeddedId.class)));
+  this.isOrWithinEmbeddedId=parent.isOrWithinEmbeddedId() || (embeddedXProperty != null && (embeddedXProperty.isAnnotationPresent(Id.class) || embeddedXProperty.isAnnotationPresent(EmbeddedId.class)));
+  this.virtual=embeddedXProperty == null;
+  if (!virtual) {
+    this.embeddedAttributeName=embeddedXProperty.getName();
+    this.attributeConversionInfoMap=processAttributeConversions(embeddedXProperty);
+  }
+ else {
+    embeddedAttributeName="";
+    this.attributeConversionInfoMap=Collections.emptyMap();
+  }
 }
