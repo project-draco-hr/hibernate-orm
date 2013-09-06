@@ -9,8 +9,10 @@
     SimpleValue nameValue=(SimpleValue)nameProp.getValue();
     Type type=nameValue.getType();
     assertNotNull(type);
-    assertTyping(BasicType.class,type);
-    AbstractStandardBasicType basicType=assertTyping(AbstractStandardBasicType.class,type);
+    if (!AttributeConverterTypeAdapter.class.isInstance(type)) {
+      fail("AttributeConverter not applied");
+    }
+    AttributeConverterTypeAdapter basicType=assertTyping(AttributeConverterTypeAdapter.class,type);
     assertSame(StringTypeDescriptor.INSTANCE,basicType.getJavaTypeDescriptor());
     assertEquals(Types.CLOB,basicType.getSqlTypeDescriptor().getSqlType());
   }

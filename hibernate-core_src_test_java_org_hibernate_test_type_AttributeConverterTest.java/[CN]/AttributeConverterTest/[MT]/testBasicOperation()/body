@@ -5,7 +5,9 @@
   simpleValue.setTypeUsingReflection(IrrelevantEntity.class.getName(),"name");
   Type type=simpleValue.getType();
   assertNotNull(type);
-  assertTyping(BasicType.class,type);
+  if (!AttributeConverterTypeAdapter.class.isInstance(type)) {
+    fail("AttributeConverter not applied");
+  }
   AbstractStandardBasicType basicType=assertTyping(AbstractStandardBasicType.class,type);
   assertSame(StringTypeDescriptor.INSTANCE,basicType.getJavaTypeDescriptor());
   assertEquals(Types.CLOB,basicType.getSqlTypeDescriptor().getSqlType());
