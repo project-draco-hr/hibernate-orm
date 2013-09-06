@@ -1,0 +1,41 @@
+{
+  try {
+    SessionFactoryImplementor factory=persister.getFactory();
+    Set<String> collectionRoles=factory.getCollectionRolesByEntityParticipant(persister.getEntityName());
+    if (collectionRoles == null || collectionRoles.isEmpty()) {
+      return;
+    }
+    for (    String role : collectionRoles) {
+      CollectionPersister collectionPersister=factory.getCollectionPersister(role);
+      if (!collectionPersister.hasCache()) {
+        continue;
+      }
+      String mappedBy=collectionPersister.getMappedByProperty();
+      if (mappedBy != null) {
+        int i=persister.getEntityMetamodel().getPropertyIndex(mappedBy);
+        Serializable oldId=null;
+        if (oldState != null) {
+          oldId=session.getIdentifier(oldState[i]);
+        }
+        Object ref=persister.getPropertyValue(entity,i);
+        Serializable id=null;
+        if (ref != null) {
+          id=session.getIdentifier(ref);
+        }
+        if (id != null && !id.equals(oldId)) {
+          evict(id,collectionPersister,session);
+          if (oldId != null) {
+            evict(oldId,collectionPersister,session);
+          }
+        }
+      }
+ else {
+        LOG.debug("Evict CollectionRegion " + role);
+        collectionPersister.getCacheAccessStrategy().evictAll();
+      }
+    }
+  }
+ catch (  Exception e) {
+    LOG.error("",e);
+  }
+}
