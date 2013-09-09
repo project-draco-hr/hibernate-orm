@@ -1,14 +1,25 @@
 {
   final ValueExtractor realExtractor=delegate.getExtractor(intermediateJavaTypeDescriptor);
   return new BasicExtractor<X>(javaTypeDescriptor,this){
-    @Override @SuppressWarnings("unchecked") protected X doExtract(    ResultSet rs,    String name,    WrapperOptions options) throws SQLException {
-      return (X)converter.convertToEntityAttribute(realExtractor.extract(rs,name,options));
+    @Override protected X doExtract(    ResultSet rs,    String name,    WrapperOptions options) throws SQLException {
+      return doConversion(realExtractor.extract(rs,name,options));
     }
-    @Override @SuppressWarnings("unchecked") protected X doExtract(    CallableStatement statement,    int index,    WrapperOptions options) throws SQLException {
-      return (X)converter.convertToEntityAttribute(realExtractor.extract(statement,index,options));
+    @Override protected X doExtract(    CallableStatement statement,    int index,    WrapperOptions options) throws SQLException {
+      return doConversion(realExtractor.extract(statement,index,options));
     }
-    @Override @SuppressWarnings("unchecked") protected X doExtract(    CallableStatement statement,    String name,    WrapperOptions options) throws SQLException {
-      return (X)converter.convertToEntityAttribute(realExtractor.extract(statement,new String[]{name},options));
+    @Override protected X doExtract(    CallableStatement statement,    String name,    WrapperOptions options) throws SQLException {
+      return doConversion(realExtractor.extract(statement,new String[]{name},options));
+    }
+    @SuppressWarnings("unchecked") private X doConversion(    Object extractedValue){
+      try {
+        return (X)converter.convertToEntityAttribute(extractedValue);
+      }
+ catch (      PersistenceException pe) {
+        throw pe;
+      }
+catch (      RuntimeException re) {
+        throw new PersistenceException("Error attempting to apply AttributeConverter",re);
+      }
     }
   }
 ;

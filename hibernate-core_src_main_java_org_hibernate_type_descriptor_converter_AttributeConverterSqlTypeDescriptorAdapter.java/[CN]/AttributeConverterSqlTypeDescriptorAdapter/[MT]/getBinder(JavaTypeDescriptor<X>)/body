@@ -2,7 +2,17 @@
   final ValueBinder realBinder=delegate.getBinder(intermediateJavaTypeDescriptor);
   return new BasicBinder<X>(javaTypeDescriptor,this){
     @Override @SuppressWarnings("unchecked") protected void doBind(    PreparedStatement st,    X value,    int index,    WrapperOptions options) throws SQLException {
-      realBinder.bind(st,converter.convertToDatabaseColumn(value),index,options);
+      final Object convertedValue;
+      try {
+        convertedValue=converter.convertToDatabaseColumn(value);
+      }
+ catch (      PersistenceException pe) {
+        throw pe;
+      }
+catch (      RuntimeException re) {
+        throw new PersistenceException("Error attempting to apply AttributeConverter",re);
+      }
+      realBinder.bind(st,convertedValue,index,options);
     }
   }
 ;
