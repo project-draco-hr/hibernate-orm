@@ -1,19 +1,28 @@
 {
   validateNotClosed();
-  if (StoredProcedureQueryImpl.class.isInstance(query)) {
-    final ProcedureCall procedureCall=((StoredProcedureQueryImpl)query).getHibernateProcedureCall();
-    sessionFactory.getNamedQueryRepository().registerNamedProcedureCallMemento(name,procedureCall.extractMemento(query.getHints()));
-  }
- else   if (!HibernateQuery.class.isInstance(query)) {
-    throw new PersistenceException("Cannot use query non-Hibernate EntityManager query as basis for named query");
-  }
- else {
-    final org.hibernate.Query hibernateQuery=((HibernateQuery)query).getHibernateQuery();
-    if (org.hibernate.SQLQuery.class.isInstance(hibernateQuery)) {
-      sessionFactory.registerNamedSQLQueryDefinition(name,extractSqlQueryDefinition((org.hibernate.SQLQuery)hibernateQuery,name));
-    }
- else {
-      sessionFactory.registerNamedQueryDefinition(name,extractHqlQueryDefinition(hibernateQuery,name));
+  try {
+    final StoredProcedureQueryImpl unwrapped=query.unwrap(StoredProcedureQueryImpl.class);
+    if (unwrapped != null) {
+      addNamedStoredProcedureQuery(name,unwrapped);
+      return;
     }
   }
+ catch (  PersistenceException ignore) {
+  }
+  try {
+    final HibernateQuery unwrapped=query.unwrap(HibernateQuery.class);
+    if (unwrapped != null) {
+      final org.hibernate.Query hibernateQuery=((HibernateQuery)query).getHibernateQuery();
+      if (org.hibernate.SQLQuery.class.isInstance(hibernateQuery)) {
+        sessionFactory.registerNamedSQLQueryDefinition(name,extractSqlQueryDefinition((org.hibernate.SQLQuery)hibernateQuery,name));
+      }
+ else {
+        sessionFactory.registerNamedQueryDefinition(name,extractHqlQueryDefinition(hibernateQuery,name));
+      }
+      return;
+    }
+  }
+ catch (  PersistenceException ignore) {
+  }
+  throw new PersistenceException(String.format("Unsure how to how to properly unwrap given Query [%s] as basis for named query",query));
 }
