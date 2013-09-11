@@ -1,0 +1,13 @@
+{
+  final Map<String,Object> properties=new HashMap<String,Object>();
+  properties.put(AvailableSettings.APP_CLASSLOADER,new TestClassLoader());
+  final HibernatePersistenceProvider provider=new HibernatePersistenceProvider();
+  final EntityManagerFactory emf=provider.createEntityManagerFactory(persistenceUnitName,properties);
+  assertNotNull(emf.getMetamodel().entity(DataPoint.class));
+  if (shouldScan) {
+    assertNull(emf.getMetamodel().entity(UnlistedDataPoint.class));
+  }
+ else {
+    assertNotNull(emf.getMetamodel().entity(UnlistedDataPoint.class));
+  }
+}
