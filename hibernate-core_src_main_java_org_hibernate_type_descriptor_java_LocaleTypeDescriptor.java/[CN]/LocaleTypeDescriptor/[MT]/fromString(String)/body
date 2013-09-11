@@ -2,31 +2,30 @@
   if (string == null || string.isEmpty()) {
     return null;
   }
-  int found=0, position=0;
+  boolean separatorFound=false;
+  int position=0;
   char[] chars=string.toCharArray();
   for (int i=0; i < chars.length; i++) {
     if (chars[i] == '_') {
-switch (found) {
-case 0:
+      if (!separatorFound) {
         string=new String(chars,position,i - position);
-      position=i + 1;
-    break;
-case 1:
-  if (chars.length > i + 1) {
-    return new Locale(string,new String(chars,position,i - position),new String(chars,i + 1,chars.length - i - 1));
+        position=i + 1;
+      }
+ else {
+        if (chars.length > i + 1) {
+          return new Locale(string,new String(chars,position,i - position),new String(chars,i + 1,chars.length - i - 1));
+        }
+ else {
+          return new Locale(string,new String(chars,position,i - position),"");
+        }
+      }
+      separatorFound=true;
+    }
+  }
+  if (!separatorFound) {
+    return new Locale(string);
   }
  else {
-    return new Locale(string,new String(chars,position,i - position),"");
+    return new Locale(string,new String(chars,position,chars.length - position));
   }
-}
-found++;
-}
-}
-switch (found) {
-case 0:
-return new Locale(string);
-case 1:
-return new Locale(string,new String(chars,position,chars.length - position));
-}
-return null;
 }
