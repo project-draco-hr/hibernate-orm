@@ -70,6 +70,13 @@
   for (  ColumnResult column : ann.columns()) {
     definition.addQueryReturn(new NativeSQLQueryScalarReturn(mappings.getObjectNameNormalizer().normalizeIdentifierQuoting(column.name()),null));
   }
+  for (  ConstructorResult constructorResult : ann.classes()) {
+    List<NativeSQLQueryScalarReturn> columnReturns=new ArrayList<NativeSQLQueryScalarReturn>();
+    for (    ColumnResult columnResult : constructorResult.columns()) {
+      columnReturns.add(new NativeSQLQueryScalarReturn(mappings.getObjectNameNormalizer().normalizeIdentifierQuoting(columnResult.name()),null));
+    }
+    definition.addQueryReturn(new NativeSQLQueryConstructorReturn(constructorResult.targetClass(),columnReturns));
+  }
   if (isDefault) {
     mappings.addDefaultResultSetMapping(definition);
   }

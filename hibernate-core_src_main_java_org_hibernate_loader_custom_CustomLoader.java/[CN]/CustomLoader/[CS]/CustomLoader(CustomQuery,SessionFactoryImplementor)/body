@@ -28,6 +28,18 @@
       includeInResultRowList.add(true);
       hasScalars=true;
     }
+ else     if (ConstructorReturn.class.isInstance(rtn)) {
+      final ConstructorReturn constructorReturn=(ConstructorReturn)rtn;
+      resultTypes.add(null);
+      includeInResultRowList.add(true);
+      hasScalars=true;
+      ScalarResultColumnProcessor[] scalarProcessors=new ScalarResultColumnProcessor[constructorReturn.getScalars().length];
+      int i=0;
+      for (      ScalarReturn scalarReturn : constructorReturn.getScalars()) {
+        scalarProcessors[i++]=new ScalarResultColumnProcessor(StringHelper.unquote(scalarReturn.getColumnAlias(),factory.getDialect()),scalarReturn.getType());
+      }
+      resultColumnProcessors.add(new ConstructorResultColumnProcessor(constructorReturn.getTargetClass(),scalarProcessors));
+    }
  else     if (rtn instanceof RootReturn) {
       RootReturn rootRtn=(RootReturn)rtn;
       Queryable persister=(Queryable)factory.getEntityPersister(rootRtn.getEntityName());

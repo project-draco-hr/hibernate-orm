@@ -80,6 +80,18 @@
       customReturns.add(customReturn);
       customReturnsByAlias.put(alias,customReturn);
     }
+ else     if (NativeSQLQueryConstructorReturn.class.isInstance(queryReturn)) {
+      final NativeSQLQueryConstructorReturn constructorReturn=(NativeSQLQueryConstructorReturn)queryReturn;
+      final ScalarReturn[] scalars=new ScalarReturn[constructorReturn.getColumnReturns().length];
+      int i=0;
+      for (      NativeSQLQueryScalarReturn scalarReturn : constructorReturn.getColumnReturns()) {
+        scalars[i++]=new ScalarReturn(scalarReturn.getType(),scalarReturn.getColumnAlias());
+      }
+      customReturns.add(new ConstructorReturn(constructorReturn.getTargetClass(),scalars));
+    }
+ else {
+      throw new IllegalStateException("Unrecognized NativeSQLQueryReturn concrete type : " + queryReturn);
+    }
   }
   return customReturns;
 }
