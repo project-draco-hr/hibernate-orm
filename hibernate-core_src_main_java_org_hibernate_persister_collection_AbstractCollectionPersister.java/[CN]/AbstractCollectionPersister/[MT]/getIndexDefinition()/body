@@ -19,7 +19,27 @@
       if (!getType().isComponentType()) {
         throw new IllegalStateException("Cannot treat entity collection index type as composite");
       }
-      throw new NotYetImplementedException();
+      return new CompositeCollectionElementDefinition(){
+        @Override public String getName(){
+          return "index";
+        }
+        @Override public CompositeType getType(){
+          return (CompositeType)getIndexType();
+        }
+        @Override public boolean isNullable(){
+          return false;
+        }
+        @Override public AttributeSource getSource(){
+          return getOwnerEntityPersister();
+        }
+        @Override public Iterable<AttributeDefinition> getAttributes(){
+          return CompositionSingularSubAttributesHelper.getCompositeCollectionIndexSubAttributes(this);
+        }
+        @Override public CollectionDefinition getCollectionDefinition(){
+          return AbstractCollectionPersister.this;
+        }
+      }
+;
     }
   }
 ;
