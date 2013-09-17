@@ -5,6 +5,10 @@
     visitAttributes(elementDefinition.toCompositeElementDefinition());
   }
  else   if (elementDefinition.getType().isEntityType()) {
+    if (!collectionDefinition.getCollectionPersister().isOneToMany()) {
+      final QueryableCollection queryableCollection=(QueryableCollection)collectionDefinition.getCollectionPersister();
+      addAssociationKey(new AssociationKey(queryableCollection.getTableName(),queryableCollection.getElementColumnNames()));
+    }
     visitEntityDefinition(elementDefinition.toEntityDefinition());
   }
   strategy.finishingCollectionElements(elementDefinition);
