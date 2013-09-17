@@ -1,36 +1,3 @@
 {
-  BulkOperationCleanupAction action=new BulkOperationCleanupAction(session,persister);
-  if (session.isEventSource()) {
-    ((EventSource)session).getActionQueue().addAction(action);
-  }
- else {
-    action.getAfterTransactionCompletionProcess().doAfterTransactionCompletion(true,session);
-  }
-  PreparedStatement st=null;
-  RowSelection selection=parameters.getRowSelection();
-  try {
-    try {
-      st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,false);
-      Iterator parameterSpecifications=this.parameterSpecifications.iterator();
-      int pos=1;
-      while (parameterSpecifications.hasNext()) {
-        final ParameterSpecification paramSpec=(ParameterSpecification)parameterSpecifications.next();
-        pos+=paramSpec.bind(st,parameters,session,pos);
-      }
-      if (selection != null) {
-        if (selection.getTimeout() != null) {
-          st.setQueryTimeout(selection.getTimeout());
-        }
-      }
-      return session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().executeUpdate(st);
-    }
-  finally {
-      if (st != null) {
-        session.getTransactionCoordinator().getJdbcCoordinator().release(st);
-      }
-    }
-  }
- catch (  SQLException sqle) {
-    throw factory.getSQLExceptionHelper().convert(sqle,"could not execute update query",sql);
-  }
+  return doExecute(parameters,session,sql,parameterSpecifications);
 }
