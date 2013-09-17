@@ -1,11 +1,11 @@
 {
   try {
-    Metadata metadata=new Metadata(getFactory(),rs);
+    JdbcResultMetadata metadata=new JdbcResultMetadata(getFactory(),rs);
     rowProcessor.prepareForAutoDiscovery(metadata);
     List<String> aliases=new ArrayList<String>();
     List<Type> types=new ArrayList<Type>();
-    for (int i=0; i < rowProcessor.columnProcessors.length; i++) {
-      rowProcessor.columnProcessors[i].performDiscovery(metadata,types,aliases);
+    for (    ResultColumnProcessor resultProcessor : rowProcessor.getColumnProcessors()) {
+      resultProcessor.performDiscovery(metadata,types,aliases);
     }
     validateAliases(aliases);
     resultTypes=ArrayHelper.toTypeArray(types);
