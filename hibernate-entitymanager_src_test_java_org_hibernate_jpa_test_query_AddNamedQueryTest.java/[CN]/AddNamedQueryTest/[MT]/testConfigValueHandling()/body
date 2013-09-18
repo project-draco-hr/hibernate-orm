@@ -1,6 +1,7 @@
 {
   final String name="itemJpaQueryWithLockModeAndHints";
   EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
   Query query=em.createNamedQuery(name);
   org.hibernate.Query hibernateQuery=((HibernateQuery)query).getHibernateQuery();
   assertNull(hibernateQuery.getFirstResult());
@@ -39,4 +40,6 @@
   assertEquals(CacheMode.IGNORE,hibernateQuery.getCacheMode());
   assertEquals(LockMode.PESSIMISTIC_WRITE,hibernateQuery.getLockOptions().getLockMode());
   assertEquals((Integer)10,hibernateQuery.getTimeout());
+  em.getTransaction().commit();
+  em.close();
 }
