@@ -1,0 +1,18 @@
+{
+  final String name="flush-mode-handling";
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  Query q=em.createQuery("from Item");
+  assertEquals(FlushModeType.AUTO,q.getFlushMode());
+  q.setFlushMode(FlushModeType.COMMIT);
+  assertEquals(FlushModeType.COMMIT,q.getFlushMode());
+  em.getEntityManagerFactory().addNamedQuery(name,q);
+  SessionFactoryImplementor sfi=entityManagerFactory().unwrap(SessionFactoryImplementor.class);
+  NamedQueryDefinition def=sfi.getNamedQueryRepository().getNamedQueryDefinition(name);
+  assertEquals(FlushMode.COMMIT,def.getFlushMode());
+  q=em.createNamedQuery(name);
+  assertEquals(FlushMode.COMMIT,q.unwrap(org.hibernate.Query.class).getFlushMode());
+  assertEquals(FlushModeType.COMMIT,q.getFlushMode());
+  em.getTransaction().commit();
+  em.close();
+}

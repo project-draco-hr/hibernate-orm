@@ -1,7 +1,9 @@
 {
   checkOpen(true);
-  if (!getEntityManager().isTransactionInProgress()) {
-    throw new TransactionRequiredException("no transaction is in progress");
+  if (lockModeType != LockModeType.NONE) {
+    if (!getEntityManager().isTransactionInProgress()) {
+      throw new TransactionRequiredException("no transaction is in progress");
+    }
   }
   if (!canApplyAliasSpecificLockModeHints()) {
     throw new IllegalStateException("Not a JPAQL/Criteria query");
