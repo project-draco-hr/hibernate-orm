@@ -1,7 +1,12 @@
 {
   checkOpen();
   try {
-    return new StoredProcedureQueryImpl(internalGetSession().createStoredProcedureCall(procedureName,resultSetMappings),this);
+    try {
+      return new StoredProcedureQueryImpl(internalGetSession().createStoredProcedureCall(procedureName,resultSetMappings),this);
+    }
+ catch (    UnknownSqlResultSetMappingException unknownResultSetMapping) {
+      throw new IllegalArgumentException(unknownResultSetMapping.getMessage(),unknownResultSetMapping);
+    }
   }
  catch (  RuntimeException e) {
     throw convert(e);
