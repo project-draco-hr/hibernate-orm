@@ -1,0 +1,33 @@
+{
+  final SessionFactoryImplementor sf=emf.unwrap(SessionFactoryImplementor.class);
+  final Connection conn;
+  try {
+    conn=sf.getConnectionProvider().getConnection();
+    conn.setAutoCommit(false);
+    try {
+      Statement statement=conn.createStatement();
+      dropProcedures(statement);
+      try {
+        statement.close();
+      }
+ catch (      SQLException ignore) {
+      }
+    }
+  finally {
+      try {
+        conn.commit();
+      }
+ catch (      SQLException e) {
+        System.out.println("Unable to commit transaction after creating dropping procedures");
+      }
+      try {
+        sf.getConnectionProvider().closeConnection(conn);
+      }
+ catch (      SQLException ignore) {
+      }
+    }
+  }
+ catch (  SQLException e) {
+    throw new RuntimeException("Unable to drop stored procedures",e);
+  }
+}

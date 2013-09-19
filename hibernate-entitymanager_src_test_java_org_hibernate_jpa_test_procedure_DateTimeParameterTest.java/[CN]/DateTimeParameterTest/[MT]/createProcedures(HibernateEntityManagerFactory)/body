@@ -1,0 +1,41 @@
+{
+  final SessionFactoryImplementor sf=emf.unwrap(SessionFactoryImplementor.class);
+  final Connection conn;
+  try {
+    conn=sf.getConnectionProvider().getConnection();
+    conn.setAutoCommit(false);
+    try {
+      Statement statement=conn.createStatement();
+      try {
+        dropProcedures(statement);
+      }
+ catch (      SQLException ignore) {
+      }
+      statement.execute("CREATE PROCEDURE findMessagesByDate(IN chkDt DATE) " + "language java " + "dynamic result sets 1 "+ "external name 'org.hibernate.jpa.test.procedure.DateTimeParameterTest.findMessagesByDate' "+ "parameter style java");
+      statement.execute("CREATE PROCEDURE findMessagesByTime(IN chkTime TIME) " + "language java " + "dynamic result sets 1 "+ "external name 'org.hibernate.jpa.test.procedure.DateTimeParameterTest.findMessagesByTime' "+ "parameter style java");
+      statement.execute("CREATE PROCEDURE findMessagesByTimestampRange(IN startDt TIMESTAMP, IN endDt TIMESTAMP) " + "language java " + "dynamic result sets 1 "+ "external name 'org.hibernate.jpa.test.procedure.DateTimeParameterTest.findMessagesByTimestampRange' "+ "parameter style java");
+      statement.execute("CREATE PROCEDURE retrieveTimestamp(IN ts1 TIMESTAMP, OUT ts2 TIMESTAMP) " + "language java " + "dynamic result sets 0 "+ "external name 'org.hibernate.jpa.test.procedure.DateTimeParameterTest.retrieveTimestamp' "+ "parameter style java");
+      try {
+        statement.close();
+      }
+ catch (      SQLException ignore) {
+      }
+    }
+  finally {
+      try {
+        conn.commit();
+      }
+ catch (      SQLException e) {
+        System.out.println("Unable to commit transaction after creating creating procedures");
+      }
+      try {
+        sf.getConnectionProvider().closeConnection(conn);
+      }
+ catch (      SQLException ignore) {
+      }
+    }
+  }
+ catch (  SQLException e) {
+    throw new RuntimeException("Unable to create stored procedures",e);
+  }
+}
