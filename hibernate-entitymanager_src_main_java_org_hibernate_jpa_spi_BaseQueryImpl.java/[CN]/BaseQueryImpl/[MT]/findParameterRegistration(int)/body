@@ -1,8 +1,13 @@
 {
-  if (isJpaPositionalParameter(parameterPosition)) {
-    return findParameterRegistration(Integer.toString(parameterPosition));
+  if (parameterRegistrations != null) {
+    for (    ParameterRegistration<?> param : parameterRegistrations) {
+      if (param.getPosition() == null) {
+        continue;
+      }
+      if (parameterPosition == param.getPosition()) {
+        return (ParameterRegistration<X>)param;
+      }
+    }
   }
- else {
-    return (ParameterRegistration<X>)getParameter(parameterPosition);
-  }
+  throw new IllegalArgumentException("Parameter with that position [" + parameterPosition + "] did not exist");
 }
