@@ -14,14 +14,16 @@
     }
   }
   log.debugf("Attempting to locate auto-apply AttributeConverter for collection element [%s]",collection.getRole());
-  final Class elementClass=getMappings().getReflectionManager().toClass(elementXClass);
-  for (  AttributeConverterDefinition attributeConverterDefinition : getMappings().getAttributeConverters()) {
-    if (!attributeConverterDefinition.isAutoApply()) {
-      continue;
-    }
-    log.debugf("Checking auto-apply AttributeConverter [%s] type [%s] for match [%s]",attributeConverterDefinition.toString(),attributeConverterDefinition.getEntityAttributeType().getSimpleName(),elementClass.getSimpleName());
-    if (areTypeMatch(attributeConverterDefinition.getEntityAttributeType(),elementClass)) {
-      return attributeConverterDefinition;
+  final Class elementClass=determineElementClass(elementXClass);
+  if (elementClass != null) {
+    for (    AttributeConverterDefinition attributeConverterDefinition : getMappings().getAttributeConverters()) {
+      if (!attributeConverterDefinition.isAutoApply()) {
+        continue;
+      }
+      log.debugf("Checking auto-apply AttributeConverter [%s] type [%s] for match [%s]",attributeConverterDefinition.toString(),attributeConverterDefinition.getEntityAttributeType().getSimpleName(),elementClass.getSimpleName());
+      if (areTypeMatch(attributeConverterDefinition.getEntityAttributeType(),elementClass)) {
+        return attributeConverterDefinition;
+      }
     }
   }
   return null;
