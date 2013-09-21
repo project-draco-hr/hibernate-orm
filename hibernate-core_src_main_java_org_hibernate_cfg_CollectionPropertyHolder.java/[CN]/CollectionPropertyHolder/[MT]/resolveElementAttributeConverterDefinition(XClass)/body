@@ -1,0 +1,28 @@
+{
+  AttributeConversionInfo info=locateAttributeConversionInfo("element");
+  if (info != null) {
+    if (info.isConversionDisabled()) {
+      return null;
+    }
+ else {
+      try {
+        return makeAttributeConverterDefinition(info);
+      }
+ catch (      Exception e) {
+        throw new IllegalStateException(String.format("Unable to instantiate AttributeConverter [%s",info.getConverterClass().getName()),e);
+      }
+    }
+  }
+  log.debugf("Attempting to locate auto-apply AttributeConverter for collection element [%s]",collection.getRole());
+  final Class elementClass=getMappings().getReflectionManager().toClass(elementXClass);
+  for (  AttributeConverterDefinition attributeConverterDefinition : getMappings().getAttributeConverters()) {
+    if (!attributeConverterDefinition.isAutoApply()) {
+      continue;
+    }
+    log.debugf("Checking auto-apply AttributeConverter [%s] type [%s] for match [%s]",attributeConverterDefinition.toString(),attributeConverterDefinition.getEntityAttributeType().getSimpleName(),elementClass.getSimpleName());
+    if (areTypeMatch(attributeConverterDefinition.getEntityAttributeType(),elementClass)) {
+      return attributeConverterDefinition;
+    }
+  }
+  return null;
+}

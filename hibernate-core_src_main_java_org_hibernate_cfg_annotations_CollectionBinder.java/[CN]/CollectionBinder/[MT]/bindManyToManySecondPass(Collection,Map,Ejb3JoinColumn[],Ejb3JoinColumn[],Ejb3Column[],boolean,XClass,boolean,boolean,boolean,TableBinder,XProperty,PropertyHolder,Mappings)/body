@@ -102,7 +102,7 @@
  else {
     XClass elementClass;
     AnnotatedClassType classType;
-    PropertyHolder holder=null;
+    CollectionPropertyHolder holder=null;
     if (BinderHelper.PRIMITIVE_NAMES.contains(collType.getName())) {
       classType=AnnotatedClassType.NONE;
       elementClass=null;
@@ -111,6 +111,7 @@
       elementClass=collType;
       classType=mappings.getClassType(elementClass);
       holder=PropertyHolderBuilder.buildPropertyHolder(collValue,collValue.getRole(),elementClass,property,parentPropertyHolder,mappings);
+      parentPropertyHolder.startingProperty(property);
       boolean attributeOverride=property.isAnnotationPresent(AttributeOverride.class) || property.isAnnotationPresent(AttributeOverrides.class);
       if (isEmbedded || attributeOverride) {
         classType=AnnotatedClassType.EMBEDDABLE;
@@ -147,7 +148,8 @@
           inferredData=new PropertyPreloadedData(AccessType.PROPERTY,"collection&&element",elementClass);
         }
       }
-      Component component=AnnotationBinder.fillComponent(holder,inferredData,isPropertyAnnotated ? AccessType.PROPERTY : AccessType.FIELD,true,entityBinder,false,false,true,mappings,inheritanceStatePerClass);
+      boolean isNullable=true;
+      Component component=AnnotationBinder.fillComponent(holder,inferredData,isPropertyAnnotated ? AccessType.PROPERTY : AccessType.FIELD,isNullable,entityBinder,false,false,true,mappings,inheritanceStatePerClass);
       collValue.setElement(component);
       if (StringHelper.isNotEmpty(hqlOrderBy)) {
         String path=collValue.getOwnerEntityName() + "." + joinColumns[0].getPropertyName();
@@ -158,6 +160,7 @@
       }
     }
  else {
+      holder.prepare(property);
       SimpleValueBinder elementBinder=new SimpleValueBinder();
       elementBinder.setMappings(mappings);
       elementBinder.setReturnedClassName(collType.getName());
@@ -177,7 +180,7 @@
         column.setTable(collValue.getCollectionTable());
       }
       elementBinder.setColumns(elementColumns);
-      elementBinder.setType(property,elementClass,collValue.getOwnerEntityName(),null);
+      elementBinder.setType(property,elementClass,collValue.getOwnerEntityName(),holder.resolveElementAttributeConverterDefinition(elementClass));
       elementBinder.setPersistentClassName(propertyHolder.getEntityName());
       elementBinder.setAccessType(accessType);
       collValue.setElement(elementBinder.make());

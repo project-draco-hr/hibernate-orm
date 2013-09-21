@@ -1,0 +1,33 @@
+{
+  final AttributeConversionInfo info=new AttributeConversionInfo(convertAnnotation,collectionProperty);
+  if (collection.isMap()) {
+    boolean specCompliant=StringHelper.isNotEmpty(info.getAttributeName()) && (info.getAttributeName().startsWith("key") || info.getAttributeName().startsWith("value"));
+    if (!specCompliant) {
+      log.nonCompliantMapConversion(collection.getRole());
+    }
+  }
+  if (StringHelper.isEmpty(info.getAttributeName())) {
+    if (canElementBeConverted && canKeyBeConverted) {
+      throw new IllegalStateException("@Convert placed on Map attribute [" + collection.getRole() + "] must define attributeName of 'key' or 'value'");
+    }
+ else     if (canKeyBeConverted) {
+      keyAttributeConversionInfoMap.put("",info);
+    }
+ else     if (canElementBeConverted) {
+      elementAttributeConversionInfoMap.put("",info);
+    }
+  }
+ else {
+    if (canElementBeConverted && canKeyBeConverted) {
+      if (info.getAttributeName().startsWith("key.")) {
+        keyAttributeConversionInfoMap.put(info.getAttributeName().substring(4),info);
+      }
+ else       if (info.getAttributeName().startsWith("value.")) {
+        elementAttributeConversionInfoMap.put(info.getAttributeName().substring(6),info);
+      }
+ else {
+        throw new IllegalStateException("@Convert placed on Map attribute [" + collection.getRole() + "] must define attributeName of 'key' or 'value'");
+      }
+    }
+  }
+}

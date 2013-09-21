@@ -1,0 +1,47 @@
+{
+  if (prepared) {
+    return;
+  }
+  if (collectionProperty == null) {
+    return;
+  }
+  prepared=true;
+  if (collection.isMap()) {
+    if (collectionProperty.isAnnotationPresent(MapKeyEnumerated.class)) {
+      canKeyBeConverted=false;
+    }
+ else     if (collectionProperty.isAnnotationPresent(MapKeyTemporal.class)) {
+      canKeyBeConverted=false;
+    }
+ else     if (collectionProperty.isAnnotationPresent(MapKeyClass.class)) {
+      canKeyBeConverted=false;
+    }
+ else     if (collectionProperty.isAnnotationPresent(MapKeyType.class)) {
+      canKeyBeConverted=false;
+    }
+  }
+ else {
+    canKeyBeConverted=false;
+  }
+  if (collectionProperty.isAnnotationPresent(ManyToAny.class)) {
+    canElementBeConverted=false;
+  }
+ else   if (collectionProperty.isAnnotationPresent(OneToMany.class)) {
+    canElementBeConverted=false;
+  }
+ else   if (collectionProperty.isAnnotationPresent(ManyToMany.class)) {
+    canElementBeConverted=false;
+  }
+ else   if (collectionProperty.isAnnotationPresent(Enumerated.class)) {
+    canElementBeConverted=false;
+  }
+ else   if (collectionProperty.isAnnotationPresent(Temporal.class)) {
+    canElementBeConverted=false;
+  }
+ else   if (collectionProperty.isAnnotationPresent(CollectionType.class)) {
+    canElementBeConverted=false;
+  }
+  if (canKeyBeConverted || canElementBeConverted) {
+    buildAttributeConversionInfoMaps(collectionProperty,elementAttributeConversionInfoMap,keyAttributeConversionInfoMap);
+  }
+}
