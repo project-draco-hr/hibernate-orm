@@ -1,25 +1,8 @@
 {
-  final SingularAttribute<? super X,Y> id_;
+  ensureNoIdClass();
+  SingularAttributeImpl id=locateIdAttribute();
   if (id != null) {
-    checkSimpleId();
-    id_=(SingularAttribute<? super X,Y>)id;
-    if (javaType != id.getJavaType()) {
-      throw new IllegalArgumentException("Id attribute was not of specified type : " + javaType.getName());
-    }
+    checkType(id,javaType);
   }
- else {
-    if (!requiresSupertypeForNonDeclaredIdentifier()) {
-      final AbstractIdentifiableType<? super X> supertype=getSupertype();
-      if (supertype != null) {
-        id_=supertype.getId(javaType);
-      }
- else {
-        id_=null;
-      }
-    }
- else {
-      id_=requireSupertype().getId(javaType);
-    }
-  }
-  return id_;
+  return (SingularAttribute<? super X,Y>)id;
 }
