@@ -1,0 +1,18 @@
+{
+  final PersistenceUnitDescriptorAdapter pu=new PersistenceUnitDescriptorAdapter(){
+    @Override public List<String> getManagedClassNames(){
+      return Arrays.asList(SomeMappedSuperclass.class.getName());
+    }
+  }
+;
+  final Map settings=new HashMap();
+  settings.put(AvailableSettings.HBM2DDL_AUTO,"create-drop");
+  EntityManagerFactory emf=Bootstrap.getEntityManagerFactoryBuilder(pu,settings).build();
+  try {
+    ManagedType<SomeMappedSuperclass> type=emf.getMetamodel().managedType(SomeMappedSuperclass.class);
+    assertNotNull(type);
+  }
+  finally {
+    emf.close();
+  }
+}
