@@ -1,15 +1,6 @@
 {
   if (!allowCollectionFetches) {
-    throw new WalkingException(String.format("This composite path [%s] does not allow collection fetches (composite id or composite collection index/element",propertyPath.getFullPath()));
+    throw new WalkingException(String.format("This composite path [%s] does not allow collection fetches (composite id or composite collection index/element",getPropertyPath().getFullPath()));
   }
-  final CollectionType fetchedType=(CollectionType)attributeDefinition.getType();
-  final CollectionPersister fetchedPersister=loadPlanBuildingContext.getSessionFactory().getCollectionPersister(fetchedType.getRole());
-  if (fetchedPersister == null) {
-    throw new WalkingException(String.format("Unable to locate CollectionPersister [%s] for fetch [%s]",fetchedType.getRole(),attributeDefinition.getName()));
-  }
-  final ExpandingQuerySpace leftHandSide=(ExpandingQuerySpace)loadPlanBuildingContext.getQuerySpaces().getQuerySpaceByUid(getQuerySpaceUid());
-  final Join join=leftHandSide.addCollectionJoin(attributeDefinition,fetchedPersister,loadPlanBuildingContext.getQuerySpaces().generateImplicitUid());
-  final CollectionFetch fetch=new CollectionFetchImpl(this,attributeDefinition,fetchStrategy,join,loadPlanBuildingContext);
-  addFetch(fetch);
-  return fetch;
+  return super.buildCollectionFetch(attributeDefinition,fetchStrategy,loadPlanBuildingContext);
 }
