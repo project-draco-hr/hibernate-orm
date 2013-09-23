@@ -49,6 +49,21 @@
       }
       applied=applyCacheModeHint(CacheModeHelper.interpretCacheMode(storeMode,retrieveMode));
     }
+ else     if (QueryHints.HINT_NATIVE_LOCKMODE.equals(hintName)) {
+      if (!isNativeSqlQuery()) {
+        throw new IllegalStateException("Illegal attempt to set lock mode on non-native query via hint; use Query#setLockMode instead");
+      }
+      if (LockMode.class.isInstance(value)) {
+        internalApplyLockMode(LockModeTypeHelper.getLockModeType((LockMode)value));
+      }
+ else       if (LockModeType.class.isInstance(value)) {
+        internalApplyLockMode((LockModeType)value);
+      }
+ else {
+        throw new IllegalArgumentException(String.format("Native lock-mode hint [%s] must specify %s or %s.  Encountered type : %s",HINT_NATIVE_LOCKMODE,LockMode.class.getName(),LockModeType.class.getName(),value.getClass().getName()));
+      }
+      applied=true;
+    }
  else     if (hintName.startsWith(AvailableSettings.ALIAS_SPECIFIC_LOCK_MODE)) {
       if (canApplyAliasSpecificLockModeHints()) {
         final String alias=hintName.substring(AvailableSettings.ALIAS_SPECIFIC_LOCK_MODE.length() + 1);

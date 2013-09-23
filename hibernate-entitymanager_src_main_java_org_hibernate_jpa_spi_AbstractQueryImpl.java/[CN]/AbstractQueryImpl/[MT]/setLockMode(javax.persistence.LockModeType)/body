@@ -1,5 +1,11 @@
 {
   checkOpen(true);
+  if (isNativeSqlQuery()) {
+    throw new IllegalStateException("Illegal attempt to set lock mode on a native SQL query");
+  }
+  if (!isSelectQuery()) {
+    throw new IllegalStateException("Illegal attempt to set lock mode on a non-SELECT query");
+  }
   if (lockModeType != LockModeType.NONE) {
     if (!getEntityManager().isTransactionInProgress()) {
       throw new TransactionRequiredException("no transaction is in progress");

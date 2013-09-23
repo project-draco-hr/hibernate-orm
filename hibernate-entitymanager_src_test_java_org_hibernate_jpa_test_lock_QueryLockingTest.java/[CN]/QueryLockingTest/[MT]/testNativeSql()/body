@@ -3,7 +3,13 @@
   em.getTransaction().begin();
   QueryImpl query=em.createNativeQuery("select * from lockable l").unwrap(QueryImpl.class);
   org.hibernate.internal.SQLQueryImpl hibernateQuery=(org.hibernate.internal.SQLQueryImpl)query.getHibernateQuery();
-  query.setLockMode(LockModeType.READ);
+  try {
+    query.setLockMode(LockModeType.READ);
+    fail("Should have failed");
+  }
+ catch (  IllegalStateException expected) {
+  }
+  query.setHint(QueryHints.HINT_NATIVE_LOCKMODE,LockModeType.READ);
   assertEquals(LockMode.OPTIMISTIC,hibernateQuery.getLockOptions().getLockMode());
   assertNull(hibernateQuery.getLockOptions().getAliasSpecificLockMode("l"));
   assertEquals(LockMode.OPTIMISTIC,hibernateQuery.getLockOptions().getEffectiveLockMode("l"));
