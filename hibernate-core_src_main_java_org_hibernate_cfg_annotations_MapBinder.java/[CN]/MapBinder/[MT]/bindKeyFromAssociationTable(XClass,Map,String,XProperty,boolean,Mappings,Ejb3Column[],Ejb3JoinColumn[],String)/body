@@ -34,27 +34,28 @@
       element.setLazy(false);
     }
  else {
-      XClass elementClass;
+      XClass keyXClass;
       AnnotatedClassType classType;
-      PropertyHolder holder=null;
       if (BinderHelper.PRIMITIVE_NAMES.contains(mapKeyType)) {
         classType=AnnotatedClassType.NONE;
-        elementClass=null;
+        keyXClass=null;
       }
  else {
         try {
-          elementClass=mappings.getReflectionManager().classForName(mapKeyType,MapBinder.class);
+          keyXClass=mappings.getReflectionManager().classForName(mapKeyType,MapBinder.class);
         }
  catch (        ClassNotFoundException e) {
           throw new AnnotationException("Unable to find class: " + mapKeyType,e);
         }
-        classType=mappings.getClassType(elementClass);
-        holder=PropertyHolderBuilder.buildPropertyHolder(mapValue,StringHelper.qualify(mapValue.getRole(),"mapkey"),elementClass,property,propertyHolder,mappings);
+        classType=mappings.getClassType(keyXClass);
         boolean attributeOverride=property.isAnnotationPresent(AttributeOverride.class) || property.isAnnotationPresent(AttributeOverrides.class);
         if (isEmbedded || attributeOverride) {
           classType=AnnotatedClassType.EMBEDDABLE;
         }
       }
+      CollectionPropertyHolder holder=PropertyHolderBuilder.buildPropertyHolder(mapValue,StringHelper.qualify(mapValue.getRole(),"mapkey"),keyXClass,property,propertyHolder,mappings);
+      propertyHolder.startingProperty(property);
+      holder.prepare(property);
       PersistentClass owner=mapValue.getOwner();
       AccessType accessType;
       if (owner.getIdentifierProperty() != null) {
@@ -71,10 +72,10 @@
         EntityBinder entityBinder=new EntityBinder();
         PropertyData inferredData;
         if (isHibernateExtensionMapping()) {
-          inferredData=new PropertyPreloadedData(AccessType.PROPERTY,"index",elementClass);
+          inferredData=new PropertyPreloadedData(AccessType.PROPERTY,"index",keyXClass);
         }
  else {
-          inferredData=new PropertyPreloadedData(AccessType.PROPERTY,"key",elementClass);
+          inferredData=new PropertyPreloadedData(AccessType.PROPERTY,"key",keyXClass);
         }
         Component component=AnnotationBinder.fillComponent(holder,inferredData,accessType,true,entityBinder,false,false,true,mappings,inheritanceStatePerClass);
         mapValue.setIndex(component);
@@ -106,7 +107,7 @@
           elementBinder.setExplicitType(mapKeyTypeAnnotation.value());
         }
  else {
-          elementBinder.setType(property,elementClass,this.collection.getOwnerEntityName(),null);
+          elementBinder.setType(property,keyXClass,this.collection.getOwnerEntityName(),holder.keyElementAttributeConverterDefinition(keyXClass));
         }
         elementBinder.setPersistentClassName(propertyHolder.getEntityName());
         elementBinder.setAccessType(accessType);
