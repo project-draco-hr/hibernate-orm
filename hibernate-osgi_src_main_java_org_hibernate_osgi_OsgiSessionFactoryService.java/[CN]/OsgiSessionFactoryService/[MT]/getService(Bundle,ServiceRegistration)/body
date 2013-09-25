@@ -2,7 +2,18 @@
   osgiClassLoader.addBundle(requestingBundle);
   final Configuration configuration=new Configuration();
   configuration.getProperties().put(AvailableSettings.JTA_PLATFORM,osgiJtaPlatform);
-  configuration.configure();
+  final BundleWiring bundleWiring=(BundleWiring)requestingBundle.adapt(BundleWiring.class);
+  final Collection<String> cfgResources=bundleWiring.listResources("/","hibernate.cfg.xml",BundleWiring.LISTRESOURCES_RECURSE);
+  if (cfgResources.size() == 0) {
+    configuration.configure();
+  }
+ else {
+    if (cfgResources.size() > 1) {
+      LOG.warn("Multiple hibernate.cfg.xml files found in the persistence bundle.  Using the first one discovered.");
+    }
+    String cfgResource="/" + cfgResources.iterator().next();
+    configuration.configure(cfgResource);
+  }
   final BootstrapServiceRegistryBuilder builder=new BootstrapServiceRegistryBuilder();
   builder.with(osgiClassLoader);
   final List<Integrator> integrators=OsgiServiceUtil.getServiceImpls(Integrator.class,context);
