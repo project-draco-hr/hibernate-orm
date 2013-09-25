@@ -1,0 +1,26 @@
+{
+  Configuration cfg=new Configuration().addAnnotatedClass(Company.class).addAnnotatedClass(Person.class).setProperty(AvailableSettings.CHECK_NULLABILITY,"true").setProperty(AvailableSettings.URL,"jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;MVCC=TRUE;LOCK_TIMEOUT=10000").setProperty(AvailableSettings.USER,"sa").setProperty(AvailableSettings.DRIVER,org.h2.Driver.class.getName()).setProperty(AvailableSettings.HBM2DDL_AUTO,"create-drop");
+  cfg.buildMappings();
+  BootstrapServiceRegistry bootstrapRegistry=new BootstrapServiceRegistryBuilder().with(new JpaIntegrator()).build();
+  StandardServiceRegistry registry=new StandardServiceRegistryBuilder(bootstrapRegistry).applySettings(cfg.getProperties()).build();
+  SessionFactory sf=cfg.buildSessionFactory(registry);
+  try {
+    Session session=sf.openSession();
+    session.beginTransaction();
+    Company company=new Company(1,"acme");
+    Person person=new Person(1,"joe",company);
+    session.persist(person);
+    session.flush();
+    Company company2=person.employer;
+    session.delete(company2);
+    session.delete(person);
+    session.flush();
+    session.persist(person);
+    session.flush();
+    session.getTransaction().commit();
+    session.close();
+  }
+  finally {
+    sf.close();
+  }
+}
