@@ -2,7 +2,9 @@
   try {
     withClause(hqlWithNode);
     AST hqlSqlWithNode=returnAST;
-    if (LOG.isDebugEnabled())     LOG.debugf("handleWithFragment() : %s",getASTPrinter().showAsString(hqlSqlWithNode,"-- with clause --"));
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("handleWithFragment() : " + getASTPrinter().showAsString(hqlSqlWithNode,"-- with clause --"));
+    }
     WithClauseVisitor visitor=new WithClauseVisitor(fromElement,queryTranslatorImpl);
     NodeTraverser traverser=new NodeTraverser(visitor);
     traverser.traverseDepthFirst(hqlSqlWithNode);
@@ -13,7 +15,7 @@
  else {
       FromElement referencedFromElement=visitor.getReferencedFromElement();
       if (referencedFromElement != fromElement) {
-        LOG.warn("with-clause expressions do not reference the from-clause element to which the with-clause was associated.  The query may not work as expected..." + queryTranslatorImpl.getQueryString());
+        LOG.warnf("with-clause expressions do not reference the from-clause element to which the " + "with-clause was associated.  The query may not work as expected [%s]",queryTranslatorImpl.getQueryString());
       }
     }
     SqlGenerator sql=new SqlGenerator(getSessionFactoryHelper().getFactory());
