@@ -1,0 +1,23 @@
+{
+  AuditedDynamicComponentEntity entity=new AuditedDynamicComponentEntity(1L,"static field value");
+  entity.getCustomFields().put("prop1",13);
+  entity.getCustomFields().put("prop2",0.1f);
+  entity.getCustomFields().put("prop3",new SimpleEntity(1L,"Very simple entity"));
+  AuditedDynamicComponentEntity ver2=getAuditReader().find(AuditedDynamicComponentEntity.class,entity.getId(),2);
+  Assert.assertEquals(entity,ver2);
+  SimpleEntity simpleEntity2=new SimpleEntity(2L,"Not so simple entity");
+  entity.getCustomFields().put("prop3",simpleEntity2);
+  AuditedDynamicComponentEntity ver3=getAuditReader().find(AuditedDynamicComponentEntity.class,entity.getId(),3);
+  Assert.assertEquals(entity,ver3);
+  entity.getCustomFields().put("prop1",2);
+  AuditedDynamicComponentEntity ver4=getAuditReader().find(AuditedDynamicComponentEntity.class,entity.getId(),4);
+  Assert.assertEquals(entity,ver4);
+  entity.getCustomFields().put("prop2",null);
+  AuditedDynamicComponentEntity ver5=getAuditReader().find(AuditedDynamicComponentEntity.class,entity.getId(),5);
+  Assert.assertEquals(entity,ver5);
+  entity.getCustomFields().put("prop1",null);
+  entity.getCustomFields().put("prop2",null);
+  entity.getCustomFields().put("prop3",null);
+  AuditedDynamicComponentEntity ver6=getAuditReader().find(AuditedDynamicComponentEntity.class,entity.getId(),6);
+  Assert.assertEquals(entity,ver6);
+}

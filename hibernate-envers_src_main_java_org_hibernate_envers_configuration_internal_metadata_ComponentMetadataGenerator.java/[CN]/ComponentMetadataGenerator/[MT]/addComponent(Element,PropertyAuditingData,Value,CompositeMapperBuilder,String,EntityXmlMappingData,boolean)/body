@@ -1,6 +1,12 @@
 {
   final Component propComponent=(Component)value;
-  final Class componentClass=ReflectionTools.loadClass(propComponent.getComponentClassName(),mainGenerator.getClassLoaderService());
+  final Class componentClass;
+  if (propComponent.isDynamic()) {
+    componentClass=ReflectionTools.loadClass(Map.class.getCanonicalName(),mainGenerator.getClassLoaderService());
+  }
+ else {
+    componentClass=ReflectionTools.loadClass(propComponent.getComponentClassName(),mainGenerator.getClassLoaderService());
+  }
   final CompositeMapperBuilder componentMapper=mapper.addComponent(propertyAuditingData.getPropertyData(),componentClass);
   final ComponentAuditingData componentAuditingData=(ComponentAuditingData)propertyAuditingData;
   final Iterator<Property> properties=(Iterator<Property>)propComponent.getPropertyIterator();

@@ -1,0 +1,18 @@
+{
+  try {
+    ClassPool pool=ClassPool.getDefault();
+    CtClass cc=pool.makeClass(className);
+    cc.addInterface(resolveCtClass(Serializable.class));
+    cc.addField(new CtField(resolveCtClass(Map.class),"theMap",cc));
+    cc.addConstructor(generateConstructor(className,cc));
+    for (    Entry<String,Class<?>> entry : properties.entrySet()) {
+      cc.addField(new CtField(resolveCtClass(entry.getValue()),entry.getKey(),cc));
+      cc.addMethod(generateGetter(cc,entry.getKey(),entry.getValue()));
+      cc.addMethod(generateSetter(cc,entry.getKey(),entry.getValue()));
+    }
+    return cc.toClass();
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(e);
+  }
+}

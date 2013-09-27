@@ -1,13 +1,13 @@
 {
   final ComponentAuditingData componentData=new ComponentAuditingData();
   final boolean isAudited=fillPropertyData(property,componentData,accessType,allClassAudited);
-  if (propertyValue.isDynamic()) {
-    if (isAudited) {
-      throw new MappingException("Audited dynamic-component properties are not supported. Consider applying @NotAudited annotation to " + propertyValue.getOwner().getEntityName() + "#"+ property+ ".");
-    }
-    return;
+  final PersistentPropertiesSource componentPropertiesSource;
+  if (propertyValue.isDynamic() && isAudited) {
+    componentPropertiesSource=new DynamicComponentSource(reflectionManager,propertyValue,property);
   }
-  final PersistentPropertiesSource componentPropertiesSource=new ComponentPropertiesSource(reflectionManager,propertyValue);
+ else {
+    componentPropertiesSource=new ComponentPropertiesSource(reflectionManager,propertyValue);
+  }
   final ComponentAuditedPropertiesReader audPropReader=new ComponentAuditedPropertiesReader(ModificationStore.FULL,componentPropertiesSource,componentData,globalCfg,reflectionManager,propertyNamePrefix + MappingTools.createComponentPrefix(property.getName()));
   audPropReader.read();
   if (isAudited) {
