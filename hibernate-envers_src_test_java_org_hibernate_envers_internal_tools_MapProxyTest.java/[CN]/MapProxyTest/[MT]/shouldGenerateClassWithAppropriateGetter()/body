@@ -1,11 +1,12 @@
 {
   Map<String,Object> map=new HashMap<String,Object>();
-  map.put("age",14);
+  int ageExpected=14;
+  map.put("age",ageExpected);
   Map<String,Class<?>> properties=new HashMap<String,Class<?>>();
   properties.put("age",Integer.class);
-  Class testClass=MapProxyTool.generate("TestClass",properties);
+  Class testClass=MapProxyTool.classForName("TestClass1",properties,new ClassLoaderServiceImpl());
   Object testClassInstance=testClass.getConstructor(Map.class).newInstance(map);
   Getter getter=ReflectionTools.getGetter(testClass,"age","property");
-  Object o=getter.get(testClassInstance);
-  System.out.println(o);
+  int age=(Integer)getter.get(testClassInstance);
+  Assert.assertEquals(ageExpected,age);
 }
