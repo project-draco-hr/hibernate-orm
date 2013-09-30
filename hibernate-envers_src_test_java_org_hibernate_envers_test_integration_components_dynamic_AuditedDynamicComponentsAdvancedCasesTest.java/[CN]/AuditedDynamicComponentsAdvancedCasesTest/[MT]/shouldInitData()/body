@@ -37,6 +37,11 @@
   mapWithManyToMany.clear();
   session.save(advancedEntity);
   session.getTransaction().commit();
+  session.getTransaction().begin();
+  Set<InternalComponent> internalComponentSet=(Set)advancedEntity.getDynamicConfiguration().get(INTERNAL_SET_OF_COMPONENTS);
+  internalComponentSet.add(new InternalComponent("drei"));
+  session.save(advancedEntity);
+  session.getTransaction().commit();
   AdvancedEntity advancedEntityActual=(AdvancedEntity)session.load(AdvancedEntity.class,1L);
   Assert.assertEquals(advancedEntity,advancedEntityActual);
 }
