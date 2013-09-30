@@ -1,0 +1,22 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  em.persist(new LocalEntity(1,"test"));
+  em.getTransaction().commit();
+  em.getTransaction().begin();
+  Query query=em.createQuery("select l from LocalEntity l");
+  assertEquals(LockModeType.NONE,query.getLockMode());
+  query.setLockMode(LockModeType.PESSIMISTIC_READ);
+  assertEquals(LockModeType.PESSIMISTIC_READ,query.getLockMode());
+  List<LocalEntity> results=query.getResultList();
+  for (  LocalEntity e : results) {
+    assertEquals(LockModeType.PESSIMISTIC_READ,em.getLockMode(e));
+  }
+  em.getTransaction().commit();
+  em.close();
+  em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  em.createQuery("delete from LocalEntity").executeUpdate();
+  em.getTransaction().commit();
+  em.close();
+}

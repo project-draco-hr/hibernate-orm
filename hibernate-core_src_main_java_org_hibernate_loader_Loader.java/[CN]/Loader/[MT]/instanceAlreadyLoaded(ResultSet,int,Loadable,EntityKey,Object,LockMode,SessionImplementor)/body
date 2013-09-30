@@ -2,11 +2,13 @@
   if (!persister.isInstance(object)) {
     throw new WrongClassException("loaded object was of wrong class " + object.getClass(),key.getIdentifier(),persister.getEntityName());
   }
-  if (LockMode.NONE != lockMode && upgradeLocks()) {
-    final boolean isVersionCheckNeeded=persister.isVersioned() && session.getPersistenceContext().getEntry(object).getLockMode().lessThan(lockMode);
-    if (isVersionCheckNeeded) {
-      checkVersion(i,persister,key.getIdentifier(),object,rs,session);
-      session.getPersistenceContext().getEntry(object).setLockMode(lockMode);
+  if (LockMode.NONE != requestedLockMode && upgradeLocks()) {
+    final EntityEntry entry=session.getPersistenceContext().getEntry(object);
+    if (entry.getLockMode().lessThan(requestedLockMode)) {
+      if (persister.isVersioned()) {
+        checkVersion(i,persister,key.getIdentifier(),object,rs,session);
+      }
+      entry.setLockMode(requestedLockMode);
     }
   }
 }
