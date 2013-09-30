@@ -1,0 +1,13 @@
+{
+  ManyToOneEntity manyToOne=getManyToOneEntity();
+  OneToOneEntity oneToOne=getOneToOneEntity();
+  AdvancedEntity advancedEntity=getAdvancedEntity(manyToOne,oneToOne);
+  Session session=openSession();
+  session.getTransaction().begin();
+  session.save(manyToOne);
+  session.save(oneToOne);
+  session.save(advancedEntity);
+  session.getTransaction().commit();
+  AdvancedEntity advancedEntityActual=(AdvancedEntity)session.load(AdvancedEntity.class,1L);
+  Assert.assertEquals(advancedEntity,advancedEntityActual);
+}
