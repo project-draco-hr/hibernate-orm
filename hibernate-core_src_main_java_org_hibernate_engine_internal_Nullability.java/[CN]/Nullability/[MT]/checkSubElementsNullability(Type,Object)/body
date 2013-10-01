@@ -1,10 +1,16 @@
 {
+  if (propertyType.isAnyType()) {
+    return null;
+  }
   if (propertyType.isComponentType()) {
     return checkComponentNullability(value,(CompositeType)propertyType);
   }
- else   if (propertyType.isCollectionType()) {
+  if (propertyType.isCollectionType()) {
     final CollectionType collectionType=(CollectionType)propertyType;
     final Type collectionElementType=collectionType.getElementType(session.getFactory());
+    if (collectionElementType.isAnyType()) {
+      return null;
+    }
     if (collectionElementType.isComponentType()) {
       final CompositeType componentType=(CompositeType)collectionElementType;
       final Iterator itr=CascadingActions.getLoadedElementsIterator(session,collectionType,value);
