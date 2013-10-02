@@ -1,11 +1,20 @@
 {
-  boolean added=executables.add(o);
-  if (added) {
+  final E previousLast=sorter != null || executables.isEmpty() ? null : executables.get(executables.size() - 1);
+  boolean added=executables.add(executable);
+  if (!added) {
+    return false;
+  }
+  if (sorter != null) {
     sorted=false;
-    Serializable[] propertySpaces=o.getPropertySpaces();
-    if (querySpaces != null && propertySpaces != null) {
-      Collections.addAll(querySpaces,propertySpaces);
+  }
+ else {
+    if (previousLast != null && previousLast.compareTo(executable) > 0) {
+      sorted=false;
     }
+  }
+  Serializable[] querySpaces=executable.getPropertySpaces();
+  if (this.querySpaces != null && querySpaces != null) {
+    Collections.addAll(this.querySpaces,querySpaces);
   }
   return added;
 }
