@@ -1,8 +1,7 @@
 {
-  Object entity;
   boolean sureFromUs=false;
-  if (proxy instanceof HibernateProxy) {
-    LazyInitializer li=((HibernateProxy)proxy).getHibernateLazyInitializer();
+  if (entity instanceof HibernateProxy) {
+    LazyInitializer li=((HibernateProxy)entity).getHibernateLazyInitializer();
     if (li.isUninitialized()) {
       return LoadState.NOT_LOADED;
     }
@@ -11,23 +10,38 @@
     }
     sureFromUs=true;
   }
- else {
-    entity=proxy;
-  }
   if (FieldInterceptionHelper.isInstrumented(entity)) {
     FieldInterceptor interceptor=FieldInterceptionHelper.extractFieldInterceptor(entity);
-    final boolean isInitialized=interceptor == null || interceptor.isInitialized(property);
+    final boolean isInitialized=interceptor == null || interceptor.isInitialized(attributeName);
     LoadState state;
     if (isInitialized && interceptor != null) {
-      state=isLoaded(get(entity,property,cache));
-      if (state == LoadState.UNKNOWN)       state=LoadState.LOADED;
+      try {
+        final Class entityClass=entity.getClass();
+        final Object attributeValue=cache.getClassMetadata(entityClass).getAttributeAccess(attributeName).extractValue(entity);
+        state=isLoaded(attributeValue);
+        if (state == LoadState.UNKNOWN) {
+          state=LoadState.LOADED;
+        }
+      }
+ catch (      AttributeExtractionException ignore) {
+        state=LoadState.UNKNOWN;
+      }
     }
  else     if (interceptor != null) {
       state=LoadState.NOT_LOADED;
     }
  else     if (sureFromUs) {
-      state=isLoaded(get(entity,property,cache));
-      if (state == LoadState.UNKNOWN)       state=LoadState.LOADED;
+      try {
+        final Class entityClass=entity.getClass();
+        final Object attributeValue=cache.getClassMetadata(entityClass).getAttributeAccess(attributeName).extractValue(entity);
+        state=isLoaded(attributeValue);
+        if (state == LoadState.UNKNOWN) {
+          state=LoadState.LOADED;
+        }
+      }
+ catch (      AttributeExtractionException ignore) {
+        state=LoadState.UNKNOWN;
+      }
     }
  else {
       state=LoadState.UNKNOWN;

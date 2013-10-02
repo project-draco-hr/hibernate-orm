@@ -1,10 +1,15 @@
 {
-  if (o instanceof HibernateProxy) {
-    final boolean isInitialized=!((HibernateProxy)o).getHibernateLazyInitializer().isUninitialized();
+  if (reference instanceof HibernateProxy) {
+    final boolean isInitialized=!((HibernateProxy)reference).getHibernateLazyInitializer().isUninitialized();
     return isInitialized ? LoadState.LOADED : LoadState.NOT_LOADED;
   }
- else   if (o instanceof PersistentCollection) {
-    final boolean isInitialized=((PersistentCollection)o).wasInitialized();
+ else   if (FieldInterceptionHelper.isInstrumented(reference)) {
+    FieldInterceptor interceptor=FieldInterceptionHelper.extractFieldInterceptor(reference);
+    final boolean isInitialized=interceptor == null || interceptor.isInitialized();
+    return isInitialized ? LoadState.LOADED : LoadState.NOT_LOADED;
+  }
+ else   if (reference instanceof PersistentCollection) {
+    final boolean isInitialized=((PersistentCollection)reference).wasInitialized();
     return isInitialized ? LoadState.LOADED : LoadState.NOT_LOADED;
   }
  else {

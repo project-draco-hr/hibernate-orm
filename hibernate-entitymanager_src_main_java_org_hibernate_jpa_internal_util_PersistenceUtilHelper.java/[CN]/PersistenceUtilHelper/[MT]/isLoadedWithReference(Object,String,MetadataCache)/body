@@ -1,4 +1,19 @@
 {
-  Object object=get(proxy,property,cache);
-  return isLoaded(object);
+  if (entity instanceof HibernateProxy) {
+    final LazyInitializer li=((HibernateProxy)entity).getHibernateLazyInitializer();
+    if (li.isUninitialized()) {
+      return LoadState.NOT_LOADED;
+    }
+ else {
+      entity=li.getImplementation();
+    }
+  }
+  try {
+    final Class entityClass=entity.getClass();
+    final Object attributeValue=cache.getClassMetadata(entityClass).getAttributeAccess(attributeName).extractValue(entity);
+    return isLoaded(attributeValue);
+  }
+ catch (  AttributeExtractionException ignore) {
+    return LoadState.UNKNOWN;
+  }
 }
