@@ -1,7 +1,7 @@
 {
   Audited audited=computeAuditConfiguration(dynamicComponentSource.getXClass());
   if (!fieldAccessedPersistentProperties.isEmpty()) {
-    throw new MappingException("Dynamic component cannot have field accessed persistent properties");
+    throw new MappingException("Audited dynamic component cannot have properties with access=\"field\" for properties: " + fieldAccessedPersistentProperties + ". \n Change properties access=\"property\", to make it work)");
   }
   for (  String property : propertyAccessedPersistentProperties) {
     String accessType=AccessType.PROPERTY.getType();
@@ -12,13 +12,6 @@
       }
  else {
         this.addFromNotComponentProperty(new DynamicProperty(dynamicComponentSource,property),accessType,audited);
-      }
-    }
- else     if (propertiesGroupMapping.containsKey(property)) {
-      final String embeddedName=propertiesGroupMapping.get(property);
-      if (!auditedPropertiesHolder.contains(embeddedName)) {
-        final Value propertyValue=persistentPropertiesSource.getProperty(embeddedName).getValue();
-        this.addFromPropertiesGroup(embeddedName,new DynamicProperty(dynamicComponentSource,property),accessType,(Component)propertyValue,audited);
       }
     }
   }
