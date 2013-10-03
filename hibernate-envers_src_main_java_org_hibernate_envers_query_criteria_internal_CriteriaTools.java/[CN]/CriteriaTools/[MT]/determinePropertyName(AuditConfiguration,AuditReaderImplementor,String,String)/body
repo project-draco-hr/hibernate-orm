@@ -1,7 +1,14 @@
 {
+  final SessionFactoryImplementor sessionFactory=versionsReader.getSessionImplementor().getFactory();
   if (AuditId.IDENTIFIER_PLACEHOLDER.equals(propertyName)) {
-    final String identifierPropertyName=versionsReader.getSessionImplementor().getFactory().getEntityPersister(entityName).getIdentifierPropertyName();
+    final String identifierPropertyName=sessionFactory.getEntityPersister(entityName).getIdentifierPropertyName();
     propertyName=auditCfg.getAuditEntCfg().getOriginalIdPropName() + "." + identifierPropertyName;
+  }
+ else {
+    final List<String> identifierPropertyNames=identifierPropertyNames(sessionFactory,entityName);
+    if (identifierPropertyNames.contains(propertyName)) {
+      propertyName=auditCfg.getAuditEntCfg().getOriginalIdPropName() + "." + propertyName;
+    }
   }
   return propertyName;
 }
