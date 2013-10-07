@@ -14,7 +14,12 @@
     final Type type=propertyTypes[naturalIdPropertyIndex];
     final Object value=naturalIdValues[i];
     result=prime * result + (value != null ? type.getHashCode(value,factory) : 0);
-    this.naturalIdValues[i]=type.disassemble(value,session,null);
+    if (type instanceof EntityType && type.getSemiResolvedType(factory).getReturnedClass().isInstance(value)) {
+      this.naturalIdValues[i]=(Serializable)value;
+    }
+ else {
+      this.naturalIdValues[i]=type.disassemble(value,session,null);
+    }
   }
   this.hashCode=result;
   initTransients();
