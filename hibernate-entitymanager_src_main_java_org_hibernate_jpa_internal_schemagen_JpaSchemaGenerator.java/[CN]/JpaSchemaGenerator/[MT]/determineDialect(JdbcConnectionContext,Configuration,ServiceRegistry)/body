@@ -1,20 +1,39 @@
 {
-  final String explicitDbName=hibernateConfiguration.getProperty(AvailableSettings.SCHEMA_GEN_DB_NAME);
-  final String explicitDbMajor=hibernateConfiguration.getProperty(AvailableSettings.SCHEMA_GEN_DB_MAJOR_VERSION);
-  final String explicitDbMinor=hibernateConfiguration.getProperty(AvailableSettings.SCHEMA_GEN_DB_MINOR_VERSION);
-  if (StringHelper.isNotEmpty(explicitDbName)) {
-    serviceRegistry.getService(DatabaseInfoDialectResolver.class).resolve(new DatabaseInfoDialectResolver.DatabaseInfo(){
-      @Override public String getDatabaseName(){
-        return explicitDbName;
+  return serviceRegistry.getService(DialectFactory.class).buildDialect(hibernateConfiguration.getProperties(),new DialectResolutionInfoSource(){
+    @Override public DialectResolutionInfo getDialectResolutionInfo(){
+      final String explicitDbName=hibernateConfiguration.getProperty(AvailableSettings.SCHEMA_GEN_DB_NAME);
+      if (StringHelper.isNotEmpty(explicitDbName)) {
+        final String explicitDbMajor=hibernateConfiguration.getProperty(AvailableSettings.SCHEMA_GEN_DB_MAJOR_VERSION);
+        final String explicitDbMinor=hibernateConfiguration.getProperty(AvailableSettings.SCHEMA_GEN_DB_MINOR_VERSION);
+        return new DialectResolutionInfo(){
+          @Override public String getDatabaseName(){
+            return explicitDbName;
+          }
+          @Override public int getDatabaseMajorVersion(){
+            return StringHelper.isEmpty(explicitDbMajor) ? NO_VERSION : Integer.parseInt(explicitDbMajor);
+          }
+          @Override public int getDatabaseMinorVersion(){
+            return StringHelper.isEmpty(explicitDbMinor) ? NO_VERSION : Integer.parseInt(explicitDbMinor);
+          }
+          @Override public String getDriverName(){
+            return null;
+          }
+          @Override public int getDriverMajorVersion(){
+            return NO_VERSION;
+          }
+          @Override public int getDriverMinorVersion(){
+            return NO_VERSION;
+          }
+        }
+;
       }
-      @Override public int getDatabaseMajorVersion(){
-        return StringHelper.isEmpty(explicitDbMajor) ? NO_VERSION : Integer.parseInt(explicitDbMajor);
+      try {
+        return new DatabaseMetaDataDialectResolutionInfoAdapter(jdbcConnectionContext.getJdbcConnection().getMetaData());
       }
-      @Override public int getDatabaseMinorVersion(){
-        return StringHelper.isEmpty(explicitDbMinor) ? NO_VERSION : Integer.parseInt(explicitDbMinor);
+ catch (      SQLException sqlException) {
+        throw new HibernateException("Unable to access java.sql.DatabaseMetaData to determine appropriate Dialect to use",sqlException);
       }
     }
-);
   }
-  return buildDialect(hibernateConfiguration,serviceRegistry,jdbcConnectionContext);
+);
 }

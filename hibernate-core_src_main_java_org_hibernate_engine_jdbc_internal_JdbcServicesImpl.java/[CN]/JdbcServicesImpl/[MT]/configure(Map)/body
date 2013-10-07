@@ -38,7 +38,17 @@
         sqlStateType=meta.getSQLStateType();
         lobLocatorUpdateCopy=meta.locatorsUpdateCopy();
         typeInfoSet.addAll(TypeInfo.extractTypeInfo(meta));
-        dialect=dialectFactory.buildDialect(configValues,connection);
+        dialect=dialectFactory.buildDialect(configValues,new DialectResolutionInfoSource(){
+          @Override public DialectResolutionInfo getDialectResolutionInfo(){
+            try {
+              return new DatabaseMetaDataDialectResolutionInfoAdapter(connection.getMetaData());
+            }
+ catch (            SQLException sqlException) {
+              throw new HibernateException("Unable to access java.sql.DatabaseMetaData to determine appropriate Dialect to use",sqlException);
+            }
+          }
+        }
+);
         catalogName=connection.getCatalog();
         final SchemaNameResolver schemaNameResolver=determineExplicitSchemaNameResolver(configValues);
         if (schemaNameResolver == null) {
