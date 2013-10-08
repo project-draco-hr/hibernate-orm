@@ -1,17 +1,42 @@
 {
   log.usingHibernateBuiltInConnectionPool();
   connectionCreator=buildCreator(configurationValues);
+  final int minSize=ConfigurationHelper.getInt(MIN_SIZE,configurationValues,1);
   final int maxSize=ConfigurationHelper.getInt(AvailableSettings.POOL_SIZE,configurationValues,20);
+  final int initialSize=ConfigurationHelper.getInt(INITIAL_SIZE,configurationValues,minSize);
   final long validationInterval=ConfigurationHelper.getLong(VALIDATION_INTERVAL,configurationValues,30);
-  log.hibernateConnectionPoolSize(maxSize);
+  log.hibernateConnectionPoolSize(maxSize,minSize);
+  log.debugf("Initializing Connection pool with %s Connections",initialSize);
+  for (int i=0; i < initialSize; i++) {
+    connections.add(connectionCreator.createConnection());
+  }
   executorService=Executors.newSingleThreadScheduledExecutor();
   executorService.scheduleWithFixedDelay(new Runnable(){
+    private boolean primed=false;
     @Override public void run(){
       int size=connections.size();
-      if (size > maxSize) {
-        int sizeToBeRemoved=size - maxSize;
-        for (int i=0; i < sizeToBeRemoved; i++) {
-          connections.poll();
+      if (!primed && size >= minSize) {
+        log.debug("Connection pool now considered primed; min-size will be maintained");
+        primed=true;
+      }
+      if (size < minSize && primed) {
+        int numberToBeAdded=minSize - size;
+        log.debugf("Adding %s Connections to the pool",numberToBeAdded);
+        for (int i=0; i < numberToBeAdded; i++) {
+          connections.add(connectionCreator.createConnection());
+        }
+      }
+ else       if (size > maxSize) {
+        int numberToBeRemoved=size - maxSize;
+        log.debugf("Removing %s Connections from the pool",numberToBeRemoved);
+        for (int i=0; i < numberToBeRemoved; i++) {
+          Connection connection=connections.poll();
+          try {
+            connection.close();
+          }
+ catch (          SQLException e) {
+            log.unableToCloseConnection(e);
+          }
         }
       }
     }
