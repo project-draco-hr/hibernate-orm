@@ -1,24 +1,7 @@
 {
-  final StringBuilder buffer=new StringBuilder().append("{call ").append(procedureName).append("(");
-  String sep="";
-  for (  ParameterRegistrationImplementor parameter : registeredParameters) {
-    if (parameter == null) {
-      throw new QueryException("Registered stored procedure parameters had gaps");
-    }
-    if (parameter.getMode() == ParameterMode.REF_CURSOR) {
-      buffer.append(sep).append("?");
-      sep=",";
-    }
- else {
-      for (int i=0; i < parameter.getSqlTypes().length; i++) {
-        buffer.append(sep).append("?");
-        sep=",";
-      }
-    }
-  }
-  buffer.append(")}");
+  final String call=session().getFactory().getDialect().getCallableStatementSupport().renderCallableStatement(procedureName,parameterStrategy,registeredParameters,session());
   try {
-    final CallableStatement statement=(CallableStatement)getSession().getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(buffer.toString(),true);
+    final CallableStatement statement=(CallableStatement)getSession().getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(call,true);
     int i=1;
     for (    ParameterRegistrationImplementor parameter : registeredParameters) {
       parameter.prepare(statement,i);
