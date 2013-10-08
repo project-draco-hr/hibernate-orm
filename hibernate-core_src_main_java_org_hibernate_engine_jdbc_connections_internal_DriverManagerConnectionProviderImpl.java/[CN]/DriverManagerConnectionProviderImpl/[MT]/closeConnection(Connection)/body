@@ -1,16 +1,6 @@
 {
-  checkedOut.decrementAndGet();
-  final boolean traceEnabled=LOG.isTraceEnabled();
-synchronized (pool) {
-    final int currentSize=pool.size();
-    if (currentSize < poolSize) {
-      if (traceEnabled) {
-        LOG.tracev("Returning connection to pool, pool size: {0}",(currentSize + 1));
-      }
-      pool.add(conn);
-      return;
-    }
+  if (conn == null) {
+    return;
   }
-  LOG.debug("Closing JDBC connection");
-  conn.close();
+  this.connections.offer(conn);
 }

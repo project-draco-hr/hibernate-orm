@@ -1,0 +1,32 @@
+{
+  final ConnectionCreatorBuilder connectionCreatorBuilder=new ConnectionCreatorBuilder();
+  final String driverClassName=(String)configurationValues.get(AvailableSettings.DRIVER);
+  connectionCreatorBuilder.setDriver(loadDriverIfPossible(driverClassName));
+  final String url=(String)configurationValues.get(AvailableSettings.URL);
+  if (url == null) {
+    final String msg=log.jdbcUrlNotSpecified(AvailableSettings.URL);
+    log.error(msg);
+    throw new HibernateException(msg);
+  }
+  connectionCreatorBuilder.setUrl(url);
+  log.usingDriver(driverClassName,url);
+  final Properties connectionProps=ConnectionProviderInitiator.getConnectionProperties(configurationValues);
+  if (log.isDebugEnabled()) {
+    log.connectionProperties(connectionProps);
+  }
+ else {
+    log.connectionProperties(ConfigurationHelper.maskOut(connectionProps,"password"));
+  }
+  connectionCreatorBuilder.setConnectionProps(connectionProps);
+  final Boolean autoCommit=ConfigurationHelper.getBooleanWrapper(AvailableSettings.AUTOCOMMIT,configurationValues,null);
+  if (autoCommit != null) {
+    log.autoCommitMode(autoCommit);
+  }
+  connectionCreatorBuilder.setAutoCommit(autoCommit);
+  final Integer isolation=ConfigurationHelper.getInteger(AvailableSettings.ISOLATION,configurationValues);
+  if (isolation != null) {
+    log.jdbcIsolationLevel(Environment.isolationLevelToString(isolation));
+  }
+  connectionCreatorBuilder.setIsolation(isolation);
+  return connectionCreatorBuilder.build();
+}

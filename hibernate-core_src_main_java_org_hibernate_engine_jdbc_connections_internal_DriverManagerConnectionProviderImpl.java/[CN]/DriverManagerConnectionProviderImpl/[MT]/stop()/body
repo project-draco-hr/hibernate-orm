@@ -1,15 +1,19 @@
 {
-  LOG.cleaningUpConnectionPool(url);
-synchronized (pool) {
-    for (    Connection connection : pool) {
-      try {
-        connection.close();
-      }
- catch (      SQLException sqle) {
-        LOG.unableToClosePooledConnection(sqle);
-      }
-    }
-    pool.clear();
+  if (!active) {
+    return;
   }
-  stopped=true;
+  log.cleaningUpConnectionPool(connectionCreator.getUrl());
+  active=false;
+  if (executorService != null) {
+    executorService.shutdown();
+  }
+  executorService=null;
+  for (  Connection connection : connections) {
+    try {
+      connection.close();
+    }
+ catch (    SQLException e) {
+      log.unableToClosePooledConnection(e);
+    }
+  }
 }
