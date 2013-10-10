@@ -9,7 +9,12 @@
   s.close();
   s=openSession();
   txn=s.beginTransaction();
-  fum=(Fum)s.load(Fum.class,fumKey("fum"),LockMode.UPGRADE);
+  if (getDialect() instanceof AbstractHANADialect) {
+    fum=(Fum)s.load(Fum.class,fumKey("fum"));
+  }
+ else {
+    fum=(Fum)s.load(Fum.class,fumKey("fum"),LockMode.UPGRADE);
+  }
   assertTrue("load by composite key",fum != null);
   Fum fum2=new Fum(fumKey("fi"));
   fum2.setFum("fee fo fi");

@@ -1,7 +1,12 @@
 {
   Session s=openSession();
   s.beginTransaction();
-  s.createQuery("from Animal where mother = :mother").setParameter("mother",null).list();
+  if (getDialect() instanceof AbstractHANADialect) {
+    s.createQuery("from Animal where mother is null").list();
+  }
+ else {
+    s.createQuery("from Animal where mother = :mother").setParameter("mother",null).list();
+  }
   s.getTransaction().commit();
   s.close();
 }

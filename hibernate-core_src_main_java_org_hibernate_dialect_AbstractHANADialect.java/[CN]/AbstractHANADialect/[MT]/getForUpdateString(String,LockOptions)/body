@@ -1,0 +1,15 @@
+{
+  LockMode lockMode=lockOptions.getLockMode();
+  final Iterator<Map.Entry<String,LockMode>> itr=lockOptions.getAliasLockIterator();
+  while (itr.hasNext()) {
+    final Map.Entry<String,LockMode> entry=itr.next();
+    final LockMode lm=entry.getValue();
+    if (lm.greaterThan(lockMode)) {
+      lockMode=lm;
+    }
+  }
+  if (aliases == null || "".equals(aliases)) {
+    return getForUpdateString(lockMode);
+  }
+  return getForUpdateString(lockMode) + " of " + aliases;
+}

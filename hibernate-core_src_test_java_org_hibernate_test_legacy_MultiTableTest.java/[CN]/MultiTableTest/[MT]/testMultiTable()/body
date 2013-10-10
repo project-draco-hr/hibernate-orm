@@ -80,13 +80,15 @@
   assertTrue(s.createCriteria(SubMulti.class).add(Restrictions.ge("amount",new Float(0))).list().size() == 1);
   t.commit();
   s.close();
-  s=openSession();
-  t=s.beginTransaction();
-  multi=(Multi)s.load(Top.class,mid,LockMode.UPGRADE);
-  simp=(Top)s.load(Top.class,sid);
-  s.lock(simp,LockMode.UPGRADE_NOWAIT);
-  t.commit();
-  s.close();
+  if (!(getDialect() instanceof AbstractHANADialect)) {
+    s=openSession();
+    t=s.beginTransaction();
+    multi=(Multi)s.load(Top.class,mid,LockMode.UPGRADE);
+    simp=(Top)s.load(Top.class,sid);
+    s.lock(simp,LockMode.UPGRADE_NOWAIT);
+    t.commit();
+    s.close();
+  }
   s=openSession();
   t=s.beginTransaction();
   s.update(multi);
