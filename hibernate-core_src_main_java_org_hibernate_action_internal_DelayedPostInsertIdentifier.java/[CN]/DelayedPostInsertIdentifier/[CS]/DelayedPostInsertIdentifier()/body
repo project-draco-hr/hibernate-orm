@@ -1,8 +1,13 @@
 {
-synchronized (DelayedPostInsertIdentifier.class) {
-    if (sequence == Long.MAX_VALUE) {
-      sequence=0;
+  long value=sequence.incrementAndGet();
+  if (value < 0) {
+synchronized (sequence) {
+      value=sequence.incrementAndGet();
+      if (value < 0) {
+        sequence.set(0);
+        value=0;
+      }
     }
-    this.identifier=sequence++;
   }
+  this.identifier=value;
 }
