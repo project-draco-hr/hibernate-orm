@@ -1,7 +1,8 @@
 {
   Session s=openSession();
   s.beginTransaction();
-  Fo fo=Fo.newFo(fumKey("an instance of fo"));
+  FumCompositeID fumKey=fumKey("an instance of fo");
+  Fo fo=Fo.newFo(fumKey);
   Properties props=new Properties();
   props.setProperty("foo","bar");
   props.setProperty("bar","foo");
@@ -14,7 +15,7 @@
   s.close();
   s=openSession();
   s.beginTransaction();
-  fo=(Fo)s.load(Fo.class,fumKey("an instance of fo"));
+  fo=(Fo)s.load(Fo.class,fumKey);
   props=(Properties)fo.getSerial();
   assertTrue(props.getProperty("foo").equals("bar"));
   assertTrue(props.getProperty("x").equals("y"));
@@ -24,7 +25,7 @@
   s.close();
   s=openSession();
   s.beginTransaction();
-  fo=(Fo)s.load(Fo.class,fumKey("an instance of fo"));
+  fo=(Fo)s.load(Fo.class,fumKey);
   assertTrue(fo.getBuf()[1] == 126);
   assertTrue(s.createQuery("from Fo fo where fo.id.string like 'an instance of fo'").iterate().next() == fo);
   s.delete(fo);

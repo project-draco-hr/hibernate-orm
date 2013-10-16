@@ -1,22 +1,24 @@
 {
   Session s=openSession();
   Transaction txn=s.beginTransaction();
-  Fum fum=new Fum(fumKey("fum"));
+  FumCompositeID fumKey=fumKey("fum");
+  Fum fum=new Fum(fumKey);
   fum.setFum("fee fi fo");
   s.save(fum);
-  assertTrue("load by composite key",fum == s.load(Fum.class,fumKey("fum")));
+  assertTrue("load by composite key",fum == s.load(Fum.class,fumKey));
   txn.commit();
   s.close();
   s=openSession();
   txn=s.beginTransaction();
   if (getDialect() instanceof AbstractHANADialect) {
-    fum=(Fum)s.load(Fum.class,fumKey("fum"));
+    fum=(Fum)s.load(Fum.class,fumKey);
   }
  else {
-    fum=(Fum)s.load(Fum.class,fumKey("fum"),LockMode.UPGRADE);
+    fum=(Fum)s.load(Fum.class,fumKey,LockMode.UPGRADE);
   }
   assertTrue("load by composite key",fum != null);
-  Fum fum2=new Fum(fumKey("fi"));
+  FumCompositeID fumKey2=fumKey("fi");
+  Fum fum2=new Fum(fumKey2);
   fum2.setFum("fee fo fi");
   fum.setFo(fum2);
   s.save(fum2);
