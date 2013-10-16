@@ -1,3 +1,7 @@
 {
-  return serviceRegistry.getService(JdbcServices.class).getSqlExceptionHelper().convert(e,message,null);
+  final JdbcServices jdbcServices=serviceRegistry.getService(JdbcServices.class);
+  if (jdbcServices != null && jdbcServices.getSqlExceptionHelper() != null) {
+    return jdbcServices.getSqlExceptionHelper().convert(e,message,null);
+  }
+  return simpleConverterAccess.getValue().convert(e,message,null);
 }
