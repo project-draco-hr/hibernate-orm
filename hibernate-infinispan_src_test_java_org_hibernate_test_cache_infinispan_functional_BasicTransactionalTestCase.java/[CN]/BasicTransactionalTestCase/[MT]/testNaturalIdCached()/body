@@ -1,5 +1,6 @@
 {
   saveSomeCitizens();
+  BasicTransactionalTestCase.this.cleanupCache();
   withTx(tm,new Callable<Void>(){
     @Override public Void call() throws Exception {
       Session s=openSession();
@@ -8,7 +9,6 @@
       Criteria criteria=s.createCriteria(Citizen.class);
       criteria.add(Restrictions.naturalId().set("ssn","1234").set("state",france));
       criteria.setCacheable(true);
-      BasicTransactionalTestCase.this.cleanupCache();
       Statistics stats=sessionFactory().getStatistics();
       stats.setStatisticsEnabled(true);
       stats.clear();

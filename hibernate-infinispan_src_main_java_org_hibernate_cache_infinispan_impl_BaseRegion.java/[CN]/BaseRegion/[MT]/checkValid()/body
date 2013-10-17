@@ -3,24 +3,26 @@
   if (!valid) {
 synchronized (invalidationMutex) {
       if (invalidateState.compareAndSet(InvalidateState.INVALID,InvalidateState.CLEARING)) {
-        final Transaction tx=suspend();
         try {
-          Caches.withinTx(cache,new Callable<Void>(){
-            @Override public Void call() throws Exception {
-              regionClearCache.clear();
-              return null;
-            }
+          Transaction tx=getCurrentTransaction();
+          if (tx != null) {
+            regionClearCache.clear();
           }
+ else {
+            Caches.withinTx(cache,new Callable<Void>(){
+              @Override public Void call() throws Exception {
+                regionClearCache.clear();
+                return null;
+              }
+            }
 );
+          }
           invalidateState.compareAndSet(InvalidateState.CLEARING,InvalidateState.VALID);
         }
  catch (        Exception e) {
           if (log.isTraceEnabled()) {
             log.trace("Could not invalidate region: " + e.getLocalizedMessage());
           }
-        }
- finally {
-          resume(tx);
         }
       }
     }

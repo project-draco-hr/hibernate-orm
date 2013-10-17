@@ -2,5 +2,14 @@
   if (log.isTraceEnabled()) {
     log.trace("Invalidate region: " + name);
   }
-  invalidateState.set(InvalidateState.INVALID);
+  Transaction tx=getCurrentTransaction();
+  if (tx != null) {
+synchronized (invalidationMutex) {
+      invalidateTransaction=tx;
+      invalidateState.set(InvalidateState.INVALID);
+    }
+  }
+ else {
+    invalidateState.set(InvalidateState.INVALID);
+  }
 }
