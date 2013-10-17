@@ -3,5 +3,28 @@
   if (serviceBinding == null && checkParent && parent != null) {
     serviceBinding=parent.locateServiceBinding(serviceRole);
   }
-  return serviceBinding;
+  if (serviceBinding != null) {
+    return serviceBinding;
+  }
+  if (!allowCrawling) {
+    return null;
+  }
+  if (roleXref != null) {
+    if (roleXref.containsKey(serviceRole)) {
+      return serviceBindingMap.get(roleXref.get(serviceRole));
+    }
+  }
+  for (  ServiceBinding binding : serviceBindingMap.values()) {
+    if (serviceRole.isAssignableFrom(binding.getServiceRole())) {
+      log.alternateServiceRole(serviceRole.getName(),binding.getServiceRole().getName());
+      registerAlternate(serviceRole,binding.getServiceRole());
+      return binding;
+    }
+    if (binding.getService() != null && serviceRole.isInstance(binding.getService())) {
+      log.alternateServiceRole(serviceRole.getName(),binding.getServiceRole().getName());
+      registerAlternate(serviceRole,binding.getServiceRole());
+      return binding;
+    }
+  }
+  return null;
 }
