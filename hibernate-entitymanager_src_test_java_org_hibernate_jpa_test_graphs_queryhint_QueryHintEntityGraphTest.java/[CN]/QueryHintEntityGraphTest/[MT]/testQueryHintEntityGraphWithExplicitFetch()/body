@@ -1,0 +1,16 @@
+{
+  EntityManager entityManager=getOrCreateEntityManager();
+  entityManager.getTransaction().begin();
+  EntityGraph<Company> entityGraph=entityManager.createEntityGraph(Company.class);
+  entityGraph.addAttributeNodes("location");
+  entityGraph.addAttributeNodes("markets");
+  entityGraph.addAttributeNodes("employees");
+  Query query=entityManager.createQuery("from " + Company.class.getName() + " as c left join fetch c.location left join fetch c.employees");
+  query.setHint(QueryHints.HINT_FETCHGRAPH,entityGraph);
+  Company company=(Company)query.getSingleResult();
+  entityManager.getTransaction().commit();
+  entityManager.close();
+  assertTrue(Hibernate.isInitialized(company.employees));
+  assertTrue(Hibernate.isInitialized(company.location));
+  assertTrue(Hibernate.isInitialized(company.markets));
+}

@@ -1,0 +1,33 @@
+{
+  EntityManager entityManager=getOrCreateEntityManager();
+  entityManager.getTransaction().begin();
+  EntityGraph<Company> entityGraph=entityManager.createEntityGraph(Company.class);
+  entityGraph.addAttributeNodes("location");
+  entityGraph.addAttributeNodes("markets");
+  Query query=entityManager.createQuery("from " + Company.class.getName());
+  query.setHint(QueryHints.HINT_FETCHGRAPH,entityGraph);
+  Company company=(Company)query.getSingleResult();
+  entityManager.getTransaction().commit();
+  entityManager.close();
+  assertFalse(Hibernate.isInitialized(company.employees));
+  assertTrue(Hibernate.isInitialized(company.location));
+  assertTrue(Hibernate.isInitialized(company.markets));
+  entityManager=getOrCreateEntityManager();
+  entityManager.getTransaction().begin();
+  Subgraph<Employee> subgraph1=entityGraph.addSubgraph("employees");
+  subgraph1.addAttributeNodes("managers");
+  Subgraph<Employee> subgraph2=subgraph1.addSubgraph("managers");
+  subgraph2.addAttributeNodes("managers");
+  query=entityManager.createQuery("from " + Company.class.getName());
+  query.setHint(QueryHints.HINT_FETCHGRAPH,entityGraph);
+  company=(Company)query.getSingleResult();
+  entityManager.getTransaction().commit();
+  entityManager.close();
+  assertTrue(Hibernate.isInitialized(company.employees));
+  Employee employee=company.employees.iterator().next();
+  assertTrue(Hibernate.isInitialized(employee.managers));
+  Employee manager=employee.managers.iterator().next();
+  assertTrue(Hibernate.isInitialized(manager.managers));
+  assertTrue(Hibernate.isInitialized(company.location));
+  assertTrue(Hibernate.isInitialized(company.markets));
+}

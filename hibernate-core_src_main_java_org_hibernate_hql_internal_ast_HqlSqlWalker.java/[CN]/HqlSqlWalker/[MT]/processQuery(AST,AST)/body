@@ -5,6 +5,9 @@
   try {
     QueryNode qn=(QueryNode)query;
     boolean explicitSelect=select != null && select.getNumberOfChildren() > 0;
+    if (queryTranslatorImpl.getEntityGraphQueryHint() != null) {
+      qn.getFromClause().getFromElements().addAll(queryTranslatorImpl.getEntityGraphQueryHint().toFromElements(qn.getFromClause(),this));
+    }
     if (!explicitSelect) {
       createSelectClauseFromFromClause(qn);
     }

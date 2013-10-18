@@ -1,0 +1,30 @@
+{
+  EntityManager entityManager=getOrCreateEntityManager();
+  entityManager.getTransaction().begin();
+  Employee manager1=new Employee();
+  entityManager.persist(manager1);
+  Employee manager2=new Employee();
+  manager2.managers=new HashSet<Employee>();
+  manager2.managers.add(manager1);
+  entityManager.persist(manager2);
+  Employee employee=new Employee();
+  employee.managers=new HashSet<Employee>();
+  employee.managers.add(manager1);
+  entityManager.persist(employee);
+  Location location=new Location();
+  location.address="123 somewhere";
+  location.zip=12345;
+  entityManager.persist(location);
+  Company company=new Company();
+  company.employees=new HashSet<Employee>();
+  company.employees.add(employee);
+  company.employees.add(manager1);
+  company.employees.add(manager2);
+  company.location=location;
+  company.markets=new HashSet<Market>();
+  company.markets.add(Market.SERVICES);
+  company.markets.add(Market.TECHNOLOGY);
+  entityManager.persist(company);
+  entityManager.getTransaction().commit();
+  entityManager.close();
+}
