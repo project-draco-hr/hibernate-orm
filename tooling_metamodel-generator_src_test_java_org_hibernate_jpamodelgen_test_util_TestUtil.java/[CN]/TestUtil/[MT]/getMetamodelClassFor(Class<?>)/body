@@ -1,10 +1,15 @@
 {
-  String entityModelClassName=entityClass.getName() + META_MODEL_CLASS_POSTFIX;
+  assertNotNull("Class parameter cannot be null",entityClass);
+  String metaModelClassName=entityClass.getName() + META_MODEL_CLASS_POSTFIX;
   try {
-    return Class.forName(entityModelClassName);
+    URL outDirUrl=OUT_BASE_DIR.toURI().toURL();
+    URL urls[]=new URL[1];
+    urls[0]=outDirUrl;
+    URLClassLoader classLoader=new URLClassLoader(urls,TestUtil.class.getClassLoader());
+    return classLoader.loadClass(metaModelClassName);
   }
- catch (  ClassNotFoundException e) {
-    fail("Unable to load class " + entityModelClassName);
-    return null;
+ catch (  Exception e) {
+    fail(metaModelClassName + " was not generated.");
   }
+  return null;
 }
