@@ -5,10 +5,16 @@
   if (mappingFetchMode == FetchMode.JOIN) {
     return FetchStyle.JOIN;
   }
+  if (mappingFetchMode == FetchMode.SELECT) {
+    return FetchStyle.SELECT;
+  }
   if (type.isEntityType()) {
     EntityPersister persister=(EntityPersister)type.getAssociatedJoinable(sessionFactory);
     if (persister.isBatchLoadable()) {
       return FetchStyle.BATCH;
+    }
+ else     if (!persister.hasProxy()) {
+      return FetchStyle.JOIN;
     }
   }
  else {

@@ -1,0 +1,16 @@
+{
+  super(loadPlan,aliasResolutionContext,buildingParameters,((QueryableCollection)rootReturn.getCollectionPersister()).getKeyColumnNames(),rootReturn,factory);
+  this.collectionReferenceAliases=aliasResolutionContext.generateCollectionReferenceAliases(rootReturn.getQuerySpaceUid(),rootReturn.getCollectionPersister());
+  this.readerCollector=new CollectionLoaderReaderCollectorImpl(new CollectionReturnReader(rootReturn),new CollectionReferenceInitializerImpl(rootReturn,collectionReferenceAliases));
+  if (rootReturn.getCollectionPersister().getElementType().isEntityType()) {
+    final EntityReference elementEntityReference=rootReturn.getElementGraph().resolveEntityReference();
+    final EntityReferenceAliases elementEntityReferenceAliases=new EntityReferenceAliasesImpl(collectionReferenceAliases.getElementTableAlias(),collectionReferenceAliases.getEntityElementColumnAliases());
+    aliasResolutionContext.registerQuerySpaceAliases(elementEntityReference.getQuerySpaceUid(),elementEntityReferenceAliases);
+    readerCollector.add(new EntityReferenceInitializerImpl(elementEntityReference,elementEntityReferenceAliases));
+  }
+  if (rootReturn.getCollectionPersister().hasIndex() && rootReturn.getCollectionPersister().getIndexType().isEntityType()) {
+    final EntityReference indexEntityReference=rootReturn.getIndexGraph().resolveEntityReference();
+    final EntityReferenceAliases indexEntityReferenceAliases=aliasResolutionContext.generateEntityReferenceAliases(indexEntityReference.getQuerySpaceUid(),indexEntityReference.getEntityPersister());
+    readerCollector.add(new EntityReferenceInitializerImpl(indexEntityReference,indexEntityReferenceAliases));
+  }
+}

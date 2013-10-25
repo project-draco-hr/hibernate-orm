@@ -1,8 +1,14 @@
 {
   fetchStats.processingFetch(fetch);
   final Joinable joinable=(Joinable)fetch.getEntityPersister();
-  final EntityReferenceAliases aliases=aliasResolutionContext.resolveEntityReferenceAliases(fetch.getQuerySpaceUid());
+  EntityReferenceAliases aliases=aliasResolutionContext.resolveEntityReferenceAliases(fetch.getQuerySpaceUid());
   selectStatementBuilder.appendSelectClauseFragment(joinable.selectFragment(null,null,aliases.getTableAlias(),aliases.getColumnAliases().getSuffix(),null,true));
+  if (fetch.getIdentifierDescription().hasFetches()) {
+    final FetchSource entityIdentifierAsFetchSource=(FetchSource)fetch.getIdentifierDescription();
+    for (    Fetch identifierFetch : entityIdentifierAsFetchSource.getFetches()) {
+      processFetch(selectStatementBuilder,fetch,identifierFetch,readerCollector,fetchStats);
+    }
+  }
   readerCollector.add(new EntityReferenceInitializerImpl(fetch,aliases));
   processFetches(fetch,selectStatementBuilder,readerCollector,fetchStats);
 }

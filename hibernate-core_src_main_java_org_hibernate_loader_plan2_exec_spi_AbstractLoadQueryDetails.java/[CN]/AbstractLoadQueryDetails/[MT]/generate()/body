@@ -1,0 +1,29 @@
+{
+  final SelectStatementBuilder select=new SelectStatementBuilder(queryProcessor.getSessionFactory().getDialect());
+  applyRootReturnTableFragments(select);
+  if (shouldApplyRootReturnFilterBeforeKeyRestriction()) {
+    applyRootReturnFilterRestrictions(select);
+    applyKeyRestriction(select,getRootTableAlias(),keyColumnNames,getQueryBuildingParameters().getBatchSize());
+  }
+ else {
+    applyKeyRestriction(select,getRootTableAlias(),keyColumnNames,getQueryBuildingParameters().getBatchSize());
+    applyRootReturnFilterRestrictions(select);
+  }
+  applyRootReturnWhereJoinRestrictions(select);
+  applyRootReturnOrderByFragments(select);
+  applyRootReturnSelectFragments(select);
+  queryProcessor.processQuerySpaceJoins(getRootQuerySpace(),select);
+  FetchStats fetchStats=null;
+  if (FetchSource.class.isInstance(rootReturn)) {
+    fetchStats=queryProcessor.processFetches((FetchSource)rootReturn,select,getReaderCollector());
+  }
+ else   if (CollectionReturn.class.isInstance(rootReturn)) {
+    final CollectionReturn collectionReturn=(CollectionReturn)rootReturn;
+    if (collectionReturn.getElementGraph() != null) {
+      fetchStats=queryProcessor.processFetches(collectionReturn.getElementGraph(),select,getReaderCollector());
+    }
+  }
+  LoadPlanTreePrinter.INSTANCE.logTree(loadPlan,queryProcessor.getAliasResolutionContext());
+  this.sqlStatement=select.toStatementString();
+  this.resultSetProcessor=new ResultSetProcessorImpl(loadPlan,getReaderCollector().buildRowReader(),fetchStats != null && fetchStats.hasSubselectFetches());
+}

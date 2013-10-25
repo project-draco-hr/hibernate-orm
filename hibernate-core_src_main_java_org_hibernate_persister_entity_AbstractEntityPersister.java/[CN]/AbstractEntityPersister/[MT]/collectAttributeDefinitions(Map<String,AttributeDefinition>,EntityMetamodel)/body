@@ -1,0 +1,30 @@
+{
+  for (int i=0; i < metamodel.getPropertySpan(); i++) {
+    final AttributeDefinition attributeDefinition=metamodel.getProperties()[i];
+    final AttributeDefinition oldAttributeDefinition=attributeDefinitionsByName.get(attributeDefinition.getName());
+    if (oldAttributeDefinition != null) {
+      if (LOG.isTraceEnabled()) {
+        LOG.tracef("Ignoring subclass attribute definition [%s.%s] because it is defined in a superclass ",entityMetamodel.getName(),attributeDefinition.getName());
+      }
+    }
+ else {
+      attributeDefinitionsByName.put(attributeDefinition.getName(),attributeDefinition);
+    }
+  }
+  final Set<String> subClassEntityNames=metamodel.getSubclassEntityNames();
+  if (subClassEntityNames == null) {
+    return;
+  }
+  for (  String subClassEntityName : subClassEntityNames) {
+    if (metamodel.getName().equals(subClassEntityName)) {
+      continue;
+    }
+    try {
+      final EntityPersister subClassEntityPersister=factory.getEntityPersister(subClassEntityName);
+      collectAttributeDefinitions(attributeDefinitionsByName,subClassEntityPersister.getEntityMetamodel());
+    }
+ catch (    MappingException e) {
+      throw new IllegalStateException(String.format("Could not locate subclass EntityPersister [%s] while processing EntityPersister [%s]",subClassEntityName,metamodel.getName()),e);
+    }
+  }
+}

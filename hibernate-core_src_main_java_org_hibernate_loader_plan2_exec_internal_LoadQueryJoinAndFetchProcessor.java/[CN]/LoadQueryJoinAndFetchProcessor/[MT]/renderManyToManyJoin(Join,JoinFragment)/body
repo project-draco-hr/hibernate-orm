@@ -1,0 +1,14 @@
+{
+  final EntityPersister entityPersister=((EntityQuerySpace)join.getRightHandSide()).getEntityPersister();
+  final String entityTableAlias=aliasResolutionContext.resolveSqlTableAliasFromQuerySpaceUid(join.getRightHandSide().getUid());
+  if (StringHelper.isEmpty(entityTableAlias)) {
+    throw new IllegalStateException("Collection element (many-to-many) table alias cannot be empty");
+  }
+  if (JoinDefinedByMetadata.class.isInstance(join) && CollectionPropertyNames.COLLECTION_ELEMENTS.equals(((JoinDefinedByMetadata)join).getJoinedPropertyName())) {
+    final CollectionQuerySpace leftHandSide=(CollectionQuerySpace)join.getLeftHandSide();
+    final CollectionPersister persister=leftHandSide.getCollectionPersister();
+    final String manyToManyFilter=persister.getManyToManyFilterFragment(entityTableAlias,buildingParameters.getQueryInfluencers().getEnabledFilters());
+    joinFragment.addCondition(manyToManyFilter);
+  }
+  addJoins(join,joinFragment,(Joinable)entityPersister);
+}

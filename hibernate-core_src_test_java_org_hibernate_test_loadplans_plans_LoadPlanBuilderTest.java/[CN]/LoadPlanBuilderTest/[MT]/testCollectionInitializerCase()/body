@@ -1,16 +1,16 @@
 {
   CollectionPersister cp=sessionFactory().getCollectionPersister(Poster.class.getName() + ".messages");
-  FetchStyleLoadPlanBuildingAssociationVisitationStrategy strategy=new FetchStyleLoadPlanBuildingAssociationVisitationStrategy(sessionFactory(),LoadQueryInfluencers.NONE);
+  FetchStyleLoadPlanBuildingAssociationVisitationStrategy strategy=new FetchStyleLoadPlanBuildingAssociationVisitationStrategy(sessionFactory(),LoadQueryInfluencers.NONE,LockMode.NONE);
   LoadPlan plan=MetamodelDrivenLoadPlanBuilder.buildRootCollectionLoadPlan(strategy,cp);
   assertFalse(plan.hasAnyScalarReturns());
   assertEquals(1,plan.getReturns().size());
   Return rtn=plan.getReturns().get(0);
   CollectionReturn collectionReturn=ExtraAssertions.assertTyping(CollectionReturn.class,rtn);
+  assertNotNull(collectionReturn.getElementGraph());
   assertNotNull(collectionReturn.getElementGraph().getFetches());
-  assertEquals(1,collectionReturn.getElementGraph().getFetches().length);
-  Fetch fetch=collectionReturn.getElementGraph().getFetches()[0];
-  EntityFetch entityFetch=ExtraAssertions.assertTyping(EntityFetch.class,fetch);
-  assertNotNull(entityFetch.getFetches());
-  assertEquals(0,entityFetch.getFetches().length);
+  assertEquals(0,collectionReturn.getElementGraph().getFetches().length);
+  EntityReference entityReference=ExtraAssertions.assertTyping(EntityReference.class,collectionReturn.getElementGraph());
+  assertNotNull(entityReference.getFetches());
+  assertEquals(0,entityReference.getFetches().length);
   LoadPlanTreePrinter.INSTANCE.logTree(plan,new AliasResolutionContextImpl(sessionFactory()));
 }
