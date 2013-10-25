@@ -1,8 +1,34 @@
 {
   Insert insert=new Insert(getFactory().getDialect()).setTableName(getTableName(j));
   for (int i=0; i < entityMetamodel.getPropertySpan(); i++) {
-    if (includeProperty[i] && isPropertyOfTable(i,j) && !lobProperties.contains(i)) {
-      insert.addColumns(getPropertyColumnNames(i),propertyColumnInsertable[i],propertyColumnWriters[i]);
+    if (isPropertyOfTable(i,j)) {
+      if (!lobProperties.contains(i)) {
+        final InDatabaseValueGenerationStrategy generationStrategy=entityMetamodel.getInDatabaseValueGenerationStrategies()[i];
+        if (generationStrategy != null && generationStrategy.getGenerationTiming().includesInsert()) {
+          if (generationStrategy.referenceColumnsInSql()) {
+            final String[] values;
+            if (generationStrategy.getReferencedColumnValues() == null) {
+              values=propertyColumnWriters[i];
+            }
+ else {
+              final int numberOfColumns=propertyColumnWriters[i].length;
+              values=new String[numberOfColumns];
+              for (int x=0; x < numberOfColumns; x++) {
+                if (generationStrategy.getReferencedColumnValues()[x] != null) {
+                  values[x]=generationStrategy.getReferencedColumnValues()[x];
+                }
+ else {
+                  values[x]=propertyColumnWriters[i][x];
+                }
+              }
+            }
+            insert.addColumns(getPropertyColumnNames(i),propertyColumnInsertable[i],values);
+          }
+        }
+ else         if (includeProperty[i]) {
+          insert.addColumns(getPropertyColumnNames(i),propertyColumnInsertable[i],propertyColumnWriters[i]);
+        }
+      }
     }
   }
   if (j == 0) {

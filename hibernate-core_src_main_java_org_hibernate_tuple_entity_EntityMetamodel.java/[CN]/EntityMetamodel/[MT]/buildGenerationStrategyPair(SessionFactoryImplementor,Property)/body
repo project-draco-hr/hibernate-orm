@@ -1,0 +1,17 @@
+{
+  final ValueGeneration valueGeneration=mappingProperty.getValueGenerationStrategy();
+  if (valueGeneration != null && valueGeneration.getGenerationTiming() != GenerationTiming.NEVER) {
+    if (valueGeneration.getValueGenerator() != null) {
+      return new GenerationStrategyPair(FullInMemoryValueGenerationStrategy.create(valueGeneration));
+    }
+ else {
+      return new GenerationStrategyPair(create(sessionFactory,mappingProperty,valueGeneration));
+    }
+  }
+ else   if (mappingProperty.getValue() instanceof Component) {
+    final CompositeGenerationStrategyPairBuilder builder=new CompositeGenerationStrategyPairBuilder(mappingProperty);
+    interpretPartialCompositeValueGeneration(sessionFactory,(Component)mappingProperty.getValue(),builder);
+    return builder.buildPair();
+  }
+  return NO_GEN_PAIR;
+}

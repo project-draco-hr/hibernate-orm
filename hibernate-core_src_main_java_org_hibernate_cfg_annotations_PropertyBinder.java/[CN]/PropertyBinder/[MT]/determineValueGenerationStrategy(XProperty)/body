@@ -1,0 +1,15 @@
+{
+  Generated generatedAnnotation=property.getAnnotation(Generated.class);
+  if (generatedAnnotation == null || generatedAnnotation.value() == null || generatedAnnotation.value() == GenerationTime.NEVER) {
+    return NoValueGeneration.INSTANCE;
+  }
+  final GenerationTiming when=generatedAnnotation.value().getEquivalent();
+  if (property.isAnnotationPresent(javax.persistence.Version.class) && when == GenerationTiming.INSERT) {
+    throw new AnnotationException("@Generated(INSERT) on a @Version property not allowed, use ALWAYS (or NEVER): " + StringHelper.qualify(holder.getPath(),name));
+  }
+  insertable=false;
+  if (when == GenerationTiming.ALWAYS) {
+    updatable=false;
+  }
+  return new LegacyValueGeneration(when);
+}

@@ -1,0 +1,36 @@
+{
+  session.getTransactionCoordinator().getJdbcCoordinator().executeBatch();
+  try {
+    PreparedStatement ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(selectionSQL);
+    try {
+      getIdentifierType().nullSafeSet(ps,id,1,session);
+      ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(ps);
+      try {
+        if (!rs.next()) {
+          throw new HibernateException("Unable to locate row for retrieval of generated properties: " + MessageHelper.infoString(this,id,getFactory()));
+        }
+        int propertyIndex=-1;
+        for (        NonIdentifierAttribute attribute : entityMetamodel.getProperties()) {
+          propertyIndex++;
+          final ValueGeneration valueGeneration=attribute.getValueGenerationStrategy();
+          if (valueGeneration != null && valueGeneration.getGenerationTiming() == matchTiming) {
+            final Object hydratedState=attribute.getType().hydrate(rs,getPropertyAliases("",propertyIndex),session,entity);
+            state[propertyIndex]=attribute.getType().resolve(hydratedState,session,entity);
+            setPropertyValue(entity,propertyIndex,state[propertyIndex]);
+          }
+        }
+      }
+  finally {
+        if (rs != null) {
+          session.getTransactionCoordinator().getJdbcCoordinator().release(rs,ps);
+        }
+      }
+    }
+  finally {
+      session.getTransactionCoordinator().getJdbcCoordinator().release(ps);
+    }
+  }
+ catch (  SQLException e) {
+    throw getFactory().getSQLExceptionHelper().convert(e,"unable to select generated column values",selectionSQL);
+  }
+}

@@ -24,23 +24,23 @@
   property.setOptimisticLocked(lockNode == null || "true".equals(lockNode.getValue()));
   Attribute generatedNode=node.attribute("generated");
   String generationName=generatedNode == null ? null : generatedNode.getValue();
-  PropertyGeneration generation=PropertyGeneration.parse(generationName);
-  property.setGeneration(generation);
-  if (generation == PropertyGeneration.ALWAYS || generation == PropertyGeneration.INSERT) {
+  GenerationTiming generationTiming=GenerationTiming.parseFromName(generationName);
+  if (generationTiming == GenerationTiming.ALWAYS || generationTiming == GenerationTiming.INSERT) {
+    property.setValueGenerationStrategy(new HbmDefinedValueGeneration(generationTiming));
     if (property.isInsertable()) {
       if (insertNode == null) {
         property.setInsertable(false);
       }
  else {
-        throw new MappingException("cannot specify both insert=\"true\" and generated=\"" + generation.getName() + "\" for property: "+ propName);
+        throw new MappingException("cannot specify both insert=\"true\" and generated=\"" + generationTiming.name().toLowerCase() + "\" for property: "+ propName);
       }
     }
-    if (property.isUpdateable() && generation == PropertyGeneration.ALWAYS) {
+    if (property.isUpdateable() && generationTiming == GenerationTiming.ALWAYS) {
       if (updateNode == null) {
         property.setUpdateable(false);
       }
  else {
-        throw new MappingException("cannot specify both update=\"true\" and generated=\"" + generation.getName() + "\" for property: "+ propName);
+        throw new MappingException("cannot specify both update=\"true\" and generated=\"" + generationTiming.name().toLowerCase() + "\" for property: "+ propName);
       }
     }
   }

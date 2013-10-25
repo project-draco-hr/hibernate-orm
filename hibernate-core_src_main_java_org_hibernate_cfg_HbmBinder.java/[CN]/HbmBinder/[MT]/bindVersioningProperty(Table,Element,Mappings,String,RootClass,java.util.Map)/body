@@ -18,8 +18,10 @@
   Property prop=new Property();
   prop.setValue(val);
   bindProperty(subnode,prop,mappings,inheritedMetas);
-  if (prop.getGeneration() == PropertyGeneration.INSERT) {
-    throw new MappingException("'generated' attribute cannot be 'insert' for versioning property");
+  if (prop.getValueGenerationStrategy() != null) {
+    if (prop.getValueGenerationStrategy().getGenerationTiming() == GenerationTiming.INSERT) {
+      throw new MappingException("'generated' attribute cannot be 'insert' for versioning property");
+    }
   }
   makeVersion(subnode,val);
   entity.setVersion(prop);

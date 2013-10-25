@@ -8,19 +8,8 @@
   prop.setLazy(lazy);
   prop.setCascade(cascade);
   prop.setPropertyAccessorName(accessType.getType());
-  Generated ann=property != null ? property.getAnnotation(Generated.class) : null;
-  GenerationTime generated=ann != null ? ann.value() : null;
-  if (generated != null) {
-    if (!GenerationTime.NEVER.equals(generated)) {
-      if (property.isAnnotationPresent(javax.persistence.Version.class) && GenerationTime.INSERT.equals(generated)) {
-        throw new AnnotationException("@Generated(INSERT) on a @Version property not allowed, use ALWAYS: " + StringHelper.qualify(holder.getPath(),name));
-      }
-      insertable=false;
-      if (GenerationTime.ALWAYS.equals(generated)) {
-        updatable=false;
-      }
-      prop.setGeneration(PropertyGeneration.parse(generated.toString().toLowerCase()));
-    }
+  if (property != null) {
+    prop.setValueGenerationStrategy(determineValueGenerationStrategy(property));
   }
   NaturalId naturalId=property != null ? property.getAnnotation(NaturalId.class) : null;
   if (naturalId != null) {

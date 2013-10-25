@@ -1,0 +1,18 @@
+{
+  Session s=openSession();
+  s.beginTransaction();
+  TheEntity theEntity=new TheEntity(1);
+  assertNull(theEntity.createdDate);
+  s.save(theEntity);
+  assertNull(theEntity.createdDate);
+  s.getTransaction().commit();
+  s.close();
+  assertNotNull(theEntity.createdDate);
+  s=openSession();
+  s.beginTransaction();
+  theEntity=(TheEntity)session.get(TheEntity.class,1);
+  assertNotNull(theEntity.createdDate);
+  s.delete(theEntity);
+  s.getTransaction().commit();
+  s.close();
+}

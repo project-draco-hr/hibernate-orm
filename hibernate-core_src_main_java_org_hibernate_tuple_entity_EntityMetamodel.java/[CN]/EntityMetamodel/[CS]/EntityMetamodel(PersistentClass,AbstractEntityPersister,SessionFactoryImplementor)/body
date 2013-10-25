@@ -15,14 +15,18 @@
   propertyTypes=new Type[propertySpan];
   propertyUpdateability=new boolean[propertySpan];
   propertyInsertability=new boolean[propertySpan];
-  insertInclusions=new ValueInclusion[propertySpan];
-  updateInclusions=new ValueInclusion[propertySpan];
   nonlazyPropertyUpdateability=new boolean[propertySpan];
   propertyCheckability=new boolean[propertySpan];
   propertyNullability=new boolean[propertySpan];
   propertyVersionability=new boolean[propertySpan];
   propertyLaziness=new boolean[propertySpan];
   cascadeStyles=new CascadeStyle[propertySpan];
+  this.inMemoryValueGenerationStrategies=new InMemoryValueGenerationStrategy[propertySpan];
+  this.inDatabaseValueGenerationStrategies=new InDatabaseValueGenerationStrategy[propertySpan];
+  boolean foundPreInsertGeneratedValues=false;
+  boolean foundPreUpdateGeneratedValues=false;
+  boolean foundPostInsertGeneratedValues=false;
+  boolean foundPostUpdateGeneratedValues=false;
   Iterator iter=persistentClass.getPropertyClosureIterator();
   int i=0;
   int tempVersionProperty=NO_VERSION_INDX;
@@ -59,12 +63,38 @@
     propertyNullability[i]=properties[i].isNullable();
     propertyUpdateability[i]=properties[i].isUpdateable();
     propertyInsertability[i]=properties[i].isInsertable();
-    insertInclusions[i]=determineInsertValueGenerationType(prop,properties[i]);
-    updateInclusions[i]=determineUpdateValueGenerationType(prop,properties[i]);
     propertyVersionability[i]=properties[i].isVersionable();
     nonlazyPropertyUpdateability[i]=properties[i].isUpdateable() && !lazy;
     propertyCheckability[i]=propertyUpdateability[i] || (propertyTypes[i].isAssociationType() && ((AssociationType)propertyTypes[i]).isAlwaysDirtyChecked());
     cascadeStyles[i]=properties[i].getCascadeStyle();
+    GenerationStrategyPair pair=buildGenerationStrategyPair(sessionFactory,prop);
+    inMemoryValueGenerationStrategies[i]=pair.getInMemoryStrategy();
+    inDatabaseValueGenerationStrategies[i]=pair.getInDatabaseStrategy();
+    if (pair.getInMemoryStrategy() != null) {
+      final GenerationTiming timing=pair.getInMemoryStrategy().getGenerationTiming();
+      if (timing != GenerationTiming.NEVER) {
+        final ValueGenerator generator=pair.getInMemoryStrategy().getValueGenerator();
+        if (generator != null) {
+          if (timing == GenerationTiming.INSERT) {
+            foundPreInsertGeneratedValues=true;
+          }
+ else           if (timing == GenerationTiming.ALWAYS) {
+            foundPreInsertGeneratedValues=true;
+            foundPreUpdateGeneratedValues=true;
+          }
+        }
+      }
+    }
+    if (pair.getInDatabaseStrategy() != null) {
+      final GenerationTiming timing=pair.getInDatabaseStrategy().getGenerationTiming();
+      if (timing == GenerationTiming.INSERT) {
+        foundPostInsertGeneratedValues=true;
+      }
+ else       if (timing == GenerationTiming.ALWAYS) {
+        foundPostInsertGeneratedValues=true;
+        foundPostUpdateGeneratedValues=true;
+      }
+    }
     if (properties[i].isLazy()) {
       hasLazy=true;
     }
@@ -76,12 +106,6 @@
     }
     if (propertyTypes[i].isMutable() && propertyCheckability[i]) {
       foundMutable=true;
-    }
-    if (insertInclusions[i] != ValueInclusion.NONE) {
-      foundInsertGeneratedValue=true;
-    }
-    if (updateInclusions[i] != ValueInclusion.NONE) {
-      foundUpdateGeneratedValue=true;
     }
     mapPropertyToIndex(prop,i);
     i++;
@@ -96,8 +120,10 @@
     hasImmutableNaturalId=!foundUpdateableNaturalIdProperty;
     hasCacheableNaturalId=persistentClass.getNaturalIdCacheRegionName() != null;
   }
-  hasInsertGeneratedValues=foundInsertGeneratedValue;
-  hasUpdateGeneratedValues=foundUpdateGeneratedValue;
+  this.hasPreInsertGeneratedValues=foundPreInsertGeneratedValues;
+  this.hasPreUpdateGeneratedValues=foundPreUpdateGeneratedValues;
+  this.hasInsertGeneratedValues=foundPostInsertGeneratedValues;
+  this.hasUpdateGeneratedValues=foundPostUpdateGeneratedValues;
   hasCascades=foundCascade;
   hasNonIdentifierPropertyNamedId=foundNonIdentifierPropertyNamedId;
   versionPropertyIndex=tempVersionProperty;

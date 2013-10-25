@@ -1,0 +1,41 @@
+{
+  if (hadInMemoryGeneration && hadInDatabaseGeneration) {
+    throw new ValueGenerationStrategyException("Composite attribute [" + mappingProperty.getName() + "] contained both in-memory"+ " and in-database value generation");
+  }
+ else   if (hadInMemoryGeneration) {
+    throw new NotYetImplementedException("Still need to wire in composite in-memory value generation");
+  }
+ else   if (hadInDatabaseGeneration) {
+    final Component composite=(Component)mappingProperty.getValue();
+    if (inDatabaseStrategies.size() != composite.getPropertySpan()) {
+      throw new ValueGenerationStrategyException("Internal error : mismatch between number of collected in-db generation strategies" + " and number of attributes for composite attribute : " + mappingProperty.getName());
+    }
+    GenerationTiming timing=GenerationTiming.INSERT;
+    boolean referenceColumns=false;
+    String[] columnValues=new String[composite.getColumnSpan()];
+    int propertyIndex=-1;
+    int columnIndex=0;
+    Iterator subProperties=composite.getPropertyIterator();
+    while (subProperties.hasNext()) {
+      propertyIndex++;
+      final Property subProperty=(Property)subProperties.next();
+      final InDatabaseValueGenerationStrategy subStrategy=inDatabaseStrategies.get(propertyIndex);
+      if (subStrategy.getGenerationTiming() == GenerationTiming.ALWAYS) {
+        timing=GenerationTiming.ALWAYS;
+      }
+      if (subStrategy.referenceColumnsInSql()) {
+        referenceColumns=true;
+      }
+      if (subStrategy.getReferencedColumnValues() != null) {
+        if (subStrategy.getReferencedColumnValues().length != subProperty.getColumnSpan()) {
+          throw new ValueGenerationStrategyException("Internal error : mismatch between number of collected 'referenced column values'" + " and number of columns for composite attribute : " + mappingProperty.getName() + '.'+ subProperty.getName());
+        }
+        System.arraycopy(subStrategy.getReferencedColumnValues(),0,columnValues,columnIndex,subProperty.getColumnSpan());
+      }
+    }
+    return new GenerationStrategyPair(new InDatabaseValueGenerationStrategyImpl(timing,referenceColumns,columnValues));
+  }
+ else {
+    return NO_GEN_PAIR;
+  }
+}
