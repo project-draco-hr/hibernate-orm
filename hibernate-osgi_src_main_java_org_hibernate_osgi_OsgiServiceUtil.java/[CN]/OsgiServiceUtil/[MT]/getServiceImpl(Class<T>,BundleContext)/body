@@ -1,13 +1,10 @@
 {
   final ServiceTracker<T,T> serviceTracker=new ServiceTracker<T,T>(bundleContext,contract,null);
   try {
-    T[] services=(T[])serviceTracker.getServices();
-    if (services != null) {
-      return services;
-    }
+    return (T)serviceTracker.waitForService(1000);
   }
  catch (  Exception e) {
     LOG.warnf(e,"Exception while discovering OSGi service implementations : %s",contract.getName());
+    return null;
   }
-  return (T[])Array.newInstance(contract,0);
 }

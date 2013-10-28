@@ -1,4 +1,12 @@
 {
-  final ServiceReference sr=bundleContext.getServiceReference(TransactionManager.class.getName());
-  return sr == null ? null : (TransactionManager)bundleContext.getService(sr);
+  try {
+    final TransactionManager transactionManager=OsgiServiceUtil.getServiceImpl(TransactionManager.class,bundleContext);
+    if (transactionManager == null) {
+      throw new TransactionException("Cannot retrieve the TransactionManager OSGi service!");
+    }
+    return transactionManager;
+  }
+ catch (  Exception e) {
+    throw new TransactionException("Cannot retrieve the TransactionManager OSGi service!",e);
+  }
 }
