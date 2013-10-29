@@ -17,6 +17,12 @@
   assertTrue("The two instances were different references",myReferenceData == loaded);
   s=openSession();
   s.beginTransaction();
+  MyReferenceData queried=(MyReferenceData)s.createQuery("from MyReferenceData").setCacheable(true).list().get(0);
+  s.getTransaction().commit();
+  s.close();
+  assertTrue("The two instances were different references",myReferenceData == queried);
+  s=openSession();
+  s.beginTransaction();
   s.delete(myReferenceData);
   s.getTransaction().commit();
   s.close();

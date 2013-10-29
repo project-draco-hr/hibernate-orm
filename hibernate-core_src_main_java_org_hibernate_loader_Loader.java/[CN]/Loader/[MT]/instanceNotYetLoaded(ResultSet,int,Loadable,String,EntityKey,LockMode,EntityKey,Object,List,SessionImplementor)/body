@@ -1,5 +1,12 @@
 {
   final String instanceClass=getInstanceClass(rs,i,persister,key.getIdentifier(),session);
+  if (persister.canUseReferenceCacheEntries()) {
+    final Object cachedEntry=persister.getCacheAccessStrategy().get(session.generateCacheKey(key.getIdentifier(),persister.getEntityMetamodel().getEntityType(),key.getEntityName()),session.getTimestamp());
+    if (cachedEntry != null) {
+      CacheEntry entry=(CacheEntry)persister.getCacheEntryStructure().destructure(cachedEntry,factory);
+      return ((ReferenceCacheEntryImpl)entry).getReference();
+    }
+  }
   final Object object;
   if (optionalObjectKey != null && key.equals(optionalObjectKey)) {
     object=optionalObject;
