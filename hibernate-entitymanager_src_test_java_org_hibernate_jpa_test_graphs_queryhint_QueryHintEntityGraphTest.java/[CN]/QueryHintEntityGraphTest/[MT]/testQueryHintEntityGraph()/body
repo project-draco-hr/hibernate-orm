@@ -24,10 +24,18 @@
   entityManager.getTransaction().commit();
   entityManager.close();
   assertTrue(Hibernate.isInitialized(company.employees));
-  Employee employee=company.employees.iterator().next();
-  assertTrue(Hibernate.isInitialized(employee.managers));
-  Employee manager=employee.managers.iterator().next();
-  assertTrue(Hibernate.isInitialized(manager.managers));
   assertTrue(Hibernate.isInitialized(company.location));
   assertTrue(Hibernate.isInitialized(company.markets));
+  boolean foundManager=false;
+  Iterator<Employee> employeeItr=company.employees.iterator();
+  while (employeeItr.hasNext()) {
+    Employee employee=employeeItr.next();
+    assertTrue(Hibernate.isInitialized(employee.managers));
+    Iterator<Employee> managerItr=employee.managers.iterator();
+    while (managerItr.hasNext()) {
+      foundManager=true;
+      assertTrue(Hibernate.isInitialized(managerItr.next().managers));
+    }
+  }
+  assertTrue(foundManager);
 }
