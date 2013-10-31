@@ -1,0 +1,16 @@
+{
+  SessionFactory sf=new Configuration().setProperty(AvailableSettings.TRANSACTION_STRATEGY,JtaTransactionFactory.SHORT_NAME).buildSessionFactory();
+  JournalingInterceptor interceptor=new JournalingInterceptor();
+  try {
+    Session session=sf.withOptions().interceptor(interceptor).openSession();
+    session.beginTransaction();
+    session.getTransaction().commit();
+    session.close();
+  }
+  finally {
+    sf.close();
+  }
+  assertEquals(1,interceptor.afterStart);
+  assertEquals(1,interceptor.beforeCompletion);
+  assertEquals(1,interceptor.afterCompletion);
+}
