@@ -5,6 +5,10 @@
   CacheMode cacheMode=determineAppropriateLocalCacheMode(properties);
   LockOptions lockOptions=null;
   try {
+    if (properties != null && !properties.isEmpty()) {
+      ((SessionImplementor)session).getLoadQueryInfluencers().setFetchGraph((EntityGraph)properties.get(QueryHints.HINT_FETCHGRAPH));
+      ((SessionImplementor)session).getLoadQueryInfluencers().setLoadGraph((EntityGraph)properties.get(QueryHints.HINT_LOADGRAPH));
+    }
     session.setCacheMode(cacheMode);
     if (lockModeType != null) {
       lockOptions=getLockRequest(lockModeType,properties);
@@ -45,5 +49,7 @@ catch (  RuntimeException e) {
   }
  finally {
     session.setCacheMode(previousCacheMode);
+    ((SessionImplementor)session).getLoadQueryInfluencers().setFetchGraph(null);
+    ((SessionImplementor)session).getLoadQueryInfluencers().setLoadGraph(null);
   }
 }
