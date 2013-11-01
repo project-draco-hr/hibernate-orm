@@ -1,13 +1,13 @@
 {
   EntityManager em=getOrCreateEntityManager();
   EntityGraph eg=em.createEntityGraph(Cat.class);
-  LoadPlan plan=buildLoadPlan(eg,Mode.FETCH);
+  LoadPlan plan=buildLoadPlan(eg,Mode.FETCH,Cat.class);
   LoadPlanTreePrinter.INSTANCE.logTree(plan,new AliasResolutionContextImpl(sfi()));
   QuerySpace rootQuerySpace=plan.getQuerySpaces().getRootQuerySpaces().get(0);
   assertFalse("With fetchgraph property and an empty EntityGraph, there should be no join at all",rootQuerySpace.getJoins().iterator().hasNext());
   eg=em.createEntityGraph(Cat.class);
   eg.addSubgraph("owner",Person.class);
-  plan=buildLoadPlan(eg,Mode.FETCH);
+  plan=buildLoadPlan(eg,Mode.FETCH,Cat.class);
   LoadPlanTreePrinter.INSTANCE.logTree(plan,new AliasResolutionContextImpl(sfi()));
   rootQuerySpace=plan.getQuerySpaces().getRootQuerySpaces().get(0);
   Iterator<Join> iterator=rootQuerySpace.getJoins().iterator();
