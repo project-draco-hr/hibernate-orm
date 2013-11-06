@@ -4,5 +4,9 @@
     return null;
   }
   Class<? extends AnnotationValueGeneration<?>> generationType=generatorAnnotation.generatedBy();
-  return instantiateAndInitializeValueGeneration(annotation,generationType,property);
+  AnnotationValueGeneration<A> valueGeneration=instantiateAndInitializeValueGeneration(annotation,generationType,property);
+  if (annotation.annotationType() == Generated.class && property.isAnnotationPresent(javax.persistence.Version.class) && valueGeneration.getGenerationTiming() == GenerationTiming.INSERT) {
+    throw new AnnotationException("@Generated(INSERT) on a @Version property not allowed, use ALWAYS (or NEVER): " + StringHelper.qualify(holder.getPath(),name));
+  }
+  return valueGeneration;
 }
