@@ -1,15 +1,21 @@
 {
-  Generated generatedAnnotation=property.getAnnotation(Generated.class);
-  if (generatedAnnotation == null || generatedAnnotation.value() == null || generatedAnnotation.value() == GenerationTime.NEVER) {
+  ValueGeneration annotationValueGeneration=getValueGenerationFromAnnotations(property);
+  ValueGeneration legacyValueGeneration=getLegacyValueGeneration(property);
+  if (annotationValueGeneration == null && legacyValueGeneration == null) {
     return NoValueGeneration.INSTANCE;
   }
-  final GenerationTiming when=generatedAnnotation.value().getEquivalent();
+ else   if (annotationValueGeneration != null && legacyValueGeneration != null) {
+    throw new AnnotationException("@Generated and a generator annotation must not be specified at the same time:" + StringHelper.qualify(holder.getPath(),name));
+  }
+  final GenerationTiming when=annotationValueGeneration != null ? annotationValueGeneration.getGenerationTiming() : legacyValueGeneration.getGenerationTiming();
   if (property.isAnnotationPresent(javax.persistence.Version.class) && when == GenerationTiming.INSERT) {
     throw new AnnotationException("@Generated(INSERT) on a @Version property not allowed, use ALWAYS (or NEVER): " + StringHelper.qualify(holder.getPath(),name));
   }
-  insertable=false;
-  if (when == GenerationTiming.ALWAYS) {
-    updatable=false;
+  if (legacyValueGeneration != null) {
+    insertable=false;
+    if (when == GenerationTiming.ALWAYS) {
+      updatable=false;
+    }
   }
-  return new LegacyValueGeneration(when);
+  return annotationValueGeneration != null ? annotationValueGeneration : legacyValueGeneration;
 }
