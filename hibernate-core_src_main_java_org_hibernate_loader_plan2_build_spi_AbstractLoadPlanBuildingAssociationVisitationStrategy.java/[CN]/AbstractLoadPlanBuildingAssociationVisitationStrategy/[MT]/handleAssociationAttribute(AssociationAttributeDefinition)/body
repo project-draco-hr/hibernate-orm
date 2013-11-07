@@ -1,6 +1,6 @@
 {
   final FetchStrategy fetchStrategy=determineFetchStrategy(attributeDefinition);
-  if (fetchStrategy.getStyle() != FetchStyle.JOIN) {
+  if (fetchStrategy.getTiming() != FetchTiming.IMMEDIATE) {
     return false;
   }
   final ExpandingFetchSource currentSource=currentSource();
@@ -10,11 +10,11 @@
     return false;
   }
   if (nature == AssociationAttributeDefinition.AssociationNature.ENTITY) {
-    EntityFetch fetch=currentSource.buildEntityFetch(attributeDefinition,fetchStrategy,this);
+    EntityFetch fetch=currentSource.buildEntityFetch(attributeDefinition,fetchStrategy);
     pushToStack((ExpandingFetchSource)fetch);
   }
  else {
-    CollectionFetch fetch=currentSource.buildCollectionFetch(attributeDefinition,fetchStrategy,this);
+    CollectionFetch fetch=currentSource.buildCollectionFetch(attributeDefinition,fetchStrategy);
     pushToCollectionStack(fetch);
   }
   return true;
