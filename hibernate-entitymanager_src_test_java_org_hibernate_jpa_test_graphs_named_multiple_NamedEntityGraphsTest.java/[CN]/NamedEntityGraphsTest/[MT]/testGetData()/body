@@ -1,11 +1,5 @@
 {
   EntityManager em=getOrCreateEntityManager();
-  em.getTransaction().begin();
-  Employee employee=new Employee();
-  employee.setId(3l);
-  employee.setName("Sharon");
-  employee.setSalary(20000.0);
-  em.persist(employee);
   try {
     EntityGraph graph=em.getEntityGraph("name_salary_graph");
     assertNotNull(graph);
@@ -20,6 +14,6 @@
     assertTrue("node2 attribute name is expected to be either 'name' or 'salary' but actually is " + attributeNode2.getAttributeName(),"name".equals(attributeNode2.getAttributeName()) || "salary".equals(attributeNode2.getAttributeName()));
   }
   finally {
-    em.getTransaction().rollback();
+    em.close();
   }
 }
