@@ -1,21 +1,3 @@
 {
-  if (needsDiscriminator()) {
-    InFragment frag=new InFragment();
-    if (isDiscriminatorFormula()) {
-      frag.setFormula(alias,getDiscriminatorFormulaTemplate());
-    }
- else {
-      frag.setColumn(alias,getDiscriminatorColumnName());
-    }
-    String[] subclasses=getSubclassClosure();
-    for (int i=0; i < subclasses.length; i++) {
-      final Queryable queryable=(Queryable)getFactory().getEntityPersister(subclasses[i]);
-      if (!queryable.isAbstract())       frag.addValue(queryable.getDiscriminatorSQLValue());
-    }
-    StringBuilder buf=new StringBuilder(50).append(" and ").append(frag.toFragmentString());
-    return buf.toString();
-  }
- else {
-    return "";
-  }
+  return discriminatorFilterFragment(alias,null);
 }

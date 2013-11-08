@@ -1,0 +1,13 @@
+{
+  if (isClassOrSuperclassTable(subclassTableNumber)) {
+    final boolean shouldInnerJoin=canInnerJoin && !isInverseTable(subclassTableNumber) && !isNullableTable(subclassTableNumber);
+    return shouldInnerJoin ? JoinType.INNER_JOIN : JoinType.LEFT_OUTER_JOIN;
+  }
+  if (isSubclassTableIndicatedByTreatAsDeclarations(subclassTableNumber,treatAsDeclarations)) {
+    return JoinType.INNER_JOIN;
+  }
+  if (includeSubclasses && !isSubclassTableSequentialSelect(subclassTableNumber) && !isSubclassTableLazy(subclassTableNumber)) {
+    return JoinType.LEFT_OUTER_JOIN;
+  }
+  return JoinType.NONE;
+}

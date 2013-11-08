@@ -2,15 +2,13 @@
   final QueryJoinFragment joinFragment=new QueryJoinFragment(factory.getDialect(),useThetaStyle);
   if (rootJoinable != null) {
     joinFragment.addCrossJoin(rootJoinable.getTableName(),rootAlias);
-    final String filterCondition=rootJoinable.filterFragment(rootAlias,enabledFilters);
+    final String filterCondition=rootJoinable.filterFragment(rootAlias,enabledFilters,treatAsDeclarations);
     joinFragment.setHasFilterCondition(joinFragment.addCondition(filterCondition));
-    if (includeExtraJoins) {
-      addExtraJoins(joinFragment,rootAlias,rootJoinable,true);
-    }
+    addSubclassJoins(joinFragment,rootAlias,rootJoinable,true,includeAllSubclassJoins,treatAsDeclarations);
   }
   Joinable last=rootJoinable;
   for (  Join join : joins) {
-    final String on=join.getAssociationType().getOnCondition(join.getAlias(),factory,enabledFilters);
+    final String on=join.getAssociationType().getOnCondition(join.getAlias(),factory,enabledFilters,treatAsDeclarations);
     String condition;
     if (last != null && isManyToManyRoot(last) && ((QueryableCollection)last).getElementType() == join.getAssociationType()) {
       final String manyToManyFilter=((QueryableCollection)last).getManyToManyFilterFragment(join.getAlias(),enabledFilters);
@@ -23,13 +21,11 @@
       condition+=" and " + withClauseFragment;
     }
     joinFragment.addJoin(join.getJoinable().getTableName(),join.getAlias(),join.getLHSColumns(),JoinHelper.getRHSColumnNames(join.getAssociationType(),factory),join.joinType,condition);
-    if (includeExtraJoins) {
-      addExtraJoins(joinFragment,join.getAlias(),join.getJoinable(),join.joinType == JoinType.INNER_JOIN);
-    }
+    addSubclassJoins(joinFragment,join.getAlias(),join.getJoinable(),join.joinType == JoinType.INNER_JOIN,includeAllSubclassJoins,treatAsDeclarations);
     last=join.getJoinable();
   }
   if (next != null) {
-    joinFragment.addFragment(next.toJoinFragment(enabledFilters,includeExtraJoins));
+    joinFragment.addFragment(next.toJoinFragment(enabledFilters,includeAllSubclassJoins));
   }
   joinFragment.addCondition(conditions.toString());
   if (isFromPart) {

@@ -1,0 +1,19 @@
+{
+  final Set<String> classNames=new HashSet<String>();
+  final Iterator itr=persistentClass.getDirectSubclasses();
+  while (itr.hasNext()) {
+    final Subclass subclass=(Subclass)itr.next();
+    final Set<String> subclassSubclassNames=processPersistentClassHierarchy(subclass,false,factory,mapping);
+    classNames.addAll(subclassSubclassNames);
+  }
+  classNames.add(persistentClass.getEntityName());
+  if (!isBase) {
+    MappedSuperclass msc=persistentClass.getSuperMappedSuperclass();
+    while (msc != null) {
+      classNames.add(msc.getMappedClass().getName());
+      msc=msc.getSuperMappedSuperclass();
+    }
+    associateSubclassNamesToSubclassTableIndexes(persistentClass,classNames,mapping,factory);
+  }
+  return classNames;
+}

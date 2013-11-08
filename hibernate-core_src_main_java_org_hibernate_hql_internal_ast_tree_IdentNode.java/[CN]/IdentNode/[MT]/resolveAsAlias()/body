@@ -1,8 +1,10 @@
 {
-  final FromElement element=getWalker().getCurrentFromClause().getFromElement(getText());
+  final String alias=getText();
+  final FromElement element=getWalker().getCurrentFromClause().getFromElement(alias);
   if (element == null) {
     return false;
   }
+  element.applyTreatAsDeclarations(getWalker().getTreatAsDeclarationsByPath(alias));
   setType(SqlTokenTypes.ALIAS_REF);
   setFromElement(element);
   String[] columnExpressions=element.getIdentityColumns();
