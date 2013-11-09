@@ -1,10 +1,5 @@
 {
-  final EntityType fetchedType=(EntityType)attributeDefinition.getType();
-  final EntityPersister fetchedPersister=attributeDefinition.toEntityDefinition().getEntityPersister();
-  if (fetchedPersister == null) {
-    throw new WalkingException(String.format("Unable to locate EntityPersister [%s] for fetch [%s]",fetchedType.getAssociatedEntityName(),attributeDefinition.getName()));
-  }
-  final ExpandingEntityQuerySpace entityQuerySpace=querySpace.addEntityQuerySpace(attributeDefinition,fetchedPersister,getQuerySpaces().generateImplicitUid(),attributeDefinition.isNullable(),shouldIncludeJoin(fetchStrategy));
+  final ExpandingEntityQuerySpace entityQuerySpace=QuerySpaceHelper.INSTANCE.makeEntityQuerySpace(expandingQuerySpace(),attributeDefinition,getQuerySpaces().generateImplicitUid(),fetchStrategy);
   final EntityFetch fetch=new EntityFetchImpl(this,attributeDefinition,fetchStrategy,entityQuerySpace);
   addFetch(fetch);
   return fetch;

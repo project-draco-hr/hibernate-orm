@@ -1,10 +1,5 @@
 {
-  final CollectionType fetchedType=(CollectionType)attributeDefinition.getType();
-  final CollectionPersister fetchedPersister=attributeDefinition.toCollectionDefinition().getCollectionPersister();
-  if (fetchedPersister == null) {
-    throw new WalkingException(String.format("Unable to locate CollectionPersister [%s] for fetch [%s]",fetchedType.getRole(),attributeDefinition.getName()));
-  }
-  final ExpandingCollectionQuerySpace collectionQuerySpace=querySpace.addCollectionQuerySpace(attributeDefinition,fetchedPersister,getQuerySpaces().generateImplicitUid(),shouldIncludeJoin(fetchStrategy));
+  final ExpandingCollectionQuerySpace collectionQuerySpace=QuerySpaceHelper.INSTANCE.makeCollectionQuerySpace(querySpace,attributeDefinition,getQuerySpaces().generateImplicitUid(),fetchStrategy);
   final CollectionFetch fetch=new CollectionFetchImpl(this,attributeDefinition,fetchStrategy,collectionQuerySpace);
   addFetch(fetch);
   return fetch;

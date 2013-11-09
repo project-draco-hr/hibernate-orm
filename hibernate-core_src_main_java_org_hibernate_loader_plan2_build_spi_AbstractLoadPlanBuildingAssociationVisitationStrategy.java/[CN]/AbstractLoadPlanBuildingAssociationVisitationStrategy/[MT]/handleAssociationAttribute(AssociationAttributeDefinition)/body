@@ -11,11 +11,15 @@
   }
   if (nature == AssociationAttributeDefinition.AssociationNature.ENTITY) {
     EntityFetch fetch=currentSource.buildEntityFetch(attributeDefinition,fetchStrategy);
-    pushToStack((ExpandingFetchSource)fetch);
+    if (fetchStrategy.getStyle() == FetchStyle.JOIN) {
+      pushToStack((ExpandingFetchSource)fetch);
+    }
   }
  else {
     CollectionFetch fetch=currentSource.buildCollectionFetch(attributeDefinition,fetchStrategy);
-    pushToCollectionStack(fetch);
+    if (fetchStrategy.getStyle() == FetchStyle.JOIN) {
+      pushToCollectionStack(fetch);
+    }
   }
-  return true;
+  return fetchStrategy.getStyle() == FetchStyle.JOIN;
 }
