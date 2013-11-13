@@ -2,5 +2,11 @@
   if (tenantIdentifier == null) {
     throw new HibernateException("Tenant identifier required!");
   }
-  return connectionProvider.getConnection(tenantIdentifier);
+  try {
+    listener.jdbcConnectionAcquisitionStart();
+    return connectionProvider.getConnection(tenantIdentifier);
+  }
+  finally {
+    listener.jdbcConnectionAcquisitionEnd();
+  }
 }

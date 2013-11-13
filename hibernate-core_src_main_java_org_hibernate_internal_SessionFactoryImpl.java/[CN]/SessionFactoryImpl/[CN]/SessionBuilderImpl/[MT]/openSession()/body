@@ -1,4 +1,8 @@
 {
   log.tracef("Opening Hibernate Session.  tenant=%s, owner=%s",tenantIdentifier,sessionOwner);
-  return new SessionImpl(connection,sessionFactory,sessionOwner,getTransactionCoordinator(),autoJoinTransactions,sessionFactory.settings.getRegionFactory().nextTimestamp(),interceptor,flushBeforeCompletion,autoClose,connectionReleaseMode,tenantIdentifier);
+  final SessionImpl session=new SessionImpl(connection,sessionFactory,sessionOwner,getTransactionCoordinator(),autoJoinTransactions,sessionFactory.settings.getRegionFactory().nextTimestamp(),interceptor,flushBeforeCompletion,autoClose,connectionReleaseMode,tenantIdentifier);
+  for (  SessionEventsListener listener : listeners) {
+    session.getSessionEventsManager().addListener(listener);
+  }
+  return session;
 }

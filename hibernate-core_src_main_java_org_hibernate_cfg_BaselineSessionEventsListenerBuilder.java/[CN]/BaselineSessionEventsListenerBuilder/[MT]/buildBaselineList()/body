@@ -1,0 +1,15 @@
+{
+  List<SessionEventsListener> list=new ArrayList<SessionEventsListener>();
+  if (logSessionMetrics && LoggingSessionEventsListener.isLoggingEnabled()) {
+    list.add(new LoggingSessionEventsListener());
+  }
+  if (autoListener != null) {
+    try {
+      list.add(autoListener.newInstance());
+    }
+ catch (    Exception e) {
+      throw new HibernateException("Unable to instantiate specified auto SessionEventsListener : " + autoListener.getName(),e);
+    }
+  }
+  return list;
+}

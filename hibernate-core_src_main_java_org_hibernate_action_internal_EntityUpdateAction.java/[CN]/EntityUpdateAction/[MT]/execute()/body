@@ -41,9 +41,13 @@
  else {
       final CacheEntry ce=persister.buildCacheEntry(instance,state,nextVersion,getSession());
       cacheEntry=persister.getCacheEntryStructure().structure(ce);
-      final boolean put=persister.getCacheAccessStrategy().update(ck,cacheEntry,nextVersion,previousVersion);
-      if (put && factory.getStatistics().isStatisticsEnabled()) {
-        factory.getStatisticsImplementor().secondLevelCachePut(getPersister().getCacheAccessStrategy().getRegion().getName());
+      try {
+        final boolean put=persister.getCacheAccessStrategy().update(ck,cacheEntry,nextVersion,previousVersion);
+        if (put && factory.getStatistics().isStatisticsEnabled()) {
+          factory.getStatisticsImplementor().secondLevelCachePut(getPersister().getCacheAccessStrategy().getRegion().getName());
+        }
+      }
+  finally {
       }
     }
   }

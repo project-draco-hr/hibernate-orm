@@ -1,10 +1,17 @@
 {
   try {
-    final ResultSet rs=jdbcCoordinator.getLogicalConnection().getJdbcServices().getDialect().getResultSet(statement);
-    postExtract(rs,statement);
+    final ResultSet rs;
+    try {
+      jdbcCoordinator.getTransactionCoordinator().getTransactionContext().startStatementExecution();
+      rs=dialect.getResultSet(callableStatement);
+    }
+  finally {
+      jdbcCoordinator.getTransactionCoordinator().getTransactionContext().endStatementExecution();
+    }
+    postExtract(rs,callableStatement);
     return rs;
   }
  catch (  SQLException e) {
-    throw sqlExceptionHelper().convert(e,"could not extract ResultSet");
+    throw sqlExceptionHelper.convert(e,"could not extract ResultSet");
   }
 }

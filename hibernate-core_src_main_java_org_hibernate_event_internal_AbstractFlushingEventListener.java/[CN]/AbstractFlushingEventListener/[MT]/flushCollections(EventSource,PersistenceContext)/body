@@ -1,6 +1,8 @@
 {
   LOG.trace("Processing unreferenced collections");
-  for (  Map.Entry<PersistentCollection,CollectionEntry> me : IdentityMap.concurrentEntries((Map<PersistentCollection,CollectionEntry>)persistenceContext.getCollectionEntries())) {
+  final Map.Entry<PersistentCollection,CollectionEntry>[] entries=IdentityMap.concurrentEntries((Map<PersistentCollection,CollectionEntry>)persistenceContext.getCollectionEntries());
+  final int count=entries.length;
+  for (  Map.Entry<PersistentCollection,CollectionEntry> me : entries) {
     CollectionEntry ce=me.getValue();
     if (!ce.isReached() && !ce.isIgnore()) {
       Collections.processUnreachableCollection(me.getKey(),session);
@@ -28,4 +30,5 @@
     }
   }
   actionQueue.sortCollectionActions();
+  return count;
 }

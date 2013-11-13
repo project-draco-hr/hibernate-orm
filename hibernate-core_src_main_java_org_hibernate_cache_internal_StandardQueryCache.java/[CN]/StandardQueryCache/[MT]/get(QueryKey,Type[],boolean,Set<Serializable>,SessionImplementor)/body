@@ -2,7 +2,7 @@
   if (DEBUGGING) {
     LOG.debugf("Checking cached query results in region: %s",cacheRegion.getName());
   }
-  final List cacheable=(List)cacheRegion.get(key);
+  final List cacheable=getCachedResults(key,session);
   logCachedResultDetails(key,spaces,returnTypes,cacheable);
   if (cacheable == null) {
     if (DEBUGGING) {
@@ -11,7 +11,7 @@
     return null;
   }
   final Long timestamp=(Long)cacheable.get(0);
-  if (!isNaturalKeyLookup && !isUpToDate(spaces,timestamp)) {
+  if (!isNaturalKeyLookup && !isUpToDate(spaces,timestamp,session)) {
     if (DEBUGGING) {
       LOG.debug("Cached query results were not up-to-date");
     }

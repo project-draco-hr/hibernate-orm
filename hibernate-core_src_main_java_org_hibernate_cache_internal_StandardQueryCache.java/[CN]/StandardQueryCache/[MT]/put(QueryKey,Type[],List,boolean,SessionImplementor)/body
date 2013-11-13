@@ -15,6 +15,12 @@
     cacheable.add(cacheItem);
     logCachedResultRowDetails(returnTypes,aResult);
   }
-  cacheRegion.put(key,cacheable);
+  try {
+    session.getSessionEventsManager().cachePutStart();
+    cacheRegion.put(key,cacheable);
+  }
+  finally {
+    session.getSessionEventsManager().cachePutEnd();
+  }
   return true;
 }

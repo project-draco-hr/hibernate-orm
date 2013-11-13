@@ -1,0 +1,19 @@
+{
+  final boolean stats=factory != null && factory.getStatistics().isStatisticsEnabled();
+  final Long ts=region.nextTimestamp() + region.getTimeout();
+  for (  Serializable space : spaces) {
+    if (DEBUG_ENABLED) {
+      LOG.debugf("Pre-invalidating space [%s], timestamp: %s",space,ts);
+    }
+    try {
+      session.getSessionEventsManager().cachePutStart();
+      region.put(space,ts);
+    }
+  finally {
+      session.getSessionEventsManager().cachePutEnd();
+    }
+    if (stats) {
+      factory.getStatisticsImplementor().updateTimestampsCachePut();
+    }
+  }
+}

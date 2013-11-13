@@ -1,9 +1,13 @@
 {
-  jdbcCoordinator.getLogicalConnection().getJdbcServices().getSqlStatementLogger().logStatement(sql);
+  sqlStatementLogger.logStatement(sql);
   try {
+    jdbcCoordinator.getTransactionCoordinator().getTransactionContext().startStatementExecution();
     return statement.executeUpdate(sql);
   }
  catch (  SQLException e) {
-    throw sqlExceptionHelper().convert(e,"could not execute statement");
+    throw sqlExceptionHelper.convert(e,"could not execute statement");
+  }
+ finally {
+    jdbcCoordinator.getTransactionCoordinator().getTransactionContext().endStatementExecution();
   }
 }

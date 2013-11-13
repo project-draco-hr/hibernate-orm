@@ -2,8 +2,10 @@
   LOG.trace("Flushing entities and processing referenced collections");
   final EventSource source=event.getSession();
   final Iterable<FlushEntityEventListener> flushListeners=source.getFactory().getServiceRegistry().getService(EventListenerRegistry.class).getEventListenerGroup(EventType.FLUSH_ENTITY).listeners();
-  for (  Map.Entry<Object,EntityEntry> me : persistenceContext.reentrantSafeEntityEntries()) {
-    EntityEntry entry=(EntityEntry)me.getValue();
+  final Map.Entry<Object,EntityEntry>[] entityEntries=persistenceContext.reentrantSafeEntityEntries();
+  final int count=entityEntries.length;
+  for (  Map.Entry<Object,EntityEntry> me : entityEntries) {
+    EntityEntry entry=me.getValue();
     Status status=entry.getStatus();
     if (status != Status.LOADING && status != Status.GONE) {
       final FlushEntityEvent entityEvent=new FlushEntityEvent(source,me.getKey(),entry);
@@ -13,4 +15,5 @@
     }
   }
   source.getActionQueue().sortActions();
+  return count;
 }

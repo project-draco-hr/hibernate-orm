@@ -1,15 +1,22 @@
 {
-  jdbcCoordinator.getLogicalConnection().getJdbcServices().getSqlStatementLogger().logStatement(sql);
+  sqlStatementLogger.logStatement(sql);
   try {
-    if (!statement.execute(sql)) {
-      while (!statement.getMoreResults() && statement.getUpdateCount() != -1) {
+    final ResultSet rs;
+    try {
+      jdbcCoordinator.getTransactionCoordinator().getTransactionContext().startStatementExecution();
+      if (!statement.execute(sql)) {
+        while (!statement.getMoreResults() && statement.getUpdateCount() != -1) {
+        }
       }
+      rs=statement.getResultSet();
     }
-    final ResultSet rs=statement.getResultSet();
+  finally {
+      jdbcCoordinator.getTransactionCoordinator().getTransactionContext().endStatementExecution();
+    }
     postExtract(rs,statement);
     return rs;
   }
  catch (  SQLException e) {
-    throw sqlExceptionHelper().convert(e,"could not execute statement");
+    throw sqlExceptionHelper.convert(e,"could not execute statement");
   }
 }

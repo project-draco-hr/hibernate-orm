@@ -32,26 +32,32 @@ class DirtyCheckContextImpl implements CustomEntityDirtinessStrategy.DirtyCheckC
   final boolean interceptorHandledDirtyCheck;
   boolean cannotDirtyCheck;
   if (dirtyProperties == null) {
-    interceptorHandledDirtyCheck=false;
-    cannotDirtyCheck=loadedState == null;
-    if (!cannotDirtyCheck) {
-      dirtyProperties=persister.findDirty(values,loadedState,entity,session);
-    }
- else     if (entry.getStatus() == Status.DELETED && !event.getEntityEntry().isModifiableEntity()) {
-      if (values != entry.getDeletedState()) {
-        throw new IllegalStateException("Entity has status Status.DELETED but values != entry.getDeletedState");
+    try {
+      session.getSessionEventsManager().dirtyCalculationStart();
+      interceptorHandledDirtyCheck=false;
+      cannotDirtyCheck=loadedState == null;
+      if (!cannotDirtyCheck) {
+        dirtyProperties=persister.findDirty(values,loadedState,entity,session);
       }
-      final Object[] currentState=persister.getPropertyValues(event.getEntity());
-      dirtyProperties=persister.findDirty(entry.getDeletedState(),currentState,entity,session);
-      cannotDirtyCheck=false;
-    }
- else {
-      final Object[] databaseSnapshot=getDatabaseSnapshot(session,persister,id);
-      if (databaseSnapshot != null) {
-        dirtyProperties=persister.findModified(databaseSnapshot,values,entity,session);
+ else       if (entry.getStatus() == Status.DELETED && !event.getEntityEntry().isModifiableEntity()) {
+        if (values != entry.getDeletedState()) {
+          throw new IllegalStateException("Entity has status Status.DELETED but values != entry.getDeletedState");
+        }
+        final Object[] currentState=persister.getPropertyValues(event.getEntity());
+        dirtyProperties=persister.findDirty(entry.getDeletedState(),currentState,entity,session);
         cannotDirtyCheck=false;
-        event.setDatabaseSnapshot(databaseSnapshot);
       }
+ else {
+        final Object[] databaseSnapshot=getDatabaseSnapshot(session,persister,id);
+        if (databaseSnapshot != null) {
+          dirtyProperties=persister.findModified(databaseSnapshot,values,entity,session);
+          cannotDirtyCheck=false;
+          event.setDatabaseSnapshot(databaseSnapshot);
+        }
+      }
+    }
+  finally {
+      session.getSessionEventsManager().dirtyCalculationEnd(dirtyProperties != null);
     }
   }
  else {

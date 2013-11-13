@@ -7,8 +7,10 @@
   prepareCollectionFlushes(persistenceContext);
   persistenceContext.setFlushing(true);
   try {
-    flushEntities(event,persistenceContext);
-    flushCollections(session,persistenceContext);
+    int entityCount=flushEntities(event,persistenceContext);
+    int collectionCount=flushCollections(session,persistenceContext);
+    event.setNumberOfEntitiesProcessed(entityCount);
+    event.setNumberOfCollectionsProcessed(collectionCount);
   }
   finally {
     persistenceContext.setFlushing(false);
