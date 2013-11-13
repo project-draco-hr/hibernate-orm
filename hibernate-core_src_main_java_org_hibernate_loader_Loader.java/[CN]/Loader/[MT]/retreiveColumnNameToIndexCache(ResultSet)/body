@@ -1,7 +1,11 @@
 {
   if (columnNameCache == null) {
-    LOG.trace("Building columnName -> columnIndex cache");
-    columnNameCache=new ColumnNameCache(rs.getMetaData().getColumnCount());
+synchronized (this) {
+      if (columnNameCache == null) {
+        LOG.trace("Building columnName -> columnIndex cache");
+        columnNameCache=new ColumnNameCache(rs.getMetaData().getColumnCount());
+      }
+    }
   }
   return columnNameCache;
 }
