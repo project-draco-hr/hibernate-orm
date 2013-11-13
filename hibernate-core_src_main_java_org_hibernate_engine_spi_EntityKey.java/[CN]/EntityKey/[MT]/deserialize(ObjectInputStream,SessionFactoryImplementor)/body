@@ -1,0 +1,16 @@
+{
+  final Type identifierType=(Type)ois.readObject();
+  final boolean isBatchLoadable=ois.readBoolean();
+  final Serializable id=(Serializable)ois.readObject();
+  final String entityName=(String)ois.readObject();
+  final String rootEntityName=(String)ois.readObject();
+  final int hashCode=ois.readInt();
+  if (sessionFactory != null) {
+    final EntityPersister entityPersister=sessionFactory.getEntityPersister(entityName);
+    return new EntityKey(id,entityPersister);
+  }
+ else {
+    final EntityEssentials fakePersister=new EssentialEntityPersisterDetails(identifierType,isBatchLoadable,entityName,rootEntityName);
+    return new EntityKey(id,fakePersister,hashCode);
+  }
+}
