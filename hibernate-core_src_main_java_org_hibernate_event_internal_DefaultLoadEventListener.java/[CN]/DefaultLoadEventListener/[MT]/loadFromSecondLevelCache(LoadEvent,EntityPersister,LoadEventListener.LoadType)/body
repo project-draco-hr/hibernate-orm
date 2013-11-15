@@ -6,21 +6,14 @@
   }
   final SessionFactoryImplementor factory=source.getFactory();
   final CacheKey ck=source.generateCacheKey(event.getEntityId(),persister.getIdentifierType(),persister.getRootEntityName());
-  Object ce=null;
-  try {
-    source.getEventListenerManager().cacheGetStart();
-    ce=persister.getCacheAccessStrategy().get(ck,source.getTimestamp());
-    if (factory.getStatistics().isStatisticsEnabled()) {
-      if (ce == null) {
-        factory.getStatisticsImplementor().secondLevelCacheMiss(persister.getCacheAccessStrategy().getRegion().getName());
-      }
- else {
-        factory.getStatisticsImplementor().secondLevelCacheHit(persister.getCacheAccessStrategy().getRegion().getName());
-      }
+  final Object ce=CacheHelper.fromSharedCache(source,ck,persister.getCacheAccessStrategy());
+  if (factory.getStatistics().isStatisticsEnabled()) {
+    if (ce == null) {
+      factory.getStatisticsImplementor().secondLevelCacheMiss(persister.getCacheAccessStrategy().getRegion().getName());
     }
-  }
-  finally {
-    source.getEventListenerManager().cacheGetEnd(ce == null);
+ else {
+      factory.getStatisticsImplementor().secondLevelCacheHit(persister.getCacheAccessStrategy().getRegion().getName());
+    }
   }
   if (ce == null) {
     return null;

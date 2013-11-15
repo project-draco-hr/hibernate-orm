@@ -2,15 +2,9 @@
   final EntityPersister persister=getPersister();
   if (success && isCachePutEnabled(persister,getSession())) {
     final CacheKey ck=getSession().generateCacheKey(getId(),persister.getIdentifierType(),persister.getRootEntityName());
-    try {
-      getSession().getEventListenerManager().cachePutStart();
-      final boolean put=persister.getCacheAccessStrategy().afterInsert(ck,cacheEntry,version);
-      if (put && getSession().getFactory().getStatistics().isStatisticsEnabled()) {
-        getSession().getFactory().getStatisticsImplementor().secondLevelCachePut(getPersister().getCacheAccessStrategy().getRegion().getName());
-      }
-    }
-  finally {
-      getSession().getEventListenerManager().cachePutEnd();
+    final boolean put=cacheAfterInsert(persister,ck);
+    if (put && getSession().getFactory().getStatistics().isStatisticsEnabled()) {
+      getSession().getFactory().getStatisticsImplementor().secondLevelCachePut(getPersister().getCacheAccessStrategy().getRegion().getName());
     }
   }
   postCommitInsert();

@@ -8,10 +8,10 @@
     LOG.tracev("Initializing lazy properties of: {0}, field access: {1}",MessageHelper.infoString(this,id,getFactory()),fieldName);
   }
   if (hasCache()) {
-    CacheKey cacheKey=session.generateCacheKey(id,getIdentifierType(),getEntityName());
-    Object ce=getCacheAccessStrategy().get(cacheKey,session.getTimestamp());
+    final CacheKey cacheKey=session.generateCacheKey(id,getIdentifierType(),getEntityName());
+    final Object ce=CacheHelper.fromSharedCache(session,cacheKey,getCacheAccessStrategy());
     if (ce != null) {
-      CacheEntry cacheEntry=(CacheEntry)getCacheEntryStructure().destructure(ce,factory);
+      final CacheEntry cacheEntry=(CacheEntry)getCacheEntryStructure().destructure(ce,factory);
       if (!cacheEntry.areLazyPropertiesUnfetched()) {
         return initializeLazyPropertiesFromCache(fieldName,entity,session,entry,cacheEntry);
       }

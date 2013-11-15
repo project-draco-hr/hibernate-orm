@@ -3,15 +3,9 @@
   if (persister.hasCache()) {
     final CacheKey ck=getSession().generateCacheKey(getId(),persister.getIdentifierType(),persister.getRootEntityName());
     if (success && cacheEntry != null) {
-      try {
-        session.getEventListenerManager().cachePutStart();
-        final boolean put=persister.getCacheAccessStrategy().afterUpdate(ck,cacheEntry,nextVersion,previousVersion,lock);
-        if (put && getSession().getFactory().getStatistics().isStatisticsEnabled()) {
-          getSession().getFactory().getStatisticsImplementor().secondLevelCachePut(getPersister().getCacheAccessStrategy().getRegion().getName());
-        }
-      }
-  finally {
-        session.getEventListenerManager().cachePutEnd();
+      final boolean put=cacheAfterUpdate(persister,ck);
+      if (put && getSession().getFactory().getStatistics().isStatisticsEnabled()) {
+        getSession().getFactory().getStatisticsImplementor().secondLevelCachePut(getPersister().getCacheAccessStrategy().getRegion().getName());
       }
     }
  else {
