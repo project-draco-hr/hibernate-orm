@@ -3,13 +3,13 @@
   final PersistenceContext persistenceContext=source.getPersistenceContext();
   if (persistenceContext.getNumberOfManagedEntities() > 0 || persistenceContext.getCollectionEntries().size() > 0) {
     try {
-      source.getSessionEventsManager().flushStart();
+      source.getEventListenerManager().flushStart();
       flushEverythingToExecutions(event);
       performExecutions(source);
       postFlush(source);
     }
   finally {
-      source.getSessionEventsManager().flushEnd(event.getNumberOfEntitiesProcessed(),event.getNumberOfCollectionsProcessed());
+      source.getEventListenerManager().flushEnd(event.getNumberOfEntitiesProcessed(),event.getNumberOfCollectionsProcessed());
     }
     postPostFlush(source);
     if (source.getFactory().getStatistics().isStatisticsEnabled()) {

@@ -4,14 +4,14 @@
     final CacheKey ck=getSession().generateCacheKey(getId(),persister.getIdentifierType(),persister.getRootEntityName());
     if (success && cacheEntry != null) {
       try {
-        session.getSessionEventsManager().cachePutStart();
+        session.getEventListenerManager().cachePutStart();
         final boolean put=persister.getCacheAccessStrategy().afterUpdate(ck,cacheEntry,nextVersion,previousVersion,lock);
         if (put && getSession().getFactory().getStatistics().isStatisticsEnabled()) {
           getSession().getFactory().getStatisticsImplementor().secondLevelCachePut(getPersister().getCacheAccessStrategy().getRegion().getName());
         }
       }
   finally {
-        session.getSessionEventsManager().cachePutEnd();
+        session.getEventListenerManager().cachePutEnd();
       }
     }
  else {

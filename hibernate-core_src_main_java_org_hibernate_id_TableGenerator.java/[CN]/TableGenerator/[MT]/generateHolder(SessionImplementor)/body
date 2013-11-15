@@ -1,14 +1,14 @@
 {
   final SqlStatementLogger statementLogger=session.getFactory().getServiceRegistry().getService(JdbcServices.class).getSqlStatementLogger();
-  final SessionEventsManager statsCollector=session.getSessionEventsManager();
+  final SessionEventListenerManager listeners=session.getEventListenerManager();
   return session.getTransactionCoordinator().getTransaction().createIsolationDelegate().delegateWork(new AbstractReturningWork<IntegralDataTypeHolder>(){
     @Override public IntegralDataTypeHolder execute(    Connection connection) throws SQLException {
       IntegralDataTypeHolder value=buildHolder();
       int rows;
       do {
-        final PreparedStatement qps=prepareStatement(connection,query,statementLogger,statsCollector);
+        final PreparedStatement qps=prepareStatement(connection,query,statementLogger,listeners);
         try {
-          ResultSet rs=executeQuery(qps,statsCollector);
+          ResultSet rs=executeQuery(qps,listeners);
           if (!rs.next()) {
             String err="could not read a hi value - you need to populate the table: " + tableName;
             LOG.error(err);
@@ -24,11 +24,11 @@
  finally {
           qps.close();
         }
-        final PreparedStatement ups=prepareStatement(connection,update,statementLogger,statsCollector);
+        final PreparedStatement ups=prepareStatement(connection,update,statementLogger,listeners);
         try {
           value.copy().increment().bind(ups,1);
           value.bind(ups,2);
-          rows=executeUpdate(ups,statsCollector);
+          rows=executeUpdate(ups,listeners);
         }
  catch (        SQLException sqle) {
           LOG.error(LOG.unableToUpdateHiValue(tableName),sqle);
