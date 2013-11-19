@@ -7,22 +7,29 @@
   currentSource.validateFetchPlan(fetchStrategy,attributeDefinition);
   final AssociationAttributeDefinition.AssociationNature nature=attributeDefinition.getAssociationNature();
   if (nature == AssociationAttributeDefinition.AssociationNature.ANY) {
+    currentSource.buildAnyFetch(attributeDefinition,fetchStrategy);
     return false;
   }
-  if (nature == AssociationAttributeDefinition.AssociationNature.ENTITY) {
+ else   if (nature == AssociationAttributeDefinition.AssociationNature.ENTITY) {
     EntityFetch fetch=currentSource.buildEntityFetch(attributeDefinition,fetchStrategy);
     if (fetchStrategy.getStyle() == FetchStyle.JOIN) {
       pushToStack((ExpandingFetchSource)fetch);
+      pushedAttributes.add(attributeDefinition);
+      return true;
+    }
+ else {
+      return false;
     }
   }
  else {
     CollectionFetch fetch=currentSource.buildCollectionFetch(attributeDefinition,fetchStrategy);
     if (fetchStrategy.getStyle() == FetchStyle.JOIN) {
       pushToCollectionStack(fetch);
+      pushedAttributes.add(attributeDefinition);
+      return true;
+    }
+ else {
+      return false;
     }
   }
-  if (fetchStrategy.getStyle() == FetchStyle.JOIN) {
-    pushedAttributes.add(attributeDefinition);
-  }
-  return fetchStrategy.getStyle() == FetchStyle.JOIN;
 }
