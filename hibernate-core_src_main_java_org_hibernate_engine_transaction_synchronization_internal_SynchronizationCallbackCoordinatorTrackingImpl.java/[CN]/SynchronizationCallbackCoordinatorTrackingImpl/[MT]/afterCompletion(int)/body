@@ -1,0 +1,12 @@
+{
+  if (JtaStatusHelper.isRollback(status)) {
+    final long currentThreadId=Thread.currentThread().getId();
+    final boolean isRegistrationThread=currentThreadId == registrationThreadId;
+    if (!isRegistrationThread) {
+      delayedCompletionHandlingStatus=status;
+      log.rollbackFromBackgroundThread(status);
+      return;
+    }
+  }
+  doAfterCompletion(status);
+}
