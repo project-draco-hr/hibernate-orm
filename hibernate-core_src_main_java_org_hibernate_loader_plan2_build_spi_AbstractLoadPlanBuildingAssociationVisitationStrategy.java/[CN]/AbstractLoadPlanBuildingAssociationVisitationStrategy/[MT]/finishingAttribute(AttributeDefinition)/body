@@ -1,28 +1,28 @@
 {
-  if (pushedAttributes.contains(attributeDefinition)) {
-    final Type attributeType=attributeDefinition.getType();
-    if (attributeType.isComponentType()) {
-      final ExpandingFetchSource popped=popFromStack();
-      if (!CompositeFetch.class.isInstance(popped)) {
-        throw new WalkingException("Mismatched FetchSource from stack on pop");
-      }
+  final Type attributeType=attributeDefinition.getType();
+  if (attributeType.isAnyType()) {
+  }
+ else   if (attributeType.isComponentType()) {
+    final ExpandingFetchSource popped=popFromStack();
+    if (!CompositeAttributeFetch.class.isInstance(popped)) {
+      throw new WalkingException(String.format("Mismatched FetchSource from stack on pop; expected: CompositeAttributeFetch; actual: [%s]",popped));
     }
- else     if (attributeType.isAssociationType()) {
-      final AssociationAttributeDefinition associationAttributeDefinition=(AssociationAttributeDefinition)attributeDefinition;
-      if (attributeType.isCollectionType()) {
-        popFromCollectionStack(associationAttributeDefinition.toCollectionDefinition());
-      }
- else       if (attributeType.isEntityType()) {
-        popEntityFromStack(associationAttributeDefinition.toEntityDefinition());
-      }
- else {
-        throw new WalkingException(String.format("Unexpected attribute of type [%s] was pushed: %s",associationAttributeDefinition.getType(),associationAttributeDefinition));
-      }
+    final CompositeAttributeFetch poppedAsCompositeAttributeFetch=(CompositeAttributeFetch)popped;
+    if (!attributeDefinition.equals(poppedAsCompositeAttributeFetch.getFetchedAttributeDefinition())) {
+      throw new WalkingException(String.format("Mismatched CompositeAttributeFetch from stack on pop; expected fetch for attribute: [%s]; actual: [%s]",attributeDefinition,poppedAsCompositeAttributeFetch.getFetchedAttributeDefinition()));
     }
- else {
-      throw new WalkingException(String.format("Unexpected attribute of type [%s] was pushed: %s",attributeDefinition.getType(),attributeDefinition));
+  }
+ else   if (attributeType.isEntityType()) {
+    final ExpandingFetchSource source=currentSource();
+    if (AttributeFetch.class.isInstance(source) && attributeDefinition.equals(AttributeFetch.class.cast(source).getFetchedAttributeDefinition())) {
+      popEntityFromStack(((AssociationAttributeDefinition)attributeDefinition).toEntityDefinition());
     }
-    pushedAttributes.remove(attributeDefinition);
+  }
+ else   if (attributeType.isCollectionType()) {
+    final CollectionReference currentCollection=collectionReferenceStack.peekFirst();
+    if (currentCollection != null && AttributeFetch.class.isInstance(currentCollection) && attributeDefinition.equals(AttributeFetch.class.cast(currentCollection).getFetchedAttributeDefinition())) {
+      popFromCollectionStack(((AssociationAttributeDefinition)attributeDefinition).toCollectionDefinition());
+    }
   }
   log.tracef("%s Finishing up attribute : %s",StringHelper.repeat("<<",fetchSourceStack.size()),attributeDefinition);
   currentPropertyPath=currentPropertyPath.getParent();
