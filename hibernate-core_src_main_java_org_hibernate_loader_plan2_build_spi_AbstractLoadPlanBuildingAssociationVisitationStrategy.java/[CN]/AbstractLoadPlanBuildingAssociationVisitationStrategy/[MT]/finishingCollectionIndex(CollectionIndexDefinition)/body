@@ -3,8 +3,11 @@
   if (indexType.isAnyType()) {
     return;
   }
-  if (indexType.isComponentType()) {
-    popFromStack();
+  if (indexType.isEntityType() || indexType.isComponentType()) {
+    final ExpandingFetchSource fetchSource=popFromStack();
+    if (!CollectionFetchableIndex.class.isInstance(fetchSource)) {
+      throw new WalkingException("CollectionReference did not return an expected index graph : " + indexDefinition.getCollectionDefinition().getCollectionPersister().getRole());
+    }
   }
   log.tracef("%s Finished collection index graph : %s",StringHelper.repeat("<<",fetchSourceStack.size()),indexDefinition.getCollectionDefinition().getCollectionPersister().getRole());
 }

@@ -1,12 +1,16 @@
 {
   log.tracef("%s Starting attribute %s",StringHelper.repeat(">>",fetchSourceStack.size()),attributeDefinition);
   final Type attributeType=attributeDefinition.getType();
+  final boolean isAnyType=attributeType.isAnyType();
   final boolean isComponentType=attributeType.isComponentType();
   final boolean isAssociationType=attributeType.isAssociationType();
   final boolean isBasicType=!(isComponentType || isAssociationType);
   currentPropertyPath=currentPropertyPath.append(attributeDefinition.getName());
   if (isBasicType) {
     return true;
+  }
+ else   if (isAnyType) {
+    return handleAnyAttribute((AssociationAttributeDefinition)attributeDefinition);
   }
  else   if (isAssociationType) {
     return handleAssociationAttribute((AssociationAttributeDefinition)attributeDefinition);

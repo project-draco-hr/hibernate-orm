@@ -1,4 +1,29 @@
 {
+  if (pushedAttributes.contains(attributeDefinition)) {
+    final Type attributeType=attributeDefinition.getType();
+    if (attributeType.isComponentType()) {
+      final ExpandingFetchSource popped=popFromStack();
+      if (!CompositeFetch.class.isInstance(popped)) {
+        throw new WalkingException("Mismatched FetchSource from stack on pop");
+      }
+    }
+ else     if (attributeType.isAssociationType()) {
+      final AssociationAttributeDefinition associationAttributeDefinition=(AssociationAttributeDefinition)attributeDefinition;
+      if (attributeType.isCollectionType()) {
+        popFromCollectionStack(associationAttributeDefinition.toCollectionDefinition());
+      }
+ else       if (attributeType.isEntityType()) {
+        popEntityFromStack(associationAttributeDefinition.toEntityDefinition());
+      }
+ else {
+        throw new WalkingException(String.format("Unexpected attribute of type [%s] was pushed: %s",associationAttributeDefinition.getType(),associationAttributeDefinition));
+      }
+    }
+ else {
+      throw new WalkingException(String.format("Unexpected attribute of type [%s] was pushed: %s",attributeDefinition.getType(),attributeDefinition));
+    }
+    pushedAttributes.remove(attributeDefinition);
+  }
   log.tracef("%s Finishing up attribute : %s",StringHelper.repeat("<<",fetchSourceStack.size()),attributeDefinition);
   currentPropertyPath=currentPropertyPath.getParent();
 }

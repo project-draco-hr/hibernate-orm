@@ -1,11 +1,7 @@
 {
-  final ExpandingFetchSource fetchSource=popFromStack();
-  if (!EntityReference.class.isInstance(fetchSource)) {
-    throw new WalkingException(String.format("Mismatched FetchSource from stack on pop.  Expecting EntityReference(%s), but found %s",entityDefinition.getEntityPersister().getEntityName(),fetchSource));
+  final boolean isRoot=fetchSourceStack.size() == 1 && collectionReferenceStack.isEmpty();
+  if (!isRoot) {
+    return;
   }
-  final EntityReference entityReference=(EntityReference)fetchSource;
-  if (!entityReference.getEntityPersister().equals(entityDefinition.getEntityPersister())) {
-    throw new WalkingException("Mismatched FetchSource from stack on pop");
-  }
-  log.tracef("%s Finished entity : %s",StringHelper.repeat("<<",fetchSourceStack.size()),entityDefinition.getEntityPersister().getEntityName());
+  popEntityFromStack(entityDefinition);
 }
