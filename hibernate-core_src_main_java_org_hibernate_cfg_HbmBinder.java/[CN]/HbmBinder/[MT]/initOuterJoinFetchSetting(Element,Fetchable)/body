@@ -18,19 +18,33 @@
       }
     }
  else {
-      String eoj=jfNode.getValue();
-      if ("auto".equals(eoj)) {
-        fetchStyle=FetchMode.DEFAULT;
+      if ("many-to-many".equals(node.getName())) {
+        LOG.deprecatedManyToManyOuterJoin();
+        lazy=false;
+        fetchStyle=FetchMode.JOIN;
       }
  else {
-        boolean join="true".equals(eoj);
-        fetchStyle=join ? FetchMode.JOIN : FetchMode.SELECT;
+        String eoj=jfNode.getValue();
+        if ("auto".equals(eoj)) {
+          fetchStyle=FetchMode.DEFAULT;
+        }
+ else {
+          boolean join="true".equals(eoj);
+          fetchStyle=join ? FetchMode.JOIN : FetchMode.SELECT;
+        }
       }
     }
   }
  else {
-    boolean join="join".equals(fetchNode.getValue());
-    fetchStyle=join ? FetchMode.JOIN : FetchMode.SELECT;
+    if ("many-to-many".equals(node.getName())) {
+      LOG.deprecatedManyToManyFetch();
+      lazy=false;
+      fetchStyle=FetchMode.JOIN;
+    }
+ else {
+      boolean join="join".equals(fetchNode.getValue());
+      fetchStyle=join ? FetchMode.JOIN : FetchMode.SELECT;
+    }
   }
   model.setFetchMode(fetchStyle);
   model.setLazy(lazy);
