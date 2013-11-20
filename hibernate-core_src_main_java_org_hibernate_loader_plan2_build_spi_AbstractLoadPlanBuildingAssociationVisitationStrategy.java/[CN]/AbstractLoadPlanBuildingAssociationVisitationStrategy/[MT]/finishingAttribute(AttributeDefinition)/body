@@ -1,6 +1,23 @@
 {
   final Type attributeType=attributeDefinition.getType();
-  if (attributeType.isAnyType()) {
+  if (attributeType.isAssociationType()) {
+    final AssociationAttributeDefinition associationAttributeDefinition=(AssociationAttributeDefinition)attributeDefinition;
+    if (attributeType.isAnyType()) {
+    }
+ else     if (attributeType.isEntityType()) {
+      final ExpandingFetchSource source=currentSource();
+      if (AttributeFetch.class.isInstance(source) && associationAttributeDefinition.equals(AttributeFetch.class.cast(source).getFetchedAttributeDefinition())) {
+        final ExpandingFetchSource popped=popFromStack();
+        checkPoppedEntity(popped,associationAttributeDefinition.toEntityDefinition());
+      }
+    }
+ else     if (attributeType.isCollectionType()) {
+      final CollectionReference currentCollection=currentCollection();
+      if (AttributeFetch.class.isInstance(currentCollection) && associationAttributeDefinition.equals(AttributeFetch.class.cast(currentCollection).getFetchedAttributeDefinition())) {
+        final CollectionReference popped=popFromCollectionStack();
+        checkedPoppedCollection(popped,associationAttributeDefinition.toCollectionDefinition());
+      }
+    }
   }
  else   if (attributeType.isComponentType()) {
     final ExpandingFetchSource popped=popFromStack();
@@ -10,18 +27,6 @@
     final CompositeAttributeFetch poppedAsCompositeAttributeFetch=(CompositeAttributeFetch)popped;
     if (!attributeDefinition.equals(poppedAsCompositeAttributeFetch.getFetchedAttributeDefinition())) {
       throw new WalkingException(String.format("Mismatched CompositeAttributeFetch from stack on pop; expected fetch for attribute: [%s]; actual: [%s]",attributeDefinition,poppedAsCompositeAttributeFetch.getFetchedAttributeDefinition()));
-    }
-  }
- else   if (attributeType.isEntityType()) {
-    final ExpandingFetchSource source=currentSource();
-    if (AttributeFetch.class.isInstance(source) && attributeDefinition.equals(AttributeFetch.class.cast(source).getFetchedAttributeDefinition())) {
-      popEntityFromStack(((AssociationAttributeDefinition)attributeDefinition).toEntityDefinition());
-    }
-  }
- else   if (attributeType.isCollectionType()) {
-    final CollectionReference currentCollection=collectionReferenceStack.peekFirst();
-    if (currentCollection != null && AttributeFetch.class.isInstance(currentCollection) && attributeDefinition.equals(AttributeFetch.class.cast(currentCollection).getFetchedAttributeDefinition())) {
-      popFromCollectionStack(((AssociationAttributeDefinition)attributeDefinition).toCollectionDefinition());
     }
   }
   log.tracef("%s Finishing up attribute : %s",StringHelper.repeat("<<",fetchSourceStack.size()),attributeDefinition);
