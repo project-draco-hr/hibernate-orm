@@ -1,10 +1,14 @@
 {
   final CollectionElementDefinition elementDefinition=collectionDefinition.getElementDefinition();
   strategy.startingCollectionElements(elementDefinition);
-  if (elementDefinition.getType().isComponentType()) {
+  final Type collectionElementType=elementDefinition.getType();
+  if (collectionElementType.isAnyType()) {
+    visitAnyDefinition(elementDefinition.toAnyMappingDefinition());
+  }
+ else   if (collectionElementType.isComponentType()) {
     visitCompositeDefinition(elementDefinition.toCompositeElementDefinition());
   }
- else   if (elementDefinition.getType().isEntityType()) {
+ else   if (collectionElementType.isEntityType()) {
     if (!collectionDefinition.getCollectionPersister().isOneToMany()) {
       final QueryableCollection queryableCollection=(QueryableCollection)collectionDefinition.getCollectionPersister();
       addAssociationKey(new AssociationKey(queryableCollection.getTableName(),queryableCollection.getElementColumnNames()));

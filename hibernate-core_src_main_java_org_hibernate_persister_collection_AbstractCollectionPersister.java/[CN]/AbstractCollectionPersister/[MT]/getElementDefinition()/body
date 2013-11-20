@@ -9,19 +9,19 @@
     @Override public AnyMappingDefinition toAnyMappingDefinition(){
       final Type type=getType();
       if (!type.isAnyType()) {
-        throw new WalkingException("Cannot treat collection element type as ManyToAny");
+        throw new IllegalStateException("Cannot treat collection element type as ManyToAny");
       }
       return new StandardAnyTypeDefinition((AnyType)type,isLazy() || isExtraLazy());
     }
     @Override public EntityDefinition toEntityDefinition(){
-      if (getType().isComponentType()) {
-        throw new WalkingException("Cannot treat composite collection element type as entity");
+      if (!getType().isEntityType()) {
+        throw new IllegalStateException("Cannot treat collection element type as entity");
       }
       return getElementPersister();
     }
     @Override public CompositeCollectionElementDefinition toCompositeElementDefinition(){
       if (!getType().isComponentType()) {
-        throw new WalkingException("Cannot treat entity collection element type as composite");
+        throw new IllegalStateException("Cannot treat entity collection element type as composite");
       }
       return new CompositeCollectionElementDefinition(){
         @Override public String getName(){

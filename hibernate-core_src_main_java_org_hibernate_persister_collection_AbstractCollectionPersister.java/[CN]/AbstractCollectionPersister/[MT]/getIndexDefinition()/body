@@ -10,14 +10,14 @@
       return getIndexType();
     }
     @Override public EntityDefinition toEntityDefinition(){
-      if (getType().isComponentType()) {
-        throw new IllegalStateException("Cannot treat composite collection index type as entity");
+      if (!getType().isEntityType()) {
+        throw new IllegalStateException("Cannot treat collection index type as entity");
       }
       return (EntityPersister)((AssociationType)getIndexType()).getAssociatedJoinable(getFactory());
     }
     @Override public CompositionDefinition toCompositeDefinition(){
       if (!getType().isComponentType()) {
-        throw new IllegalStateException("Cannot treat entity collection index type as composite");
+        throw new IllegalStateException("Cannot treat collection index type as composite");
       }
       return new CompositeCollectionElementDefinition(){
         @Override public String getName(){
@@ -40,6 +40,13 @@
         }
       }
 ;
+    }
+    @Override public AnyMappingDefinition toAnyMappingDefinition(){
+      final Type type=getType();
+      if (!type.isAnyType()) {
+        throw new IllegalStateException("Cannot treat collection index type as ManyToAny");
+      }
+      return new StandardAnyTypeDefinition((AnyType)type,isLazy() || isExtraLazy());
     }
   }
 ;
