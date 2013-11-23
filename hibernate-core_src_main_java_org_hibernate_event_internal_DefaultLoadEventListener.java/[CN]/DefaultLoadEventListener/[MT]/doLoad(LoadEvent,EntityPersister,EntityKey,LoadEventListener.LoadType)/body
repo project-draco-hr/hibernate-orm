@@ -1,6 +1,8 @@
 {
   final boolean traceEnabled=LOG.isTraceEnabled();
-  if (traceEnabled)   LOG.tracev("Attempting to resolve: {0}",MessageHelper.infoString(persister,event.getEntityId(),event.getSession().getFactory()));
+  if (traceEnabled) {
+    LOG.tracev("Attempting to resolve: {0}",MessageHelper.infoString(persister,event.getEntityId(),event.getSession().getFactory()));
+  }
   Object entity=loadFromSessionCache(event,keyToLoad,options);
   if (entity == REMOVED_ENTITY_MARKER) {
     LOG.debug("Load request found matching entity in context, but it is scheduled for removal; returning null");
@@ -11,15 +13,21 @@
     return null;
   }
   if (entity != null) {
-    if (traceEnabled)     LOG.tracev("Resolved object in session cache: {0}",MessageHelper.infoString(persister,event.getEntityId(),event.getSession().getFactory()));
+    if (traceEnabled) {
+      LOG.tracev("Resolved object in session cache: {0}",MessageHelper.infoString(persister,event.getEntityId(),event.getSession().getFactory()));
+    }
     return entity;
   }
   entity=loadFromSecondLevelCache(event,persister,options);
   if (entity != null) {
-    if (traceEnabled)     LOG.tracev("Resolved object in second-level cache: {0}",MessageHelper.infoString(persister,event.getEntityId(),event.getSession().getFactory()));
+    if (traceEnabled) {
+      LOG.tracev("Resolved object in second-level cache: {0}",MessageHelper.infoString(persister,event.getEntityId(),event.getSession().getFactory()));
+    }
   }
  else {
-    if (traceEnabled)     LOG.tracev("Object not resolved in any cache: {0}",MessageHelper.infoString(persister,event.getEntityId(),event.getSession().getFactory()));
+    if (traceEnabled) {
+      LOG.tracev("Object not resolved in any cache: {0}",MessageHelper.infoString(persister,event.getEntityId(),event.getSession().getFactory()));
+    }
     entity=loadFromDatasource(event,persister,keyToLoad,options);
   }
   if (entity != null && persister.hasNaturalIdentifier()) {
