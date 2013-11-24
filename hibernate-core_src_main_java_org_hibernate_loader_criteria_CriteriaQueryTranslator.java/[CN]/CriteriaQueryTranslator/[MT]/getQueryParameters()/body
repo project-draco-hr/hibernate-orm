@@ -1,10 +1,10 @@
 {
-  LockOptions lockOptions=new LockOptions();
-  RowSelection selection=new RowSelection();
+  final RowSelection selection=new RowSelection();
   selection.setFirstRow(rootCriteria.getFirstResult());
   selection.setMaxRows(rootCriteria.getMaxResults());
   selection.setTimeout(rootCriteria.getTimeout());
   selection.setFetchSize(rootCriteria.getFetchSize());
+  final LockOptions lockOptions=new LockOptions();
   final Map<String,LockMode> lockModeMap=rootCriteria.getLockModes();
   for (  final String key : lockModeMap.keySet()) {
     final Criteria subcriteria=getAliasedCriteria(key);
@@ -14,29 +14,29 @@
   final List<Type> types=new ArrayList<Type>();
   final Iterator<CriteriaImpl.Subcriteria> subcriteriaIterator=rootCriteria.iterateSubcriteria();
   while (subcriteriaIterator.hasNext()) {
-    CriteriaImpl.Subcriteria subcriteria=subcriteriaIterator.next();
-    LockMode lm=subcriteria.getLockMode();
+    final CriteriaImpl.Subcriteria subcriteria=subcriteriaIterator.next();
+    final LockMode lm=subcriteria.getLockMode();
     if (lm != null) {
       lockOptions.setAliasSpecificLockMode(getSQLAlias(subcriteria),lm);
     }
     if (subcriteria.getWithClause() != null) {
-      TypedValue[] tv=subcriteria.getWithClause().getTypedValues(subcriteria,this);
+      final TypedValue[] tv=subcriteria.getWithClause().getTypedValues(subcriteria,this);
       for (      TypedValue aTv : tv) {
         values.add(aTv.getValue());
         types.add(aTv.getType());
       }
     }
   }
-  Iterator<CriteriaImpl.CriterionEntry> iter=rootCriteria.iterateExpressionEntries();
+  final Iterator<CriteriaImpl.CriterionEntry> iter=rootCriteria.iterateExpressionEntries();
   while (iter.hasNext()) {
-    CriteriaImpl.CriterionEntry ce=iter.next();
-    TypedValue[] tv=ce.getCriterion().getTypedValues(ce.getCriteria(),this);
+    final CriteriaImpl.CriterionEntry ce=iter.next();
+    final TypedValue[] tv=ce.getCriterion().getTypedValues(ce.getCriteria(),this);
     for (    TypedValue aTv : tv) {
       values.add(aTv.getValue());
       types.add(aTv.getType());
     }
   }
-  Object[] valueArray=values.toArray();
-  Type[] typeArray=ArrayHelper.toTypeArray(types);
+  final Object[] valueArray=values.toArray();
+  final Type[] typeArray=ArrayHelper.toTypeArray(types);
   return new QueryParameters(typeArray,valueArray,lockOptions,selection,rootCriteria.isReadOnlyInitialized(),(rootCriteria.isReadOnlyInitialized() && rootCriteria.isReadOnly()),rootCriteria.getCacheable(),rootCriteria.getCacheRegion(),rootCriteria.getComment(),rootCriteria.getQueryHints(),rootCriteria.isLookupByNaturalKey(),rootCriteria.getResultTransformer());
 }
