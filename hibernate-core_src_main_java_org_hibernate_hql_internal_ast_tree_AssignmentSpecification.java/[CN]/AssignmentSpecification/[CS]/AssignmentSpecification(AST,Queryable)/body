@@ -4,18 +4,14 @@
   }
   this.eq=eq;
   this.factory=persister.getFactory();
-  DotNode lhs=(DotNode)eq.getFirstChild();
-  SqlNode rhs=(SqlNode)lhs.getNextSibling();
+  final DotNode lhs=(DotNode)eq.getFirstChild();
+  final SqlNode rhs=(SqlNode)lhs.getNextSibling();
   validateLhs(lhs);
   final String propertyPath=lhs.getPropertyPath();
-  Set temp=new HashSet();
+  Set<String> temp=new HashSet<String>();
   if (persister instanceof UnionSubclassEntityPersister) {
-    UnionSubclassEntityPersister usep=(UnionSubclassEntityPersister)persister;
-    String[] tables=persister.getConstraintOrderedTableNameClosure();
-    int size=tables.length;
-    for (int i=0; i < size; i++) {
-      temp.add(tables[i]);
-    }
+    final String[] tables=persister.getConstraintOrderedTableNameClosure();
+    Collections.addAll(temp,tables);
   }
  else {
     temp.add(persister.getSubclassTableName(persister.getSubclassPropertyTableNumber(propertyPath)));

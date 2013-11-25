@@ -1,3 +1,11 @@
 {
-  return getStatus() == Status.SAVING || (earlyInsert ? !isExistsInDatabase() : session.getPersistenceContext().getNullifiableEntityKeys().contains(getEntityKey()));
+  if (getStatus() == Status.SAVING) {
+    return true;
+  }
+ else   if (earlyInsert) {
+    return !isExistsInDatabase();
+  }
+ else {
+    return session.getPersistenceContext().getNullifiableEntityKeys().contains(getEntityKey());
+  }
 }

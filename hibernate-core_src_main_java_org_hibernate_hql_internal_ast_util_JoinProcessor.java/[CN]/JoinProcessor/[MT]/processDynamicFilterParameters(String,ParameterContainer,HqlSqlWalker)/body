@@ -3,7 +3,7 @@
     return;
   }
   Dialect dialect=walker.getSessionFactoryHelper().getFactory().getDialect();
-  String symbols=new StringBuilder().append(ParserHelper.HQL_SEPARATORS).append(dialect.openQuote()).append(dialect.closeQuote()).toString();
+  String symbols=ParserHelper.HQL_SEPARATORS + dialect.openQuote() + dialect.closeQuote();
   StringTokenizer tokens=new StringTokenizer(sqlFragment,symbols,true);
   StringBuilder result=new StringBuilder();
   while (tokens.hasMoreTokens()) {
@@ -15,7 +15,13 @@
       final Object value=filter.getParameter(parts[1]);
       final Type type=filter.getFilterDefinition().getParameterType(parts[1]);
       final String typeBindFragment=StringHelper.join(",",ArrayHelper.fillArray("?",type.getColumnSpan(walker.getSessionFactoryHelper().getFactory())));
-      final String bindFragment=(value != null && Collection.class.isInstance(value)) ? StringHelper.join(",",ArrayHelper.fillArray(typeBindFragment,((Collection)value).size())) : typeBindFragment;
+      final String bindFragment;
+      if (value != null && Collection.class.isInstance(value)) {
+        bindFragment=StringHelper.join(",",ArrayHelper.fillArray(typeBindFragment,((Collection)value).size()));
+      }
+ else {
+        bindFragment=typeBindFragment;
+      }
       result.append(bindFragment);
       container.addEmbeddedParameter(new DynamicFilterParameterSpecification(parts[0],parts[1],type));
     }

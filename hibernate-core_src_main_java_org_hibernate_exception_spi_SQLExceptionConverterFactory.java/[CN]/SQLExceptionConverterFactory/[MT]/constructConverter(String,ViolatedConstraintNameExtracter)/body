@@ -1,15 +1,15 @@
 {
   try {
     LOG.tracev("Attempting to construct instance of specified SQLExceptionConverter [{0}]",converterClassName);
-    Class converterClass=ReflectHelper.classForName(converterClassName);
-    Constructor[] ctors=converterClass.getDeclaredConstructors();
-    for (int i=0; i < ctors.length; i++) {
-      if (ctors[i].getParameterTypes() != null && ctors[i].getParameterTypes().length == 1) {
-        if (ViolatedConstraintNameExtracter.class.isAssignableFrom(ctors[i].getParameterTypes()[0])) {
+    final Class converterClass=ReflectHelper.classForName(converterClassName);
+    final Constructor[] ctors=converterClass.getDeclaredConstructors();
+    for (    Constructor ctor : ctors) {
+      if (ctor.getParameterTypes() != null && ctor.getParameterTypes().length == 1) {
+        if (ViolatedConstraintNameExtracter.class.isAssignableFrom(ctor.getParameterTypes()[0])) {
           try {
-            return (SQLExceptionConverter)ctors[i].newInstance(new Object[]{violatedConstraintNameExtracter});
+            return (SQLExceptionConverter)ctor.newInstance(violatedConstraintNameExtracter);
           }
- catch (          Throwable t) {
+ catch (          Throwable ignore) {
           }
         }
       }

@@ -1,9 +1,9 @@
 {
-  Node lhs=getLeftHandOperand();
+  final Node lhs=getLeftHandOperand();
   if (lhs == null) {
     throw new SemanticException("left-hand operand of in operator was null");
   }
-  Node inList=getInList();
+  final Node inList=getInList();
   if (inList == null) {
     throw new SemanticException("right-hand operand of in operator was null");
   }
@@ -17,14 +17,20 @@
       inListChild=inListChild.getNextSibling();
     }
   }
-  SessionFactoryImplementor sessionFactory=getSessionFactoryHelper().getFactory();
-  if (sessionFactory.getDialect().supportsRowValueConstructorSyntaxInInList())   return;
-  Type lhsType=extractDataType(lhs);
-  if (lhsType == null)   return;
-  int lhsColumnSpan=lhsType.getColumnSpan(sessionFactory);
-  Node rhsNode=(Node)inList.getFirstChild();
-  if (!isNodeAcceptable(rhsNode))   return;
-  int rhsColumnSpan=0;
+  final SessionFactoryImplementor sessionFactory=getSessionFactoryHelper().getFactory();
+  if (sessionFactory.getDialect().supportsRowValueConstructorSyntaxInInList()) {
+    return;
+  }
+  final Type lhsType=extractDataType(lhs);
+  if (lhsType == null) {
+    return;
+  }
+  final int lhsColumnSpan=lhsType.getColumnSpan(sessionFactory);
+  final Node rhsNode=(Node)inList.getFirstChild();
+  if (!isNodeAcceptable(rhsNode)) {
+    return;
+  }
+  int rhsColumnSpan;
   if (rhsNode == null) {
     return;
   }
@@ -32,8 +38,10 @@
     rhsColumnSpan=rhsNode.getNumberOfChildren();
   }
  else {
-    Type rhsType=extractDataType(rhsNode);
-    if (rhsType == null)     return;
+    final Type rhsType=extractDataType(rhsNode);
+    if (rhsType == null) {
+      return;
+    }
     rhsColumnSpan=rhsType.getColumnSpan(sessionFactory);
   }
   if (lhsColumnSpan > 1 && rhsColumnSpan > 1) {
