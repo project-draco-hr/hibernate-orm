@@ -1,6 +1,5 @@
 {
   final CollectionQuerySpace rightHandSide=(CollectionQuerySpace)join.getRightHandSide();
-  final CollectionReferenceAliases aliases=aliasResolutionContext.generateCollectionReferenceAliases(rightHandSide.getUid(),rightHandSide.getCollectionPersister());
   if (rightHandSide.getCollectionPersister().isOneToMany() || rightHandSide.getCollectionPersister().isManyToMany()) {
     Join collectionElementJoin=null;
     for (    Join collectionJoin : rightHandSide.getJoins()) {
@@ -9,7 +8,10 @@
     if (collectionElementJoin == null) {
       throw new IllegalStateException(String.format("Could not locate collection element join within collection join [%s : %s]",rightHandSide.getUid(),rightHandSide.getCollectionPersister()));
     }
-    aliasResolutionContext.registerQuerySpaceAliases(collectionElementJoin.getRightHandSide().getUid(),new EntityReferenceAliasesImpl(aliases.getElementTableAlias(),aliases.getEntityElementColumnAliases()));
+    aliasResolutionContext.generateCollectionReferenceAliases(rightHandSide.getUid(),rightHandSide.getCollectionPersister(),collectionElementJoin.getRightHandSide().getUid());
+  }
+ else {
+    aliasResolutionContext.generateCollectionReferenceAliases(rightHandSide.getUid(),rightHandSide.getCollectionPersister(),null);
   }
   addJoins(join,joinFragment,(Joinable)rightHandSide.getCollectionPersister());
 }
