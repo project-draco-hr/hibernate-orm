@@ -18,18 +18,14 @@
     if (StringHelper.isNotEmpty(ordering)) {
       selectStatementBuilder.appendOrderByFragment(ordering);
     }
-    final EntityReferenceAliases entityReferenceAliases=new EntityReferenceAliasesImpl(aliases.getCollectionTableAlias(),aliases.getEntityElementColumnAliases());
-    aliasResolutionContext.registerQuerySpaceAliases(fetch.getQuerySpaceUid(),entityReferenceAliases);
-    readerCollector.add(new EntityReferenceInitializerImpl((EntityReference)fetch.getElementGraph(),entityReferenceAliases));
+    readerCollector.add(new EntityReferenceInitializerImpl((EntityReference)fetch.getElementGraph(),aliasResolutionContext.resolveEntityReferenceAliases(fetch.getElementGraph().getQuerySpaceUid())));
   }
  else {
     selectStatementBuilder.appendSelectClauseFragment(queryableCollection.selectFragment(aliases.getElementTableAlias(),aliases.getCollectionColumnAliases().getSuffix()));
     if (fetch.getCollectionPersister().isOneToMany()) {
       final OuterJoinLoadable elementPersister=(OuterJoinLoadable)queryableCollection.getElementPersister();
       selectStatementBuilder.appendSelectClauseFragment(elementPersister.selectFragment(aliases.getElementTableAlias(),aliases.getEntityElementColumnAliases().getSuffix()));
-      final EntityReferenceAliases entityReferenceAliases=new EntityReferenceAliasesImpl(aliases.getElementTableAlias(),aliases.getEntityElementColumnAliases());
-      aliasResolutionContext.registerQuerySpaceAliases(fetch.getQuerySpaceUid(),entityReferenceAliases);
-      readerCollector.add(new EntityReferenceInitializerImpl((EntityReference)fetch.getElementGraph(),entityReferenceAliases));
+      readerCollector.add(new EntityReferenceInitializerImpl((EntityReference)fetch.getElementGraph(),aliasResolutionContext.resolveEntityReferenceAliases(fetch.getElementGraph().getQuerySpaceUid())));
     }
     final String ordering=queryableCollection.getSQLOrderByString(aliases.getElementTableAlias());
     if (StringHelper.isNotEmpty(ordering)) {
