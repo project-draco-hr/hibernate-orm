@@ -5,13 +5,14 @@
   entityGraph.addAttributeNodes("location");
   entityGraph.addAttributeNodes("markets");
   Query query=entityManager.createQuery("from " + Company.class.getName());
-  query.setHint(QueryHints.HINT_FETCHGRAPH,entityGraph);
+  query.setHint(QueryHints.HINT_LOADGRAPH,entityGraph);
   Company company=(Company)query.getSingleResult();
   entityManager.getTransaction().commit();
   entityManager.close();
   assertFalse(Hibernate.isInitialized(company.employees));
   assertTrue(Hibernate.isInitialized(company.location));
   assertTrue(Hibernate.isInitialized(company.markets));
+  assertTrue(Hibernate.isInitialized(company.phoneNumbers));
   entityManager=getOrCreateEntityManager();
   entityManager.getTransaction().begin();
   Subgraph<Employee> subgraph1=entityGraph.addSubgraph("employees");
@@ -19,13 +20,14 @@
   Subgraph<Employee> subgraph2=subgraph1.addSubgraph("managers");
   subgraph2.addAttributeNodes("managers");
   query=entityManager.createQuery("from " + Company.class.getName());
-  query.setHint(QueryHints.HINT_FETCHGRAPH,entityGraph);
+  query.setHint(QueryHints.HINT_LOADGRAPH,entityGraph);
   company=(Company)query.getSingleResult();
   entityManager.getTransaction().commit();
   entityManager.close();
   assertTrue(Hibernate.isInitialized(company.employees));
   assertTrue(Hibernate.isInitialized(company.location));
   assertTrue(Hibernate.isInitialized(company.markets));
+  assertTrue(Hibernate.isInitialized(company.phoneNumbers));
   boolean foundManager=false;
   Iterator<Employee> employeeItr=company.employees.iterator();
   while (employeeItr.hasNext()) {
