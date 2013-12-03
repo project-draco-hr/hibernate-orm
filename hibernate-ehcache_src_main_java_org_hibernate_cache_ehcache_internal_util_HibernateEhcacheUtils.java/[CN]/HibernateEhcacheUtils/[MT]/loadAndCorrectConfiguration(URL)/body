@@ -4,18 +4,10 @@
     return null;
   }
   if (config.getDefaultCacheConfiguration() != null && config.getDefaultCacheConfiguration().isTerracottaClustered()) {
-    if (ValueMode.IDENTITY.equals(config.getDefaultCacheConfiguration().getTerracottaConfiguration().getValueMode())) {
-      LOG.incompatibleCacheValueMode();
-      config.getDefaultCacheConfiguration().getTerracottaConfiguration().setValueMode(ValueMode.SERIALIZATION.name());
-    }
     setupHibernateTimeoutBehavior(config.getDefaultCacheConfiguration().getTerracottaConfiguration().getNonstopConfiguration());
   }
   for (  CacheConfiguration cacheConfig : config.getCacheConfigurations().values()) {
     if (cacheConfig.isTerracottaClustered()) {
-      if (ValueMode.IDENTITY.equals(cacheConfig.getTerracottaConfiguration().getValueMode())) {
-        LOG.incompatibleCacheValueModePerCache(cacheConfig.getName());
-        cacheConfig.getTerracottaConfiguration().setValueMode(ValueMode.SERIALIZATION.name());
-      }
       setupHibernateTimeoutBehavior(cacheConfig.getTerracottaConfiguration().getNonstopConfiguration());
     }
   }

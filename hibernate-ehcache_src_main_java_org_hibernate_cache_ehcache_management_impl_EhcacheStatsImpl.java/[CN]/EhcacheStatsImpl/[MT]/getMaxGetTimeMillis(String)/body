@@ -1,7 +1,8 @@
 {
   final Cache cache=cacheManager.getCache(cacheName);
   if (cache != null) {
-    return cache.getLiveCacheStatistics().getMaxGetTimeMillis();
+    final Long maximum=cache.getStatistics().cacheGetOperation().latency().maximum().value();
+    return maximum == null ? 0 : TimeUnit.MILLISECONDS.convert(maximum,TimeUnit.NANOSECONDS);
   }
  else {
     return 0;

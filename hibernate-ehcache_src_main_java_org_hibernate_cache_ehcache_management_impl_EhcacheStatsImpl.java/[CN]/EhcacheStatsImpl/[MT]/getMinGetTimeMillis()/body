@@ -1,10 +1,13 @@
 {
-  long rv=0;
+  long rv=Long.MAX_VALUE;
   for (  String cacheName : cacheManager.getCacheNames()) {
     final Cache cache=cacheManager.getCache(cacheName);
     if (cache != null) {
-      rv=Math.max(rv,cache.getLiveCacheStatistics().getMinGetTimeMillis());
+      final Long minimum=cache.getStatistics().cacheGetOperation().latency().minimum().value();
+      if (minimum != null) {
+        rv=Math.min(rv,TimeUnit.MILLISECONDS.convert(minimum,TimeUnit.NANOSECONDS));
+      }
     }
   }
-  return rv;
+  return rv == Long.MAX_VALUE ? 0 : rv;
 }

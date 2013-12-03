@@ -1,7 +1,8 @@
 {
   final Cache cache=this.cacheManager.getCache(region);
   if (cache != null) {
-    return cache.getLiveCacheStatistics().getAverageGetTimeMillis();
+    final Double avg=cache.getStatistics().cacheGetOperation().latency().average().value();
+    return TimeUnit.MILLISECONDS.convert(avg.longValue(),TimeUnit.NANOSECONDS);
   }
  else {
     return -1f;
