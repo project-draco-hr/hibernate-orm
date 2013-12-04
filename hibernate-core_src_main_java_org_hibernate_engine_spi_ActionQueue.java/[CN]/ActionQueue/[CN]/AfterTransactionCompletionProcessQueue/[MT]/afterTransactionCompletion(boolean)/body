@@ -1,7 +1,7 @@
 {
-  for (  AfterTransactionCompletionProcess process : processes) {
+  while (!processes.isEmpty()) {
     try {
-      process.doAfterTransactionCompletion(success,session);
+      processes.poll().doAfterTransactionCompletion(success,session);
     }
  catch (    CacheException ce) {
       LOG.unableToReleaseCacheLock(ce);
@@ -10,7 +10,6 @@ catch (    Exception e) {
       throw new AssertionFailure("Exception releasing cache locks",e);
     }
   }
-  processes.clear();
   if (session.getFactory().getSettings().isQueryCacheEnabled()) {
     session.getFactory().getUpdateTimestampsCache().invalidate(querySpacesToInvalidate.toArray(new String[querySpacesToInvalidate.size()]),session);
   }
