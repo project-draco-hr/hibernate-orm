@@ -19,6 +19,7 @@
       column.setUpdatable(false);
     }
   }
+  final JoinColumn joinColumn=property.getAnnotation(JoinColumn.class);
   boolean hasSpecjManyToOne=false;
   if (mappings.isSpecjProprietarySyntaxEnabled()) {
     String columnName="";
@@ -26,7 +27,6 @@
       if (prop.isAnnotationPresent(Id.class) && prop.isAnnotationPresent(Column.class)) {
         columnName=prop.getAnnotation(Column.class).name();
       }
-      final JoinColumn joinColumn=property.getAnnotation(JoinColumn.class);
       if (property.isAnnotationPresent(ManyToOne.class) && joinColumn != null && !BinderHelper.isEmptyAnnotationValue(joinColumn.name()) && joinColumn.name().equals(columnName) && !property.isAnnotationPresent(MapsId.class)) {
         hasSpecjManyToOne=true;
         for (        Ejb3JoinColumn column : columns) {
@@ -39,8 +39,14 @@
   value.setTypeName(inferredData.getClassOrElementName());
   final String propertyName=inferredData.getPropertyName();
   value.setTypeUsingReflection(propertyHolder.getClassName(),propertyName);
-  ForeignKey fk=property.getAnnotation(ForeignKey.class);
-  String fkName=fk != null ? fk.name() : "";
+  String fkName=null;
+  if (joinColumn != null && joinColumn.foreignKey() != null) {
+    fkName=joinColumn.foreignKey().name();
+  }
+  if (BinderHelper.isEmptyAnnotationValue(fkName)) {
+    ForeignKey fk=property.getAnnotation(ForeignKey.class);
+    fkName=fk != null ? fk.name() : "";
+  }
   if (!BinderHelper.isEmptyAnnotationValue(fkName)) {
     value.setForeignKeyName(fkName);
   }
