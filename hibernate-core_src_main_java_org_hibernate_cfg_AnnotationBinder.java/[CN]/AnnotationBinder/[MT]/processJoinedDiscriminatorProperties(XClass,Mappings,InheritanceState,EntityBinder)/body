@@ -7,7 +7,7 @@
   entityBinder.setDiscriminatorValue(discriminatorValue);
   final DiscriminatorColumn discriminatorColumnAnnotation=clazzToProcess.getAnnotation(DiscriminatorColumn.class);
   if (!inheritanceState.hasParents()) {
-    if (discriminatorColumnAnnotation != null || mappings.useImplicitDiscriminatorColumnForJoinedInheritance()) {
+    if ((discriminatorColumnAnnotation != null && !mappings.ignoreExplicitDiscriminatorColumnForJoinedInheritance()) || (discriminatorColumnAnnotation == null && mappings.useImplicitDiscriminatorColumnForJoinedInheritance())) {
       final DiscriminatorType discriminatorType=discriminatorColumnAnnotation != null ? discriminatorColumnAnnotation.discriminatorType() : DiscriminatorType.STRING;
       return Ejb3DiscriminatorColumn.buildDiscriminatorColumn(discriminatorType,discriminatorColumnAnnotation,null,mappings);
     }
