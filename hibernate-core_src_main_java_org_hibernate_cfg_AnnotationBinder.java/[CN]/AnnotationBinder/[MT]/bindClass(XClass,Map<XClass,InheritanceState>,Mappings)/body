@@ -39,9 +39,15 @@
     uniqueConstraints=TableBinder.buildUniqueConstraintHolders(tabAnn.uniqueConstraints());
   }
   Ejb3JoinColumn[] inheritanceJoinedColumns=makeInheritanceJoinColumns(clazzToProcess,mappings,inheritanceState,superEntity);
-  Ejb3DiscriminatorColumn discriminatorColumn=null;
+  final Ejb3DiscriminatorColumn discriminatorColumn;
   if (InheritanceType.SINGLE_TABLE.equals(inheritanceState.getType())) {
-    discriminatorColumn=processDiscriminatorProperties(clazzToProcess,mappings,inheritanceState,entityBinder);
+    discriminatorColumn=processSingleTableDiscriminatorProperties(clazzToProcess,mappings,inheritanceState,entityBinder);
+  }
+ else   if (InheritanceType.JOINED.equals(inheritanceState.getType())) {
+    discriminatorColumn=processJoinedDiscriminatorProperties(clazzToProcess,mappings,inheritanceState,entityBinder);
+  }
+ else {
+    discriminatorColumn=null;
   }
   entityBinder.setProxy(clazzToProcess.getAnnotation(Proxy.class));
   entityBinder.setBatchSize(clazzToProcess.getAnnotation(BatchSize.class));
@@ -64,36 +70,48 @@
   entityBinder.firstLevelSecondaryTablesBinding(secTabAnn,secTabsAnn);
   OnDelete onDeleteAnn=clazzToProcess.getAnnotation(OnDelete.class);
   boolean onDeleteAppropriate=false;
-  if (InheritanceType.JOINED.equals(inheritanceState.getType()) && inheritanceState.hasParents()) {
-    onDeleteAppropriate=true;
-    final JoinedSubclass jsc=(JoinedSubclass)persistentClass;
-    SimpleValue key=new DependantValue(mappings,jsc.getTable(),jsc.getIdentifier());
-    jsc.setKey(key);
-    ForeignKey fk=clazzToProcess.getAnnotation(ForeignKey.class);
-    if (fk != null && !BinderHelper.isEmptyAnnotationValue(fk.name())) {
-      key.setForeignKeyName(fk.name());
-    }
-    if (onDeleteAnn != null) {
-      key.setCascadeDeleteEnabled(OnDeleteAction.CASCADE.equals(onDeleteAnn.action()));
-    }
+  final boolean isInheritanceRoot=!inheritanceState.hasParents();
+  final boolean hasSubclasses=inheritanceState.hasSiblings();
+  if (InheritanceType.JOINED.equals(inheritanceState.getType())) {
+    if (inheritanceState.hasParents()) {
+      onDeleteAppropriate=true;
+      final JoinedSubclass jsc=(JoinedSubclass)persistentClass;
+      SimpleValue key=new DependantValue(mappings,jsc.getTable(),jsc.getIdentifier());
+      jsc.setKey(key);
+      ForeignKey fk=clazzToProcess.getAnnotation(ForeignKey.class);
+      if (fk != null && !BinderHelper.isEmptyAnnotationValue(fk.name())) {
+        key.setForeignKeyName(fk.name());
+      }
+      if (onDeleteAnn != null) {
+        key.setCascadeDeleteEnabled(OnDeleteAction.CASCADE.equals(onDeleteAnn.action()));
+      }
  else {
-      key.setCascadeDeleteEnabled(false);
+        key.setCascadeDeleteEnabled(false);
+      }
+      SecondPass sp=new JoinedSubclassFkSecondPass(jsc,inheritanceJoinedColumns,key,mappings);
+      mappings.addSecondPass(sp);
+      mappings.addSecondPass(new CreateKeySecondPass(jsc));
     }
-    SecondPass sp=new JoinedSubclassFkSecondPass(jsc,inheritanceJoinedColumns,key,mappings);
-    mappings.addSecondPass(sp);
-    mappings.addSecondPass(new CreateKeySecondPass(jsc));
+    if (isInheritanceRoot) {
+      if (discriminatorColumn != null) {
+        if (hasSubclasses || !discriminatorColumn.isImplicit()) {
+          bindDiscriminatorColumnToRootPersistentClass((RootClass)persistentClass,discriminatorColumn,entityBinder.getSecondaryTables(),propertyHolder,mappings);
+          entityBinder.bindDiscriminatorValue();
+        }
+      }
+    }
   }
  else   if (InheritanceType.SINGLE_TABLE.equals(inheritanceState.getType())) {
-    if (!inheritanceState.hasParents()) {
-      if (inheritanceState.hasSiblings() || !discriminatorColumn.isImplicit()) {
-        bindDiscriminatorToPersistentClass((RootClass)persistentClass,discriminatorColumn,entityBinder.getSecondaryTables(),propertyHolder,mappings);
+    if (isInheritanceRoot) {
+      if (hasSubclasses || !discriminatorColumn.isImplicit()) {
+        bindDiscriminatorColumnToRootPersistentClass((RootClass)persistentClass,discriminatorColumn,entityBinder.getSecondaryTables(),propertyHolder,mappings);
         entityBinder.bindDiscriminatorValue();
       }
     }
   }
- else   if (InheritanceType.TABLE_PER_CLASS.equals(inheritanceState.getType())) {
+  if (onDeleteAnn != null && !onDeleteAppropriate) {
+    LOG.invalidOnDeleteAnnotation(propertyHolder.getEntityName());
   }
-  if (onDeleteAnn != null && !onDeleteAppropriate)   LOG.invalidOnDeleteAnnotation(propertyHolder.getEntityName());
   HashMap<String,IdGenerator> classGenerators=buildLocalGenerators(clazzToProcess,mappings);
   final InheritanceState.ElementsToProcess elementsToProcess=inheritanceState.getElementsToProcess();
   inheritanceState.postProcess(persistentClass,entityBinder);

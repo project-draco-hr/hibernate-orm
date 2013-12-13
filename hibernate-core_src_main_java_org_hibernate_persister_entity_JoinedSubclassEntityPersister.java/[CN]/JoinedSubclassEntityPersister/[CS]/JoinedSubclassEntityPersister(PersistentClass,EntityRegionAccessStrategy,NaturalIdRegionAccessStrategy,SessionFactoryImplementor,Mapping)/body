@@ -1,15 +1,57 @@
 {
   super(persistentClass,cacheAccessStrategy,naturalIdRegionAccessStrategy,factory);
   if (persistentClass.isPolymorphic()) {
-    try {
-      discriminatorValue=persistentClass.getSubclassId();
-      discriminatorSQLString=discriminatorValue.toString();
+    final Value discriminatorMapping=persistentClass.getDiscriminator();
+    if (discriminatorMapping != null) {
+      log.debug("Encountered explicit discriminator mapping for joined inheritance");
+      final Selectable selectable=discriminatorMapping.getColumnIterator().next();
+      if (Formula.class.isInstance(selectable)) {
+        throw new MappingException("Discriminator formulas on joined inheritance hierarchies not supported at this time");
+      }
+ else {
+        final Column column=(Column)selectable;
+        explicitDiscriminatorColumnName=column.getQuotedName(factory.getDialect());
+        discriminatorAlias=column.getAlias(factory.getDialect(),persistentClass.getRootTable());
+      }
+      discriminatorType=(DiscriminatorType)persistentClass.getDiscriminator().getType();
+      if (persistentClass.isDiscriminatorValueNull()) {
+        discriminatorValue=NULL_DISCRIMINATOR;
+        discriminatorSQLString=InFragment.NULL;
+      }
+ else       if (persistentClass.isDiscriminatorValueNotNull()) {
+        discriminatorValue=NOT_NULL_DISCRIMINATOR;
+        discriminatorSQLString=InFragment.NOT_NULL;
+      }
+ else {
+        try {
+          discriminatorValue=discriminatorType.stringToObject(persistentClass.getDiscriminatorValue());
+          discriminatorSQLString=discriminatorType.objectToSQLString(discriminatorValue,factory.getDialect());
+        }
+ catch (        ClassCastException cce) {
+          throw new MappingException("Illegal discriminator type: " + discriminatorType.getName());
+        }
+catch (        Exception e) {
+          throw new MappingException("Could not format discriminator value to SQL string",e);
+        }
+      }
     }
- catch (    Exception e) {
-      throw new MappingException("Could not format discriminator value to SQL string",e);
+ else {
+      explicitDiscriminatorColumnName=null;
+      discriminatorAlias=IMPLICIT_DISCRIMINATOR_ALIAS;
+      discriminatorType=StandardBasicTypes.INTEGER;
+      try {
+        discriminatorValue=persistentClass.getSubclassId();
+        discriminatorSQLString=discriminatorValue.toString();
+      }
+ catch (      Exception e) {
+        throw new MappingException("Could not format discriminator value to SQL string",e);
+      }
     }
   }
  else {
+    explicitDiscriminatorColumnName=null;
+    discriminatorAlias=IMPLICIT_DISCRIMINATOR_ALIAS;
+    discriminatorType=StandardBasicTypes.INTEGER;
     discriminatorValue=null;
     discriminatorSQLString=null;
   }
@@ -235,9 +277,31 @@
     subclassClosure[k]=sc.getEntityName();
     try {
       if (persistentClass.isPolymorphic()) {
-        Integer subclassId=sc.getSubclassId();
-        subclassesByDiscriminatorValue.put(subclassId,sc.getEntityName());
-        discriminatorValues[k]=subclassId.toString();
+        final Object discriminatorValue;
+        if (explicitDiscriminatorColumnName != null) {
+          if (sc.isDiscriminatorValueNull()) {
+            discriminatorValue=NULL_DISCRIMINATOR;
+          }
+ else           if (sc.isDiscriminatorValueNotNull()) {
+            discriminatorValue=NOT_NULL_DISCRIMINATOR;
+          }
+ else {
+            try {
+              discriminatorValue=discriminatorType.stringToObject(sc.getDiscriminatorValue());
+            }
+ catch (            ClassCastException cce) {
+              throw new MappingException("Illegal discriminator type: " + discriminatorType.getName());
+            }
+catch (            Exception e) {
+              throw new MappingException("Could not format discriminator value to SQL string",e);
+            }
+          }
+        }
+ else {
+          discriminatorValue=sc.getSubclassId();
+        }
+        subclassesByDiscriminatorValue.put(discriminatorValue,sc.getEntityName());
+        discriminatorValues[k]=discriminatorValue.toString();
         int id=getTableId(sc.getTable().getQualifiedName(factory.getDialect(),factory.getSettings().getDefaultCatalogName(),factory.getSettings().getDefaultSchemaName()),subclassTableNameClosure);
         notNullColumnTableNumbers[k]=id;
         notNullColumnNames[k]=subclassTableKeyColumnClosure[id][0];

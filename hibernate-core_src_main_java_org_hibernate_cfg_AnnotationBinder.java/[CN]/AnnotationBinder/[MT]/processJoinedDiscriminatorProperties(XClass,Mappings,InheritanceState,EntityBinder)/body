@@ -1,0 +1,21 @@
+{
+  if (clazzToProcess.isAnnotationPresent(DiscriminatorFormula.class)) {
+    throw new MappingException("@DiscriminatorFormula on joined inheritance not supported at this time");
+  }
+  final DiscriminatorValue discriminatorValueAnnotation=clazzToProcess.getAnnotation(DiscriminatorValue.class);
+  final String discriminatorValue=discriminatorValueAnnotation != null ? clazzToProcess.getAnnotation(DiscriminatorValue.class).value() : null;
+  entityBinder.setDiscriminatorValue(discriminatorValue);
+  final DiscriminatorColumn discriminatorColumnAnnotation=clazzToProcess.getAnnotation(DiscriminatorColumn.class);
+  if (!inheritanceState.hasParents()) {
+    if (discriminatorColumnAnnotation != null || mappings.useImplicitDiscriminatorColumnForJoinedInheritance()) {
+      final DiscriminatorType discriminatorType=discriminatorColumnAnnotation != null ? discriminatorColumnAnnotation.discriminatorType() : DiscriminatorType.STRING;
+      return Ejb3DiscriminatorColumn.buildDiscriminatorColumn(discriminatorType,discriminatorColumnAnnotation,null,mappings);
+    }
+  }
+ else {
+    if (discriminatorColumnAnnotation != null) {
+      LOG.invalidDiscriminatorAnnotation(clazzToProcess.getName());
+    }
+  }
+  return null;
+}
