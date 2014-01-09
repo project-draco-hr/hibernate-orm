@@ -1,0 +1,24 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  QueryImpl jpaQuery=em.createQuery("delete from Lockable l").unwrap(QueryImpl.class);
+  org.hibernate.internal.QueryImpl hqlQuery=(org.hibernate.internal.QueryImpl)jpaQuery.getHibernateQuery();
+  assertEquals(LockMode.NONE,hqlQuery.getLockOptions().getLockMode());
+  jpaQuery.setLockMode(LockModeType.NONE);
+  em.getTransaction().commit();
+  em.clear();
+  em.getTransaction().begin();
+  jpaQuery=em.createQuery("delete from Lockable l").unwrap(QueryImpl.class);
+  hqlQuery=(org.hibernate.internal.QueryImpl)jpaQuery.getHibernateQuery();
+  assertEquals(LockMode.NONE,hqlQuery.getLockOptions().getLockMode());
+  try {
+    jpaQuery.setLockMode(LockModeType.PESSIMISTIC_WRITE);
+    fail("IllegalStateException should have been thrown.");
+  }
+ catch (  IllegalStateException e) {
+  }
+ finally {
+    em.getTransaction().rollback();
+    em.close();
+  }
+}
