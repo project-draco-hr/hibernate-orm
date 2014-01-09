@@ -1,0 +1,37 @@
+{
+  final PersistenceUnitDescriptorAdapter pu=new PersistenceUnitDescriptorAdapter(){
+    @Override public List<String> getManagedClassNames(){
+      return Arrays.asList(Entity1.class.getName());
+    }
+  }
+;
+  final Map settings=new HashMap();
+  settings.put(AvailableSettings.HBM2DDL_AUTO,"create-drop");
+  EntityManagerFactory emf=Bootstrap.getEntityManagerFactoryBuilder(pu,settings).build();
+  final EntityPersister ep=emf.unwrap(SessionFactoryImplementor.class).getEntityPersister(Entity1.class.getName());
+  final Type theDatePropertyType=ep.getPropertyType("theDate");
+  final AttributeConverterTypeAdapter type=assertTyping(AttributeConverterTypeAdapter.class,theDatePropertyType);
+  assertTyping(LongToDateConverter.class,type.getAttributeConverter());
+  try {
+    EntityManager em=emf.createEntityManager();
+    em.getTransaction().begin();
+    em.persist(new Entity1(1,"1",new Date()));
+    em.getTransaction().commit();
+    em.close();
+    assertEquals(1,callsToConverter);
+    em=emf.createEntityManager();
+    em.getTransaction().begin();
+    em.find(Entity1.class,1);
+    em.getTransaction().commit();
+    em.close();
+    assertEquals(2,callsToConverter);
+    em=emf.createEntityManager();
+    em.getTransaction().begin();
+    em.createQuery("delete Entity1").executeUpdate();
+    em.getTransaction().commit();
+    em.close();
+  }
+  finally {
+    emf.close();
+  }
+}
