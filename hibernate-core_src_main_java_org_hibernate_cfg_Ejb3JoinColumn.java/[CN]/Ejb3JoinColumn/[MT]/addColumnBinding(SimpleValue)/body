@@ -1,12 +1,13 @@
 {
   if (StringHelper.isEmpty(mappedBy)) {
+    boolean isLogicalColumnQuoted=StringHelper.isQuoted(getLogicalColumnName());
     final ObjectNameNormalizer nameNormalizer=getMappings().getObjectNameNormalizer();
     final String logicalColumnName=nameNormalizer.normalizeIdentifierQuoting(getLogicalColumnName());
     final String referencedColumn=nameNormalizer.normalizeIdentifierQuoting(getReferencedColumn());
     final String unquotedLogColName=StringHelper.unquote(logicalColumnName);
     final String unquotedRefColumn=StringHelper.unquote(referencedColumn);
     String logicalCollectionColumnName=getMappings().getNamingStrategy().logicalCollectionColumnName(unquotedLogColName,getPropertyName(),unquotedRefColumn);
-    if (StringHelper.isQuoted(logicalColumnName) || StringHelper.isQuoted(referencedColumn)) {
+    if (isLogicalColumnQuoted) {
       logicalCollectionColumnName=StringHelper.quote(logicalCollectionColumnName);
     }
     getMappings().addColumnBinding(logicalCollectionColumnName,getMappingColumn(),value.getTable());
