@@ -1,0 +1,16 @@
+{
+  final NamedSQLQueryDefinitionBuilder builder=new NamedSQLQueryDefinitionBuilder();
+  builder.setName("namedQuery");
+  builder.setQuery("select count(*) AS count from organization");
+  builder.setQueryReturns(new NativeSQLQueryReturn[1]);
+  sessionFactory().registerNamedSQLQueryDefinition("namedQuery",builder.createNamedQueryDefinition());
+  final Session s=openSession();
+  s.beginTransaction();
+  final SQLQuery query=(SQLQuery)s.getNamedQuery("namedQuery");
+  query.addScalar("count");
+  final Object result=query.uniqueResult();
+  s.getTransaction().commit();
+  s.close();
+  assertNotNull(result);
+  assertEquals(BigInteger.valueOf(0),result);
+}
