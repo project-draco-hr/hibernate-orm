@@ -20,10 +20,11 @@
           fromElement=fromElementFactory.createEntityJoin(entityType.getAssociatedEntityName(),tableAlias,joinSequence,true,walker.isInFrom(),entityType,role,null);
         }
  else         if (propertyType.isCollectionType()) {
+          CollectionType collectionType=(CollectionType)propertyType;
           final String[] columns=origin.toColumns(originTableAlias,attributeName,false);
           final FromElementFactory fromElementFactory=new FromElementFactory(fromClause,origin,attributeName,classAlias,columns,false);
-          final QueryableCollection queryableCollection=walker.getSessionFactoryHelper().requireQueryableCollection(role);
-          fromElement=fromElementFactory.createCollection(queryableCollection,role,JoinType.LEFT_OUTER_JOIN,true,false);
+          final QueryableCollection queryableCollection=walker.getSessionFactoryHelper().requireQueryableCollection(collectionType.getRole());
+          fromElement=fromElementFactory.createCollection(queryableCollection,collectionType.getRole(),JoinType.LEFT_OUTER_JOIN,true,false);
         }
       }
       if (fromElement != null) {

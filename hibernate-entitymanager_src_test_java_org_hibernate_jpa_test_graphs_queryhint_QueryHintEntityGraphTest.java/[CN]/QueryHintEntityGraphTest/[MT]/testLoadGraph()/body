@@ -15,10 +15,12 @@
   assertTrue(Hibernate.isInitialized(company.phoneNumbers));
   entityManager=getOrCreateEntityManager();
   entityManager.getTransaction().begin();
-  Subgraph<Employee> subgraph1=entityGraph.addSubgraph("employees");
-  subgraph1.addAttributeNodes("managers");
-  Subgraph<Employee> subgraph2=subgraph1.addSubgraph("managers");
-  subgraph2.addAttributeNodes("managers");
+  Subgraph<Employee> subgraph=entityGraph.addSubgraph("employees");
+  subgraph.addAttributeNodes("managers");
+  subgraph.addAttributeNodes("friends");
+  Subgraph<Manager> subSubgraph=subgraph.addSubgraph("managers",Manager.class);
+  subSubgraph.addAttributeNodes("managers");
+  subSubgraph.addAttributeNodes("friends");
   query=entityManager.createQuery("from " + Company.class.getName());
   query.setHint(QueryHints.HINT_LOADGRAPH,entityGraph);
   company=(Company)query.getSingleResult();
@@ -33,10 +35,13 @@
   while (employeeItr.hasNext()) {
     Employee employee=employeeItr.next();
     assertTrue(Hibernate.isInitialized(employee.managers));
-    Iterator<Employee> managerItr=employee.managers.iterator();
+    assertTrue(Hibernate.isInitialized(employee.friends));
+    Iterator<Manager> managerItr=employee.managers.iterator();
     while (managerItr.hasNext()) {
       foundManager=true;
-      assertTrue(Hibernate.isInitialized(managerItr.next().managers));
+      Manager manager=managerItr.next();
+      assertTrue(Hibernate.isInitialized(manager.managers));
+      assertTrue(Hibernate.isInitialized(manager.friends));
     }
   }
   assertTrue(foundManager);
