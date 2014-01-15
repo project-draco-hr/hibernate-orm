@@ -1,0 +1,15 @@
+{
+  final Map<String,Convert> convertAnnotationsMap=new HashMap<String,Convert>();
+  if (tree != null) {
+    applyXmlDefinedConverts(tree,defaults,null,convertAnnotationsMap);
+  }
+  if (defaults.canUseJavaAnnotations()) {
+    applyPhysicalConvertAnnotations(null,convertAnnotationsMap);
+  }
+  if (!convertAnnotationsMap.isEmpty()) {
+    final AnnotationDescriptor groupingDescriptor=new AnnotationDescriptor(Converts.class);
+    groupingDescriptor.setValue("value",convertAnnotationsMap.values().toArray(new Convert[convertAnnotationsMap.size()]));
+    return AnnotationFactory.create(groupingDescriptor);
+  }
+  return null;
+}

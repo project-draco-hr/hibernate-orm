@@ -1,0 +1,22 @@
+{
+  final Map<String,Convert> convertAnnotationsMap=new HashMap<String,Convert>();
+  for (  Element element : elementsForProperty) {
+    final boolean isBasic="basic".equals(element.getName());
+    final boolean isEmbedded="embedded".equals(element.getName());
+    final boolean canHaveConverts=isBasic || isEmbedded;
+    if (!canHaveConverts) {
+      continue;
+    }
+    final String attributeNamePrefix=isBasic ? null : propertyName;
+    applyXmlDefinedConverts(element,defaults,attributeNamePrefix,convertAnnotationsMap);
+  }
+  if (defaults.canUseJavaAnnotations()) {
+    applyPhysicalConvertAnnotations(propertyName,convertAnnotationsMap);
+  }
+  if (!convertAnnotationsMap.isEmpty()) {
+    final AnnotationDescriptor groupingDescriptor=new AnnotationDescriptor(Converts.class);
+    groupingDescriptor.setValue("value",convertAnnotationsMap.values().toArray(new Convert[convertAnnotationsMap.size()]));
+    return AnnotationFactory.create(groupingDescriptor);
+  }
+  return null;
+}

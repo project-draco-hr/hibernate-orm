@@ -3,7 +3,7 @@
     XMLContext.Default defaults=xmlContext.getDefault(className);
     if (className != null && propertyName == null) {
       Element tree=xmlContext.getXMLTree(className);
-      Annotation[] annotations=getJavaAnnotations();
+      Annotation[] annotations=getPhysicalAnnotations();
       List<Annotation> annotationList=new ArrayList<Annotation>(annotations.length + 5);
       annotationsMap=new HashMap<Class,Annotation>(annotations.length + 5);
       for (      Annotation annotation : annotations) {
@@ -35,6 +35,7 @@
       addIfNotNull(annotationList,getAttributeOverrides(tree,defaults,true));
       addIfNotNull(annotationList,getAssociationOverrides(tree,defaults,true));
       addIfNotNull(annotationList,getEntityListeners(tree,defaults));
+      addIfNotNull(annotationList,getConverts(tree,defaults));
       this.annotations=annotationList.toArray(new Annotation[annotationList.size()]);
       for (      Annotation ann : this.annotations) {
         annotationsMap.put(ann.annotationType(),ann);
@@ -43,7 +44,7 @@
     }
  else     if (className != null) {
       Element tree=xmlContext.getXMLTree(className);
-      Annotation[] annotations=getJavaAnnotations();
+      Annotation[] annotations=getPhysicalAnnotations();
       List<Annotation> annotationList=new ArrayList<Annotation>(annotations.length + 5);
       annotationsMap=new HashMap<Class,Annotation>(annotations.length + 5);
       for (      Annotation annotation : annotations) {
@@ -58,7 +59,7 @@
       }
  else {
         if (defaults.canUseJavaAnnotations()) {
-          Annotation annotation=getJavaAnnotation(Access.class);
+          Annotation annotation=getPhysicalAnnotation(Access.class);
           addIfNotNull(annotationList,annotation);
         }
         getId(annotationList,defaults);
@@ -75,6 +76,7 @@
         getElementCollection(annotationList,defaults);
         addIfNotNull(annotationList,getSequenceGenerator(elementsForProperty,defaults));
         addIfNotNull(annotationList,getTableGenerator(elementsForProperty,defaults));
+        addIfNotNull(annotationList,getConvertsForAttribute(elementsForProperty,defaults));
       }
       processEventAnnotations(annotationList,defaults);
       this.annotations=annotationList.toArray(new Annotation[annotationList.size()]);
@@ -83,7 +85,7 @@
       }
     }
  else {
-      this.annotations=getJavaAnnotations();
+      this.annotations=getPhysicalAnnotations();
       annotationsMap=new HashMap<Class,Annotation>(annotations.length + 5);
       for (      Annotation ann : this.annotations) {
         annotationsMap.put(ann.annotationType(),ann);

@@ -1,12 +1,12 @@
 {
-  boolean defaultToJoinTable=!(isJavaAnnotationPresent(JoinColumn.class) || isJavaAnnotationPresent(JoinColumns.class));
+  boolean defaultToJoinTable=!(isPhysicalAnnotationPresent(JoinColumn.class) || isPhysicalAnnotationPresent(JoinColumns.class));
   final Class<? extends Annotation> annotationClass=annotation.annotationType();
   defaultToJoinTable=defaultToJoinTable && ((annotationClass == ManyToMany.class && StringHelper.isEmpty(((ManyToMany)annotation).mappedBy())) || (annotationClass == OneToMany.class && StringHelper.isEmpty(((OneToMany)annotation).mappedBy())) || (annotationClass == ElementCollection.class));
   final Class<JoinTable> annotationType=JoinTable.class;
   if (defaultToJoinTable && (StringHelper.isNotEmpty(defaults.getCatalog()) || StringHelper.isNotEmpty(defaults.getSchema()))) {
     AnnotationDescriptor ad=new AnnotationDescriptor(annotationType);
     if (defaults.canUseJavaAnnotations()) {
-      JoinTable table=getJavaAnnotation(annotationType);
+      JoinTable table=getPhysicalAnnotation(annotationType);
       if (table != null) {
         ad.setValue("name",table.name());
         ad.setValue("schema",table.schema());
@@ -25,7 +25,7 @@
     return AnnotationFactory.create(ad);
   }
  else   if (defaults.canUseJavaAnnotations()) {
-    return getJavaAnnotation(annotationType);
+    return getPhysicalAnnotation(annotationType);
   }
  else {
     return null;
