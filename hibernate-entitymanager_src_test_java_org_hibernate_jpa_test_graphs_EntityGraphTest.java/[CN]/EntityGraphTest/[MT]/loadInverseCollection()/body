@@ -1,0 +1,25 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  Bar bar=new Bar();
+  em.persist(bar);
+  Foo foo=new Foo();
+  foo.bar=bar;
+  bar.foos.add(foo);
+  em.persist(foo);
+  em.getTransaction().commit();
+  em.clear();
+  em.getTransaction().begin();
+  EntityGraph<Foo> fooGraph=em.createEntityGraph(Foo.class);
+  fooGraph.addAttributeNodes("bar");
+  Subgraph barGraph=fooGraph.addSubgraph("bar");
+  barGraph.addAttributeNodes("foos");
+  Map<String,Object> properties=new HashMap<String,Object>();
+  properties.put("javax.persistence.loadgraph",fooGraph);
+  Foo result=em.find(Foo.class,foo.id,properties);
+  assertTrue(Hibernate.isInitialized(result));
+  assertTrue(Hibernate.isInitialized(result.bar));
+  assertTrue(Hibernate.isInitialized(result.bar.foos));
+  em.getTransaction().commit();
+  em.close();
+}
