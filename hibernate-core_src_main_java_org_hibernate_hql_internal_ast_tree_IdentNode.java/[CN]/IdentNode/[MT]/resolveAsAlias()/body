@@ -13,15 +13,18 @@
       columnExpressions=StringHelper.qualifyIfNot(element.getTableAlias(),columnExpressions);
     }
   }
-  final boolean isInNonDistinctCount=getWalker().isInCount() && !getWalker().isInCountDistinct();
+  final Dialect dialect=getWalker().getSessionFactoryHelper().getFactory().getDialect();
+  final boolean isInCount=getWalker().isInCount();
+  final boolean isInDistinctCount=isInCount && getWalker().isInCountDistinct();
+  final boolean isInNonDistinctCount=isInCount && !getWalker().isInCountDistinct();
   final boolean isCompositeValue=columnExpressions.length > 1;
   if (isCompositeValue) {
-    if (isInNonDistinctCount && !getWalker().getSessionFactoryHelper().getFactory().getDialect().supportsTupleCounts()) {
+    if (isInNonDistinctCount && !dialect.supportsTupleCounts()) {
       setText(columnExpressions[0]);
     }
  else {
       String joinedFragment=StringHelper.join(", ",columnExpressions);
-      final boolean shouldSkipWrappingInParenthesis=getWalker().isInCount() || getWalker().getCurrentTopLevelClauseType() == HqlSqlTokenTypes.ORDER || getWalker().getCurrentTopLevelClauseType() == HqlSqlTokenTypes.GROUP;
+      final boolean shouldSkipWrappingInParenthesis=(isInDistinctCount && !dialect.requiresParensForTupleDistinctCounts()) || isInNonDistinctCount || getWalker().getCurrentTopLevelClauseType() == HqlSqlTokenTypes.ORDER || getWalker().getCurrentTopLevelClauseType() == HqlSqlTokenTypes.GROUP;
       if (!shouldSkipWrappingInParenthesis) {
         joinedFragment="(" + joinedFragment + ")";
       }
