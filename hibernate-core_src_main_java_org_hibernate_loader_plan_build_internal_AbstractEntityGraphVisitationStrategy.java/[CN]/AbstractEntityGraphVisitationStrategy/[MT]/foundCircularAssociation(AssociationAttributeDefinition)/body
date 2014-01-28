@@ -1,0 +1,11 @@
+{
+  final FetchStrategy fetchStrategy=determineFetchStrategy(attributeDefinition);
+  if (fetchStrategy.getStyle() != FetchStyle.JOIN) {
+    return;
+  }
+  final GraphNodeImplementor graphNode=graphStack.peekLast();
+  if (attributeDefinition.getAssociationNature() == AssociationAttributeDefinition.AssociationNature.COLLECTION && !graphNode.equals(NON_EXIST_SUBGRAPH_NODE) && graphNode.containsAttribute(attributeDefinition.getName())) {
+    currentSource().buildCollectionAttributeFetch(attributeDefinition,fetchStrategy);
+  }
+  super.foundCircularAssociation(attributeDefinition);
+}
