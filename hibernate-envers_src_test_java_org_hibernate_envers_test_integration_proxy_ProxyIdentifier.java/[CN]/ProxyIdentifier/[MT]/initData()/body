@@ -18,9 +18,11 @@
   mtmnane1.getReferences().add(uste2);
   otmnane1=new OneToManyNotAuditedNullEntity(4,"otmnane1");
   otmnane1.getReferences().add(uste2);
+  emtonane1=new ExtManyToOneNotAuditedNullEntity(5,"emtonane1",uste2,"extension");
   em.persist(mtonane1);
   em.persist(mtmnane1);
   em.persist(otmnane1);
+  em.persist(emtonane1);
   em.getTransaction().commit();
   em.clear();
   em.getTransaction().begin();
@@ -33,6 +35,9 @@
   OneToManyNotAuditedNullEntity tmp3=em.find(OneToManyNotAuditedNullEntity.class,otmnane1.getId());
   tmp3.setReferences(null);
   tmp3=em.merge(tmp3);
+  ExtManyToOneNotAuditedNullEntity tmp4=em.find(ExtManyToOneNotAuditedNullEntity.class,emtonane1.getId());
+  tmp4.setReference(null);
+  tmp4=em.merge(tmp4);
   em.remove(em.getReference(UnversionedStrTestEntity.class,uste2.getId()));
   em.getTransaction().commit();
   em.close();
