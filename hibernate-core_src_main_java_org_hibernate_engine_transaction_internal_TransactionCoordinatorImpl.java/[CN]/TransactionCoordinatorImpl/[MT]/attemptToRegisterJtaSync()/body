@@ -2,6 +2,10 @@
   if (synchronizationRegistered) {
     return;
   }
+  JtaPlatform jtaPlatform=getTransactionEnvironment().getJtaPlatform();
+  if (jtaPlatform == null) {
+    return;
+  }
   if (currentHibernateTransaction.isInitiator()) {
     return;
   }
@@ -12,10 +16,6 @@
         return;
       }
     }
-  }
-  JtaPlatform jtaPlatform=getTransactionEnvironment().getJtaPlatform();
-  if (jtaPlatform == null) {
-    return;
   }
   if (!jtaPlatform.canRegisterSynchronization()) {
     if (TRACING)     LOG.trace("registered JTA platform says we cannot currently resister synchronization; skipping");
