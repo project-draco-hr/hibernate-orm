@@ -2,7 +2,7 @@
   if (synchronizationRegistered) {
     return;
   }
-  JtaPlatform jtaPlatform=getTransactionEnvironment().getJtaPlatform();
+  final JtaPlatform jtaPlatform=getTransactionEnvironment().getJtaPlatform();
   if (jtaPlatform == null) {
     return;
   }
@@ -13,21 +13,29 @@
   if (joinStatus != JoinStatus.JOINED) {
     if (!transactionContext.shouldAutoJoinTransaction()) {
       if (joinStatus != JoinStatus.MARKED_FOR_JOINED) {
-        if (DEBUGGING)         LOG.debug("Skipping JTA sync registration due to auto join checking");
+        if (isDebugging) {
+          LOG.debug("Skipping JTA sync registration due to auto join checking");
+        }
         return;
       }
     }
   }
   if (!jtaPlatform.canRegisterSynchronization()) {
-    if (TRACING)     LOG.trace("registered JTA platform says we cannot currently register synchronization; skipping");
+    if (isTracing) {
+      LOG.trace("registered JTA platform says we cannot currently register synchronization; skipping");
+    }
     return;
   }
   if (!transactionFactory().isJoinableJtaTransaction(this,currentHibernateTransaction)) {
-    if (TRACING)     LOG.trace("TransactionFactory reported no JTA transaction to join; skipping Synchronization registration");
+    if (isTracing) {
+      LOG.trace("TransactionFactory reported no JTA transaction to join; skipping Synchronization registration");
+    }
     return;
   }
   jtaPlatform.registerSynchronization(new RegisteredSynchronization(getSynchronizationCallbackCoordinator()));
   getSynchronizationCallbackCoordinator().synchronizationRegistered();
   synchronizationRegistered=true;
-  if (DEBUGGING)   LOG.debug("successfully registered Synchronization");
+  if (isDebugging) {
+    LOG.debug("successfully registered Synchronization");
+  }
 }
