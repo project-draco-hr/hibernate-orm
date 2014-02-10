@@ -1,14 +1,15 @@
 {
   this.session=session;
-  entitiesByKey=new HashMap<EntityKey,Object>(INIT_COLL_SIZE);
-  entitiesByUniqueKey=new HashMap<EntityUniqueKey,Object>(INIT_COLL_SIZE);
-  proxiesByKey=new ConcurrentReferenceHashMap<EntityKey,Object>(INIT_COLL_SIZE,.75f,1,ConcurrentReferenceHashMap.ReferenceType.STRONG,ConcurrentReferenceHashMap.ReferenceType.WEAK,null);
-  entitySnapshotsByKey=new HashMap<EntityKey,Object>(INIT_COLL_SIZE);
+  initialCapacity=session.getFactory().getServiceRegistry().getService(ConfigurationService.class).getSetting(AvailableSettings.SESSION_INITIAL_CAPACITY,Integer.class,DEFAULT_INITIAL_CAPACITY);
+  entitiesByKey=new HashMap<EntityKey,Object>(initialCapacity);
+  entitiesByUniqueKey=new HashMap<EntityUniqueKey,Object>(initialCapacity);
+  proxiesByKey=new ConcurrentReferenceHashMap<EntityKey,Object>(initialCapacity,.75f,1,ConcurrentReferenceHashMap.ReferenceType.STRONG,ConcurrentReferenceHashMap.ReferenceType.WEAK,null);
+  entitySnapshotsByKey=new HashMap<EntityKey,Object>(initialCapacity);
   entityEntryContext=new EntityEntryContext();
-  collectionEntries=IdentityMap.instantiateSequenced(INIT_COLL_SIZE);
-  parentsByChild=new IdentityHashMap<Object,Object>(INIT_COLL_SIZE);
-  collectionsByKey=new HashMap<CollectionKey,PersistentCollection>(INIT_COLL_SIZE);
-  arrayHolders=new IdentityHashMap<Object,PersistentCollection>(INIT_COLL_SIZE);
+  collectionEntries=IdentityMap.instantiateSequenced(initialCapacity);
+  parentsByChild=new IdentityHashMap<Object,Object>(initialCapacity);
+  collectionsByKey=new HashMap<CollectionKey,PersistentCollection>(initialCapacity);
+  arrayHolders=new IdentityHashMap<Object,PersistentCollection>(initialCapacity);
   nullifiableEntityKeys=new HashSet<EntityKey>();
   initTransientState();
 }
