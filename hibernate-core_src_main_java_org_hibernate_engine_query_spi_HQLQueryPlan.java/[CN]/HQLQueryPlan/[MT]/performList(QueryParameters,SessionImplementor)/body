@@ -3,7 +3,8 @@
     LOG.tracev("Find: {0}",getSourceQuery());
     queryParameters.traceParameters(session.getFactory());
   }
-  final boolean hasLimit=queryParameters.getRowSelection() != null && queryParameters.getRowSelection().definesLimits();
+  final RowSelection rowSelection=queryParameters.getRowSelection();
+  final boolean hasLimit=rowSelection != null && rowSelection.definesLimits();
   final boolean needsLimit=hasLimit && translators.length > 1;
   final QueryParameters queryParametersToUse;
   if (needsLimit) {
@@ -16,8 +17,9 @@
  else {
     queryParametersToUse=queryParameters;
   }
-  final List combinedResults=new ArrayList();
-  final IdentitySet distinction=new IdentitySet();
+  final int guessedResultSize=guessResultSize(rowSelection);
+  final List combinedResults=new ArrayList(guessedResultSize);
+  final IdentitySet distinction=new IdentitySet(guessedResultSize);
   int includedCount=-1;
   translator_loop:   for (  QueryTranslator translator : translators) {
     final List tmp=translator.list(session,queryParametersToUse);
