@@ -5,13 +5,11 @@
   if (x == null || y == null) {
     return true;
   }
-  Object[] xvalues=getPropertyValues(x,entityMode);
-  Object[] yvalues=getPropertyValues(y,entityMode);
   int loc=0;
-  for (int i=0; i < xvalues.length; i++) {
+  for (int i=0; i < propertySpan; i++) {
     int len=propertyTypes[i].getColumnSpan(session.getFactory());
     if (len <= 1) {
-      final boolean dirty=(len == 0 || checkable[loc]) && propertyTypes[i].isDirty(xvalues[i],yvalues[i],session);
+      final boolean dirty=(len == 0 || checkable[loc]) && propertyTypes[i].isDirty(getPropertyValue(x,i),getPropertyValue(y,i),session);
       if (dirty) {
         return true;
       }
@@ -19,7 +17,7 @@
  else {
       boolean[] subcheckable=new boolean[len];
       System.arraycopy(checkable,loc,subcheckable,0,len);
-      final boolean dirty=propertyTypes[i].isDirty(xvalues[i],yvalues[i],subcheckable,session);
+      final boolean dirty=propertyTypes[i].isDirty(getPropertyValue(x,i),getPropertyValue(y,i),subcheckable,session);
       if (dirty) {
         return true;
       }
