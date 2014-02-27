@@ -1,0 +1,20 @@
+{
+  final EventListenerGroup<PostInsertEventListener> listenerGroup=listenerGroup(EventType.POST_COMMIT_INSERT);
+  if (listenerGroup.isEmpty()) {
+    return;
+  }
+  final PostInsertEvent event=new PostInsertEvent(getInstance(),getId(),getState(),getPersister(),eventSource());
+  for (  PostInsertEventListener listener : listenerGroup.listeners()) {
+    if (PostCommitInsertEventListener.class.isInstance(listener)) {
+      if (success) {
+        listener.onPostInsert(event);
+      }
+ else {
+        ((PostCommitInsertEventListener)listener).onPostInsertCommitFailed(event);
+      }
+    }
+ else {
+      listener.onPostInsert(event);
+    }
+  }
+}
