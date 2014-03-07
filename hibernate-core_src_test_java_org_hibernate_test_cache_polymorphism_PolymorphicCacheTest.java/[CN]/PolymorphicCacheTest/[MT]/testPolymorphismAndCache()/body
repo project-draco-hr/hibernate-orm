@@ -1,0 +1,22 @@
+{
+  final CachedItem1 cachedItem1=new CachedItem1("name 1");
+  final CachedItem2 cachedItem2=new CachedItem2("name 2");
+  Session s=openSession();
+  s.beginTransaction();
+  s.save(cachedItem1);
+  s.save(cachedItem2);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  Object thisObjectShouldBeNull=s.get(CachedItem2.class,cachedItem1.getId());
+  assertNull(thisObjectShouldBeNull);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.beginTransaction();
+  s.delete(cachedItem1);
+  s.delete(cachedItem2);
+  s.getTransaction().commit();
+  s.close();
+}
