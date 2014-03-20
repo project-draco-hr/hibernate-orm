@@ -1,0 +1,41 @@
+{
+  if (started.compareAndSet(false,true)) {
+synchronized (this) {
+      this.options=options;
+      try {
+        final CachingProvider cachingProvider;
+        final String provider=getProp(properties,PROVIDER);
+        if (provider != null) {
+          cachingProvider=Caching.getCachingProvider(provider);
+        }
+ else {
+          cachingProvider=Caching.getCachingProvider();
+        }
+        final CacheManager cacheManager;
+        final String cacheManagerUri=getProp(properties,CONFIG_URI);
+        if (cacheManagerUri != null) {
+          URI uri;
+          try {
+            uri=new URI(cacheManagerUri);
+          }
+ catch (          URISyntaxException e) {
+            throw new CacheException("Couldn't create URI from " + cacheManagerUri,e);
+          }
+          cacheManager=cachingProvider.getCacheManager(uri,cachingProvider.getDefaultClassLoader());
+        }
+ else {
+          cacheManager=cachingProvider.getCacheManager();
+        }
+        this.cacheManager=cacheManager;
+      }
+  finally {
+        if (this.cacheManager == null) {
+          started.set(false);
+        }
+      }
+    }
+  }
+ else {
+    LOG.attemptToRestartAlreadyStartedJCacheProvider();
+  }
+}

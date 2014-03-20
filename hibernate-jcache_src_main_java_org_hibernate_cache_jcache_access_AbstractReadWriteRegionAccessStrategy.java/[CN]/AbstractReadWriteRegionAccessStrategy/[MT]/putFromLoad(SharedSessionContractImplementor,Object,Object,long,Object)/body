@@ -1,0 +1,16 @@
+{
+  return region.invoke(key,new EntryProcessor<Object,Object,Boolean>(){
+    @Override public Boolean process(    MutableEntry<Object,Object> entry,    Object... args) throws EntryProcessorException {
+      final Lockable item=(Lockable)entry.getValue();
+      final boolean writeable=item == null || item.isWriteable((Long)args[1],args[2],versionComparator);
+      if (writeable) {
+        entry.setValue(new Item(args[0],args[2],region.nextTimestamp()));
+        return true;
+      }
+ else {
+        return false;
+      }
+    }
+  }
+,value,txTimestamp,version);
+}

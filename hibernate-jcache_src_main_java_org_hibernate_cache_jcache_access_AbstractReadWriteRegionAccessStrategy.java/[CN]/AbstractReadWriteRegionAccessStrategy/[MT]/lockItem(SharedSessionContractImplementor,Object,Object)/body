@@ -1,0 +1,12 @@
+{
+  return region.invoke(key,new EntryProcessor<Object,Object,SoftLock>(){
+    @Override public SoftLock process(    MutableEntry<Object,Object> entry,    Object... args) throws EntryProcessorException {
+      final Lockable item=(Lockable)entry.getValue();
+      final long timeout=region.nextTimestamp() + region.getTimeout();
+      final Lock lock=(item == null) ? new Lock(timeout,(UUID)args[0],(Long)args[1],args[2]) : item.lock(timeout,(UUID)args[0],(Long)args[1]);
+      entry.setValue(lock);
+      return lock;
+    }
+  }
+,uuid,nextLockId(),version);
+}
