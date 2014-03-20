@@ -5,9 +5,15 @@
   sessionFactory.close();
   sessionFactory=null;
   configuration=null;
-  if (serviceRegistry == null) {
-    return;
+  if (serviceRegistry != null) {
+    if (serviceRegistry.isActive()) {
+      try {
+        serviceRegistry.destroy();
+      }
+ catch (      Exception ignore) {
+      }
+      fail("StandardServiceRegistry was not closed down as expected");
+    }
   }
-  serviceRegistry.destroy();
   serviceRegistry=null;
 }
