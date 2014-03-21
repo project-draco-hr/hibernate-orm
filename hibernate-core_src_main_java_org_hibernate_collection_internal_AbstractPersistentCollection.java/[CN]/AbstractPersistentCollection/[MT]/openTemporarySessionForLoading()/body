@@ -3,5 +3,8 @@
     throwLazyInitializationException("SessionFactory UUID not known to create temporary Session for loading");
   }
   final SessionFactoryImplementor sf=(SessionFactoryImplementor)SessionFactoryRegistry.INSTANCE.getSessionFactory(sessionFactoryUuid);
-  return (SessionImplementor)sf.openSession();
+  final SessionImplementor session=(SessionImplementor)sf.openSession();
+  session.getPersistenceContext().setDefaultReadOnly(true);
+  session.setFlushMode(FlushMode.MANUAL);
+  return session;
 }

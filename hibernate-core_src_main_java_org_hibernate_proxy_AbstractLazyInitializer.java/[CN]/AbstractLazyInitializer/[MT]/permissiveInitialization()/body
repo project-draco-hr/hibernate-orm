@@ -6,6 +6,8 @@
     try {
       SessionFactoryImplementor sf=(SessionFactoryImplementor)SessionFactoryRegistry.INSTANCE.getSessionFactory(sessionFactoryUuid);
       SessionImplementor session=(SessionImplementor)sf.openSession();
+      session.getPersistenceContext().setDefaultReadOnly(true);
+      session.setFlushMode(FlushMode.MANUAL);
       boolean isJTA=session.getTransactionCoordinator().getTransactionContext().getTransactionEnvironment().getTransactionFactory().compatibleWithJtaSynchronization();
       if (!isJTA) {
         ((Session)session).beginTransaction();
