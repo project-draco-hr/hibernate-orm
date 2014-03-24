@@ -3,11 +3,9 @@
     try {
       if (entries.hasNext()) {
         Expectation expectation=Expectations.appropriateExpectation(getUpdateCheckStyle());
-        int i=0;
-        int count=0;
         while (entries.hasNext()) {
           final Object entry=entries.next();
-          if (entry != null && collection.entryExists(entry,i)) {
+          if (entry != null && collection.entryExists(entry,nextIndex)) {
             int offset=1;
             PreparedStatement st=null;
             boolean callable=isUpdateCallable();
@@ -25,9 +23,9 @@
             try {
               offset+=expectation.prepare(st);
               if (hasIdentifier) {
-                offset=writeIdentifier(st,collection.getIdentifier(entry,i),offset,session);
+                offset=writeIdentifier(st,collection.getIdentifier(entry,nextIndex),offset,session);
               }
-              offset=writeIndex(st,collection.getIndex(entry,i,this),offset,session);
+              offset=writeIndex(st,collection.getIndex(entry,nextIndex,this),offset,session);
               offset=writeElement(st,collection.getElement(entry),offset,session);
               if (useBatch) {
                 session.getTransactionCoordinator().getJdbcCoordinator().getBatch(recreateBatchKey).addToBatch();
@@ -35,7 +33,6 @@
  else {
                 expectation.verifyOutcome(session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().executeUpdate(st),st,-1);
               }
-              count++;
             }
  catch (            SQLException sqle) {
               if (useBatch) {
@@ -49,7 +46,7 @@
               }
             }
           }
-          i++;
+          nextIndex++;
         }
       }
     }
