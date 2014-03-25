@@ -1,8 +1,9 @@
 {
   BootstrapServiceRegistry bsr=new BootstrapServiceRegistryBuilder().build();
+  StandardServiceRegistry sr=new StandardServiceRegistryBuilder(bsr).build();
   assertTrue(((BootstrapServiceRegistryImpl)bsr).isActive());
-  MetadataSources metadataSources=new MetadataSources(bsr);
-  SessionFactory sf=metadataSources.buildMetadata().buildSessionFactory();
+  Configuration config=new Configuration();
+  SessionFactory sf=config.buildSessionFactory(sr);
   sf.close();
   assertFalse(((BootstrapServiceRegistryImpl)bsr).isActive());
 }
