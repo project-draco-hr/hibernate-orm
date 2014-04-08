@@ -9,8 +9,12 @@
   s.close();
   s=openSession();
   s.beginTransaction();
-  Object thisObjectShouldBeNull=s.get(CachedItem2.class,item1.getId());
-  assertNull(thisObjectShouldBeNull);
+  try {
+    s.get(CachedItem2.class,item1.getId());
+    fail("Expected a WrongClassException to be thrown.");
+  }
+ catch (  WrongClassException e) {
+  }
   s.getTransaction().commit();
   s.close();
   s=openSession();

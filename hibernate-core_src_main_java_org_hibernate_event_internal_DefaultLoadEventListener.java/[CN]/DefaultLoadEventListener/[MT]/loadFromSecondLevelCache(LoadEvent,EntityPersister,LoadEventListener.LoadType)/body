@@ -5,7 +5,7 @@
     return null;
   }
   final SessionFactoryImplementor factory=source.getFactory();
-  final CacheKey ck=source.generateCacheKey(event.getEntityId(),persister.getIdentifierType(),persister.getEntityName());
+  final CacheKey ck=source.generateCacheKey(event.getEntityId(),persister.getIdentifierType(),persister.getRootEntityName());
   final Object ce=CacheHelper.fromSharedCache(source,ck,persister.getCacheAccessStrategy());
   if (factory.getStatistics().isStatisticsEnabled()) {
     if (ce == null) {
@@ -19,5 +19,9 @@
     return null;
   }
   CacheEntry entry=(CacheEntry)persister.getCacheEntryStructure().destructure(ce,factory);
-  return convertCacheEntryToEntity(entry,event.getEntityId(),persister,event);
+  Object entity=convertCacheEntryToEntity(entry,event.getEntityId(),persister,event);
+  if (!persister.isInstance(entity)) {
+    throw new WrongClassException("loaded object was of wrong class " + entity.getClass(),event.getEntityId(),persister.getEntityName());
+  }
+  return entity;
 }
