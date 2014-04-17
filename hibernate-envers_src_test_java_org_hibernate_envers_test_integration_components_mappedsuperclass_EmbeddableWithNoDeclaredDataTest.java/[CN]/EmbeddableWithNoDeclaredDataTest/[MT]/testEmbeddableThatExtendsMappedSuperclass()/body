@@ -1,0 +1,10 @@
+{
+  EntityManager em=getEntityManager();
+  EntityWithEmbeddableWithNoDeclaredData entityLoaded=em.find(EntityWithEmbeddableWithNoDeclaredData.class,id);
+  AuditReader reader=AuditReaderFactory.get(em);
+  List<Number> revs=reader.getRevisions(EntityWithEmbeddableWithNoDeclaredData.class,id);
+  Assert.assertEquals(1,revs.size());
+  EntityWithEmbeddableWithNoDeclaredData entityRev1=reader.find(EntityWithEmbeddableWithNoDeclaredData.class,id,revs.get(0));
+  Assert.assertEquals(entityLoaded.getName(),entityRev1.getName());
+  Assert.assertEquals(entityLoaded.getValue(),entityRev1.getValue());
+}
