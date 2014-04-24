@@ -1,0 +1,25 @@
+{
+  RootClass policyRootClass=new RootClass();
+  policyRootClass.addTuplizer(EntityMode.MAP,DynamicMapEntityTuplizer.class.getName());
+  policyRootClass.setJpaEntityName("Policy");
+  policyRootClass.setEntityName("Policy");
+  Table policyTable=new Table("POLICY_TABLE");
+  PrimaryKey policyPrimaryKey=new PrimaryKey();
+  policyTable.setPrimaryKey(policyPrimaryKey);
+  Column policyIdColumn=new Column("policyId");
+  policyIdColumn.setSqlTypeCode(Types.INTEGER);
+  policyTable.addColumn(policyIdColumn);
+  SimpleValue identifierValue=new SimpleValue(mappings,policyTable);
+  identifierValue.setTypeName("int");
+  identifierValue.addColumn(policyIdColumn);
+  identifierValue.setIdentifierGeneratorStrategy("assigned");
+  policyPrimaryKey.addColumn(policyIdColumn);
+  policyRootClass.setIdentifier(identifierValue);
+  Property policyIdProperty=new Property();
+  policyIdProperty.setValue(identifierValue);
+  policyIdProperty.setName("policyId");
+  policyRootClass.addProperty(policyIdProperty);
+  policyRootClass.setTable(policyTable);
+  mappings.addClass(policyRootClass);
+  mappings.addTable(null,null,policyTable.getName(),null,false);
+}
