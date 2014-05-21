@@ -1,0 +1,46 @@
+{
+  Property property=new Property();
+  property.setName(referencedProperty.getName());
+  property.setPersistentClass(component.getOwner());
+  property.setPropertyAccessorName(referencedProperty.getPropertyAccessorName());
+  SimpleValue value=new SimpleValue(buildingContext.getMetadataCollector(),component.getTable());
+  property.setValue(value);
+  final SimpleValue referencedValue=(SimpleValue)referencedProperty.getValue();
+  value.setTypeName(referencedValue.getTypeName());
+  value.setTypeParameters(referencedValue.getTypeParameters());
+  final Iterator<Selectable> columns=referencedValue.getColumnIterator();
+  if (joinColumns[0].isNameDeferred()) {
+    joinColumns[0].copyReferencedStructureAndCreateDefaultJoinColumns(referencedPersistentClass,columns,value);
+  }
+ else {
+    while (columns.hasNext()) {
+      final Selectable selectable=columns.next();
+      if (!Column.class.isInstance(selectable)) {
+        log.debug("Encountered formula definition; skipping");
+        continue;
+      }
+      final Column column=(Column)selectable;
+      final Ejb3JoinColumn joinColumn;
+      String logicalColumnName=null;
+      if (isExplicitReference) {
+        final String columnName=column.getName();
+        logicalColumnName=buildingContext.getMetadataCollector().getLogicalColumnName(referencedPersistentClass.getTable(),columnName);
+        joinColumn=columnByReferencedName.get(logicalColumnName.toLowerCase(Locale.ROOT));
+      }
+ else {
+        joinColumn=columnByReferencedName.get("" + index.get());
+        index.getAndIncrement();
+      }
+      if (joinColumn == null && !joinColumns[0].isNameDeferred()) {
+        throw new AnnotationException(isExplicitReference ? "Unable to find column reference in the @MapsId mapping: " + logicalColumnName : "Implicit column reference in the @MapsId mapping fails, try to use explicit referenceColumnNames: " + referencedEntityName);
+      }
+      final String columnName=joinColumn == null || joinColumn.isNameDeferred() ? "tata_" + column.getName() : joinColumn.getName();
+      value.addColumn(new Column(columnName));
+      if (joinColumn != null) {
+        joinColumn.linkWithValue(value);
+      }
+      column.setValue(value);
+    }
+  }
+  return property;
+}
