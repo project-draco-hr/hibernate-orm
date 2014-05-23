@@ -1,18 +1,13 @@
 {
-  boolean matches=type.isInstance(statement);
-  try {
-    boolean jdbc4;
+  if (isJdbc4) {
     try {
-      jdbc4=(statement.getClass().getMethod("isWrapperFor",new Class<?>[]{Class.class}) != null);
+      return statement.isWrapperFor(type);
     }
- catch (    Exception e) {
-      jdbc4=false;
+ catch (    SQLException e) {
     }
-    if (jdbc4) {
-      matches=statement.isWrapperFor(type);
+catch (    Throwable e) {
+      isJdbc4=false;
     }
   }
- catch (  Exception e) {
-  }
-  return matches;
+  return type.isInstance(statement);
 }
