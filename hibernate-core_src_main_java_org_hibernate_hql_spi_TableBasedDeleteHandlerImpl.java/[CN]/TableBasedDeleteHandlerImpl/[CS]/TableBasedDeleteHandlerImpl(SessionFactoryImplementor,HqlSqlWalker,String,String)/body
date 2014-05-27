@@ -11,13 +11,16 @@
   final String idSubselect=generateIdSubselect(targetedPersister);
   deletes=new ArrayList<String>();
   for (  Type type : targetedPersister.getPropertyTypes()) {
-    if (type.isCollectionType()) {
-      CollectionType cType=(CollectionType)type;
-      AbstractCollectionPersister cPersister=(AbstractCollectionPersister)factory.getCollectionPersister(cType.getRole());
-      if (cPersister.isManyToMany()) {
-        deletes.add(generateDelete(cPersister.getTableName(),cPersister.getKeyColumnNames(),idSubselect,"bulk delete - m2m join table cleanup"));
-      }
+    if (!type.isCollectionType()) {
+      continue;
     }
+    final CollectionType cType=(CollectionType)type;
+    final AbstractCollectionPersister cPersister=(AbstractCollectionPersister)factory.getCollectionPersister(cType.getRole());
+    final boolean hasCollectionTable=cPersister.isManyToMany() || !cPersister.getElementType().isAssociationType();
+    if (!hasCollectionTable) {
+      continue;
+    }
+    deletes.add(generateDelete(cPersister.getTableName(),cPersister.getKeyColumnNames(),idSubselect,"bulk delete - collection table clean up (" + cPersister.getRole() + ")"));
   }
   String[] tableNames=targetedPersister.getConstraintOrderedTableNameClosure();
   String[][] columnNames=targetedPersister.getContraintOrderedTableKeyColumnClosure();
