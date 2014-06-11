@@ -33,14 +33,24 @@
   }
   final CollectionCacheEntry entry=new CollectionCacheEntry(lce.getCollection(),persister);
   final CacheKey cacheKey=session.generateCacheKey(lce.getKey(),persister.getKeyType(),persister.getRole());
-  try {
-    session.getEventListenerManager().cachePutStart();
-    final boolean put=persister.getCacheAccessStrategy().putFromLoad(cacheKey,persister.getCacheEntryStructure().structure(entry),session.getTimestamp(),version,factory.getSettings().isMinimalPutsEnabled() && session.getCacheMode() != CacheMode.REFRESH);
-    if (put && factory.getStatistics().isStatisticsEnabled()) {
-      factory.getStatisticsImplementor().secondLevelCachePut(persister.getCacheAccessStrategy().getRegion().getName());
+  boolean isPutFromLoad=true;
+  for (  Serializable id : entry.getState()) {
+    EntityPersister entityPersister=((QueryableCollection)persister).getElementPersister();
+    if (session.getPersistenceContext().wasInsertedDuringTransaction(entityPersister,id)) {
+      isPutFromLoad=false;
+      break;
     }
   }
+  if (isPutFromLoad) {
+    try {
+      session.getEventListenerManager().cachePutStart();
+      final boolean put=persister.getCacheAccessStrategy().putFromLoad(cacheKey,persister.getCacheEntryStructure().structure(entry),session.getTimestamp(),version,factory.getSettings().isMinimalPutsEnabled() && session.getCacheMode() != CacheMode.REFRESH);
+      if (put && factory.getStatistics().isStatisticsEnabled()) {
+        factory.getStatisticsImplementor().secondLevelCachePut(persister.getCacheAccessStrategy().getRegion().getName());
+      }
+    }
   finally {
-    session.getEventListenerManager().cachePutEnd();
+      session.getEventListenerManager().cachePutEnd();
+    }
   }
 }
