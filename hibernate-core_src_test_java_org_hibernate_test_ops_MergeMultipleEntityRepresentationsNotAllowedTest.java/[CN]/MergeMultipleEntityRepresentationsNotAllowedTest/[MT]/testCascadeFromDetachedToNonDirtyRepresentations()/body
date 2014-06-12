@@ -1,0 +1,32 @@
+{
+  Item item1=new Item();
+  item1.setName("item1");
+  Hoarder hoarder=new Hoarder();
+  hoarder.setName("joe");
+  Session s=openSession();
+  Transaction tx=session.beginTransaction();
+  s.persist(item1);
+  s.persist(hoarder);
+  tx.commit();
+  s.close();
+  s=openSession();
+  Item item1_1=(Item)s.get(Item.class,item1.getId());
+  s.close();
+  assertFalse(item1 == item1_1);
+  assertTrue(item1.equals(item1_1));
+  hoarder.getItems().add(item1);
+  hoarder.setFavoriteItem(item1_1);
+  s=openSession();
+  tx=s.beginTransaction();
+  try {
+    hoarder=(Hoarder)s.merge(hoarder);
+    fail("should have failed due IllegalStateException");
+  }
+ catch (  IllegalStateException ex) {
+  }
+ finally {
+    tx.rollback();
+    s.close();
+  }
+  cleanup();
+}

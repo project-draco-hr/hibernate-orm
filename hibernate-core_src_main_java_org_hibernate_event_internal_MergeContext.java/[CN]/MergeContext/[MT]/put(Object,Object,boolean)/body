@@ -1,0 +1,25 @@
+{
+  if (mergeEntity == null || managedEntity == null) {
+    throw new NullPointerException("null merge and managed entities are not supported by " + getClass().getName());
+  }
+  Object oldManagedEntity=mergeToManagedEntityXref.put(mergeEntity,managedEntity);
+  Boolean oldOperatedOn=mergeEntityToOperatedOnFlagMap.put(mergeEntity,isOperatedOn);
+  Object oldMergeEntity=managedToMergeEntityXref.put(managedEntity,mergeEntity);
+  if (oldManagedEntity == null) {
+    if (oldMergeEntity != null) {
+      entityCopyObserver.entityCopyDetected(managedEntity,mergeEntity,oldMergeEntity,session);
+    }
+    if (oldOperatedOn != null) {
+      throw new IllegalStateException("MergeContext#mergeEntityToOperatedOnFlagMap contains an merge entity " + printEntity(mergeEntity) + ", but MergeContext#mergeToManagedEntityXref does not.");
+    }
+  }
+ else {
+    if (oldManagedEntity != managedEntity) {
+      throw new IllegalArgumentException("Error occurred while storing a merge Entity " + printEntity(mergeEntity) + ". It was previously associated with managed entity "+ printEntity(oldManagedEntity)+ ". Attempted to replace managed entity with "+ printEntity(managedEntity));
+    }
+    if (oldOperatedOn == null) {
+      throw new IllegalStateException("MergeContext#mergeToManagedEntityXref contained an mergeEntity " + printEntity(mergeEntity) + ", but MergeContext#mergeEntityToOperatedOnFlagMap did not.");
+    }
+  }
+  return oldManagedEntity;
+}

@@ -1,0 +1,37 @@
+{
+  Item item=new Item();
+  item.setName("item");
+  Category category=new Category();
+  category.setName("category");
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  s.persist(item);
+  s.persist(category);
+  tx.commit();
+  s.close();
+  s=openSession();
+  Category category1_1=(Category)s.get(Category.class,category.getId());
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  Category category1_2=(Category)s.get(Category.class,category.getId());
+  category1_2.setName("new name");
+  tx.commit();
+  s.close();
+  assertTrue(category1_2.getVersion() > category1_1.getVersion());
+  category1_1.setExampleItem(item);
+  item.setCategory(category1_2);
+  s=openSession();
+  tx=s.beginTransaction();
+  try {
+    category1_1=(Category)s.merge(category1_1);
+    fail("should have failed because one representation is an older version.");
+  }
+ catch (  StaleObjectStateException ex) {
+  }
+ finally {
+    tx.rollback();
+    s.close();
+  }
+  cleanup();
+}

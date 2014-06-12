@@ -22,6 +22,7 @@
         final Object unmergedChild=mergeMap.get(childEntity);
         if (unmergedInstance != null && unmergedChild != null) {
           found=isFoundInParent(propertyName,unmergedChild,persister,collectionPersister,unmergedInstance);
+          LOG.debugf("Detached object being merged (corresponding with a managed entity) has a collection that [%s] the detached child.",(found ? "contains" : "does not contain"));
         }
       }
       if (found) {
@@ -36,8 +37,10 @@
         final HibernateProxy proxy=(HibernateProxy)mergeMapEntry.getKey();
         if (persister.isSubclassEntityName(proxy.getHibernateLazyInitializer().getEntityName())) {
           boolean found=isFoundInParent(propertyName,childEntity,persister,collectionPersister,mergeMap.get(proxy));
+          LOG.debugf("Detached proxy being merged has a collection that [%s] the managed child.",(found ? "contains" : "does not contain"));
           if (!found) {
             found=isFoundInParent(propertyName,mergeMap.get(childEntity),persister,collectionPersister,mergeMap.get(proxy));
+            LOG.debugf("Detached proxy being merged has a collection that [%s] the detached child being merged..",(found ? "contains" : "does not contain"));
           }
           if (found) {
             return proxy.getHibernateLazyInitializer().getIdentifier();

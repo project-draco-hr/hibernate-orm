@@ -1,5 +1,12 @@
 {
-  EventCache copyCache=new EventCache(event.getSession());
-  onMerge(event,copyCache);
-  copyCache.clear();
+  final EntityCopyObserver entityCopyObserver=createDetachedEntityCopyObserver();
+  final MergeContext mergeContext=new MergeContext(event.getSession(),entityCopyObserver);
+  try {
+    onMerge(event,mergeContext);
+    entityCopyObserver.topLevelMergeComplete(event.getSession());
+  }
+  finally {
+    entityCopyObserver.clear();
+    mergeContext.clear();
+  }
 }

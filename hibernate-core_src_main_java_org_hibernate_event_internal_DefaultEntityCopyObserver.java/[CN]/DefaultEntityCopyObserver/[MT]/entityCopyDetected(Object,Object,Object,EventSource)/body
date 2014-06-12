@@ -1,0 +1,18 @@
+{
+  LOG.trace(String.format("More than one representation of the same persistent entity being merged for: %s",MessageHelper.infoString(session.getEntityName(managedEntity),session.getIdentifier(managedEntity))));
+  if (LOG.isDebugEnabled()) {
+    Set<Object> detachedEntitiesForManaged=null;
+    if (managedToMergeEntitiesXref == null) {
+      managedToMergeEntitiesXref=new IdentityHashMap<Object,Set<Object>>();
+    }
+ else {
+      detachedEntitiesForManaged=managedToMergeEntitiesXref.get(managedEntity);
+    }
+    if (detachedEntitiesForManaged == null) {
+      detachedEntitiesForManaged=new IdentitySet();
+      managedToMergeEntitiesXref.put(managedEntity,detachedEntitiesForManaged);
+    }
+    detachedEntitiesForManaged.add(mergeEntity1);
+    detachedEntitiesForManaged.add(mergeEntity2);
+  }
+}
