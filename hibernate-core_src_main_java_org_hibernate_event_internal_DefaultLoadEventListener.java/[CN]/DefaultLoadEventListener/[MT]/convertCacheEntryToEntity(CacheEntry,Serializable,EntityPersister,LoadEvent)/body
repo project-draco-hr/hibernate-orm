@@ -1,7 +1,7 @@
 {
   final EventSource session=event.getSession();
   final SessionFactoryImplementor factory=session.getFactory();
-  final EntityPersister subclassPersister=factory.getEntityPersister(entry.getSubclass());
+  final EntityPersister subclassPersister;
   if (LOG.isTraceEnabled()) {
     LOG.tracef("Converting second-level cache entry [%s] into entity : %s",entry,MessageHelper.infoString(persister,entityId,factory));
   }
@@ -11,12 +11,15 @@
     if (optionalObject != null) {
       throw new HibernateException(String.format("Attempt to load entity [%s] from cache using provided object instance, but cache " + "is storing references",MessageHelper.infoString(persister,entityId,factory)));
     }
-    entity=((ReferenceCacheEntryImpl)entry).getReference();
+    ReferenceCacheEntryImpl referenceCacheEntry=(ReferenceCacheEntryImpl)entry;
+    entity=referenceCacheEntry.getReference();
     if (entity == null) {
       throw new IllegalStateException("Reference cache entry contained null : " + MessageHelper.infoString(persister,entityId,factory));
     }
+    subclassPersister=referenceCacheEntry.getSubclassPersister();
   }
  else {
+    subclassPersister=factory.getEntityPersister(entry.getSubclass());
     final Object optionalObject=event.getInstanceToLoad();
     entity=optionalObject == null ? session.instantiate(subclassPersister,entityId) : optionalObject;
   }
