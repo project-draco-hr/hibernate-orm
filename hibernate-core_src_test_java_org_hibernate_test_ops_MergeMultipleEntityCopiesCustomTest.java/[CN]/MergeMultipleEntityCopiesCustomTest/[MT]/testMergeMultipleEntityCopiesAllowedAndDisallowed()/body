@@ -1,0 +1,42 @@
+{
+  Item item1=new Item();
+  item1.setName("item1 name");
+  Category category=new Category();
+  category.setName("category");
+  item1.setCategory(category);
+  category.setExampleItem(item1);
+  Session s=openSession();
+  s.getTransaction().begin();
+  s.persist(item1);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.getTransaction().begin();
+  Item item1_1=(Item)s.get(Item.class,item1.getId());
+  Hibernate.initialize(item1_1.getCategory());
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.getTransaction().begin();
+  Item item1Merged=(Item)s.merge(item1);
+  item1Merged.setCategory(category);
+  category.setExampleItem(item1_1);
+  try {
+    s.merge(item1Merged);
+    fail("should have failed because CustomEntityCopyObserver does not allow multiple copies of a Category. ");
+  }
+ catch (  IllegalStateException ex) {
+  }
+ finally {
+    s.getTransaction().rollback();
+  }
+  s.close();
+  s=openSession();
+  s.getTransaction().begin();
+  item1=(Item)s.get(Item.class,item1.getId());
+  assertEquals(category.getName(),item1.getCategory().getName());
+  assertSame(item1,item1.getCategory().getExampleItem());
+  s.getTransaction().commit();
+  s.close();
+  cleanup();
+}
