@@ -1,0 +1,12 @@
+{
+  Configuration cfg=new Configuration();
+  cfg.addAnnotatedClass(Container.class).addAnnotatedClass(Item.class);
+  cfg.buildMappings();
+  PersistentClass pc=cfg.getClassMapping(Container.class.getName());
+  Property p=pc.getProperty("items");
+  Bag value=assertTyping(Bag.class,p.getValue());
+  SimpleValue elementValue=assertTyping(SimpleValue.class,value.getElement());
+  assertEquals(1,elementValue.getColumnSpan());
+  Column column=assertTyping(Column.class,elementValue.getColumnIterator().next());
+  assertFalse(column.getName().contains("&&"));
+}
