@@ -1,15 +1,17 @@
 {
-  final Integer jpaPositionalParameter=toNumberOrNull(parameterName);
   if (parameterRegistrations != null) {
     for (    ParameterRegistration<?> param : parameterRegistrations) {
       if (parameterName.equals(param.getName())) {
         return (ParameterRegistration<X>)param;
       }
-      if (param.isJpaPositionalParameter() && jpaPositionalParameter != null) {
-        if (jpaPositionalParameter.equals(param.getPosition())) {
+    }
+    final Integer jpaPositionalParameter=toNumberOrNull(parameterName);
+    if (jpaPositionalParameter != null) {
+      for (      ParameterRegistration<?> param : parameterRegistrations) {
+        if (param.isJpaPositionalParameter() && jpaPositionalParameter.equals(param.getPosition())) {
           LOG.deprecatedJpaPositionalParameterAccess(jpaPositionalParameter);
+          return (ParameterRegistration<X>)param;
         }
-        return (ParameterRegistration<X>)param;
       }
     }
   }
