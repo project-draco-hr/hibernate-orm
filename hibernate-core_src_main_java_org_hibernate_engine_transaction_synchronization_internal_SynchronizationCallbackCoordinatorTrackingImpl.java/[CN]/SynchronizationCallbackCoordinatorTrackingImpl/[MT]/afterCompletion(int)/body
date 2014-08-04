@@ -4,6 +4,7 @@
     final boolean isRegistrationThread=currentThreadId == registrationThreadId;
     if (!isRegistrationThread) {
       delayedCompletionHandlingStatus=status;
+      transactionCoordinator().getJdbcCoordinator().getLogicalConnection().close();
       log.rollbackFromBackgroundThread(status);
       return;
     }
