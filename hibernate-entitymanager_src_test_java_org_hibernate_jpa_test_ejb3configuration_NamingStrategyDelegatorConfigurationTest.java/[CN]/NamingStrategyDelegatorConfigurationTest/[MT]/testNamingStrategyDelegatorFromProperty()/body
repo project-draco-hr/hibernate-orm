@@ -1,0 +1,34 @@
+{
+{
+    PersistenceUnitInfoAdapter adapter=new PersistenceUnitInfoAdapter();
+    EntityManagerFactoryBuilderImpl builder=(EntityManagerFactoryBuilderImpl)Bootstrap.getEntityManagerFactoryBuilder(adapter,Collections.singletonMap(AvailableSettings.NAMING_STRATEGY,MyNamingStrategy.class.getName()));
+    assertEquals(MyNamingStrategy.class.getName(),builder.getConfigurationValues().get(AvailableSettings.NAMING_STRATEGY));
+    assertEquals(null,builder.getConfigurationValues().get(AvailableSettings.NAMING_STRATEGY_DELEGATOR));
+    builder.build();
+    final NamingStrategyDelegator namingStrategyDelegator=builder.getHibernateConfiguration().getNamingStrategyDelegator();
+    assertTrue(LegacyNamingStrategyDelegator.class.isInstance(namingStrategyDelegator));
+    assertTrue(MyNamingStrategy.class.isInstance(((LegacyNamingStrategyDelegator)namingStrategyDelegator).getNamingStrategy()));
+  }
+{
+    PersistenceUnitInfoAdapter adapter=new PersistenceUnitInfoAdapter();
+    EntityManagerFactoryBuilderImpl builder=(EntityManagerFactoryBuilderImpl)Bootstrap.getEntityManagerFactoryBuilder(adapter,Collections.singletonMap(AvailableSettings.NAMING_STRATEGY_DELEGATOR,MyNamingStrategyDelegator.class.getName()));
+    assertEquals(null,builder.getConfigurationValues().get(AvailableSettings.NAMING_STRATEGY));
+    assertEquals(MyNamingStrategyDelegator.class.getName(),builder.getConfigurationValues().get(AvailableSettings.NAMING_STRATEGY_DELEGATOR));
+    builder.build();
+    final NamingStrategyDelegator namingStrategyDelegator=builder.getHibernateConfiguration().getNamingStrategyDelegator();
+    assertTrue(MyNamingStrategyDelegator.class.isInstance(namingStrategyDelegator));
+  }
+{
+    PersistenceUnitInfoAdapter adapter=new PersistenceUnitInfoAdapter();
+    final Map<String,String> integrationArgs=new HashMap<String,String>();
+    integrationArgs.put(AvailableSettings.NAMING_STRATEGY,MyNamingStrategy.class.getName());
+    integrationArgs.put(AvailableSettings.NAMING_STRATEGY_DELEGATOR,MyNamingStrategyDelegator.class.getName());
+    try {
+      EntityManagerFactoryBuilderImpl builder=(EntityManagerFactoryBuilderImpl)Bootstrap.getEntityManagerFactoryBuilder(adapter,integrationArgs);
+      builder.build();
+      fail("Should have thrown a PersistenceException because setting both properties is not allowed.");
+    }
+ catch (    PersistenceException ex) {
+    }
+  }
+}

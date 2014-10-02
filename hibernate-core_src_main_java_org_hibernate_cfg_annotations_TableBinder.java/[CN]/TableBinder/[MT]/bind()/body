@@ -7,11 +7,24 @@
   final boolean associatedEntityTableQuoted=StringHelper.isQuoted(associatedEntityTable);
   final ObjectNameNormalizer.NamingStrategyHelper namingStrategyHelper=new ObjectNameNormalizer.NamingStrategyHelper(){
     public String determineImplicitName(    NamingStrategy strategy){
-      final String strategyResult=strategy.collectionTableName(ownerEntity,ownerObjectName,associatedEntity,unquotedAssocTable,propertyName);
-      return ownerEntityTableQuoted || associatedEntityTableQuoted ? StringHelper.quote(strategyResult) : strategyResult;
+      throw new AssertionFailure("method call should have been replaced by #determineImplicitName(NamingStrategyDelegate strategyDelegate)");
     }
     public String handleExplicitName(    NamingStrategy strategy,    String name){
       return strategy.tableName(name);
+    }
+    @Override public String determineImplicitName(    NamingStrategyDelegator strategyDelegator){
+      final NamingStrategyDelegate strategyDelegate=getNamingStrategyDelegate(strategyDelegator);
+      final String strategyResult;
+      if (isJPA2ElementCollection) {
+        strategyResult=strategyDelegate.determineElementCollectionTableLogicalName(ownerEntity,ownerJpaEntity,unquotedOwnerTable,propertyName);
+      }
+ else {
+        strategyResult=strategyDelegate.determineEntityAssociationJoinTableLogicalName(ownerEntity,ownerJpaEntity,unquotedOwnerTable,associatedEntity,associatedJpaEntity,unquotedAssocTable,propertyName);
+      }
+      return ownerEntityTableQuoted || associatedEntityTableQuoted ? StringHelper.quote(strategyResult) : strategyResult;
+    }
+    @Override public String handleExplicitName(    NamingStrategyDelegator strategyDelegator,    String name){
+      return getNamingStrategyDelegate(strategyDelegator).toPhysicalTableName(name);
     }
   }
 ;

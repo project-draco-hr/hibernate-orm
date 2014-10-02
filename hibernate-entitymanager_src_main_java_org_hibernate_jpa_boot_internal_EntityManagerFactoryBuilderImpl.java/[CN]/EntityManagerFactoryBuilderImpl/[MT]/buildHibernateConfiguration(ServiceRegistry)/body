@@ -4,8 +4,14 @@
   Configuration cfg=new Configuration();
   cfg.getProperties().putAll(props);
   cfg.setEntityNotFoundDelegate(jpaEntityNotFoundDelegate);
+  if (namingStrategy != null && namingStrategyDelegator != null) {
+    throw persistenceException(AvailableSettings.NAMING_STRATEGY + " and " + AvailableSettings.NAMING_STRATEGY_DELEGATOR+ " properties cannot be used together. To be valid, only one of these properties can be set.");
+  }
   if (namingStrategy != null) {
     cfg.setNamingStrategy(namingStrategy);
+  }
+ else   if (namingStrategyDelegator != null) {
+    cfg.setNamingStrategyDelegator(namingStrategyDelegator);
   }
   if (sessionFactoryInterceptor != null) {
     cfg.setInterceptor(sessionFactoryInterceptor);

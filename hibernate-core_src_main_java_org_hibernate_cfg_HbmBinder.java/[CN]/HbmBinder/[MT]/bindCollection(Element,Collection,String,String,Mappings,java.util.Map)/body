@@ -71,12 +71,17 @@
     Attribute tableNode=node.attribute("table");
     String tableName;
     if (tableNode != null) {
-      tableName=mappings.getNamingStrategy().tableName(tableNode.getValue());
+      tableName=getNamingStrategyDelegate(mappings).toPhysicalTableName(tableNode.getValue());
     }
  else {
       Table ownerTable=collection.getOwner().getTable();
       String logicalOwnerTableName=ownerTable.getName();
-      tableName=mappings.getNamingStrategy().collectionTableName(collection.getOwner().getEntityName(),logicalOwnerTableName,null,null,path);
+      if (node.element("element") != null || node.element("composite-element") != null) {
+        tableName=getNamingStrategyDelegate(mappings).determineElementCollectionTableLogicalName(collection.getOwner().getClassName(),collection.getOwner().getEntityName(),logicalOwnerTableName,path);
+      }
+ else {
+        tableName=getNamingStrategyDelegate(mappings).determineEntityAssociationJoinTableLogicalName(collection.getOwner().getEntityName(),collection.getOwner().getJpaEntityName(),logicalOwnerTableName,null,null,null,path);
+      }
       if (ownerTable.isQuoted()) {
         tableName=StringHelper.quote(tableName);
       }
