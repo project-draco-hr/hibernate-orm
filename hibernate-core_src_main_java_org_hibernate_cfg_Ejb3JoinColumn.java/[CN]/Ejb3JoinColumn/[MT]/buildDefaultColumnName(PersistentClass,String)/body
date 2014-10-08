@@ -7,10 +7,10 @@
   if (mappedBySide) {
     String unquotedMappedbyTable=StringHelper.unquote(mappedByTableName);
     if (JPA2ElementCollection) {
-      columnName=getNamingStrategyDelegate().determineElementCollectionForeignKeyColumnName(mappedByPropertyName,mappedByEntityName,mappedByJpaEntityName,unquotedMappedbyTable,unquotedLogicalReferenceColumn);
+      columnName=getNamingStrategyDelegate().determineImplicitElementCollectionJoinColumnName(mappedByEntityName,mappedByJpaEntityName,unquotedMappedbyTable,unquotedLogicalReferenceColumn,mappedByPropertyName);
     }
  else {
-      columnName=getNamingStrategyDelegate().determineEntityAssociationForeignKeyColumnName(mappedByPropertyName,mappedByEntityName,mappedByJpaEntityName,unquotedMappedbyTable,unquotedLogicalReferenceColumn);
+      columnName=getNamingStrategyDelegate().determineImplicitEntityAssociationJoinColumnName(mappedByEntityName,mappedByJpaEntityName,unquotedMappedbyTable,unquotedLogicalReferenceColumn,mappedByPropertyName);
     }
     if (isRefColumnQuoted || StringHelper.isQuoted(mappedByTableName)) {
       columnName=StringHelper.quote(columnName);
@@ -19,7 +19,7 @@
  else   if (ownerSide) {
     String logicalTableName=getMappings().getLogicalTableName(referencedEntity.getTable());
     String unquotedLogicalTableName=StringHelper.unquote(logicalTableName);
-    columnName=getNamingStrategyDelegate().determineEntityAssociationForeignKeyColumnName(getPropertyName(),referencedEntity.getEntityName(),referencedEntity.getJpaEntityName(),unquotedLogicalTableName,unquotedLogicalReferenceColumn);
+    columnName=getNamingStrategyDelegate().determineImplicitEntityAssociationJoinColumnName(referencedEntity.getEntityName(),referencedEntity.getJpaEntityName(),unquotedLogicalTableName,unquotedLogicalReferenceColumn,getPropertyName());
     if (isRefColumnQuoted || StringHelper.isQuoted(logicalTableName)) {
       columnName=StringHelper.quote(columnName);
     }
@@ -27,7 +27,7 @@
  else {
     String logicalTableName=getMappings().getLogicalTableName(referencedEntity.getTable());
     String unquotedLogicalTableName=StringHelper.unquote(logicalTableName);
-    columnName=getNamingStrategyDelegate().determineJoinKeyColumnName(unquotedLogicalReferenceColumn,unquotedLogicalTableName);
+    columnName=getNamingStrategyDelegate().toPhysicalJoinKeyColumnName(unquotedLogicalReferenceColumn,unquotedLogicalTableName);
     if (isRefColumnQuoted || StringHelper.isQuoted(logicalTableName)) {
       columnName=StringHelper.quote(columnName);
     }

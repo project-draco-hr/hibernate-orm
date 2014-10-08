@@ -12,7 +12,7 @@
         column.setTypeIndex(count++);
         bindColumn(columnElement,column,isNullable);
         String columnName=columnElement.attributeValue("name");
-        String logicalColumnName=getNamingStrategyDelegate(mappings).logicalColumnName(columnName,propertyPath);
+        String logicalColumnName=getNamingStrategyDelegate(mappings).determineLogicalColumnName(columnName,propertyPath);
         columnName=getNamingStrategyDelegate(mappings).toPhysicalColumnName(columnName);
         columnName=quoteIdentifier(columnName,mappings);
         column.setName(columnName);
@@ -51,7 +51,7 @@
       ((ManyToOne)simpleValue).markAsLogicalOneToOne();
     }
     String columnName=columnAttribute.getValue();
-    String logicalColumnName=getNamingStrategyDelegate(mappings).logicalColumnName(columnName,propertyPath);
+    String logicalColumnName=getNamingStrategyDelegate(mappings).determineLogicalColumnName(columnName,propertyPath);
     columnName=getNamingStrategyDelegate(mappings).toPhysicalColumnName(columnName);
     columnName=quoteIdentifier(columnName,mappings);
     column.setName(columnName);
@@ -67,10 +67,10 @@
     Column column=new Column();
     column.setValue(simpleValue);
     bindColumn(node,column,isNullable);
-    String columnName=getNamingStrategyDelegate(mappings).determineAttributeColumnName(propertyPath);
+    String columnName=getNamingStrategyDelegate(mappings).determineImplicitPropertyColumnName(propertyPath);
     columnName=quoteIdentifier(columnName,mappings);
     column.setName(columnName);
-    String logicalName=getNamingStrategyDelegate(mappings).logicalColumnName(null,propertyPath);
+    String logicalName=getNamingStrategyDelegate(mappings).determineLogicalColumnName(null,propertyPath);
     mappings.addColumnBinding(logicalName,column,table);
     simpleValue.getTable().addColumn(column);
     simpleValue.addColumn(column);
