@@ -11,6 +11,24 @@
   }
 {
     PersistenceUnitInfoAdapter adapter=new PersistenceUnitInfoAdapter();
+    EntityManagerFactoryBuilderImpl builder=(EntityManagerFactoryBuilderImpl)Bootstrap.getEntityManagerFactoryBuilder(adapter,Collections.singletonMap(AvailableSettings.NAMING_STRATEGY_DELEGATOR,ImprovedNamingStrategyDelegator.class.getName()));
+    assertEquals(null,builder.getConfigurationValues().get(AvailableSettings.NAMING_STRATEGY));
+    builder.build();
+    assertEquals(ImprovedNamingStrategyDelegator.class.getName(),builder.getConfigurationValues().get(AvailableSettings.NAMING_STRATEGY_DELEGATOR));
+    final NamingStrategyDelegator namingStrategyDelegator=builder.getHibernateConfiguration().getNamingStrategyDelegator();
+    assertTrue(ImprovedNamingStrategyDelegator.class.isInstance(namingStrategyDelegator));
+  }
+{
+    PersistenceUnitInfoAdapter adapter=new PersistenceUnitInfoAdapter();
+    EntityManagerFactoryBuilderImpl builder=(EntityManagerFactoryBuilderImpl)Bootstrap.getEntityManagerFactoryBuilder(adapter,Collections.singletonMap(AvailableSettings.NAMING_STRATEGY_DELEGATOR,LegacyNamingStrategyDelegator.class.getName()));
+    assertEquals(null,builder.getConfigurationValues().get(AvailableSettings.NAMING_STRATEGY));
+    builder.build();
+    assertEquals(LegacyNamingStrategyDelegator.class.getName(),builder.getConfigurationValues().get(AvailableSettings.NAMING_STRATEGY_DELEGATOR));
+    final NamingStrategyDelegator namingStrategyDelegator=builder.getHibernateConfiguration().getNamingStrategyDelegator();
+    assertTrue(LegacyNamingStrategyDelegator.class.isInstance(namingStrategyDelegator));
+  }
+{
+    PersistenceUnitInfoAdapter adapter=new PersistenceUnitInfoAdapter();
     EntityManagerFactoryBuilderImpl builder=(EntityManagerFactoryBuilderImpl)Bootstrap.getEntityManagerFactoryBuilder(adapter,Collections.singletonMap(AvailableSettings.NAMING_STRATEGY_DELEGATOR,MyNamingStrategyDelegator.class.getName()));
     assertEquals(null,builder.getConfigurationValues().get(AvailableSettings.NAMING_STRATEGY));
     assertEquals(MyNamingStrategyDelegator.class.getName(),builder.getConfigurationValues().get(AvailableSettings.NAMING_STRATEGY_DELEGATOR));
