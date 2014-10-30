@@ -2,20 +2,7 @@
   configuration=constructAndConfigureConfiguration();
   BootstrapServiceRegistry bootRegistry=buildBootstrapServiceRegistry();
   serviceRegistry=buildServiceRegistry(bootRegistry,configuration);
-  isMetadataUsed=serviceRegistry.getService(ConfigurationService.class).getSetting(USE_NEW_METADATA_MAPPINGS,new ConfigurationService.Converter<Boolean>(){
-    @Override public Boolean convert(    Object value){
-      return Boolean.parseBoolean((String)value);
-    }
-  }
-,false);
-  if (isMetadataUsed) {
-    MetadataImplementor metadataImplementor=buildMetadata(bootRegistry,serviceRegistry);
-    afterConstructAndConfigureMetadata(metadataImplementor);
-    sessionFactory=(SessionFactoryImplementor)metadataImplementor.buildSessionFactory();
-  }
- else {
-    afterConstructAndConfigureConfiguration(configuration);
-    sessionFactory=(SessionFactoryImplementor)configuration.buildSessionFactory(serviceRegistry);
-  }
+  afterConstructAndConfigureConfiguration(configuration);
+  sessionFactory=(SessionFactoryImplementor)configuration.buildSessionFactory(serviceRegistry);
   afterSessionFactoryBuilt();
 }
