@@ -2,9 +2,15 @@
   File defaultPar=buildDefaultPar();
   addPackageToClasspath(defaultPar);
   PersistenceUnitDescriptor descriptor=new ParsedPersistenceXmlDescriptor(defaultPar.toURL());
+  ScanEnvironment env=new StandardJpaScanEnvironmentImpl(descriptor);
   ScanOptions options=new StandardScanOptions("hbm,class",descriptor.isExcludeUnlistedClasses());
   Scanner scanner=new StandardScanner();
-  ScanResult scanResult=scanner.scan(descriptor,options);
+  ScanResult scanResult=scanner.scan(env,options,new ScanParameters(){
+    @Override public JandexInitializer getJandexInitializer(){
+      return null;
+    }
+  }
+);
   assertEquals(3,scanResult.getLocatedClasses().size());
   assertClassesContained(scanResult,ApplicationServer.class);
   assertClassesContained(scanResult,Version.class);
@@ -13,11 +19,6 @@
     assertNotNull(mappingFileDescriptor.getName());
     assertNotNull(mappingFileDescriptor.getStreamAccess());
     InputStream stream=mappingFileDescriptor.getStreamAccess().accessInputStream();
-    assertNotNull(stream);
-    stream.close();
-    NamedInputStream namedInputStream=mappingFileDescriptor.getStreamAccess().asNamedInputStream();
-    assertNotNull(namedInputStream);
-    stream=namedInputStream.getStream();
     assertNotNull(stream);
     stream.close();
   }

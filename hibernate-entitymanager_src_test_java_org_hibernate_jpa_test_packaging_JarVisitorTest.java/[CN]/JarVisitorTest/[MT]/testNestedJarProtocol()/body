@@ -4,13 +4,27 @@
   File nestedEarDir=buildNestedEarDir(defaultPar);
   addPackageToClasspath(nestedEar);
   String jarFileName=nestedEar.toURL().toExternalForm() + "!/defaultpar.par";
-  JarProtocolArchiveDescriptor archiveDescriptor=new JarProtocolArchiveDescriptor(StandardArchiveDescriptorFactory.INSTANCE,new URL(jarFileName),"");
-  AbstractScannerImpl.ResultCollector resultCollector=new AbstractScannerImpl.ResultCollector(new StandardScanOptions());
-  archiveDescriptor.visitArchive(new AbstractScannerImpl.ArchiveContextImpl(new PersistenceUnitDescriptorAdapter(),true,resultCollector));
-  validateResults(resultCollector,org.hibernate.jpa.test.pack.defaultpar.ApplicationServer.class,Version.class);
+  URL rootUrl=new URL(jarFileName);
+  JarProtocolArchiveDescriptor archiveDescriptor=new JarProtocolArchiveDescriptor(StandardArchiveDescriptorFactory.INSTANCE,rootUrl,"");
+  ScanEnvironment environment=new ScanEnvironmentImpl(rootUrl);
+  ScanResultCollector collector=new ScanResultCollector(environment,new StandardScanOptions(),new ScanParameters(){
+    @Override public JandexInitializer getJandexInitializer(){
+      return null;
+    }
+  }
+);
+  archiveDescriptor.visitArchive(new AbstractScannerImpl.ArchiveContextImpl(true,collector));
+  validateResults(collector.toScanResult(),org.hibernate.jpa.test.pack.defaultpar.ApplicationServer.class,Version.class);
   jarFileName=nestedEarDir.toURL().toExternalForm() + "!/defaultpar.par";
-  archiveDescriptor=new JarProtocolArchiveDescriptor(StandardArchiveDescriptorFactory.INSTANCE,new URL(jarFileName),"");
-  resultCollector=new AbstractScannerImpl.ResultCollector(new StandardScanOptions());
-  archiveDescriptor.visitArchive(new AbstractScannerImpl.ArchiveContextImpl(new PersistenceUnitDescriptorAdapter(),true,resultCollector));
-  validateResults(resultCollector,org.hibernate.jpa.test.pack.defaultpar.ApplicationServer.class,Version.class);
+  rootUrl=new URL(jarFileName);
+  archiveDescriptor=new JarProtocolArchiveDescriptor(StandardArchiveDescriptorFactory.INSTANCE,rootUrl,"");
+  environment=new ScanEnvironmentImpl(rootUrl);
+  collector=new ScanResultCollector(environment,new StandardScanOptions(),new ScanParameters(){
+    @Override public JandexInitializer getJandexInitializer(){
+      return null;
+    }
+  }
+);
+  archiveDescriptor.visitArchive(new AbstractScannerImpl.ArchiveContextImpl(true,collector));
+  validateResults(collector.toScanResult(),org.hibernate.jpa.test.pack.defaultpar.ApplicationServer.class,Version.class);
 }

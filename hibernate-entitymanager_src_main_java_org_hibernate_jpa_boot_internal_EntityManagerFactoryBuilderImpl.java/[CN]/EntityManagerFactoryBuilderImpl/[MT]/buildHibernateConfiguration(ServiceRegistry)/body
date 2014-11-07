@@ -105,21 +105,21 @@ catch (    MappingException me) {
       LOG.exceptionHeaderNotFound(getExceptionHeader(),META_INF_ORM_XML);
     }
   }
-  for (  NamedInputStream namedInputStream : metadataSources.namedMappingFileInputStreams) {
+  for (  InputStreamAccess streamAccess : metadataSources.mappingFileInputStreamAccessList) {
     try {
-      cfg.addInputStream(new BufferedInputStream(namedInputStream.getStream()));
+      cfg.addInputStream(new BufferedInputStream(streamAccess.accessInputStream()));
     }
  catch (    InvalidMappingException e) {
-      if (StringHelper.isNotEmpty(namedInputStream.getName())) {
-        throw new InvalidMappingException("Error while parsing file: " + namedInputStream.getName(),e.getType(),e.getPath(),e);
+      if (StringHelper.isNotEmpty(streamAccess.getStreamName())) {
+        throw new InvalidMappingException("Error while parsing file: " + streamAccess.getStreamName(),e.getType(),e.getPath(),e);
       }
  else {
         throw e;
       }
     }
 catch (    MappingException me) {
-      if (StringHelper.isNotEmpty(namedInputStream.getName())) {
-        throw new MappingException("Error while parsing file: " + namedInputStream.getName(),me);
+      if (StringHelper.isNotEmpty(streamAccess.getStreamName())) {
+        throw new MappingException("Error while parsing file: " + streamAccess.getStreamName(),me);
       }
  else {
         throw me;
