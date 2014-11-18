@@ -3,7 +3,7 @@
   if (lockOptions == null || (lockOptions.getLockMode() == LockMode.NONE && (lockOptions.getAliasLockCount() == 0 || (lockOptions.getAliasLockCount() == 1 && lockOptions.getAliasSpecificLockMode("this_") == LockMode.NONE)))) {
     return sql;
   }
-  if (dialect.useFollowOnLocking()) {
+  if ((parameters.getLockOptions().getFollowOnLocking() == null && dialect.useFollowOnLocking(parameters)) || (parameters.getLockOptions().getFollowOnLocking() != null && parameters.getLockOptions().getFollowOnLocking())) {
     final LockMode lockMode=determineFollowOnLockMode(lockOptions);
     if (lockMode != LockMode.UPGRADE_SKIPLOCKED) {
       LOG.usingFollowOnLocking();
