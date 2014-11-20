@@ -2,6 +2,11 @@
   if (mergeEntity == null || managedEntity == null) {
     throw new NullPointerException("null merge and managed entities are not supported by " + getClass().getName());
   }
+  if (managedToMergeEntityXref.containsKey(mergeEntity)) {
+    if (managedToMergeEntityXref.get(mergeEntity) != mergeEntity) {
+      throw new IllegalStateException("MergeContext#attempt to create managed -> managed mapping with different entities: " + printEntity(mergeEntity) + "; "+ printEntity(managedEntity));
+    }
+  }
   Object oldManagedEntity=mergeToManagedEntityXref.put(mergeEntity,managedEntity);
   Boolean oldOperatedOn=mergeEntityToOperatedOnFlagMap.put(mergeEntity,isOperatedOn);
   Object oldMergeEntity=managedToMergeEntityXref.put(managedEntity,mergeEntity);
