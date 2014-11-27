@@ -1,0 +1,44 @@
+{
+  if (child != null) {
+    if (type.isAssociationType()) {
+      final AssociationType associationType=(AssociationType)type;
+      if (cascadeAssociationNow(cascadePoint,associationType)) {
+        cascadeAssociation(action,cascadePoint,eventSource,componentPathStackDepth,parent,child,type,style,anything,isCascadeDeleteEnabled);
+      }
+    }
+ else     if (type.isComponentType()) {
+      cascadeComponent(action,cascadePoint,eventSource,componentPathStackDepth,parent,child,(CompositeType)type,propertyName,anything);
+    }
+  }
+  if (isLogicalOneToOne(type)) {
+    if (style.hasOrphanDelete() && action.deleteOrphans()) {
+      final EntityEntry entry=eventSource.getPersistenceContext().getEntry(parent);
+      if (entry != null && entry.getStatus() != Status.SAVING) {
+        final Object loadedValue;
+        if (componentPathStackDepth == 0) {
+          loadedValue=entry.getLoadedValue(propertyName);
+        }
+ else {
+          loadedValue=null;
+        }
+        if (child == null || (loadedValue != null && child != loadedValue)) {
+          final EntityEntry valueEntry=eventSource.getPersistenceContext().getEntry(loadedValue);
+          if (valueEntry != null) {
+            final String entityName=valueEntry.getPersister().getEntityName();
+            if (LOG.isTraceEnabled()) {
+              final Serializable id=valueEntry.getPersister().getIdentifier(loadedValue,eventSource);
+              final String description=MessageHelper.infoString(entityName,id);
+              LOG.tracev("Deleting orphaned entity instance: {0}",description);
+            }
+            if (type.isAssociationType() && ((AssociationType)type).getForeignKeyDirection().equals(ForeignKeyDirection.FOREIGN_KEY_TO_PARENT)) {
+              eventSource.removeOrphanBeforeUpdates(entityName,loadedValue);
+            }
+ else {
+              eventSource.delete(entityName,loadedValue,isCascadeDeleteEnabled,new HashSet());
+            }
+          }
+        }
+      }
+    }
+  }
+}
