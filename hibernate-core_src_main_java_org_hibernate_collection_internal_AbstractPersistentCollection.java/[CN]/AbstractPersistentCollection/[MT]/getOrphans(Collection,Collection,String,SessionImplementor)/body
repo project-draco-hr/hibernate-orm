@@ -7,6 +7,7 @@
   }
   final EntityPersister entityPersister=session.getFactory().getEntityPersister(entityName);
   final Type idType=entityPersister.getIdentifierType();
+  final boolean useIdDirect=mayUseIdDirect(idType);
   final Collection res=new ArrayList();
   final java.util.Set currentIds=new HashSet();
   final java.util.Set currentSaving=new IdentitySet();
@@ -18,14 +19,14 @@
       }
  else {
         final Serializable currentId=ForeignKeys.getEntityIdentifierIfNotUnsaved(entityName,current,session);
-        currentIds.add(new TypedValue(idType,currentId));
+        currentIds.add(useIdDirect ? currentId : new TypedValue(idType,currentId));
       }
     }
   }
   for (  Object old : oldElements) {
     if (!currentSaving.contains(old)) {
       final Serializable oldId=ForeignKeys.getEntityIdentifierIfNotUnsaved(entityName,old,session);
-      if (!currentIds.contains(new TypedValue(idType,oldId))) {
+      if (!currentIds.contains(useIdDirect ? oldId : new TypedValue(idType,oldId))) {
         res.add(old);
       }
     }
