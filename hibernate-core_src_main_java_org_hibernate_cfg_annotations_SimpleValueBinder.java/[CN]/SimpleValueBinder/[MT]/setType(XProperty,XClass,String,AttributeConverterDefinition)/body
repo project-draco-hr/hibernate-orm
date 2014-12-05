@@ -13,7 +13,16 @@
   typeParameters.clear();
   String type=BinderHelper.ANNOTATION_STRING_DEFAULT;
   isNationalized=property.isAnnotationPresent(Nationalized.class) || buildingContext.getBuildingOptions().useNationalizedCharacterData();
-  Type annType=property.getAnnotation(Type.class);
+  Type annType=null;
+  if ((!key && property.isAnnotationPresent(Type.class)) || (key && property.isAnnotationPresent(MapKeyType.class))) {
+    if (key) {
+      MapKeyType ann=property.getAnnotation(MapKeyType.class);
+      annType=ann.value();
+    }
+ else {
+      annType=property.getAnnotation(Type.class);
+    }
+  }
   if (annType != null) {
     setExplicitType(annType);
     type=explicitType;
