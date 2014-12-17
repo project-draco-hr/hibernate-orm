@@ -1,0 +1,29 @@
+{
+  final Entity eOrig=new Entity();
+  eOrig.tAsDate=new Time(new Date().getTime());
+  Session s=openSession();
+  s.getTransaction().begin();
+  s.persist(eOrig);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.getTransaction().begin();
+  final Entity eGotten=(Entity)s.get(Entity.class,eOrig.id);
+  final String tAsDateOrigFormatted=timeFormat.format(eOrig.tAsDate);
+  final String tAsDateGottenFormatted=timeFormat.format(eGotten.tAsDate);
+  assertEquals(tAsDateOrigFormatted,tAsDateGottenFormatted);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.getTransaction().begin();
+  final Query query=s.createQuery("from TimePropertyTest$Entity where tAsDate=?").setTime(0,eOrig.tAsDate);
+  final Entity eQueried=(Entity)query.uniqueResult();
+  assertNotNull(eQueried);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.getTransaction().begin();
+  s.delete(eQueried);
+  s.getTransaction().commit();
+  s.close();
+}

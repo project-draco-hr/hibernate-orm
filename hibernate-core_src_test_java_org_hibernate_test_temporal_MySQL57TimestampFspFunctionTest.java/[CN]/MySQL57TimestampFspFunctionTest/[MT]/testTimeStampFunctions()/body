@@ -1,0 +1,21 @@
+{
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  s.persist(new Entity());
+  tx.commit();
+  s.close();
+  s=openSession();
+  tx=s.beginTransaction();
+  Query q=s.createQuery("select now(), current_timestamp(), localtime(), localtimestamp(), sysdate() from MySQL57TimestampFspFunctionTest$Entity");
+  Object[] oArray=(Object[])q.uniqueResult();
+  final Timestamp now=(Timestamp)oArray[0];
+  assertEquals(now,oArray[1]);
+  assertEquals(now,oArray[2]);
+  assertEquals(now,oArray[3]);
+  final Timestamp sysdate=(Timestamp)oArray[4];
+  assertTrue(now.compareTo(sysdate) < 0);
+  assertTrue(now.getNanos() > 0);
+  assertTrue(sysdate.getNanos() > 0);
+  tx.commit();
+  s.close();
+}
