@@ -4,6 +4,9 @@
     boolean script=true;
     boolean doUpdate=true;
     String propFile=null;
+    String outFile=null;
+    boolean hasNaming=false;
+    boolean hasNamingDelegator=false;
     for (int i=0; i < args.length; i++) {
       if (args[i].startsWith("--")) {
         if (args[i].equals("--quiet")) {
@@ -18,8 +21,18 @@
  else         if (args[i].startsWith("--text")) {
           doUpdate=false;
         }
+ else         if (args[i].startsWith("--output=")) {
+          outFile=args[i].substring(9);
+        }
  else         if (args[i].startsWith("--naming=")) {
+          hasNaming=true;
+          checkNamingAndNamingDelegatorNotBothSpecified(hasNaming,hasNamingDelegator);
           cfg.setNamingStrategy((NamingStrategy)ReflectHelper.classForName(args[i].substring(9)).newInstance());
+        }
+ else         if (args[i].startsWith("--namingdelegator=")) {
+          hasNamingDelegator=true;
+          checkNamingAndNamingDelegatorNotBothSpecified(hasNaming,hasNamingDelegator);
+          cfg.setNamingStrategyDelegator((NamingStrategyDelegator)ReflectHelper.classForName(args[i].substring(18)).newInstance());
         }
       }
  else {
@@ -34,7 +47,9 @@
     }
     StandardServiceRegistryImpl serviceRegistry=createServiceRegistry(cfg.getProperties());
     try {
-      new SchemaUpdate(serviceRegistry,cfg).execute(script,doUpdate);
+      final SchemaUpdate schemaUpdate=new SchemaUpdate(serviceRegistry,cfg);
+      schemaUpdate.setOutputFile(outFile);
+      schemaUpdate.execute(script,doUpdate);
     }
   finally {
       serviceRegistry.destroy();

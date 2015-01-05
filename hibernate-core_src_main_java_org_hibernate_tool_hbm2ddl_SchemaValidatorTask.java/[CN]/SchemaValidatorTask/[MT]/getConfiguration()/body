@@ -1,7 +1,13 @@
 {
   Configuration cfg=new Configuration();
+  if (namingStrategy != null && namingStrategyDelegator != null) {
+    throw new HibernateException("namingStrategy and namingStrategyDelegator cannot be specified together.");
+  }
   if (namingStrategy != null) {
     cfg.setNamingStrategy((NamingStrategy)ReflectHelper.classForName(namingStrategy).newInstance());
+  }
+ else   if (namingStrategyDelegator != null) {
+    cfg.setNamingStrategyDelegator((NamingStrategyDelegator)ReflectHelper.classForName(namingStrategyDelegator).newInstance());
   }
   if (configurationFile != null) {
     cfg.configure(configurationFile);

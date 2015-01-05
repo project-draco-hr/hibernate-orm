@@ -11,6 +11,8 @@
     String propFile=null;
     boolean format=false;
     String delim=null;
+    boolean hasNaming=false;
+    boolean hasNamingDelegator=false;
     for (int i=0; i < args.length; i++) {
       if (args[i].startsWith("--")) {
         if (args[i].equals("--quiet")) {
@@ -47,7 +49,14 @@
           cfg.configure(args[i].substring(9));
         }
  else         if (args[i].startsWith("--naming=")) {
+          hasNaming=true;
+          checkNamingAndNamingDelegatorNotBothSpecified(hasNaming,hasNamingDelegator);
           cfg.setNamingStrategy((NamingStrategy)ReflectHelper.classForName(args[i].substring(9)).newInstance());
+        }
+ else         if (args[i].startsWith("--namingdelegator=")) {
+          hasNamingDelegator=true;
+          checkNamingAndNamingDelegatorNotBothSpecified(hasNaming,hasNamingDelegator);
+          cfg.setNamingStrategyDelegator((NamingStrategyDelegator)ReflectHelper.classForName(args[i].substring(18)).newInstance());
         }
       }
  else {
