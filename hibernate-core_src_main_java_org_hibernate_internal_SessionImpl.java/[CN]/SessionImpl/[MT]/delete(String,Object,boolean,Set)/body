@@ -1,3 +1,9 @@
 {
-  fireDelete(new DeleteEvent(entityName,object,isCascadeDeleteEnabled,this),transientEntities);
+  if (TRACE_ENABLED && persistenceContext.isRemovingOrphanBeforeUpates()) {
+    logRemoveOrphanBeforeUpdates("before continuing",entityName,object);
+  }
+  fireDelete(new DeleteEvent(entityName,object,isCascadeDeleteEnabled,persistenceContext.isRemovingOrphanBeforeUpates(),this),transientEntities);
+  if (TRACE_ENABLED && persistenceContext.isRemovingOrphanBeforeUpates()) {
+    logRemoveOrphanBeforeUpdates("after continuing",entityName,object);
+  }
 }

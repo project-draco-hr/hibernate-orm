@@ -1,3 +1,15 @@
 {
-  fireDelete(new DeleteEvent(entityName,child,false,true,this));
+  if (TRACE_ENABLED) {
+    logRemoveOrphanBeforeUpdates("begin",entityName,child);
+  }
+  persistenceContext.beginRemoveOrphanBeforeUpdates();
+  try {
+    fireDelete(new DeleteEvent(entityName,child,false,true,this));
+  }
+  finally {
+    persistenceContext.endRemoveOrphanBeforeUpdates();
+    if (TRACE_ENABLED) {
+      logRemoveOrphanBeforeUpdates("end",entityName,child);
+    }
+  }
 }
