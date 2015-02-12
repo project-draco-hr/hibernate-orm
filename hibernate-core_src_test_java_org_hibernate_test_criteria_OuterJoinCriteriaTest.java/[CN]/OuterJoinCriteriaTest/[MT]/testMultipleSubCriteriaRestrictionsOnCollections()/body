@@ -1,0 +1,13 @@
+{
+  Session s=openSession();
+  s.getTransaction().begin();
+  Criteria rootCriteria=s.createCriteria(Order.class,"order");
+  rootCriteria.createCriteria("order.orderLines","line",JoinType.LEFT_OUTER_JOIN).add(Restrictions.eq("line.articleId","3000"));
+  rootCriteria.createCriteria("order.orderContacts","contact",JoinType.LEFT_OUTER_JOIN).add(Restrictions.eq("contact.contact","Contact1"));
+  Order result=(Order)rootCriteria.uniqueResult();
+  assertEquals(order1.getOrderId(),result.getOrderId());
+  assertEquals(2,result.getContacts().size());
+  assertEquals(2,result.getLines().size());
+  s.getTransaction().commit();
+  s.close();
+}

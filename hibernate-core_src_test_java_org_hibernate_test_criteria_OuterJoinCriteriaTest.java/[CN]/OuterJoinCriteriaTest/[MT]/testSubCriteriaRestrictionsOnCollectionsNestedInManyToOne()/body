@@ -1,0 +1,24 @@
+{
+  Session s=openSession();
+  s.getTransaction().begin();
+  Criteria rootCriteria=s.createCriteria(Order.class,"order");
+  rootCriteria.createCriteria("order.orderContacts","contact",JoinType.LEFT_OUTER_JOIN).add(Restrictions.eq("contact.contact","Contact1"));
+  rootCriteria.createCriteria("order.orderAddress","orderAddress",JoinType.LEFT_OUTER_JOIN).createCriteria("orderAddress.notifiedAddresses","notifiedAddress",JoinType.LEFT_OUTER_JOIN).add(Restrictions.eq("notifiedAddress.addressText","over the rainbow"));
+  Order result=(Order)rootCriteria.uniqueResult();
+  assertEquals(order1.getOrderId(),result.getOrderId());
+  assertEquals(2,result.getContacts().size());
+  assertEquals(2,result.getOrderAddress().getNotifiedAddresses().size());
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.getTransaction().begin();
+  rootCriteria=s.createCriteria(Order.class,"order");
+  rootCriteria.createCriteria("order.orderAddress","orderAddress",JoinType.LEFT_OUTER_JOIN).createCriteria("orderAddress.notifiedAddresses","notifiedAddress",JoinType.LEFT_OUTER_JOIN).add(Restrictions.eq("notifiedAddress.addressText","over the rainbow"));
+  rootCriteria.createCriteria("order.orderContacts","contact",JoinType.LEFT_OUTER_JOIN).add(Restrictions.eq("contact.contact","Contact1"));
+  result=(Order)rootCriteria.uniqueResult();
+  assertEquals(order1.getOrderId(),result.getOrderId());
+  assertEquals(2,result.getContacts().size());
+  assertEquals(2,result.getOrderAddress().getNotifiedAddresses().size());
+  s.getTransaction().commit();
+  s.close();
+}
