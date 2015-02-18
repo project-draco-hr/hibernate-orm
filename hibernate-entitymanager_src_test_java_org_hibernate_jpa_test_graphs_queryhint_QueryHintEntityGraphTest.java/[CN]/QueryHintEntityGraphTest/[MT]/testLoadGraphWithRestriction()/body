@@ -1,0 +1,48 @@
+{
+  EntityManager entityManager=getOrCreateEntityManager();
+  entityManager.getTransaction().begin();
+  EntityGraph<Company> entityGraph=entityManager.createEntityGraph(Company.class);
+  entityGraph.addAttributeNodes("location");
+  entityGraph.addAttributeNodes("markets");
+  Query query=entityManager.createQuery("from " + Company.class.getName() + " where location.zip = :zip").setParameter("zip",12345);
+  query.setHint(QueryHints.HINT_LOADGRAPH,entityGraph);
+  Company company=(Company)query.getSingleResult();
+  entityManager.getTransaction().commit();
+  entityManager.close();
+  assertFalse(Hibernate.isInitialized(company.employees));
+  assertTrue(Hibernate.isInitialized(company.location));
+  assertTrue(Hibernate.isInitialized(company.markets));
+  assertTrue(Hibernate.isInitialized(company.phoneNumbers));
+  entityManager=getOrCreateEntityManager();
+  entityManager.getTransaction().begin();
+  Subgraph<Employee> subgraph=entityGraph.addSubgraph("employees");
+  subgraph.addAttributeNodes("managers");
+  subgraph.addAttributeNodes("friends");
+  Subgraph<Manager> subSubgraph=subgraph.addSubgraph("managers",Manager.class);
+  subSubgraph.addAttributeNodes("managers");
+  subSubgraph.addAttributeNodes("friends");
+  query=entityManager.createQuery("from " + Company.class.getName() + " where location.zip = :zip").setParameter("zip",12345);
+  query.setHint(QueryHints.HINT_LOADGRAPH,entityGraph);
+  company=(Company)query.getSingleResult();
+  entityManager.getTransaction().commit();
+  entityManager.close();
+  assertTrue(Hibernate.isInitialized(company.employees));
+  assertTrue(Hibernate.isInitialized(company.location));
+  assertTrue(Hibernate.isInitialized(company.markets));
+  assertTrue(Hibernate.isInitialized(company.phoneNumbers));
+  boolean foundManager=false;
+  Iterator<Employee> employeeItr=company.employees.iterator();
+  while (employeeItr.hasNext()) {
+    Employee employee=employeeItr.next();
+    assertTrue(Hibernate.isInitialized(employee.managers));
+    assertTrue(Hibernate.isInitialized(employee.friends));
+    Iterator<Manager> managerItr=employee.managers.iterator();
+    while (managerItr.hasNext()) {
+      foundManager=true;
+      Manager manager=managerItr.next();
+      assertTrue(Hibernate.isInitialized(manager.managers));
+      assertTrue(Hibernate.isInitialized(manager.friends));
+    }
+  }
+  assertTrue(foundManager);
+}
