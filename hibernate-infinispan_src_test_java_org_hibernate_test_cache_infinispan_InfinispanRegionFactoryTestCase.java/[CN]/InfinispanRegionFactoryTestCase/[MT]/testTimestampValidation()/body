@@ -1,14 +1,15 @@
 {
   Properties p=new Properties();
-  final DefaultCacheManager manager=new DefaultCacheManager();
-  InfinispanRegionFactory factory=createRegionFactory(manager,p);
-  ConfigurationBuilder builder=new ConfigurationBuilder();
-  builder.clustering().cacheMode(CacheMode.INVALIDATION_SYNC);
-  manager.defineConfiguration("timestamps",builder.build());
+  final DefaultCacheManager manager=new DefaultCacheManager(GlobalConfigurationBuilder.defaultClusteredBuilder().build());
   try {
+    InfinispanRegionFactory factory=createRegionFactory(manager,p);
+    ConfigurationBuilder builder=new ConfigurationBuilder();
+    builder.clustering().cacheMode(CacheMode.INVALIDATION_SYNC);
+    manager.defineConfiguration("timestamps",builder.build());
     factory.start(null,p);
     fail("Should have failed saying that invalidation is not allowed for timestamp caches.");
   }
- catch (  CacheException ce) {
+  finally {
+    TestingUtil.killCacheManagers(manager);
   }
 }
