@@ -1,0 +1,15 @@
+{
+  List<MetadataSourceType> initialSelections=null;
+  final String sourceProcessOrderingSetting=configService.getSetting(AvailableSettings.ARTIFACT_PROCESSING_ORDER,StandardConverters.STRING);
+  if (sourceProcessOrderingSetting != null) {
+    final String[] orderChoices=StringHelper.split(",; ",sourceProcessOrderingSetting,false);
+    initialSelections=CollectionHelper.arrayList(orderChoices.length);
+    for (    String orderChoice : orderChoices) {
+      initialSelections.add(MetadataSourceType.parsePrecedence(orderChoice));
+    }
+  }
+  if (initialSelections == null || initialSelections.isEmpty()) {
+    initialSelections=Arrays.asList(MetadataSourceType.HBM,MetadataSourceType.CLASS);
+  }
+  return initialSelections;
+}

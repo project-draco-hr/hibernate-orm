@@ -1,0 +1,113 @@
+{
+  binding.setRole(source.getAttributeRole().getFullPath());
+  binding.setInverse(source.isInverse());
+  binding.setMutable(source.isMutable());
+  binding.setOptimisticLocked(source.isIncludedInOptimisticLocking());
+  if (source.getCustomPersisterClassName() != null) {
+    binding.setCollectionPersisterClass(mappingDocument.getClassLoaderAccess().classForName(mappingDocument.qualifyClassName(source.getCustomPersisterClassName())));
+  }
+  applyCaching(mappingDocument,source.getCaching(),binding);
+  String typeName=source.getTypeInformation().getName();
+  Map typeParameters=new HashMap();
+  if (typeName != null) {
+    final TypeDefinition typeDef=mappingDocument.getMetadataCollector().getTypeDefinition(typeName);
+    if (typeDef != null) {
+      typeName=typeDef.getTypeImplementorClass().getName();
+      if (typeDef.getParameters() != null) {
+        typeParameters.putAll(typeDef.getParameters());
+      }
+    }
+ else {
+      typeName=mappingDocument.qualifyClassName(typeName);
+    }
+  }
+  if (source.getTypeInformation().getParameters() != null) {
+    typeParameters.putAll(source.getTypeInformation().getParameters());
+  }
+  binding.setTypeName(typeName);
+  binding.setTypeParameters(typeParameters);
+  if (source.getFetchCharacteristics().getFetchTiming() == FetchTiming.DELAYED) {
+    binding.setLazy(true);
+    binding.setExtraLazy(source.getFetchCharacteristics().isExtraLazy());
+  }
+ else {
+    binding.setLazy(false);
+  }
+switch (source.getFetchCharacteristics().getFetchStyle()) {
+case SELECT:
+{
+      binding.setFetchMode(FetchMode.SELECT);
+      break;
+    }
+case JOIN:
+{
+    binding.setFetchMode(FetchMode.JOIN);
+    break;
+  }
+case BATCH:
+{
+  binding.setFetchMode(FetchMode.SELECT);
+  binding.setBatchSize(source.getFetchCharacteristics().getBatchSize());
+  break;
+}
+case SUBSELECT:
+{
+binding.setFetchMode(FetchMode.SELECT);
+binding.setSubselectLoadable(true);
+binding.getOwner().setSubselectLoadableCollections(true);
+break;
+}
+default :
+{
+throw new AssertionFailure("Unexpected FetchStyle : " + source.getFetchCharacteristics().getFetchStyle().name());
+}
+}
+for (String name : source.getSynchronizedTableNames()) {
+binding.getSynchronizedTables().add(name);
+}
+binding.setWhere(source.getWhere());
+binding.setLoaderName(source.getCustomLoaderName());
+if (source.getCustomSqlInsert() != null) {
+binding.setCustomSQLInsert(source.getCustomSqlInsert().getSql(),source.getCustomSqlInsert().isCallable(),source.getCustomSqlInsert().getCheckStyle());
+}
+if (source.getCustomSqlUpdate() != null) {
+binding.setCustomSQLUpdate(source.getCustomSqlUpdate().getSql(),source.getCustomSqlUpdate().isCallable(),source.getCustomSqlUpdate().getCheckStyle());
+}
+if (source.getCustomSqlDelete() != null) {
+binding.setCustomSQLDelete(source.getCustomSqlDelete().getSql(),source.getCustomSqlDelete().isCallable(),source.getCustomSqlDelete().getCheckStyle());
+}
+if (source.getCustomSqlDeleteAll() != null) {
+binding.setCustomSQLDeleteAll(source.getCustomSqlDeleteAll().getSql(),source.getCustomSqlDeleteAll().isCallable(),source.getCustomSqlDeleteAll().getCheckStyle());
+}
+if (source instanceof Sortable) {
+final Sortable sortable=(Sortable)source;
+if (sortable.isSorted()) {
+binding.setSorted(true);
+if (!sortable.getComparatorName().equals("natural")) {
+binding.setComparatorClassName(sortable.getComparatorName());
+}
+}
+ else {
+binding.setSorted(false);
+}
+}
+if (source instanceof Orderable) {
+if (((Orderable)source).isOrdered()) {
+binding.setOrderBy(((Orderable)source).getOrder());
+}
+}
+final String cascadeStyle=source.getCascadeStyleName();
+if (cascadeStyle != null && cascadeStyle.contains("delete-orphan")) {
+binding.setOrphanDelete(true);
+}
+for (FilterSource filterSource : source.getFilterSources()) {
+String condition=filterSource.getCondition();
+if (condition == null) {
+final FilterDefinition filterDefinition=mappingDocument.getMetadataCollector().getFilterDefinition(filterSource.getName());
+if (filterDefinition != null) {
+condition=filterDefinition.getDefaultFilterCondition();
+}
+}
+binding.addFilter(filterSource.getName(),condition,filterSource.shouldAutoInjectAliases(),filterSource.getAliasToTableMap(),filterSource.getAliasToEntityMap());
+}
+}

@@ -1,0 +1,82 @@
+{
+  if (getPluralAttributeSource().getElementSource() instanceof PluralAttributeElementSourceBasic) {
+    final PluralAttributeElementSourceBasic elementSource=(PluralAttributeElementSourceBasic)getPluralAttributeSource().getElementSource();
+    final SimpleValue elementBinding=new SimpleValue(getMappingDocument().getMetadataCollector(),getCollectionBinding().getCollectionTable());
+    bindSimpleValueType(getMappingDocument(),elementSource.getExplicitHibernateTypeSource(),elementBinding);
+    relationalObjectBinder.bindColumnsAndFormulas(mappingDocument,elementSource.getRelationalValueSources(),elementBinding,elementSource.areValuesNullableByDefault(),new RelationalObjectBinder.ColumnNamingDelegate(){
+      @Override public Identifier determineImplicitName(      LocalMetadataBuildingContext context){
+        return context.getMetadataCollector().getDatabase().toIdentifier(Collection.DEFAULT_ELEMENT_COLUMN_NAME);
+      }
+    }
+);
+    getCollectionBinding().setElement(elementBinding);
+  }
+ else   if (getPluralAttributeSource().getElementSource() instanceof PluralAttributeElementSourceEmbedded) {
+    final PluralAttributeElementSourceEmbedded elementSource=(PluralAttributeElementSourceEmbedded)getPluralAttributeSource().getElementSource();
+    final Component elementBinding=new Component(getMappingDocument().getMetadataCollector(),getCollectionBinding());
+    final EmbeddableSource embeddableSource=elementSource.getEmbeddableSource();
+    bindComponent(mappingDocument,embeddableSource,elementBinding,null,embeddableSource.getAttributePathBase().getProperty(),getPluralAttributeSource().getXmlNodeName(),false);
+    getCollectionBinding().setElement(elementBinding);
+  }
+ else   if (getPluralAttributeSource().getElementSource() instanceof PluralAttributeElementSourceOneToMany) {
+    final PluralAttributeElementSourceOneToMany elementSource=(PluralAttributeElementSourceOneToMany)getPluralAttributeSource().getElementSource();
+    final OneToMany elementBinding=new OneToMany(getMappingDocument().getMetadataCollector(),getCollectionBinding().getOwner());
+    collectionBinding.setElement(elementBinding);
+    final PersistentClass referencedEntityBinding=mappingDocument.getMetadataCollector().getEntityBinding(elementSource.getReferencedEntityName());
+    elementBinding.setReferencedEntityName(referencedEntityBinding.getEntityName());
+    elementBinding.setAssociatedClass(referencedEntityBinding);
+    String embed=elementSource.getXmlNodeName();
+    if (!StringHelper.isEmpty(embed) && !"true".equals(embed)) {
+      DeprecationLogger.DEPRECATION_LOGGER.logDeprecationOfEmbedXmlSupport();
+    }
+    elementBinding.setEmbedded(embed == null || "true".equals(embed));
+    elementBinding.setIgnoreNotFound(elementSource.isIgnoreNotFound());
+  }
+ else   if (getPluralAttributeSource().getElementSource() instanceof PluralAttributeElementSourceManyToMany) {
+    final PluralAttributeElementSourceManyToMany elementSource=(PluralAttributeElementSourceManyToMany)getPluralAttributeSource().getElementSource();
+    final ManyToOne elementBinding=new ManyToOne(getMappingDocument().getMetadataCollector(),getCollectionBinding().getCollectionTable());
+    relationalObjectBinder.bindColumnsAndFormulas(getMappingDocument(),elementSource.getRelationalValueSources(),elementBinding,false,new RelationalObjectBinder.ColumnNamingDelegate(){
+      @Override public Identifier determineImplicitName(      final LocalMetadataBuildingContext context){
+        return context.getMetadataCollector().getDatabase().toIdentifier(Collection.DEFAULT_ELEMENT_COLUMN_NAME);
+      }
+    }
+);
+    elementBinding.setLazy(elementSource.getFetchCharacteristics().getFetchTiming() != FetchTiming.IMMEDIATE);
+    elementBinding.setFetchMode(elementSource.getFetchCharacteristics().getFetchStyle() == FetchStyle.SELECT ? FetchMode.SELECT : FetchMode.JOIN);
+    elementBinding.setReferencedEntityName(elementSource.getReferencedEntityName());
+    if (StringHelper.isNotEmpty(elementSource.getReferencedEntityAttributeName())) {
+      elementBinding.setReferencedPropertyName(elementSource.getReferencedEntityAttributeName());
+      elementBinding.setReferenceToPrimaryKey(false);
+    }
+ else {
+      elementBinding.setReferenceToPrimaryKey(true);
+    }
+    getCollectionBinding().setElement(elementBinding);
+    getCollectionBinding().setManyToManyWhere(elementSource.getWhere());
+    getCollectionBinding().setManyToManyOrdering(elementSource.getOrder());
+    if (!CollectionHelper.isEmpty(elementSource.getFilterSources()) || elementSource.getWhere() != null) {
+      if (getCollectionBinding().getFetchMode() == FetchMode.JOIN && elementBinding.getFetchMode() != FetchMode.JOIN) {
+        throw new MappingException(String.format(Locale.ENGLISH,"many-to-many defining filter or where without join fetching is not " + "valid within collection [%s] using join fetching",getPluralAttributeSource().getAttributeRole().getFullPath()),getMappingDocument().getOrigin());
+      }
+    }
+    for (    FilterSource filterSource : elementSource.getFilterSources()) {
+      if (filterSource.getName() == null) {
+        log.debugf("Encountered filter with no name associated with many-to-many [%s]; skipping",getPluralAttributeSource().getAttributeRole().getFullPath());
+        continue;
+      }
+      if (filterSource.getCondition() == null) {
+        throw new MappingException(String.format(Locale.ENGLISH,"No filter condition found for filter [%s] associated with many-to-many [%s]",filterSource.getName(),getPluralAttributeSource().getAttributeRole().getFullPath()),getMappingDocument().getOrigin());
+      }
+      if (debugEnabled) {
+        log.debugf("Applying many-to-many filter [%s] as [%s] to collection [%s]",filterSource.getName(),filterSource.getCondition(),getPluralAttributeSource().getAttributeRole().getFullPath());
+      }
+      getCollectionBinding().addManyToManyFilter(filterSource.getName(),filterSource.getCondition(),filterSource.shouldAutoInjectAliases(),filterSource.getAliasToTableMap(),filterSource.getAliasToEntityMap());
+    }
+  }
+ else   if (getPluralAttributeSource().getElementSource() instanceof PluralAttributeElementSourceManyToAny) {
+    final PluralAttributeElementSourceManyToAny elementSource=(PluralAttributeElementSourceManyToAny)getPluralAttributeSource().getElementSource();
+    final Any elementBinding=new Any(getMappingDocument().getMetadataCollector(),getCollectionBinding().getCollectionTable());
+    bindAny(mappingDocument,elementSource,elementBinding,getPluralAttributeSource().getAttributeRole().append("element"),getPluralAttributeSource().getAttributePath().append("element"));
+    getCollectionBinding().setElement(elementBinding);
+  }
+}

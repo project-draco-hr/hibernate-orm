@@ -1,23 +1,23 @@
 {
+  StandardServiceRegistry ssr=new StandardServiceRegistryBuilder().applySetting(AvailableSettings.DIALECT,"SQLServer").build();
   try {
-    Configuration config=new Configuration();
-    config.addAnnotatedClass(Bunny.class);
-    config.addAnnotatedClass(PointyTooth.class);
-    config.addAnnotatedClass(TwinkleToes.class);
-    config.buildMappings();
-    String[] schema=config.generateSchemaCreationScript(new SQLServerDialect());
-    for (    String s : schema) {
-      log.debug(s);
+    Metadata metadata=new MetadataSources(ssr).addAnnotatedClass(Bunny.class).addAnnotatedClass(PointyTooth.class).addAnnotatedClass(TwinkleToes.class).buildMetadata();
+    boolean foundPointyToothCreate=false;
+    boolean foundTwinkleToesCreate=false;
+    List<String> commands=new SchemaCreatorImpl().generateCreationCommands(metadata,false);
+    for (    String command : commands) {
+      log.debug(command);
+      if (expectedSqlPointyTooth.equals(command)) {
+        foundPointyToothCreate=true;
+      }
+ else       if (expectedSqlTwinkleToes.equals(command)) {
+        foundTwinkleToesCreate=true;
+      }
     }
-    String expectedSqlPointyTooth="create table PointyTooth (id numeric(128,0) not null, " + "bunny_id numeric(128,0), primary key (id))";
-    assertEquals("Wrong SQL",expectedSqlPointyTooth,schema[1]);
-    String expectedSqlTwinkleToes="create table TwinkleToes (id numeric(128,0) not null, " + "bunny_id numeric(128,0), primary key (id))";
-    assertEquals("Wrong SQL",expectedSqlTwinkleToes,schema[2]);
+    assertTrue("Expected create table command for PointyTooth entity not found",foundPointyToothCreate);
+    assertTrue("Expected create table command for TwinkleToes entity not found",foundTwinkleToesCreate);
   }
- catch (  Exception e) {
-    StringWriter writer=new StringWriter();
-    e.printStackTrace(new PrintWriter(writer));
-    log.debug(writer.toString());
-    fail(e.getMessage());
+  finally {
+    StandardServiceRegistryBuilder.destroy(ssr);
   }
 }

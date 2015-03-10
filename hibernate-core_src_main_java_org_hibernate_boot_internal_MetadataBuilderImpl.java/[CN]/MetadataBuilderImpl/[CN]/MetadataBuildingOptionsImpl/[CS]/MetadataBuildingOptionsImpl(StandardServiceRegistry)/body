@@ -1,0 +1,51 @@
+{
+  this.serviceRegistry=serviceRegistry;
+  final StrategySelector strategySelector=serviceRegistry.getService(StrategySelector.class);
+  final ConfigurationService configService=serviceRegistry.getService(ConfigurationService.class);
+  this.mappingDefaults=new MappingDefaultsImpl(serviceRegistry);
+  scanOptions=new StandardScanOptions((String)configService.getSettings().get(AvailableSettings.SCANNER_DISCOVERY),false);
+  scannerSetting=configService.getSettings().get(AvailableSettings.SCANNER);
+  if (scannerSetting == null) {
+    scannerSetting=configService.getSettings().get(AvailableSettings.SCANNER_DEPRECATED);
+    if (scannerSetting != null) {
+      DEPRECATION_LOGGER.logDeprecatedScannerSetting();
+    }
+  }
+  archiveDescriptorFactory=strategySelector.resolveStrategy(ArchiveDescriptorFactory.class,configService.getSettings().get(AvailableSettings.SCANNER_ARCHIVE_INTERPRETER));
+  useNewIdentifierGenerators=configService.getSetting(AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS,StandardConverters.BOOLEAN,false);
+  multiTenancyStrategy=MultiTenancyStrategy.determineMultiTenancyStrategy(configService.getSettings());
+  implicitDiscriminatorsForJoinedInheritanceSupported=configService.getSetting(AvailableSettings.IMPLICIT_DISCRIMINATOR_COLUMNS_FOR_JOINED_SUBCLASS,StandardConverters.BOOLEAN,false);
+  explicitDiscriminatorsForJoinedInheritanceSupported=!configService.getSetting(AvailableSettings.IGNORE_EXPLICIT_DISCRIMINATOR_COLUMNS_FOR_JOINED_SUBCLASS,StandardConverters.BOOLEAN,false);
+  implicitlyForceDiscriminatorInSelect=configService.getSetting(AvailableSettings.FORCE_DISCRIMINATOR_IN_SELECTS_BY_DEFAULT,StandardConverters.BOOLEAN,false);
+  sharedCacheMode=configService.getSetting("javax.persistence.sharedCache.mode",new ConfigurationService.Converter<SharedCacheMode>(){
+    @Override public SharedCacheMode convert(    Object value){
+      if (value == null) {
+        return null;
+      }
+      if (SharedCacheMode.class.isInstance(value)) {
+        return (SharedCacheMode)value;
+      }
+      return SharedCacheMode.valueOf(value.toString());
+    }
+  }
+,SharedCacheMode.UNSPECIFIED);
+  defaultCacheAccessType=configService.getSetting(AvailableSettings.DEFAULT_CACHE_CONCURRENCY_STRATEGY,new ConfigurationService.Converter<AccessType>(){
+    @Override public AccessType convert(    Object value){
+      if (value == null) {
+        return null;
+      }
+      if (CacheConcurrencyStrategy.class.isInstance(value)) {
+        return ((CacheConcurrencyStrategy)value).toAccessType();
+      }
+      if (AccessType.class.isInstance(value)) {
+        return (AccessType)value;
+      }
+      return AccessType.fromExternalName(value.toString());
+    }
+  }
+,serviceRegistry.getService(RegionFactory.class) == null ? null : serviceRegistry.getService(RegionFactory.class).getDefaultAccessType());
+  specjProprietarySyntaxEnabled=configService.getSetting("hibernate.enable_specj_proprietary_syntax",StandardConverters.BOOLEAN,false);
+  implicitNamingStrategy=strategySelector.resolveDefaultableStrategy(ImplicitNamingStrategy.class,configService.getSettings().get(AvailableSettings.IMPLICIT_NAMING_STRATEGY),ImplicitNamingStrategyLegacyJpaImpl.INSTANCE);
+  physicalNamingStrategy=strategySelector.resolveDefaultableStrategy(PhysicalNamingStrategy.class,configService.getSettings().get(AvailableSettings.PHYSICAL_NAMING_STRATEGY),PhysicalNamingStrategyStandardImpl.INSTANCE);
+  sourceProcessOrdering=resolveInitialSourceProcessOrdering(configService);
+}

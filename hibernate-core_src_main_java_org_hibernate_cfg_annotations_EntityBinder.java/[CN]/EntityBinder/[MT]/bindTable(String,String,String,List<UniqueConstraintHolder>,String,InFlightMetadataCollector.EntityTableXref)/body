@@ -1,0 +1,23 @@
+{
+  EntityTableNamingStrategyHelper namingStrategyHelper=new EntityTableNamingStrategyHelper(persistentClass.getClassName(),persistentClass.getEntityName(),name);
+  final Identifier logicalName;
+  if (StringHelper.isNotEmpty(tableName)) {
+    logicalName=namingStrategyHelper.handleExplicitName(tableName,context);
+  }
+ else {
+    logicalName=namingStrategyHelper.determineImplicitName(context);
+  }
+  final Table table=TableBinder.buildAndFillTable(schema,catalog,logicalName,persistentClass.isAbstract(),uniqueConstraints,null,constraints,context,this.subselect,denormalizedSuperTableXref);
+  final RowId rowId=annotatedClass.getAnnotation(RowId.class);
+  if (rowId != null) {
+    table.setRowId(rowId.value());
+  }
+  context.getMetadataCollector().addEntityTableXref(persistentClass.getEntityName(),logicalName,table,denormalizedSuperTableXref);
+  if (persistentClass instanceof TableOwner) {
+    LOG.debugf("Bind entity %s on table %s",persistentClass.getEntityName(),table.getName());
+    ((TableOwner)persistentClass).setTable(table);
+  }
+ else {
+    throw new AssertionFailure("binding a table for a subclass");
+  }
+}

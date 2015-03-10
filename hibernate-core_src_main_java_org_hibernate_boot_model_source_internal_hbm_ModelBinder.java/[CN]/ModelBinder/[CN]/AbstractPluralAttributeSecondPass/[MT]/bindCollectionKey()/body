@@ -1,0 +1,30 @@
+{
+  final String propRef=getPluralAttributeSource().getKeySource().getReferencedPropertyName();
+  getCollectionBinding().setReferencedPropertyName(propRef);
+  final KeyValue keyVal;
+  if (propRef == null) {
+    keyVal=getCollectionBinding().getOwner().getIdentifier();
+  }
+ else {
+    keyVal=(KeyValue)getCollectionBinding().getOwner().getRecursiveProperty(propRef).getValue();
+  }
+  final DependantValue key=new DependantValue(mappingDocument.getMetadataCollector(),getCollectionBinding().getCollectionTable(),keyVal);
+  key.setCascadeDeleteEnabled(getPluralAttributeSource().getKeySource().isCascadeDeleteEnabled());
+  final ImplicitJoinColumnNameSource.Nature implicitNamingNature;
+  if (getPluralAttributeSource().getElementSource() instanceof PluralAttributeElementSourceManyToMany || getPluralAttributeSource().getElementSource() instanceof PluralAttributeElementSourceOneToMany) {
+    implicitNamingNature=ImplicitJoinColumnNameSource.Nature.ENTITY_COLLECTION;
+  }
+ else {
+    implicitNamingNature=ImplicitJoinColumnNameSource.Nature.ELEMENT_COLLECTION;
+  }
+  relationalObjectBinder.bindColumnsAndFormulas(mappingDocument,getPluralAttributeSource().getKeySource().getRelationalValueSources(),key,getPluralAttributeSource().getKeySource().areValuesNullableByDefault(),new RelationalObjectBinder.ColumnNamingDelegate(){
+    @Override public Identifier determineImplicitName(    final LocalMetadataBuildingContext context){
+      return context.getMetadataCollector().getDatabase().toIdentifier(Collection.DEFAULT_KEY_COLUMN_NAME);
+    }
+  }
+);
+  key.createForeignKey();
+  getCollectionBinding().setKey(key);
+  key.setNullable(getPluralAttributeSource().getKeySource().areValuesNullableByDefault());
+  key.setUpdateable(getPluralAttributeSource().getKeySource().areValuesIncludedInUpdateByDefault());
+}

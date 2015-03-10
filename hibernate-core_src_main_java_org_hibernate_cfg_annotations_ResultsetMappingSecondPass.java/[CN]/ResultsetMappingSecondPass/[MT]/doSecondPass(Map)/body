@@ -13,18 +13,16 @@
         propertyNames.add(name);
       }
  else {
-        PersistentClass pc=mappings.getClass(entity.entityClass().getName());
+        PersistentClass pc=context.getMetadataCollector().getEntityBinding(entity.entityClass().getName());
         if (pc == null) {
-          throw new MappingException("Entity not found " + entity.entityClass().getName() + " in SqlResultsetMapping "+ ann.name());
+          throw new MappingException(String.format(Locale.ENGLISH,"Could not resolve entity [%s] referenced in SqlResultSetMapping [%s]",entity.entityClass().getName(),ann.name()));
         }
         int dotIndex=name.lastIndexOf('.');
         String reducedName=name.substring(0,dotIndex);
-        Iterator parentPropIter=getSubPropertyIterator(pc,reducedName);
-        List followers=getFollowers(parentPropIter,reducedName,name);
+        Iterator parentPropItr=getSubPropertyIterator(pc,reducedName);
+        List<String> followers=getFollowers(parentPropItr,reducedName,name);
         int index=propertyNames.size();
-        int followersSize=followers.size();
-        for (int loop=0; loop < followersSize; loop++) {
-          String follower=(String)followers.get(loop);
+        for (        String follower : followers) {
           int currentIndex=getIndexOfFirstMatchingProperty(propertyNames,follower);
           index=currentIndex != -1 && currentIndex < index ? currentIndex : index;
         }
@@ -44,7 +42,7 @@
         throw new MappingException("duplicate @FieldResult for property " + name + " on @Entity "+ entity.entityClass().getName()+ " in "+ ann.name());
       }
       uniqueReturnProperty.add(name);
-      final String quotingNormalizedColumnName=mappings.getObjectNameNormalizer().normalizeIdentifierQuoting(propertyresult.column());
+      final String quotingNormalizedColumnName=normalizeColumnQuoting(propertyresult.column());
       String key=StringHelper.root(name);
       ArrayList<String> intermediateResults=propertyResultsTmp.get(key);
       if (intermediateResults == null) {
@@ -58,7 +56,7 @@
       propertyResults.put(entry.getKey(),entry.getValue().toArray(new String[entry.getValue().size()]));
     }
     if (!BinderHelper.isEmptyAnnotationValue(entity.discriminatorColumn())) {
-      final String quotingNormalizedName=mappings.getObjectNameNormalizer().normalizeIdentifierQuoting(entity.discriminatorColumn());
+      final String quotingNormalizedName=normalizeColumnQuoting(entity.discriminatorColumn());
       propertyResults.put("class",new String[]{quotingNormalizedName});
     }
     if (propertyResults.isEmpty()) {
@@ -68,19 +66,19 @@
     definition.addQueryReturn(result);
   }
   for (  ColumnResult column : ann.columns()) {
-    definition.addQueryReturn(new NativeSQLQueryScalarReturn(mappings.getObjectNameNormalizer().normalizeIdentifierQuoting(column.name()),column.type() != null ? mappings.getTypeResolver().heuristicType(column.type().getName()) : null));
+    definition.addQueryReturn(new NativeSQLQueryScalarReturn(normalizeColumnQuoting(column.name()),column.type() != null ? context.getMetadataCollector().getTypeResolver().heuristicType(column.type().getName()) : null));
   }
   for (  ConstructorResult constructorResult : ann.classes()) {
     List<NativeSQLQueryScalarReturn> columnReturns=new ArrayList<NativeSQLQueryScalarReturn>();
     for (    ColumnResult columnResult : constructorResult.columns()) {
-      columnReturns.add(new NativeSQLQueryScalarReturn(mappings.getObjectNameNormalizer().normalizeIdentifierQuoting(columnResult.name()),columnResult.type() != null ? mappings.getTypeResolver().heuristicType(columnResult.type().getName()) : null));
+      columnReturns.add(new NativeSQLQueryScalarReturn(normalizeColumnQuoting(columnResult.name()),columnResult.type() != null ? context.getMetadataCollector().getTypeResolver().heuristicType(columnResult.type().getName()) : null));
     }
     definition.addQueryReturn(new NativeSQLQueryConstructorReturn(constructorResult.targetClass(),columnReturns));
   }
   if (isDefault) {
-    mappings.addDefaultResultSetMapping(definition);
+    context.getMetadataCollector().addDefaultResultSetMapping(definition);
   }
  else {
-    mappings.addResultSetMapping(definition);
+    context.getMetadataCollector().addResultSetMapping(definition);
   }
 }

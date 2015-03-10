@@ -1,0 +1,15 @@
+{
+  final List<Namespace> targetNamespaces=new ArrayList<Namespace>();
+  if ("".equals(startElement.getName().getNamespaceURI())) {
+    targetNamespaces.add(xmlEventFactory.createNamespace(LocalSchema.HBM.getNamespaceUri()));
+  }
+  final Iterator<Namespace> originalNamespaces=startElement.getNamespaces();
+  while (originalNamespaces.hasNext()) {
+    Namespace namespace=originalNamespaces.next();
+    if (NAMESPACE_URIS_TO_MAP.contains(namespace.getNamespaceURI())) {
+      namespace=xmlEventFactory.createNamespace(namespace.getPrefix(),LocalSchema.HBM.getNamespaceUri());
+    }
+    targetNamespaces.add(namespace);
+  }
+  return xmlEventFactory.createStartElement(new QName(LocalSchema.HBM.getNamespaceUri(),startElement.getName().getLocalPart()),startElement.getAttributes(),targetNamespaces.iterator());
+}

@@ -1,0 +1,16 @@
+{
+  this.idClassDescriptor=idClassDescriptor;
+  this.rootEntitySource=rootEntitySource;
+  this.sourceMappingDocument=sourceMappingDocument;
+  this.attributePathBase=rootEntitySource.getAttributePathBase().append("<IdClass>");
+  this.attributeRoleBase=rootEntitySource.getAttributeRoleBase().append("<IdClass>");
+  this.attributeSources=new ArrayList<AttributeSource>();
+  for (  Object attribute : rootEntitySource.jaxbEntityMapping().getCompositeId().getKeyPropertyOrKeyManyToOne()) {
+    if (JaxbHbmCompositeKeyBasicAttributeType.class.isInstance(attribute)) {
+      attributeSources.add(new CompositeIdentifierSingularAttributeSourceBasicImpl(sourceMappingDocument,this,(JaxbHbmCompositeKeyBasicAttributeType)attribute));
+    }
+ else {
+      attributeSources.add(new CompositeIdentifierSingularAttributeSourceManyToOneImpl(sourceMappingDocument,this,(JaxbHbmCompositeKeyManyToOneType)attribute));
+    }
+  }
+}

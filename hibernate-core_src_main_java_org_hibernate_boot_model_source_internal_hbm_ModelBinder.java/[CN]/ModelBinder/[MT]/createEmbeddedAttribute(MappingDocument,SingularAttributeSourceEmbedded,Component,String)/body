@@ -1,0 +1,21 @@
+{
+  final String attributeName=embeddedSource.getName();
+  bindComponent(sourceDocument,embeddedSource.getEmbeddableSource(),componentBinding,containingClassName,attributeName,embeddedSource.getXmlNodeName(),embeddedSource.isVirtualAttribute());
+  prepareValueTypeViaReflection(sourceDocument,componentBinding,componentBinding.getComponentClassName(),attributeName,embeddedSource.getAttributeRole());
+  componentBinding.createForeignKey();
+  final Property attribute;
+  if (embeddedSource.isVirtualAttribute()) {
+    attribute=new SyntheticProperty(){
+      @Override public String getPropertyAccessorName(){
+        return "embedded";
+      }
+    }
+;
+  }
+ else {
+    attribute=new Property();
+  }
+  attribute.setValue(componentBinding);
+  bindProperty(sourceDocument,embeddedSource,attribute);
+  return attribute;
+}

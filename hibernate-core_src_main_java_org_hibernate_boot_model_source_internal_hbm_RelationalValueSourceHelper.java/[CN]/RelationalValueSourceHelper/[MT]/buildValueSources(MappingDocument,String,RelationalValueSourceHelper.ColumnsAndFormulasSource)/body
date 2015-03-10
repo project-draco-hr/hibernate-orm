@@ -1,0 +1,26 @@
+{
+  List<RelationalValueSource> result=new ArrayList<RelationalValueSource>();
+  if (StringHelper.isNotEmpty(columnsAndFormulasSource.getFormulaAttribute())) {
+    validateUseOfFormulaAttribute(mappingDocument,columnsAndFormulasSource);
+    result.add(new FormulaImpl(mappingDocument,containingTableName,columnsAndFormulasSource.getFormulaAttribute()));
+  }
+ else   if (CollectionHelper.isNotEmpty(columnsAndFormulasSource.getColumnOrFormulaElements())) {
+    validateUseOfColumnOrFormulaNestedElements(mappingDocument,columnsAndFormulasSource);
+    for (    Object selectable : columnsAndFormulasSource.getColumnOrFormulaElements()) {
+      if (selectable instanceof JaxbHbmColumnType) {
+        final JaxbHbmColumnType columnElement=(JaxbHbmColumnType)selectable;
+        result.add(new ColumnSourceImpl(mappingDocument,containingTableName,columnElement));
+      }
+ else       if (selectable instanceof String) {
+        result.add(new FormulaImpl(mappingDocument,containingTableName,(String)selectable));
+      }
+ else {
+        throw new MappingException("Unexpected column/formula JAXB type : " + selectable.getClass().getName(),mappingDocument.getOrigin());
+      }
+    }
+  }
+ else {
+    result.add(new ColumnAttributeSourceImpl(mappingDocument,containingTableName,columnsAndFormulasSource.getColumnAttribute(),columnsAndFormulasSource.getSizeSource(),interpretNullabilityToTruthValue(columnsAndFormulasSource.isNullable()),columnsAndFormulasSource.isUnique() ? TruthValue.TRUE : TruthValue.FALSE));
+  }
+  return result;
+}

@@ -1,13 +1,13 @@
 {
-  org.hibernate.mapping.OneToOne value=new org.hibernate.mapping.OneToOne(mappings,propertyHolder.getTable(),propertyHolder.getPersistentClass());
+  org.hibernate.mapping.OneToOne value=new org.hibernate.mapping.OneToOne(buildingContext.getMetadataCollector(),propertyHolder.getTable(),propertyHolder.getPersistentClass());
   final String propertyName=inferredData.getPropertyName();
   value.setPropertyName(propertyName);
-  String referencedEntityName=ToOneBinder.getReferenceEntityName(inferredData,targetEntity,mappings);
+  String referencedEntityName=ToOneBinder.getReferenceEntityName(inferredData,targetEntity,buildingContext);
   value.setReferencedEntityName(referencedEntityName);
   AnnotationBinder.defineFetchingStrategy(value,inferredData.getProperty());
   value.setCascadeDeleteEnabled(cascadeOnDelete);
   if (!optional)   value.setConstrained(true);
-  value.setForeignKeyType(value.isConstrained() ? ForeignKeyDirection.FOREIGN_KEY_FROM_PARENT : ForeignKeyDirection.FOREIGN_KEY_TO_PARENT);
+  value.setForeignKeyType(value.isConstrained() ? ForeignKeyDirection.FROM_PARENT : ForeignKeyDirection.TO_PARENT);
   PropertyBinder binder=new PropertyBinder();
   binder.setName(propertyName);
   binder.setValue(value);
@@ -18,7 +18,8 @@
     boolean rightOrder=true;
     if (rightOrder) {
       String path=StringHelper.qualify(propertyHolder.getPath(),propertyName);
-      (new ToOneFkSecondPass(value,joinColumns,!optional,propertyHolder.getEntityOwnerClassName(),path,mappings)).doSecondPass(persistentClasses);
+      final ToOneFkSecondPass secondPass=new ToOneFkSecondPass(value,joinColumns,!optional,propertyHolder.getEntityOwnerClassName(),path,buildingContext);
+      secondPass.doSecondPass(persistentClasses);
       propertyHolder.addProperty(prop,inferredData.getDeclaringClass());
     }
  else {
@@ -54,7 +55,7 @@
       }
       if (otherSideJoin != null) {
         Join mappedByJoin=buildJoinFromMappedBySide((PersistentClass)persistentClasses.get(ownerEntity),otherSideProperty,otherSideJoin);
-        ManyToOne manyToOne=new ManyToOne(mappings,mappedByJoin.getTable());
+        ManyToOne manyToOne=new ManyToOne(buildingContext.getMetadataCollector(),mappedByJoin.getTable());
         manyToOne.setIgnoreNotFound(ignoreNotFound);
         manyToOne.setCascadeDeleteEnabled(value.isCascadeDeleteEnabled());
         manyToOne.setEmbedded(value.isEmbedded());
@@ -99,7 +100,7 @@
       }
       String propertyRef=value.getReferencedPropertyName();
       if (propertyRef != null) {
-        mappings.addUniquePropertyReference(value.getReferencedEntityName(),propertyRef);
+        buildingContext.getMetadataCollector().addUniquePropertyReference(value.getReferencedEntityName(),propertyRef);
       }
     }
  else {

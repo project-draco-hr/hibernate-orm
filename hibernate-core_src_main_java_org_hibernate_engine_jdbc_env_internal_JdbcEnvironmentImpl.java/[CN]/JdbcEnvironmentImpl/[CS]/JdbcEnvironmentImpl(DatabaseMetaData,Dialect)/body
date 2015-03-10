@@ -1,0 +1,15 @@
+{
+  this.dialect=dialect;
+  this.sqlExceptionHelper=buildSqlExceptionHelper(dialect);
+  this.extractedMetaDataSupport=new ExtractedDatabaseMetaDataImpl.Builder(this).apply(databaseMetaData).build();
+  for (  String keyword : dialect.getKeywords()) {
+    reservedWords.add(keyword.toUpperCase());
+  }
+  reservedWords.addAll(extractedMetaDataSupport.getExtraKeywords());
+  final boolean globallyQuoteIdentifiers=false;
+  this.identifierHelper=new NormalizingIdentifierHelperImpl(this,globallyQuoteIdentifiers,true,false,false,true,false);
+  this.currentCatalog=null;
+  this.currentSchema=null;
+  this.qualifiedObjectNameFormatter=new QualifiedObjectNameFormatterStandardImpl(databaseMetaData);
+  this.lobCreatorBuilder=LobCreatorBuilderImpl.makeLobCreatorBuilder();
+}

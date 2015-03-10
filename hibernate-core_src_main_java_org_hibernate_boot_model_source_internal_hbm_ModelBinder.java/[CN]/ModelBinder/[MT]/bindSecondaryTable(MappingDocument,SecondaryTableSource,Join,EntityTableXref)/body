@@ -1,0 +1,48 @@
+{
+  final PersistentClass persistentClass=secondaryTableJoin.getPersistentClass();
+  final Identifier catalogName=determineCatalogName(secondaryTableSource.getTableSource());
+  final Identifier schemaName=determineSchemaName(secondaryTableSource.getTableSource());
+  final Schema schema=database.locateSchema(catalogName,schemaName);
+  Table secondaryTable;
+  final Identifier logicalTableName;
+  if (TableSource.class.isInstance(secondaryTableSource.getTableSource())) {
+    final TableSource tableSource=(TableSource)secondaryTableSource.getTableSource();
+    logicalTableName=database.toIdentifier(tableSource.getExplicitTableName());
+    secondaryTable=schema.locateTable(logicalTableName);
+    if (secondaryTable == null) {
+      secondaryTable=schema.createTable(logicalTableName,false);
+    }
+ else {
+      secondaryTable.setAbstract(false);
+    }
+    secondaryTable.setComment(tableSource.getComment());
+  }
+ else {
+    final InLineViewSource inLineViewSource=(InLineViewSource)secondaryTableSource.getTableSource();
+    secondaryTable=new Table(schema,inLineViewSource.getSelectStatement(),false);
+    logicalTableName=Identifier.toIdentifier(inLineViewSource.getLogicalName());
+  }
+  secondaryTableJoin.setTable(secondaryTable);
+  entityTableXref.addSecondaryTable(mappingDocument,logicalTableName,secondaryTableJoin);
+  bindCustomSql(mappingDocument,secondaryTableSource,secondaryTableJoin);
+  secondaryTableJoin.setSequentialSelect(secondaryTableSource.getFetchStyle() == FetchStyle.SELECT);
+  secondaryTableJoin.setInverse(secondaryTableSource.isInverse());
+  secondaryTableJoin.setOptional(secondaryTableSource.isOptional());
+  if (log.isDebugEnabled()) {
+    log.debugf("Mapping entity secondary-table: %s -> %s",persistentClass.getEntityName(),secondaryTable.getName());
+  }
+  final SimpleValue keyBinding=new DependantValue(mappingDocument.getMetadataCollector(),secondaryTable,persistentClass.getIdentifier());
+  secondaryTableJoin.setKey(keyBinding);
+  keyBinding.setCascadeDeleteEnabled(secondaryTableSource.isCascadeDeleteEnabled());
+  relationalObjectBinder.bindColumns(mappingDocument,secondaryTableSource.getPrimaryKeyColumnSources(),keyBinding,secondaryTableSource.isOptional(),new RelationalObjectBinder.ColumnNamingDelegate(){
+    int count=0;
+    @Override public Identifier determineImplicitName(    LocalMetadataBuildingContext context){
+      final Column correspondingColumn=entityTableXref.getPrimaryTable().getPrimaryKey().getColumn(count++);
+      return database.toIdentifier(correspondingColumn.getQuotedName());
+    }
+  }
+);
+  keyBinding.setForeignKeyName(secondaryTableSource.getExplicitForeignKeyName());
+  secondaryTableJoin.createPrimaryKey();
+  secondaryTableJoin.createForeignKey();
+}

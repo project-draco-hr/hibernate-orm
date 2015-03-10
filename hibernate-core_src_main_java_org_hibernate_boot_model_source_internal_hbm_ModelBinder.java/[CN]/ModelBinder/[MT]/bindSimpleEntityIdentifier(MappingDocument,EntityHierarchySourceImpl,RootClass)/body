@@ -1,0 +1,41 @@
+{
+  final IdentifierSourceSimple idSource=(IdentifierSourceSimple)hierarchySource.getIdentifierSource();
+  final SimpleValue idValue=new SimpleValue(sourceDocument.getMetadataCollector(),rootEntityDescriptor.getTable());
+  rootEntityDescriptor.setIdentifier(idValue);
+  bindSimpleValueType(sourceDocument,idSource.getIdentifierAttributeSource().getTypeInformation(),idValue);
+  final String propertyName=idSource.getIdentifierAttributeSource().getName();
+  if (propertyName == null || !rootEntityDescriptor.hasPojoRepresentation()) {
+    if (!idValue.isTypeSpecified()) {
+      throw new MappingException("must specify an identifier type: " + rootEntityDescriptor.getEntityName(),sourceDocument.getOrigin());
+    }
+  }
+ else {
+    idValue.setTypeUsingReflection(rootEntityDescriptor.getClassName(),propertyName);
+  }
+  relationalObjectBinder.bindColumnsAndFormulas(sourceDocument,((RelationalValueSourceContainer)idSource.getIdentifierAttributeSource()).getRelationalValueSources(),idValue,false,new RelationalObjectBinder.ColumnNamingDelegate(){
+    @Override public Identifier determineImplicitName(    final LocalMetadataBuildingContext context){
+      context.getBuildingOptions().getImplicitNamingStrategy().determineIdentifierColumnName(new ImplicitIdentifierColumnNameSource(){
+        @Override public EntityNaming getEntityNaming(){
+          return hierarchySource.getRoot().getEntityNamingSource();
+        }
+        @Override public AttributePath getIdentifierAttributePath(){
+          return idSource.getIdentifierAttributeSource().getAttributePath();
+        }
+        @Override public MetadataBuildingContext getBuildingContext(){
+          return context;
+        }
+      }
+);
+      return database.toIdentifier(propertyName);
+    }
+  }
+);
+  if (propertyName != null) {
+    Property prop=new Property();
+    prop.setValue(idValue);
+    bindProperty(sourceDocument,idSource.getIdentifierAttributeSource(),prop);
+    rootEntityDescriptor.setIdentifierProperty(prop);
+    rootEntityDescriptor.setDeclaredIdentifierProperty(prop);
+  }
+  makeIdentifier(sourceDocument,idSource.getIdentifierGeneratorDescriptor(),idSource.getUnsavedValue(),idValue);
+}

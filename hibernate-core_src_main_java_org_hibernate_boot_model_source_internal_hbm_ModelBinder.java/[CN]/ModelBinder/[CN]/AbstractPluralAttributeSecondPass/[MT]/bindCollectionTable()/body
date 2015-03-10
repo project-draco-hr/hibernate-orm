@@ -1,0 +1,57 @@
+{
+  if (pluralAttributeSource.getElementSource() instanceof PluralAttributeElementSourceOneToMany) {
+    final PluralAttributeElementSourceOneToMany elementSource=(PluralAttributeElementSourceOneToMany)pluralAttributeSource.getElementSource();
+    final PersistentClass persistentClass=mappingDocument.getMetadataCollector().getEntityBinding(elementSource.getReferencedEntityName());
+    if (persistentClass == null) {
+      throw new MappingException(String.format(Locale.ENGLISH,"Association [%s] references an unmapped entity [%s]",pluralAttributeSource.getAttributeRole().getFullPath(),pluralAttributeSource.getAttributeRole().getFullPath()),mappingDocument.getOrigin());
+    }
+    collectionBinding.setCollectionTable(persistentClass.getTable());
+  }
+ else {
+    final TableSpecificationSource tableSpecSource=pluralAttributeSource.getCollectionTableSpecificationSource();
+    final Identifier logicalCatalogName=determineCatalogName(tableSpecSource);
+    final Identifier logicalSchemaName=determineSchemaName(tableSpecSource);
+    final Schema schema=database.locateSchema(logicalCatalogName,logicalSchemaName);
+    final Table collectionTable;
+    if (tableSpecSource instanceof TableSource) {
+      final TableSource tableSource=(TableSource)tableSpecSource;
+      Identifier logicalName;
+      if (StringHelper.isNotEmpty(tableSource.getExplicitTableName())) {
+        logicalName=Identifier.toIdentifier(tableSource.getExplicitTableName(),mappingDocument.getMappingDefaults().shouldImplicitlyQuoteIdentifiers());
+      }
+ else {
+        final EntityNaming ownerEntityNaming=new EntityNamingSourceImpl(collectionBinding.getOwner().getEntityName(),collectionBinding.getOwner().getClassName(),collectionBinding.getOwner().getJpaEntityName());
+        final ImplicitCollectionTableNameSource implicitNamingSource=new ImplicitCollectionTableNameSource(){
+          @Override public Identifier getOwningPhysicalTableName(){
+            return collectionBinding.getOwner().getTable().getNameIdentifier();
+          }
+          @Override public EntityNaming getOwningEntityNaming(){
+            return ownerEntityNaming;
+          }
+          @Override public AttributePath getOwningAttributePath(){
+            return pluralAttributeSource.getAttributePath();
+          }
+          @Override public MetadataBuildingContext getBuildingContext(){
+            return mappingDocument;
+          }
+        }
+;
+        logicalName=mappingDocument.getBuildingOptions().getImplicitNamingStrategy().determineCollectionTableName(implicitNamingSource);
+      }
+      collectionTable=schema.createTable(logicalName,false);
+    }
+ else {
+      collectionTable=new Table(schema,((InLineViewSource)tableSpecSource).getSelectStatement(),false);
+    }
+    collectionBinding.setCollectionTable(collectionTable);
+  }
+  if (debugEnabled) {
+    log.debugf("Mapping collection: %s -> %s",collectionBinding.getRole(),collectionBinding.getCollectionTable().getName());
+  }
+  if (pluralAttributeSource.getCollectionTableComment() != null) {
+    collectionBinding.getCollectionTable().setComment(pluralAttributeSource.getCollectionTableComment());
+  }
+  if (pluralAttributeSource.getCollectionTableCheck() != null) {
+    collectionBinding.getCollectionTable().addCheckConstraint(pluralAttributeSource.getCollectionTableCheck());
+  }
+}

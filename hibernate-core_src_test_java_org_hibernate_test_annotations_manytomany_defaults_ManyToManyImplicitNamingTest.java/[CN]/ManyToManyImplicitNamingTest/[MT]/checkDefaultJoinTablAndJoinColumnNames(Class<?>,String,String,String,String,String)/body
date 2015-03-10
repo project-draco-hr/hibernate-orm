@@ -1,0 +1,34 @@
+{
+  final org.hibernate.mapping.Collection collection=metadata().getCollectionBinding(ownerEntityClass.getName() + '.' + ownerCollectionPropertyName);
+  final org.hibernate.mapping.Table table=collection.getCollectionTable();
+  assertEquals(expectedCollectionTableName,table.getName());
+  final org.hibernate.mapping.Collection ownerCollection=metadata().getCollectionBinding(ownerEntityClass.getName() + '.' + ownerCollectionPropertyName);
+  assertEquals(1,ownerCollection.getOwner().getKey().getColumnSpan());
+  assertEquals(ownerForeignKeyNameExpected,ownerCollection.getKey().getColumnIterator().next().getText());
+  final EntityType associatedEntityType=(EntityType)ownerCollection.getElement().getType();
+  final PersistentClass associatedPersistentClass=metadata().getEntityBinding(associatedEntityType.getAssociatedEntityName());
+  assertEquals(1,associatedPersistentClass.getKey().getColumnSpan());
+  if (inverseCollectionPropertyName != null) {
+    final org.hibernate.mapping.Collection inverseCollection=metadata().getCollectionBinding(associatedPersistentClass.getEntityName() + '.' + inverseCollectionPropertyName);
+    assertEquals(inverseForeignKeyNameExpected,inverseCollection.getKey().getColumnIterator().next().getText());
+  }
+  boolean hasOwnerFK=false;
+  boolean hasInverseFK=false;
+  for (Iterator it=ownerCollection.getCollectionTable().getForeignKeyIterator(); it.hasNext(); ) {
+    final ForeignKey fk=(ForeignKey)it.next();
+    assertSame(ownerCollection.getCollectionTable(),fk.getTable());
+    if (fk.getColumnSpan() > 1) {
+      continue;
+    }
+    if (fk.getColumn(0).getText().equals(ownerForeignKeyNameExpected)) {
+      assertSame(ownerCollection.getOwner().getTable(),fk.getReferencedTable());
+      hasOwnerFK=true;
+    }
+ else     if (fk.getColumn(0).getText().equals(inverseForeignKeyNameExpected)) {
+      assertSame(associatedPersistentClass.getTable(),fk.getReferencedTable());
+      hasInverseFK=true;
+    }
+  }
+  assertTrue(hasOwnerFK);
+  assertTrue(hasInverseFK);
+}

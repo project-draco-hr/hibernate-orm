@@ -1,0 +1,33 @@
+{
+  oneToOneBinding.setPropertyName(oneToOneSource.getName());
+  relationalObjectBinder.bindFormulas(sourceDocument,oneToOneSource.getFormulaSources(),oneToOneBinding);
+  if (oneToOneSource.isConstrained()) {
+    if (oneToOneSource.getCascadeStyleName() != null && oneToOneSource.getCascadeStyleName().contains("delete-orphan")) {
+      throw new MappingException(String.format(Locale.ENGLISH,"one-to-one attribute [%s] cannot specify orphan delete cascading as it is constrained",oneToOneSource.getAttributeRole().getFullPath()),sourceDocument.getOrigin());
+    }
+    oneToOneBinding.setConstrained(true);
+    oneToOneBinding.setForeignKeyType(ForeignKeyDirection.FROM_PARENT);
+  }
+ else {
+    oneToOneBinding.setForeignKeyType(ForeignKeyDirection.TO_PARENT);
+  }
+  oneToOneBinding.setLazy(oneToOneSource.getFetchCharacteristics().getFetchTiming() == FetchTiming.DELAYED);
+  oneToOneBinding.setFetchMode(oneToOneSource.getFetchCharacteristics().getFetchStyle() == FetchStyle.SELECT ? FetchMode.SELECT : FetchMode.JOIN);
+  oneToOneBinding.setUnwrapProxy(oneToOneSource.getFetchCharacteristics().isUnwrapProxies());
+  if (StringHelper.isNotEmpty(oneToOneSource.getReferencedEntityAttributeName())) {
+    oneToOneBinding.setReferencedPropertyName(oneToOneSource.getReferencedEntityAttributeName());
+    oneToOneBinding.setReferenceToPrimaryKey(false);
+  }
+ else {
+    oneToOneBinding.setReferenceToPrimaryKey(true);
+  }
+  oneToOneBinding.setReferencedEntityName(oneToOneSource.getReferencedEntityName());
+  if (oneToOneSource.isEmbedXml()) {
+    DeprecationLogger.DEPRECATION_LOGGER.logDeprecationOfEmbedXmlSupport();
+  }
+  oneToOneBinding.setEmbedded(oneToOneSource.isEmbedXml());
+  if (StringHelper.isNotEmpty(oneToOneSource.getExplicitForeignKeyName())) {
+    oneToOneBinding.setForeignKeyName(oneToOneSource.getExplicitForeignKeyName());
+  }
+  oneToOneBinding.setCascadeDeleteEnabled(oneToOneSource.isCascadeDeleteEnabled());
+}

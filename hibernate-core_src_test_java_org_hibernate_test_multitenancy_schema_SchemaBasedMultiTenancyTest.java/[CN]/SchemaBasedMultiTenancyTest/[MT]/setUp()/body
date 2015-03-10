@@ -1,6 +1,20 @@
 {
   AbstractMultiTenantConnectionProvider multiTenantConnectionProvider=buildMultiTenantConnectionProvider();
-  Configuration cfg=buildConfiguration();
-  serviceRegistry=(ServiceRegistryImplementor)new StandardServiceRegistryBuilder().applySettings(cfg.getProperties()).addService(MultiTenantConnectionProvider.class,multiTenantConnectionProvider).build();
-  sessionFactory=(SessionFactoryImplementor)cfg.buildSessionFactory(serviceRegistry);
+  Map settings=new HashMap();
+  settings.put(Environment.MULTI_TENANT,MultiTenancyStrategy.SCHEMA);
+  settings.put(Environment.CACHE_REGION_FACTORY,CachingRegionFactory.class.getName());
+  settings.put(Environment.GENERATE_STATISTICS,"true");
+  serviceRegistry=(ServiceRegistryImplementor)new StandardServiceRegistryBuilder().applySettings(settings).addService(MultiTenantConnectionProvider.class,multiTenantConnectionProvider).build();
+  MetadataSources ms=new MetadataSources(serviceRegistry);
+  ms.addAnnotatedClass(Customer.class);
+  ms.addAnnotatedClass(Invoice.class);
+  Metadata metadata=ms.buildMetadata();
+  ((RootClass)metadata.getEntityBinding(Customer.class.getName())).setCacheConcurrencyStrategy("read-write");
+  final TargetDatabaseImpl acmeTarget=new TargetDatabaseImpl(new JdbcConnectionAccessImpl(acmeProvider));
+  final TargetDatabaseImpl jbossTarget=new TargetDatabaseImpl(new JdbcConnectionAccessImpl(jbossProvider));
+  serviceRegistry.getService(SchemaManagementTool.class).getSchemaDropper(settings).doDrop(metadata,true,acmeTarget,jbossTarget);
+  serviceRegistry.getService(SchemaManagementTool.class).getSchemaCreator(settings).doCreation(metadata,true,acmeTarget,jbossTarget);
+  final SessionFactoryBuilder sfb=metadata.getSessionFactoryBuilder();
+  configure(sfb);
+  sessionFactory=(SessionFactoryImplementor)sfb.build();
 }

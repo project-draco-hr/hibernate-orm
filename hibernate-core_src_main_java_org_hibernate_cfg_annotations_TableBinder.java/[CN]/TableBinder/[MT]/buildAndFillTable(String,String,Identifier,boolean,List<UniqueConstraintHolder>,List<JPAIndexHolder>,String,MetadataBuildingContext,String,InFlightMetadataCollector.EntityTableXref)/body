@@ -1,0 +1,22 @@
+{
+  schema=BinderHelper.isEmptyAnnotationValue(schema) ? extract(buildingContext.getMetadataCollector().getDatabase().getDefaultSchema().getPhysicalName().getSchema()) : schema;
+  catalog=BinderHelper.isEmptyAnnotationValue(catalog) ? extract(buildingContext.getMetadataCollector().getDatabase().getDefaultSchema().getPhysicalName().getCatalog()) : catalog;
+  final Table table;
+  if (denormalizedSuperTableXref != null) {
+    table=buildingContext.getMetadataCollector().addDenormalizedTable(schema,catalog,logicalName.render(),isAbstract,subselect,denormalizedSuperTableXref.getPrimaryTable());
+  }
+ else {
+    table=buildingContext.getMetadataCollector().addTable(schema,catalog,logicalName.render(),subselect,isAbstract);
+  }
+  if (CollectionHelper.isNotEmpty(uniqueConstraints)) {
+    buildingContext.getMetadataCollector().addUniqueConstraintHolders(table,uniqueConstraints);
+  }
+  if (CollectionHelper.isNotEmpty(jpaIndexHolders)) {
+    buildingContext.getMetadataCollector().addJpaIndexHolders(table,jpaIndexHolders);
+  }
+  if (constraints != null) {
+    table.addCheckConstraint(constraints);
+  }
+  buildingContext.getMetadataCollector().addTableNameBinding(logicalName,table);
+  return table;
+}

@@ -1,0 +1,38 @@
+{
+  if (caching == null || caching.getRequested() == TruthValue.UNKNOWN) {
+switch (mappingDocument.getBuildingOptions().getSharedCacheMode()) {
+case ALL:
+{
+        caching=new Caching(null,mappingDocument.getBuildingOptions().getImplicitCacheAccessType(),false,TruthValue.UNKNOWN);
+      }
+case NONE:
+{
+      break;
+    }
+case ENABLE_SELECTIVE:
+{
+    break;
+  }
+case DISABLE_SELECTIVE:
+{
+  break;
+}
+default :
+{
+break;
+}
+}
+}
+if (caching == null || caching.getRequested() == TruthValue.FALSE) {
+return;
+}
+if (caching.getAccessType() != null) {
+rootEntityDescriptor.setCacheConcurrencyStrategy(caching.getAccessType().getExternalName());
+}
+ else {
+rootEntityDescriptor.setCacheConcurrencyStrategy(mappingDocument.getBuildingOptions().getImplicitCacheAccessType().getExternalName());
+}
+rootEntityDescriptor.setCacheRegionName(caching.getRegion());
+rootEntityDescriptor.setLazyPropertiesCacheable(caching.isCacheLazyProperties());
+rootEntityDescriptor.setCachingExplicitlyRequested(caching.getRequested() != TruthValue.UNKNOWN);
+}

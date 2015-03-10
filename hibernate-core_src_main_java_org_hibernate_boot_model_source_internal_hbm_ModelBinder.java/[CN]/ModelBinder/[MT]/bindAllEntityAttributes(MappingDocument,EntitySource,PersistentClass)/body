@@ -1,0 +1,112 @@
+{
+  final EntityTableXref entityTableXref=mappingDocument.getMetadataCollector().getEntityTableXref(entityDescriptor.getEntityName());
+  if (entityTableXref == null) {
+    throw new AssertionFailure(String.format(Locale.ENGLISH,"Unable to locate EntityTableXref for entity [%s] : %s",entityDescriptor.getEntityName(),mappingDocument.getOrigin()));
+  }
+  for (  SecondaryTableSource secondaryTableSource : entitySource.getSecondaryTableMap().values()) {
+    final Join secondaryTableJoin=new Join();
+    secondaryTableJoin.setPersistentClass(entityDescriptor);
+    bindSecondaryTable(mappingDocument,secondaryTableSource,secondaryTableJoin,entityTableXref);
+    entityDescriptor.addJoin(secondaryTableJoin);
+  }
+  for (  AttributeSource attributeSource : entitySource.attributeSources()) {
+    if (PluralAttributeSource.class.isInstance(attributeSource)) {
+      final Property attribute=createPluralAttribute(mappingDocument,(PluralAttributeSource)attributeSource,entityDescriptor);
+      entityDescriptor.addProperty(attribute);
+    }
+ else {
+      if (SingularAttributeSourceBasic.class.isInstance(attributeSource)) {
+        final SingularAttributeSourceBasic basicAttributeSource=(SingularAttributeSourceBasic)attributeSource;
+        final Identifier tableName=determineTable(mappingDocument,basicAttributeSource.getName(),basicAttributeSource);
+        final AttributeContainer attributeContainer;
+        final Table table;
+        final Join secondaryTableJoin=entityTableXref.locateJoin(tableName);
+        if (secondaryTableJoin == null) {
+          table=entityDescriptor.getTable();
+          attributeContainer=entityDescriptor;
+        }
+ else {
+          table=secondaryTableJoin.getTable();
+          attributeContainer=secondaryTableJoin;
+        }
+        final Property attribute=createBasicAttribute(mappingDocument,basicAttributeSource,new SimpleValue(mappingDocument.getMetadataCollector(),table),entityDescriptor.getClassName());
+        if (secondaryTableJoin != null) {
+          attribute.setOptional(secondaryTableJoin.isOptional());
+        }
+        attributeContainer.addProperty(attribute);
+        handleNaturalIdBinding(mappingDocument,entityDescriptor,attribute,basicAttributeSource.getNaturalIdMutability());
+      }
+ else       if (SingularAttributeSourceEmbedded.class.isInstance(attributeSource)) {
+        final SingularAttributeSourceEmbedded embeddedAttributeSource=(SingularAttributeSourceEmbedded)attributeSource;
+        final Identifier tableName=determineTable(mappingDocument,embeddedAttributeSource);
+        final AttributeContainer attributeContainer;
+        final Table table;
+        final Join secondaryTableJoin=entityTableXref.locateJoin(tableName);
+        if (secondaryTableJoin == null) {
+          table=entityDescriptor.getTable();
+          attributeContainer=entityDescriptor;
+        }
+ else {
+          table=secondaryTableJoin.getTable();
+          attributeContainer=secondaryTableJoin;
+        }
+        final Property attribute=createEmbeddedAttribute(mappingDocument,(SingularAttributeSourceEmbedded)attributeSource,new Component(mappingDocument.getMetadataCollector(),table,entityDescriptor),entityDescriptor.getClassName());
+        if (secondaryTableJoin != null) {
+          attribute.setOptional(secondaryTableJoin.isOptional());
+        }
+        attributeContainer.addProperty(attribute);
+        handleNaturalIdBinding(mappingDocument,entityDescriptor,attribute,embeddedAttributeSource.getNaturalIdMutability());
+      }
+ else       if (SingularAttributeSourceManyToOne.class.isInstance(attributeSource)) {
+        final SingularAttributeSourceManyToOne manyToOneAttributeSource=(SingularAttributeSourceManyToOne)attributeSource;
+        final Identifier tableName=determineTable(mappingDocument,manyToOneAttributeSource.getName(),manyToOneAttributeSource);
+        final AttributeContainer attributeContainer;
+        final Table table;
+        final Join secondaryTableJoin=entityTableXref.locateJoin(tableName);
+        if (secondaryTableJoin == null) {
+          table=entityDescriptor.getTable();
+          attributeContainer=entityDescriptor;
+        }
+ else {
+          table=secondaryTableJoin.getTable();
+          attributeContainer=secondaryTableJoin;
+        }
+        final Property attribute=createManyToOneAttribute(mappingDocument,manyToOneAttributeSource,new ManyToOne(mappingDocument.getMetadataCollector(),table),entityDescriptor.getClassName());
+        if (secondaryTableJoin != null) {
+          attribute.setOptional(secondaryTableJoin.isOptional());
+        }
+        attributeContainer.addProperty(attribute);
+        handleNaturalIdBinding(mappingDocument,entityDescriptor,attribute,manyToOneAttributeSource.getNaturalIdMutability());
+      }
+ else       if (SingularAttributeSourceOneToOne.class.isInstance(attributeSource)) {
+        final SingularAttributeSourceOneToOne oneToOneAttributeSource=(SingularAttributeSourceOneToOne)attributeSource;
+        final Table table=entityDescriptor.getTable();
+        final Property attribute=createOneToOneAttribute(mappingDocument,oneToOneAttributeSource,new OneToOne(mappingDocument.getMetadataCollector(),table,entityDescriptor),entityDescriptor.getClassName());
+        entityDescriptor.addProperty(attribute);
+        handleNaturalIdBinding(mappingDocument,entityDescriptor,attribute,oneToOneAttributeSource.getNaturalIdMutability());
+      }
+ else       if (SingularAttributeSourceAny.class.isInstance(attributeSource)) {
+        final SingularAttributeSourceAny anyAttributeSource=(SingularAttributeSourceAny)attributeSource;
+        final Identifier tableName=determineTable(mappingDocument,anyAttributeSource.getName(),anyAttributeSource.getKeySource().getRelationalValueSources());
+        final AttributeContainer attributeContainer;
+        final Table table;
+        final Join secondaryTableJoin=entityTableXref.locateJoin(tableName);
+        if (secondaryTableJoin == null) {
+          table=entityDescriptor.getTable();
+          attributeContainer=entityDescriptor;
+        }
+ else {
+          table=secondaryTableJoin.getTable();
+          attributeContainer=secondaryTableJoin;
+        }
+        final Property attribute=createAnyAssociationAttribute(mappingDocument,anyAttributeSource,new Any(mappingDocument.getMetadataCollector(),table),entityDescriptor.getEntityName());
+        if (secondaryTableJoin != null) {
+          attribute.setOptional(secondaryTableJoin.isOptional());
+        }
+        attributeContainer.addProperty(attribute);
+        handleNaturalIdBinding(mappingDocument,entityDescriptor,attribute,anyAttributeSource.getNaturalIdMutability());
+      }
+    }
+  }
+  registerConstraintSecondPasses(mappingDocument,entitySource,entityTableXref);
+}

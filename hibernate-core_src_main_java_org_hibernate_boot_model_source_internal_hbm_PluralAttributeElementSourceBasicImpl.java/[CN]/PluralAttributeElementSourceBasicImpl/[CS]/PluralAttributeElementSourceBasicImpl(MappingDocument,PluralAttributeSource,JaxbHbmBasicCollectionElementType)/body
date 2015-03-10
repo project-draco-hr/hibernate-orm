@@ -1,0 +1,26 @@
+{
+  super(sourceMappingDocument);
+  this.pluralAttributeSource=pluralAttributeSource;
+  this.typeSource=new HibernateTypeSourceImpl(jaxbElement);
+  this.valueSources=RelationalValueSourceHelper.buildValueSources(sourceMappingDocument(),null,new RelationalValueSourceHelper.AbstractColumnsAndFormulasSource(){
+    @Override public XmlElementMetadata getSourceType(){
+      return XmlElementMetadata.ELEMENT;
+    }
+    @Override public String getSourceName(){
+      return null;
+    }
+    @Override public String getColumnAttribute(){
+      return jaxbElement.getColumnAttribute();
+    }
+    @Override public String getFormulaAttribute(){
+      return jaxbElement.getFormulaAttribute();
+    }
+    @Override public List getColumnOrFormulaElements(){
+      return jaxbElement.getColumnOrFormula();
+    }
+    @Override public SizeSource getSizeSource(){
+      return Helper.interpretSizeSource(jaxbElement.getLength(),jaxbElement.getPrecision(),jaxbElement.getScale());
+    }
+  }
+);
+}

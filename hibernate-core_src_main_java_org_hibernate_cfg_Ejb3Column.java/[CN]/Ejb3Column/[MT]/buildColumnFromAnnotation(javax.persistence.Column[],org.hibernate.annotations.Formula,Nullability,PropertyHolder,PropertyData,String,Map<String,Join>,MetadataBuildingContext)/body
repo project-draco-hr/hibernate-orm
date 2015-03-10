@@ -1,0 +1,86 @@
+{
+  Ejb3Column[] columns;
+  if (formulaAnn != null) {
+    Ejb3Column formulaColumn=new Ejb3Column();
+    formulaColumn.setFormula(formulaAnn.value());
+    formulaColumn.setImplicit(false);
+    formulaColumn.setBuildingContext(context);
+    formulaColumn.setPropertyHolder(propertyHolder);
+    formulaColumn.bind();
+    columns=new Ejb3Column[]{formulaColumn};
+  }
+ else {
+    javax.persistence.Column[] actualCols=anns;
+    javax.persistence.Column[] overriddenCols=propertyHolder.getOverriddenColumn(StringHelper.qualify(propertyHolder.getPath(),inferredData.getPropertyName()));
+    if (overriddenCols != null) {
+      if (anns != null && overriddenCols.length != anns.length) {
+        throw new AnnotationException("AttributeOverride.column() should override all columns for now");
+      }
+      actualCols=overriddenCols.length == 0 ? null : overriddenCols;
+      LOG.debugf("Column(s) overridden for property %s",inferredData.getPropertyName());
+    }
+    if (actualCols == null) {
+      columns=buildImplicitColumn(inferredData,suffixForDefaultColumnName,secondaryTables,propertyHolder,nullability,context);
+    }
+ else {
+      final int length=actualCols.length;
+      columns=new Ejb3Column[length];
+      for (int index=0; index < length; index++) {
+        final ObjectNameNormalizer normalizer=context.getObjectNameNormalizer();
+        final Database database=context.getMetadataCollector().getDatabase();
+        final ImplicitNamingStrategy implicitNamingStrategy=context.getBuildingOptions().getImplicitNamingStrategy();
+        final PhysicalNamingStrategy physicalNamingStrategy=context.getBuildingOptions().getPhysicalNamingStrategy();
+        javax.persistence.Column col=actualCols[index];
+        final String sqlType;
+        if (col.columnDefinition().equals("")) {
+          sqlType=null;
+        }
+ else {
+          sqlType=normalizer.toDatabaseIdentifierText(col.columnDefinition());
+        }
+        final String tableName;
+        if (StringHelper.isEmpty(col.table())) {
+          tableName="";
+        }
+ else {
+          tableName=database.getJdbcEnvironment().getIdentifierHelper().toIdentifier(col.table()).render();
+        }
+        final String columnName;
+        if ("".equals(col.name())) {
+          columnName=null;
+        }
+ else {
+          columnName=database.getJdbcEnvironment().getIdentifierHelper().toIdentifier(col.name()).render();
+        }
+        Ejb3Column column=new Ejb3Column();
+        if (length == 1) {
+          applyColumnDefault(column,inferredData);
+        }
+        column.setImplicit(false);
+        column.setSqlType(sqlType);
+        column.setLength(col.length());
+        column.setPrecision(col.precision());
+        column.setScale(col.scale());
+        if (StringHelper.isEmpty(columnName) && !StringHelper.isEmpty(suffixForDefaultColumnName)) {
+          column.setLogicalColumnName(inferredData.getPropertyName() + suffixForDefaultColumnName);
+        }
+ else {
+          column.setLogicalColumnName(columnName);
+        }
+        column.setPropertyName(BinderHelper.getRelativePath(propertyHolder,inferredData.getPropertyName()));
+        column.setNullable(col.nullable());
+        column.setUnique(col.unique());
+        column.setInsertable(col.insertable());
+        column.setUpdatable(col.updatable());
+        column.setExplicitTableName(tableName);
+        column.setPropertyHolder(propertyHolder);
+        column.setJoins(secondaryTables);
+        column.setBuildingContext(context);
+        column.extractDataFromPropertyData(inferredData);
+        column.bind();
+        columns[index]=column;
+      }
+    }
+  }
+  return columns;
+}

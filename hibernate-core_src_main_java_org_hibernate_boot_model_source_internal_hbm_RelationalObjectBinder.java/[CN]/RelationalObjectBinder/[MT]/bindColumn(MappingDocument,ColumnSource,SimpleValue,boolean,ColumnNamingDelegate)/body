@@ -1,0 +1,47 @@
+{
+  Table table=simpleValue.getTable();
+  final Column column=new Column();
+  column.setValue(simpleValue);
+  final Identifier logicalName;
+  if (StringHelper.isNotEmpty(columnSource.getName())) {
+    logicalName=database.toIdentifier(columnSource.getName());
+  }
+ else {
+    logicalName=columnNamingDelegate.determineImplicitName(sourceDocument);
+  }
+  final Identifier physicalName=physicalNamingStrategy.toPhysicalColumnName(logicalName,database.getJdbcEnvironment());
+  column.setName(physicalName.render(database.getDialect()));
+  if (table != null) {
+    table.addColumn(column);
+    sourceDocument.getMetadataCollector().addColumnNameBinding(table,logicalName,column);
+  }
+  if (columnSource.getSizeSource() != null) {
+    if (columnSource.getSizeSource().getLength() != null) {
+      column.setLength(columnSource.getSizeSource().getLength());
+    }
+ else {
+      column.setLength(Column.DEFAULT_LENGTH);
+    }
+    if (columnSource.getSizeSource().getScale() != null) {
+      column.setScale(columnSource.getSizeSource().getScale());
+    }
+ else {
+      column.setScale(Column.DEFAULT_SCALE);
+    }
+    if (columnSource.getSizeSource().getPrecision() != null) {
+      column.setPrecision(columnSource.getSizeSource().getPrecision());
+    }
+ else {
+      column.setPrecision(Column.DEFAULT_PRECISION);
+    }
+  }
+  column.setNullable(interpretNullability(columnSource.isNullable(),areColumnsNullableByDefault));
+  column.setUnique(columnSource.isUnique());
+  column.setCheckConstraint(columnSource.getCheckCondition());
+  column.setDefaultValue(columnSource.getDefaultValue());
+  column.setSqlType(columnSource.getSqlType());
+  column.setComment(columnSource.getComment());
+  column.setCustomRead(columnSource.getReadFragment());
+  column.setCustomWrite(columnSource.getWriteFragment());
+  simpleValue.addColumn(column);
+}

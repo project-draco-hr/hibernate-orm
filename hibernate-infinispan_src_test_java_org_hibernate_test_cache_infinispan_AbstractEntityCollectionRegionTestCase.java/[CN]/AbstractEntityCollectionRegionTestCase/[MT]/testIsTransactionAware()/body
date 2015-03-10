@@ -1,7 +1,14 @@
 {
-  Configuration cfg=CacheTestUtil.buildConfiguration("test",InfinispanRegionFactory.class,true,false);
-  InfinispanRegionFactory regionFactory=CacheTestUtil.startRegionFactory(ServiceRegistryBuilder.buildServiceRegistry(cfg.getProperties()),cfg,getCacheTestSupport());
-  TransactionalDataRegion region=(TransactionalDataRegion)createRegion(regionFactory,"test/test",cfg.getProperties(),getCacheDataDescription());
-  assertTrue("Region is transaction-aware",region.isTransactionAware());
-  CacheTestUtil.stopRegionFactory(regionFactory,getCacheTestSupport());
+  StandardServiceRegistryBuilder ssrb=CacheTestUtil.buildBaselineStandardServiceRegistryBuilder("test",InfinispanRegionFactory.class,true,false);
+  final StandardServiceRegistry registry=ssrb.build();
+  try {
+    Properties properties=CacheTestUtil.toProperties(ssrb.getSettings());
+    InfinispanRegionFactory regionFactory=CacheTestUtil.startRegionFactory(registry,getCacheTestSupport());
+    TransactionalDataRegion region=(TransactionalDataRegion)createRegion(regionFactory,"test/test",properties,getCacheDataDescription());
+    assertTrue("Region is transaction-aware",region.isTransactionAware());
+    CacheTestUtil.stopRegionFactory(regionFactory,getCacheTestSupport());
+  }
+  finally {
+    StandardServiceRegistryBuilder.destroy(registry);
+  }
 }

@@ -1,0 +1,45 @@
+{
+  try {
+    ResultSet resultSet=extractionContext.getJdbcDatabaseMetaData().getPrimaryKeys(identifierHelper().toMetaDataCatalogName(tableInformation.getName().getCatalogName()),identifierHelper().toMetaDataSchemaName(tableInformation.getName().getSchemaName()),identifierHelper().toMetaDataObjectName(tableInformation.getName().getTableName()));
+    final List<ColumnInformation> pkColumns=new ArrayList<ColumnInformation>();
+    boolean firstPass=true;
+    Identifier pkIdentifier=null;
+    try {
+      while (resultSet.next()) {
+        final String currentPkName=resultSet.getString("PK_NAME");
+        final Identifier currentPkIdentifier=currentPkName == null ? null : identifierHelper().fromMetaDataObjectName(currentPkName);
+        if (firstPass) {
+          pkIdentifier=currentPkIdentifier;
+          firstPass=false;
+        }
+ else {
+          if (!EqualsHelper.equals(pkIdentifier,currentPkIdentifier)) {
+            throw new SchemaExtractionException(String.format("Encountered primary keys differing name on table %s",tableInformation.getName().toString()));
+          }
+        }
+        final int columnPosition=resultSet.getInt("KEY_SEQ");
+        final String columnName=resultSet.getString("COLUMN_NAME");
+        final Identifier columnIdentifier=identifierHelper().fromMetaDataObjectName(columnName);
+        final ColumnInformation column=tableInformation.getColumn(columnIdentifier);
+        pkColumns.add(columnPosition - 1,column);
+      }
+    }
+  finally {
+      resultSet.close();
+    }
+    if (firstPass) {
+      return null;
+    }
+ else {
+      for (int i=0; i < pkColumns.size(); i++) {
+        if (pkColumns.get(i) == null) {
+          throw new SchemaExtractionException("Primary Key information was missing for KEY_SEQ = " + (i + 1));
+        }
+      }
+      return new PrimaryKeyInformationImpl(pkIdentifier,pkColumns);
+    }
+  }
+ catch (  SQLException e) {
+    throw convertSQLException(e,"Error while reading primary key meta data for " + tableInformation.getName().toString());
+  }
+}

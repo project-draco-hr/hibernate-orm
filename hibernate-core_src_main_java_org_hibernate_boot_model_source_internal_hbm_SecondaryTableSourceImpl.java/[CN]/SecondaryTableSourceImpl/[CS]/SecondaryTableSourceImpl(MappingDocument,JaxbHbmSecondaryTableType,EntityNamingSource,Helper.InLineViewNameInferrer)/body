@@ -1,0 +1,29 @@
+{
+  super(sourceMappingDocument);
+  this.jaxbSecondaryTableMapping=jaxbSecondaryTableMapping;
+  this.joinTable=Helper.createTableSource(sourceMappingDocument,jaxbSecondaryTableMapping,inLineViewNameInferrer);
+  if (joinTable instanceof TableSource) {
+    if (StringHelper.isEmpty(((TableSource)joinTable).getExplicitTableName())) {
+      throw new MappingException(String.format(Locale.ENGLISH,"Secondary table (<join/>) must explicitly name table or sub-select, but neither " + "specified for entity [%s]",entityNamingSource.getEntityName()),sourceMappingDocument.getOrigin());
+    }
+  }
+  this.logicalTableName=joinTable instanceof TableSource ? ((TableSource)joinTable).getExplicitTableName() : ((InLineViewSource)joinTable).getLogicalName();
+  this.keyColumnSources=RelationalValueSourceHelper.buildColumnSources(sourceMappingDocument,logicalTableName,new RelationalValueSourceHelper.AbstractColumnsAndFormulasSource(){
+    @Override public XmlElementMetadata getSourceType(){
+      return XmlElementMetadata.KEY;
+    }
+    @Override public String getSourceName(){
+      return null;
+    }
+    @Override public String getColumnAttribute(){
+      return jaxbSecondaryTableMapping.getKey().getColumnAttribute();
+    }
+    @Override public List getColumnOrFormulaElements(){
+      return jaxbSecondaryTableMapping.getKey().getColumn();
+    }
+    @Override public Boolean isNullable(){
+      return false;
+    }
+  }
+);
+}

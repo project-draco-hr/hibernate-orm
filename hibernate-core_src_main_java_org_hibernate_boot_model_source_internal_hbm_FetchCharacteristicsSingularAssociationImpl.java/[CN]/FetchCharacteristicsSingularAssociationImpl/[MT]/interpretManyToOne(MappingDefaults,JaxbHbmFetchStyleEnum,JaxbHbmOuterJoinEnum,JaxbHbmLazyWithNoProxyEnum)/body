@@ -1,0 +1,43 @@
+{
+  final Builder builder=new Builder(mappingDefaults);
+  if (fetchMapping == null) {
+    if (outerJoinMapping == null) {
+      builder.setFetchStyle(FetchStyle.SELECT);
+    }
+ else {
+switch (outerJoinMapping) {
+case TRUE:
+{
+          builder.setFetchStyle(FetchStyle.JOIN);
+          break;
+        }
+default :
+{
+        builder.setFetchStyle(FetchStyle.SELECT);
+        break;
+      }
+  }
+}
+}
+ else {
+if (fetchMapping == JaxbHbmFetchStyleEnum.JOIN) {
+  builder.setFetchStyle(FetchStyle.JOIN);
+}
+ else {
+  builder.setFetchStyle(FetchStyle.SELECT);
+}
+}
+if (lazyMapping != null) {
+if (lazyMapping == JaxbHbmLazyWithNoProxyEnum.NO_PROXY) {
+  builder.setFetchTiming(FetchTiming.DELAYED);
+  builder.setUnwrapProxies(true);
+}
+ else if (lazyMapping == JaxbHbmLazyWithNoProxyEnum.PROXY) {
+  builder.setFetchTiming(FetchTiming.DELAYED);
+}
+ else if (lazyMapping == JaxbHbmLazyWithNoProxyEnum.FALSE) {
+  builder.setFetchTiming(FetchTiming.IMMEDIATE);
+}
+}
+return builder.createFetchCharacteristics();
+}

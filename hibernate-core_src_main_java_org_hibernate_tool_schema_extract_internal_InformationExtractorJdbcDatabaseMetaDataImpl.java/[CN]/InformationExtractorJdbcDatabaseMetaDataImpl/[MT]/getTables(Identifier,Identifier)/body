@@ -1,0 +1,25 @@
+{
+  try {
+    final String catalogFilter=determineCatalogFilter(catalog);
+    final String schemaFilter=determineSchemaFilter(schema);
+    final List<TableInformation> results=new ArrayList<TableInformation>();
+    ResultSet resultSet=extractionContext.getJdbcDatabaseMetaData().getTables(catalogFilter,schemaFilter,null,tableTypes);
+    try {
+      while (resultSet.next()) {
+        final TableInformation tableInformation=extractTableInformation(resultSet);
+        results.add(tableInformation);
+      }
+    }
+  finally {
+      try {
+        resultSet.close();
+      }
+ catch (      SQLException ignore) {
+      }
+    }
+    return results;
+  }
+ catch (  SQLException sqlException) {
+    throw convertSQLException(sqlException,"Error accessing table metadata");
+  }
+}

@@ -1,44 +1,13 @@
 {
   try {
-    Configuration cfg=new Configuration();
-    String propFile=null;
-    boolean hasNaming=false;
-    boolean hasNamingDelegator=false;
-    for (int i=0; i < args.length; i++) {
-      if (args[i].startsWith("--")) {
-        if (args[i].startsWith("--properties=")) {
-          propFile=args[i].substring(13);
-        }
- else         if (args[i].startsWith("--config=")) {
-          cfg.configure(args[i].substring(9));
-        }
- else         if (args[i].startsWith("--naming=")) {
-          hasNaming=true;
-          checkNamingAndNamingDelegatorNotBothSpecified(hasNaming,hasNamingDelegator);
-          cfg.setNamingStrategy((NamingStrategy)ReflectHelper.classForName(args[i].substring(9)).newInstance());
-        }
- else         if (args[i].startsWith("--namingdelegator=")) {
-          hasNamingDelegator=true;
-          checkNamingAndNamingDelegatorNotBothSpecified(hasNaming,hasNamingDelegator);
-          cfg.setNamingStrategyDelegator((NamingStrategyDelegator)ReflectHelper.classForName(args[i].substring(18)).newInstance());
-        }
-      }
- else {
-        cfg.addFile(args[i]);
-      }
-    }
-    if (propFile != null) {
-      Properties props=new Properties();
-      props.putAll(cfg.getProperties());
-      props.load(new FileInputStream(propFile));
-      cfg.setProperties(props);
-    }
-    StandardServiceRegistryImpl serviceRegistry=createServiceRegistry(cfg.getProperties());
+    final CommandLineArgs parsedArgs=CommandLineArgs.parseCommandLineArgs(args);
+    final StandardServiceRegistry serviceRegistry=buildStandardServiceRegistry(parsedArgs);
     try {
-      new SchemaValidator(serviceRegistry,cfg).validate();
+      final MetadataImplementor metadata=buildMetadata(parsedArgs,serviceRegistry);
+      new SchemaValidator(serviceRegistry,metadata).validate();
     }
   finally {
-      serviceRegistry.destroy();
+      StandardServiceRegistryBuilder.destroy(serviceRegistry);
     }
   }
  catch (  Exception e) {

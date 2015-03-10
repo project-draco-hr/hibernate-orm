@@ -1,82 +1,16 @@
 {
   LOG.runningHbm2ddlSchemaUpdate();
-  Connection connection=null;
-  Statement stmt=null;
-  Writer outputFileWriter=null;
   exceptions.clear();
+  List<org.hibernate.tool.schema.spi.Target> toolTargets=buildToolTargets(target);
+  final ConfigurationService cfgService=serviceRegistry.getService(ConfigurationService.class);
+  final SchemaMigrator schemaMigrator=serviceRegistry.getService(SchemaManagementTool.class).getSchemaMigrator(cfgService.getSettings());
+  final JdbcServices jdbcServices=serviceRegistry.getService(JdbcServices.class);
+  final DatabaseInformation databaseInformation;
   try {
-    DatabaseMetadata meta;
-    try {
-      LOG.fetchingDatabaseMetadata();
-      connectionHelper.prepare(true);
-      connection=connectionHelper.getConnection();
-      meta=new DatabaseMetadata(connection,dialect,configuration);
-      stmt=connection.createStatement();
-    }
- catch (    SQLException sqle) {
-      exceptions.add(sqle);
-      LOG.unableToGetDatabaseMetadata(sqle);
-      throw sqle;
-    }
-    LOG.updatingSchema();
-    if (outputFile != null) {
-      LOG.writingGeneratedSchemaToFile(outputFile);
-      outputFileWriter=new FileWriter(outputFile);
-    }
-    List<SchemaUpdateScript> scripts=configuration.generateSchemaUpdateScriptList(dialect,meta);
-    for (    SchemaUpdateScript script : scripts) {
-      String formatted=formatter.format(script.getScript());
-      try {
-        if (delimiter != null) {
-          formatted+=delimiter;
-        }
-        if (target.doScript()) {
-          System.out.println(formatted);
-        }
-        if (outputFile != null) {
-          outputFileWriter.write(formatted + "\n");
-        }
-        if (target.doExport()) {
-          LOG.debug(script.getScript());
-          stmt.executeUpdate(formatted);
-        }
-      }
- catch (      SQLException e) {
-        if (!script.isQuiet()) {
-          if (haltOnError) {
-            throw new JDBCException("Error during DDL export",e);
-          }
-          exceptions.add(e);
-          LOG.unsuccessful(script.getScript());
-          LOG.error(e.getMessage());
-        }
-      }
-    }
-    LOG.schemaUpdateComplete();
+    databaseInformation=new DatabaseInformationImpl(serviceRegistry,serviceRegistry.getService(JdbcEnvironment.class),jdbcConnectionAccess,metadata.getDatabase().getDefaultSchema().getPhysicalName().getCatalog(),metadata.getDatabase().getDefaultSchema().getPhysicalName().getSchema());
   }
- catch (  Exception e) {
-    exceptions.add(e);
-    LOG.unableToCompleteSchemaUpdate(e);
+ catch (  SQLException e) {
+    throw jdbcServices.getSqlExceptionHelper().convert(e,"Error creating DatabaseInformation for schema migration");
   }
- finally {
-    try {
-      if (stmt != null) {
-        stmt.close();
-      }
-      connectionHelper.release();
-    }
- catch (    Exception e) {
-      exceptions.add(e);
-      LOG.unableToCloseConnection(e);
-    }
-    try {
-      if (outputFileWriter != null) {
-        outputFileWriter.close();
-      }
-    }
- catch (    Exception e) {
-      exceptions.add(e);
-      LOG.unableToCloseConnection(e);
-    }
-  }
+  schemaMigrator.doMigration(metadata,databaseInformation,true,toolTargets);
 }

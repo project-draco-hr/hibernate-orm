@@ -1,0 +1,37 @@
+{
+  final Map<Identifier,IndexInformationImpl.Builder> builders=new HashMap<Identifier,IndexInformationImpl.Builder>();
+  try {
+    ResultSet resultSet=extractionContext.getJdbcDatabaseMetaData().getIndexInfo(identifierHelper().toMetaDataCatalogName(tableInformation.getName().getCatalogName()),identifierHelper().toMetaDataSchemaName(tableInformation.getName().getSchemaName()),identifierHelper().toMetaDataObjectName(tableInformation.getName().getTableName()),false,true);
+    try {
+      while (resultSet.next()) {
+        if (resultSet.getShort("TYPE") == DatabaseMetaData.tableIndexStatistic) {
+          continue;
+        }
+        final Identifier indexIdentifier=Identifier.toIdentifier(resultSet.getString("INDEX_NAME"));
+        IndexInformationImpl.Builder builder=builders.get(indexIdentifier);
+        if (builder == null) {
+          builder=IndexInformationImpl.builder(indexIdentifier);
+          builders.put(indexIdentifier,builder);
+        }
+        final Identifier columnIdentifier=Identifier.toIdentifier(resultSet.getString("COLUMN_NAME"));
+        final ColumnInformation columnInformation=tableInformation.getColumn(columnIdentifier);
+        if (columnInformation == null) {
+          throw new SchemaManagementException("Could not locate column information using identifier [" + columnIdentifier.getText() + "]");
+        }
+        builder.addColumn(columnInformation);
+      }
+    }
+  finally {
+      resultSet.close();
+    }
+  }
+ catch (  SQLException e) {
+    throw convertSQLException(e,"Error accessing index information: " + tableInformation.getName().toString());
+  }
+  final List<IndexInformation> indexes=new ArrayList<IndexInformation>();
+  for (  IndexInformationImpl.Builder builder : builders.values()) {
+    IndexInformationImpl index=builder.build();
+    indexes.add(index);
+  }
+  return indexes;
+}

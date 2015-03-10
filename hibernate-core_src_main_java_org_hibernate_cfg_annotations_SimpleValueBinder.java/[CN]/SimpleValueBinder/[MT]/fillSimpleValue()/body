@@ -9,25 +9,25 @@
   }
  else {
     String type;
-    org.hibernate.mapping.TypeDef typeDef;
+    TypeDefinition typeDef;
     if (!BinderHelper.isEmptyAnnotationValue(explicitType)) {
       type=explicitType;
-      typeDef=mappings.getTypeDef(type);
+      typeDef=buildingContext.getMetadataCollector().getTypeDefinition(type);
     }
  else {
-      org.hibernate.mapping.TypeDef implicitTypeDef=mappings.getTypeDef(returnedClassName);
+      TypeDefinition implicitTypeDef=buildingContext.getMetadataCollector().getTypeDefinition(returnedClassName);
       if (implicitTypeDef != null) {
         typeDef=implicitTypeDef;
         type=returnedClassName;
       }
  else {
-        typeDef=mappings.getTypeDef(defaultType);
+        typeDef=buildingContext.getMetadataCollector().getTypeDefinition(defaultType);
         type=defaultType;
       }
     }
     if (typeDef != null) {
-      type=typeDef.getTypeClass();
-      simpleValue.setTypeParameters(typeDef.getParameters());
+      type=typeDef.getTypeImplementorClass().getName();
+      simpleValue.setTypeParameters(typeDef.getParametersAsProperties());
     }
     if (typeParameters != null && typeParameters.size() != 0) {
       simpleValue.setTypeParameters(typeParameters);
@@ -43,7 +43,7 @@
   if (timeStampVersionType != null) {
     simpleValue.setTypeName(timeStampVersionType);
   }
-  if (simpleValue.getTypeName() != null && simpleValue.getTypeName().length() > 0 && simpleValue.getMappings().getTypeResolver().basic(simpleValue.getTypeName()) == null) {
+  if (simpleValue.getTypeName() != null && simpleValue.getTypeName().length() > 0 && simpleValue.getMetadata().getTypeResolver().basic(simpleValue.getTypeName()) == null) {
     try {
       Class typeClass=StandardClassLoaderDelegateImpl.INSTANCE.classForName(simpleValue.getTypeName());
       if (typeClass != null && DynamicParameterizedType.class.isAssignableFrom(typeClass)) {

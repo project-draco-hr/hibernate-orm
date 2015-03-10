@@ -1,0 +1,37 @@
+{
+  XMLEvent event=null;
+  if (peekedEvent != null) {
+    event=peekedEvent;
+    peekedEvent=null;
+    return event;
+  }
+  do {
+    event=super.getParent().nextEvent();
+    if (!prunedElements.isEmpty()) {
+      if (event.isStartElement()) {
+        final StartElement startElement=event.asStartElement();
+        prunedElements.push(startElement.getName());
+      }
+ else       if (event.isEndElement()) {
+        final QName startElementName=prunedElements.pop();
+        final EndElement endElement=event.asEndElement();
+        final QName endElementName=endElement.getName();
+        if (!startElementName.equals(endElementName)) {
+          throw new IllegalArgumentException("Malformed XMLEvent stream. Expected end element for " + startElementName + " but found end element for "+ endElementName);
+        }
+      }
+      event=null;
+    }
+ else {
+      final XMLEvent filteredEvent=this.filterEvent(event,peek);
+      if (filteredEvent == null && event.isStartElement()) {
+        final StartElement startElement=event.asStartElement();
+        final QName name=startElement.getName();
+        prunedElements.push(name);
+      }
+      event=filteredEvent;
+    }
+  }
+ while (event == null);
+  return event;
+}

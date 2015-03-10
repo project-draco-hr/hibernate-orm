@@ -1,0 +1,39 @@
+{
+  final ObjectNameNormalizer normalizer=context.getObjectNameNormalizer();
+  Column col=(Column)identifier.getColumnIterator().next();
+  String defaultName=context.getMetadataCollector().getLogicalColumnName(identifier.getTable(),col.getQuotedName());
+  if (pkJoinAnn != null || joinAnn != null) {
+    String colName;
+    String columnDefinition;
+    String referencedColumnName;
+    if (pkJoinAnn != null) {
+      colName=pkJoinAnn.name();
+      columnDefinition=pkJoinAnn.columnDefinition();
+      referencedColumnName=pkJoinAnn.referencedColumnName();
+    }
+ else {
+      colName=joinAnn.name();
+      columnDefinition=joinAnn.columnDefinition();
+      referencedColumnName=joinAnn.referencedColumnName();
+    }
+    final String sqlType;
+    if (columnDefinition.equals("")) {
+      sqlType=null;
+    }
+ else {
+      sqlType=normalizer.toDatabaseIdentifierText(columnDefinition);
+    }
+    final String name;
+    if ("".equals(colName)) {
+      name=normalizer.normalizeIdentifierQuotingAsString(defaultName);
+    }
+ else {
+      name=context.getObjectNameNormalizer().normalizeIdentifierQuotingAsString(colName);
+    }
+    return new Ejb3JoinColumn(sqlType,name,false,false,true,true,referencedColumnName,null,joins,propertyHolder,null,null,false,context);
+  }
+ else {
+    defaultName=context.getObjectNameNormalizer().normalizeIdentifierQuotingAsString(defaultName);
+    return new Ejb3JoinColumn(null,defaultName,false,false,true,true,null,null,joins,propertyHolder,null,null,true,context);
+  }
+}

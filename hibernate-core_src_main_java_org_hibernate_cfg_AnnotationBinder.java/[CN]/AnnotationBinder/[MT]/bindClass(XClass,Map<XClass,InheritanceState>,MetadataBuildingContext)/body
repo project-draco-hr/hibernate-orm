@@ -1,0 +1,142 @@
+{
+  if (clazzToProcess.isAnnotationPresent(Entity.class) && clazzToProcess.isAnnotationPresent(MappedSuperclass.class)) {
+    throw new AnnotationException("An entity cannot be annotated with both @Entity and @MappedSuperclass: " + clazzToProcess.getName());
+  }
+  InheritanceState inheritanceState=inheritanceStatePerClass.get(clazzToProcess);
+  AnnotatedClassType classType=context.getMetadataCollector().getClassType(clazzToProcess);
+  if (AnnotatedClassType.EMBEDDABLE_SUPERCLASS.equals(classType)) {
+    bindQueries(clazzToProcess,context);
+    bindTypeDefs(clazzToProcess,context);
+    bindFilterDefs(clazzToProcess,context);
+  }
+  if (!isEntityClassType(clazzToProcess,classType)) {
+    return;
+  }
+  if (LOG.isDebugEnabled()) {
+    LOG.debugf("Binding entity from annotated class: %s",clazzToProcess.getName());
+  }
+  PersistentClass superEntity=getSuperEntity(clazzToProcess,inheritanceStatePerClass,context,inheritanceState);
+  PersistentClass persistentClass=makePersistentClass(inheritanceState,superEntity);
+  Entity entityAnn=clazzToProcess.getAnnotation(Entity.class);
+  org.hibernate.annotations.Entity hibEntityAnn=clazzToProcess.getAnnotation(org.hibernate.annotations.Entity.class);
+  EntityBinder entityBinder=new EntityBinder(entityAnn,hibEntityAnn,clazzToProcess,persistentClass,context);
+  entityBinder.setInheritanceState(inheritanceState);
+  bindQueries(clazzToProcess,context);
+  bindFilterDefs(clazzToProcess,context);
+  bindTypeDefs(clazzToProcess,context);
+  bindFetchProfiles(clazzToProcess,context);
+  BinderHelper.bindAnyMetaDefs(clazzToProcess,context);
+  String schema="";
+  String table="";
+  String catalog="";
+  List<UniqueConstraintHolder> uniqueConstraints=new ArrayList<UniqueConstraintHolder>();
+  javax.persistence.Table tabAnn=null;
+  if (clazzToProcess.isAnnotationPresent(javax.persistence.Table.class)) {
+    tabAnn=clazzToProcess.getAnnotation(javax.persistence.Table.class);
+    table=tabAnn.name();
+    schema=tabAnn.schema();
+    catalog=tabAnn.catalog();
+    uniqueConstraints=TableBinder.buildUniqueConstraintHolders(tabAnn.uniqueConstraints());
+  }
+  Ejb3JoinColumn[] inheritanceJoinedColumns=makeInheritanceJoinColumns(clazzToProcess,context,inheritanceState,superEntity);
+  final Ejb3DiscriminatorColumn discriminatorColumn;
+  if (InheritanceType.SINGLE_TABLE.equals(inheritanceState.getType())) {
+    discriminatorColumn=processSingleTableDiscriminatorProperties(clazzToProcess,context,inheritanceState,entityBinder);
+  }
+ else   if (InheritanceType.JOINED.equals(inheritanceState.getType())) {
+    discriminatorColumn=processJoinedDiscriminatorProperties(clazzToProcess,context,inheritanceState,entityBinder);
+  }
+ else {
+    discriminatorColumn=null;
+  }
+  entityBinder.setProxy(clazzToProcess.getAnnotation(Proxy.class));
+  entityBinder.setBatchSize(clazzToProcess.getAnnotation(BatchSize.class));
+  entityBinder.setWhere(clazzToProcess.getAnnotation(Where.class));
+  entityBinder.setCache(determineCacheSettings(clazzToProcess,context));
+  entityBinder.setNaturalIdCache(clazzToProcess,clazzToProcess.getAnnotation(NaturalIdCache.class));
+  bindFilters(clazzToProcess,entityBinder,context);
+  entityBinder.bindEntity();
+  if (inheritanceState.hasTable()) {
+    Check checkAnn=clazzToProcess.getAnnotation(Check.class);
+    String constraints=checkAnn == null ? null : checkAnn.constraints();
+    EntityTableXref denormalizedTableXref=inheritanceState.hasDenormalizedTable() ? context.getMetadataCollector().getEntityTableXref(superEntity.getEntityName()) : null;
+    entityBinder.bindTable(schema,catalog,table,uniqueConstraints,constraints,denormalizedTableXref);
+  }
+ else {
+    if (clazzToProcess.isAnnotationPresent(Table.class)) {
+      LOG.invalidTableAnnotation(clazzToProcess.getName());
+    }
+    if (inheritanceState.getType() == InheritanceType.SINGLE_TABLE) {
+      entityBinder.bindTableForDiscriminatedSubclass(context.getMetadataCollector().getEntityTableXref(superEntity.getEntityName()));
+    }
+  }
+  PropertyHolder propertyHolder=PropertyHolderBuilder.buildPropertyHolder(clazzToProcess,persistentClass,entityBinder,context,inheritanceStatePerClass);
+  javax.persistence.SecondaryTable secTabAnn=clazzToProcess.getAnnotation(javax.persistence.SecondaryTable.class);
+  javax.persistence.SecondaryTables secTabsAnn=clazzToProcess.getAnnotation(javax.persistence.SecondaryTables.class);
+  entityBinder.firstLevelSecondaryTablesBinding(secTabAnn,secTabsAnn);
+  OnDelete onDeleteAnn=clazzToProcess.getAnnotation(OnDelete.class);
+  boolean onDeleteAppropriate=false;
+  final boolean isInheritanceRoot=!inheritanceState.hasParents();
+  final boolean hasSubclasses=inheritanceState.hasSiblings();
+  if (InheritanceType.JOINED.equals(inheritanceState.getType())) {
+    if (inheritanceState.hasParents()) {
+      onDeleteAppropriate=true;
+      final JoinedSubclass jsc=(JoinedSubclass)persistentClass;
+      SimpleValue key=new DependantValue(context.getMetadataCollector(),jsc.getTable(),jsc.getIdentifier());
+      jsc.setKey(key);
+      ForeignKey fk=clazzToProcess.getAnnotation(ForeignKey.class);
+      if (fk != null && !BinderHelper.isEmptyAnnotationValue(fk.name())) {
+        key.setForeignKeyName(fk.name());
+      }
+      if (onDeleteAnn != null) {
+        key.setCascadeDeleteEnabled(OnDeleteAction.CASCADE.equals(onDeleteAnn.action()));
+      }
+ else {
+        key.setCascadeDeleteEnabled(false);
+      }
+      context.getMetadataCollector().addSecondPass(new JoinedSubclassFkSecondPass(jsc,inheritanceJoinedColumns,key,context));
+      context.getMetadataCollector().addSecondPass(new CreateKeySecondPass(jsc));
+    }
+    if (isInheritanceRoot) {
+      if (discriminatorColumn != null) {
+        if (hasSubclasses || !discriminatorColumn.isImplicit()) {
+          bindDiscriminatorColumnToRootPersistentClass((RootClass)persistentClass,discriminatorColumn,entityBinder.getSecondaryTables(),propertyHolder,context);
+          entityBinder.bindDiscriminatorValue();
+        }
+      }
+    }
+  }
+ else   if (InheritanceType.SINGLE_TABLE.equals(inheritanceState.getType())) {
+    if (isInheritanceRoot) {
+      if (hasSubclasses || !discriminatorColumn.isImplicit()) {
+        bindDiscriminatorColumnToRootPersistentClass((RootClass)persistentClass,discriminatorColumn,entityBinder.getSecondaryTables(),propertyHolder,context);
+        entityBinder.bindDiscriminatorValue();
+      }
+    }
+  }
+  if (onDeleteAnn != null && !onDeleteAppropriate) {
+    LOG.invalidOnDeleteAnnotation(propertyHolder.getEntityName());
+  }
+  HashMap<String,IdentifierGeneratorDefinition> classGenerators=buildLocalGenerators(clazzToProcess,context);
+  final InheritanceState.ElementsToProcess elementsToProcess=inheritanceState.getElementsToProcess();
+  inheritanceState.postProcess(persistentClass,entityBinder);
+  final boolean subclassAndSingleTableStrategy=inheritanceState.getType() == InheritanceType.SINGLE_TABLE && inheritanceState.hasParents();
+  Set<String> idPropertiesIfIdClass=new HashSet<String>();
+  boolean isIdClass=mapAsIdClass(inheritanceStatePerClass,inheritanceState,persistentClass,entityBinder,propertyHolder,elementsToProcess,idPropertiesIfIdClass,context);
+  if (!isIdClass) {
+    entityBinder.setWrapIdsInEmbeddedComponents(elementsToProcess.getIdPropertyCount() > 1);
+  }
+  processIdPropertiesIfNotAlready(inheritanceStatePerClass,context,persistentClass,entityBinder,propertyHolder,classGenerators,elementsToProcess,subclassAndSingleTableStrategy,idPropertiesIfIdClass);
+  if (!inheritanceState.hasParents()) {
+    final RootClass rootClass=(RootClass)persistentClass;
+    context.getMetadataCollector().addSecondPass(new CreateKeySecondPass(rootClass));
+  }
+ else {
+    superEntity.addSubclass((Subclass)persistentClass);
+  }
+  context.getMetadataCollector().addEntityBinding(persistentClass);
+  context.getMetadataCollector().addSecondPass(new SecondaryTableSecondPass(entityBinder,propertyHolder,clazzToProcess));
+  entityBinder.processComplementaryTableDefinitions(clazzToProcess.getAnnotation(org.hibernate.annotations.Table.class));
+  entityBinder.processComplementaryTableDefinitions(clazzToProcess.getAnnotation(org.hibernate.annotations.Tables.class));
+  entityBinder.processComplementaryTableDefinitions(tabAnn);
+}

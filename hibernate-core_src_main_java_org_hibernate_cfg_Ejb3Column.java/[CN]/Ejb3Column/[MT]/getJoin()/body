@@ -1,9 +1,13 @@
 {
   Join join=joins.get(explicitTableName);
   if (join == null) {
+    final String physicalTableName=getBuildingContext().getMetadataCollector().getPhysicalTableName(explicitTableName);
+    if (physicalTableName != null) {
+      join=joins.get(physicalTableName);
+    }
+  }
+  if (join == null) {
     throw new AnnotationException("Cannot find the expected secondary table: no " + explicitTableName + " available for "+ propertyHolder.getClassName());
   }
- else {
-    return join;
-  }
+  return join;
 }

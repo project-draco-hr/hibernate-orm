@@ -1,0 +1,30 @@
+{
+  if (fk_secondPassList == null || fk_secondPassList.isEmpty()) {
+    return;
+  }
+  Map<String,Set<FkSecondPass>> isADependencyOf=new HashMap<String,Set<FkSecondPass>>();
+  List<FkSecondPass> endOfQueueFkSecondPasses=new ArrayList<FkSecondPass>(fk_secondPassList.size());
+  for (  FkSecondPass sp : fk_secondPassList) {
+    if (sp.isInPrimaryKey()) {
+      final String referenceEntityName=sp.getReferencedEntityName();
+      final PersistentClass classMapping=getEntityBinding(referenceEntityName);
+      final String dependentTable=classMapping.getTable().getQualifiedTableName().render();
+      if (!isADependencyOf.containsKey(dependentTable)) {
+        isADependencyOf.put(dependentTable,new HashSet<FkSecondPass>());
+      }
+      isADependencyOf.get(dependentTable).add(sp);
+    }
+ else {
+      endOfQueueFkSecondPasses.add(sp);
+    }
+  }
+  List<FkSecondPass> orderedFkSecondPasses=new ArrayList<FkSecondPass>(fk_secondPassList.size());
+  for (  String tableName : isADependencyOf.keySet()) {
+    buildRecursiveOrderedFkSecondPasses(orderedFkSecondPasses,isADependencyOf,tableName,tableName);
+  }
+  for (  FkSecondPass sp : orderedFkSecondPasses) {
+    sp.doSecondPass(getEntityBindingMap());
+  }
+  processEndOfQueue(endOfQueueFkSecondPasses);
+  fk_secondPassList.clear();
+}

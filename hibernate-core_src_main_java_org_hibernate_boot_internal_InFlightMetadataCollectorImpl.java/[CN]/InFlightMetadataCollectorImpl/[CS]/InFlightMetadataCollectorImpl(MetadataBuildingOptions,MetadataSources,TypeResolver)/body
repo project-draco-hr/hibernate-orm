@@ -1,0 +1,18 @@
+{
+  this.uuid=UUID.randomUUID();
+  this.options=options;
+  this.typeResolver=typeResolver;
+  this.identifierGeneratorFactory=options.getServiceRegistry().getService(MutableIdentifierGeneratorFactory.class);
+  for (  AttributeConverterDefinition attributeConverterDefinition : sources.getAttributeConverters()) {
+    addAttributeConverter(attributeConverterDefinition);
+  }
+  for (  Map.Entry<String,SQLFunction> sqlFunctionEntry : sources.getSqlFunctions().entrySet()) {
+    if (sqlFunctionMap == null) {
+      sqlFunctionMap=new ConcurrentHashMap<String,SQLFunction>(16,.75f,1);
+    }
+    sqlFunctionMap.put(sqlFunctionEntry.getKey(),sqlFunctionEntry.getValue());
+  }
+  for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : sources.getAuxiliaryDatabaseObjectList()) {
+    getDatabase().addAuxiliaryDatabaseObject(auxiliaryDatabaseObject);
+  }
+}

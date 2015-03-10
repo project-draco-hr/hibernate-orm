@@ -1,0 +1,39 @@
+{
+  manyToOneBinding.setReferencedEntityName(referencedEntityName);
+  if (StringHelper.isNotEmpty(manyToOneSource.getReferencedEntityAttributeName())) {
+    manyToOneBinding.setReferencedPropertyName(manyToOneSource.getReferencedEntityAttributeName());
+    manyToOneBinding.setReferenceToPrimaryKey(false);
+  }
+ else {
+    manyToOneBinding.setReferenceToPrimaryKey(true);
+  }
+  manyToOneBinding.setLazy(manyToOneSource.getFetchCharacteristics().getFetchTiming() == FetchTiming.DELAYED);
+  manyToOneBinding.setUnwrapProxy(manyToOneSource.getFetchCharacteristics().isUnwrapProxies());
+  manyToOneBinding.setFetchMode(manyToOneSource.getFetchCharacteristics().getFetchStyle() == FetchStyle.SELECT ? FetchMode.SELECT : FetchMode.JOIN);
+  if (manyToOneSource.isEmbedXml()) {
+    DeprecationLogger.DEPRECATION_LOGGER.logDeprecationOfEmbedXmlSupport();
+  }
+  manyToOneBinding.setEmbedded(manyToOneSource.isEmbedXml());
+  manyToOneBinding.setIgnoreNotFound(manyToOneSource.isIgnoreNotFound());
+  if (StringHelper.isNotEmpty(manyToOneSource.getExplicitForeignKeyName())) {
+    manyToOneBinding.setForeignKeyName(manyToOneSource.getExplicitForeignKeyName());
+  }
+  final ManyToOneColumnBinder columnBinder=new ManyToOneColumnBinder(sourceDocument,manyToOneSource,manyToOneBinding,referencedEntityName);
+  final boolean canBindColumnsImmediately=columnBinder.canProcessImmediately();
+  if (canBindColumnsImmediately) {
+    columnBinder.doSecondPass(null);
+  }
+ else {
+    sourceDocument.getMetadataCollector().addSecondPass(columnBinder);
+  }
+  if (!manyToOneSource.isIgnoreNotFound()) {
+    final ManyToOneFkSecondPass fkSecondPass=new ManyToOneFkSecondPass(sourceDocument,manyToOneSource,manyToOneBinding,referencedEntityName);
+    if (canBindColumnsImmediately && fkSecondPass.canProcessImmediately()) {
+      fkSecondPass.doSecondPass(null);
+    }
+ else {
+      sourceDocument.getMetadataCollector().addSecondPass(fkSecondPass);
+    }
+  }
+  manyToOneBinding.setCascadeDeleteEnabled(manyToOneSource.isCascadeDeleteEnabled());
+}

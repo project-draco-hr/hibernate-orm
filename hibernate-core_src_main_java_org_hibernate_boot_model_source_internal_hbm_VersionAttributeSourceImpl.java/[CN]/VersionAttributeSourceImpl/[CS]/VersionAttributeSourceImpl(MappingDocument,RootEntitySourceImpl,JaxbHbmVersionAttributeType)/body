@@ -1,0 +1,26 @@
+{
+  super(mappingDocument);
+  this.versionElement=versionElement;
+  this.relationalValueSources=RelationalValueSourceHelper.buildValueSources(mappingDocument,null,new RelationalValueSourceHelper.AbstractColumnsAndFormulasSource(){
+    @Override public XmlElementMetadata getSourceType(){
+      return VersionAttributeSourceImpl.this.getSourceType();
+    }
+    @Override public String getSourceName(){
+      return VersionAttributeSourceImpl.this.versionElement.getName();
+    }
+    @Override public String getColumnAttribute(){
+      return VersionAttributeSourceImpl.this.versionElement.getColumnAttribute();
+    }
+    @Override public List getColumnOrFormulaElements(){
+      return VersionAttributeSourceImpl.this.versionElement.getColumn();
+    }
+    @Override public Boolean isNullable(){
+      return false;
+    }
+  }
+);
+  this.typeSource=new HibernateTypeSourceImpl(versionElement.getType() == null ? "integer" : versionElement.getType());
+  this.attributePath=rootEntitySource.getAttributePathBase().append(getName());
+  this.attributeRole=rootEntitySource.getAttributeRoleBase().append(getName());
+  this.toolingHints=Helper.collectToolingHints(rootEntitySource.getToolingHintContext(),versionElement);
+}

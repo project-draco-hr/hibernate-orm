@@ -1,0 +1,51 @@
+{
+  final Database database=metadata.getDatabase();
+  final JdbcEnvironment jdbcEnvironment=database.getJdbcEnvironment();
+  for (  Target target : targets) {
+    target.prepare();
+  }
+  final Set<String> exportIdentifiers=new HashSet<String>(50);
+  for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects()) {
+    if (!auxiliaryDatabaseObject.beforeTablesOnCreation()) {
+      continue;
+    }
+    if (!auxiliaryDatabaseObject.appliesToDialect(dialect)) {
+      continue;
+    }
+    applySqlStrings(targets,dialect.getAuxiliaryDatabaseObjectExporter().getSqlDropStrings(auxiliaryDatabaseObject,metadata));
+  }
+  for (  Schema schema : database.getSchemas()) {
+    applyConstraintDropping(targets,schema,metadata);
+    for (    Table table : schema.getTables()) {
+      if (!table.isPhysicalTable()) {
+        continue;
+      }
+      checkExportIdentifier(table,exportIdentifiers);
+      applySqlStrings(targets,dialect.getTableExporter().getSqlDropStrings(table,metadata));
+    }
+    for (    Sequence sequence : schema.getSequences()) {
+      checkExportIdentifier(sequence,exportIdentifiers);
+      applySqlStrings(targets,dialect.getSequenceExporter().getSqlDropStrings(sequence,metadata));
+    }
+  }
+  for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects()) {
+    if (auxiliaryDatabaseObject.beforeTablesOnCreation()) {
+      continue;
+    }
+    if (!auxiliaryDatabaseObject.appliesToDialect(dialect)) {
+      continue;
+    }
+    applySqlStrings(targets,auxiliaryDatabaseObject.sqlDropStrings(jdbcEnvironment.getDialect()));
+  }
+  for (  Schema schema : database.getSchemas()) {
+    if (dropSchemas) {
+      if (schema.getName().getSchema() == null) {
+        continue;
+      }
+      applySqlStrings(targets,dialect.getDropSchemaCommand(schema.getName().getSchema().render(dialect)));
+    }
+  }
+  for (  Target target : targets) {
+    target.release();
+  }
+}

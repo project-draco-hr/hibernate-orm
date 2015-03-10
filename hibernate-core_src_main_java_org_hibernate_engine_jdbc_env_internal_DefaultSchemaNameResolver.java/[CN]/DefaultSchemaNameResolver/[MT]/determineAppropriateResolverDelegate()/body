@@ -1,0 +1,15 @@
+{
+  final Class<Connection> jdbcConnectionClass=Connection.class;
+  try {
+    final Method getSchemaMethod=jdbcConnectionClass.getMethod("getSchema");
+    if (getSchemaMethod != null) {
+      if (getSchemaMethod.getReturnType().equals(String.class)) {
+        return new SchemaNameResolverJava17Delegate(getSchemaMethod);
+      }
+    }
+  }
+ catch (  Exception ignore) {
+  }
+  log.debugf("Unable to use Java 1.7 Connection#getSchema");
+  return SchemaNameResolverFallbackDelegate.INSTANCE;
+}

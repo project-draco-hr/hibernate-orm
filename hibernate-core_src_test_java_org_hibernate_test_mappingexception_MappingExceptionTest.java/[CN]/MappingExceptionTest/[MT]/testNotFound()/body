@@ -8,6 +8,10 @@
     assertEquals(e.getType(),"file");
     assertEquals(e.getPath(),"completelybogus.hbm.xml");
   }
+catch (  org.hibernate.boot.MappingNotFoundException e) {
+    assertEquals(e.getOrigin().getType(),SourceType.FILE);
+    assertEquals(e.getOrigin().getName(),"completelybogus.hbm.xml");
+  }
   try {
     cfg.addCacheableFile(new File("completelybogus.hbm.xml"));
     fail();
@@ -15,6 +19,10 @@
  catch (  MappingNotFoundException e) {
     assertEquals(e.getType(),"file");
     assertEquals(e.getPath(),"completelybogus.hbm.xml");
+  }
+catch (  org.hibernate.boot.MappingNotFoundException e) {
+    assertEquals(e.getOrigin().getType(),SourceType.FILE);
+    assertEquals(e.getOrigin().getName(),"completelybogus.hbm.xml");
   }
   try {
     cfg.addClass(Hibernate.class);
@@ -24,6 +32,10 @@
     assertEquals(inv.getType(),"resource");
     assertEquals(inv.getPath(),"org/hibernate/Hibernate.hbm.xml");
   }
+catch (  org.hibernate.boot.MappingNotFoundException e) {
+    assertEquals(e.getOrigin().getType(),SourceType.RESOURCE);
+    assertEquals(e.getOrigin().getName(),"org/hibernate/Hibernate.hbm.xml");
+  }
   try {
     cfg.addFile("completelybogus.hbm.xml");
     fail();
@@ -31,6 +43,10 @@
  catch (  MappingNotFoundException e) {
     assertEquals(e.getType(),"file");
     assertEquals(e.getPath(),"completelybogus.hbm.xml");
+  }
+catch (  org.hibernate.boot.MappingNotFoundException e) {
+    assertEquals(e.getOrigin().getType(),SourceType.FILE);
+    assertEquals(e.getOrigin().getName(),"completelybogus.hbm.xml");
   }
   try {
     cfg.addFile(new File("completelybogus.hbm.xml"));
@@ -40,11 +56,19 @@
     assertEquals(inv.getType(),"file");
     assertEquals(inv.getPath(),"completelybogus.hbm.xml");
   }
+catch (  org.hibernate.boot.MappingNotFoundException e) {
+    assertEquals(e.getOrigin().getType(),SourceType.FILE);
+    assertEquals(e.getOrigin().getName(),"completelybogus.hbm.xml");
+  }
   try {
     cfg.addInputStream(new ByteArrayInputStream(new byte[0]));
     fail();
   }
- catch (  InvalidMappingException inv) {
+ catch (  org.hibernate.boot.InvalidMappingException e) {
+    assertEquals(SourceType.INPUT_STREAM,e.getOrigin().getType());
+    assertEquals(null,e.getOrigin().getName());
+  }
+catch (  InvalidMappingException inv) {
     assertEquals(inv.getType(),"input stream");
     assertEquals(inv.getPath(),null);
   }
@@ -56,6 +80,10 @@
     assertEquals(inv.getType(),"resource");
     assertEquals(inv.getPath(),"nothere");
   }
+catch (  org.hibernate.boot.MappingNotFoundException e) {
+    assertEquals(e.getOrigin().getType(),SourceType.RESOURCE);
+    assertEquals(e.getOrigin().getName(),"nothere");
+  }
   try {
     cfg.addResource("nothere",getClass().getClassLoader());
     fail();
@@ -64,11 +92,19 @@
     assertEquals(inv.getType(),"resource");
     assertEquals(inv.getPath(),"nothere");
   }
+catch (  org.hibernate.boot.MappingNotFoundException e) {
+    assertEquals(e.getOrigin().getType(),SourceType.RESOURCE);
+    assertEquals(e.getOrigin().getName(),"nothere");
+  }
   try {
     cfg.addURL(new URL("file://nothere"));
     fail();
   }
- catch (  InvalidMappingException inv) {
+ catch (  org.hibernate.boot.MappingNotFoundException e) {
+    assertEquals(e.getOrigin().getType(),SourceType.URL);
+    assertEquals(e.getOrigin().getName(),"file://nothere");
+  }
+catch (  InvalidMappingException inv) {
     assertEquals(inv.getType(),"URL");
     assertEquals(inv.getPath(),"file://nothere");
   }

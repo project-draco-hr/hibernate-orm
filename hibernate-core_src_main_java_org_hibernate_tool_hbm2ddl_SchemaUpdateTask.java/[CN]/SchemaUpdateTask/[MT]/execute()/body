@@ -1,9 +1,19 @@
 {
+  log("Running Hibernate Core SchemaUpdate.");
+  log("This is an Ant task supporting only mapping files, if you want to use annotations see http://tools.hibernate.org.");
   try {
-    log("Running Hibernate Core SchemaUpdate.");
-    log("This is an Ant task supporting only mapping files, if you want to use annotations see http://tools.hibernate.org.");
-    Configuration cfg=getConfiguration();
-    getSchemaUpdate(cfg).execute(!quiet,!text);
+    final StandardServiceRegistryBuilder ssrBuilder=new StandardServiceRegistryBuilder();
+    configure(ssrBuilder);
+    final MetadataSources metadataSources=new MetadataSources(ssrBuilder.build());
+    configure(metadataSources);
+    final MetadataBuilder metadataBuilder=metadataSources.getMetadataBuilder();
+    configure(metadataBuilder);
+    final MetadataImplementor metadata=(MetadataImplementor)metadataBuilder.build();
+    final SchemaUpdate su=new SchemaUpdate(metadata);
+    su.setOutputFile(outputFile.getPath());
+    su.setDelimiter(delimiter);
+    su.setHaltOnError(haltOnError);
+    su.execute(!quiet,!text);
   }
  catch (  HibernateException e) {
     throw new BuildException("Schema text failed: " + e.getMessage(),e);
@@ -13,6 +23,9 @@ catch (  FileNotFoundException e) {
   }
 catch (  IOException e) {
     throw new BuildException("IOException : " + e.getMessage(),e);
+  }
+catch (  BuildException e) {
+    throw e;
   }
 catch (  Exception e) {
     throw new BuildException(e);

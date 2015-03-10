@@ -1,0 +1,17 @@
+{
+  if (this.bufferReader != null) {
+    final XMLEvent event=this.bufferReader.next();
+    if (!this.bufferReader.hasNext()) {
+      this.bufferReader=null;
+    }
+    return event;
+  }
+  final XMLEvent event=this.getParent().nextEvent();
+  if (this.eventLimit != 0) {
+    this.eventBuffer.offer(event);
+    if (this.eventLimit > 0 && this.eventBuffer.size() > this.eventLimit) {
+      this.eventBuffer.poll();
+    }
+  }
+  return event;
+}

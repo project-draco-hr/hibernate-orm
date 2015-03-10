@@ -1,0 +1,108 @@
+{
+  final ClassLoaderService classLoaderService=options.getServiceRegistry().getService(ClassLoaderService.class);
+  final ClassLoaderAccess classLoaderAccess=new ClassLoaderAccessImpl(options.getTempClassLoader(),classLoaderService);
+  if (options.getScanEnvironment() != null) {
+    final Scanner scanner=buildScanner(options,classLoaderAccess);
+    final ScanResult scanResult=scanner.scan(options.getScanEnvironment(),options.getScanOptions(),new ScanParameters(){
+      @Override public JandexInitializer getJandexInitializer(){
+        return null;
+      }
+    }
+);
+    addScanResultsToSources(sources,options,scanResult);
+  }
+  final IndexView jandexView=options.getJandexView();
+  final BasicTypeRegistry basicTypeRegistry=handleTypes(options);
+  final InFlightMetadataCollectorImpl metadataCollector=new InFlightMetadataCollectorImpl(options,sources,new TypeResolver(basicTypeRegistry,new TypeFactory()));
+  final MetadataBuildingContextRootImpl rootMetadataBuildingContext=new MetadataBuildingContextRootImpl(options,classLoaderAccess,metadataCollector);
+  final MetadataSourceProcessor processor=new MetadataSourceProcessor(){
+    private final HbmMetadataSourceProcessorImpl hbmProcessor=new HbmMetadataSourceProcessorImpl(sources,rootMetadataBuildingContext);
+    private final AnnotationMetadataSourceProcessorImpl annotationProcessor=new AnnotationMetadataSourceProcessorImpl(sources,rootMetadataBuildingContext,jandexView);
+    @Override public void prepare(){
+      hbmProcessor.prepare();
+      annotationProcessor.prepare();
+    }
+    @Override public void processTypeDefinitions(){
+      hbmProcessor.processTypeDefinitions();
+      annotationProcessor.processTypeDefinitions();
+    }
+    @Override public void processQueryRenames(){
+      hbmProcessor.processQueryRenames();
+      annotationProcessor.processQueryRenames();
+    }
+    @Override public void processNamedQueries(){
+      hbmProcessor.processNamedQueries();
+      annotationProcessor.processNamedQueries();
+    }
+    @Override public void processAuxiliaryDatabaseObjectDefinitions(){
+      hbmProcessor.processAuxiliaryDatabaseObjectDefinitions();
+      annotationProcessor.processAuxiliaryDatabaseObjectDefinitions();
+    }
+    @Override public void processIdentifierGenerators(){
+      hbmProcessor.processIdentifierGenerators();
+      annotationProcessor.processIdentifierGenerators();
+    }
+    @Override public void processFilterDefinitions(){
+      hbmProcessor.processFilterDefinitions();
+      annotationProcessor.processFilterDefinitions();
+    }
+    @Override public void processFetchProfiles(){
+      hbmProcessor.processFetchProfiles();
+      annotationProcessor.processFetchProfiles();
+    }
+    @Override public void prepareForEntityHierarchyProcessing(){
+      for (      MetadataSourceType metadataSourceType : options.getSourceProcessOrdering()) {
+        if (metadataSourceType == MetadataSourceType.HBM) {
+          hbmProcessor.prepareForEntityHierarchyProcessing();
+        }
+        if (metadataSourceType == MetadataSourceType.CLASS) {
+          annotationProcessor.prepareForEntityHierarchyProcessing();
+        }
+      }
+    }
+    @Override public void processEntityHierarchies(    Set<String> processedEntityNames){
+      for (      MetadataSourceType metadataSourceType : options.getSourceProcessOrdering()) {
+        if (metadataSourceType == MetadataSourceType.HBM) {
+          hbmProcessor.processEntityHierarchies(processedEntityNames);
+        }
+        if (metadataSourceType == MetadataSourceType.CLASS) {
+          annotationProcessor.processEntityHierarchies(processedEntityNames);
+        }
+      }
+    }
+    @Override public void postProcessEntityHierarchies(){
+      for (      MetadataSourceType metadataSourceType : options.getSourceProcessOrdering()) {
+        if (metadataSourceType == MetadataSourceType.HBM) {
+          hbmProcessor.postProcessEntityHierarchies();
+        }
+        if (metadataSourceType == MetadataSourceType.CLASS) {
+          annotationProcessor.postProcessEntityHierarchies();
+        }
+      }
+    }
+    @Override public void processResultSetMappings(){
+      hbmProcessor.processResultSetMappings();
+      annotationProcessor.processResultSetMappings();
+    }
+    @Override public void finishUp(){
+      hbmProcessor.finishUp();
+      annotationProcessor.finishUp();
+    }
+  }
+;
+  processor.prepare();
+  processor.processTypeDefinitions();
+  processor.processQueryRenames();
+  processor.processAuxiliaryDatabaseObjectDefinitions();
+  processor.processIdentifierGenerators();
+  processor.processFilterDefinitions();
+  processor.processFetchProfiles();
+  final Set<String> processedEntityNames=new HashSet<String>();
+  processor.prepareForEntityHierarchyProcessing();
+  processor.processEntityHierarchies(processedEntityNames);
+  processor.postProcessEntityHierarchies();
+  processor.processResultSetMappings();
+  processor.processNamedQueries();
+  processor.finishUp();
+  return metadataCollector.buildMetadataInstance(rootMetadataBuildingContext);
+}

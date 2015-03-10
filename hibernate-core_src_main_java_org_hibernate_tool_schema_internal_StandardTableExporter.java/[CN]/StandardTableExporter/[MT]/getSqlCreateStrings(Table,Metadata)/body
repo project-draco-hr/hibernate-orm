@@ -1,0 +1,60 @@
+{
+  final QualifiedName tableName=new QualifiedNameParser.NameParts(Identifier.toIdentifier(table.getCatalog(),table.isCatalogQuoted()),Identifier.toIdentifier(table.getSchema(),table.isSchemaQuoted()),table.getNameIdentifier());
+  final JdbcEnvironment jdbcEnvironment=metadata.getDatabase().getJdbcEnvironment();
+  StringBuilder buf=new StringBuilder(tableCreateString(table.hasPrimaryKey())).append(' ').append(jdbcEnvironment.getQualifiedObjectNameFormatter().format(tableName,jdbcEnvironment.getDialect())).append(" (");
+  boolean isPrimaryKeyIdentity=table.hasPrimaryKey() && table.getIdentifierValue() != null && table.getIdentifierValue().isIdentityColumn(metadata.getIdentifierGeneratorFactory(),dialect);
+  String pkColName=null;
+  if (table.hasPrimaryKey()) {
+    Column pkColumn=(Column)table.getPrimaryKey().getColumns().iterator().next();
+    pkColName=pkColumn.getQuotedName(dialect);
+  }
+  final Iterator columnItr=table.getColumnIterator();
+  boolean isFirst=true;
+  while (columnItr.hasNext()) {
+    final Column col=(Column)columnItr.next();
+    if (isFirst) {
+      isFirst=false;
+    }
+ else {
+      buf.append(", ");
+    }
+    String colName=col.getQuotedName(dialect);
+    buf.append(colName).append(' ');
+    if (isPrimaryKeyIdentity && colName.equals(pkColName)) {
+      if (dialect.hasDataTypeInIdentityColumn()) {
+        buf.append(col.getSqlType(dialect,metadata));
+      }
+      buf.append(' ').append(dialect.getIdentityColumnString(col.getSqlTypeCode(metadata)));
+    }
+ else {
+      buf.append(col.getSqlType(dialect,metadata));
+      String defaultValue=col.getDefaultValue();
+      if (defaultValue != null) {
+        buf.append(" default ").append(defaultValue);
+      }
+      if (col.isNullable()) {
+        buf.append(dialect.getNullColumnString());
+      }
+ else {
+        buf.append(" not null");
+      }
+    }
+    if (col.getCheckConstraint() != null && dialect.supportsColumnCheck()) {
+      buf.append(" check (").append(col.getCheckConstraint()).append(")");
+    }
+    String columnComment=col.getComment();
+    if (columnComment != null) {
+      buf.append(dialect.getColumnComment(columnComment));
+    }
+  }
+  if (table.hasPrimaryKey()) {
+    buf.append(", ").append(table.getPrimaryKey().sqlConstraintString(dialect));
+  }
+  applyTableCheck(table,buf);
+  buf.append(')');
+  applyTableTypeString(buf);
+  List<String> sqlStrings=new ArrayList<String>();
+  sqlStrings.add(buf.toString());
+  applyComments(table,sqlStrings);
+  return sqlStrings.toArray(new String[sqlStrings.size()]);
+}

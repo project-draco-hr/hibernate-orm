@@ -1,0 +1,30 @@
+{
+  final BootstrapServiceRegistry bsr=new BootstrapServiceRegistryBuilder().build();
+  final MetadataSources metadataSources=new MetadataSources(bsr);
+  final StandardServiceRegistryBuilder ssrBuilder=new StandardServiceRegistryBuilder(bsr);
+  if (configurationFile != null) {
+    ssrBuilder.configure(configurationFile);
+  }
+  if (propertiesFile != null) {
+    ssrBuilder.loadProperties(propertiesFile);
+  }
+  ssrBuilder.applySettings(getProject().getProperties());
+  for (  String fileName : getFiles()) {
+    if (fileName.endsWith(".jar")) {
+      metadataSources.addJar(new File(fileName));
+    }
+ else {
+      metadataSources.addFile(fileName);
+    }
+  }
+  final StandardServiceRegistryImpl ssr=(StandardServiceRegistryImpl)ssrBuilder.build();
+  final MetadataBuilder metadataBuilder=metadataSources.getMetadataBuilder(ssr);
+  ClassLoaderService classLoaderService=bsr.getService(ClassLoaderService.class);
+  if (implicitNamingStrategy != null) {
+    metadataBuilder.with((ImplicitNamingStrategy)classLoaderService.classForName(implicitNamingStrategy).newInstance());
+  }
+  if (physicalNamingStrategy != null) {
+    metadataBuilder.with((PhysicalNamingStrategy)classLoaderService.classForName(physicalNamingStrategy).newInstance());
+  }
+  return new SchemaExport((MetadataImplementor)metadataBuilder.build()).setHaltOnError(haltOnError).setOutputFile(outputFile.getPath()).setDelimiter(delimiter);
+}

@@ -1,0 +1,48 @@
+{
+  final Collection collectionBinding;
+  if (attributeSource instanceof PluralAttributeSourceListImpl) {
+    collectionBinding=new org.hibernate.mapping.List(sourceDocument.getMetadataCollector(),entityDescriptor);
+    bindCollectionMetadata(sourceDocument,attributeSource,collectionBinding);
+    registerSecondPass(new PluralAttributeListSecondPass(sourceDocument,(IndexedPluralAttributeSource)attributeSource,(org.hibernate.mapping.List)collectionBinding),sourceDocument);
+  }
+ else   if (attributeSource instanceof PluralAttributeSourceSetImpl) {
+    collectionBinding=new Set(sourceDocument.getMetadataCollector(),entityDescriptor);
+    bindCollectionMetadata(sourceDocument,attributeSource,collectionBinding);
+    registerSecondPass(new PluralAttributeSetSecondPass(sourceDocument,attributeSource,collectionBinding),sourceDocument);
+  }
+ else   if (attributeSource instanceof PluralAttributeSourceMapImpl) {
+    collectionBinding=new org.hibernate.mapping.Map(sourceDocument.getMetadataCollector(),entityDescriptor);
+    bindCollectionMetadata(sourceDocument,attributeSource,collectionBinding);
+    registerSecondPass(new PluralAttributeMapSecondPass(sourceDocument,(IndexedPluralAttributeSource)attributeSource,(org.hibernate.mapping.Map)collectionBinding),sourceDocument);
+  }
+ else   if (attributeSource instanceof PluralAttributeSourceBagImpl) {
+    collectionBinding=new Bag(sourceDocument.getMetadataCollector(),entityDescriptor);
+    bindCollectionMetadata(sourceDocument,attributeSource,collectionBinding);
+    registerSecondPass(new PluralAttributeBagSecondPass(sourceDocument,attributeSource,collectionBinding),sourceDocument);
+  }
+ else   if (attributeSource instanceof PluralAttributeSourceIdBagImpl) {
+    collectionBinding=new IdentifierBag(sourceDocument.getMetadataCollector(),entityDescriptor);
+    bindCollectionMetadata(sourceDocument,attributeSource,collectionBinding);
+    registerSecondPass(new PluralAttributeIdBagSecondPass(sourceDocument,attributeSource,collectionBinding),sourceDocument);
+  }
+ else   if (attributeSource instanceof PluralAttributeSourceArrayImpl) {
+    final PluralAttributeSourceArray arraySource=(PluralAttributeSourceArray)attributeSource;
+    collectionBinding=new Array(sourceDocument.getMetadataCollector(),entityDescriptor);
+    bindCollectionMetadata(sourceDocument,attributeSource,collectionBinding);
+    ((Array)collectionBinding).setElementClassName(sourceDocument.qualifyClassName(arraySource.getElementClass()));
+    registerSecondPass(new PluralAttributeArraySecondPass(sourceDocument,arraySource,(Array)collectionBinding),sourceDocument);
+  }
+ else   if (attributeSource instanceof PluralAttributeSourcePrimitiveArrayImpl) {
+    collectionBinding=new PrimitiveArray(sourceDocument.getMetadataCollector(),entityDescriptor);
+    bindCollectionMetadata(sourceDocument,attributeSource,collectionBinding);
+    registerSecondPass(new PluralAttributePrimitiveArraySecondPass(sourceDocument,(IndexedPluralAttributeSource)attributeSource,(PrimitiveArray)collectionBinding),sourceDocument);
+  }
+ else {
+    throw new AssertionFailure("Unexpected PluralAttributeSource type : " + attributeSource.getClass().getName());
+  }
+  sourceDocument.getMetadataCollector().addCollectionBinding(collectionBinding);
+  final Property attribute=new Property();
+  attribute.setValue(collectionBinding);
+  bindProperty(sourceDocument,attributeSource,attribute);
+  return attribute;
+}

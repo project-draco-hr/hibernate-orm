@@ -1,5 +1,10 @@
 {
   if (StringHelper.isNotEmpty(columnName)) {
-    getMappingColumn().setName(applyNamingStrategy ? getNamingStrategyDelegate().toPhysicalColumnName(columnName) : columnName);
+    if (applyNamingStrategy) {
+      getMappingColumn().setName(getBuildingContext().getBuildingOptions().getPhysicalNamingStrategy().toPhysicalTableName(getBuildingContext().getMetadataCollector().getDatabase().toIdentifier(columnName),getBuildingContext().getMetadataCollector().getDatabase().getJdbcEnvironment()).render());
+    }
+ else {
+      getMappingColumn().setName(columnName);
+    }
   }
 }

@@ -1,0 +1,12 @@
+{
+  final Dialect dialect=database.getJdbcEnvironment().getDialect();
+  final Schema schema=database.locateSchema(qualifiedTableName.getCatalogName(),qualifiedTableName.getSchemaName());
+  Table table=schema.locateTable(qualifiedTableName.getObjectName());
+  if (table != null) {
+    return;
+  }
+  table=schema.createTable(qualifiedTableName.getObjectName(),false);
+  ExportableColumn valueColumn=new ExportableColumn(database,table,valueColumnNameText,LongType.INSTANCE);
+  table.addColumn(valueColumn);
+  database.addInitCommand(new InitCommand("insert into " + tableNameText + " values ( "+ initialValue+ " )"));
+}

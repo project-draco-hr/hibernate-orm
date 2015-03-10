@@ -1,0 +1,102 @@
+{
+  if (CollectionHelper.isEmpty(rtnSource.getReturnProperty())) {
+    return null;
+  }
+  final HashMap results=new HashMap();
+  List<JaxbHbmNativeQueryPropertyReturnType> propertyReturnSources=new ArrayList<JaxbHbmNativeQueryPropertyReturnType>();
+  List<String> propertyNames=new ArrayList<String>();
+  for (  JaxbHbmNativeQueryPropertyReturnType propertyReturnSource : rtnSource.getReturnProperty()) {
+    final int dotPosition=propertyReturnSource.getName().lastIndexOf('.');
+    if (pc == null || dotPosition == -1) {
+      propertyReturnSources.add(propertyReturnSource);
+      propertyNames.add(propertyReturnSource.getName());
+    }
+ else {
+      final String reducedName=propertyReturnSource.getName().substring(0,dotPosition);
+      final Value value=pc.getRecursiveProperty(reducedName).getValue();
+      Iterator parentPropItr;
+      if (value instanceof Component) {
+        final Component comp=(Component)value;
+        parentPropItr=comp.getPropertyIterator();
+      }
+ else       if (value instanceof ToOne) {
+        final ToOne toOne=(ToOne)value;
+        final PersistentClass referencedPc=context.getMetadataCollector().getEntityBinding(toOne.getReferencedEntityName());
+        if (toOne.getReferencedPropertyName() != null) {
+          try {
+            parentPropItr=((Component)referencedPc.getRecursiveProperty(toOne.getReferencedPropertyName()).getValue()).getPropertyIterator();
+          }
+ catch (          ClassCastException e) {
+            throw new MappingException("dotted notation reference neither a component nor a many/one to one",e,context.getOrigin());
+          }
+        }
+ else {
+          try {
+            if (referencedPc.getIdentifierMapper() == null) {
+              parentPropItr=((Component)referencedPc.getIdentifierProperty().getValue()).getPropertyIterator();
+            }
+ else {
+              parentPropItr=referencedPc.getIdentifierMapper().getPropertyIterator();
+            }
+          }
+ catch (          ClassCastException e) {
+            throw new MappingException("dotted notation reference neither a component nor a many/one to one",e,context.getOrigin());
+          }
+        }
+      }
+ else {
+        throw new MappingException("dotted notation reference neither a component nor a many/one to one",context.getOrigin());
+      }
+      boolean hasFollowers=false;
+      List<String> followers=new ArrayList<String>();
+      while (parentPropItr.hasNext()) {
+        final Property parentProperty=(Property)parentPropItr.next();
+        final String currentPropertyName=parentProperty.getName();
+        final String currentName=reducedName + '.' + currentPropertyName;
+        if (hasFollowers) {
+          followers.add(currentName);
+        }
+        if (propertyReturnSource.getName().equals(currentName)) {
+          hasFollowers=true;
+        }
+      }
+      int index=propertyNames.size();
+      for (      String follower : followers) {
+        int currentIndex=getIndexOfFirstMatchingProperty(propertyNames,follower);
+        index=currentIndex != -1 && currentIndex < index ? currentIndex : index;
+      }
+      propertyNames.add(index,propertyReturnSource.getName());
+      propertyReturnSources.add(index,propertyReturnSource);
+    }
+  }
+  Set<String> uniqueReturnProperty=new HashSet<String>();
+  for (  JaxbHbmNativeQueryPropertyReturnType propertyReturnBinding : propertyReturnSources) {
+    final String name=propertyReturnBinding.getName();
+    if ("class".equals(name)) {
+      throw new MappingException("class is not a valid property name to use in a <return-property>, use <return-discriminator> instead",context.getOrigin());
+    }
+    ArrayList allResultColumns=extractResultColumns(propertyReturnBinding);
+    if (allResultColumns.isEmpty()) {
+      throw new MappingException(String.format(Locale.ENGLISH,"return-property [alias=%s, property=%s] must specify at least one column or return-column name",alias,propertyReturnBinding.getName()),context.getOrigin());
+    }
+    if (uniqueReturnProperty.contains(name)) {
+      throw new MappingException(String.format(Locale.ENGLISH,"Duplicate return-property [alias=%s] : %s",alias,propertyReturnBinding.getName()),context.getOrigin());
+    }
+    uniqueReturnProperty.add(name);
+    ArrayList intermediateResults=(ArrayList)results.get(name);
+    if (intermediateResults == null) {
+      results.put(name,allResultColumns);
+    }
+ else {
+      intermediateResults.addAll(allResultColumns);
+    }
+  }
+  for (  Object o : results.entrySet()) {
+    Map.Entry entry=(Map.Entry)o;
+    if (entry.getValue() instanceof ArrayList) {
+      ArrayList list=(ArrayList)entry.getValue();
+      entry.setValue(list.toArray(new String[list.size()]));
+    }
+  }
+  return results.isEmpty() ? Collections.EMPTY_MAP : results;
+}

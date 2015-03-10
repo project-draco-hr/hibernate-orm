@@ -1,8 +1,9 @@
 {
-  Configuration cfg=new Configuration();
-  cfg.addAnnotatedClass(entity);
-  cfg.buildMappings();
-  ServiceRegistryImplementor serviceRegistry=(ServiceRegistryImplementor)new StandardServiceRegistryBuilder().applySettings(cfg.getProperties()).build();
-  cfg.buildSessionFactory(serviceRegistry).close();
-  serviceRegistry.destroy();
+  StandardServiceRegistry serviceRegistry=new StandardServiceRegistryBuilder().build();
+  try {
+    new MetadataSources(serviceRegistry).addAnnotatedClass(entity).buildMetadata().buildSessionFactory().close();
+  }
+  finally {
+    StandardServiceRegistryBuilder.destroy(serviceRegistry);
+  }
 }

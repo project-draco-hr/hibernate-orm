@@ -1,0 +1,50 @@
+{
+  if (pluralAttributeSource.getIndexSource() instanceof PluralAttributeMapKeySourceBasic) {
+    final PluralAttributeMapKeySourceBasic mapKeySource=(PluralAttributeMapKeySourceBasic)pluralAttributeSource.getIndexSource();
+    final SimpleValue value=new SimpleValue(mappingDocument.getMetadataCollector(),collectionBinding.getCollectionTable());
+    bindSimpleValueType(mappingDocument,mapKeySource.getTypeInformation(),value);
+    if (!value.isTypeSpecified()) {
+      throw new MappingException("map index element must specify a type: " + pluralAttributeSource.getAttributeRole().getFullPath(),mappingDocument.getOrigin());
+    }
+    relationalObjectBinder.bindColumnsAndFormulas(mappingDocument,mapKeySource.getRelationalValueSources(),value,true,new RelationalObjectBinder.ColumnNamingDelegate(){
+      @Override public Identifier determineImplicitName(      LocalMetadataBuildingContext context){
+        return database.toIdentifier(IndexedCollection.DEFAULT_INDEX_COLUMN_NAME);
+      }
+    }
+);
+    collectionBinding.setIndex(value);
+    collectionBinding.setIndexNodeName(mapKeySource.getXmlNodeName());
+  }
+ else   if (pluralAttributeSource.getIndexSource() instanceof PluralAttributeMapKeySourceEmbedded) {
+    final PluralAttributeMapKeySourceEmbedded mapKeySource=(PluralAttributeMapKeySourceEmbedded)pluralAttributeSource.getIndexSource();
+    final Component componentBinding=new Component(mappingDocument.getMetadataCollector(),collectionBinding);
+    bindComponent(mappingDocument,mapKeySource.getEmbeddableSource(),componentBinding,null,pluralAttributeSource.getName(),mapKeySource.getXmlNodeName(),false);
+    collectionBinding.setIndex(componentBinding);
+  }
+ else   if (pluralAttributeSource.getIndexSource() instanceof PluralAttributeMapKeyManyToManySource) {
+    final PluralAttributeMapKeyManyToManySource mapKeySource=(PluralAttributeMapKeyManyToManySource)pluralAttributeSource.getIndexSource();
+    final ManyToOne mapKeyBinding=new ManyToOne(mappingDocument.getMetadataCollector(),collectionBinding.getCollectionTable());
+    mapKeyBinding.setReferencedEntityName(mapKeySource.getReferencedEntityName());
+    relationalObjectBinder.bindColumnsAndFormulas(mappingDocument,mapKeySource.getRelationalValueSources(),mapKeyBinding,true,new RelationalObjectBinder.ColumnNamingDelegate(){
+      @Override public Identifier determineImplicitName(      final LocalMetadataBuildingContext context){
+        return implicitNamingStrategy.determineMapKeyColumnName(new ImplicitMapKeyColumnNameSource(){
+          @Override public AttributePath getPluralAttributePath(){
+            return pluralAttributeSource.getAttributePath();
+          }
+          @Override public MetadataBuildingContext getBuildingContext(){
+            return context;
+          }
+        }
+);
+      }
+    }
+);
+    collectionBinding.setIndex(mapKeyBinding);
+  }
+ else   if (pluralAttributeSource.getIndexSource() instanceof PluralAttributeMapKeyManyToAnySource) {
+    final PluralAttributeMapKeyManyToAnySource mapKeySource=(PluralAttributeMapKeyManyToAnySource)pluralAttributeSource.getIndexSource();
+    final Any mapKeyBinding=new Any(mappingDocument.getMetadataCollector(),collectionBinding.getCollectionTable());
+    bindAny(mappingDocument,mapKeySource,mapKeyBinding,pluralAttributeSource.getAttributeRole().append("key"),pluralAttributeSource.getAttributePath().append("key"));
+    collectionBinding.setIndex(mapKeyBinding);
+  }
+}

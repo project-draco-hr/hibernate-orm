@@ -1,0 +1,25 @@
+{
+  super(mappingDocument,pluralAttributeSource);
+  this.jaxbManyToManyElement=jaxbManyToManyElement;
+  this.referencedEntityName=StringHelper.isNotEmpty(jaxbManyToManyElement.getEntityName()) ? jaxbManyToManyElement.getEntityName() : mappingDocument.qualifyClassName(jaxbManyToManyElement.getClazz());
+  this.fetchCharacteristics=FetchCharacteristicsSingularAssociationImpl.interpretManyToManyElement(mappingDocument.getMappingDefaults(),jaxbManyToManyElement.getFetch(),jaxbManyToManyElement.getOuterJoin(),jaxbManyToManyElement.getLazy());
+  this.valueSources=RelationalValueSourceHelper.buildValueSources(sourceMappingDocument(),null,new RelationalValueSourceHelper.AbstractColumnsAndFormulasSource(){
+    @Override public XmlElementMetadata getSourceType(){
+      return XmlElementMetadata.MANY_TO_MANY;
+    }
+    @Override public String getSourceName(){
+      return null;
+    }
+    @Override public String getFormulaAttribute(){
+      return jaxbManyToManyElement.getFormulaAttribute();
+    }
+    @Override public String getColumnAttribute(){
+      return jaxbManyToManyElement.getColumnAttribute();
+    }
+    @Override public List getColumnOrFormulaElements(){
+      return jaxbManyToManyElement.getColumnOrFormula();
+    }
+  }
+);
+  this.filterSources=buildFilterSources();
+}

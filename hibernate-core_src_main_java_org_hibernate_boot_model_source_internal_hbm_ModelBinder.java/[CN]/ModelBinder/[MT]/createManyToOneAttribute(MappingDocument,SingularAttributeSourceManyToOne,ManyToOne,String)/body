@@ -1,0 +1,36 @@
+{
+  final String attributeName=manyToOneSource.getName();
+  final String referencedEntityName;
+  if (manyToOneSource.getReferencedEntityName() != null) {
+    referencedEntityName=manyToOneSource.getReferencedEntityName();
+  }
+ else {
+    Class reflectedPropertyClass=Helper.reflectedPropertyClass(sourceDocument,containingClassName,attributeName);
+    if (reflectedPropertyClass != null) {
+      referencedEntityName=reflectedPropertyClass.getName();
+    }
+ else {
+      prepareValueTypeViaReflection(sourceDocument,manyToOneBinding,containingClassName,attributeName,manyToOneSource.getAttributeRole());
+      referencedEntityName=manyToOneBinding.getTypeName();
+    }
+  }
+  if (manyToOneSource.isUnique()) {
+    manyToOneBinding.markAsLogicalOneToOne();
+  }
+  bindManyToOneAttribute(sourceDocument,manyToOneSource,manyToOneBinding,referencedEntityName);
+  final String propertyRef=manyToOneBinding.getReferencedPropertyName();
+  if (propertyRef != null) {
+    handlePropertyReference(sourceDocument,manyToOneBinding.getReferencedEntityName(),propertyRef,true,"<many-to-one name=\"" + manyToOneSource.getName() + "\"/>");
+  }
+  Property prop=new Property();
+  prop.setValue(manyToOneBinding);
+  bindProperty(sourceDocument,manyToOneSource,prop);
+  if (StringHelper.isNotEmpty(manyToOneSource.getCascadeStyleName())) {
+    if (manyToOneSource.getCascadeStyleName().contains("delete-orphan")) {
+      if (!manyToOneBinding.isLogicalOneToOne()) {
+        throw new MappingException(String.format(Locale.ENGLISH,"many-to-one attribute [%s] specified delete-orphan but is not specified as unique; " + "remove delete-orphan cascading or specify unique=\"true\"",manyToOneSource.getAttributeRole().getFullPath()),sourceDocument.getOrigin());
+      }
+    }
+  }
+  return prop;
+}

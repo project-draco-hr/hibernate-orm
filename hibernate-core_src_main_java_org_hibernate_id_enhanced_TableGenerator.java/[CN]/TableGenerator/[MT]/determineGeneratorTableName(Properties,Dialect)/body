@@ -1,12 +1,4 @@
 {
-  String name=ConfigurationHelper.getString(TABLE_PARAM,params,DEF_TABLE);
-  final boolean isGivenNameUnqualified=name.indexOf('.') < 0;
-  if (isGivenNameUnqualified) {
-    final ObjectNameNormalizer normalizer=(ObjectNameNormalizer)params.get(IDENTIFIER_NORMALIZER);
-    name=normalizer.normalizeIdentifierQuoting(name);
-    final String schemaName=normalizer.normalizeIdentifierQuoting(params.getProperty(SCHEMA));
-    final String catalogName=normalizer.normalizeIdentifierQuoting(params.getProperty(CATALOG));
-    name=Table.qualify(dialect.quote(catalogName),dialect.quote(schemaName),dialect.quote(name));
-  }
-  return name;
+  final ObjectNameNormalizer normalizer=(ObjectNameNormalizer)params.get(IDENTIFIER_NORMALIZER);
+  return QualifiedNameParser.INSTANCE.parse(ConfigurationHelper.getString(TABLE_PARAM,params,DEF_TABLE),normalizer.normalizeIdentifierQuoting(params.getProperty(CATALOG)),normalizer.normalizeIdentifierQuoting(params.getProperty(SCHEMA)));
 }

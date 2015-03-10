@@ -1,0 +1,26 @@
+{
+  super(mappingDocument,idBagMapping,container);
+  this.idBagMapping=idBagMapping;
+  final RelationalValueSource collectionIdRelationalValueSource=RelationalValueSourceHelper.buildValueSource(sourceMappingDocument(),null,new RelationalValueSourceHelper.AbstractColumnsAndFormulasSource(){
+    @Override public XmlElementMetadata getSourceType(){
+      return XmlElementMetadata.COLLECTION_ID;
+    }
+    @Override public String getSourceName(){
+      return null;
+    }
+    @Override public String getColumnAttribute(){
+      return idBagMapping.getCollectionId().getColumnAttribute();
+    }
+    @Override public SizeSource getSizeSource(){
+      return Helper.interpretSizeSource(idBagMapping.getCollectionId().getLength(),(Integer)null,null);
+    }
+    @Override public List getColumnOrFormulaElements(){
+      return idBagMapping.getCollectionId().getColumn();
+    }
+  }
+);
+  if (!ColumnSource.class.isInstance(collectionIdRelationalValueSource)) {
+    throw new MappingException(String.format(Locale.ENGLISH,"Expecting column for collection id (idbag), but found formula [%s.%s]",container.getAttributeRoleBase().getFullPath(),idBagMapping.getName()),sourceMappingDocument().getOrigin());
+  }
+  this.collectionIdSource=new CollectionIdSourceImpl((ColumnSource)collectionIdRelationalValueSource,new HibernateTypeSourceImpl(idBagMapping.getCollectionId().getType()),idBagMapping.getCollectionId().getGenerator().getClazz());
+}

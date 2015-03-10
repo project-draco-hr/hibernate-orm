@@ -1,0 +1,17 @@
+{
+  ObjectNameNormalizer normalizer=(ObjectNameNormalizer)params.get(IDENTIFIER_NORMALIZER);
+  qualifiedTableName=QualifiedNameParser.INSTANCE.parse(ConfigurationHelper.getString(ID_TABLE,params,DEFAULT_TABLE),normalizer.normalizeIdentifierQuoting(params.getProperty(CATALOG)),normalizer.normalizeIdentifierQuoting(params.getProperty(SCHEMA)));
+  tableName=jdbcEnv.getQualifiedObjectNameFormatter().format(qualifiedTableName,jdbcEnv.getDialect());
+  pkColumnName=normalizer.toDatabaseIdentifierText(ConfigurationHelper.getString(PK_COLUMN_NAME,params,DEFAULT_PK_COLUMN));
+  valueColumnName=normalizer.toDatabaseIdentifierText(ConfigurationHelper.getString(VALUE_COLUMN_NAME,params,DEFAULT_VALUE_COLUMN));
+  keySize=ConfigurationHelper.getInt(PK_LENGTH_NAME,params,DEFAULT_PK_LENGTH);
+  String keyValue=ConfigurationHelper.getString(PK_VALUE_NAME,params,params.getProperty(TABLE));
+  query="select " + valueColumnName + " from "+ jdbcEnv.getDialect().appendLockHint(LockMode.PESSIMISTIC_WRITE,tableName)+ " where "+ pkColumnName+ " = '"+ keyValue+ "'"+ jdbcEnv.getDialect().getForUpdateString();
+  update="update " + tableName + " set "+ valueColumnName+ " = ? where "+ valueColumnName+ " = ? and "+ pkColumnName+ " = '"+ keyValue+ "'";
+  insert="insert into " + tableName + "("+ pkColumnName+ ", "+ valueColumnName+ ") "+ "values('"+ keyValue+ "', ?)";
+  maxLo=ConfigurationHelper.getInt(MAX_LO,params,Short.MAX_VALUE);
+  returnClass=type.getReturnedClass();
+  if (maxLo >= 1) {
+    hiloOptimizer=new LegacyHiLoAlgorithmOptimizer(returnClass,maxLo);
+  }
+}

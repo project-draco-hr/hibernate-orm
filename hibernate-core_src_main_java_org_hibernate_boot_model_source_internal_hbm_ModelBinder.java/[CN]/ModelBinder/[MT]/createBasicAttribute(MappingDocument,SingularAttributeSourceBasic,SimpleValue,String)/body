@@ -1,0 +1,16 @@
+{
+  final String attributeName=attributeSource.getName();
+  bindSimpleValueType(sourceDocument,attributeSource.getTypeInformation(),value);
+  relationalObjectBinder.bindColumnsAndFormulas(sourceDocument,attributeSource.getRelationalValueSources(),value,true,new RelationalObjectBinder.ColumnNamingDelegate(){
+    @Override public Identifier determineImplicitName(    LocalMetadataBuildingContext context){
+      return implicitNamingStrategy.determineBasicColumnName(attributeSource);
+    }
+  }
+);
+  prepareValueTypeViaReflection(sourceDocument,value,containingClassName,attributeName,attributeSource.getAttributeRole());
+  value.createForeignKey();
+  Property property=new Property();
+  property.setValue(value);
+  bindProperty(sourceDocument,attributeSource,property);
+  return property;
+}

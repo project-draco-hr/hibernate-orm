@@ -1,0 +1,14 @@
+{
+  this.dialect=dialect;
+  this.sqlExceptionHelper=buildSqlExceptionHelper(dialect);
+  this.extractedMetaDataSupport=new ExtractedDatabaseMetaDataImpl.Builder(this).build();
+  for (  String keyword : dialect.getKeywords()) {
+    reservedWords.add(keyword.toUpperCase());
+  }
+  final boolean globallyQuoteIdentifiers=serviceRegistry.getService(ConfigurationService.class).getSetting(AvailableSettings.GLOBALLY_QUOTED_IDENTIFIERS,StandardConverters.BOOLEAN,false);
+  this.identifierHelper=new NormalizingIdentifierHelperImpl(this,globallyQuoteIdentifiers,true,false,false,true,false);
+  this.currentCatalog=identifierHelper.toIdentifier(serviceRegistry.getService(ConfigurationService.class).getSetting(AvailableSettings.DEFAULT_CATALOG,StandardConverters.STRING));
+  this.currentSchema=Identifier.toIdentifier(serviceRegistry.getService(ConfigurationService.class).getSetting(AvailableSettings.DEFAULT_SCHEMA,StandardConverters.STRING));
+  this.qualifiedObjectNameFormatter=new QualifiedObjectNameFormatterStandardImpl();
+  this.lobCreatorBuilder=LobCreatorBuilderImpl.makeLobCreatorBuilder();
+}

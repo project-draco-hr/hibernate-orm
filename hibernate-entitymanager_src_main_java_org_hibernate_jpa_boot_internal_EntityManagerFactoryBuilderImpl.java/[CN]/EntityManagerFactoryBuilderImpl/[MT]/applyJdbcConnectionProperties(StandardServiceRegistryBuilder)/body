@@ -1,0 +1,35 @@
+{
+  if (dataSource != null) {
+    ssrBuilder.applySetting(org.hibernate.cfg.AvailableSettings.DATASOURCE,dataSource);
+  }
+ else   if (persistenceUnit.getJtaDataSource() != null) {
+    if (!ssrBuilder.getSettings().containsKey(org.hibernate.cfg.AvailableSettings.DATASOURCE)) {
+      ssrBuilder.applySetting(org.hibernate.cfg.AvailableSettings.DATASOURCE,persistenceUnit.getJtaDataSource());
+      configurationValues.put(AvailableSettings.JTA_DATASOURCE,persistenceUnit.getJtaDataSource());
+    }
+  }
+ else   if (persistenceUnit.getNonJtaDataSource() != null) {
+    if (!ssrBuilder.getSettings().containsKey(org.hibernate.cfg.AvailableSettings.DATASOURCE)) {
+      ssrBuilder.applySetting(org.hibernate.cfg.AvailableSettings.DATASOURCE,persistenceUnit.getNonJtaDataSource());
+      configurationValues.put(AvailableSettings.NON_JTA_DATASOURCE,persistenceUnit.getNonJtaDataSource());
+    }
+  }
+ else {
+    final String driver=(String)configurationValues.get(AvailableSettings.JDBC_DRIVER);
+    if (StringHelper.isNotEmpty(driver)) {
+      ssrBuilder.applySetting(org.hibernate.cfg.AvailableSettings.DRIVER,driver);
+    }
+    final String url=(String)configurationValues.get(AvailableSettings.JDBC_URL);
+    if (StringHelper.isNotEmpty(url)) {
+      ssrBuilder.applySetting(org.hibernate.cfg.AvailableSettings.URL,url);
+    }
+    final String user=(String)configurationValues.get(AvailableSettings.JDBC_USER);
+    if (StringHelper.isNotEmpty(user)) {
+      ssrBuilder.applySetting(org.hibernate.cfg.AvailableSettings.USER,user);
+    }
+    final String pass=(String)configurationValues.get(AvailableSettings.JDBC_PASSWORD);
+    if (StringHelper.isNotEmpty(pass)) {
+      ssrBuilder.applySetting(org.hibernate.cfg.AvailableSettings.PASS,pass);
+    }
+  }
+}

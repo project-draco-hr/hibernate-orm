@@ -1,0 +1,68 @@
+{
+  final MergedSettings mergedSettings=new MergedSettings();
+  if (persistenceUnit.getProperties() != null) {
+    mergedSettings.configurationValues.putAll(persistenceUnit.getProperties());
+  }
+  mergedSettings.configurationValues.put(PERSISTENCE_UNIT_NAME,persistenceUnit.getName());
+  final ConfigLoader configLoader=new ConfigLoader(ssrBuilder.getBootstrapServiceRegistry());
+  final String cfgXmlResourceName1=(String)mergedSettings.configurationValues.remove(CFG_FILE);
+  if (StringHelper.isNotEmpty(cfgXmlResourceName1)) {
+    final LoadedConfig loadedCfg=configLoader.loadConfigXmlResource(cfgXmlResourceName1);
+    processConfigXml(loadedCfg,mergedSettings,ssrBuilder);
+  }
+  final String cfgXmlResourceName2=(String)integrationSettings.get(CFG_FILE);
+  if (StringHelper.isNotEmpty(cfgXmlResourceName2)) {
+    integrationSettings.remove(CFG_FILE);
+    final LoadedConfig loadedCfg=configLoader.loadConfigXmlResource(cfgXmlResourceName2);
+    processConfigXml(loadedCfg,mergedSettings,ssrBuilder);
+  }
+  for (  Map.Entry<?,?> entry : integrationSettings.entrySet()) {
+    if (entry.getKey() == null) {
+      continue;
+    }
+    if (entry.getValue() == null) {
+      mergedSettings.configurationValues.remove(entry.getKey());
+    }
+ else {
+      mergedSettings.configurationValues.put(entry.getKey(),entry.getValue());
+    }
+  }
+  if (!mergedSettings.configurationValues.containsKey(VALIDATION_MODE)) {
+    if (persistenceUnit.getValidationMode() != null) {
+      mergedSettings.configurationValues.put(VALIDATION_MODE,persistenceUnit.getValidationMode());
+    }
+  }
+  if (!mergedSettings.configurationValues.containsKey(SHARED_CACHE_MODE)) {
+    if (persistenceUnit.getSharedCacheMode() != null) {
+      mergedSettings.configurationValues.put(SHARED_CACHE_MODE,persistenceUnit.getSharedCacheMode());
+    }
+  }
+  final String jaccContextId=(String)mergedSettings.configurationValues.get(JACC_CONTEXT_ID);
+  Iterator itr=mergedSettings.configurationValues.entrySet().iterator();
+  while (itr.hasNext()) {
+    final Map.Entry entry=(Map.Entry)itr.next();
+    if (entry.getValue() == null) {
+      itr.remove();
+      break;
+    }
+    if (String.class.isInstance(entry.getKey()) && String.class.isInstance(entry.getValue())) {
+      final String keyString=(String)entry.getKey();
+      final String valueString=(String)entry.getValue();
+      if (keyString.startsWith(JACC_PREFIX)) {
+        if (jaccContextId == null) {
+          LOG.debug("Found JACC permission grant [%s] in properties, but no JACC context id was specified; ignoring");
+        }
+ else {
+          mergedSettings.getJaccPermissions(jaccContextId).addPermissionDeclaration(parseJaccConfigEntry(keyString,valueString));
+        }
+      }
+ else       if (keyString.startsWith(CLASS_CACHE_PREFIX)) {
+        mergedSettings.addCacheRegionDefinition(parseCacheRegionDefinitionEntry(keyString.substring(CLASS_CACHE_PREFIX.length() + 1),valueString,CacheRegionDefinition.CacheRegionType.ENTITY));
+      }
+ else       if (keyString.startsWith(COLLECTION_CACHE_PREFIX)) {
+        mergedSettings.addCacheRegionDefinition(parseCacheRegionDefinitionEntry(keyString.substring(COLLECTION_CACHE_PREFIX.length() + 1),(String)entry.getValue(),CacheRegionDefinition.CacheRegionType.COLLECTION));
+      }
+    }
+  }
+  return mergedSettings;
+}

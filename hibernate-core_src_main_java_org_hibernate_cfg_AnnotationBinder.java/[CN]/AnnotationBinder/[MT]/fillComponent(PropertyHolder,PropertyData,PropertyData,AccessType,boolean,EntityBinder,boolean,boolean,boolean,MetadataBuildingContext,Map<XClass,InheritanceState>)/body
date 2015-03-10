@@ -1,0 +1,68 @@
+{
+  Component comp=createComponent(propertyHolder,inferredData,isComponentEmbedded,isIdentifierMapper,buildingContext);
+  String subpath=BinderHelper.getPath(propertyHolder,inferredData);
+  LOG.tracev("Binding component with path: {0}",subpath);
+  PropertyHolder subHolder=PropertyHolderBuilder.buildPropertyHolder(comp,subpath,inferredData,propertyHolder,buildingContext);
+  propertyHolder.startingProperty(inferredData.getProperty());
+  final XClass xClassProcessed=inferredData.getPropertyClass();
+  List<PropertyData> classElements=new ArrayList<PropertyData>();
+  XClass returnedClassOrElement=inferredData.getClassOrElement();
+  List<PropertyData> baseClassElements=null;
+  Map<String,PropertyData> orderedBaseClassElements=new HashMap<String,PropertyData>();
+  XClass baseReturnedClassOrElement;
+  if (baseInferredData != null) {
+    baseClassElements=new ArrayList<PropertyData>();
+    baseReturnedClassOrElement=baseInferredData.getClassOrElement();
+    bindTypeDefs(baseReturnedClassOrElement,buildingContext);
+    PropertyContainer propContainer=new PropertyContainer(baseReturnedClassOrElement,xClassProcessed);
+    addElementsOfClass(baseClassElements,propertyAccessor,propContainer,buildingContext);
+    for (    PropertyData element : baseClassElements) {
+      orderedBaseClassElements.put(element.getPropertyName(),element);
+    }
+  }
+  bindTypeDefs(returnedClassOrElement,buildingContext);
+  PropertyContainer propContainer=new PropertyContainer(returnedClassOrElement,xClassProcessed);
+  addElementsOfClass(classElements,propertyAccessor,propContainer,buildingContext);
+  XClass superClass=xClassProcessed.getSuperclass();
+  while (superClass != null && superClass.isAnnotationPresent(MappedSuperclass.class)) {
+    propContainer=new PropertyContainer(superClass,xClassProcessed);
+    addElementsOfClass(classElements,propertyAccessor,propContainer,buildingContext);
+    superClass=superClass.getSuperclass();
+  }
+  if (baseClassElements != null) {
+    if (!hasAnnotationsOnIdClass(xClassProcessed)) {
+      for (int i=0; i < classElements.size(); i++) {
+        final PropertyData idClassPropertyData=classElements.get(i);
+        final PropertyData entityPropertyData=orderedBaseClassElements.get(idClassPropertyData.getPropertyName());
+        if (propertyHolder.isInIdClass()) {
+          if (entityPropertyData == null) {
+            throw new AnnotationException("Property of @IdClass not found in entity " + baseInferredData.getPropertyClass().getName() + ": "+ idClassPropertyData.getPropertyName());
+          }
+          final boolean hasXToOneAnnotation=entityPropertyData.getProperty().isAnnotationPresent(ManyToOne.class) || entityPropertyData.getProperty().isAnnotationPresent(OneToOne.class);
+          final boolean isOfDifferentType=!entityPropertyData.getClassOrElement().equals(idClassPropertyData.getClassOrElement());
+          if (hasXToOneAnnotation && isOfDifferentType) {
+          }
+ else {
+            classElements.set(i,entityPropertyData);
+          }
+        }
+ else {
+          classElements.set(i,entityPropertyData);
+        }
+      }
+    }
+  }
+  for (  PropertyData propertyAnnotatedElement : classElements) {
+    processElementAnnotations(subHolder,isNullable ? Nullability.NO_CONSTRAINT : Nullability.FORCED_NOT_NULL,propertyAnnotatedElement,new HashMap<String,IdentifierGeneratorDefinition>(),entityBinder,isIdentifierMapper,isComponentEmbedded,inSecondPass,buildingContext,inheritanceStatePerClass);
+    XProperty property=propertyAnnotatedElement.getProperty();
+    if (property.isAnnotationPresent(GeneratedValue.class) && property.isAnnotationPresent(Id.class)) {
+      Map<String,IdentifierGeneratorDefinition> localGenerators=new HashMap<String,IdentifierGeneratorDefinition>();
+      localGenerators.putAll(buildLocalGenerators(property,buildingContext));
+      GeneratedValue generatedValue=property.getAnnotation(GeneratedValue.class);
+      String generatorType=generatedValue != null ? generatorType(generatedValue.strategy(),buildingContext) : "assigned";
+      String generator=generatedValue != null ? generatedValue.generator() : BinderHelper.ANNOTATION_STRING_DEFAULT;
+      BinderHelper.makeIdGenerator((SimpleValue)comp.getProperty(property.getName()).getValue(),generatorType,generator,buildingContext,localGenerators);
+    }
+  }
+  return comp;
+}

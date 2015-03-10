@@ -1,0 +1,23 @@
+{
+  final Schema schema=getDatabase().locateSchema(getDatabase().toIdentifier(catalogName),getDatabase().toIdentifier(schemaName));
+  final Identifier logicalName;
+  if (name != null) {
+    logicalName=getDatabase().toIdentifier(name);
+  }
+ else {
+    logicalName=null;
+  }
+  if (subselectFragment != null) {
+    return new DenormalizedTable(schema,logicalName,subselectFragment,isAbstract,includedTable);
+  }
+ else {
+    Table table=schema.locateTable(logicalName);
+    if (table != null) {
+      throw new DuplicateMappingException(DuplicateMappingException.Type.TABLE,logicalName.toString());
+    }
+ else {
+      table=schema.createDenormalizedTable(logicalName,isAbstract,includedTable);
+    }
+    return table;
+  }
+}

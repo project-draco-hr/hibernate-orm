@@ -1,14 +1,83 @@
 {
-  final NamingStrategyDelegate strategyDelegate=getNamingStrategyDelegate(mappings.getNamingStrategyDelegator());
-  String logicalName;
+  if (name != null) {
+    return new AssociationTableNameSource(name,null);
+  }
+  final Identifier logicalName;
   if (isJPA2ElementCollection) {
-    logicalName=strategyDelegate.determineLogicalElementCollectionTableName(name,ownerEntity,ownerJpaEntity,unquotedOwnerTable,propertyName);
+    logicalName=buildingContext.getBuildingOptions().getImplicitNamingStrategy().determineCollectionTableName(new ImplicitCollectionTableNameSource(){
+      private final EntityNaming owningEntityNaming=new EntityNaming(){
+        @Override public String getClassName(){
+          return ownerClassName;
+        }
+        @Override public String getEntityName(){
+          return ownerEntity;
+        }
+        @Override public String getJpaEntityName(){
+          return ownerJpaEntity;
+        }
+      }
+;
+      @Override public Identifier getOwningPhysicalTableName(){
+        return toIdentifier(ownerEntityTable);
+      }
+      @Override public EntityNaming getOwningEntityNaming(){
+        return owningEntityNaming;
+      }
+      @Override public AttributePath getOwningAttributePath(){
+        return AttributePath.parse(propertyName);
+      }
+      @Override public MetadataBuildingContext getBuildingContext(){
+        return buildingContext;
+      }
+    }
+);
   }
  else {
-    logicalName=strategyDelegate.determineLogicalEntityAssociationJoinTableName(name,ownerEntity,ownerJpaEntity,unquotedOwnerTable,associatedEntity,associatedJpaEntity,unquotedAssocTable,propertyName);
+    logicalName=buildingContext.getBuildingOptions().getImplicitNamingStrategy().determineJoinTableName(new ImplicitJoinTableNameSource(){
+      private final EntityNaming owningEntityNaming=new EntityNaming(){
+        @Override public String getClassName(){
+          return ownerClassName;
+        }
+        @Override public String getEntityName(){
+          return ownerEntity;
+        }
+        @Override public String getJpaEntityName(){
+          return ownerJpaEntity;
+        }
+      }
+;
+      private final EntityNaming nonOwningEntityNaming=new EntityNaming(){
+        @Override public String getClassName(){
+          return associatedClassName;
+        }
+        @Override public String getEntityName(){
+          return associatedEntity;
+        }
+        @Override public String getJpaEntityName(){
+          return associatedJpaEntity;
+        }
+      }
+;
+      @Override public String getOwningPhysicalTableName(){
+        return ownerEntityTable;
+      }
+      @Override public EntityNaming getOwningEntityNaming(){
+        return owningEntityNaming;
+      }
+      @Override public String getNonOwningPhysicalTableName(){
+        return associatedEntityTable;
+      }
+      @Override public EntityNaming getNonOwningEntityNaming(){
+        return nonOwningEntityNaming;
+      }
+      @Override public AttributePath getAssociationOwningAttributePath(){
+        return AttributePath.parse(propertyName);
+      }
+      @Override public MetadataBuildingContext getBuildingContext(){
+        return buildingContext;
+      }
+    }
+);
   }
-  if (StringHelper.isQuoted(ownerEntityTable) || StringHelper.isQuoted(associatedEntityTable)) {
-    logicalName=StringHelper.quote(logicalName);
-  }
-  return new AssociationTableNameSource(name,logicalName);
+  return new AssociationTableNameSource(name,logicalName.render());
 }

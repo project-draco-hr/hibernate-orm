@@ -1,0 +1,21 @@
+{
+  log.tracef("Indexing mapping document [%s] for purpose of building entity hierarchy ordering",mappingDocument.getOrigin());
+  final JaxbHbmHibernateMapping mappingBinding=mappingDocument.getDocumentRoot();
+  for (  JaxbHbmRootEntityType jaxbRootEntity : mappingBinding.getClazz()) {
+    final RootEntitySourceImpl rootEntitySource=new RootEntitySourceImpl(mappingDocument,jaxbRootEntity);
+    entitySourceByNameMap.put(rootEntitySource.getEntityNamingSource().getEntityName(),rootEntitySource);
+    final EntityHierarchySourceImpl hierarchy=new EntityHierarchySourceImpl(rootEntitySource);
+    entityHierarchyList.add(hierarchy);
+    linkAnyWaiting(mappingDocument,rootEntitySource);
+    processRootEntitySubEntityElements(mappingDocument,jaxbRootEntity,rootEntitySource);
+  }
+  for (  JaxbHbmDiscriminatorSubclassEntityType discriminatorSubclassEntityBinding : mappingBinding.getSubclass()) {
+    processTopLevelSubClassBinding(mappingDocument,discriminatorSubclassEntityBinding);
+  }
+  for (  JaxbHbmJoinedSubclassEntityType joinedSubclassEntityBinding : mappingBinding.getJoinedSubclass()) {
+    processTopLevelSubClassBinding(mappingDocument,joinedSubclassEntityBinding);
+  }
+  for (  JaxbHbmUnionSubclassEntityType unionSubclassEntityBinding : mappingBinding.getUnionSubclass()) {
+    processTopLevelSubClassBinding(mappingDocument,unionSubclassEntityBinding);
+  }
+}

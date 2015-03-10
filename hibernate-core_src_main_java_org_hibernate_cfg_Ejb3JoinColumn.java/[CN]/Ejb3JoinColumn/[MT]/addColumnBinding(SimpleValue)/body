@@ -1,15 +1,13 @@
 {
   if (StringHelper.isEmpty(mappedBy)) {
     boolean isLogicalColumnQuoted=StringHelper.isQuoted(getLogicalColumnName());
-    final ObjectNameNormalizer nameNormalizer=getMappings().getObjectNameNormalizer();
-    final String logicalColumnName=nameNormalizer.normalizeIdentifierQuoting(getLogicalColumnName());
-    final String referencedColumn=nameNormalizer.normalizeIdentifierQuoting(getReferencedColumn());
+    final ObjectNameNormalizer nameNormalizer=getBuildingContext().getObjectNameNormalizer();
+    final String logicalColumnName=nameNormalizer.normalizeIdentifierQuotingAsString(getLogicalColumnName());
+    final String referencedColumn=nameNormalizer.normalizeIdentifierQuotingAsString(getReferencedColumn());
     final String unquotedLogColName=StringHelper.unquote(logicalColumnName);
     final String unquotedRefColumn=StringHelper.unquote(referencedColumn);
-    String logicalCollectionColumnName=getNamingStrategyDelegate().determineLogicalCollectionColumnName(unquotedLogColName,getPropertyName(),unquotedRefColumn);
-    if (isLogicalColumnQuoted) {
-      logicalCollectionColumnName=StringHelper.quote(logicalCollectionColumnName);
-    }
-    getMappings().addColumnBinding(logicalCollectionColumnName,getMappingColumn(),value.getTable());
+    String logicalCollectionColumnName=StringHelper.isNotEmpty(unquotedLogColName) ? unquotedLogColName : getPropertyName() + '_' + unquotedRefColumn;
+    logicalCollectionColumnName=getBuildingContext().getMetadataCollector().getDatabase().getJdbcEnvironment().getIdentifierHelper().toIdentifier(logicalCollectionColumnName,isLogicalColumnQuoted).render();
+    getBuildingContext().getMetadataCollector().addColumnNameBinding(value.getTable(),logicalCollectionColumnName,getMappingColumn());
   }
 }

@@ -1,0 +1,33 @@
+{
+  Map<String,Type> parameterMap=null;
+  String condition=jaxbFilterDefinitionMapping.getCondition();
+  for (  Serializable content : jaxbFilterDefinitionMapping.getContent()) {
+    if (String.class.isInstance(content)) {
+      final String contentString=content.toString().trim();
+      if (StringHelper.isNotEmpty(contentString)) {
+        if (condition != null) {
+          log.debugf("filter-def [name=%s, origin=%s] defined multiple conditions, accepting arbitrary one",jaxbFilterDefinitionMapping.getName(),context.getOrigin().toString());
+        }
+      }
+    }
+ else {
+      final JaxbHbmFilterParameterType jaxbParameterMapping;
+      if (JaxbHbmFilterParameterType.class.isInstance(content)) {
+        jaxbParameterMapping=(JaxbHbmFilterParameterType)content;
+      }
+ else       if (JAXBElement.class.isInstance(content)) {
+        final JAXBElement<JaxbHbmFilterParameterType> jaxbElement=(JAXBElement<JaxbHbmFilterParameterType>)content;
+        jaxbParameterMapping=jaxbElement.getValue();
+      }
+ else {
+        throw new MappingException("Unable to decipher filter-def content type [" + content.getClass().getName() + "]",context.getOrigin());
+      }
+      if (parameterMap == null) {
+        parameterMap=new HashMap<String,Type>();
+      }
+      parameterMap.put(jaxbParameterMapping.getParameterName(),context.getMetadataCollector().getTypeResolver().heuristicType(jaxbParameterMapping.getParameterValueTypeName()));
+    }
+  }
+  context.getMetadataCollector().addFilterDefinition(new FilterDefinition(jaxbFilterDefinitionMapping.getName(),condition,parameterMap));
+  log.debugf("Processed filter definition : %s",jaxbFilterDefinitionMapping.getName());
+}

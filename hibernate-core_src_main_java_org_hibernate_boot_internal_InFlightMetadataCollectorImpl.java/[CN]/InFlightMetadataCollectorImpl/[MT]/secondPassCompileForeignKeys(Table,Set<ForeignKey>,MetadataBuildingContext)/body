@@ -1,0 +1,50 @@
+{
+  table.createForeignKeys();
+  Iterator itr=table.getForeignKeyIterator();
+  while (itr.hasNext()) {
+    final ForeignKey fk=(ForeignKey)itr.next();
+    if (!done.contains(fk)) {
+      done.add(fk);
+      final String referencedEntityName=fk.getReferencedEntityName();
+      if (referencedEntityName == null) {
+        throw new MappingException("An association from the table " + fk.getTable().getName() + " does not specify the referenced entity");
+      }
+      log.debugf("Resolving reference to class: %s",referencedEntityName);
+      final PersistentClass referencedClass=getEntityBinding(referencedEntityName);
+      if (referencedClass == null) {
+        throw new MappingException("An association from the table " + fk.getTable().getName() + " refers to an unmapped class: "+ referencedEntityName);
+      }
+      if (referencedClass.isJoinedSubclass()) {
+        secondPassCompileForeignKeys(referencedClass.getSuperclass().getTable(),done,buildingContext);
+      }
+      fk.setReferencedTable(referencedClass.getTable());
+      if (fk.getName() == null) {
+        final Identifier nameIdentifier=getMetadataBuildingOptions().getImplicitNamingStrategy().determineForeignKeyName(new ImplicitForeignKeyNameSource(){
+          final List<Identifier> columnNames=extractColumnNames(fk.getColumns());
+          List<Identifier> referencedColumnNames=null;
+          @Override public Identifier getTableName(){
+            return table.getNameIdentifier();
+          }
+          @Override public List<Identifier> getColumnNames(){
+            return columnNames;
+          }
+          @Override public Identifier getReferencedTableName(){
+            return fk.getReferencedTable().getNameIdentifier();
+          }
+          @Override public List<Identifier> getReferencedColumnNames(){
+            if (referencedColumnNames == null) {
+              referencedColumnNames=extractColumnNames(fk.getReferencedColumns());
+            }
+            return referencedColumnNames;
+          }
+          @Override public MetadataBuildingContext getBuildingContext(){
+            return buildingContext;
+          }
+        }
+);
+        fk.setName(nameIdentifier.render(getDatabase().getJdbcEnvironment().getDialect()));
+      }
+      fk.alignColumns();
+    }
+  }
+}

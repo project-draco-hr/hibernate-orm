@@ -1,0 +1,28 @@
+{
+  super(mappingDocument,naturalIdMutability);
+  this.oneToOneElement=oneToOneElement;
+  this.referencedTypeName=oneToOneElement.getClazz() != null ? metadataBuildingContext().qualifyClassName(oneToOneElement.getClazz()) : oneToOneElement.getEntityName();
+  final JavaTypeDescriptor referencedTypeDescriptor=new JavaTypeDescriptor(){
+    @Override public String getName(){
+      return referencedTypeName;
+    }
+  }
+;
+  this.typeSource=new HibernateTypeSourceImpl(referencedTypeDescriptor);
+  if (StringHelper.isNotEmpty(oneToOneElement.getFormulaAttribute())) {
+    formulaSources=Collections.singletonList((DerivedValueSource)new FormulaImpl(mappingDocument,logicalTableName,oneToOneElement.getFormulaAttribute()));
+  }
+ else   if (!oneToOneElement.getFormula().isEmpty()) {
+    this.formulaSources=CollectionHelper.arrayList(oneToOneElement.getFormula().size());
+    for (    String expression : oneToOneElement.getFormula()) {
+      formulaSources.add(new FormulaImpl(mappingDocument,logicalTableName,expression));
+    }
+  }
+ else {
+    this.formulaSources=Collections.emptyList();
+  }
+  this.attributeRole=container.getAttributeRoleBase().append(oneToOneElement.getName());
+  this.attributePath=container.getAttributePathBase().append(oneToOneElement.getName());
+  this.fetchCharacteristics=FetchCharacteristicsSingularAssociationImpl.interpretOneToOne(mappingDocument.getMappingDefaults(),oneToOneElement.getFetch(),oneToOneElement.getOuterJoin(),oneToOneElement.getLazy(),oneToOneElement.isConstrained());
+  this.toolingHintContext=Helper.collectToolingHints(container.getToolingHintContext(),oneToOneElement);
+}

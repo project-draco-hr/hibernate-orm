@@ -1,36 +1,155 @@
 {
+  final Database database=getBuildingContext().getMetadataCollector().getDatabase();
+  final ImplicitNamingStrategy implicitNamingStrategy=getBuildingContext().getBuildingOptions().getImplicitNamingStrategy();
+  final PhysicalNamingStrategy physicalNamingStrategy=getBuildingContext().getBuildingOptions().getPhysicalNamingStrategy();
   String columnName;
   boolean mappedBySide=mappedByTableName != null || mappedByPropertyName != null;
   boolean ownerSide=getPropertyName() != null;
   Boolean isRefColumnQuoted=StringHelper.isQuoted(logicalReferencedColumn);
-  String unquotedLogicalReferenceColumn=isRefColumnQuoted ? StringHelper.unquote(logicalReferencedColumn) : logicalReferencedColumn;
+  final String unquotedLogicalReferenceColumn=isRefColumnQuoted ? StringHelper.unquote(logicalReferencedColumn) : logicalReferencedColumn;
   if (mappedBySide) {
-    String unquotedMappedbyTable=StringHelper.unquote(mappedByTableName);
-    if (JPA2ElementCollection) {
-      columnName=getNamingStrategyDelegate().determineImplicitElementCollectionJoinColumnName(mappedByEntityName,mappedByJpaEntityName,unquotedMappedbyTable,unquotedLogicalReferenceColumn,mappedByPropertyName);
+    final Identifier columnIdentifier;
+    final AttributePath attributePath=AttributePath.parse(mappedByPropertyName);
+    final ImplicitJoinColumnNameSource.Nature implicitNamingNature;
+    if (getPropertyHolder().isEntity()) {
+      implicitNamingNature=ImplicitJoinColumnNameSource.Nature.ENTITY;
+    }
+ else     if (JPA2ElementCollection) {
+      implicitNamingNature=ImplicitJoinColumnNameSource.Nature.ELEMENT_COLLECTION;
     }
  else {
-      columnName=getNamingStrategyDelegate().determineImplicitEntityAssociationJoinColumnName(mappedByEntityName,mappedByJpaEntityName,unquotedMappedbyTable,unquotedLogicalReferenceColumn,mappedByPropertyName);
+      implicitNamingNature=ImplicitJoinColumnNameSource.Nature.ENTITY_COLLECTION;
     }
+    columnIdentifier=implicitNamingStrategy.determineJoinColumnName(new ImplicitJoinColumnNameSource(){
+      private final EntityNaming entityNaming=new EntityNaming(){
+        @Override public String getClassName(){
+          return referencedEntity.getClassName();
+        }
+        @Override public String getEntityName(){
+          return referencedEntity.getEntityName();
+        }
+        @Override public String getJpaEntityName(){
+          return referencedEntity.getJpaEntityName();
+        }
+      }
+;
+      private final Identifier referencedTableName=getBuildingContext().getMetadataCollector().getDatabase().toIdentifier(mappedByTableName);
+      @Override public Nature getNature(){
+        return implicitNamingNature;
+      }
+      @Override public EntityNaming getEntityNaming(){
+        return entityNaming;
+      }
+      @Override public AttributePath getAttributePath(){
+        return attributePath;
+      }
+      @Override public Identifier getReferencedTableName(){
+        return referencedTableName;
+      }
+      @Override public Identifier getReferencedColumnName(){
+        if (logicalReferencedColumn != null) {
+          return getBuildingContext().getMetadataCollector().getDatabase().toIdentifier(logicalReferencedColumn);
+        }
+        if (mappedByEntityName == null || mappedByPropertyName == null) {
+          return null;
+        }
+        final PersistentClass mappedByEntityBinding=getBuildingContext().getMetadataCollector().getEntityBinding(mappedByEntityName);
+        final Property mappedByProperty=mappedByEntityBinding.getProperty(mappedByPropertyName);
+        final SimpleValue value=(SimpleValue)mappedByProperty.getValue();
+        final Iterator<Selectable> selectableValues=value.getColumnIterator();
+        if (!selectableValues.hasNext()) {
+          throw new AnnotationException(String.format(Locale.ENGLISH,"mapped-by [%s] defined for attribute [%s] referenced an invalid property (no columns)",mappedByPropertyName,propertyHolder.getPath()));
+        }
+        final Selectable selectable=selectableValues.next();
+        if (!Column.class.isInstance(selectable)) {
+          throw new AnnotationException(String.format(Locale.ENGLISH,"mapped-by [%s] defined for attribute [%s] referenced an invalid property (formula)",mappedByPropertyName,propertyHolder.getPath()));
+        }
+        if (selectableValues.hasNext()) {
+          throw new AnnotationException(String.format(Locale.ENGLISH,"mapped-by [%s] defined for attribute [%s] referenced an invalid property (multiple columns)",mappedByPropertyName,propertyHolder.getPath()));
+        }
+        return getBuildingContext().getMetadataCollector().getDatabase().toIdentifier(((Column)selectable).getQuotedName());
+      }
+      @Override public MetadataBuildingContext getBuildingContext(){
+        return Ejb3JoinColumn.this.getBuildingContext();
+      }
+    }
+);
+    columnName=columnIdentifier.render();
     if (isRefColumnQuoted || StringHelper.isQuoted(mappedByTableName)) {
       columnName=StringHelper.quote(columnName);
     }
   }
  else   if (ownerSide) {
-    String logicalTableName=getMappings().getLogicalTableName(referencedEntity.getTable());
-    String unquotedLogicalTableName=StringHelper.unquote(logicalTableName);
-    columnName=getNamingStrategyDelegate().determineImplicitEntityAssociationJoinColumnName(referencedEntity.getEntityName(),referencedEntity.getJpaEntityName(),unquotedLogicalTableName,unquotedLogicalReferenceColumn,getPropertyName());
-    if (isRefColumnQuoted || StringHelper.isQuoted(logicalTableName)) {
-      columnName=StringHelper.quote(columnName);
+    final String logicalTableName=getBuildingContext().getMetadataCollector().getLogicalTableName(referencedEntity.getTable());
+    final ImplicitJoinColumnNameSource.Nature implicitNamingNature;
+    if (JPA2ElementCollection) {
+      implicitNamingNature=ImplicitJoinColumnNameSource.Nature.ELEMENT_COLLECTION;
     }
+ else     if (getPropertyHolder().isEntity()) {
+      implicitNamingNature=ImplicitJoinColumnNameSource.Nature.ENTITY;
+    }
+ else {
+      implicitNamingNature=ImplicitJoinColumnNameSource.Nature.ENTITY_COLLECTION;
+    }
+    Identifier columnNameIdentifier=getBuildingContext().getBuildingOptions().getImplicitNamingStrategy().determineJoinColumnName(new ImplicitJoinColumnNameSource(){
+      private final EntityNaming entityNaming=new EntityNaming(){
+        @Override public String getClassName(){
+          return referencedEntity.getClassName();
+        }
+        @Override public String getEntityName(){
+          return referencedEntity.getEntityName();
+        }
+        @Override public String getJpaEntityName(){
+          return referencedEntity.getJpaEntityName();
+        }
+      }
+;
+      private final AttributePath attributePath=AttributePath.parse(getPropertyName());
+      private final Identifier referencedTableName=getBuildingContext().getMetadataCollector().getDatabase().toIdentifier(logicalTableName);
+      private final Identifier referencedColumnName=getBuildingContext().getMetadataCollector().getDatabase().toIdentifier(logicalReferencedColumn);
+      @Override public Nature getNature(){
+        return implicitNamingNature;
+      }
+      @Override public EntityNaming getEntityNaming(){
+        return entityNaming;
+      }
+      @Override public AttributePath getAttributePath(){
+        return attributePath;
+      }
+      @Override public Identifier getReferencedTableName(){
+        return referencedTableName;
+      }
+      @Override public Identifier getReferencedColumnName(){
+        return referencedColumnName;
+      }
+      @Override public MetadataBuildingContext getBuildingContext(){
+        return Ejb3JoinColumn.this.getBuildingContext();
+      }
+    }
+);
+    if (isRefColumnQuoted || StringHelper.isQuoted(logicalTableName)) {
+      Identifier.quote(columnNameIdentifier);
+    }
+    columnName=columnNameIdentifier.render();
   }
  else {
-    String logicalTableName=getMappings().getLogicalTableName(referencedEntity.getTable());
-    String unquotedLogicalTableName=StringHelper.unquote(logicalTableName);
-    columnName=getNamingStrategyDelegate().toPhysicalJoinKeyColumnName(unquotedLogicalReferenceColumn,unquotedLogicalTableName);
-    if (isRefColumnQuoted || StringHelper.isQuoted(logicalTableName)) {
-      columnName=StringHelper.quote(columnName);
+    final Identifier logicalTableName=database.toIdentifier(getBuildingContext().getMetadataCollector().getLogicalTableName(referencedEntity.getTable()));
+    Identifier columnIdentifier=implicitNamingStrategy.determinePrimaryKeyJoinColumnName(new ImplicitPrimaryKeyJoinColumnNameSource(){
+      @Override public MetadataBuildingContext getBuildingContext(){
+        return Ejb3JoinColumn.this.getBuildingContext();
+      }
+      @Override public Identifier getReferencedTableName(){
+        return logicalTableName;
+      }
+      @Override public Identifier getReferencedPrimaryKeyColumnName(){
+        return database.toIdentifier(logicalReferencedColumn);
+      }
     }
+);
+    if (!columnIdentifier.isQuoted() && (isRefColumnQuoted || logicalTableName.isQuoted())) {
+      columnIdentifier=Identifier.quote(columnIdentifier);
+    }
+    columnName=columnIdentifier.render();
   }
   return columnName;
 }

@@ -1,0 +1,87 @@
+{
+  final String name=propertiesGroupJaxbMapping.getName();
+  final AttributeRole attributeRole=callback.getAttributeSourceContainer().getAttributeRoleBase().append(name);
+  final AttributePath attributePath=callback.getAttributeSourceContainer().getAttributePathBase().append(name);
+  final EmbeddableSourceVirtualImpl embeddable=new EmbeddableSourceVirtualImpl(mappingDocument,callback,new EmbeddableSourceContainer(){
+    @Override public AttributeRole getAttributeRoleBase(){
+      return attributeRole;
+    }
+    @Override public AttributePath getAttributePathBase(){
+      return attributePath;
+    }
+    @Override public ToolingHintContext getToolingHintContextBaselineForEmbeddable(){
+      return callback.getAttributeSourceContainer().getToolingHintContext();
+    }
+    @Override public void registerIndexConstraintColumn(    String constraintName,    String logicalTableName,    String columnName){
+      callback.registerIndexColumn(constraintName,logicalTableName,columnName);
+    }
+    @Override public void registerUniqueKeyConstraintColumn(    String constraintName,    String logicalTableName,    String columnName){
+      callback.registerUniqueKeyColumn(constraintName,logicalTableName,columnName);
+    }
+  }
+,propertiesGroupJaxbMapping.getAttributes(),logicalTableName,naturalIdMutability,propertiesGroupJaxbMapping);
+  final EmbeddableMapping embeddableMapping=new EmbeddableMapping(){
+    @Override public String getClazz(){
+      return null;
+    }
+    @Override public List<JaxbHbmTuplizerType> getTuplizer(){
+      return Collections.emptyList();
+    }
+    @Override public String getParent(){
+      return null;
+    }
+  }
+;
+  final EmbeddedAttributeMapping attributeMapping=new EmbeddedAttributeMapping(){
+    @Override public boolean isUnique(){
+      return propertiesGroupJaxbMapping.isUnique();
+    }
+    @Override public EmbeddableMapping getEmbeddableMapping(){
+      return embeddableMapping;
+    }
+    @Override public String getName(){
+      return propertiesGroupJaxbMapping.getName();
+    }
+    @Override public String getAccess(){
+      return null;
+    }
+    @Override public List<JaxbHbmToolingHintType> getToolingHints(){
+      return Collections.emptyList();
+    }
+  }
+;
+  final SingularAttributeSourceEmbedded virtualAttribute=new AbstractSingularAttributeSourceEmbeddedImpl(mappingDocument,attributeMapping,embeddable,naturalIdMutability){
+    @Override public boolean isVirtualAttribute(){
+      return true;
+    }
+    @Override public Boolean isInsertable(){
+      return propertiesGroupJaxbMapping.isInsert();
+    }
+    @Override public Boolean isUpdatable(){
+      return propertiesGroupJaxbMapping.isUpdate();
+    }
+    @Override public boolean isBytecodeLazy(){
+      return false;
+    }
+    @Override public XmlElementMetadata getSourceType(){
+      return XmlElementMetadata.PROPERTIES;
+    }
+    @Override public String getXmlNodeName(){
+      return null;
+    }
+    @Override public AttributePath getAttributePath(){
+      return attributePath;
+    }
+    @Override public AttributeRole getAttributeRole(){
+      return attributeRole;
+    }
+    @Override public boolean isIncludedInOptimisticLocking(){
+      return false;
+    }
+    @Override public ToolingHintContext getToolingHintContext(){
+      return mappingDocument.getToolingHintContext();
+    }
+  }
+;
+  callback.addAttributeSource(virtualAttribute);
+}

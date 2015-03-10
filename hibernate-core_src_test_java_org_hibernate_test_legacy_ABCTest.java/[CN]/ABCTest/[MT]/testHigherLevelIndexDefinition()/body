@@ -1,11 +1,13 @@
 {
-  String[] commands=configuration().generateSchemaCreationScript(getDialect());
-  int max=commands.length;
+  Table table=metadata().getDatabase().getDefaultSchema().locateTable(Identifier.toIdentifier("TA"));
+  Iterator<Index> indexItr=table.getIndexIterator();
   boolean found=false;
-  for (int indx=0; indx < max; indx++) {
-    System.out.println("Checking command : " + commands[indx]);
-    found=commands[indx].indexOf("create index indx_a_name") >= 0;
-    if (found)     break;
+  while (indexItr.hasNext()) {
+    final Index index=indexItr.next();
+    if ("indx_a_name".equals(index.getName())) {
+      found=true;
+      break;
+    }
   }
-  assertTrue("Unable to locate indx_a_name index creation",found);
+  assertTrue("Unable to locate indx_a_name index",found);
 }

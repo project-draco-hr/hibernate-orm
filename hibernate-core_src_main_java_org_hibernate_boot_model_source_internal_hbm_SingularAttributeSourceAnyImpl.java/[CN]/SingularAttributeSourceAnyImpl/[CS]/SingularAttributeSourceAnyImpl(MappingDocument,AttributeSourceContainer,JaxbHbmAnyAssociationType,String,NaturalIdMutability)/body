@@ -1,0 +1,66 @@
+{
+  super(sourceMappingDocument);
+  this.jaxbAnyMapping=jaxbAnyMapping;
+  this.naturalIdMutability=naturalIdMutability;
+  this.attributePath=container.getAttributePathBase().append(jaxbAnyMapping.getName());
+  this.attributeRole=container.getAttributeRoleBase().append(jaxbAnyMapping.getName());
+  final List<RelationalValueSource> relationalValueSources=RelationalValueSourceHelper.buildValueSources(sourceMappingDocument,logicalTableName,new RelationalValueSourceHelper.AbstractColumnsAndFormulasSource(){
+    @Override public XmlElementMetadata getSourceType(){
+      return XmlElementMetadata.ANY;
+    }
+    @Override public String getSourceName(){
+      return jaxbAnyMapping.getName();
+    }
+    @Override public List getColumnOrFormulaElements(){
+      return jaxbAnyMapping.getColumn();
+    }
+  }
+);
+  if (relationalValueSources.size() < 2) {
+    throw new MappingException(String.format(Locale.ENGLISH,"<any name=\"%s\" /> mapping needs to specify 2 or more columns",jaxbAnyMapping.getName()),origin());
+  }
+  this.discriminatorSource=new AnyDiscriminatorSource(){
+    private final HibernateTypeSource typeSource=new HibernateTypeSourceImpl(jaxbAnyMapping.getMetaType());
+    private final RelationalValueSource relationalValueSource=relationalValueSources.get(0);
+    private final Map<String,String> valueMappings=new HashMap<String,String>();
+{
+      for (      JaxbHbmAnyValueMappingType valueMapping : jaxbAnyMapping.getMetaValue()) {
+        valueMappings.put(valueMapping.getValue(),sourceMappingDocument.qualifyClassName(valueMapping.getClazz()));
+      }
+    }
+    @Override public HibernateTypeSource getTypeSource(){
+      return typeSource;
+    }
+    @Override public RelationalValueSource getRelationalValueSource(){
+      return relationalValueSource;
+    }
+    @Override public Map<String,String> getValueMappings(){
+      return valueMappings;
+    }
+    @Override public AttributePath getAttributePath(){
+      return attributePath;
+    }
+    @Override public MetadataBuildingContext getBuildingContext(){
+      return sourceMappingDocument;
+    }
+  }
+;
+  this.keySource=new AnyKeySource(){
+    private final HibernateTypeSource fkTypeSource=new HibernateTypeSourceImpl(jaxbAnyMapping.getIdType());
+    private final List<RelationalValueSource> fkRelationalValueSources=relationalValueSources.subList(1,relationalValueSources.size());
+    @Override public HibernateTypeSource getTypeSource(){
+      return fkTypeSource;
+    }
+    @Override public List<RelationalValueSource> getRelationalValueSources(){
+      return fkRelationalValueSources;
+    }
+    @Override public AttributePath getAttributePath(){
+      return attributePath;
+    }
+    @Override public MetadataBuildingContext getBuildingContext(){
+      return sourceMappingDocument;
+    }
+  }
+;
+  toolingHintContext=Helper.collectToolingHints(sourceMappingDocument.getToolingHintContext(),jaxbAnyMapping);
+}

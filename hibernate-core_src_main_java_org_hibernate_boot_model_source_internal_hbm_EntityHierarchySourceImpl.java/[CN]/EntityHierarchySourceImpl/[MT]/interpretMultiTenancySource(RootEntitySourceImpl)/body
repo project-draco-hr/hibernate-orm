@@ -1,0 +1,58 @@
+{
+  final JaxbHbmMultiTenancyType jaxbMultiTenancy=rootEntitySource.jaxbEntityMapping().getMultiTenancy();
+  if (jaxbMultiTenancy == null) {
+    return null;
+  }
+  final RelationalValueSource relationalValueSource=RelationalValueSourceHelper.buildValueSource(rootEntitySource.sourceMappingDocument(),null,new RelationalValueSourceHelper.AbstractColumnsAndFormulasSource(){
+    @Override public XmlElementMetadata getSourceType(){
+      return XmlElementMetadata.MULTI_TENANCY;
+    }
+    @Override public String getSourceName(){
+      return null;
+    }
+    @Override public String getFormulaAttribute(){
+      return jaxbMultiTenancy.getFormulaAttribute();
+    }
+    @Override public String getColumnAttribute(){
+      return jaxbMultiTenancy.getColumnAttribute();
+    }
+    private List columnOrFormulas;
+    @Override public List getColumnOrFormulaElements(){
+      if (columnOrFormulas == null) {
+        if (jaxbMultiTenancy.getColumn() != null) {
+          if (jaxbMultiTenancy.getFormula() != null) {
+            throw new MappingException(String.format(Locale.ENGLISH,"discriminator mapping [%s] named both <column/> and <formula/>, but only one or other allowed",rootEntitySource.getEntityNamingSource().getEntityName()),rootEntitySource.sourceMappingDocument().getOrigin());
+          }
+ else {
+            columnOrFormulas=Collections.singletonList(jaxbMultiTenancy.getColumn());
+          }
+        }
+ else {
+          if (jaxbMultiTenancy.getFormula() != null) {
+            columnOrFormulas=Collections.singletonList(jaxbMultiTenancy.getColumn());
+          }
+ else {
+            columnOrFormulas=Collections.emptyList();
+          }
+        }
+      }
+      return columnOrFormulas;
+    }
+    @Override public Boolean isNullable(){
+      return false;
+    }
+  }
+);
+  return new MultiTenancySource(){
+    @Override public RelationalValueSource getRelationalValueSource(){
+      return relationalValueSource;
+    }
+    @Override public boolean isShared(){
+      return jaxbMultiTenancy.isShared();
+    }
+    @Override public boolean bindAsParameter(){
+      return jaxbMultiTenancy.isBindAsParam();
+    }
+  }
+;
+}

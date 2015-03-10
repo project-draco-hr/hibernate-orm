@@ -1,0 +1,24 @@
+{
+  MappingDocument mappingDocument=entitySource.sourceMappingDocument();
+  bindBasicEntityValues(mappingDocument,entitySource,entityDescriptor);
+  final Table primaryTable=bindEntityTableSpecification(mappingDocument,entitySource.getPrimaryTable(),null,entitySource,entityDescriptor);
+  entityDescriptor.setTable(primaryTable);
+  if (log.isDebugEnabled()) {
+    log.debugf("Mapping joined-subclass: %s -> %s",entityDescriptor.getEntityName(),primaryTable.getName());
+  }
+  final SimpleValue keyBinding=new DependantValue(mappingDocument.getMetadataCollector(),primaryTable,entityDescriptor.getIdentifier());
+  entityDescriptor.setKey(keyBinding);
+  keyBinding.setCascadeDeleteEnabled(entitySource.isCascadeDeleteEnabled());
+  relationalObjectBinder.bindColumns(mappingDocument,entitySource.getPrimaryKeyColumnSources(),keyBinding,false,new RelationalObjectBinder.ColumnNamingDelegate(){
+    int count=0;
+    @Override public Identifier determineImplicitName(    LocalMetadataBuildingContext context){
+      final Column column=primaryTable.getPrimaryKey().getColumn(count++);
+      return database.toIdentifier(column.getQuotedName());
+    }
+  }
+);
+  entityDescriptor.createPrimaryKey();
+  entityDescriptor.createForeignKey();
+  bindAllEntityAttributes(entitySource.sourceMappingDocument(),entitySource,entityDescriptor);
+  bindJoinedSubclassEntities(entitySource,entityDescriptor);
+}

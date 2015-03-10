@@ -1,0 +1,49 @@
+{
+  property.setName(propertySource.getName());
+  property.setNodeName(propertySource.getXmlNodeName());
+  property.setPropertyAccessorName(StringHelper.isNotEmpty(propertySource.getPropertyAccessorName()) ? propertySource.getPropertyAccessorName() : mappingDocument.getMappingDefaults().getImplicitPropertyAccessorName());
+  if (propertySource instanceof CascadeStyleSource) {
+    final CascadeStyleSource cascadeStyleSource=(CascadeStyleSource)propertySource;
+    property.setCascade(StringHelper.isNotEmpty(cascadeStyleSource.getCascadeStyleName()) ? cascadeStyleSource.getCascadeStyleName() : mappingDocument.getMappingDefaults().getImplicitCascadeStyleName());
+  }
+  property.setOptimisticLocked(propertySource.isIncludedInOptimisticLocking());
+  if (propertySource.isSingular()) {
+    final SingularAttributeSource singularAttributeSource=(SingularAttributeSource)propertySource;
+    property.setInsertable(singularAttributeSource.isInsertable());
+    property.setUpdateable(singularAttributeSource.isUpdatable());
+    property.setLazy(singularAttributeSource.isBytecodeLazy());
+    final GenerationTiming generationTiming=singularAttributeSource.getGenerationTiming();
+    if (generationTiming == GenerationTiming.ALWAYS || generationTiming == GenerationTiming.INSERT) {
+      property.setValueGenerationStrategy(new GeneratedValueGeneration(generationTiming));
+      if (property.isInsertable()) {
+        if (singularAttributeSource.isInsertable() == null) {
+          property.setInsertable(false);
+        }
+ else {
+          throw new MappingException(String.format(Locale.ENGLISH,"Cannot specify both insert=\"true\" and generated=\"%s\" for property %s",generationTiming.name().toLowerCase(),propertySource.getName()),mappingDocument.getOrigin());
+        }
+      }
+      if (property.isUpdateable() && generationTiming == GenerationTiming.ALWAYS) {
+        if (singularAttributeSource.isUpdatable() == null) {
+          property.setUpdateable(false);
+        }
+ else {
+          throw new MappingException(String.format(Locale.ENGLISH,"Cannot specify both update=\"true\" and generated=\"%s\" for property %s",generationTiming.name().toLowerCase(),propertySource.getName()),mappingDocument.getOrigin());
+        }
+      }
+    }
+  }
+  property.setMetaAttributes(propertySource.getToolingHintContext().getMetaAttributeMap());
+  if (log.isDebugEnabled()) {
+    final StringBuilder message=new StringBuilder().append("Mapped property: ").append(propertySource.getName()).append(" -> [");
+    final Iterator itr=property.getValue().getColumnIterator();
+    while (itr.hasNext()) {
+      message.append(((Selectable)itr.next()).getText());
+      if (itr.hasNext()) {
+        message.append(", ");
+      }
+    }
+    message.append("]");
+    log.debug(message.toString());
+  }
+}

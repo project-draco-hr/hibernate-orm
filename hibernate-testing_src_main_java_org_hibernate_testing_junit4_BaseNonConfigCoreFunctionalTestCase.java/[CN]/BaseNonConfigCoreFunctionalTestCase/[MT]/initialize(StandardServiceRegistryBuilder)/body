@@ -1,0 +1,16 @@
+{
+  final Dialect dialect=BaseCoreFunctionalTestCase.getDialect();
+  ssrb.applySetting(AvailableSettings.CACHE_REGION_FACTORY,CachingRegionFactory.class.getName());
+  ssrb.applySetting(AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS,"true");
+  if (createSchema()) {
+    ssrb.applySetting(AvailableSettings.HBM2DDL_AUTO,"create-drop");
+    final String secondSchemaName=createSecondSchema();
+    if (StringHelper.isNotEmpty(secondSchemaName)) {
+      if (!H2Dialect.class.isInstance(dialect)) {
+        throw new UnsupportedOperationException("Only H2 dialect supports creation of second schema.");
+      }
+      Helper.createH2Schema(secondSchemaName,ssrb.getSettings());
+    }
+  }
+  ssrb.applySetting(AvailableSettings.DIALECT,dialect.getClass().getName());
+}

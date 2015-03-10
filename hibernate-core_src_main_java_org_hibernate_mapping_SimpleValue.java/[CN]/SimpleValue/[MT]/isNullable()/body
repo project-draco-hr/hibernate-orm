@@ -1,12 +1,13 @@
 {
-  if (hasFormula())   return true;
-  boolean nullable=true;
-  Iterator iter=getColumnIterator();
-  while (iter.hasNext()) {
-    if (!((Column)iter.next()).isNullable()) {
-      nullable=false;
-      return nullable;
+  Iterator itr=getColumnIterator();
+  while (itr.hasNext()) {
+    final Object selectable=itr.next();
+    if (selectable instanceof Formula) {
+      return true;
+    }
+ else     if (!((Column)selectable).isNullable()) {
+      return false;
     }
   }
-  return nullable;
+  return true;
 }

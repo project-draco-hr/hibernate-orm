@@ -4,18 +4,28 @@
   if (integrationSettings == null) {
     integrationSettings=Collections.emptyMap();
   }
-  this.providedClassLoader=providedClassLoader;
-  final BootstrapServiceRegistry bootstrapServiceRegistry=buildBootstrapServiceRegistry(integrationSettings);
-  this.serviceRegistryBuilder=new StandardServiceRegistryBuilder(bootstrapServiceRegistry);
-  this.configurationValues=mergePropertySources(persistenceUnit,integrationSettings,bootstrapServiceRegistry);
-  this.serviceRegistryBuilder.applySettings(configurationValues);
-  final ScanResult scanResult=scan(bootstrapServiceRegistry);
-  final DeploymentResources deploymentResources=buildDeploymentResources(scanResult,bootstrapServiceRegistry);
-  final IndexView jandexIndex=locateOrBuildJandexIndex(deploymentResources);
-  metadataSources=prepareMetadataSources(jandexIndex,deploymentResources,bootstrapServiceRegistry);
+  final BootstrapServiceRegistry bsr=buildBootstrapServiceRegistry(integrationSettings,providedClassLoader);
+  final StandardServiceRegistryBuilder ssrBuilder=new StandardServiceRegistryBuilder(bsr);
+  final MergedSettings mergedSettings=mergeSettings(persistenceUnit,integrationSettings,ssrBuilder);
+  this.configurationValues=mergedSettings.getConfigurationValues();
+  ssrBuilder.applySettings(configurationValues);
+  this.settings=configure(ssrBuilder);
+  this.standardServiceRegistry=ssrBuilder.build();
+  configure(standardServiceRegistry,mergedSettings);
+  final ClassLoaderService classLoaderService=bsr.getService(ClassLoaderService.class);
+  this.metadata=((ClassLoaderServiceImpl)classLoaderService).withTccl(new ClassLoaderServiceImpl.Work<MetadataImplementor>(){
+    @Override public MetadataImplementor perform(){
+      final MetadataSources metadataSources=new MetadataSources(bsr);
+      populate(metadataSources,mergedSettings,standardServiceRegistry);
+      final MetadataBuilder metamodelBuilder=metadataSources.getMetadataBuilder(standardServiceRegistry);
+      populate(metamodelBuilder,mergedSettings,standardServiceRegistry);
+      return (MetadataImplementor)metamodelBuilder.build();
+    }
+  }
+);
   withValidatorFactory(configurationValues.get(AvailableSettings.VALIDATION_FACTORY));
   final boolean useClassTransformer="true".equals(configurationValues.remove(AvailableSettings.USE_CLASS_ENHANCER));
   if (useClassTransformer) {
-    persistenceUnit.pushClassTransformer(metadataSources.collectMappingClassNames());
+    persistenceUnit.pushClassTransformer(collectNamesOfClassesToEnhance(metadata));
   }
 }

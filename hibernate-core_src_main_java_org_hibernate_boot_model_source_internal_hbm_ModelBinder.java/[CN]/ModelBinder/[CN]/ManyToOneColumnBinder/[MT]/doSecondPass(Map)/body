@@ -1,0 +1,49 @@
+{
+  if (allColumnsNamed) {
+    relationalObjectBinder.bindColumnsAndFormulas(mappingDocument,manyToOneSource.getRelationalValueSources(),manyToOneBinding,manyToOneSource.areValuesNullableByDefault(),new RelationalObjectBinder.ColumnNamingDelegate(){
+      @Override public Identifier determineImplicitName(      LocalMetadataBuildingContext context){
+        throw new AssertionFailure("Argh!!!");
+      }
+    }
+);
+  }
+ else {
+    final String referencedEntityAttributeName=manyToOneSource.getReferencedEntityAttributeName();
+    final PersistentClass referencedEntityBinding=mappingDocument.getMetadataCollector().getEntityBinding(referencedEntityName);
+    if (referencedEntityBinding == null) {
+      throw new AssertionFailure("Unable to locate referenced entity mapping [" + referencedEntityName + "] in order to process many-to-one FK : "+ manyToOneSource.getAttributeRole().getFullPath());
+    }
+    final EntityNaming entityNaming=new EntityNamingSourceImpl(referencedEntityBinding);
+    final Identifier referencedTableName;
+    final Identifier referencedColumnName;
+    if (referencedEntityAttributeName == null) {
+      referencedTableName=referencedEntityBinding.getTable().getNameIdentifier();
+      final Column referencedColumn=referencedEntityBinding.getTable().getPrimaryKey().getColumn(0);
+      referencedColumnName=mappingDocument.getMetadataCollector().getDatabase().getJdbcEnvironment().getIdentifierHelper().toIdentifier(referencedColumn.getQuotedName());
+    }
+ else {
+      final Property referencedProperty=referencedEntityBinding.getReferencedProperty(referencedEntityAttributeName);
+      final SimpleValue value=(SimpleValue)referencedProperty.getValue();
+      referencedTableName=value.getTable().getNameIdentifier();
+      final Column referencedColumn=(Column)value.getColumnIterator().next();
+      referencedColumnName=mappingDocument.getMetadataCollector().getDatabase().getJdbcEnvironment().getIdentifierHelper().toIdentifier(referencedColumn.getQuotedName());
+    }
+    relationalObjectBinder.bindColumnsAndFormulas(mappingDocument,manyToOneSource.getRelationalValueSources(),manyToOneBinding,manyToOneSource.areValuesNullableByDefault(),new RelationalObjectBinder.ColumnNamingDelegate(){
+      @Override public Identifier determineImplicitName(      final LocalMetadataBuildingContext context){
+        return implicitNamingStrategy.determineBasicColumnName(new ImplicitBasicColumnNameSource(){
+          @Override public AttributePath getAttributePath(){
+            return manyToOneSource.getAttributePath();
+          }
+          @Override public boolean isCollectionElement(){
+            return false;
+          }
+          @Override public MetadataBuildingContext getBuildingContext(){
+            return context;
+          }
+        }
+);
+      }
+    }
+);
+  }
+}

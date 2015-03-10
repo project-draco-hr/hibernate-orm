@@ -1,0 +1,12 @@
+{
+  if (dialect.supportsTemporaryTables()) {
+    final String temporaryTableName=generateTableName(dialect,exportable);
+    Table temporaryTable=new Table(Identifier.toIdentifier(exportable.getQuotedCatalog()),Identifier.toIdentifier(exportable.getQuotedSchema()),Identifier.toIdentifier(temporaryTableName),false);
+    for (    Column column : ((List<Column>)exportable.getPrimaryKey().getColumns())) {
+      final Column clone=column.clone();
+      temporaryTable.addColumn(clone);
+    }
+    return super.getSqlCreateStrings(temporaryTable,metadata);
+  }
+  return null;
+}

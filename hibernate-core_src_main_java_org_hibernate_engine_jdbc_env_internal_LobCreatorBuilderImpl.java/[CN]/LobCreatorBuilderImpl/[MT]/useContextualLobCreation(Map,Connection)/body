@@ -1,0 +1,43 @@
+{
+  final boolean isNonContextualLobCreationRequired=ConfigurationHelper.getBoolean(Environment.NON_CONTEXTUAL_LOB_CREATION,configValues);
+  if (isNonContextualLobCreationRequired) {
+    LOG.disablingContextualLOBCreation(Environment.NON_CONTEXTUAL_LOB_CREATION);
+    return false;
+  }
+  if (jdbcConnection == null) {
+    LOG.disablingContextualLOBCreationSinceConnectionNull();
+    return false;
+  }
+  try {
+    try {
+      final DatabaseMetaData meta=jdbcConnection.getMetaData();
+      if (meta.getJDBCMajorVersion() < 4) {
+        LOG.disablingContextualLOBCreationSinceOldJdbcVersion(meta.getJDBCMajorVersion());
+        return false;
+      }
+    }
+ catch (    SQLException ignore) {
+    }
+    final Class connectionClass=Connection.class;
+    final Method createClobMethod=connectionClass.getMethod("createClob",NO_ARG_SIG);
+    if (createClobMethod.getDeclaringClass().equals(Connection.class)) {
+      try {
+        final Object clob=createClobMethod.invoke(jdbcConnection,NO_ARGS);
+        try {
+          final Method freeMethod=clob.getClass().getMethod("free",NO_ARG_SIG);
+          freeMethod.invoke(clob,NO_ARGS);
+        }
+ catch (        Throwable ignore) {
+          LOG.tracef("Unable to free CLOB created to test createClob() implementation : %s",ignore);
+        }
+        return true;
+      }
+ catch (      Throwable t) {
+        LOG.disablingContextualLOBCreationSinceCreateClobFailed(t);
+      }
+    }
+  }
+ catch (  NoSuchMethodException ignore) {
+  }
+  return false;
+}

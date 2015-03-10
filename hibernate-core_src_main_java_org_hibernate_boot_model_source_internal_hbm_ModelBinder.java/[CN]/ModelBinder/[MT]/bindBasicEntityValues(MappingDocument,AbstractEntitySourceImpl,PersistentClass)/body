@@ -1,0 +1,69 @@
+{
+  entityDescriptor.setEntityName(entitySource.getEntityNamingSource().getEntityName());
+  entityDescriptor.setJpaEntityName(entitySource.getEntityNamingSource().getJpaEntityName());
+  entityDescriptor.setClassName(entitySource.getEntityNamingSource().getClassName());
+  entityDescriptor.setDiscriminatorValue(entitySource.getDiscriminatorMatchValue() != null ? entitySource.getDiscriminatorMatchValue() : entityDescriptor.getEntityName());
+  if (StringHelper.isNotEmpty(entitySource.getProxy())) {
+    final String qualifiedProxyName=sourceDocument.qualifyClassName(entitySource.getProxy());
+    entityDescriptor.setProxyInterfaceName(qualifiedProxyName);
+    entityDescriptor.setLazy(true);
+  }
+ else   if (entitySource.isLazy()) {
+    entityDescriptor.setProxyInterfaceName(entityDescriptor.getClassName());
+    entityDescriptor.setLazy(true);
+  }
+ else {
+    entityDescriptor.setProxyInterfaceName(null);
+    entityDescriptor.setLazy(false);
+  }
+  entityDescriptor.setAbstract(entitySource.isAbstract());
+  sourceDocument.getMetadataCollector().addImport(entitySource.getEntityNamingSource().getEntityName(),entitySource.getEntityNamingSource().getEntityName());
+  if (sourceDocument.getMappingDefaults().isAutoImportEnabled() && entitySource.getEntityNamingSource().getEntityName().indexOf('.') > 0) {
+    sourceDocument.getMetadataCollector().addImport(StringHelper.unqualify(entitySource.getEntityNamingSource().getEntityName()),entitySource.getEntityNamingSource().getEntityName());
+  }
+  if (entitySource.getTuplizerClassMap() != null) {
+    if (entitySource.getTuplizerClassMap().size() > 1) {
+      DeprecationLogger.DEPRECATION_LOGGER.logDeprecationOfMultipleEntityModeSupport();
+    }
+    for (    Map.Entry<EntityMode,String> tuplizerEntry : entitySource.getTuplizerClassMap().entrySet()) {
+      entityDescriptor.addTuplizer(tuplizerEntry.getKey(),tuplizerEntry.getValue());
+    }
+  }
+  if (StringHelper.isNotEmpty(entitySource.getXmlNodeName())) {
+    DeprecationLogger.DEPRECATION_LOGGER.logDeprecationOfDomEntityModeSupport();
+    entityDescriptor.setNodeName(entitySource.getXmlNodeName());
+  }
+  entityDescriptor.setDynamicInsert(entitySource.isDynamicInsert());
+  entityDescriptor.setDynamicUpdate(entitySource.isDynamicUpdate());
+  entityDescriptor.setBatchSize(entitySource.getBatchSize());
+  entityDescriptor.setSelectBeforeUpdate(entitySource.isSelectBeforeUpdate());
+  if (StringHelper.isNotEmpty(entitySource.getCustomPersisterClassName())) {
+    try {
+      entityDescriptor.setEntityPersisterClass(sourceDocument.getClassLoaderAccess().classForName(entitySource.getCustomPersisterClassName()));
+    }
+ catch (    ClassLoadingException e) {
+      throw new MappingException(String.format(Locale.ENGLISH,"Unable to load specified persister class : %s",entitySource.getCustomPersisterClassName()),e,sourceDocument.getOrigin());
+    }
+  }
+  bindCustomSql(sourceDocument,entitySource,entityDescriptor);
+  for (  String tableName : entitySource.getSynchronizedTableNames()) {
+    entityDescriptor.addSynchronizedTable(tableName);
+  }
+  for (  FilterSource filterSource : entitySource.getFilterSources()) {
+    String condition=filterSource.getCondition();
+    if (condition == null) {
+      final FilterDefinition filterDefinition=sourceDocument.getMetadataCollector().getFilterDefinition(filterSource.getName());
+      if (filterDefinition != null) {
+        condition=filterDefinition.getDefaultFilterCondition();
+      }
+    }
+    entityDescriptor.addFilter(filterSource.getName(),condition,filterSource.shouldAutoInjectAliases(),filterSource.getAliasToTableMap(),filterSource.getAliasToEntityMap());
+  }
+  for (  JaxbHbmNamedQueryType namedQuery : entitySource.getNamedQueries()) {
+    NamedQueryBinder.processNamedQuery(sourceDocument,namedQuery,entitySource.getEntityNamingSource().getEntityName() + ".");
+  }
+  for (  JaxbHbmNamedNativeQueryType namedQuery : entitySource.getNamedNativeQueries()) {
+    NamedQueryBinder.processNamedNativeQuery(sourceDocument,namedQuery,entitySource.getEntityNamingSource().getEntityName() + ".");
+  }
+  entityDescriptor.setMetaAttributes(entitySource.getToolingHintContext().getMetaAttributeMap());
+}

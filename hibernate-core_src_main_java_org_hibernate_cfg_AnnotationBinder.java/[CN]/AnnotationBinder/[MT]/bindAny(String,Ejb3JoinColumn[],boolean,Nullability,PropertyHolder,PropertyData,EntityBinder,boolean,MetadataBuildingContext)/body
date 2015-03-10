@@ -1,0 +1,23 @@
+{
+  org.hibernate.annotations.Any anyAnn=inferredData.getProperty().getAnnotation(org.hibernate.annotations.Any.class);
+  if (anyAnn == null) {
+    throw new AssertionFailure("Missing @Any annotation: " + BinderHelper.getPath(propertyHolder,inferredData));
+  }
+  Any value=BinderHelper.buildAnyValue(anyAnn.metaDef(),columns,anyAnn.metaColumn(),inferredData,cascadeOnDelete,nullability,propertyHolder,entityBinder,anyAnn.optional(),buildingContext);
+  PropertyBinder binder=new PropertyBinder();
+  binder.setName(inferredData.getPropertyName());
+  binder.setValue(value);
+  binder.setLazy(anyAnn.fetch() == FetchType.LAZY);
+  if (isIdentifierMapper) {
+    binder.setInsertable(false);
+    binder.setUpdatable(false);
+  }
+ else {
+    binder.setInsertable(columns[0].isInsertable());
+    binder.setUpdatable(columns[0].isUpdatable());
+  }
+  binder.setAccessType(inferredData.getDefaultAccess());
+  binder.setCascade(cascadeStrategy);
+  Property prop=binder.makeProperty();
+  propertyHolder.addProperty(prop,columns,inferredData.getDeclaringClass());
+}

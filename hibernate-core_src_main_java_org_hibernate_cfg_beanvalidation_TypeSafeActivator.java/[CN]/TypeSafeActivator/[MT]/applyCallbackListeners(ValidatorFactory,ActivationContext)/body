@@ -3,14 +3,15 @@
   if (!(modes.contains(ValidationMode.CALLBACK) || modes.contains(ValidationMode.AUTO))) {
     return;
   }
-  if (activationContext.getConfiguration().getProperty(Environment.CHECK_NULLABILITY) == null) {
+  final ConfigurationService cfgService=activationContext.getServiceRegistry().getService(ConfigurationService.class);
+  if (cfgService.getSettings().get(Environment.CHECK_NULLABILITY) == null) {
     activationContext.getSessionFactory().getSettings().setCheckNullability(false);
   }
-  final BeanValidationEventListener listener=new BeanValidationEventListener(validatorFactory,activationContext.getConfiguration().getProperties());
+  final BeanValidationEventListener listener=new BeanValidationEventListener(validatorFactory,cfgService.getSettings());
   final EventListenerRegistry listenerRegistry=activationContext.getServiceRegistry().getService(EventListenerRegistry.class);
   listenerRegistry.addDuplicationStrategy(DuplicationStrategyImpl.INSTANCE);
   listenerRegistry.appendListeners(EventType.PRE_INSERT,listener);
   listenerRegistry.appendListeners(EventType.PRE_UPDATE,listener);
   listenerRegistry.appendListeners(EventType.PRE_DELETE,listener);
-  listener.initialize(activationContext.getConfiguration());
+  listener.initialize(cfgService.getSettings());
 }

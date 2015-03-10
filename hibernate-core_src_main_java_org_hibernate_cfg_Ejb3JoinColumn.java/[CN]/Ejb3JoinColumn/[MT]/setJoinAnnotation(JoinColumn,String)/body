@@ -4,15 +4,24 @@
   }
  else {
     setImplicit(false);
-    final ObjectNameNormalizer nameNormalizer=getMappings().getObjectNameNormalizer();
-    if (!BinderHelper.isEmptyAnnotationValue(annJoin.columnDefinition()))     setSqlType(annJoin.columnDefinition());
-    if (!BinderHelper.isEmptyAnnotationValue(annJoin.name()))     setLogicalColumnName(annJoin.name());
+    if (!BinderHelper.isEmptyAnnotationValue(annJoin.columnDefinition())) {
+      setSqlType(annJoin.columnDefinition());
+    }
+    if (!BinderHelper.isEmptyAnnotationValue(annJoin.name())) {
+      setLogicalColumnName(annJoin.name());
+    }
     setNullable(annJoin.nullable());
     setUnique(annJoin.unique());
     setInsertable(annJoin.insertable());
     setUpdatable(annJoin.updatable());
     setReferencedColumn(annJoin.referencedColumnName());
-    final String tableName=!BinderHelper.isEmptyAnnotationValue(annJoin.table()) ? nameNormalizer.normalizeIdentifierQuoting(getNamingStrategyDelegate().toPhysicalTableName(annJoin.table())) : "";
-    setExplicitTableName(tableName);
+    if (BinderHelper.isEmptyAnnotationValue(annJoin.table())) {
+      setExplicitTableName("");
+    }
+ else {
+      final Identifier logicalIdentifier=getBuildingContext().getMetadataCollector().getDatabase().toIdentifier(annJoin.table());
+      final Identifier physicalIdentifier=getBuildingContext().getBuildingOptions().getPhysicalNamingStrategy().toPhysicalTableName(logicalIdentifier,getBuildingContext().getMetadataCollector().getDatabase().getJdbcEnvironment());
+      setExplicitTableName(physicalIdentifier.render(getBuildingContext().getMetadataCollector().getDatabase().getDialect()));
+    }
   }
 }

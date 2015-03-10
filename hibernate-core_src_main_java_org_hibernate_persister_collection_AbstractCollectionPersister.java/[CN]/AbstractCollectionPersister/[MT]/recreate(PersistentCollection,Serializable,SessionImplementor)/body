@@ -1,73 +1,77 @@
 {
-  if (!isInverse && isRowInsertEnabled()) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debugf("Inserting collection: %s",MessageHelper.collectionInfoString(this,collection,id,session));
-    }
-    try {
-      Iterator entries=collection.entries(this);
-      if (entries.hasNext()) {
-        Expectation expectation=Expectations.appropriateExpectation(getInsertCheckStyle());
-        collection.preInsert(this);
-        int i=0;
-        int count=0;
-        while (entries.hasNext()) {
-          final Object entry=entries.next();
-          if (collection.entryExists(entry,i)) {
-            int offset=1;
-            PreparedStatement st=null;
-            boolean callable=isInsertCallable();
-            boolean useBatch=expectation.canBeBatched();
-            String sql=getSQLInsertRowString();
+  if (isInverse) {
+    return;
+  }
+  if (!isRowInsertEnabled()) {
+    return;
+  }
+  if (LOG.isDebugEnabled()) {
+    LOG.debugf("Inserting collection: %s",MessageHelper.collectionInfoString(this,collection,id,session));
+  }
+  try {
+    Iterator entries=collection.entries(this);
+    if (entries.hasNext()) {
+      Expectation expectation=Expectations.appropriateExpectation(getInsertCheckStyle());
+      collection.preInsert(this);
+      int i=0;
+      int count=0;
+      while (entries.hasNext()) {
+        final Object entry=entries.next();
+        if (collection.entryExists(entry,i)) {
+          int offset=1;
+          PreparedStatement st=null;
+          boolean callable=isInsertCallable();
+          boolean useBatch=expectation.canBeBatched();
+          String sql=getSQLInsertRowString();
+          if (useBatch) {
+            if (recreateBatchKey == null) {
+              recreateBatchKey=new BasicBatchKey(getRole() + "#RECREATE",expectation);
+            }
+            st=session.getTransactionCoordinator().getJdbcCoordinator().getBatch(recreateBatchKey).getBatchStatement(sql,callable);
+          }
+ else {
+            st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,callable);
+          }
+          try {
+            offset+=expectation.prepare(st);
+            int loc=writeKey(st,id,offset,session);
+            if (hasIdentifier) {
+              loc=writeIdentifier(st,collection.getIdentifier(entry,i),loc,session);
+            }
+            if (hasIndex) {
+              loc=writeIndex(st,collection.getIndex(entry,i,this),loc,session);
+            }
+            loc=writeElement(st,collection.getElement(entry),loc,session);
             if (useBatch) {
-              if (recreateBatchKey == null) {
-                recreateBatchKey=new BasicBatchKey(getRole() + "#RECREATE",expectation);
-              }
-              st=session.getTransactionCoordinator().getJdbcCoordinator().getBatch(recreateBatchKey).getBatchStatement(sql,callable);
+              session.getTransactionCoordinator().getJdbcCoordinator().getBatch(recreateBatchKey).addToBatch();
             }
  else {
-              st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,callable);
+              expectation.verifyOutcome(session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().executeUpdate(st),st,-1);
             }
-            try {
-              offset+=expectation.prepare(st);
-              int loc=writeKey(st,id,offset,session);
-              if (hasIdentifier) {
-                loc=writeIdentifier(st,collection.getIdentifier(entry,i),loc,session);
-              }
-              if (hasIndex) {
-                loc=writeIndex(st,collection.getIndex(entry,i,this),loc,session);
-              }
-              loc=writeElement(st,collection.getElement(entry),loc,session);
-              if (useBatch) {
-                session.getTransactionCoordinator().getJdbcCoordinator().getBatch(recreateBatchKey).addToBatch();
-              }
- else {
-                expectation.verifyOutcome(session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().executeUpdate(st),st,-1);
-              }
-              collection.afterRowInsert(this,entry,i);
-              count++;
+            collection.afterRowInsert(this,entry,i);
+            count++;
+          }
+ catch (          SQLException sqle) {
+            if (useBatch) {
+              session.getTransactionCoordinator().getJdbcCoordinator().abortBatch();
             }
- catch (            SQLException sqle) {
-              if (useBatch) {
-                session.getTransactionCoordinator().getJdbcCoordinator().abortBatch();
-              }
-              throw sqle;
-            }
+            throw sqle;
+          }
  finally {
-              if (!useBatch) {
-                session.getTransactionCoordinator().getJdbcCoordinator().release(st);
-              }
+            if (!useBatch) {
+              session.getTransactionCoordinator().getJdbcCoordinator().release(st);
             }
           }
-          i++;
         }
-        LOG.debugf("Done inserting collection: %s rows inserted",count);
+        i++;
       }
+      LOG.debugf("Done inserting collection: %s rows inserted",count);
+    }
  else {
-        LOG.debug("Collection was empty");
-      }
+      LOG.debug("Collection was empty");
     }
- catch (    SQLException sqle) {
-      throw sqlExceptionHelper.convert(sqle,"could not insert collection: " + MessageHelper.collectionInfoString(this,collection,id,session),getSQLInsertRowString());
-    }
+  }
+ catch (  SQLException sqle) {
+    throw sqlExceptionHelper.convert(sqle,"could not insert collection: " + MessageHelper.collectionInfoString(this,collection,id,session),getSQLInsertRowString());
   }
 }

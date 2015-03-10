@@ -1,0 +1,31 @@
+{
+  super(mappingDocument);
+  this.toolingHintContext=Helper.collectToolingHints(pluralAttributeSource.getToolingHintContext(),jaxbCompositeElement);
+  this.embeddableSource=new EmbeddableSourceImpl(mappingDocument,new EmbeddableSourceContainer(){
+    @Override public AttributeRole getAttributeRoleBase(){
+      return pluralAttributeSource.getAttributeRole().append("element");
+    }
+    @Override public AttributePath getAttributePathBase(){
+      return pluralAttributeSource.getAttributePath().append("element");
+    }
+    @Override public ToolingHintContext getToolingHintContextBaselineForEmbeddable(){
+      return toolingHintContext;
+    }
+    @Override public void registerIndexConstraintColumn(    String constraintName,    String logicalTableName,    String columnName){
+    }
+    @Override public void registerUniqueKeyConstraintColumn(    String constraintName,    String logicalTableName,    String columnName){
+    }
+  }
+,new EmbeddableMapping(){
+    @Override public String getClazz(){
+      return jaxbCompositeElement.getClazz();
+    }
+    @Override public List<JaxbHbmTuplizerType> getTuplizer(){
+      return jaxbCompositeElement.getTuplizer();
+    }
+    @Override public String getParent(){
+      return jaxbCompositeElement.getParent() == null ? null : jaxbCompositeElement.getParent().getName();
+    }
+  }
+,jaxbCompositeElement.getAttributes(),false,false,null,NaturalIdMutability.NOT_NATURAL_ID);
+}

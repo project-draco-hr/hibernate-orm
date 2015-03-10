@@ -1,0 +1,63 @@
+{
+  final Schema schema=database.locateSchema(determineCatalogName(tableSpecSource),determineSchemaName(tableSpecSource));
+  final boolean isTable=TableSource.class.isInstance(tableSpecSource);
+  final boolean isAbstract=entityDescriptor.isAbstract() == null ? false : entityDescriptor.isAbstract();
+  final String subselect;
+  final Identifier logicalTableName;
+  final Table table;
+  if (isTable) {
+    final TableSource tableSource=(TableSource)tableSpecSource;
+    if (StringHelper.isNotEmpty(tableSource.getExplicitTableName())) {
+      logicalTableName=database.toIdentifier(tableSource.getExplicitTableName());
+    }
+ else {
+      final ImplicitEntityNameSource implicitNamingSource=new ImplicitEntityNameSource(){
+        @Override public EntityNaming getEntityNaming(){
+          return entitySource.getEntityNamingSource();
+        }
+        @Override public MetadataBuildingContext getBuildingContext(){
+          return mappingDocument;
+        }
+      }
+;
+      logicalTableName=mappingDocument.getBuildingOptions().getImplicitNamingStrategy().determinePrimaryTableName(implicitNamingSource);
+    }
+    if (denormalizedSuperTable == null) {
+      table=schema.createTable(logicalTableName,isAbstract);
+    }
+ else {
+      table=schema.createDenormalizedTable(logicalTableName,isAbstract,denormalizedSuperTable);
+    }
+  }
+ else {
+    final InLineViewSource inLineViewSource=(InLineViewSource)tableSpecSource;
+    subselect=inLineViewSource.getSelectStatement();
+    logicalTableName=database.toIdentifier(inLineViewSource.getLogicalName());
+    if (denormalizedSuperTable == null) {
+      table=new Table(schema,subselect,isAbstract);
+    }
+ else {
+      table=new DenormalizedTable(schema,subselect,isAbstract,denormalizedSuperTable);
+    }
+    table.setName(logicalTableName.render());
+  }
+  EntityTableXref superEntityTableXref=null;
+  if (entitySource.getSuperType() != null) {
+    final String superEntityName=((EntitySource)entitySource.getSuperType()).getEntityNamingSource().getEntityName();
+    superEntityTableXref=mappingDocument.getMetadataCollector().getEntityTableXref(superEntityName);
+    if (superEntityTableXref == null) {
+      throw new MappingException(String.format(Locale.ENGLISH,"Unable to locate entity table xref for entity [%s] super-type [%s]",entityDescriptor.getEntityName(),superEntityName),mappingDocument.getOrigin());
+    }
+  }
+  mappingDocument.getMetadataCollector().addEntityTableXref(entitySource.getEntityNamingSource().getEntityName(),logicalTableName,table,superEntityTableXref);
+  if (isTable) {
+    final TableSource tableSource=(TableSource)tableSpecSource;
+    table.setRowId(tableSource.getRowId());
+    table.setComment(tableSource.getComment());
+    if (StringHelper.isNotEmpty(tableSource.getCheckConstraint())) {
+      table.addCheckConstraint(tableSource.getCheckConstraint());
+    }
+  }
+  mappingDocument.getMetadataCollector().addTableNameBinding(logicalTableName,table);
+  return table;
+}

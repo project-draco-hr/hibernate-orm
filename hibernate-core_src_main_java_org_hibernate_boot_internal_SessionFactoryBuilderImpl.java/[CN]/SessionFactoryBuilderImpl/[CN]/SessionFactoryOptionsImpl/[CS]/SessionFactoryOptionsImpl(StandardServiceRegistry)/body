@@ -1,0 +1,15 @@
+{
+  this.serviceRegistry=serviceRegistry;
+  final Map configurationSettings=serviceRegistry.getService(ConfigurationService.class).getSettings();
+  final StrategySelector strategySelector=serviceRegistry.getService(StrategySelector.class);
+  this.interceptor=strategySelector.resolveDefaultableStrategy(Interceptor.class,configurationSettings.get(AvailableSettings.INTERCEPTOR),EmptyInterceptor.INSTANCE);
+  this.entityNotFoundDelegate=StandardEntityNotFoundDelegate.INSTANCE;
+  this.customEntityDirtinessStrategy=strategySelector.resolveDefaultableStrategy(CustomEntityDirtinessStrategy.class,configurationSettings.get(AvailableSettings.CUSTOM_ENTITY_DIRTINESS_STRATEGY),DefaultCustomEntityDirtinessStrategy.INSTANCE);
+  this.currentTenantIdentifierResolver=strategySelector.resolveStrategy(CurrentTenantIdentifierResolver.class,configurationSettings.get(AvailableSettings.MULTI_TENANT_IDENTIFIER_RESOLVER));
+  this.beanManagerReference=configurationSettings.get("javax.persistence.bean.manager");
+  this.validatorFactoryReference=configurationSettings.get("javax.persistence.validation.factory");
+  Properties properties=new Properties();
+  properties.putAll(configurationSettings);
+  this.settings=new SettingsFactory().buildSettings(properties,serviceRegistry);
+  this.settings.setEntityTuplizerFactory(new EntityTuplizerFactory());
+}

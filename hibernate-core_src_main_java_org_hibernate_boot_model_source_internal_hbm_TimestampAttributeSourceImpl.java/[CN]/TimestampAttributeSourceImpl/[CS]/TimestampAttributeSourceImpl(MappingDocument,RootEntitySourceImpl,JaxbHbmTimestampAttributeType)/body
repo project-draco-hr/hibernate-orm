@@ -1,0 +1,24 @@
+{
+  super(mappingDocument);
+  this.timestampElement=timestampElement;
+  this.typeSource=new HibernateTypeSourceImpl("db".equals(timestampElement.getSource().value()) ? "dbtimestamp" : "timestamp");
+  final RelationalValueSource columnSource=RelationalValueSourceHelper.buildColumnSource(mappingDocument,null,new RelationalValueSourceHelper.AbstractColumnsAndFormulasSource(){
+    @Override public XmlElementMetadata getSourceType(){
+      return XmlElementMetadata.TIMESTAMP;
+    }
+    @Override public String getSourceName(){
+      return TimestampAttributeSourceImpl.this.getName();
+    }
+    @Override public String getColumnAttribute(){
+      return TimestampAttributeSourceImpl.this.timestampElement.getColumnAttribute();
+    }
+    @Override public Boolean isNullable(){
+      return false;
+    }
+  }
+);
+  this.relationalValueSources=Collections.singletonList(columnSource);
+  this.attributePath=rootEntitySource.getAttributePathBase().append(getName());
+  this.attributeRole=rootEntitySource.getAttributeRoleBase().append(getName());
+  this.toolingHintContext=Helper.collectToolingHints(rootEntitySource.getToolingHintContext(),timestampElement);
+}

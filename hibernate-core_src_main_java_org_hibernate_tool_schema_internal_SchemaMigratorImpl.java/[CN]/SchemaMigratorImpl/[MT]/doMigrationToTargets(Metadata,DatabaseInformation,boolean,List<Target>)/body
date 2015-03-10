@@ -1,0 +1,44 @@
+{
+  final Set<String> exportIdentifiers=new HashSet<String>(50);
+  final Database database=metadata.getDatabase();
+  for (  Schema schema : database.getSchemas()) {
+    if (createSchemas) {
+      if (schema.getName().getSchema() != null) {
+        applySqlString(database.getJdbcEnvironment().getDialect().getCreateSchemaCommand(schema.getName().getSchema().render(database.getJdbcEnvironment().getDialect())),targets,false);
+      }
+    }
+    for (    Table table : schema.getTables()) {
+      if (!table.isPhysicalTable()) {
+        continue;
+      }
+      checkExportIdentifier(table,exportIdentifiers);
+      final TableInformation tableInformation=existingDatabase.getTableInformation(table.getQualifiedTableName());
+      if (tableInformation == null) {
+        createTable(table,metadata,targets);
+      }
+ else {
+        migrateTable(table,tableInformation,targets,metadata);
+      }
+    }
+    for (    Table table : schema.getTables()) {
+      if (!table.isPhysicalTable()) {
+        continue;
+      }
+      final TableInformation tableInformation=existingDatabase.getTableInformation(table.getQualifiedTableName());
+      if (tableInformation == null) {
+        throw new SchemaManagementException("BIG PROBLEM");
+      }
+      applyIndexes(table,tableInformation,metadata,targets);
+      applyUniqueKeys(table,tableInformation,metadata,targets);
+      applyForeignKeys(table,tableInformation,metadata,targets);
+    }
+    for (    Sequence sequence : schema.getSequences()) {
+      checkExportIdentifier(sequence,exportIdentifiers);
+      final SequenceInformation sequenceInformation=existingDatabase.getSequenceInformation(sequence.getName());
+      if (sequenceInformation != null) {
+        continue;
+      }
+      applySqlStrings(database.getJdbcEnvironment().getDialect().getSequenceExporter().getSqlCreateStrings(sequence,metadata),targets,false);
+    }
+  }
+}

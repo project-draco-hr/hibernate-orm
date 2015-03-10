@@ -1,32 +1,16 @@
 {
-  Configuration cfg=new Configuration();
-  cfg.setProperty(Environment.DIALECT,"HSQL");
-  cfg.setProperty(Environment.HBM2DDL_AUTO,"create-drop");
-  cfg.setProperty(Environment.CONNECTION_PROVIDER,JtaAwareConnectionProviderImpl.class.getName());
-  cfg.setProperty(Environment.JNDI_CLASS,"org.jnp.interfaces.NamingContextFactory");
-  cfg.setProperty(Environment.TRANSACTION_STRATEGY,"jta");
-  cfg.setProperty(Environment.CURRENT_SESSION_CONTEXT_CLASS,"jta");
-  cfg.setProperty(Environment.RELEASE_CONNECTIONS,"auto");
-  cfg.setProperty(Environment.USE_SECOND_LEVEL_CACHE,"true");
-  cfg.setProperty(Environment.USE_QUERY_CACHE,"true");
-  Properties envProps=Environment.getProperties();
-  envProps.put(AvailableSettings.JTA_PLATFORM,new JBossStandAloneJtaPlatform());
-  envProps.setProperty(Environment.CACHE_REGION_FACTORY,"org.hibernate.test.cache.infinispan.functional.SingleNodeTestCase$TestInfinispanRegionFactory");
-  serviceRegistry=ServiceRegistryBuilder.buildServiceRegistry(envProps);
-  String[] mappings=new String[]{"org/hibernate/test/cache/infinispan/functional/Item.hbm.xml"};
-  for (  String mapping : mappings) {
-    cfg.addResource(mapping,Thread.currentThread().getContextClassLoader());
+  StandardServiceRegistryBuilder ssrb=new StandardServiceRegistryBuilder().applySetting(Environment.DIALECT,"HSQL").applySetting(Environment.HBM2DDL_AUTO,"create-drop").applySetting(Environment.CONNECTION_PROVIDER,JtaAwareConnectionProviderImpl.class.getName()).applySetting(Environment.JNDI_CLASS,"org.jnp.interfaces.NamingContextFactory").applySetting(Environment.TRANSACTION_STRATEGY,"jta").applySetting(Environment.CURRENT_SESSION_CONTEXT_CLASS,"jta").applySetting(Environment.RELEASE_CONNECTIONS,"auto").applySetting(Environment.USE_SECOND_LEVEL_CACHE,"true").applySetting(Environment.USE_QUERY_CACHE,"true").applySetting(AvailableSettings.JTA_PLATFORM,new JBossStandAloneJtaPlatform()).applySetting(Environment.CACHE_REGION_FACTORY,"org.hibernate.test.cache.infinispan.functional.SingleNodeTestCase$TestInfinispanRegionFactory");
+  StandardServiceRegistry serviceRegistry=ssrb.build();
+  MetadataSources metadataSources=new MetadataSources(serviceRegistry);
+  metadataSources.addResource("org/hibernate/test/cache/infinispan/functional/Item.hbm.xml");
+  Metadata metadata=metadataSources.buildMetadata();
+  for (  PersistentClass entityBinding : metadata.getEntityBindings()) {
+    if (entityBinding instanceof RootClass) {
+      ((RootClass)entityBinding).setCacheConcurrencyStrategy("transactional");
+    }
   }
-  cfg.buildMappings();
-  Iterator iter=cfg.getClassMappings();
-  while (iter.hasNext()) {
-    PersistentClass clazz=(PersistentClass)iter.next();
-    cfg.setCacheConcurrencyStrategy(clazz.getEntityName(),"transactional");
+  for (  Collection collectionBinding : metadata.getCollectionBindings()) {
+    collectionBinding.setCacheConcurrencyStrategy("transactional");
   }
-  iter=cfg.getCollectionMappings();
-  while (iter.hasNext()) {
-    Collection coll=(Collection)iter.next();
-    cfg.setCollectionCacheConcurrencyStrategy(coll.getRole(),"transactional");
-  }
-  return cfg.buildSessionFactory(serviceRegistry);
+  return metadata.buildSessionFactory();
 }

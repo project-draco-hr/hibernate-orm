@@ -1,0 +1,16 @@
+{
+  this.dialect=dialect;
+  this.sqlExceptionHelper=buildSqlExceptionHelper(dialect);
+  this.extractedMetaDataSupport=new ExtractedDatabaseMetaDataImpl.Builder(this).apply(databaseMetaData).setConnectionSchemaName(determineCurrentSchemaName(databaseMetaData,serviceRegistry,dialect)).build();
+  for (  String keyword : dialect.getKeywords()) {
+    reservedWords.add(keyword.toUpperCase());
+  }
+  reservedWords.addAll(extractedMetaDataSupport.getExtraKeywords());
+  final boolean globallyQuoteIdentifiers=serviceRegistry.getService(ConfigurationService.class).getSetting(AvailableSettings.GLOBALLY_QUOTED_IDENTIFIERS,StandardConverters.BOOLEAN,false);
+  this.identifierHelper=new NormalizingIdentifierHelperImpl(this,globallyQuoteIdentifiers,databaseMetaData.storesMixedCaseQuotedIdentifiers(),databaseMetaData.storesLowerCaseQuotedIdentifiers(),databaseMetaData.storesUpperCaseQuotedIdentifiers(),databaseMetaData.storesUpperCaseIdentifiers(),databaseMetaData.storesLowerCaseIdentifiers());
+  this.currentCatalog=identifierHelper.toIdentifier(extractedMetaDataSupport.getConnectionCatalogName());
+  this.currentSchema=identifierHelper.toIdentifier(extractedMetaDataSupport.getConnectionSchemaName());
+  this.qualifiedObjectNameFormatter=new QualifiedObjectNameFormatterStandardImpl(databaseMetaData);
+  this.typeInfoSet.addAll(TypeInfo.extractTypeInfo(databaseMetaData));
+  this.lobCreatorBuilder=LobCreatorBuilderImpl.makeLobCreatorBuilder(serviceRegistry.getService(ConfigurationService.class).getSettings(),databaseMetaData.getConnection());
+}

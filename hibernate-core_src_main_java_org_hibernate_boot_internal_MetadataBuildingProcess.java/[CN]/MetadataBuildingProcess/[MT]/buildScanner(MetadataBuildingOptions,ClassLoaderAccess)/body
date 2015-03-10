@@ -1,0 +1,66 @@
+{
+  final Object scannerSetting=options.getScanner();
+  final ArchiveDescriptorFactory archiveDescriptorFactory=options.getArchiveDescriptorFactory();
+  if (scannerSetting == null) {
+    if (archiveDescriptorFactory == null) {
+      return new StandardScanner();
+    }
+ else {
+      return new StandardScanner(archiveDescriptorFactory);
+    }
+  }
+ else {
+    if (Scanner.class.isInstance(scannerSetting)) {
+      if (archiveDescriptorFactory != null) {
+        throw new IllegalStateException("A Scanner instance and an ArchiveDescriptorFactory were both specified; please " + "specify one or the other, or if you need to supply both, Scanner class to use " + "(assuming it has a constructor accepting a ArchiveDescriptorFactory).  "+ "Alternatively, just pass the ArchiveDescriptorFactory during your own "+ "Scanner constructor assuming it is statically known.");
+      }
+      return (Scanner)scannerSetting;
+    }
+    final Class<? extends Scanner> scannerImplClass;
+    if (Class.class.isInstance(scannerSetting)) {
+      scannerImplClass=(Class<? extends Scanner>)scannerSetting;
+    }
+ else {
+      scannerImplClass=classLoaderAccess.classForName(scannerSetting.toString());
+    }
+    if (archiveDescriptorFactory != null) {
+      try {
+        final Constructor<? extends Scanner> constructor=scannerImplClass.getConstructor(SINGLE_ARG);
+        try {
+          return constructor.newInstance(archiveDescriptorFactory);
+        }
+ catch (        Exception e) {
+          throw new IllegalStateException("Error trying to instantiate custom specified Scanner [" + scannerImplClass.getName() + "]",e);
+        }
+      }
+ catch (      NoSuchMethodException e) {
+        throw new IllegalArgumentException("Configuration named a custom Scanner and a custom ArchiveDescriptorFactory, but " + "Scanner impl did not define a constructor accepting ArchiveDescriptorFactory");
+      }
+    }
+ else {
+      try {
+        final Constructor<? extends Scanner> constructor=scannerImplClass.getConstructor(SINGLE_ARG);
+        try {
+          return constructor.newInstance(StandardArchiveDescriptorFactory.INSTANCE);
+        }
+ catch (        Exception e) {
+          throw new IllegalStateException("Error trying to instantiate custom specified Scanner [" + scannerImplClass.getName() + "]",e);
+        }
+      }
+ catch (      NoSuchMethodException e) {
+        try {
+          final Constructor<? extends Scanner> constructor=scannerImplClass.getConstructor();
+          try {
+            return constructor.newInstance();
+          }
+ catch (          Exception e2) {
+            throw new IllegalStateException("Error trying to instantiate custom specified Scanner [" + scannerImplClass.getName() + "]",e2);
+          }
+        }
+ catch (        NoSuchMethodException ignore) {
+          throw new IllegalArgumentException("Configuration named a custom Scanner, but we were unable to locate " + "an appropriate constructor");
+        }
+      }
+    }
+  }
+}

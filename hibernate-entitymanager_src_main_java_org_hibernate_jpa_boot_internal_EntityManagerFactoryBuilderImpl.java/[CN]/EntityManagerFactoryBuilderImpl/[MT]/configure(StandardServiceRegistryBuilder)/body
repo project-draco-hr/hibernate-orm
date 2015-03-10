@@ -1,0 +1,19 @@
+{
+  final SettingsImpl settings=new SettingsImpl();
+  applyJdbcConnectionProperties(ssrBuilder);
+  applyTransactionProperties(ssrBuilder,settings);
+  if ("true".equals(configurationValues.get(Environment.FLUSH_BEFORE_COMPLETION))) {
+    ssrBuilder.applySetting(Environment.FLUSH_BEFORE_COMPLETION,"false");
+    LOG.definingFlushBeforeCompletionIgnoredInHem(Environment.FLUSH_BEFORE_COMPLETION);
+  }
+  final Object value=configurationValues.get(DISCARD_PC_ON_CLOSE);
+  if (value != null) {
+    settings.setReleaseResourcesOnCloseEnabled("true".equals(value));
+  }
+  final StrategySelector strategySelector=ssrBuilder.getBootstrapServiceRegistry().getService(StrategySelector.class);
+  final Object interceptorSetting=configurationValues.remove(AvailableSettings.SESSION_INTERCEPTOR);
+  if (interceptorSetting != null) {
+    settings.setSessionInterceptorClass(loadSessionInterceptorClass(interceptorSetting,strategySelector));
+  }
+  return settings;
+}

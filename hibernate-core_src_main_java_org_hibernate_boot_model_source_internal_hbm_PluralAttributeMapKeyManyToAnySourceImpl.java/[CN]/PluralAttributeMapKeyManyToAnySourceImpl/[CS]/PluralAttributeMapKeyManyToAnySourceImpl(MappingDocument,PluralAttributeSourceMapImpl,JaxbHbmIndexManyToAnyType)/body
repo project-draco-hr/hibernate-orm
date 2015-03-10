@@ -1,0 +1,55 @@
+{
+  final List<RelationalValueSource> relationalValueSources=RelationalValueSourceHelper.buildValueSources(mappingDocument,null,new RelationalValueSourceHelper.AbstractColumnsAndFormulasSource(){
+    @Override public XmlElementMetadata getSourceType(){
+      return XmlElementMetadata.MANY_TO_ANY;
+    }
+    @Override public String getSourceName(){
+      return null;
+    }
+    @Override public List getColumnOrFormulaElements(){
+      return jaxbMapKeyManyToAnyMapping.getColumn();
+    }
+  }
+);
+  if (relationalValueSources.size() < 2) {
+    throw new MappingException(String.format(Locale.ENGLISH,"<many-to-any /> mapping [%s] needs to specify 2 or more columns",pluralAttributeSource.getAttributeRole().getFullPath()),mappingDocument.getOrigin());
+  }
+  this.discriminatorSource=new AnyDiscriminatorSource(){
+    private final HibernateTypeSource discriminatorTypeSource=new HibernateTypeSourceImpl(jaxbMapKeyManyToAnyMapping.getMetaType());
+    private final RelationalValueSource discriminatorRelationalValueSource=relationalValueSources.get(0);
+    private final Map<String,String> discriminatorValueMapping=Collections.emptyMap();
+    @Override public HibernateTypeSource getTypeSource(){
+      return discriminatorTypeSource;
+    }
+    @Override public RelationalValueSource getRelationalValueSource(){
+      return discriminatorRelationalValueSource;
+    }
+    @Override public Map<String,String> getValueMappings(){
+      return discriminatorValueMapping;
+    }
+    @Override public AttributePath getAttributePath(){
+      return pluralAttributeSource.getAttributePath();
+    }
+    @Override public MetadataBuildingContext getBuildingContext(){
+      return mappingDocument;
+    }
+  }
+;
+  this.keySource=new AnyKeySource(){
+    private final HibernateTypeSource fkTypeSource=new HibernateTypeSourceImpl(jaxbMapKeyManyToAnyMapping.getIdType());
+    private final List<RelationalValueSource> fkRelationalValueSources=relationalValueSources.subList(1,relationalValueSources.size());
+    @Override public HibernateTypeSource getTypeSource(){
+      return fkTypeSource;
+    }
+    @Override public List<RelationalValueSource> getRelationalValueSources(){
+      return fkRelationalValueSources;
+    }
+    @Override public AttributePath getAttributePath(){
+      return pluralAttributeSource.getAttributePath();
+    }
+    @Override public MetadataBuildingContext getBuildingContext(){
+      return mappingDocument;
+    }
+  }
+;
+}

@@ -1,93 +1,14 @@
 {
   try {
-    Configuration cfg=new Configuration();
-    boolean script=true;
-    boolean drop=false;
-    boolean create=false;
-    boolean halt=false;
-    boolean export=true;
-    String outFile=null;
-    String importFile=DEFAULT_IMPORT_FILE;
-    String propFile=null;
-    boolean format=false;
-    String delim=null;
-    boolean hasNaming=false;
-    boolean hasNamingDelegator=false;
-    for (int i=0; i < args.length; i++) {
-      if (args[i].startsWith("--")) {
-        if (args[i].equals("--quiet")) {
-          script=false;
-        }
- else         if (args[i].equals("--drop")) {
-          drop=true;
-        }
- else         if (args[i].equals("--create")) {
-          create=true;
-        }
- else         if (args[i].equals("--haltonerror")) {
-          halt=true;
-        }
- else         if (args[i].equals("--text")) {
-          export=false;
-        }
- else         if (args[i].startsWith("--output=")) {
-          outFile=args[i].substring(9);
-        }
- else         if (args[i].startsWith("--import=")) {
-          importFile=args[i].substring(9);
-        }
- else         if (args[i].startsWith("--properties=")) {
-          propFile=args[i].substring(13);
-        }
- else         if (args[i].equals("--format")) {
-          format=true;
-        }
- else         if (args[i].startsWith("--delimiter=")) {
-          delim=args[i].substring(12);
-        }
- else         if (args[i].startsWith("--config=")) {
-          cfg.configure(args[i].substring(9));
-        }
- else         if (args[i].startsWith("--naming=")) {
-          hasNaming=true;
-          checkNamingAndNamingDelegatorNotBothSpecified(hasNaming,hasNamingDelegator);
-          cfg.setNamingStrategy((NamingStrategy)ReflectHelper.classForName(args[i].substring(9)).newInstance());
-        }
- else         if (args[i].startsWith("--namingdelegator=")) {
-          hasNamingDelegator=true;
-          checkNamingAndNamingDelegatorNotBothSpecified(hasNaming,hasNamingDelegator);
-          cfg.setNamingStrategyDelegator((NamingStrategyDelegator)ReflectHelper.classForName(args[i].substring(18)).newInstance());
-        }
-      }
- else {
-        String filename=args[i];
-        if (filename.endsWith(".jar")) {
-          cfg.addJar(new File(filename));
-        }
- else {
-          cfg.addFile(filename);
-        }
-      }
-    }
-    if (propFile != null) {
-      Properties props=new Properties();
-      props.putAll(cfg.getProperties());
-      props.load(new FileInputStream(propFile));
-      cfg.setProperties(props);
-    }
-    if (importFile != null) {
-      cfg.setProperty(AvailableSettings.HBM2DDL_IMPORT_FILES,importFile);
-    }
-    StandardServiceRegistryImpl serviceRegistry=createServiceRegistry(cfg.getProperties());
+    final CommandLineArgs commandLineArgs=CommandLineArgs.parseCommandLineArgs(args);
+    StandardServiceRegistry serviceRegistry=buildStandardServiceRegistry(commandLineArgs);
     try {
-      SchemaExport se=new SchemaExport(serviceRegistry,cfg).setHaltOnError(halt).setOutputFile(outFile).setDelimiter(delim).setImportSqlCommandExtractor(serviceRegistry.getService(ImportSqlCommandExtractor.class));
-      if (format) {
-        se.setFormat(true);
-      }
-      se.execute(script,export,drop,create);
+      final MetadataImplementor metadata=buildMetadata(commandLineArgs,serviceRegistry);
+      SchemaExport schemaExport=new SchemaExport(serviceRegistry,metadata).setHaltOnError(commandLineArgs.halt).setOutputFile(commandLineArgs.outputFile).setDelimiter(commandLineArgs.delimiter).setImportSqlCommandExtractor(serviceRegistry.getService(ImportSqlCommandExtractor.class)).setFormat(commandLineArgs.format);
+      schemaExport.execute(commandLineArgs.script,commandLineArgs.export,commandLineArgs.drop,commandLineArgs.create);
     }
   finally {
-      serviceRegistry.destroy();
+      StandardServiceRegistryBuilder.destroy(serviceRegistry);
     }
   }
  catch (  Exception e) {

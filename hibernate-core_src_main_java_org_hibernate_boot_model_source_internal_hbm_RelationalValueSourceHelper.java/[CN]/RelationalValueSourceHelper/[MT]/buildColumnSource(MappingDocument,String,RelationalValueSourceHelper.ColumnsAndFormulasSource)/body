@@ -1,0 +1,25 @@
+{
+  final List<RelationalValueSource> sources=buildValueSources(mappingDocument,containingTableName,columnsAndFormulasSource);
+  if (sources.size() > 1) {
+    final String errorMessage;
+    if (columnsAndFormulasSource.getSourceType().canBeNamed() && StringHelper.isNotEmpty(columnsAndFormulasSource.getSourceName())) {
+      errorMessage=String.format(Locale.ENGLISH,"Expecting just a single formula/column in context of <%s name=\"%s\"/>",columnsAndFormulasSource.getSourceType().getElementName(),columnsAndFormulasSource.getSourceName());
+    }
+ else {
+      errorMessage=String.format(Locale.ENGLISH,"Expecting just a single formula/column in context of <%s/>",columnsAndFormulasSource.getSourceType().getElementName());
+    }
+    throw new MappingException(errorMessage,mappingDocument.getOrigin());
+  }
+  final RelationalValueSource result=sources.get(0);
+  if (!ColumnSource.class.isInstance(result)) {
+    final String errorMessage;
+    if (columnsAndFormulasSource.getSourceType().canBeNamed() && StringHelper.isNotEmpty(columnsAndFormulasSource.getSourceName())) {
+      errorMessage=String.format(Locale.ENGLISH,"Expecting single column in context of <%s name=\"%s\"/>, but found formula [%s]",columnsAndFormulasSource.getSourceType().getElementName(),columnsAndFormulasSource.getSourceName(),((DerivedValueSource)result).getExpression());
+    }
+ else {
+      errorMessage=String.format(Locale.ENGLISH,"Expecting single column in context of <%s/>, but found formula [%s]",columnsAndFormulasSource.getSourceType().getElementName(),((DerivedValueSource)result).getExpression());
+    }
+    throw new MappingException(errorMessage,mappingDocument.getOrigin());
+  }
+  return (ColumnSource)result;
+}

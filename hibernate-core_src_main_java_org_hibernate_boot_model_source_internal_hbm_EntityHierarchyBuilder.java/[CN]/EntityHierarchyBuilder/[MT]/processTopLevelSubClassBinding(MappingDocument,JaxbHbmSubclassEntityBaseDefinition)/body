@@ -1,0 +1,13 @@
+{
+  final AbstractEntitySourceImpl entityItExtends=locateExtendedEntitySource(mappingDocument,jaxbSubEntityMapping);
+  if (entityItExtends == null) {
+    addToToBeLinkedQueue(mappingDocument,jaxbSubEntityMapping);
+  }
+ else {
+    final SubclassEntitySourceImpl subEntitySource=createSubClassEntitySource(mappingDocument,jaxbSubEntityMapping,entityItExtends);
+    entitySourceByNameMap.put(subEntitySource.getEntityNamingSource().getEntityName(),subEntitySource);
+    entityItExtends.add(subEntitySource);
+    linkAnyWaiting(mappingDocument,subEntitySource);
+    processSubEntityElements(mappingDocument,jaxbSubEntityMapping,subEntitySource);
+  }
+}

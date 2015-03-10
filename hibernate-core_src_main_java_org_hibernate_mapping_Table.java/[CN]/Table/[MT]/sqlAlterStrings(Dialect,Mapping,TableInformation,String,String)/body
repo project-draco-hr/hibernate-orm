@@ -1,0 +1,38 @@
+{
+  StringBuilder root=new StringBuilder("alter table ").append(getQualifiedName(dialect,defaultCatalog,defaultSchema)).append(' ').append(dialect.getAddColumnString());
+  Iterator iter=getColumnIterator();
+  List results=new ArrayList();
+  while (iter.hasNext()) {
+    final Column column=(Column)iter.next();
+    final ColumnInformation columnInfo=tableInfo.getColumn(Identifier.toIdentifier(column.getName()));
+    if (columnInfo == null) {
+      StringBuilder alter=new StringBuilder(root.toString()).append(' ').append(column.getQuotedName(dialect)).append(' ').append(column.getSqlType(dialect,p));
+      String defaultValue=column.getDefaultValue();
+      if (defaultValue != null) {
+        alter.append(" default ").append(defaultValue);
+      }
+      if (column.isNullable()) {
+        alter.append(dialect.getNullColumnString());
+      }
+ else {
+        alter.append(" not null");
+      }
+      if (column.isUnique()) {
+        String keyName=Constraint.generateName("UK_",this,column);
+        UniqueKey uk=getOrCreateUniqueKey(keyName);
+        uk.addColumn(column);
+        alter.append(dialect.getUniqueDelegate().getColumnDefinitionUniquenessFragment(column));
+      }
+      if (column.hasCheckConstraint() && dialect.supportsColumnCheck()) {
+        alter.append(" check(").append(column.getCheckConstraint()).append(")");
+      }
+      String columnComment=column.getComment();
+      if (columnComment != null) {
+        alter.append(dialect.getColumnComment(columnComment));
+      }
+      alter.append(dialect.getAddColumnSuffixString());
+      results.add(alter.toString());
+    }
+  }
+  return results.iterator();
+}

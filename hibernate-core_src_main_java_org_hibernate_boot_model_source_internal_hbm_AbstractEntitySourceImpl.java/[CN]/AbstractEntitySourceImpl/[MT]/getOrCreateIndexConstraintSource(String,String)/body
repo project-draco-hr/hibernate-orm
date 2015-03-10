@@ -1,0 +1,13 @@
+{
+  IndexConstraintSourceImpl constraintSource=(IndexConstraintSourceImpl)constraintMap.get(constraintName);
+  if (constraintSource == null) {
+    constraintSource=new IndexConstraintSourceImpl(constraintName,logicalTableName);
+    constraintMap.put(constraintName,constraintSource);
+  }
+ else {
+    if (!EqualsHelper.equals(constraintSource.getTableName(),logicalTableName)) {
+      throw new MappingException(String.format(Locale.ENGLISH,"Named relational index [%s] referenced more than one table [%s, %s]",constraintName,constraintSource.getTableName() == null ? "null(implicit)" : constraintSource.getTableName(),logicalTableName == null ? "null(implicit)" : logicalTableName),origin());
+    }
+  }
+  return constraintSource;
+}

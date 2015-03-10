@@ -1,13 +1,14 @@
 {
-  configuration=constructConfiguration();
-  standardConfigure(configuration);
-  configuration.setProperty(NODE_ID_PROP,REMOTE);
-  configuration.setProperty(NODE_ID_FIELD,REMOTE);
-  configureSecondNode(configuration);
-  addMappings(configuration);
-  configuration.buildMappings();
-  applyCacheSettings(configuration);
-  afterConfigurationBuilt(configuration);
-  serviceRegistry=buildServiceRegistry(buildBootstrapServiceRegistry(),configuration);
-  sessionFactory=(SessionFactoryImplementor)configuration.buildSessionFactory(serviceRegistry);
+  StandardServiceRegistryBuilder ssrb=constructStandardServiceRegistryBuilder();
+  applyStandardSettings(ssrb.getSettings());
+  ssrb.applySetting(NODE_ID_PROP,REMOTE);
+  ssrb.applySetting(NODE_ID_FIELD,REMOTE);
+  configureSecondNode(ssrb);
+  serviceRegistry=ssrb.build();
+  MetadataSources metadataSources=new MetadataSources(serviceRegistry);
+  applyMetadataSources(metadataSources);
+  Metadata metadata=metadataSources.buildMetadata();
+  applyCacheSettings(metadata);
+  afterMetadataBuilt(metadata);
+  sessionFactory=(SessionFactoryImplementor)metadata.buildSessionFactory();
 }

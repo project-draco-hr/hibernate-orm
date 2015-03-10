@@ -1,0 +1,39 @@
+{
+  if (String.class.isInstance(content)) {
+    final String contentString=StringHelper.nullIfEmpty(((String)content).trim());
+    if (contentString != null) {
+      builder.setQuery((String)content);
+      return true;
+    }
+ else {
+      return false;
+    }
+  }
+ else   if (JAXBElement.class.isInstance(content)) {
+    return processNamedQueryContentItem(((JAXBElement)content).getValue(),builder,implicitResultSetMappingBuilder,namedQueryBinding,context);
+  }
+  if (JaxbHbmQueryParamType.class.isInstance(content)) {
+    final JaxbHbmQueryParamType paramTypeBinding=(JaxbHbmQueryParamType)content;
+    builder.addParameterType(paramTypeBinding.getName(),paramTypeBinding.getType());
+  }
+ else   if (JaxbHbmSynchronizeType.class.isInstance(content)) {
+    final JaxbHbmSynchronizeType synchronizedSpace=(JaxbHbmSynchronizeType)content;
+    builder.addSynchronizedQuerySpace(synchronizedSpace.getTable());
+  }
+ else   if (JaxbHbmNativeQueryScalarReturnType.class.isInstance(content)) {
+    implicitResultSetMappingBuilder.addReturn((JaxbHbmNativeQueryScalarReturnType)content);
+  }
+ else   if (JaxbHbmNativeQueryReturnType.class.isInstance(content)) {
+    implicitResultSetMappingBuilder.addReturn((JaxbHbmNativeQueryReturnType)content);
+  }
+ else   if (JaxbHbmNativeQueryJoinReturnType.class.isInstance(content)) {
+    implicitResultSetMappingBuilder.addReturn((JaxbHbmNativeQueryJoinReturnType)content);
+  }
+ else   if (JaxbHbmNativeQueryCollectionLoadReturnType.class.isInstance(content)) {
+    implicitResultSetMappingBuilder.addReturn((JaxbHbmNativeQueryCollectionLoadReturnType)content);
+  }
+ else {
+    throw new org.hibernate.boot.MappingException(String.format(Locale.ENGLISH,"Encountered unexpected content type [%s] for named native query [%s] : [%s]",content.getClass().getName(),namedQueryBinding.getName(),content.toString()),context.getOrigin());
+  }
+  return false;
+}

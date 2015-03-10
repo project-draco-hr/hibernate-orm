@@ -1,0 +1,198 @@
+{
+  if (property == null) {
+    throw new IllegalArgumentException("null was passed for argument property");
+  }
+  final PersistentClass collectionEntity=(PersistentClass)persistentClasses.get(collType.getName());
+  final String hqlOrderBy=extractHqlOrderBy(jpaOrderBy);
+  boolean isCollectionOfEntities=collectionEntity != null;
+  ManyToAny anyAnn=property.getAnnotation(ManyToAny.class);
+  if (LOG.isDebugEnabled()) {
+    String path=collValue.getOwnerEntityName() + "." + joinColumns[0].getPropertyName();
+    if (isCollectionOfEntities && unique)     LOG.debugf("Binding a OneToMany: %s through an association table",path);
+ else     if (isCollectionOfEntities)     LOG.debugf("Binding as ManyToMany: %s",path);
+ else     if (anyAnn != null)     LOG.debugf("Binding a ManyToAny: %s",path);
+ else     LOG.debugf("Binding a collection of element: %s",path);
+  }
+  if (!isCollectionOfEntities) {
+    if (property.isAnnotationPresent(ManyToMany.class) || property.isAnnotationPresent(OneToMany.class)) {
+      String path=collValue.getOwnerEntityName() + "." + joinColumns[0].getPropertyName();
+      throw new AnnotationException("Use of @OneToMany or @ManyToMany targeting an unmapped class: " + path + "["+ collType+ "]");
+    }
+ else     if (anyAnn != null) {
+      if (parentPropertyHolder.getJoinTable(property) == null) {
+        String path=collValue.getOwnerEntityName() + "." + joinColumns[0].getPropertyName();
+        throw new AnnotationException("@JoinTable is mandatory when @ManyToAny is used: " + path);
+      }
+    }
+ else {
+      JoinTable joinTableAnn=parentPropertyHolder.getJoinTable(property);
+      if (joinTableAnn != null && joinTableAnn.inverseJoinColumns().length > 0) {
+        String path=collValue.getOwnerEntityName() + "." + joinColumns[0].getPropertyName();
+        throw new AnnotationException("Use of @JoinTable.inverseJoinColumns targeting an unmapped class: " + path + "["+ collType+ "]");
+      }
+    }
+  }
+  boolean mappedBy=!BinderHelper.isEmptyAnnotationValue(joinColumns[0].getMappedBy());
+  if (mappedBy) {
+    if (!isCollectionOfEntities) {
+      StringBuilder error=new StringBuilder(80).append("Collection of elements must not have mappedBy or association reference an unmapped entity: ").append(collValue.getOwnerEntityName()).append(".").append(joinColumns[0].getPropertyName());
+      throw new AnnotationException(error.toString());
+    }
+    Property otherSideProperty;
+    try {
+      otherSideProperty=collectionEntity.getRecursiveProperty(joinColumns[0].getMappedBy());
+    }
+ catch (    MappingException e) {
+      StringBuilder error=new StringBuilder(80);
+      error.append("mappedBy reference an unknown target entity property: ").append(collType).append(".").append(joinColumns[0].getMappedBy()).append(" in ").append(collValue.getOwnerEntityName()).append(".").append(joinColumns[0].getPropertyName());
+      throw new AnnotationException(error.toString());
+    }
+    Table table;
+    if (otherSideProperty.getValue() instanceof Collection) {
+      table=((Collection)otherSideProperty.getValue()).getCollectionTable();
+    }
+ else {
+      table=otherSideProperty.getValue().getTable();
+    }
+    collValue.setCollectionTable(table);
+    String entityName=collectionEntity.getEntityName();
+    for (    Ejb3JoinColumn column : joinColumns) {
+      column.setManyToManyOwnerSideEntityName(entityName);
+    }
+  }
+ else {
+    for (    Ejb3JoinColumn column : joinColumns) {
+      String mappedByProperty=buildingContext.getMetadataCollector().getFromMappedBy(collValue.getOwnerEntityName(),column.getPropertyName());
+      Table ownerTable=collValue.getOwner().getTable();
+      column.setMappedBy(collValue.getOwner().getEntityName(),collValue.getOwner().getJpaEntityName(),buildingContext.getMetadataCollector().getLogicalTableName(ownerTable),mappedByProperty);
+    }
+    if (StringHelper.isEmpty(associationTableBinder.getName())) {
+      associationTableBinder.setDefaultName(collValue.getOwner().getClassName(),collValue.getOwner().getEntityName(),collValue.getOwner().getJpaEntityName(),buildingContext.getMetadataCollector().getLogicalTableName(collValue.getOwner().getTable()),collectionEntity != null ? collectionEntity.getClassName() : null,collectionEntity != null ? collectionEntity.getEntityName() : null,collectionEntity != null ? collectionEntity.getJpaEntityName() : null,collectionEntity != null ? buildingContext.getMetadataCollector().getLogicalTableName(collectionEntity.getTable()) : null,joinColumns[0].getPropertyName());
+    }
+    associationTableBinder.setJPA2ElementCollection(!isCollectionOfEntities && property.isAnnotationPresent(ElementCollection.class));
+    collValue.setCollectionTable(associationTableBinder.bind());
+  }
+  bindFilters(isCollectionOfEntities);
+  bindCollectionSecondPass(collValue,collectionEntity,joinColumns,cascadeDeleteEnabled,property,buildingContext);
+  ManyToOne element=null;
+  if (isCollectionOfEntities) {
+    element=new ManyToOne(buildingContext.getMetadataCollector(),collValue.getCollectionTable());
+    collValue.setElement(element);
+    element.setReferencedEntityName(collType.getName());
+    element.setFetchMode(FetchMode.JOIN);
+    element.setLazy(false);
+    element.setIgnoreNotFound(ignoreNotFound);
+    if (hqlOrderBy != null) {
+      collValue.setManyToManyOrdering(buildOrderByClauseFromHql(hqlOrderBy,collectionEntity,collValue.getRole()));
+    }
+    final ForeignKey fk=property.getAnnotation(ForeignKey.class);
+    String fkName=fk != null ? fk.inverseName() : "";
+    if (!BinderHelper.isEmptyAnnotationValue(fkName)) {
+      element.setForeignKeyName(fkName);
+    }
+  }
+ else   if (anyAnn != null) {
+    PropertyData inferredData=new PropertyInferredData(null,property,"unsupported",buildingContext.getBuildingOptions().getReflectionManager());
+    for (    Ejb3Column column : inverseJoinColumns) {
+      column.setTable(collValue.getCollectionTable());
+    }
+    Any any=BinderHelper.buildAnyValue(anyAnn.metaDef(),inverseJoinColumns,anyAnn.metaColumn(),inferredData,cascadeDeleteEnabled,Nullability.NO_CONSTRAINT,propertyHolder,new EntityBinder(),true,buildingContext);
+    collValue.setElement(any);
+  }
+ else {
+    XClass elementClass;
+    AnnotatedClassType classType;
+    CollectionPropertyHolder holder=null;
+    if (BinderHelper.PRIMITIVE_NAMES.contains(collType.getName())) {
+      classType=AnnotatedClassType.NONE;
+      elementClass=null;
+      holder=PropertyHolderBuilder.buildPropertyHolder(collValue,collValue.getRole(),null,property,parentPropertyHolder,buildingContext);
+    }
+ else {
+      elementClass=collType;
+      classType=buildingContext.getMetadataCollector().getClassType(elementClass);
+      holder=PropertyHolderBuilder.buildPropertyHolder(collValue,collValue.getRole(),elementClass,property,parentPropertyHolder,buildingContext);
+      parentPropertyHolder.startingProperty(property);
+      boolean attributeOverride=property.isAnnotationPresent(AttributeOverride.class) || property.isAnnotationPresent(AttributeOverrides.class);
+      if (isEmbedded || attributeOverride) {
+        classType=AnnotatedClassType.EMBEDDABLE;
+      }
+    }
+    if (AnnotatedClassType.EMBEDDABLE.equals(classType)) {
+      EntityBinder entityBinder=new EntityBinder();
+      PersistentClass owner=collValue.getOwner();
+      boolean isPropertyAnnotated;
+      if (owner.getIdentifierProperty() != null) {
+        isPropertyAnnotated=owner.getIdentifierProperty().getPropertyAccessorName().equals("property");
+      }
+ else       if (owner.getIdentifierMapper() != null && owner.getIdentifierMapper().getPropertySpan() > 0) {
+        Property prop=(Property)owner.getIdentifierMapper().getPropertyIterator().next();
+        isPropertyAnnotated=prop.getPropertyAccessorName().equals("property");
+      }
+ else {
+        throw new AssertionFailure("Unable to guess collection property accessor name");
+      }
+      PropertyData inferredData;
+      if (isMap()) {
+        if (isHibernateExtensionMapping()) {
+          inferredData=new PropertyPreloadedData(AccessType.PROPERTY,"element",elementClass);
+        }
+ else {
+          inferredData=new PropertyPreloadedData(AccessType.PROPERTY,"value",elementClass);
+        }
+      }
+ else {
+        if (isHibernateExtensionMapping()) {
+          inferredData=new PropertyPreloadedData(AccessType.PROPERTY,"element",elementClass);
+        }
+ else {
+          inferredData=new PropertyPreloadedData(AccessType.PROPERTY,"collection&&element",elementClass);
+        }
+      }
+      boolean isNullable=true;
+      Component component=AnnotationBinder.fillComponent(holder,inferredData,isPropertyAnnotated ? AccessType.PROPERTY : AccessType.FIELD,isNullable,entityBinder,false,false,true,buildingContext,inheritanceStatePerClass);
+      collValue.setElement(component);
+      if (StringHelper.isNotEmpty(hqlOrderBy)) {
+        String path=collValue.getOwnerEntityName() + "." + joinColumns[0].getPropertyName();
+        String orderBy=adjustUserSuppliedValueCollectionOrderingFragment(hqlOrderBy);
+        if (orderBy != null) {
+          collValue.setOrderBy(orderBy);
+        }
+      }
+    }
+ else {
+      holder.prepare(property);
+      SimpleValueBinder elementBinder=new SimpleValueBinder();
+      elementBinder.setBuildingContext(buildingContext);
+      elementBinder.setReturnedClassName(collType.getName());
+      if (elementColumns == null || elementColumns.length == 0) {
+        elementColumns=new Ejb3Column[1];
+        Ejb3Column column=new Ejb3Column();
+        column.setImplicit(false);
+        column.setNullable(true);
+        column.setLength(Ejb3Column.DEFAULT_COLUMN_LENGTH);
+        column.setLogicalColumnName(Collection.DEFAULT_ELEMENT_COLUMN_NAME);
+        column.setJoins(new HashMap<String,Join>());
+        column.setBuildingContext(buildingContext);
+        column.bind();
+        elementColumns[0]=column;
+      }
+      for (      Ejb3Column column : elementColumns) {
+        column.setTable(collValue.getCollectionTable());
+      }
+      elementBinder.setColumns(elementColumns);
+      elementBinder.setType(property,elementClass,collValue.getOwnerEntityName(),holder.resolveElementAttributeConverterDefinition(elementClass));
+      elementBinder.setPersistentClassName(propertyHolder.getEntityName());
+      elementBinder.setAccessType(accessType);
+      collValue.setElement(elementBinder.make());
+      String orderBy=adjustUserSuppliedValueCollectionOrderingFragment(hqlOrderBy);
+      if (orderBy != null) {
+        collValue.setOrderBy(orderBy);
+      }
+    }
+  }
+  checkFilterConditions(collValue);
+  if (isCollectionOfEntities) {
+    bindManytoManyInverseFk(collectionEntity,inverseJoinColumns,element,unique,buildingContext);
+  }
+}

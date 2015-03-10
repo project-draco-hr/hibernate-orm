@@ -1,0 +1,15 @@
+{
+  PersistentClass user=metadata.getEntityBinding(User.class.getName());
+  org.hibernate.mapping.Property personProperty=user.getProperty("person");
+  Component component=(Component)personProperty.getValue();
+  Formula f=(Formula)component.getProperty("yob").getValue().getColumnIterator().next();
+  SQLFunction yearFunction=metadata.getDatabase().getJdbcEnvironment().getDialect().getFunctions().get("year");
+  if (yearFunction == null) {
+    f.setFormula("extract( year from dob )");
+  }
+ else {
+    List args=new ArrayList();
+    args.add("dob");
+    f.setFormula(yearFunction.render(StandardBasicTypes.INTEGER,args,null));
+  }
+}

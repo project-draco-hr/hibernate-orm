@@ -1,32 +1,104 @@
 {
+  final Identifier ownerEntityTableNameIdentifier=toIdentifier(ownerEntityTable);
+  final Identifier associatedEntityTableNameIdentifier=toIdentifier(associatedEntityTable);
   final String unquotedOwnerTable=StringHelper.unquote(ownerEntityTable);
   final String unquotedAssocTable=StringHelper.unquote(associatedEntityTable);
   final String ownerObjectName=isJPA2ElementCollection && ownerEntity != null ? StringHelper.unqualify(ownerEntity) : unquotedOwnerTable;
   final ObjectNameSource nameSource=buildNameContext(ownerObjectName,unquotedAssocTable);
   final boolean ownerEntityTableQuoted=StringHelper.isQuoted(ownerEntityTable);
   final boolean associatedEntityTableQuoted=StringHelper.isQuoted(associatedEntityTable);
-  final ObjectNameNormalizer.NamingStrategyHelper namingStrategyHelper=new ObjectNameNormalizer.NamingStrategyHelper(){
-    public String determineImplicitName(    NamingStrategy strategy){
-      throw new AssertionFailure("method call should have been replaced by #determineImplicitName(NamingStrategyDelegate strategyDelegate)");
-    }
-    public String handleExplicitName(    NamingStrategy strategy,    String name){
-      return strategy.tableName(name);
-    }
-    @Override public String determineImplicitName(    NamingStrategyDelegator strategyDelegator){
-      final NamingStrategyDelegate strategyDelegate=getNamingStrategyDelegate(strategyDelegator);
-      final String strategyResult;
+  final NamingStrategyHelper namingStrategyHelper=new NamingStrategyHelper(){
+    @Override public Identifier determineImplicitName(    final MetadataBuildingContext buildingContext){
+      final ImplicitNamingStrategy namingStrategy=buildingContext.getBuildingOptions().getImplicitNamingStrategy();
+      Identifier name;
       if (isJPA2ElementCollection) {
-        strategyResult=strategyDelegate.determineImplicitElementCollectionTableName(ownerEntity,ownerJpaEntity,unquotedOwnerTable,propertyName);
+        name=namingStrategy.determineCollectionTableName(new ImplicitCollectionTableNameSource(){
+          private final EntityNaming entityNaming=new EntityNaming(){
+            @Override public String getClassName(){
+              return ownerClassName;
+            }
+            @Override public String getEntityName(){
+              return ownerEntity;
+            }
+            @Override public String getJpaEntityName(){
+              return ownerJpaEntity;
+            }
+          }
+;
+          @Override public Identifier getOwningPhysicalTableName(){
+            return ownerEntityTableNameIdentifier;
+          }
+          @Override public EntityNaming getOwningEntityNaming(){
+            return entityNaming;
+          }
+          @Override public AttributePath getOwningAttributePath(){
+            return AttributePath.parse(propertyName);
+          }
+          @Override public MetadataBuildingContext getBuildingContext(){
+            return buildingContext;
+          }
+        }
+);
       }
  else {
-        strategyResult=strategyDelegate.determineImplicitEntityAssociationJoinTableName(ownerEntity,ownerJpaEntity,unquotedOwnerTable,associatedEntity,associatedJpaEntity,unquotedAssocTable,propertyName);
+        name=namingStrategy.determineJoinTableName(new ImplicitJoinTableNameSource(){
+          private final EntityNaming owningEntityNaming=new EntityNaming(){
+            @Override public String getClassName(){
+              return ownerClassName;
+            }
+            @Override public String getEntityName(){
+              return ownerEntity;
+            }
+            @Override public String getJpaEntityName(){
+              return ownerJpaEntity;
+            }
+          }
+;
+          private final EntityNaming nonOwningEntityNaming=new EntityNaming(){
+            @Override public String getClassName(){
+              return associatedClassName;
+            }
+            @Override public String getEntityName(){
+              return associatedEntity;
+            }
+            @Override public String getJpaEntityName(){
+              return associatedJpaEntity;
+            }
+          }
+;
+          @Override public String getOwningPhysicalTableName(){
+            return unquotedOwnerTable;
+          }
+          @Override public EntityNaming getOwningEntityNaming(){
+            return owningEntityNaming;
+          }
+          @Override public String getNonOwningPhysicalTableName(){
+            return unquotedAssocTable;
+          }
+          @Override public EntityNaming getNonOwningEntityNaming(){
+            return nonOwningEntityNaming;
+          }
+          @Override public AttributePath getAssociationOwningAttributePath(){
+            return AttributePath.parse(propertyName);
+          }
+          @Override public MetadataBuildingContext getBuildingContext(){
+            return buildingContext;
+          }
+        }
+);
       }
-      return ownerEntityTableQuoted || associatedEntityTableQuoted ? StringHelper.quote(strategyResult) : strategyResult;
+      if (ownerEntityTableQuoted || associatedEntityTableQuoted) {
+        name=Identifier.quote(name);
+      }
+      return name;
     }
-    @Override public String handleExplicitName(    NamingStrategyDelegator strategyDelegator,    String name){
-      return getNamingStrategyDelegate(strategyDelegator).toPhysicalTableName(name);
+    @Override public Identifier handleExplicitName(    String explicitName,    MetadataBuildingContext buildingContext){
+      return buildingContext.getMetadataCollector().getDatabase().toIdentifier(explicitName);
+    }
+    @Override public Identifier toPhysicalName(    Identifier logicalName,    MetadataBuildingContext buildingContext){
+      return buildingContext.getBuildingOptions().getPhysicalNamingStrategy().toPhysicalTableName(logicalName,buildingContext.getMetadataCollector().getDatabase().getJdbcEnvironment());
     }
   }
 ;
-  return buildAndFillTable(schema,catalog,nameSource,namingStrategyHelper,isAbstract,uniqueConstraints,jpaIndexHolders,constraints,denormalizedSuperTable,mappings,null);
+  return buildAndFillTable(schema,catalog,nameSource,namingStrategyHelper,isAbstract,uniqueConstraints,jpaIndexHolders,constraints,buildingContext,null,null);
 }

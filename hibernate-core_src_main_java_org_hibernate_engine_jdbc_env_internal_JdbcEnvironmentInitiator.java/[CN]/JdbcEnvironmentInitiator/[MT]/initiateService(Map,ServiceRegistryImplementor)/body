@@ -1,0 +1,44 @@
+{
+  final DialectFactory dialectFactory=registry.getService(DialectFactory.class);
+  boolean useJdbcMetadata=ConfigurationHelper.getBoolean("hibernate.temp.use_jdbc_metadata_defaults",configurationValues,true);
+  if (useJdbcMetadata) {
+    final JdbcConnectionAccess jdbcConnectionAccess=buildJdbcConnectionAccess(configurationValues,registry);
+    try {
+      final Connection connection=jdbcConnectionAccess.obtainConnection();
+      try {
+        final DatabaseMetaData dbmd=connection.getMetaData();
+        if (log.isDebugEnabled()) {
+          log.debugf("Database ->\n" + "       name : %s\n" + "    version : %s\n"+ "      major : %s\n"+ "      minor : %s",dbmd.getDatabaseProductName(),dbmd.getDatabaseProductVersion(),dbmd.getDatabaseMajorVersion(),dbmd.getDatabaseMinorVersion());
+          log.debugf("Driver ->\n" + "       name : %s\n" + "    version : %s\n"+ "      major : %s\n"+ "      minor : %s",dbmd.getDriverName(),dbmd.getDriverVersion(),dbmd.getDriverMajorVersion(),dbmd.getDriverMinorVersion());
+          log.debugf("JDBC version : %s.%s",dbmd.getJDBCMajorVersion(),dbmd.getJDBCMinorVersion());
+        }
+        Dialect dialect=dialectFactory.buildDialect(configurationValues,new DialectResolutionInfoSource(){
+          @Override public DialectResolutionInfo getDialectResolutionInfo(){
+            try {
+              return new DatabaseMetaDataDialectResolutionInfoAdapter(connection.getMetaData());
+            }
+ catch (            SQLException sqlException) {
+              throw new HibernateException("Unable to access java.sql.DatabaseMetaData to determine appropriate Dialect to use",sqlException);
+            }
+          }
+        }
+);
+        return new JdbcEnvironmentImpl(registry,dialect,dbmd);
+      }
+ catch (      SQLException e) {
+        log.unableToObtainConnectionMetadata(e.getMessage());
+      }
+ finally {
+        try {
+          jdbcConnectionAccess.releaseConnection(connection);
+        }
+ catch (        SQLException ignore) {
+        }
+      }
+    }
+ catch (    Exception e) {
+      log.unableToObtainConnectionToQueryMetadata(e.getMessage());
+    }
+  }
+  return new JdbcEnvironmentImpl(registry,dialectFactory.buildDialect(configurationValues,null));
+}

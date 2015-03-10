@@ -1,20 +1,20 @@
 {
-  String[] cols=new String[getColumnSpan()];
-  String[] refcols=new String[getColumnSpan()];
-  int i=0;
-  Iterator refiter=null;
+  String[] columnNames=new String[getColumnSpan()];
+  String[] referencedColumnNames=new String[getColumnSpan()];
+  final Iterator referencedColumnItr;
   if (isReferenceToPrimaryKey()) {
-    refiter=referencedTable.getPrimaryKey().getColumnIterator();
+    referencedColumnItr=referencedTable.getPrimaryKey().getColumnIterator();
   }
  else {
-    refiter=referencedColumns.iterator();
+    referencedColumnItr=referencedColumns.iterator();
   }
-  Iterator iter=getColumnIterator();
-  while (iter.hasNext()) {
-    cols[i]=((Column)iter.next()).getQuotedName(dialect);
-    refcols[i]=((Column)refiter.next()).getQuotedName(dialect);
+  Iterator columnItr=getColumnIterator();
+  int i=0;
+  while (columnItr.hasNext()) {
+    columnNames[i]=((Column)columnItr.next()).getQuotedName(dialect);
+    referencedColumnNames[i]=((Column)referencedColumnItr.next()).getQuotedName(dialect);
     i++;
   }
-  String result=dialect.getAddForeignKeyConstraintString(constraintName,cols,referencedTable.getQualifiedName(dialect,defaultCatalog,defaultSchema),refcols,isReferenceToPrimaryKey());
+  final String result=dialect.getAddForeignKeyConstraintString(constraintName,columnNames,referencedTable.getQualifiedName(dialect,defaultCatalog,defaultSchema),referencedColumnNames,isReferenceToPrimaryKey());
   return cascadeDeleteEnabled && dialect.supportsCascadeDelete() ? result + " on delete cascade" : result;
 }

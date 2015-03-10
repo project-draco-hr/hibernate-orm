@@ -1,24 +1,19 @@
 {
+  BasicTestingJdbcServiceImpl jdbcServices=new BasicTestingJdbcServiceImpl();
+  jdbcServices.prepare(false);
+  serviceRegistry=new StandardServiceRegistryBuilder().enableAutoClose().addService(JdbcEnvironment.class,jdbcServices.getJdbcEnvironment()).addService(JdbcServices.class,jdbcServices).applySetting(AvailableSettings.HBM2DDL_AUTO,"create-drop").build();
+  generator=new SequenceHiLoGenerator();
   Properties properties=new Properties();
   properties.setProperty(SequenceGenerator.SEQUENCE,TEST_SEQUENCE);
   properties.setProperty(SequenceHiLoGenerator.MAX_LO,"0");
   properties.put(PersistentIdentifierGenerator.IDENTIFIER_NORMALIZER,new ObjectNameNormalizer(){
-    @Override protected boolean isUseQuotedIdentifiersGlobally(){
-      return false;
-    }
-    @Override protected NamingStrategy getNamingStrategy(){
-      return cfg.getNamingStrategy();
-    }
-    @Override protected NamingStrategyDelegator getNamingStrategyDelegator(){
-      return cfg.getNamingStrategyDelegator();
+    @Override protected MetadataBuildingContext getBuildingContext(){
+      return new MetadataBuildingContextTestingImpl(serviceRegistry);
     }
   }
 );
-  Dialect dialect=TestingDatabaseInfo.DIALECT;
-  generator=new SequenceHiLoGenerator();
-  generator.configure(StandardBasicTypes.LONG,properties,dialect);
-  cfg=TestingDatabaseInfo.buildBaseConfiguration().setProperty(Environment.HBM2DDL_AUTO,"create-drop");
-  cfg.addAuxiliaryDatabaseObject(new SimpleAuxiliaryDatabaseObject(generator.sqlCreateStrings(dialect)[0],generator.sqlDropStrings(dialect)[0]));
-  serviceRegistry=ServiceRegistryBuilder.buildServiceRegistry(cfg.getProperties());
-  sessionFactory=(SessionFactoryImplementor)cfg.buildSessionFactory(serviceRegistry);
+  generator.configure(StandardBasicTypes.LONG,properties,jdbcServices.getJdbcEnvironment());
+  final Metadata metadata=new MetadataSources(serviceRegistry).buildMetadata();
+  metadata.getDatabase().addAuxiliaryDatabaseObject(new SimpleAuxiliaryDatabaseObject(Collections.<String>emptySet(),null,null,generator.sqlCreateStrings(TestingDatabaseInfo.DIALECT),generator.sqlDropStrings(TestingDatabaseInfo.DIALECT)));
+  sessionFactory=(SessionFactoryImplementor)metadata.buildSessionFactory();
 }

@@ -1,0 +1,28 @@
+{
+  final MappingDocument mappingDocument=hierarchySource.getRoot().sourceMappingDocument();
+  bindBasicEntityValues(mappingDocument,hierarchySource.getRoot(),rootEntityDescriptor);
+  final Table primaryTable=bindEntityTableSpecification(mappingDocument,hierarchySource.getRoot().getPrimaryTable(),null,hierarchySource.getRoot(),rootEntityDescriptor);
+  rootEntityDescriptor.setTable(primaryTable);
+  if (log.isDebugEnabled()) {
+    log.debugf("Mapping class: %s -> %s",rootEntityDescriptor.getEntityName(),primaryTable.getName());
+  }
+  rootEntityDescriptor.setOptimisticLockStyle(hierarchySource.getOptimisticLockStyle());
+  rootEntityDescriptor.setMutable(hierarchySource.isMutable());
+  rootEntityDescriptor.setWhere(hierarchySource.getWhere());
+  rootEntityDescriptor.setExplicitPolymorphism(hierarchySource.isExplicitPolymorphism());
+  bindEntityIdentifier(mappingDocument,hierarchySource,rootEntityDescriptor);
+  if (hierarchySource.getVersionAttributeSource() != null) {
+    bindEntityVersion(mappingDocument,hierarchySource,rootEntityDescriptor);
+  }
+  if (hierarchySource.getDiscriminatorSource() != null) {
+    bindEntityDiscriminator(mappingDocument,hierarchySource,rootEntityDescriptor);
+  }
+  applyCaching(mappingDocument,hierarchySource.getCaching(),rootEntityDescriptor);
+  rootEntityDescriptor.createPrimaryKey();
+  bindAllEntityAttributes(mappingDocument,hierarchySource.getRoot(),rootEntityDescriptor);
+  if (hierarchySource.getNaturalIdCaching() != null) {
+    if (hierarchySource.getNaturalIdCaching().getRequested() == TruthValue.TRUE) {
+      rootEntityDescriptor.setNaturalIdCacheRegionName(hierarchySource.getNaturalIdCaching().getRegion());
+    }
+  }
+}

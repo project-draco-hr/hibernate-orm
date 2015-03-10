@@ -1,0 +1,40 @@
+{
+  final LoadedConfig cfg=new LoadedConfig(jaxbCfg.getSessionFactory().getName());
+  for (  JaxbCfgConfigPropertyType jaxbProperty : jaxbCfg.getSessionFactory().getProperty()) {
+    cfg.addConfigurationValue(jaxbProperty.getName(),jaxbProperty.getValue());
+  }
+  for (  JaxbCfgMappingReferenceType jaxbMapping : jaxbCfg.getSessionFactory().getMapping()) {
+    cfg.addMappingReference(MappingReference.consume(jaxbMapping));
+  }
+  for (  Object cacheDeclaration : jaxbCfg.getSessionFactory().getClassCacheOrCollectionCache()) {
+    cfg.addCacheRegionDefinition(parseCacheRegionDefinition(cacheDeclaration));
+  }
+  if (jaxbCfg.getSecurity() != null) {
+    for (    JaxbCfgHibernateConfiguration.JaxbCfgSecurity.JaxbCfgGrant grant : jaxbCfg.getSecurity().getGrant()) {
+      final JaccPermissionDeclarations jaccPermissions=cfg.getOrCreateJaccPermissions(jaxbCfg.getSecurity().getContext());
+      jaccPermissions.addPermissionDeclaration(new GrantedPermission(grant.getRole(),grant.getEntityName(),grant.getActions()));
+    }
+  }
+  if (!jaxbCfg.getSessionFactory().getListener().isEmpty()) {
+    for (    JaxbCfgEventListenerType listener : jaxbCfg.getSessionFactory().getListener()) {
+      final EventType eventType=EventType.resolveEventTypeByName(listener.getType().value());
+      cfg.addEventListener(eventType,listener.getClazz());
+    }
+  }
+  if (!jaxbCfg.getSessionFactory().getEvent().isEmpty()) {
+    for (    JaxbCfgEventListenerGroupType listenerGroup : jaxbCfg.getSessionFactory().getEvent()) {
+      if (listenerGroup.getListener().isEmpty()) {
+        continue;
+      }
+      final String eventTypeName=listenerGroup.getType().value();
+      final EventType eventType=EventType.resolveEventTypeByName(eventTypeName);
+      for (      JaxbCfgEventListenerType listener : listenerGroup.getListener()) {
+        if (listener.getType() != null) {
+          log.debugf("Listener [%s] defined as part of a group also defined event type",listener.getClazz());
+        }
+        cfg.addEventListener(eventType,listener.getClazz());
+      }
+    }
+  }
+  return cfg;
+}

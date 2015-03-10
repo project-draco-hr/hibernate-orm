@@ -1,15 +1,38 @@
 {
-  LOG.debugf("Preparing to build session factory with filters : %s",filterDefinitions);
-  buildTypeRegistrations(serviceRegistry);
-  secondPassCompile();
-  if (!metadataSourceQueue.isEmpty()) {
-    LOG.incompleteMappingMetadataCacheProcessing();
+  log.debug("Building session factory using provided StandardServiceRegistry");
+  final MetadataBuilder metadataBuilder=metadataSources.getMetadataBuilder((StandardServiceRegistry)serviceRegistry);
+  if (implicitNamingStrategy != null) {
+    metadataBuilder.with(implicitNamingStrategy);
   }
-  validate();
-  Environment.verifyProperties(properties);
-  Properties copy=new Properties();
-  copy.putAll(properties);
-  ConfigurationHelper.resolvePlaceHolders(copy);
-  Settings settings=buildSettings(copy,serviceRegistry);
-  return new SessionFactoryImpl(this,mapping,serviceRegistry,settings,sessionFactoryObserver);
+  if (physicalNamingStrategy != null) {
+    metadataBuilder.with(physicalNamingStrategy);
+  }
+  if (sharedCacheMode != null) {
+    metadataBuilder.with(sharedCacheMode);
+  }
+  if (!typeContributorRegistrations.isEmpty()) {
+    for (    TypeContributor typeContributor : typeContributorRegistrations) {
+      metadataBuilder.with(typeContributor);
+    }
+  }
+  if (!basicTypes.isEmpty()) {
+    for (    BasicType basicType : basicTypes) {
+      metadataBuilder.with(basicType);
+    }
+  }
+  final Metadata metadata=metadataBuilder.build();
+  final SessionFactoryBuilder sessionFactoryBuilder=metadata.getSessionFactoryBuilder();
+  if (interceptor != null && interceptor != EmptyInterceptor.INSTANCE) {
+    sessionFactoryBuilder.with(interceptor);
+  }
+  if (getSessionFactoryObserver() != null) {
+    sessionFactoryBuilder.add(getSessionFactoryObserver());
+  }
+  if (entityNotFoundDelegate != null) {
+    sessionFactoryBuilder.with(entityNotFoundDelegate);
+  }
+  if (entityTuplizerFactory != null) {
+    sessionFactoryBuilder.with(entityTuplizerFactory);
+  }
+  return sessionFactoryBuilder.build();
 }

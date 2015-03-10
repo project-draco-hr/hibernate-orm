@@ -1,0 +1,27 @@
+{
+  final VersionAttributeSource versionAttributeSource=hierarchySource.getVersionAttributeSource();
+  final SimpleValue versionValue=new SimpleValue(sourceDocument.getMetadataCollector(),rootEntityDescriptor.getTable());
+  bindSimpleValueType(sourceDocument,versionAttributeSource.getTypeInformation(),versionValue);
+  relationalObjectBinder.bindColumnsAndFormulas(sourceDocument,versionAttributeSource.getRelationalValueSources(),versionValue,false,new RelationalObjectBinder.ColumnNamingDelegate(){
+    @Override public Identifier determineImplicitName(    LocalMetadataBuildingContext context){
+      return implicitNamingStrategy.determineBasicColumnName(versionAttributeSource);
+    }
+  }
+);
+  Property prop=new Property();
+  prop.setValue(versionValue);
+  bindProperty(sourceDocument,versionAttributeSource,prop);
+  if (prop.getValueGenerationStrategy() != null) {
+    if (prop.getValueGenerationStrategy().getGenerationTiming() == GenerationTiming.INSERT) {
+      throw new MappingException("'generated' attribute cannot be 'insert' for version/timestamp property",sourceDocument.getOrigin());
+    }
+  }
+  if (versionAttributeSource.getUnsavedValue() != null) {
+    versionValue.setNullValue(versionAttributeSource.getUnsavedValue());
+  }
+ else {
+    versionValue.setNullValue("undefined");
+  }
+  rootEntityDescriptor.setVersion(prop);
+  rootEntityDescriptor.addProperty(prop);
+}

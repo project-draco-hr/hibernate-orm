@@ -1,0 +1,18 @@
+{
+  if (tableInformation == null) {
+    throw new SchemaManagementException(String.format("Schema-validation: missing table [%s]",table.getName()));
+  }
+  final Iterator selectableItr=table.getColumnIterator();
+  while (selectableItr.hasNext()) {
+    final Selectable selectable=(Selectable)selectableItr.next();
+    if (!Column.class.isInstance(selectable)) {
+      continue;
+    }
+    final Column column=(Column)selectable;
+    final ColumnInformation existingColumn=tableInformation.getColumn(Identifier.toIdentifier(column.getQuotedName()));
+    if (existingColumn == null) {
+      throw new SchemaManagementException(String.format("Schema-validation: missing column [%s] in table [%s]",column.getName(),table.getName()));
+    }
+    validateColumnType(table,column,existingColumn,metadata);
+  }
+}

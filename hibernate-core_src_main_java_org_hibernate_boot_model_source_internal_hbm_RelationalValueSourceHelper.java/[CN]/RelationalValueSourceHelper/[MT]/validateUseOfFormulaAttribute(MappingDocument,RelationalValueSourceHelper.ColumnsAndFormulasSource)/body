@@ -1,0 +1,22 @@
+{
+  if (StringHelper.isNotEmpty(columnsAndFormulasSource.getColumnAttribute())) {
+    final String errorMessage;
+    if (columnsAndFormulasSource.getSourceType().canBeNamed() && StringHelper.isNotEmpty(columnsAndFormulasSource.getSourceName())) {
+      errorMessage=String.format(Locale.ENGLISH,"column attribute and formula attribute may not be specified together near <%s name=\"%s\" column=\"%s\" formula=\"%s\" />",columnsAndFormulasSource.getSourceType().getElementName(),columnsAndFormulasSource.getSourceName(),columnsAndFormulasSource.getColumnAttribute(),columnsAndFormulasSource.getFormulaAttribute());
+    }
+ else {
+      errorMessage=String.format(Locale.ENGLISH,"column attribute and formula attribute may not be specified together near <%s column=\"%s\" formula=\"%s\" />",columnsAndFormulasSource.getSourceType().getElementName(),columnsAndFormulasSource.getColumnAttribute(),columnsAndFormulasSource.getFormulaAttribute());
+    }
+    throw new MappingException(errorMessage,sourceDocument.getOrigin());
+  }
+  if (CollectionHelper.isNotEmpty(columnsAndFormulasSource.getColumnOrFormulaElements())) {
+    final String errorMessage;
+    if (columnsAndFormulasSource.getSourceType().canBeNamed() && StringHelper.isNotEmpty(columnsAndFormulasSource.getSourceName())) {
+      errorMessage=String.format(Locale.ENGLISH,"formula attribute may not be specified along with <column/> or <formula/> subelement(s) near <%s name=\"%s\" formula=\"%s\" />",columnsAndFormulasSource.getSourceType().getElementName(),columnsAndFormulasSource.getSourceName(),columnsAndFormulasSource.getFormulaAttribute());
+    }
+ else {
+      errorMessage=String.format(Locale.ENGLISH,"formula attribute may not be specified along with <column/> or <formula/> subelement(s) near <%s formula=\"%s\" />",columnsAndFormulasSource.getSourceType().getElementName(),columnsAndFormulasSource.getFormulaAttribute());
+    }
+    throw new MappingException(errorMessage,sourceDocument.getOrigin());
+  }
+}

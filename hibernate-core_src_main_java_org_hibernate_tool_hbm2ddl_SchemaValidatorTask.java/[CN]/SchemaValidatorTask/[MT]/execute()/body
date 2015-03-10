@@ -1,7 +1,19 @@
 {
   try {
-    Configuration cfg=getConfiguration();
-    getSchemaValidator(cfg).validate();
+    final StandardServiceRegistryBuilder ssrBuilder=new StandardServiceRegistryBuilder();
+    configure(ssrBuilder);
+    final StandardServiceRegistry ssr=ssrBuilder.build();
+    try {
+      final MetadataSources metadataSources=new MetadataSources(ssrBuilder.build());
+      configure(metadataSources);
+      final MetadataBuilder metadataBuilder=metadataSources.getMetadataBuilder();
+      configure(metadataBuilder,ssr);
+      final MetadataImplementor metadata=(MetadataImplementor)metadataBuilder.build();
+      new SchemaValidator(ssr,metadata).validate();
+    }
+  finally {
+      StandardServiceRegistryBuilder.destroy(ssr);
+    }
   }
  catch (  HibernateException e) {
     throw new BuildException("Schema text failed: " + e.getMessage(),e);
@@ -11,6 +23,9 @@ catch (  FileNotFoundException e) {
   }
 catch (  IOException e) {
     throw new BuildException("IOException : " + e.getMessage(),e);
+  }
+catch (  BuildException e) {
+    throw e;
   }
 catch (  Exception e) {
     throw new BuildException(e);

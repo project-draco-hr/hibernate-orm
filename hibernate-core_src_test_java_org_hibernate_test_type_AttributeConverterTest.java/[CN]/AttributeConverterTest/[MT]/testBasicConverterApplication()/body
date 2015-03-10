@@ -1,10 +1,8 @@
 {
-  Configuration cfg=new Configuration();
-  cfg.addAttributeConverter(StringClobConverter.class,true);
-  cfg.addAnnotatedClass(Tester.class);
-  cfg.buildMappings();
-{
-    PersistentClass tester=cfg.getClassMapping(Tester.class.getName());
+  final StandardServiceRegistry ssr=new StandardServiceRegistryBuilder().build();
+  try {
+    MetadataImplementor metadata=(MetadataImplementor)new MetadataSources(ssr).addAnnotatedClass(Tester.class).addAttributeConverter(StringClobConverter.class,true).getMetadataBuilder().build();
+    PersistentClass tester=metadata.getEntityBinding(Tester.class.getName());
     Property nameProp=tester.getProperty("name");
     SimpleValue nameValue=(SimpleValue)nameProp.getValue();
     Type type=nameValue.getType();
@@ -16,5 +14,8 @@
     AbstractStandardBasicType basicType=assertTyping(AbstractStandardBasicType.class,type);
     assertSame(StringTypeDescriptor.INSTANCE,basicType.getJavaTypeDescriptor());
     assertEquals(Types.CLOB,basicType.getSqlTypeDescriptor().getSqlType());
+  }
+  finally {
+    StandardServiceRegistryBuilder.destroy(ssr);
   }
 }

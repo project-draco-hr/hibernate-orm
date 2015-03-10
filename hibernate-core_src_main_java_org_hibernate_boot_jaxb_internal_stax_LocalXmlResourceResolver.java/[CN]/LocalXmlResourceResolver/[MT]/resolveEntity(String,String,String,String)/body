@@ -1,0 +1,52 @@
+{
+  log.tracef("In resolveEntity(%s, %s, %s, %s)",publicID,systemID,baseURI,namespace);
+  if (namespace != null) {
+    log.debugf("Interpreting namespace : %s",namespace);
+    if (INITIAL_JPA_XSD_MAPPING.matches(namespace)) {
+      return openUrlStream(INITIAL_JPA_XSD_MAPPING.getMappedLocalUrl());
+    }
+ else     if (JPA_XSD_MAPPING.matches(namespace)) {
+      return openUrlStream(JPA_XSD_MAPPING.getMappedLocalUrl());
+    }
+ else     if (HBM_XSD_MAPPING.matches(namespace)) {
+      return openUrlStream(HBM_XSD_MAPPING.getMappedLocalUrl());
+    }
+ else     if (HBM_XSD_MAPPING2.matches(namespace)) {
+      return openUrlStream(HBM_XSD_MAPPING2.getMappedLocalUrl());
+    }
+ else     if (CFG_XSD_MAPPING.matches(namespace)) {
+      return openUrlStream(CFG_XSD_MAPPING.getMappedLocalUrl());
+    }
+  }
+  if (publicID != null || systemID != null) {
+    log.debugf("Interpreting public/system identifier : [%s] - [%s]",publicID,systemID);
+    if (HBM_DTD_MAPPING.matches(publicID,systemID)) {
+      log.debug("Recognized hibernate-mapping identifier; attempting to resolve on classpath under org/hibernate/");
+      return openUrlStream(HBM_DTD_MAPPING.getMappedLocalUrl());
+    }
+ else     if (LEGACY_HBM_DTD_MAPPING.matches(publicID,systemID)) {
+      log.recognizedObsoleteHibernateNamespace(LEGACY_HBM_DTD_MAPPING.getIdentifierBase(),HBM_DTD_MAPPING.getIdentifierBase());
+      log.debug("Recognized legacy hibernate-mapping identifier; attempting to resolve on classpath under org/hibernate/");
+      return openUrlStream(LEGACY_HBM_DTD_MAPPING.getMappedLocalUrl());
+    }
+ else     if (CFG_DTD_MAPPING.matches(publicID,systemID)) {
+      log.debug("Recognized hibernate-configuration identifier; attempting to resolve on classpath under org/hibernate/");
+      return openUrlStream(CFG_DTD_MAPPING.getMappedLocalUrl());
+    }
+  }
+  if (systemID != null) {
+    if (systemID.startsWith(CLASSPATH_EXTENSION_URL_BASE)) {
+      log.debugf("Recognized `classpath:` identifier; attempting to resolve on classpath [%s]",systemID);
+      final String path=systemID.substring(CLASSPATH_EXTENSION_URL_BASE.length());
+      final InputStream stream=resolveInLocalNamespace(path);
+      if (stream == null) {
+        log.debugf("Unable to resolve [%s] on classpath",systemID);
+      }
+ else {
+        log.debugf("Resolved [%s] on classpath",systemID);
+      }
+      return stream;
+    }
+  }
+  return null;
+}

@@ -1,0 +1,13 @@
+{
+  UniqueKeyConstraintSourceImpl constraintSource=(UniqueKeyConstraintSourceImpl)constraintMap.get(constraintName);
+  if (constraintSource == null) {
+    constraintSource=new UniqueKeyConstraintSourceImpl(constraintName,logicalTableName);
+    constraintMap.put(constraintName,constraintSource);
+  }
+ else {
+    if (!EqualsHelper.equals(constraintSource.getTableName(),logicalTableName)) {
+      throw new MappingException(String.format(Locale.ENGLISH,"Named relational unique-key [%s] referenced more than one table [%s, %s]",constraintName,constraintSource.getTableName() == null ? "null(implicit)" : constraintSource.getTableName(),logicalTableName == null ? "null(implicit)" : logicalTableName),origin());
+    }
+  }
+  return constraintSource;
+}

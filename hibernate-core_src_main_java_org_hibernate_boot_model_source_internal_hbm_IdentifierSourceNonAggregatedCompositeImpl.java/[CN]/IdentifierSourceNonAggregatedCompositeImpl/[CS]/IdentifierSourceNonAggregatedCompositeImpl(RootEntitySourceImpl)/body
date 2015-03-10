@@ -1,0 +1,22 @@
+{
+  this.rootEntitySource=rootEntitySource;
+  this.attributePathBase=rootEntitySource.getAttributePathBase().append("<id>");
+  this.attributeRoleBase=rootEntitySource.getAttributeRoleBase().append("<id>");
+  this.generatorDefinition=EntityHierarchySourceImpl.interpretGeneratorDefinition(rootEntitySource.sourceMappingDocument(),rootEntitySource.getEntityNamingSource(),rootEntitySource.jaxbEntityMapping().getCompositeId().getGenerator());
+  this.attributeSources=new ArrayList();
+  AttributesHelper.processCompositeKeySubAttributes(rootEntitySource.sourceMappingDocument(),new AttributesHelper.Callback(){
+    @Override public AttributeSourceContainer getAttributeSourceContainer(){
+      return IdentifierSourceNonAggregatedCompositeImpl.this;
+    }
+    @Override @SuppressWarnings("unchecked") public void addAttributeSource(    AttributeSource attributeSource){
+      attributeSources.add(attributeSource);
+    }
+    @Override public void registerIndexColumn(    String constraintName,    String logicalTableName,    String columnName){
+    }
+    @Override public void registerUniqueKeyColumn(    String constraintName,    String logicalTableName,    String columnName){
+    }
+  }
+,rootEntitySource.jaxbEntityMapping().getCompositeId().getKeyPropertyOrKeyManyToOne());
+  this.idClassSource=interpretIdClass(rootEntitySource.sourceMappingDocument(),rootEntitySource.jaxbEntityMapping().getCompositeId());
+  this.toolingHintContext=Helper.collectToolingHints(rootEntitySource.getToolingHintContext(),rootEntitySource.jaxbEntityMapping().getCompositeId());
+}

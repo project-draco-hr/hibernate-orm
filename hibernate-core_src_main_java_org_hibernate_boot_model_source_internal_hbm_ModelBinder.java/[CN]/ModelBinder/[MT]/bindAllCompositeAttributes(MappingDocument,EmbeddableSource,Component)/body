@@ -1,0 +1,27 @@
+{
+  for (  AttributeSource attributeSource : embeddableSource.attributeSources()) {
+    Property attribute=null;
+    if (SingularAttributeSourceBasic.class.isInstance(attributeSource)) {
+      attribute=createBasicAttribute(sourceDocument,(SingularAttributeSourceBasic)attributeSource,new SimpleValue(sourceDocument.getMetadataCollector(),component.getTable()),component.getComponentClassName());
+    }
+ else     if (SingularAttributeSourceEmbedded.class.isInstance(attributeSource)) {
+      attribute=createEmbeddedAttribute(sourceDocument,(SingularAttributeSourceEmbedded)attributeSource,new Component(sourceDocument.getMetadataCollector(),component),component.getComponentClassName());
+    }
+ else     if (SingularAttributeSourceManyToOne.class.isInstance(attributeSource)) {
+      attribute=createManyToOneAttribute(sourceDocument,(SingularAttributeSourceManyToOne)attributeSource,new ManyToOne(sourceDocument.getMetadataCollector(),component.getTable()),component.getComponentClassName());
+    }
+ else     if (SingularAttributeSourceOneToOne.class.isInstance(attributeSource)) {
+      attribute=createOneToOneAttribute(sourceDocument,(SingularAttributeSourceOneToOne)attributeSource,new OneToOne(sourceDocument.getMetadataCollector(),component.getTable(),component.getOwner()),component.getComponentClassName());
+    }
+ else     if (SingularAttributeSourceAny.class.isInstance(attributeSource)) {
+      attribute=createAnyAssociationAttribute(sourceDocument,(SingularAttributeSourceAny)attributeSource,new Any(sourceDocument.getMetadataCollector(),component.getTable()),component.getComponentClassName());
+    }
+ else     if (PluralAttributeSource.class.isInstance(attributeSource)) {
+      attribute=createPluralAttribute(sourceDocument,(PluralAttributeSource)attributeSource,component.getOwner());
+    }
+ else {
+      throw new AssertionFailure(String.format(Locale.ENGLISH,"Unexpected AttributeSource sub-type [%s] as part of composite [%s]",attributeSource.getClass().getName(),attributeSource.getAttributeRole().getFullPath()));
+    }
+    component.addProperty(attribute);
+  }
+}

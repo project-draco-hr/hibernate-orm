@@ -1,0 +1,13 @@
+{
+  try {
+    BinderHelper.createSyntheticPropertyReference(joinColumns,collValue.getOwner(),collectionEntity,collValue,false,buildingContext);
+  }
+ catch (  AnnotationException ex) {
+    throw new AnnotationException("Unable to map collection " + collectionEntity.getClassName() + "."+ property.getName(),ex);
+  }
+  SimpleValue key=buildCollectionKey(collValue,joinColumns,cascadeDeleteEnabled,property,buildingContext);
+  if (property.isAnnotationPresent(ElementCollection.class) && joinColumns.length > 0) {
+    joinColumns[0].setJPA2ElementCollection(true);
+  }
+  TableBinder.bindFk(collValue.getOwner(),collectionEntity,joinColumns,key,false,buildingContext);
+}

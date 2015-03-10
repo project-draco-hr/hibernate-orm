@@ -1,0 +1,40 @@
+{
+  final TypeResolution keyTypeResolution=resolveType(sourceDocument,anyMapping.getKeySource().getTypeSource());
+  if (keyTypeResolution != null) {
+    anyBinding.setIdentifierType(keyTypeResolution.typeName);
+  }
+  final TypeResolution discriminatorTypeResolution=resolveType(sourceDocument,anyMapping.getDiscriminatorSource().getTypeSource());
+  if (discriminatorTypeResolution != null) {
+    anyBinding.setMetaType(discriminatorTypeResolution.typeName);
+    try {
+      final DiscriminatorType metaType=(DiscriminatorType)sourceDocument.getMetadataCollector().getTypeResolver().heuristicType(discriminatorTypeResolution.typeName);
+      final HashMap anyValueBindingMap=new HashMap();
+      for (      Map.Entry<String,String> discriminatorValueMappings : anyMapping.getDiscriminatorSource().getValueMappings().entrySet()) {
+        try {
+          final Object discriminatorValue=metaType.stringToObject(discriminatorValueMappings.getKey());
+          final String mappedEntityName=sourceDocument.qualifyClassName(discriminatorValueMappings.getValue());
+          anyValueBindingMap.put(discriminatorValue,mappedEntityName);
+        }
+ catch (        Exception e) {
+          throw new MappingException(String.format(Locale.ENGLISH,"Unable to interpret <meta-value value=\"%s\" class=\"%s\"/> defined as part of <any/> attribute [%s]",discriminatorValueMappings.getKey(),discriminatorValueMappings.getValue(),attributeRole.getFullPath()),e,sourceDocument.getOrigin());
+        }
+      }
+      anyBinding.setMetaValues(anyValueBindingMap);
+    }
+ catch (    ClassCastException e) {
+      throw new MappingException(String.format(Locale.ENGLISH,"Specified meta-type [%s] for <any/> attribute [%s] did not implement DiscriminatorType",discriminatorTypeResolution.typeName,attributeRole.getFullPath()),e,sourceDocument.getOrigin());
+    }
+  }
+  relationalObjectBinder.bindColumnOrFormula(sourceDocument,anyMapping.getDiscriminatorSource().getRelationalValueSource(),anyBinding,true,new RelationalObjectBinder.ColumnNamingDelegate(){
+    @Override public Identifier determineImplicitName(    LocalMetadataBuildingContext context){
+      return implicitNamingStrategy.determineAnyDiscriminatorColumnName(anyMapping.getDiscriminatorSource());
+    }
+  }
+);
+  relationalObjectBinder.bindColumnsAndFormulas(sourceDocument,anyMapping.getKeySource().getRelationalValueSources(),anyBinding,true,new RelationalObjectBinder.ColumnNamingDelegate(){
+    @Override public Identifier determineImplicitName(    LocalMetadataBuildingContext context){
+      return implicitNamingStrategy.determineAnyKeyColumnName(anyMapping.getKeySource());
+    }
+  }
+);
+}

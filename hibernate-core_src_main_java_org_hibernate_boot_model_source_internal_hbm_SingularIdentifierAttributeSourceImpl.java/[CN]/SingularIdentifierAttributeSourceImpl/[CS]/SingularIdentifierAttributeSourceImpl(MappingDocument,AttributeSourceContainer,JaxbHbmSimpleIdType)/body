@@ -1,0 +1,37 @@
+{
+  super(mappingDocument);
+  if (StringHelper.isEmpty(idElement.getName())) {
+    DeprecationLogger.DEPRECATION_LOGGER.logDeprecationOfNonNamedIdAttribute(container.getAttributeRoleBase().getFullPath());
+    name=null;
+  }
+ else {
+    name=idElement.getName();
+  }
+  this.xmlNodeName=idElement.getNode();
+  this.accessName=idElement.getAccess();
+  this.typeSource=new HibernateTypeSourceImpl(idElement);
+  this.valueSources=RelationalValueSourceHelper.buildValueSources(sourceMappingDocument(),null,new RelationalValueSourceHelper.AbstractColumnsAndFormulasSource(){
+    @Override public XmlElementMetadata getSourceType(){
+      return XmlElementMetadata.ID;
+    }
+    @Override public String getSourceName(){
+      return idElement.getName();
+    }
+    @Override public String getColumnAttribute(){
+      return idElement.getColumnAttribute();
+    }
+    @Override public List getColumnOrFormulaElements(){
+      return idElement.getColumn();
+    }
+    @Override public SizeSource getSizeSource(){
+      return Helper.interpretSizeSource(idElement.getLength(),(Integer)null,null);
+    }
+    @Override public Boolean isNullable(){
+      return false;
+    }
+  }
+);
+  this.attributeRole=container.getAttributeRoleBase().append(name);
+  this.attributePath=container.getAttributePathBase().append(name);
+  this.toolingHintContext=Helper.collectToolingHints(container.getToolingHintContext(),idElement);
+}

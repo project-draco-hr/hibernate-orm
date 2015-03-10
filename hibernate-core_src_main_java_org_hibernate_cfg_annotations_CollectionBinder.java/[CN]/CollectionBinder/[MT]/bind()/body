@@ -9,13 +9,13 @@
     throw new AnnotationException("Cannot mix @javax.persistence.MapKey and @MapKeyColumn or @org.hibernate.annotations.MapKey " + "on the same collection: " + StringHelper.qualify(propertyHolder.getPath(),propertyName));
   }
   if (explicitType != null) {
-    final TypeDef typeDef=mappings.getTypeDef(explicitType);
+    final TypeDefinition typeDef=buildingContext.getMetadataCollector().getTypeDefinition(explicitType);
     if (typeDef == null) {
       collection.setTypeName(explicitType);
       collection.setTypeParameters(explicitTypeParameters);
     }
  else {
-      collection.setTypeName(typeDef.getTypeClass());
+      collection.setTypeName(typeDef.getTypeImplementorClass().getName());
       collection.setTypeParameters(typeDef.getParameters());
     }
   }
@@ -62,18 +62,18 @@
   }
   collection.setInverse(isMappedBy);
   if (!oneToMany && isMappedBy) {
-    mappings.addMappedBy(getCollectionType().getName(),mappedBy,propertyName);
+    buildingContext.getMetadataCollector().addMappedBy(getCollectionType().getName(),mappedBy,propertyName);
   }
   XClass collectionType=getCollectionType();
   if (inheritanceStatePerClass == null)   throw new AssertionFailure("inheritanceStatePerClass not set");
-  SecondPass sp=getSecondPass(fkJoinColumns,joinColumns,inverseJoinColumns,elementColumns,mapKeyColumns,mapKeyManyToManyColumns,isEmbedded,property,collectionType,ignoreNotFound,oneToMany,tableBinder,mappings);
+  SecondPass sp=getSecondPass(fkJoinColumns,joinColumns,inverseJoinColumns,elementColumns,mapKeyColumns,mapKeyManyToManyColumns,isEmbedded,property,collectionType,ignoreNotFound,oneToMany,tableBinder,buildingContext);
   if (collectionType.isAnnotationPresent(Embeddable.class) || property.isAnnotationPresent(ElementCollection.class)) {
-    mappings.addSecondPass(sp,!isMappedBy);
+    buildingContext.getMetadataCollector().addSecondPass(sp,!isMappedBy);
   }
  else {
-    mappings.addSecondPass(sp,!isMappedBy);
+    buildingContext.getMetadataCollector().addSecondPass(sp,!isMappedBy);
   }
-  mappings.addCollection(collection);
+  buildingContext.getMetadataCollector().addCollectionBinding(collection);
   PropertyBinder binder=new PropertyBinder();
   binder.setName(propertyName);
   binder.setValue(collection);

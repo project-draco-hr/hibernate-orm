@@ -1,0 +1,22 @@
+{
+  final IdentifierSourceNonAggregatedComposite identifierSource=(IdentifierSourceNonAggregatedComposite)hierarchySource.getIdentifierSource();
+  final Component cid=new Component(mappingDocument.getMetadataCollector(),rootEntityDescriptor);
+  cid.setKey(true);
+  rootEntityDescriptor.setIdentifier(cid);
+  final String idClassName=extractIdClassName(identifierSource);
+  bindComponent(mappingDocument,hierarchySource.getRoot().getAttributeRoleBase().append("<id>").getFullPath(),identifierSource.getEmbeddableSource(),cid,idClassName,rootEntityDescriptor.getClassName(),null,idClassName == null,false,null);
+  if (idClassName != null) {
+    final Component mapper=new Component(mappingDocument.getMetadataCollector(),rootEntityDescriptor);
+    bindComponent(mappingDocument,hierarchySource.getRoot().getAttributeRoleBase().append(ID_MAPPER_PATH_PART).getFullPath(),identifierSource.getEmbeddableSource(),mapper,rootEntityDescriptor.getClassName(),null,null,true,false,null);
+    rootEntityDescriptor.setIdentifierMapper(mapper);
+    Property property=new Property();
+    property.setName(PropertyPath.IDENTIFIER_MAPPER_PROPERTY);
+    property.setNodeName("id");
+    property.setUpdateable(false);
+    property.setInsertable(false);
+    property.setValue(mapper);
+    property.setPropertyAccessorName("embedded");
+    rootEntityDescriptor.addProperty(property);
+  }
+  finishBindingCompositeIdentifier(mappingDocument,rootEntityDescriptor,identifierSource,cid,null);
+}

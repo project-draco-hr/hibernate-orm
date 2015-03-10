@@ -1,14 +1,5 @@
 {
-  Environment.verifyProperties(properties);
-  ConfigurationHelper.resolvePlaceHolders(properties);
-  final ServiceRegistry serviceRegistry=new StandardServiceRegistryBuilder().applySettings(properties).build();
-  setSessionFactoryObserver(new SessionFactoryObserver(){
-    @Override public void sessionFactoryCreated(    SessionFactory factory){
-    }
-    @Override public void sessionFactoryClosed(    SessionFactory factory){
-      ((StandardServiceRegistryImpl)serviceRegistry).destroy();
-    }
-  }
-);
-  return buildSessionFactory(serviceRegistry);
+  log.debug("Building session factory using internal StandardServiceRegistryBuilder");
+  standardServiceRegistryBuilder.applySettings(properties);
+  return buildSessionFactory(standardServiceRegistryBuilder.build());
 }

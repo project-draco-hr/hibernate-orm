@@ -1,29 +1,13 @@
 {
   LOG.runningSchemaValidator();
-  Connection connection=null;
+  final ConfigurationService cfgService=serviceRegistry.getService(ConfigurationService.class);
+  final JdbcServices jdbcServices=serviceRegistry.getService(JdbcServices.class);
+  final DatabaseInformation databaseInformation;
   try {
-    DatabaseMetadata meta;
-    try {
-      LOG.fetchingDatabaseMetadata();
-      connectionHelper.prepare(false);
-      connection=connectionHelper.getConnection();
-      meta=new DatabaseMetadata(connection,dialect,configuration,false);
-    }
- catch (    SQLException sqle) {
-      LOG.unableToGetDatabaseMetadata(sqle);
-      throw sqle;
-    }
-    configuration.validateSchema(dialect,meta);
+    databaseInformation=new DatabaseInformationImpl(serviceRegistry,serviceRegistry.getService(JdbcEnvironment.class),jdbcConnectionAccess,metadata.getDatabase().getDefaultSchema().getPhysicalName().getCatalog(),metadata.getDatabase().getDefaultSchema().getPhysicalName().getSchema());
   }
  catch (  SQLException e) {
-    LOG.unableToCompleteSchemaValidation(e);
+    throw jdbcServices.getSqlExceptionHelper().convert(e,"Error creating DatabaseInformation for schema validation");
   }
- finally {
-    try {
-      connectionHelper.release();
-    }
- catch (    Exception e) {
-      LOG.unableToCloseConnection(e);
-    }
-  }
+  serviceRegistry.getService(SchemaManagementTool.class).getSchemaValidator(cfgService.getSettings()).doValidation(metadata,databaseInformation);
 }

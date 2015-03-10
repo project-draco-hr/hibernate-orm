@@ -1,0 +1,17 @@
+{
+  super(mappingDocument,naturalIdMutability);
+  this.manyToOneElement=manyToOneElement;
+  this.referencedTypeName=manyToOneElement.getClazz() != null ? mappingDocument.qualifyClassName(manyToOneElement.getClazz()) : manyToOneElement.getEntityName();
+  final JavaTypeDescriptor referencedTypeDescriptor=new JavaTypeDescriptor(){
+    @Override public String getName(){
+      return referencedTypeName;
+    }
+  }
+;
+  this.typeSource=new HibernateTypeSourceImpl(referencedTypeDescriptor);
+  this.relationalValueSources=RelationalValueSourceHelper.buildValueSources(mappingDocument,logicalTableName,new ManyToOneAttributeColumnsAndFormulasSource(manyToOneElement));
+  this.attributeRole=container.getAttributeRoleBase().append(manyToOneElement.getName());
+  this.attributePath=container.getAttributePathBase().append(manyToOneElement.getName());
+  this.fetchCharacteristics=FetchCharacteristicsSingularAssociationImpl.interpretManyToOne(mappingDocument.getMappingDefaults(),manyToOneElement.getFetch(),manyToOneElement.getOuterJoin(),manyToOneElement.getLazy());
+  this.toolingHintContext=Helper.collectToolingHints(container.getToolingHintContext(),manyToOneElement);
+}

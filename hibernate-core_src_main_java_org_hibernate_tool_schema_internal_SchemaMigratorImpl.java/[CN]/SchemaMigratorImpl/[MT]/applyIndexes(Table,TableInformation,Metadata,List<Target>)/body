@@ -1,0 +1,15 @@
+{
+  final Exporter<Index> exporter=metadata.getDatabase().getJdbcEnvironment().getDialect().getIndexExporter();
+  final Iterator<Index> indexItr=table.getIndexIterator();
+  while (indexItr.hasNext()) {
+    final Index index=indexItr.next();
+    if (StringHelper.isEmpty(index.getName())) {
+      continue;
+    }
+    final IndexInformation existingIndex=findMatchingIndex(index,tableInformation);
+    if (existingIndex != null) {
+      continue;
+    }
+    applySqlStrings(exporter.getSqlCreateStrings(index,metadata),targets,false);
+  }
+}

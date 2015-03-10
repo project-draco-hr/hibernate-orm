@@ -1,0 +1,39 @@
+{
+  Builder builder=new Builder(mappingDefaults);
+  if (fetch == null) {
+    if (outerJoin == null) {
+    }
+ else {
+      if (outerJoin == JaxbHbmOuterJoinEnum.TRUE) {
+        builder.setFetchStyle(FetchStyle.JOIN);
+      }
+    }
+  }
+ else {
+    if (fetch == JaxbHbmFetchStyleWithSubselectEnum.SUBSELECT) {
+      builder.setFetchStyle(FetchStyle.SUBSELECT);
+    }
+ else     if (fetch == JaxbHbmFetchStyleWithSubselectEnum.JOIN) {
+      builder.setFetchStyle(FetchStyle.JOIN);
+    }
+  }
+  if (lazy != null) {
+    if (lazy == JaxbHbmLazyWithExtraEnum.TRUE) {
+      builder.setFetchTiming(FetchTiming.DELAYED);
+    }
+ else     if (lazy == JaxbHbmLazyWithExtraEnum.FALSE) {
+      builder.setFetchTiming(FetchTiming.IMMEDIATE);
+    }
+ else     if (lazy == JaxbHbmLazyWithExtraEnum.EXTRA) {
+      builder.setFetchTiming(FetchTiming.DELAYED);
+      builder.setExtraLazy(true);
+    }
+  }
+  builder.setBatchSize(batchSize);
+  if (batchSize > 0) {
+    if (builder.fetchStyle == FetchStyle.JOIN || builder.fetchStyle == FetchStyle.SELECT) {
+      builder.setFetchStyle(FetchStyle.BATCH);
+    }
+  }
+  return builder.createPluralAttributeFetchCharacteristics();
+}

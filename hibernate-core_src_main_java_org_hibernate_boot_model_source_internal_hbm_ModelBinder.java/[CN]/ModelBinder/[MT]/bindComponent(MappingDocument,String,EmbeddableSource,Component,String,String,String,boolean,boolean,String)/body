@@ -1,0 +1,80 @@
+{
+  componentBinding.setMetaAttributes(embeddableSource.getToolingHintContext().getMetaAttributeMap());
+  componentBinding.setRoleName(role);
+  componentBinding.setEmbedded(isVirtual);
+  if (isDynamic) {
+    log.debugf("Binding dynamic-component [%s]",role);
+    componentBinding.setDynamic(true);
+  }
+ else   if (isVirtual) {
+    if (componentBinding.getOwner().hasPojoRepresentation()) {
+      log.debugf("Binding virtual component [%s] to owner class [%s]",role,componentBinding.getOwner().getClassName());
+      componentBinding.setComponentClassName(componentBinding.getOwner().getClassName());
+    }
+ else {
+      log.debugf("Binding virtual component [%s] as dynamic",role);
+      componentBinding.setDynamic(true);
+    }
+  }
+ else {
+    log.debugf("Binding component [%s]",role);
+    if (StringHelper.isNotEmpty(explicitComponentClassName)) {
+      log.debugf("Binding component [%s] to explicitly specified class",role,explicitComponentClassName);
+      componentBinding.setComponentClassName(explicitComponentClassName);
+    }
+ else     if (componentBinding.getOwner().hasPojoRepresentation()) {
+      log.tracef("Attempting to determine component class by reflection %s",role);
+      final Class reflectedComponentClass;
+      if (StringHelper.isNotEmpty(containingClassName) && StringHelper.isNotEmpty(propertyName)) {
+        reflectedComponentClass=Helper.reflectedPropertyClass(sourceDocument,containingClassName,propertyName);
+      }
+ else {
+        reflectedComponentClass=null;
+      }
+      if (reflectedComponentClass == null) {
+        log.debugf("Unable to determine component class name via reflection, and explicit " + "class name not given; role=[%s]",role);
+      }
+ else {
+        componentBinding.setComponentClassName(reflectedComponentClass.getName());
+      }
+    }
+ else {
+      componentBinding.setDynamic(true);
+    }
+  }
+  String nodeName=xmlNodeName;
+  if (StringHelper.isNotEmpty(nodeName)) {
+    DeprecationLogger.DEPRECATION_LOGGER.logDeprecationOfDomEntityModeSupport();
+  }
+ else {
+    nodeName=propertyName;
+  }
+  if (nodeName == null) {
+    nodeName=componentBinding.getOwner().getNodeName();
+  }
+  componentBinding.setNodeName(nodeName);
+  bindAllCompositeAttributes(sourceDocument,embeddableSource,componentBinding);
+  if (embeddableSource.getParentReferenceAttributeName() != null) {
+    componentBinding.setParentProperty(embeddableSource.getParentReferenceAttributeName());
+  }
+  if (embeddableSource.isUnique()) {
+    final ArrayList<Column> cols=new ArrayList<Column>();
+    final Iterator itr=componentBinding.getColumnIterator();
+    while (itr.hasNext()) {
+      final Object selectable=itr.next();
+      if (!Column.class.isInstance(selectable)) {
+        continue;
+      }
+      cols.add((Column)selectable);
+    }
+    componentBinding.getOwner().getTable().createUniqueKey(cols);
+  }
+  if (embeddableSource.getTuplizerClassMap() != null) {
+    if (embeddableSource.getTuplizerClassMap().size() > 1) {
+      DeprecationLogger.DEPRECATION_LOGGER.logDeprecationOfMultipleEntityModeSupport();
+    }
+    for (    Map.Entry<EntityMode,String> tuplizerEntry : embeddableSource.getTuplizerClassMap().entrySet()) {
+      componentBinding.addTuplizer(tuplizerEntry.getKey(),tuplizerEntry.getValue());
+    }
+  }
+}

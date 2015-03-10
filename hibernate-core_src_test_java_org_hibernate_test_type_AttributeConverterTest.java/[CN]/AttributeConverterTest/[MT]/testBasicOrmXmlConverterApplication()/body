@@ -1,10 +1,8 @@
 {
-  Configuration cfg=new Configuration();
-  cfg.addAnnotatedClass(Tester.class);
-  cfg.addURL(ConfigHelper.findAsResource("org/hibernate/test/type/orm.xml"));
-  cfg.buildMappings();
-{
-    PersistentClass tester=cfg.getClassMapping(Tester.class.getName());
+  final StandardServiceRegistry ssr=new StandardServiceRegistryBuilder().build();
+  try {
+    MetadataImplementor metadata=(MetadataImplementor)new MetadataSources(ssr).addAnnotatedClass(Tester.class).addURL(ConfigHelper.findAsResource("org/hibernate/test/type/orm.xml")).getMetadataBuilder().build();
+    PersistentClass tester=metadata.getEntityBinding(Tester.class.getName());
     Property nameProp=tester.getProperty("name");
     SimpleValue nameValue=(SimpleValue)nameProp.getValue();
     Type type=nameValue.getType();
@@ -15,5 +13,8 @@
     AttributeConverterTypeAdapter basicType=assertTyping(AttributeConverterTypeAdapter.class,type);
     assertSame(StringTypeDescriptor.INSTANCE,basicType.getJavaTypeDescriptor());
     assertEquals(Types.CLOB,basicType.getSqlTypeDescriptor().getSqlType());
+  }
+  finally {
+    StandardServiceRegistryBuilder.destroy(ssr);
   }
 }

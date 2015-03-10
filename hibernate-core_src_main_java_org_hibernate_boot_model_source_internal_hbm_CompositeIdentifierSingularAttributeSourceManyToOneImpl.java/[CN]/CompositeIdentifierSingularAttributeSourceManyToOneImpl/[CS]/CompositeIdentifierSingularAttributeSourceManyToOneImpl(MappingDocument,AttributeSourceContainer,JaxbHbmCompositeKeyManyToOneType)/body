@@ -1,0 +1,31 @@
+{
+  super(mappingDocument,NaturalIdMutability.NOT_NATURAL_ID);
+  this.keyManyToOneElement=keyManyToOneElement;
+  this.referencedEntityName=keyManyToOneElement.getClazz() != null ? mappingDocument.qualifyClassName(keyManyToOneElement.getClazz()) : keyManyToOneElement.getEntityName();
+  final JavaTypeDescriptor referencedTypeDescriptor=new JavaTypeDescriptor(){
+    @Override public String getName(){
+      return referencedEntityName;
+    }
+  }
+;
+  this.typeSource=new HibernateTypeSourceImpl(referencedTypeDescriptor);
+  this.valueSources=RelationalValueSourceHelper.buildValueSources(mappingDocument,null,new RelationalValueSourceHelper.AbstractColumnsAndFormulasSource(){
+    @Override public XmlElementMetadata getSourceType(){
+      return XmlElementMetadata.KEY_MANY_TO_ONE;
+    }
+    @Override public String getSourceName(){
+      return keyManyToOneElement.getName();
+    }
+    @Override public String getColumnAttribute(){
+      return keyManyToOneElement.getColumnAttribute();
+    }
+    @Override public List getColumnOrFormulaElements(){
+      return keyManyToOneElement.getColumn();
+    }
+  }
+);
+  this.attributePath=container.getAttributePathBase().append(getName());
+  this.attributeRole=container.getAttributeRoleBase().append(getName());
+  this.fetchCharacteristics=FetchCharacteristicsSingularAssociationImpl.interpretManyToOne(mappingDocument.getMappingDefaults(),null,null,interpretLazy(mappingDocument,keyManyToOneElement));
+  this.toolingHintContext=Helper.collectToolingHints(container.getToolingHintContext(),keyManyToOneElement);
+}

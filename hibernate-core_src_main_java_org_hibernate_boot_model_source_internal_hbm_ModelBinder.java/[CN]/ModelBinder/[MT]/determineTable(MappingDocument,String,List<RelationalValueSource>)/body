@@ -1,0 +1,16 @@
+{
+  String tableName=null;
+  for (  RelationalValueSource relationalValueSource : relationalValueSources) {
+    if (ColumnSource.class.isInstance(relationalValueSource)) {
+      final ColumnSource columnSource=(ColumnSource)relationalValueSource;
+      if (EqualsHelper.equals(tableName,columnSource.getContainingTableName())) {
+        continue;
+      }
+      if (tableName != null) {
+        throw new MappingException(String.format(Locale.ENGLISH,"Attribute [%s] referenced columns from multiple tables: %s, %s",attributeName,tableName,columnSource.getContainingTableName()),mappingDocument.getOrigin());
+      }
+      tableName=columnSource.getContainingTableName();
+    }
+  }
+  return database.toIdentifier(tableName);
+}
