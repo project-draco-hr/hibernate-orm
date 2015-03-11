@@ -1,5 +1,6 @@
 {
   buildSessionFactory();
+  Triggerable triggerable=logInspection.watchForLogMessages("HHH000444");
   final Session s=openSession();
   final Transaction tx=s.beginTransaction();
   Item item=new Item();
@@ -11,5 +12,5 @@
   tx.rollback();
   s.close();
   releaseSessionFactory();
-  assertEquals("HHH000444 should not be called",0,BytemanHelper.getAndResetInvocationCount());
+  assertFalse(triggerable.wasTriggered());
 }
