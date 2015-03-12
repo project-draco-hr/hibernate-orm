@@ -9,13 +9,13 @@
   final PreparedStatement st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareQueryStatement(sql,callable,scrollMode);
   try {
     int col=1;
-    col+=limitHandler.bindLimitParametersAtStartOfQuery(st,col);
+    col+=limitHandler.bindLimitParametersAtStartOfQuery(selection,st,col);
     if (callable) {
       col=dialect.registerResultSetOutParameter((CallableStatement)st,col);
     }
     col+=bindParameterValues(st,queryParameters,col,session);
-    col+=limitHandler.bindLimitParametersAtEndOfQuery(st,col);
-    limitHandler.setMaxRows(st);
+    col+=limitHandler.bindLimitParametersAtEndOfQuery(selection,st,col);
+    limitHandler.setMaxRows(selection,st);
     if (selection != null) {
       if (selection.getTimeout() != null) {
         st.setQueryTimeout(selection.getTimeout());
