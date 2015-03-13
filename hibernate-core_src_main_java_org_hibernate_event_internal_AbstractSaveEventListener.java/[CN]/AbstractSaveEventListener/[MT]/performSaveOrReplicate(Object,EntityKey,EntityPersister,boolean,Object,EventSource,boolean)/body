@@ -2,7 +2,7 @@
   Serializable id=key == null ? null : key.getIdentifier();
   boolean inTxn=source.getTransactionCoordinator().isTransactionInProgress();
   boolean shouldDelayIdentityInserts=!inTxn && !requiresImmediateIdAccess;
-  source.getPersistenceContext().addEntry(entity,Status.SAVING,null,null,id,null,LockMode.WRITE,useIdentityColumn,persister,false,false);
+  EntityEntry original=source.getPersistenceContext().addEntry(entity,Status.SAVING,null,null,id,null,LockMode.WRITE,useIdentityColumn,persister,false,false);
   cascadeBeforeSave(source,persister,entity,anything);
   Object[] values=persister.getPropertyValuesToInsert(entity,getMergeMap(anything),source);
   Type[] types=persister.getPropertyTypes();
@@ -24,5 +24,12 @@
     insert.handleNaturalIdPostSaveNotifications(id);
   }
   markInterceptorDirty(entity,persister,source);
+  EntityEntry newEntry=source.getPersistenceContext().getEntry(entity);
+  if (newEntry != original) {
+    EntityEntryExtraState extraState=newEntry.getExtraState(EntityEntryExtraState.class);
+    if (extraState == null) {
+      newEntry.addExtraState(original.getExtraState(EntityEntryExtraState.class));
+    }
+  }
   return id;
 }
