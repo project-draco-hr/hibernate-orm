@@ -1,12 +1,18 @@
 {
-  if (SessionFactory.class.isAssignableFrom(cls)) {
-    return (T)sessionFactory;
+  if (type.isAssignableFrom(SessionFactory.class)) {
+    return type.cast(sessionFactory);
   }
-  if (SessionFactoryImplementor.class.isAssignableFrom(cls)) {
-    return (T)sessionFactory;
+  if (type.isAssignableFrom(SessionFactoryImplementor.class)) {
+    return type.cast(sessionFactory);
   }
-  if (EntityManager.class.isAssignableFrom(cls)) {
-    return (T)this;
+  if (type.isAssignableFrom(SessionFactoryImpl.class)) {
+    return type.cast(sessionFactory);
   }
-  throw new PersistenceException("Hibernate cannot unwrap EntityManagerFactory as " + cls.getName());
+  if (type.isAssignableFrom(HibernateEntityManagerFactory.class)) {
+    return type.cast(this);
+  }
+  if (type.isAssignableFrom(EntityManagerFactoryImpl.class)) {
+    return type.cast(this);
+  }
+  throw new PersistenceException("Hibernate cannot unwrap EntityManagerFactory as '" + type.getName() + "'");
 }
