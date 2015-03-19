@@ -6,7 +6,14 @@
     QueryNode qn=(QueryNode)query;
     boolean explicitSelect=select != null && select.getNumberOfChildren() > 0;
     if (queryTranslatorImpl.getEntityGraphQueryHint() != null) {
-      qn.getFromClause().getFromElements().addAll(queryTranslatorImpl.getEntityGraphQueryHint().toFromElements(qn.getFromClause(),this));
+      final boolean oldInEntityGraph=inEntityGraph;
+      try {
+        inEntityGraph=true;
+        qn.getFromClause().getFromElements().addAll(queryTranslatorImpl.getEntityGraphQueryHint().toFromElements(qn.getFromClause(),this));
+      }
+  finally {
+        inEntityGraph=oldInEntityGraph;
+      }
     }
     if (!explicitSelect) {
       createSelectClauseFromFromClause(qn);
