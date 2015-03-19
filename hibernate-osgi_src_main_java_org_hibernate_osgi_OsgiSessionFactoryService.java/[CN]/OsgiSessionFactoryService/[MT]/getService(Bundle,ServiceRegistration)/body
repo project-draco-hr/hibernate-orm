@@ -1,34 +1,35 @@
 {
   osgiClassLoader.addBundle(requestingBundle);
-  final Configuration configuration=new Configuration();
-  configuration.getProperties().put(AvailableSettings.JTA_PLATFORM,osgiJtaPlatform);
+  final BootstrapServiceRegistryBuilder bsrBuilder=new BootstrapServiceRegistryBuilder();
+  bsrBuilder.with(new OSGiClassLoaderServiceImpl(osgiClassLoader,osgiServiceUtil));
+  final Integrator[] integrators=osgiServiceUtil.getServiceImpls(Integrator.class);
+  for (  Integrator integrator : integrators) {
+    bsrBuilder.with(integrator);
+  }
+  final StrategyRegistrationProvider[] strategyRegistrationProviders=osgiServiceUtil.getServiceImpls(StrategyRegistrationProvider.class);
+  for (  StrategyRegistrationProvider strategyRegistrationProvider : strategyRegistrationProviders) {
+    bsrBuilder.withStrategySelectors(strategyRegistrationProvider);
+  }
+  final BootstrapServiceRegistry bsr=bsrBuilder.build();
+  final StandardServiceRegistryBuilder ssrBuilder=new StandardServiceRegistryBuilder(bsr);
   final BundleWiring bundleWiring=(BundleWiring)requestingBundle.adapt(BundleWiring.class);
   final Collection<String> cfgResources=bundleWiring.listResources("/","hibernate.cfg.xml",BundleWiring.LISTRESOURCES_RECURSE);
   if (cfgResources.size() == 0) {
-    configuration.configure();
+    ssrBuilder.configure();
   }
  else {
     if (cfgResources.size() > 1) {
       LOG.warn("Multiple hibernate.cfg.xml files found in the persistence bundle.  Using the first one discovered.");
     }
     String cfgResource="/" + cfgResources.iterator().next();
-    configuration.configure(cfgResource);
+    ssrBuilder.configure(cfgResource);
   }
-  final BootstrapServiceRegistryBuilder builder=new BootstrapServiceRegistryBuilder();
-  final OSGiClassLoaderServiceImpl classLoaderService=new OSGiClassLoaderServiceImpl(osgiClassLoader,osgiServiceUtil);
-  builder.with(classLoaderService);
-  final Integrator[] integrators=osgiServiceUtil.getServiceImpls(Integrator.class);
-  for (  Integrator integrator : integrators) {
-    builder.with(integrator);
-  }
-  final StrategyRegistrationProvider[] strategyRegistrationProviders=osgiServiceUtil.getServiceImpls(StrategyRegistrationProvider.class);
-  for (  StrategyRegistrationProvider strategyRegistrationProvider : strategyRegistrationProviders) {
-    builder.withStrategySelectors(strategyRegistrationProvider);
-  }
+  ssrBuilder.applySetting(AvailableSettings.JTA_PLATFORM,osgiJtaPlatform);
+  final StandardServiceRegistry ssr=ssrBuilder.build();
+  final MetadataBuilder metadataBuilder=new MetadataSources(ssr).getMetadataBuilder();
   final TypeContributor[] typeContributors=osgiServiceUtil.getServiceImpls(TypeContributor.class);
   for (  TypeContributor typeContributor : typeContributors) {
-    configuration.registerTypeContributor(typeContributor);
+    metadataBuilder.with(typeContributor);
   }
-  final ServiceRegistry serviceRegistry=new StandardServiceRegistryBuilder(builder.build()).applySettings(configuration.getProperties()).build();
-  return configuration.buildSessionFactory(serviceRegistry);
+  return metadataBuilder.build().buildSessionFactory();
 }
