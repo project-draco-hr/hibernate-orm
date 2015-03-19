@@ -1,0 +1,21 @@
+{
+  final List<CtField> collectionList=new LinkedList<CtField>();
+  try {
+    for (    CtField ctField : managedCtClass.getDeclaredFields()) {
+      if (Modifier.isStatic(ctField.getModifiers()) || ctField.getName().startsWith("$$_hibernate_")) {
+        continue;
+      }
+      if (enhancementContext.isPersistentField(ctField)) {
+        for (        CtClass ctClass : ctField.getType().getInterfaces()) {
+          if (ctClass.getName().equals(Collection.class.getName())) {
+            collectionList.add(ctField);
+            break;
+          }
+        }
+      }
+    }
+  }
+ catch (  NotFoundException ignored) {
+  }
+  return collectionList;
+}

@@ -1,0 +1,16 @@
+{
+  try {
+    log.debugf("Writing getter method [%s] into [%s] for field [%s]%n",name,target.getName(),field);
+    final CtMethod method=CtNewMethod.getter(name,target.getField(field));
+    target.addMethod(method);
+    return method;
+  }
+ catch (  CannotCompileException cce) {
+    final String msg=String.format("Could not enhance class [%s] to add method [%s] for field [%s]",target.getName(),name,field);
+    throw new EnhancementException(msg,cce);
+  }
+catch (  NotFoundException nfe) {
+    final String msg=String.format("Could not enhance class [%s] to add method [%s] for field [%s]",target.getName(),name,field);
+    throw new EnhancementException(msg,nfe);
+  }
+}

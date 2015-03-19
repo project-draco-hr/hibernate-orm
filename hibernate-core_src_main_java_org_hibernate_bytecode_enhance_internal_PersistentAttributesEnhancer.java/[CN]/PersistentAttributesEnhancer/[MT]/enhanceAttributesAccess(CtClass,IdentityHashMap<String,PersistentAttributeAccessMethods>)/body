@@ -1,0 +1,41 @@
+{
+  final ConstPool constPool=managedCtClass.getClassFile().getConstPool();
+  for (  Object oMethod : managedCtClass.getClassFile().getMethods()) {
+    final MethodInfo methodInfo=(MethodInfo)oMethod;
+    final String methodName=methodInfo.getName();
+    if (methodName.startsWith("$$_hibernate_") || methodInfo.getCodeAttribute() == null) {
+      continue;
+    }
+    try {
+      final CodeIterator itr=methodInfo.getCodeAttribute().iterator();
+      while (itr.hasNext()) {
+        final int index=itr.next();
+        final int op=itr.byteAt(index);
+        if (op != Opcode.PUTFIELD && op != Opcode.GETFIELD) {
+          continue;
+        }
+        final String fieldName=constPool.getFieldrefName(itr.u16bitAt(index + 1));
+        final PersistentAttributeAccessMethods attributeMethods=attributeDescriptorMap.get(fieldName);
+        if (attributeMethods == null) {
+          continue;
+        }
+        log.debugf("Transforming access to field [%s] from method [%s]",fieldName,methodName);
+        if (op == Opcode.GETFIELD) {
+          final int methodIndex=MethodWriter.addMethod(constPool,attributeMethods.getReader());
+          itr.writeByte(Opcode.INVOKESPECIAL,index);
+          itr.write16bit(methodIndex,index + 1);
+        }
+ else {
+          final int methodIndex=MethodWriter.addMethod(constPool,attributeMethods.getWriter());
+          itr.writeByte(Opcode.INVOKESPECIAL,index);
+          itr.write16bit(methodIndex,index + 1);
+        }
+      }
+      methodInfo.getCodeAttribute().setAttribute(MapMaker.make(classPool,methodInfo));
+    }
+ catch (    BadBytecode bb) {
+      final String msg=String.format("Unable to perform field access transformation in method [%s]",methodName);
+      throw new EnhancementException(msg,bb);
+    }
+  }
+}

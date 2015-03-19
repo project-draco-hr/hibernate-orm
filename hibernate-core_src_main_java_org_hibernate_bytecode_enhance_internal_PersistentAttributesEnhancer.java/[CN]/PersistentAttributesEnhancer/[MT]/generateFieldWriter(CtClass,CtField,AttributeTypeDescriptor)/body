@@ -1,0 +1,36 @@
+{
+  final String fieldName=persistentField.getName();
+  final String writerName=EnhancerConstants.PERSISTENT_FIELD_WRITER_PREFIX + fieldName;
+  try {
+    final CtMethod writer;
+    if (!enhancementContext.isLazyLoadable(persistentField)) {
+      writer=MethodWriter.addSetter(managedCtClass,fieldName,writerName);
+    }
+ else {
+      writer=MethodWriter.write(managedCtClass,"private void %s(%s %s) {%n  %s%n}",writerName,persistentField.getType().getName(),fieldName,typeDescriptor.buildWriteInterceptionBodyFragment(fieldName));
+    }
+    if (enhancementContext.isCompositeClass(managedCtClass)) {
+      writer.insertBefore(String.format("if (%s != null) { %<s.callOwner(\".%s\"); }%n",EnhancerConstants.TRACKER_COMPOSITE_FIELD_NAME,fieldName));
+    }
+ else     if (enhancementContext.doDirtyCheckingInline(managedCtClass)) {
+      writer.insertBefore(typeDescriptor.buildInLineDirtyCheckingBodyFragment(enhancementContext,persistentField));
+    }
+    if (persistentField.hasAnnotation(Embedded.class)) {
+      managedCtClass.addInterface(classPool.get(CompositeOwner.class.getName()));
+      if (enhancementContext.isCompositeClass(managedCtClass)) {
+        MethodWriter.write(managedCtClass,"" + "public void %1$s(String name) {%n" + "  if (%2$s != null) { %2$s.callOwner(\".\" + name) ; }%n}",EnhancerConstants.TRACKER_CHANGER_NAME,EnhancerConstants.TRACKER_COMPOSITE_FIELD_NAME);
+      }
+      writer.insertBefore(String.format("" + "if (%1$s != null) { ((%2$s) %1$s).%3$s(\"%1$s\"); }%n",fieldName,CompositeTracker.class.getName(),EnhancerConstants.TRACKER_COMPOSITE_CLEAR_OWNER));
+      writer.insertAfter(String.format("" + "((%2$s) %1$s).%4$s(\"%1$s\", (%3$s) this);%n" + "%5$s(\"%1$s\");",fieldName,CompositeTracker.class.getName(),CompositeOwner.class.getName(),EnhancerConstants.TRACKER_COMPOSITE_SET_OWNER,EnhancerConstants.TRACKER_CHANGER_NAME));
+    }
+    return writer;
+  }
+ catch (  CannotCompileException cce) {
+    final String msg=String.format("Could not enhance entity class [%s] to add field writer method [%s]",managedCtClass.getName(),writerName);
+    throw new EnhancementException(msg,cce);
+  }
+catch (  NotFoundException nfe) {
+    final String msg=String.format("Could not enhance entity class [%s] to add field writer method [%s]",managedCtClass.getName(),writerName);
+    throw new EnhancementException(msg,nfe);
+  }
+}

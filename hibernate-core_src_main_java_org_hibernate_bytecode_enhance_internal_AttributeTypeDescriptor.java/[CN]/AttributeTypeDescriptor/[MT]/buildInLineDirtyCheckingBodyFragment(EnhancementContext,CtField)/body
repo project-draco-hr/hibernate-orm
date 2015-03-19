@@ -1,0 +1,35 @@
+{
+  final StringBuilder builder=new StringBuilder();
+  try {
+    for (    Object o : currentValue.getType().getAnnotations()) {
+      if (o instanceof Id) {
+        return "";
+      }
+    }
+    builder.append(String.format("if (%s() != null",EnhancerConstants.INTERCEPTOR_GETTER_NAME));
+    if (currentValue.getType().isPrimitive() || currentValue.getType().isEnum()) {
+      builder.append(String.format(" && %s != $1)",currentValue.getName()));
+    }
+ else     if (currentValue.getType().getName().startsWith("java.lang") || currentValue.getType().getName().startsWith("java.math.Big") || currentValue.getType().getName().startsWith("java.sql.Time")|| currentValue.getType().getName().startsWith("java.sql.Date")|| currentValue.getType().getName().startsWith("java.util.Date")|| currentValue.getType().getName().startsWith("java.util.Calendar")) {
+      builder.append(String.format("&& ((%s == null) || (!%<s.equals($1))))",currentValue.getName()));
+    }
+ else {
+      for (      CtClass ctClass : currentValue.getType().getInterfaces()) {
+        if (ctClass.getName().equals(Collection.class.getName())) {
+          if (context.isMappedCollection(currentValue)) {
+            return "";
+          }
+        }
+      }
+      builder.append(String.format("&& ((%s == null) || (!%<s.equals($1))))",currentValue.getName()));
+    }
+    builder.append(String.format(" { %s(\"%s\"); }",EnhancerConstants.TRACKER_CHANGER_NAME,currentValue.getName()));
+  }
+ catch (  ClassNotFoundException e) {
+    e.printStackTrace();
+  }
+catch (  NotFoundException e) {
+    e.printStackTrace();
+  }
+  return builder.toString();
+}

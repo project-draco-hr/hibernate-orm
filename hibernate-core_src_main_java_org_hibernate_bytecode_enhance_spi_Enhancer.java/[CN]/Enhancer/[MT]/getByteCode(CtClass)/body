@@ -1,22 +1,19 @@
 {
   final ByteArrayOutputStream byteStream=new ByteArrayOutputStream();
-  final DataOutputStream out;
+  final DataOutputStream out=new DataOutputStream(byteStream);
   try {
-    out=new DataOutputStream(byteStream);
-    try {
-      managedCtClass.toBytecode(out);
-      return byteStream.toByteArray();
-    }
-  finally {
-      try {
-        out.close();
-      }
- catch (      IOException e) {
-      }
-    }
+    managedCtClass.toBytecode(out);
+    return byteStream.toByteArray();
   }
  catch (  Exception e) {
     log.unableToTransformClass(e.getMessage());
     throw new HibernateException("Unable to transform class: " + e.getMessage());
+  }
+ finally {
+    try {
+      out.close();
+    }
+ catch (    IOException ignored) {
+    }
   }
 }

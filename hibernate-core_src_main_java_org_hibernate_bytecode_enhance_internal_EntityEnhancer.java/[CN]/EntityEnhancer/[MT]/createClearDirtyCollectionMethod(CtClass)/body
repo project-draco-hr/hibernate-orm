@@ -1,0 +1,16 @@
+{
+  try {
+    final StringBuilder body=new StringBuilder();
+    body.append(String.format("" + "private void %1$s() {%n" + "  if (%2$s == null) { %2$s = new %3$s(); }%n",EnhancerConstants.TRACKER_COLLECTION_CLEAR_NAME,EnhancerConstants.TRACKER_COLLECTION_NAME,CollectionTracker.class.getName()));
+    for (    CtField ctField : collectCollectionFields(managedCtClass)) {
+      if (!enhancementContext.isMappedCollection(ctField)) {
+        body.append(String.format("" + "  // Collection field [%1$s]%n" + "  if (%1$s == null) { %2$s.add(\"%1$s\", -1); }%n"+ "  else { %2$s.add(\"%1$s\", %1$s.size()); }%n",ctField.getName(),EnhancerConstants.TRACKER_COLLECTION_NAME));
+      }
+    }
+    body.append("}");
+    MethodWriter.write(managedCtClass,body.toString());
+  }
+ catch (  CannotCompileException cce) {
+    cce.printStackTrace();
+  }
+}

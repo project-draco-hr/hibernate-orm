@@ -1,0 +1,15 @@
+{
+  CtClass entityCtClass=generateCtClassForAnEntity(classToEnhance);
+  byte[] original=entityCtClass.toBytecode();
+  byte[] enhanced=new Enhancer(enhancementContext).enhance(entityCtClass.getName(),original);
+  assertFalse("entity was not enhanced",Arrays.equals(original,enhanced));
+  log.infof("enhanced entity [%s]",entityCtClass.getName());
+  ClassPool cp=new ClassPool(false);
+  cp.appendClassPath(new LoaderClassPath(cl));
+  CtClass enhancedCtClass=cp.makeClass(new ByteArrayInputStream(enhanced));
+  enhancedCtClass.debugWriteFile(workingDir);
+  decompileDumpedClass(classToEnhance.getName());
+  Class<?> enhancedClass=enhancedCtClass.toClass(cl,EnhancerTestUtils.class.getProtectionDomain());
+  assertNotNull(enhancedClass);
+  return enhancedClass;
+}

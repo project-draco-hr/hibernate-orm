@@ -1,20 +1,13 @@
 {
-  this.enhancementContext=enhancementContext;
-  this.classPool=buildClassPool(enhancementContext);
   try {
-    this.managedEntityCtClass=classPool.makeClass(ManagedEntity.class.getClassLoader().getResourceAsStream(ManagedEntity.class.getName().replace('.','/') + ".class"));
-    this.managedCompositeCtClass=classPool.makeClass(ManagedComposite.class.getClassLoader().getResourceAsStream(ManagedComposite.class.getName().replace('.','/') + ".class"));
-    this.attributeInterceptableCtClass=classPool.makeClass(PersistentAttributeInterceptable.class.getClassLoader().getResourceAsStream(PersistentAttributeInterceptable.class.getName().replace('.','/') + ".class"));
-    this.attributeInterceptorCtClass=classPool.makeClass(PersistentAttributeInterceptor.class.getClassLoader().getResourceAsStream(PersistentAttributeInterceptor.class.getName().replace('.','/') + ".class"));
-    this.entityEntryCtClass=classPool.makeClass(EntityEntry.class.getName());
+    this.enhancementContext=enhancementContext;
+    this.classPool=buildClassPool(enhancementContext);
+    this.managedEntityCtClass=loadCtClassFromClass(classPool,ManagedEntity.class);
+    this.attributeInterceptableCtClass=loadCtClassFromClass(classPool,PersistentAttributeInterceptable.class);
+    this.attributeInterceptorCtClass=loadCtClassFromClass(classPool,PersistentAttributeInterceptor.class);
+    this.entityEntryCtClass=loadCtClassFromClass(classPool,EntityEntry.class);
   }
  catch (  IOException e) {
-    throw new EnhancementException("Could not prepare Javassist ClassPool",e);
-  }
-  try {
-    this.objectCtClass=classPool.getCtClass(Object.class.getName());
-  }
- catch (  NotFoundException e) {
     throw new EnhancementException("Could not prepare Javassist ClassPool",e);
   }
 }
