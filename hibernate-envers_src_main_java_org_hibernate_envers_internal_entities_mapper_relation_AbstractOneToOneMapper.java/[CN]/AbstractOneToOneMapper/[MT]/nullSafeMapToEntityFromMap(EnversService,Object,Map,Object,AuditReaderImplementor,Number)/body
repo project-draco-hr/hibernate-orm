@@ -1,0 +1,14 @@
+{
+  final EntityInfo referencedEntity=getEntityInfo(enversService,referencedEntityName);
+  Object value;
+  try {
+    value=queryForReferencedEntity(versionsReader,referencedEntity,(Serializable)primaryKey,revision);
+  }
+ catch (  NoResultException e) {
+    value=null;
+  }
+catch (  NonUniqueResultException e) {
+    throw new AuditException("Many versions results for one-to-one relationship " + entityName + "."+ getPropertyData().getBeanName()+ ".",e);
+  }
+  setPropertyValue(obj,value);
+}

@@ -1,18 +1,18 @@
 {
-  AuditEntitiesConfiguration verEntCfg=verCfg.getAuditEntCfg();
+  AuditEntitiesConfiguration verEntCfg=enversService.getAuditEntitiesConfiguration();
   if (!selectDeletedEntities) {
     qb.getRootParameters().addWhereWithParam(verEntCfg.getRevisionTypePropName(),"<>",RevisionType.DEL);
   }
   for (  AuditCriterion criterion : criterions) {
-    criterion.addToQuery(verCfg,versionsReader,entityName,qb,qb.getRootParameters());
+    criterion.addToQuery(enversService,versionsReader,entityName,qb,qb.getRootParameters());
   }
   if (!hasProjection && !hasOrder) {
     String revisionPropertyPath=verEntCfg.getRevisionNumberPath();
     qb.addOrder(revisionPropertyPath,true);
   }
   if (!selectEntitiesOnly) {
-    qb.addFrom(verCfg.getAuditEntCfg().getRevisionInfoEntityName(),"r");
-    qb.getRootParameters().addWhere(verCfg.getAuditEntCfg().getRevisionNumberPath(),true,"=","r.id",false);
+    qb.addFrom(enversService.getAuditEntitiesConfiguration().getRevisionInfoEntityName(),"r");
+    qb.getRootParameters().addWhere(enversService.getAuditEntitiesConfiguration().getRevisionNumberPath(),true,"=","r.id",false);
   }
   List<Object> queryResult=buildAndExecuteQuery();
   if (hasProjection) {

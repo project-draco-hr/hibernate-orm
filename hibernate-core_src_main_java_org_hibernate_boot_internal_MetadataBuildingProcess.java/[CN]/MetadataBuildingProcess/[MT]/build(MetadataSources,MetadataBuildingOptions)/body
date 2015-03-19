@@ -104,5 +104,26 @@
   processor.processResultSetMappings();
   processor.processNamedQueries();
   processor.finishUp();
+  for (  MetadataContributor contributor : classLoaderService.loadJavaServices(MetadataContributor.class)) {
+    log.tracef("Calling MetadataContributor : %s",contributor);
+    contributor.contribute(metadataCollector,jandexView);
+  }
+  metadataCollector.processSecondPasses(rootMetadataBuildingContext);
+  LinkedHashSet<AdditionalJaxbMappingProducer> producers=classLoaderService.loadJavaServices(AdditionalJaxbMappingProducer.class);
+  if (producers != null && !producers.isEmpty()) {
+    final EntityHierarchyBuilder hierarchyBuilder=new EntityHierarchyBuilder();
+    final MappingBinder mappingBinder=new MappingBinder(false);
+    for (    AdditionalJaxbMappingProducer producer : producers) {
+      log.tracef("Calling AdditionalJaxbMappingProducer : %s",producer);
+      Collection<MappingDocument> additionalMappings=producer.produceAdditionalMappings(metadataCollector,jandexView,mappingBinder,rootMetadataBuildingContext);
+      for (      MappingDocument mappingDocument : additionalMappings) {
+        hierarchyBuilder.indexMappingDocument(mappingDocument);
+      }
+    }
+    ModelBinder binder=ModelBinder.prepare(rootMetadataBuildingContext);
+    for (    EntityHierarchySourceImpl entityHierarchySource : hierarchyBuilder.buildHierarchies()) {
+      binder.bindEntityHierarchy(entityHierarchySource);
+    }
+  }
   return metadataCollector.buildMetadataInstance(rootMetadataBuildingContext);
 }

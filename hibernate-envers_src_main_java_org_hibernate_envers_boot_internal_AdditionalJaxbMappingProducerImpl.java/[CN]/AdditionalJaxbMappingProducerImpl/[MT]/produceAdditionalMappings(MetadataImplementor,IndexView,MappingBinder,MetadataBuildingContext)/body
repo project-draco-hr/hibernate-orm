@@ -1,0 +1,32 @@
+{
+  final ServiceRegistry serviceRegistry=metadata.getMetadataBuildingOptions().getServiceRegistry();
+  final EnversService enversService=serviceRegistry.getService(EnversService.class);
+  if (!enversService.isEnabled()) {
+    return Collections.emptyList();
+  }
+  final ArrayList<MappingDocument> additionalMappingDocuments=new ArrayList<MappingDocument>();
+  final Origin origin=new Origin(SourceType.OTHER,"envers");
+  final MappingCollector mappingCollector=new MappingCollector(){
+    @Override public void addDocument(    Document document) throws DocumentException {
+      dump(document);
+      final ByteArrayOutputStream baos=new ByteArrayOutputStream();
+      final Writer w=new PrintWriter(baos);
+      try {
+        final XMLWriter xw=new XMLWriter(w,new OutputFormat(" ",true));
+        xw.write(document);
+        w.flush();
+      }
+ catch (      IOException e) {
+        throw new HibernateException("Unable to bind Envers-generated XML",e);
+      }
+      ByteArrayInputStream bais=new ByteArrayInputStream(baos.toByteArray());
+      BufferedInputStream bis=new BufferedInputStream(bais);
+      final Binding jaxbBinding=mappingBinder.bind(bis,origin);
+      final JaxbHbmHibernateMapping jaxbRoot=(JaxbHbmHibernateMapping)jaxbBinding.getRoot();
+      additionalMappingDocuments.add(new MappingDocument(jaxbRoot,origin,buildingContext));
+    }
+  }
+;
+  enversService.initialize(metadata,mappingCollector);
+  return additionalMappingDocuments;
+}

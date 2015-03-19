@@ -1,0 +1,18 @@
+{
+  this.serviceRegistry=metadata.getMetadataBuildingOptions().getServiceRegistry();
+  final ConfigurationService cfgService=serviceRegistry.getService(ConfigurationService.class);
+  final Properties properties=new Properties();
+  properties.putAll(cfgService.getSettings());
+  final ClassLoaderService classLoaderService=serviceRegistry.getService(ClassLoaderService.class);
+  this.globalCfg=new GlobalConfiguration(properties,classLoaderService);
+  final ReflectionManager reflectionManager=metadata.getMetadataBuildingOptions().getReflectionManager();
+  final RevisionInfoConfiguration revInfoCfg=new RevisionInfoConfiguration(globalCfg);
+  final RevisionInfoConfigurationResult revInfoCfgResult=revInfoCfg.configure(metadata,reflectionManager);
+  this.auditEntCfg=new AuditEntitiesConfiguration(properties,revInfoCfgResult.getRevisionInfoEntityName());
+  this.auditProcessManager=new AuditProcessManager(revInfoCfgResult.getRevisionInfoGenerator());
+  this.revisionInfoQueryCreator=revInfoCfgResult.getRevisionInfoQueryCreator();
+  this.revisionInfoNumberReader=revInfoCfgResult.getRevisionInfoNumberReader();
+  this.modifiedEntityNamesReader=revInfoCfgResult.getModifiedEntityNamesReader();
+  this.auditStrategy=initializeAuditStrategy(auditEntCfg.getAuditStrategyName(),revInfoCfgResult.getRevisionInfoClass(),revInfoCfgResult.getRevisionInfoTimestampData(),classLoaderService);
+  this.entCfg=new EntitiesConfigurator().configure(metadata,serviceRegistry,reflectionManager,mappingCollector,globalCfg,auditEntCfg,auditStrategy,revInfoCfgResult.getRevisionInfoXmlMapping(),revInfoCfgResult.getRevisionInfoRelationMapping());
+}

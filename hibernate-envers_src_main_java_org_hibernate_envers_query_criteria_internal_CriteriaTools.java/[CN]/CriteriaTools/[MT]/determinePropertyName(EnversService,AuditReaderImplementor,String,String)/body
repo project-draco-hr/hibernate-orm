@@ -1,0 +1,14 @@
+{
+  final SessionFactoryImplementor sessionFactory=versionsReader.getSessionImplementor().getFactory();
+  if (AuditId.IDENTIFIER_PLACEHOLDER.equals(propertyName)) {
+    final String identifierPropertyName=sessionFactory.getEntityPersister(entityName).getIdentifierPropertyName();
+    propertyName=enversService.getAuditEntitiesConfiguration().getOriginalIdPropName() + "." + identifierPropertyName;
+  }
+ else {
+    final List<String> identifierPropertyNames=identifierPropertyNames(sessionFactory,entityName);
+    if (identifierPropertyNames.contains(propertyName)) {
+      propertyName=enversService.getAuditEntitiesConfiguration().getOriginalIdPropName() + "." + propertyName;
+    }
+  }
+  return propertyName;
+}

@@ -1,8 +1,12 @@
 {
   this.sources=sources;
-  for (  MetadataSourcesContributor contributor : sources.getServiceRegistry().getService(ClassLoaderService.class).loadJavaServices(MetadataSourcesContributor.class)) {
-    contributor.contribute(sources,null);
-  }
   this.options=new MetadataBuildingOptionsImpl(serviceRegistry);
+  for (  MetadataSourcesContributor contributor : sources.getServiceRegistry().getService(ClassLoaderService.class).loadJavaServices(MetadataSourcesContributor.class)) {
+    contributor.contribute(sources);
+  }
   applyCfgXmlValues(serviceRegistry.getService(CfgXmlAccessService.class));
+  final ClassLoaderService classLoaderService=serviceRegistry.getService(ClassLoaderService.class);
+  for (  MetadataBuilderContributor contributor : classLoaderService.loadJavaServices(MetadataBuilderContributor.class)) {
+    contributor.contribute(this);
+  }
 }

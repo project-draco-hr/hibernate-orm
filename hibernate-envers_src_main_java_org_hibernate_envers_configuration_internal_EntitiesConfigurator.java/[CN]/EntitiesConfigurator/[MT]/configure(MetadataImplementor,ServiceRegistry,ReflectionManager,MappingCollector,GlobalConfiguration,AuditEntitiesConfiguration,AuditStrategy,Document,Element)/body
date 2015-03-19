@@ -1,0 +1,55 @@
+{
+  final AuditEntityNameRegister auditEntityNameRegister=new AuditEntityNameRegister();
+  final Iterator<PersistentClass> classes=GraphTopologicalSort.sort(new PersistentClassGraphDefiner(metadata)).iterator();
+  final ClassesAuditingData classesAuditingData=new ClassesAuditingData();
+  final Map<PersistentClass,EntityXmlMappingData> xmlMappings=new HashMap<PersistentClass,EntityXmlMappingData>();
+  while (classes.hasNext()) {
+    final PersistentClass pc=classes.next();
+    final AnnotationsMetadataReader annotationsMetadataReader=new AnnotationsMetadataReader(globalConfiguration,reflectionManager,pc);
+    final ClassAuditingData auditData=annotationsMetadataReader.getAuditData();
+    classesAuditingData.addClassAuditingData(pc,auditData);
+  }
+  classesAuditingData.updateCalculatedFields();
+  final AuditMetadataGenerator auditMetaGen=new AuditMetadataGenerator(metadata,serviceRegistry,globalConfiguration,auditEntitiesConfiguration,auditStrategy,revisionInfoRelationMapping,auditEntityNameRegister);
+  for (  Map.Entry<PersistentClass,ClassAuditingData> pcDatasEntry : classesAuditingData.getAllClassAuditedData()) {
+    final PersistentClass pc=pcDatasEntry.getKey();
+    final ClassAuditingData auditData=pcDatasEntry.getValue();
+    final EntityXmlMappingData xmlMappingData=new EntityXmlMappingData();
+    if (auditData.isAudited()) {
+      if (!StringTools.isEmpty(auditData.getAuditTable().value())) {
+        auditEntitiesConfiguration.addCustomAuditTableName(pc.getEntityName(),auditData.getAuditTable().value());
+      }
+      auditMetaGen.generateFirstPass(pc,auditData,xmlMappingData,true);
+    }
+ else {
+      auditMetaGen.generateFirstPass(pc,auditData,xmlMappingData,false);
+    }
+    xmlMappings.put(pc,xmlMappingData);
+  }
+  for (  Map.Entry<PersistentClass,ClassAuditingData> pcDatasEntry : classesAuditingData.getAllClassAuditedData()) {
+    final EntityXmlMappingData xmlMappingData=xmlMappings.get(pcDatasEntry.getKey());
+    if (pcDatasEntry.getValue().isAudited()) {
+      auditMetaGen.generateSecondPass(pcDatasEntry.getKey(),pcDatasEntry.getValue(),xmlMappingData);
+      try {
+        mappingCollector.addDocument(xmlMappingData.getMainXmlMapping());
+        for (        Document additionalMapping : xmlMappingData.getAdditionalXmlMappings()) {
+          mappingCollector.addDocument(additionalMapping);
+        }
+      }
+ catch (      DocumentException e) {
+        throw new MappingException(e);
+      }
+    }
+  }
+  if (auditMetaGen.getEntitiesConfigurations().size() > 0) {
+    try {
+      if (revisionInfoXmlMapping != null) {
+        mappingCollector.addDocument(revisionInfoXmlMapping);
+      }
+    }
+ catch (    DocumentException e) {
+      throw new MappingException(e);
+    }
+  }
+  return new EntitiesConfigurations(auditMetaGen.getEntitiesConfigurations(),auditMetaGen.getNotAuditedEntitiesConfigurations());
+}

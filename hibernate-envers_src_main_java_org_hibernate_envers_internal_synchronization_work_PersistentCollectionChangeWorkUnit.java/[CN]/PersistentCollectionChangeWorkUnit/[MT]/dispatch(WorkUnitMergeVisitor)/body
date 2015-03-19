@@ -12,14 +12,14 @@
         mergedChanges.add(originalCollectionChangeData);
       }
  else {
-        final String revTypePropName=verCfg.getAuditEntCfg().getRevisionTypePropName();
+        final String revTypePropName=enversService.getAuditEntitiesConfiguration().getRevisionTypePropName();
         if (RevisionType.ADD.equals(newChangesIdMap.get(originalOriginalId).getData().get(revTypePropName)) && RevisionType.DEL.equals(originalCollectionChangeData.getData().get(revTypePropName))) {
           newChangesIdMap.remove(originalOriginalId);
         }
       }
     }
     mergedChanges.addAll(newChangesIdMap.values());
-    return new PersistentCollectionChangeWorkUnit(sessionImplementor,entityName,verCfg,id,mergedChanges,referencingPropertyName);
+    return new PersistentCollectionChangeWorkUnit(sessionImplementor,entityName,enversService,id,mergedChanges,referencingPropertyName);
   }
  else {
     throw new RuntimeException("Trying to merge a " + first + " with a PersitentCollectionChangeWorkUnit. "+ "This is not really possible.");

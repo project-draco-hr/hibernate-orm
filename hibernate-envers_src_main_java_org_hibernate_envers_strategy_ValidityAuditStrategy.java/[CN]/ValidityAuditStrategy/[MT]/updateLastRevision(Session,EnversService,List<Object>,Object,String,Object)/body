@@ -1,0 +1,18 @@
+{
+  if (l.size() == 1) {
+    Object previousData=l.get(0);
+    String revisionEndFieldName=enversService.getAuditEntitiesConfiguration().getRevisionEndFieldName();
+    ((Map<String,Object>)previousData).put(revisionEndFieldName,revision);
+    if (enversService.getAuditEntitiesConfiguration().isRevisionEndTimestampEnabled()) {
+      String revEndTimestampFieldName=enversService.getAuditEntitiesConfiguration().getRevisionEndTimestampFieldName();
+      Object revEndTimestampObj=this.revisionTimestampGetter.get(revision);
+      Date revisionEndTimestamp=convertRevEndTimestampToDate(revEndTimestampObj);
+      ((Map<String,Object>)previousData).put(revEndTimestampFieldName,revisionEndTimestamp);
+    }
+    session.save(auditedEntityName,previousData);
+    sessionCacheCleaner.scheduleAuditDataRemoval(session,previousData);
+  }
+ else {
+    throw new RuntimeException("Cannot find previous revision for entity " + auditedEntityName + " and id "+ id);
+  }
+}

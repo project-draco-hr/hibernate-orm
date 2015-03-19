@@ -6,11 +6,7 @@
  else {
     sessionImpl=(SessionImplementor)session;
   }
-  final EventListenerRegistry listenerRegistry=sessionImpl.getFactory().getServiceRegistry().getService(EventListenerRegistry.class);
-  for (  PostInsertEventListener listener : listenerRegistry.getEventListenerGroup(EventType.POST_INSERT).listeners()) {
-    if (listener instanceof EnversListener) {
-      return new AuditReaderImpl(((EnversListener)listener).getAuditConfiguration(),session,sessionImpl);
-    }
-  }
-  throw new AuditException("Envers listeners were not properly registered");
+  final ServiceRegistry serviceRegistry=sessionImpl.getFactory().getServiceRegistry();
+  final EnversService enversService=serviceRegistry.getService(EnversService.class);
+  return new AuditReaderImpl(enversService,session,sessionImpl);
 }
