@@ -1,3 +1,15 @@
 {
-  this.typeName=type;
+  if (typeName != null && typeName.startsWith(AttributeConverterTypeAdapter.NAME_PREFIX)) {
+    final String converterClassName=typeName.substring(AttributeConverterTypeAdapter.NAME_PREFIX.length());
+    final ClassLoaderService cls=getMetadata().getMetadataBuildingOptions().getServiceRegistry().getService(ClassLoaderService.class);
+    try {
+      final Class<AttributeConverter> converterClass=cls.classForName(converterClassName);
+      attributeConverterDefinition=new AttributeConverterDefinition(converterClass.newInstance(),false);
+      return;
+    }
+ catch (    Exception e) {
+      log.logBadHbmAttributeConverterType(typeName,e.getMessage());
+    }
+  }
+  this.typeName=typeName;
 }
