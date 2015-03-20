@@ -18,16 +18,16 @@
     }
   }
  else {
-    if (canElementBeConverted && canKeyBeConverted) {
-      if (info.getAttributeName().startsWith("key.")) {
-        keyAttributeConversionInfoMap.put(info.getAttributeName().substring(4),info);
-      }
- else       if (info.getAttributeName().startsWith("value.")) {
-        elementAttributeConversionInfoMap.put(info.getAttributeName().substring(6),info);
-      }
- else {
-        throw new IllegalStateException("@Convert placed on Map attribute [" + collection.getRole() + "] must define attributeName of 'key' or 'value'");
-      }
+    final String keyPath=removePrefix(info.getAttributeName(),"key");
+    final String elementPath=removePrefix(info.getAttributeName(),"value");
+    if (canElementBeConverted && canKeyBeConverted && keyPath == null && elementPath == null) {
+      throw new IllegalStateException("@Convert placed on Map attribute [" + collection.getRole() + "] must define attributeName of 'key' or 'value'");
+    }
+    if (keyPath != null) {
+      keyAttributeConversionInfoMap.put(keyPath,info);
+    }
+ else     if (elementPath != null) {
+      elementAttributeConversionInfoMap.put(elementPath,info);
     }
   }
 }
