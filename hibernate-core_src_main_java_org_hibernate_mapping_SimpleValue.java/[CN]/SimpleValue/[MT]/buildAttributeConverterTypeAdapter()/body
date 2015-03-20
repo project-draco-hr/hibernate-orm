@@ -2,7 +2,10 @@
   final Class entityAttributeJavaType=attributeConverterDefinition.getEntityAttributeType();
   final Class databaseColumnJavaType=attributeConverterDefinition.getDatabaseColumnType();
   final JavaTypeDescriptor entityAttributeJavaTypeDescriptor=JavaTypeDescriptorRegistry.INSTANCE.getDescriptor(entityAttributeJavaType);
-  final int jdbcTypeCode=JdbcTypeJavaClassMappings.INSTANCE.determineJdbcTypeCodeForJavaClass(databaseColumnJavaType);
+  int jdbcTypeCode=JdbcTypeJavaClassMappings.INSTANCE.determineJdbcTypeCodeForJavaClass(databaseColumnJavaType);
+  if (isNationalized()) {
+    jdbcTypeCode=NationalizedTypeMappings.INSTANCE.getCorrespondingNationalizedCode(jdbcTypeCode);
+  }
   final SqlTypeDescriptor sqlTypeDescriptor=SqlTypeDescriptorRegistry.INSTANCE.getDescriptor(jdbcTypeCode);
   final JavaTypeDescriptor intermediateJavaTypeDescriptor=JavaTypeDescriptorRegistry.INSTANCE.getDescriptor(databaseColumnJavaType);
   final SqlTypeDescriptor sqlTypeDescriptorAdapter=new AttributeConverterSqlTypeDescriptorAdapter(attributeConverterDefinition.getAttributeConverter(),sqlTypeDescriptor,intermediateJavaTypeDescriptor);

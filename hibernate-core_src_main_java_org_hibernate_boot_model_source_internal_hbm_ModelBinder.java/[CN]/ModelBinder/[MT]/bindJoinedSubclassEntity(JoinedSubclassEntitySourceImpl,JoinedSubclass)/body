@@ -7,6 +7,9 @@
     log.debugf("Mapping joined-subclass: %s -> %s",entityDescriptor.getEntityName(),primaryTable.getName());
   }
   final SimpleValue keyBinding=new DependantValue(mappingDocument.getMetadataCollector(),primaryTable,entityDescriptor.getIdentifier());
+  if (mappingDocument.getBuildingOptions().useNationalizedCharacterData()) {
+    keyBinding.makeNationalized();
+  }
   entityDescriptor.setKey(keyBinding);
   keyBinding.setCascadeDeleteEnabled(entitySource.isCascadeDeleteEnabled());
   relationalObjectBinder.bindColumns(mappingDocument,entitySource.getPrimaryKeyColumnSources(),keyBinding,false,new RelationalObjectBinder.ColumnNamingDelegate(){

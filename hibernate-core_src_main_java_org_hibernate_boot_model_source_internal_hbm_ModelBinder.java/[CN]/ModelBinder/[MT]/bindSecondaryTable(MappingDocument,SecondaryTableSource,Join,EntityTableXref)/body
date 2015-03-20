@@ -32,6 +32,9 @@
     log.debugf("Mapping entity secondary-table: %s -> %s",persistentClass.getEntityName(),secondaryTable.getName());
   }
   final SimpleValue keyBinding=new DependantValue(mappingDocument.getMetadataCollector(),secondaryTable,persistentClass.getIdentifier());
+  if (mappingDocument.getBuildingOptions().useNationalizedCharacterData()) {
+    keyBinding.makeNationalized();
+  }
   secondaryTableJoin.setKey(keyBinding);
   keyBinding.setCascadeDeleteEnabled(secondaryTableSource.isCascadeDeleteEnabled());
   relationalObjectBinder.bindColumns(mappingDocument,secondaryTableSource.getPrimaryKeyColumnSources(),keyBinding,secondaryTableSource.isOptional(),new RelationalObjectBinder.ColumnNamingDelegate(){

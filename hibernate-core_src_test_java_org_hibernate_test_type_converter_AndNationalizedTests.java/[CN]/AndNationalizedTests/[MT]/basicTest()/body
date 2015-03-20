@@ -1,0 +1,12 @@
+{
+  StandardServiceRegistry ssr=new StandardServiceRegistryBuilder().build();
+  try {
+    Metadata metadata=new MetadataSources(ssr).addAnnotatedClass(TestEntity.class).buildMetadata();
+    ((MetadataImpl)metadata).validate();
+    final PersistentClass entityBinding=metadata.getEntityBinding(TestEntity.class.getName());
+    assertEquals(Types.NVARCHAR,entityBinding.getProperty("name").getType().sqlTypes(metadata)[0]);
+  }
+  finally {
+    StandardServiceRegistryBuilder.destroy(ssr);
+  }
+}
