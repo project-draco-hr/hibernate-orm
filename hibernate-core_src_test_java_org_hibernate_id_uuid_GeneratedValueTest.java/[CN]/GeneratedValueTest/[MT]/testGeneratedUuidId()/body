@@ -1,0 +1,36 @@
+{
+  StandardServiceRegistry ssr=new StandardServiceRegistryBuilder().applySetting(AvailableSettings.HBM2DDL_AUTO,"create-drop").build();
+  try {
+    Metadata metadata=new MetadataSources(ssr).addAnnotatedClass(TheEntity.class).buildMetadata();
+    ((MetadataImpl)metadata).validate();
+    PersistentClass entityBinding=metadata.getEntityBinding(TheEntity.class.getName());
+    assertEquals(UUID.class,entityBinding.getIdentifier().getType().getReturnedClass());
+    IdentifierGenerator generator=entityBinding.getIdentifier().createIdentifierGenerator(metadata.getIdentifierGeneratorFactory(),metadata.getDatabase().getDialect(),null,null,(RootClass)entityBinding);
+    assertTyping(UUIDGenerator.class,generator);
+    SessionFactory sf=metadata.buildSessionFactory();
+    try {
+      TheEntity theEntity=new TheEntity();
+      Session s=sf.openSession();
+      s.beginTransaction();
+      s.save(theEntity);
+      s.getTransaction().commit();
+      s.close();
+      assertNotNull(theEntity.id);
+      s=sf.openSession();
+      s.beginTransaction();
+      s.delete(theEntity);
+      s.getTransaction().commit();
+      s.close();
+    }
+  finally {
+      try {
+        sf.close();
+      }
+ catch (      Exception ignore) {
+      }
+    }
+  }
+  finally {
+    StandardServiceRegistryBuilder.destroy(ssr);
+  }
+}
