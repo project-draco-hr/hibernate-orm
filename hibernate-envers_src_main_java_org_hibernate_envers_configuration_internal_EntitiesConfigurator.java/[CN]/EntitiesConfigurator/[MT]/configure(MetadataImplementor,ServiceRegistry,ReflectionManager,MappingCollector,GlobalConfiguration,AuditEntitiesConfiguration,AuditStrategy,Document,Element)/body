@@ -5,9 +5,11 @@
   final Map<PersistentClass,EntityXmlMappingData> xmlMappings=new HashMap<PersistentClass,EntityXmlMappingData>();
   while (classes.hasNext()) {
     final PersistentClass pc=classes.next();
-    final AnnotationsMetadataReader annotationsMetadataReader=new AnnotationsMetadataReader(globalConfiguration,reflectionManager,pc);
-    final ClassAuditingData auditData=annotationsMetadataReader.getAuditData();
-    classesAuditingData.addClassAuditingData(pc,auditData);
+    if (pc.getClassName() != null) {
+      final AnnotationsMetadataReader annotationsMetadataReader=new AnnotationsMetadataReader(globalConfiguration,reflectionManager,pc);
+      final ClassAuditingData auditData=annotationsMetadataReader.getAuditData();
+      classesAuditingData.addClassAuditingData(pc,auditData);
+    }
   }
   classesAuditingData.updateCalculatedFields();
   final AuditMetadataGenerator auditMetaGen=new AuditMetadataGenerator(metadata,serviceRegistry,globalConfiguration,auditEntitiesConfiguration,auditStrategy,revisionInfoRelationMapping,auditEntityNameRegister);
