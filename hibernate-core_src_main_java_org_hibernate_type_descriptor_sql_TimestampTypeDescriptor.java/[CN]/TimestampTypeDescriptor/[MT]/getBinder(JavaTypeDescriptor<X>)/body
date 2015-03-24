@@ -1,7 +1,13 @@
 {
   return new BasicBinder<X>(javaTypeDescriptor,this){
     @Override protected void doBind(    PreparedStatement st,    X value,    int index,    WrapperOptions options) throws SQLException {
-      st.setTimestamp(index,javaTypeDescriptor.unwrap(value,Timestamp.class,options));
+      final Timestamp timestamp=javaTypeDescriptor.unwrap(value,Timestamp.class,options);
+      if (value instanceof Calendar) {
+        st.setTimestamp(index,timestamp,(Calendar)value);
+      }
+ else {
+        st.setTimestamp(index,timestamp);
+      }
     }
   }
 ;
