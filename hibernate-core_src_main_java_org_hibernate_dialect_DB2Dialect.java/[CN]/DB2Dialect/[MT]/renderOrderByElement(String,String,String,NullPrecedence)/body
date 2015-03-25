@@ -2,20 +2,8 @@
   if (nullPrecedence == null || nullPrecedence == NullPrecedence.NONE) {
     return super.renderOrderByElement(expression,collation,order,NullPrecedence.NONE);
   }
-  if (nullPrecedence == NullPrecedence.FIRST) {
-    if (order == null || "asc".equals(order)) {
-      return super.renderOrderByElement(expression,collation,order,NullPrecedence.NONE);
-    }
- else {
-      return "order by case when " + expression + " is null then 0 else 1 end, "+ expression+ " desc";
-    }
+  if ((nullPrecedence == NullPrecedence.FIRST && "desc".equalsIgnoreCase(order)) || (nullPrecedence == NullPrecedence.LAST && "asc".equalsIgnoreCase(order))) {
+    return super.renderOrderByElement(expression,collation,order,NullPrecedence.NONE);
   }
- else {
-    if (order == null || "asc".equals(order)) {
-      return "order by case when " + expression + " is null then 1 else 0 end, "+ expression+ " asc";
-    }
- else {
-      return super.renderOrderByElement(expression,collation,order,NullPrecedence.NONE);
-    }
-  }
+  return String.format(Locale.ENGLISH,"case when %s is null then %s else %s end, %s %s",expression,nullPrecedence == NullPrecedence.FIRST ? "0" : "1",nullPrecedence == NullPrecedence.FIRST ? "1" : "0",expression,order);
 }
