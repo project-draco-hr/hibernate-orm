@@ -1,0 +1,29 @@
+{
+  if (offsetTime == null) {
+    return null;
+  }
+  if (OffsetTime.class.isAssignableFrom(type)) {
+    return (X)offsetTime;
+  }
+  final ZonedDateTime zonedDateTime=offsetTime.atDate(LocalDate.of(1970,1,1)).toZonedDateTime();
+  if (Calendar.class.isAssignableFrom(type)) {
+    return (X)GregorianCalendar.from(zonedDateTime);
+  }
+  final Instant instant=zonedDateTime.toInstant();
+  if (Timestamp.class.isAssignableFrom(type)) {
+    return (X)Timestamp.from(instant);
+  }
+  if (java.sql.Date.class.isAssignableFrom(type)) {
+    return (X)java.sql.Date.from(instant);
+  }
+  if (java.sql.Time.class.isAssignableFrom(type)) {
+    return (X)java.sql.Time.from(instant);
+  }
+  if (Date.class.isAssignableFrom(type)) {
+    return (X)Date.from(instant);
+  }
+  if (Long.class.isAssignableFrom(type)) {
+    return (X)Long.valueOf(instant.toEpochMilli());
+  }
+  throw unknownUnwrap(type);
+}
