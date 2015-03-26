@@ -1,9 +1,13 @@
 {
+  List<AttributeConverterDefinition> attributeConverterDefinitions=null;
   final List<Class> loadedAnnotatedClasses=(List<Class>)configurationValues.remove(AvailableSettings.LOADED_CLASSES);
   if (loadedAnnotatedClasses != null) {
     for (    Class cls : loadedAnnotatedClasses) {
       if (AttributeConverter.class.isAssignableFrom(cls)) {
-        metadataSources.addAttributeConverter((Class<? extends AttributeConverter>)cls);
+        if (attributeConverterDefinitions == null) {
+          attributeConverterDefinitions=new ArrayList<AttributeConverterDefinition>();
+        }
+        attributeConverterDefinitions.add(AttributeConverterDefinition.from((Class<? extends AttributeConverter>)cls));
       }
  else {
         metadataSources.addAnnotatedClass(cls);
@@ -22,4 +26,5 @@
       metadataSources.addResource(ormXml);
     }
   }
+  return attributeConverterDefinitions;
 }

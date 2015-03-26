@@ -2,37 +2,52 @@
   log.debug("Building session factory using provided StandardServiceRegistry");
   final MetadataBuilder metadataBuilder=metadataSources.getMetadataBuilder((StandardServiceRegistry)serviceRegistry);
   if (implicitNamingStrategy != null) {
-    metadataBuilder.with(implicitNamingStrategy);
+    metadataBuilder.applyImplicitNamingStrategy(implicitNamingStrategy);
   }
   if (physicalNamingStrategy != null) {
-    metadataBuilder.with(physicalNamingStrategy);
+    metadataBuilder.applyPhysicalNamingStrategy(physicalNamingStrategy);
   }
   if (sharedCacheMode != null) {
-    metadataBuilder.with(sharedCacheMode);
+    metadataBuilder.applySharedCacheMode(sharedCacheMode);
   }
   if (!typeContributorRegistrations.isEmpty()) {
     for (    TypeContributor typeContributor : typeContributorRegistrations) {
-      metadataBuilder.with(typeContributor);
+      metadataBuilder.applyTypes(typeContributor);
     }
   }
   if (!basicTypes.isEmpty()) {
     for (    BasicType basicType : basicTypes) {
-      metadataBuilder.with(basicType);
+      metadataBuilder.applyBasicType(basicType);
+    }
+  }
+  if (sqlFunctions != null) {
+    for (    Map.Entry<String,SQLFunction> entry : sqlFunctions.entrySet()) {
+      metadataBuilder.applySqlFunction(entry.getKey(),entry.getValue());
+    }
+  }
+  if (auxiliaryDatabaseObjectList != null) {
+    for (    AuxiliaryDatabaseObject auxiliaryDatabaseObject : auxiliaryDatabaseObjectList) {
+      metadataBuilder.applyAuxiliaryDatabaseObject(auxiliaryDatabaseObject);
+    }
+  }
+  if (attributeConverterDefinitionsByClass != null) {
+    for (    AttributeConverterDefinition attributeConverterDefinition : attributeConverterDefinitionsByClass.values()) {
+      metadataBuilder.applyAttributeConverter(attributeConverterDefinition);
     }
   }
   final Metadata metadata=metadataBuilder.build();
   final SessionFactoryBuilder sessionFactoryBuilder=metadata.getSessionFactoryBuilder();
   if (interceptor != null && interceptor != EmptyInterceptor.INSTANCE) {
-    sessionFactoryBuilder.with(interceptor);
+    sessionFactoryBuilder.applyInterceptor(interceptor);
   }
   if (getSessionFactoryObserver() != null) {
-    sessionFactoryBuilder.add(getSessionFactoryObserver());
+    sessionFactoryBuilder.addSessionFactoryObservers(getSessionFactoryObserver());
   }
   if (entityNotFoundDelegate != null) {
-    sessionFactoryBuilder.with(entityNotFoundDelegate);
+    sessionFactoryBuilder.applyEntityNotFoundDelegate(entityNotFoundDelegate);
   }
   if (entityTuplizerFactory != null) {
-    sessionFactoryBuilder.with(entityTuplizerFactory);
+    sessionFactoryBuilder.applyEntityTuplizerFactory(entityTuplizerFactory);
   }
   return sessionFactoryBuilder.build();
 }

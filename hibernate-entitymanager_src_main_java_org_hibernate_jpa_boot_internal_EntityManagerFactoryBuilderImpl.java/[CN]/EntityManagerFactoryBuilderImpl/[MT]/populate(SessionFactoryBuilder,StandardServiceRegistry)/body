@@ -3,19 +3,19 @@
   final Object sessionFactoryInterceptorSetting=configurationValues.remove(AvailableSettings.INTERCEPTOR);
   if (sessionFactoryInterceptorSetting != null) {
     final Interceptor sessionFactoryInterceptor=strategySelector.resolveStrategy(Interceptor.class,sessionFactoryInterceptorSetting);
-    sfBuilder.with(sessionFactoryInterceptor);
+    sfBuilder.applyInterceptor(sessionFactoryInterceptor);
   }
   final Object sessionFactoryObserverSetting=configurationValues.remove(AvailableSettings.SESSION_FACTORY_OBSERVER);
   if (sessionFactoryObserverSetting != null) {
     final SessionFactoryObserver suppliedSessionFactoryObserver=strategySelector.resolveStrategy(SessionFactoryObserver.class,sessionFactoryObserverSetting);
-    sfBuilder.add(suppliedSessionFactoryObserver);
+    sfBuilder.addSessionFactoryObservers(suppliedSessionFactoryObserver);
   }
-  sfBuilder.add(ServiceRegistryCloser.INSTANCE);
-  sfBuilder.with(JpaEntityNotFoundDelegate.INSTANCE);
+  sfBuilder.addSessionFactoryObservers(ServiceRegistryCloser.INSTANCE);
+  sfBuilder.applyEntityNotFoundDelegate(JpaEntityNotFoundDelegate.INSTANCE);
   if (this.validatorFactory != null) {
-    sfBuilder.withValidatorFactory(validatorFactory);
+    sfBuilder.applyValidatorFactory(validatorFactory);
   }
   if (this.cdiBeanManager != null) {
-    sfBuilder.withBeanManager(cdiBeanManager);
+    sfBuilder.applyBeanManager(cdiBeanManager);
   }
 }
