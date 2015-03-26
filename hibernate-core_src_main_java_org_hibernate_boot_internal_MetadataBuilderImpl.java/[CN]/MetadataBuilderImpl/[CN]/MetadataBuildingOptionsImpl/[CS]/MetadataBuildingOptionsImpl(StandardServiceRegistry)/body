@@ -12,7 +12,6 @@
     }
   }
   archiveDescriptorFactory=strategySelector.resolveStrategy(ArchiveDescriptorFactory.class,configService.getSettings().get(AvailableSettings.SCANNER_ARCHIVE_INTERPRETER));
-  useNewIdentifierGenerators=configService.getSetting(AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS,StandardConverters.BOOLEAN,false);
   multiTenancyStrategy=MultiTenancyStrategy.determineMultiTenancyStrategy(configService.getSettings());
   implicitDiscriminatorsForJoinedInheritanceSupported=configService.getSetting(AvailableSettings.IMPLICIT_DISCRIMINATOR_COLUMNS_FOR_JOINED_SUBCLASS,StandardConverters.BOOLEAN,false);
   explicitDiscriminatorsForJoinedInheritanceSupported=!configService.getSetting(AvailableSettings.IGNORE_EXPLICIT_DISCRIMINATOR_COLUMNS_FOR_JOINED_SUBCLASS,StandardConverters.BOOLEAN,false);
@@ -48,4 +47,11 @@
   implicitNamingStrategy=strategySelector.resolveDefaultableStrategy(ImplicitNamingStrategy.class,configService.getSettings().get(AvailableSettings.IMPLICIT_NAMING_STRATEGY),ImplicitNamingStrategyLegacyJpaImpl.INSTANCE);
   physicalNamingStrategy=strategySelector.resolveDefaultableStrategy(PhysicalNamingStrategy.class,configService.getSettings().get(AvailableSettings.PHYSICAL_NAMING_STRATEGY),PhysicalNamingStrategyStandardImpl.INSTANCE);
   sourceProcessOrdering=resolveInitialSourceProcessOrdering(configService);
+  useNewIdentifierGenerators=configService.getSetting(AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS,StandardConverters.BOOLEAN,false);
+  if (useNewIdentifierGenerators) {
+    idGenerationTypeInterpreter.disableLegacyFallback();
+  }
+ else {
+    idGenerationTypeInterpreter.enableLegacyFallback();
+  }
 }

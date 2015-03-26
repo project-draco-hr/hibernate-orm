@@ -1,28 +1,12 @@
 {
-  boolean useNewGeneratorMappings=buildingContext.getBuildingOptions().isUseNewIdentifierGenerators();
-switch (generatorEnum) {
-case IDENTITY:
-{
-      return "identity";
-    }
-case AUTO:
-{
-    final Class javaType=buildingContext.getBuildingOptions().getReflectionManager().toClass(javaTypeXClass);
-    if (UUID.class.isAssignableFrom(javaType)) {
-      return UUIDGenerator.class.getName();
-    }
- else {
-      return useNewGeneratorMappings ? org.hibernate.id.enhanced.SequenceStyleGenerator.class.getName() : "native";
+  return buildingContext.getBuildingOptions().getIdGenerationTypeInterpreter().determineGeneratorName(generatorEnum,new IdGenerationTypeInterpreter.Context(){
+    Class javaType=null;
+    @Override public Class getIdType(){
+      if (javaType == null) {
+        javaType=buildingContext.getBuildingOptions().getReflectionManager().toClass(javaTypeXClass);
+      }
+      return javaType;
     }
   }
-case TABLE:
-{
-  return useNewGeneratorMappings ? org.hibernate.id.enhanced.TableGenerator.class.getName() : MultipleHiLoPerTableGenerator.class.getName();
-}
-case SEQUENCE:
-{
-return useNewGeneratorMappings ? org.hibernate.id.enhanced.SequenceStyleGenerator.class.getName() : "seqhilo";
-}
-}
-throw new AssertionFailure("Unknown GeneratorType: " + generatorEnum);
+);
 }
