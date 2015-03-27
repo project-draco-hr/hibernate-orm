@@ -12,17 +12,11 @@
   this.settings=configure(ssrBuilder);
   this.standardServiceRegistry=ssrBuilder.build();
   configure(standardServiceRegistry,mergedSettings);
-  final ClassLoaderService classLoaderService=bsr.getService(ClassLoaderService.class);
-  this.metadata=((ClassLoaderServiceImpl)classLoaderService).withTccl(new ClassLoaderServiceImpl.Work<MetadataImplementor>(){
-    @Override public MetadataImplementor perform(){
-      final MetadataSources metadataSources=new MetadataSources(bsr);
-      List<AttributeConverterDefinition> attributeConverterDefinitions=populate(metadataSources,mergedSettings,standardServiceRegistry);
-      final MetadataBuilder metamodelBuilder=metadataSources.getMetadataBuilder(standardServiceRegistry);
-      populate(metamodelBuilder,mergedSettings,standardServiceRegistry,attributeConverterDefinitions);
-      return (MetadataImplementor)metamodelBuilder.build();
-    }
-  }
-);
+  final MetadataSources metadataSources=new MetadataSources(bsr);
+  List<AttributeConverterDefinition> attributeConverterDefinitions=populate(metadataSources,mergedSettings,standardServiceRegistry);
+  final MetadataBuilder metamodelBuilder=metadataSources.getMetadataBuilder(standardServiceRegistry);
+  populate(metamodelBuilder,mergedSettings,standardServiceRegistry,attributeConverterDefinitions);
+  this.metadata=(MetadataImplementor)metamodelBuilder.build();
   withValidatorFactory(configurationValues.get(AvailableSettings.VALIDATION_FACTORY));
   final boolean useClassTransformer="true".equals(configurationValues.remove(AvailableSettings.USE_CLASS_ENHANCER));
   if (useClassTransformer) {
