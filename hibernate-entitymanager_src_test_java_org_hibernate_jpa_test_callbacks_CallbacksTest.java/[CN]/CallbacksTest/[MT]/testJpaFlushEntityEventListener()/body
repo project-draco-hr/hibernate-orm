@@ -1,0 +1,31 @@
+{
+  EntityWithLazyProperty entity;
+  EntityManager em=getOrCreateEntityManager();
+  byte[] testArray=new byte[]{0x2A};
+  em.getTransaction().begin();
+  entity=new EntityWithLazyProperty();
+  entity.setSomeField("TEST");
+  entity.setLazyData(testArray);
+  em.persist(entity);
+  em.getTransaction().commit();
+  checkLazyField(entity,em,testArray);
+  em.getTransaction().begin();
+  entity=em.find(EntityWithLazyProperty.class,entity.getId());
+  entity.setSomeField("TEST1");
+  em.getTransaction().commit();
+  checkLazyField(entity,em,testArray);
+  em.getTransaction().begin();
+  entity=em.find(EntityWithLazyProperty.class,entity.getId());
+  entity.setUpdateLazyFieldInPreUpdate(true);
+  entity.setSomeField("TEST2");
+  em.getTransaction().commit();
+  checkLazyField(entity,em,EntityWithLazyProperty.PRE_UPDATE_VALUE);
+  em.getTransaction().begin();
+  entity=em.find(EntityWithLazyProperty.class,entity.getId());
+  entity.setUpdateLazyFieldInPreUpdate(true);
+  entity.setLazyData(testArray);
+  entity.setSomeField("TEST3");
+  em.getTransaction().commit();
+  checkLazyField(entity,em,EntityWithLazyProperty.PRE_UPDATE_VALUE);
+  em.close();
+}
