@@ -1,14 +1,14 @@
 {
   final String entityClassName=(String)entityObject;
   try {
-    final XClass entityXClass=reflectionManager.classForName(entityClassName,this.getClass());
+    final XClass entityXClass=reflectionManager.classForName(entityClassName);
     final Class entityClass=reflectionManager.toClass(entityXClass);
     for (    Class annotationClass : CALLBACK_ANNOTATION_CLASSES) {
       final Callback[] callbacks=resolveCallbacks(entityXClass,annotationClass,reflectionManager);
       callbackRegistry.addEntityCallbacks(entityClass,annotationClass,callbacks);
     }
   }
- catch (  ClassNotFoundException e) {
+ catch (  ClassLoadingException e) {
     throw new MappingException("entity class not found: " + entityClassName,e);
   }
 }
