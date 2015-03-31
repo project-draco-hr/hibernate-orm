@@ -7,7 +7,7 @@
       writer=MethodWriter.addSetter(managedCtClass,fieldName,writerName);
     }
  else {
-      writer=MethodWriter.write(managedCtClass,"private void %s(%s %s) {%n  %s%n}",writerName,persistentField.getType().getName(),fieldName,typeDescriptor.buildWriteInterceptionBodyFragment(fieldName));
+      writer=MethodWriter.write(managedCtClass,"public void %s(%s %s) {%n  %s%n}",writerName,persistentField.getType().getName(),fieldName,typeDescriptor.buildWriteInterceptionBodyFragment(fieldName));
     }
     if (enhancementContext.isCompositeClass(managedCtClass)) {
       writer.insertBefore(String.format("if (%s != null) { %<s.callOwner(\".%s\"); }%n",EnhancerConstants.TRACKER_COMPOSITE_FIELD_NAME,fieldName));
@@ -15,13 +15,9 @@
  else     if (enhancementContext.doDirtyCheckingInline(managedCtClass)) {
       writer.insertBefore(typeDescriptor.buildInLineDirtyCheckingBodyFragment(enhancementContext,persistentField));
     }
-    if (persistentField.hasAnnotation(Embedded.class)) {
-      managedCtClass.addInterface(classPool.get(CompositeOwner.class.getName()));
-      if (enhancementContext.isCompositeClass(managedCtClass)) {
-        MethodWriter.write(managedCtClass,"" + "public void %1$s(String name) {%n" + "  if (%2$s != null) { %2$s.callOwner(\".\" + name) ; }%n}",EnhancerConstants.TRACKER_CHANGER_NAME,EnhancerConstants.TRACKER_COMPOSITE_FIELD_NAME);
-      }
-      writer.insertBefore(String.format("" + "if (%1$s != null) { ((%2$s) %1$s).%3$s(\"%1$s\"); }%n",fieldName,CompositeTracker.class.getName(),EnhancerConstants.TRACKER_COMPOSITE_CLEAR_OWNER));
-      writer.insertAfter(String.format("" + "((%2$s) %1$s).%4$s(\"%1$s\", (%3$s) this);%n" + "%5$s(\"%1$s\");",fieldName,CompositeTracker.class.getName(),CompositeOwner.class.getName(),EnhancerConstants.TRACKER_COMPOSITE_SET_OWNER,EnhancerConstants.TRACKER_CHANGER_NAME));
+    handleCompositeField(managedCtClass,persistentField,writer);
+    if (enhancementContext.doBiDirectionalAssociationManagement(persistentField)) {
+      handleBiDirectionalAssociation(managedCtClass,persistentField,writer);
     }
     return writer;
   }

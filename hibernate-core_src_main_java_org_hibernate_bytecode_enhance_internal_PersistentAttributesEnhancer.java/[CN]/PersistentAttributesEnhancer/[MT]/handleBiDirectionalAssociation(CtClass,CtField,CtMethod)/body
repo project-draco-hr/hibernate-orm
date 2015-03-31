@@ -1,0 +1,35 @@
+{
+  if (!isPossibleBiDirectionalAssociation(persistentField)) {
+    return;
+  }
+  final CtClass targetEntity=getTargetEntityClass(persistentField);
+  if (targetEntity == null) {
+    log.debugf("Could not find type of bi-directional association for field [%s#%s]",managedCtClass.getName(),persistentField.getName());
+    return;
+  }
+  final String mappedBy=getMappedBy(persistentField,targetEntity);
+  if (mappedBy.isEmpty()) {
+    log.debugf("Could not find bi-directional association for field [%s#%s]",managedCtClass.getName(),persistentField.getName());
+    return;
+  }
+  final String mappedByGetterName=EnhancerConstants.PERSISTENT_FIELD_READER_PREFIX + mappedBy;
+  final String mappedBySetterName=EnhancerConstants.PERSISTENT_FIELD_WRITER_PREFIX + mappedBy;
+  MethodWriter.addGetter(targetEntity,mappedBy,mappedByGetterName);
+  MethodWriter.addSetter(targetEntity,mappedBy,mappedBySetterName);
+  if (persistentField.hasAnnotation(OneToOne.class)) {
+    fieldWriter.insertBefore(String.format("if ($0.%s != null && $1 != null) $0.%<s.%s(null);%n",persistentField.getName(),mappedBySetterName));
+    fieldWriter.insertAfter(String.format("if ($1 != null && $1.%s() != $0) $1.%s($0);%n",mappedByGetterName,mappedBySetterName));
+  }
+  if (persistentField.hasAnnotation(OneToMany.class)) {
+    fieldWriter.insertBefore(String.format("if ($0.%s != null) for (java.util.Iterator itr = $0.%<s.iterator(); itr.hasNext(); ) { %s target = (%<s) itr.next(); if ($1 == null || !$1.contains(target)) target.%s(null); }%n",persistentField.getName(),targetEntity.getName(),mappedBySetterName));
+    fieldWriter.insertAfter(String.format("if ($1 != null) for (java.util.Iterator itr = $1.iterator(); itr.hasNext(); ) { %s target = (%<s) itr.next(); if (target.%s() != $0) target.%s((%s)$0); }%n",targetEntity.getName(),mappedByGetterName,mappedBySetterName,managedCtClass.getName()));
+  }
+  if (persistentField.hasAnnotation(ManyToOne.class)) {
+    fieldWriter.insertBefore(String.format("if ($0.%1$s != null && $0.%1$s.%2$s() != null) $0.%1$s.%2$s().remove($0);%n",persistentField.getName(),mappedByGetterName));
+    fieldWriter.insertAfter(String.format("if ($1 != null && $1.%s() != null && !$1.%<s().contains($0) ) $1.%<s().add($0);%n",mappedByGetterName));
+  }
+  if (persistentField.hasAnnotation(ManyToMany.class)) {
+    fieldWriter.insertBefore(String.format("if ($0.%s != null) for (java.util.Iterator itr = $0.%<s.iterator(); itr.hasNext(); ) { %s target = (%<s) itr.next(); if ($1 == null || !$1.contains(target)) target.%s().remove($0); }%n",persistentField.getName(),targetEntity.getName(),mappedByGetterName));
+    fieldWriter.insertAfter(String.format("if ($1 != null) for (java.util.Iterator itr = $1.iterator(); itr.hasNext(); ) { %s target = (%<s) itr.next(); if (target.%s() != $0 && target.%<s() != null) target.%<s().add($0); }%n",targetEntity.getName(),mappedByGetterName));
+  }
+}

@@ -1,0 +1,34 @@
+{
+  try {
+    Class<?> targetClass=null;
+    if (persistentField.hasAnnotation(OneToOne.class)) {
+      targetClass=((OneToOne)persistentField.getAnnotation(OneToOne.class)).targetEntity();
+    }
+    if (persistentField.hasAnnotation(OneToMany.class)) {
+      targetClass=((OneToMany)persistentField.getAnnotation(OneToMany.class)).targetEntity();
+    }
+    if (persistentField.hasAnnotation(ManyToOne.class)) {
+      targetClass=((ManyToOne)persistentField.getAnnotation(ManyToOne.class)).targetEntity();
+    }
+    if (persistentField.hasAnnotation(ManyToMany.class)) {
+      targetClass=((ManyToMany)persistentField.getAnnotation(ManyToMany.class)).targetEntity();
+    }
+    if (targetClass != null && targetClass != void.class) {
+      return classPool.get(targetClass.getName());
+    }
+  }
+ catch (  ClassNotFoundException ignore) {
+  }
+  if (persistentField.hasAnnotation(OneToOne.class) || persistentField.hasAnnotation(ManyToOne.class)) {
+    return persistentField.getType();
+  }
+  if (persistentField.hasAnnotation(OneToMany.class) || persistentField.hasAnnotation(ManyToMany.class)) {
+    try {
+      final SignatureAttribute.TypeArgument target=((SignatureAttribute.ClassType)SignatureAttribute.toFieldSignature(persistentField.getGenericSignature())).getTypeArguments()[0];
+      return persistentField.getDeclaringClass().getClassPool().get(target.toString());
+    }
+ catch (    BadBytecode ignore) {
+    }
+  }
+  return null;
+}
