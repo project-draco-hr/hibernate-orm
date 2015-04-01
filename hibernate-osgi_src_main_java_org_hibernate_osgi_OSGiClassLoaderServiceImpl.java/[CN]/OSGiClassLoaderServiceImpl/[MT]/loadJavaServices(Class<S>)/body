@@ -1,6 +1,12 @@
 {
-  LinkedHashSet<S> parentDiscoveredServices=super.loadJavaServices(serviceContract);
+  Iterable<S> parentDiscoveredServices=super.loadJavaServices(serviceContract);
   S[] serviceImpls=osgiServiceUtil.getServiceImpls(serviceContract);
-  Collections.addAll(parentDiscoveredServices,serviceImpls);
-  return parentDiscoveredServices;
+  LinkedHashSet<S> composite=new LinkedHashSet<S>();
+  for (  S service : parentDiscoveredServices) {
+    composite.add(service);
+  }
+  for (  S service : serviceImpls) {
+    composite.add(service);
+  }
+  return composite;
 }
