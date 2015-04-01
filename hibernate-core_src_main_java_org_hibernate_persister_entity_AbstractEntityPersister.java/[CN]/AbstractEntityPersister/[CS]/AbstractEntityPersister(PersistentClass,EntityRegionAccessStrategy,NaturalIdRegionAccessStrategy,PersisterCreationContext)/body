@@ -5,6 +5,12 @@
   isLazyPropertiesCacheable=persistentClass.isLazyPropertiesCacheable();
   this.entityMetamodel=new EntityMetamodel(persistentClass,this,factory);
   this.entityTuplizer=this.entityMetamodel.getTuplizer();
+  if (entityMetamodel.isMutable()) {
+    this.entityEntryFactory=MutableEntityEntryFactory.INSTANCE;
+  }
+ else {
+    this.entityEntryFactory=ImmutableEntityEntryFactory.INSTANCE;
+  }
   int batch=persistentClass.getBatchSize();
   if (batch == -1) {
     batch=factory.getSettings().getDefaultBatchFetchSize();
@@ -231,5 +237,18 @@
   filterHelper=new FilterHelper(persistentClass.getFilters(),factory);
   temporaryIdTableName=persistentClass.getTemporaryIdTableName();
   temporaryIdTableDDL=persistentClass.getTemporaryIdTableDDL();
+  boolean refCacheEntries=true;
+  if (!factory.getSettings().isDirectReferenceCacheEntriesEnabled()) {
+    refCacheEntries=false;
+  }
+  if (entityMetamodel.isMutable()) {
+    refCacheEntries=false;
+  }
+  for (  Type type : getSubclassPropertyTypeClosure()) {
+    if (type.isAssociationType()) {
+      refCacheEntries=false;
+    }
+  }
+  useReferenceCacheEntries=refCacheEntries;
   this.cacheEntryHelper=buildCacheEntryHelper();
 }

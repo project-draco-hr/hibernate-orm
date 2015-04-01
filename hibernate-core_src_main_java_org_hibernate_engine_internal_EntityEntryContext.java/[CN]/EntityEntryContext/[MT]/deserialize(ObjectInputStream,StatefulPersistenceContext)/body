@@ -11,7 +11,12 @@
   for (int i=0; i < count; i++) {
     final boolean isEnhanced=ois.readBoolean();
     final Object entity=ois.readObject();
-    final EntityEntry entry=MutableEntityEntry.deserialize(ois,rtn);
+    final int numChars=ois.readInt();
+    final char[] entityEntryClassNameArr=new char[numChars];
+    for (int j=0; j < numChars; j++) {
+      entityEntryClassNameArr[j]=ois.readChar();
+    }
+    final EntityEntry entry=deserializeEntityEntry(entityEntryClassNameArr,ois,rtn);
     final ManagedEntity managedEntity;
     if (isEnhanced) {
       managedEntity=(ManagedEntity)entity;
