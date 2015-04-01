@@ -1,17 +1,17 @@
 {
-  final SDOGeometry geom=convertJTSGeometry(jtsGeom);
+  final SDOGeometry sdoGeom=Encoders.encode(geom);
   if (geom != null) {
     try {
-      return store(geom,connection);
+      return store(sdoGeom,connection);
     }
  catch (    SQLException e) {
       throw new HibernateException("Problem during conversion from JTS to SDOGeometry",e);
     }
 catch (    FinderException e) {
-      throw new HibernateException("OracleConnection could not be retrieved for creating SDOGeometry STRUCT",e);
+      throw new HibernateException("OracleConnection could not be retrieved for creating SDOGeometry " + "STRUCT",e);
     }
   }
  else {
-    throw new UnsupportedOperationException("Conversion of " + jtsGeom.getClass().getSimpleName() + " to Oracle STRUCT not supported");
+    throw new UnsupportedOperationException("Conversion of " + geom.getClass().getSimpleName() + " to Oracle STRUCT not supported");
   }
 }
