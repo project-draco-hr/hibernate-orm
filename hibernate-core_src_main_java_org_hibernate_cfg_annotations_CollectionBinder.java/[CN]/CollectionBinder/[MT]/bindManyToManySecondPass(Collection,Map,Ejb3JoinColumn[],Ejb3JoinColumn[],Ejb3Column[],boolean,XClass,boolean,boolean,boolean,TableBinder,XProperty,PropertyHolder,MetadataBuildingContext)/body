@@ -8,10 +8,18 @@
   ManyToAny anyAnn=property.getAnnotation(ManyToAny.class);
   if (LOG.isDebugEnabled()) {
     String path=collValue.getOwnerEntityName() + "." + joinColumns[0].getPropertyName();
-    if (isCollectionOfEntities && unique)     LOG.debugf("Binding a OneToMany: %s through an association table",path);
- else     if (isCollectionOfEntities)     LOG.debugf("Binding as ManyToMany: %s",path);
- else     if (anyAnn != null)     LOG.debugf("Binding a ManyToAny: %s",path);
- else     LOG.debugf("Binding a collection of element: %s",path);
+    if (isCollectionOfEntities && unique) {
+      LOG.debugf("Binding a OneToMany: %s through an association table",path);
+    }
+ else     if (isCollectionOfEntities) {
+      LOG.debugf("Binding as ManyToMany: %s",path);
+    }
+ else     if (anyAnn != null) {
+      LOG.debugf("Binding a ManyToAny: %s",path);
+    }
+ else {
+      LOG.debugf("Binding a collection of element: %s",path);
+    }
   }
   if (!isCollectionOfEntities) {
     if (property.isAnnotationPresent(ManyToMany.class) || property.isAnnotationPresent(OneToMany.class)) {
@@ -43,9 +51,7 @@
       otherSideProperty=collectionEntity.getRecursiveProperty(joinColumns[0].getMappedBy());
     }
  catch (    MappingException e) {
-      StringBuilder error=new StringBuilder(80);
-      error.append("mappedBy reference an unknown target entity property: ").append(collType).append(".").append(joinColumns[0].getMappedBy()).append(" in ").append(collValue.getOwnerEntityName()).append(".").append(joinColumns[0].getPropertyName());
-      throw new AnnotationException(error.toString());
+      throw new AnnotationException("mappedBy reference an unknown target entity property: " + collType + "."+ joinColumns[0].getMappedBy()+ " in "+ collValue.getOwnerEntityName()+ "."+ joinColumns[0].getPropertyName());
     }
     Table table;
     if (otherSideProperty.getValue() instanceof Collection) {
@@ -86,9 +92,19 @@
       collValue.setManyToManyOrdering(buildOrderByClauseFromHql(hqlOrderBy,collectionEntity,collValue.getRole()));
     }
     final ForeignKey fk=property.getAnnotation(ForeignKey.class);
-    String fkName=fk != null ? fk.inverseName() : "";
-    if (!BinderHelper.isEmptyAnnotationValue(fkName)) {
-      element.setForeignKeyName(fkName);
+    if (fk != null && !BinderHelper.isEmptyAnnotationValue(fk.name())) {
+      element.setForeignKeyName(fk.name());
+    }
+ else {
+      final JoinTable joinTableAnn=property.getAnnotation(JoinTable.class);
+      if (joinTableAnn != null) {
+        if (joinTableAnn.foreignKey().value() == ConstraintMode.NO_CONSTRAINT) {
+          element.setForeignKeyName("none");
+        }
+ else {
+          element.setForeignKeyName(StringHelper.nullIfEmpty(joinTableAnn.inverseForeignKey().name()));
+        }
+      }
     }
   }
  else   if (anyAnn != null) {
