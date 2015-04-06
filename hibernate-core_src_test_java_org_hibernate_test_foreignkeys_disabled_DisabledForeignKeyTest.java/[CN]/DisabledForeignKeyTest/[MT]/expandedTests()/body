@@ -1,0 +1,21 @@
+{
+  StandardServiceRegistryBuilder registryBuilder=new StandardServiceRegistryBuilder();
+  StandardServiceRegistry standardRegistry=registryBuilder.build();
+  try {
+    final MetadataSources sources=new MetadataSources(standardRegistry);
+    sources.addAnnotatedClass(ManyToManyOwner.class);
+    sources.addAnnotatedClass(ManyToManyTarget.class);
+    final MetadataImplementor metadata=(MetadataImplementor)sources.buildMetadata();
+    metadata.validate();
+    new SchemaExport(metadata).execute(false,true,false,false);
+    try {
+      new SchemaUpdate(metadata).execute(false,true);
+    }
+  finally {
+      new SchemaExport(metadata).execute(false,true,false,false);
+    }
+  }
+  finally {
+    StandardServiceRegistryBuilder.destroy(standardRegistry);
+  }
+}
