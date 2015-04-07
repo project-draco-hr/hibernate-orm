@@ -1,0 +1,24 @@
+{
+  try {
+    final ResultSet resultSet=extractionContext.getJdbcDatabaseMetaData().getSchemas(determineCatalogFilter(catalog),determineSchemaFilter(schema));
+    try {
+      if (!resultSet.next()) {
+        return false;
+      }
+      if (resultSet.next()) {
+        log.debugf("Multiple schemas found with that name [%s.%s]",catalog.getCanonicalName(),schema.getCanonicalName());
+      }
+      return true;
+    }
+  finally {
+      try {
+        resultSet.close();
+      }
+ catch (      SQLException ignore) {
+      }
+    }
+  }
+ catch (  SQLException sqlException) {
+    throw convertSQLException(sqlException,"Unable to query DatabaseMetaData for existing schemas");
+  }
+}

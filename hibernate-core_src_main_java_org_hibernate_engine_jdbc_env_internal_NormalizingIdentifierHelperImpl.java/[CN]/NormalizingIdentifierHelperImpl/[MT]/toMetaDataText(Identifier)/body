@@ -2,14 +2,32 @@
   if (identifier == null) {
     throw new IllegalArgumentException("Identifier cannot be null; bad usage");
   }
-  if (identifier.isQuoted() && storesMixedCaseQuotedIdentifiers) {
-    return identifier.getText();
+  if (identifier.isQuoted()) {
+    if (storesMixedCaseQuotedIdentifiers) {
+      return identifier.getText();
+    }
+ else     if (storesUpperCaseQuotedIdentifiers) {
+      return identifier.getText().toUpperCase(Locale.ENGLISH);
+    }
+ else     if (storesLowerCaseQuotedIdentifiers) {
+      return identifier.getText().toLowerCase(Locale.ENGLISH);
+    }
+ else {
+      return identifier.getText();
+    }
   }
- else   if ((identifier.isQuoted() && storesUpperCaseQuotedIdentifiers) || (!identifier.isQuoted() && storesUpperCaseIdentifiers)) {
-    return StringHelper.toUpperCase(identifier.getText());
+ else {
+    if (storesMixedCaseIdentifiers) {
+      return identifier.getText();
+    }
+ else     if (storesUpperCaseIdentifiers) {
+      return identifier.getText().toUpperCase(Locale.ENGLISH);
+    }
+ else     if (storesLowerCaseIdentifiers) {
+      return identifier.getText().toLowerCase(Locale.ENGLISH);
+    }
+ else {
+      return identifier.getText();
+    }
   }
- else   if ((identifier.isQuoted() && storesLowerCaseQuotedIdentifiers) || (!identifier.isQuoted() && storesLowerCaseIdentifiers)) {
-    return StringHelper.toLowerCase(identifier.getText());
-  }
-  return identifier.getText();
 }
