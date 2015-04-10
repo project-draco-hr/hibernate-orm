@@ -1,12 +1,13 @@
 {
   PreparedStatement preparedStatement=null;
+  ResultSet results=null;
   Connection cn=null;
   Map<Integer,T> expected=new HashMap<Integer,T>();
   try {
     cn=createConnection();
     preparedStatement=nativeSQLStatement.prepare(cn);
     LOG.info("Native SQL is: " + preparedStatement.toString());
-    ResultSet results=preparedStatement.executeQuery();
+    results=preparedStatement.executeQuery();
     while (results.next()) {
       int id=results.getInt(1);
 switch (type) {
@@ -40,11 +41,26 @@ expected.put(id,val);
 return expected;
 }
   finally {
+if (results != null) {
+try {
+results.close();
+}
+ catch (SQLException e) {
+}
+}
 if (preparedStatement != null) {
+try {
 preparedStatement.close();
 }
+ catch (SQLException e) {
+}
+}
 if (cn != null) {
+try {
 cn.close();
+}
+ catch (SQLException e) {
+}
 }
 }
 }
