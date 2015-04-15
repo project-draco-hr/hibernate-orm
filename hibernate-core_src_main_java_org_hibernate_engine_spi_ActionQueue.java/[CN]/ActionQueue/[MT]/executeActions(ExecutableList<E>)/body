@@ -5,8 +5,18 @@
         e.execute();
       }
   finally {
-        beforeTransactionProcesses.register(e.getBeforeTransactionCompletionProcess());
-        afterTransactionProcesses.register(e.getAfterTransactionCompletionProcess());
+        if (e.getBeforeTransactionCompletionProcess() != null) {
+          if (beforeTransactionProcesses == null) {
+            beforeTransactionProcesses=new BeforeTransactionCompletionProcessQueue(session);
+          }
+          beforeTransactionProcesses.register(e.getBeforeTransactionCompletionProcess());
+        }
+        if (e.getAfterTransactionCompletionProcess() != null) {
+          if (afterTransactionProcesses == null) {
+            afterTransactionProcesses=new AfterTransactionCompletionProcessQueue(session);
+          }
+          afterTransactionProcesses.register(e.getAfterTransactionCompletionProcess());
+        }
       }
     }
   }

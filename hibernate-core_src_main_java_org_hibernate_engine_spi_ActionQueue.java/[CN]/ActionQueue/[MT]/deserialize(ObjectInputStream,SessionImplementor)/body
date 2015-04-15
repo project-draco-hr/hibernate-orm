@@ -5,12 +5,20 @@
   }
   ActionQueue rtn=new ActionQueue(session);
   rtn.unresolvedInsertions=UnresolvedEntityInsertActions.deserialize(ois,session);
-  for (  ExecutableList<?> l : rtn.executableLists) {
-    l.readExternal(ois);
-    if (traceEnabled) {
-      LOG.tracev("Deserialized [{0}] entries",l.size());
+  for (int i=0; i < EXECUTABLE_LISTS.length; ++i) {
+    ListProvider provider=EXECUTABLE_LISTS[i];
+    ExecutableList<?> l=provider.get(rtn);
+    boolean notNull=ois.readBoolean();
+    if (notNull) {
+      if (l == null) {
+        l=provider.init(rtn);
+      }
+      l.readExternal(ois);
+      if (traceEnabled) {
+        LOG.tracev("Deserialized [{0}] entries",l.size());
+      }
+      l.afterDeserialize(session);
     }
-    l.afterDeserialize(session);
   }
   return rtn;
 }

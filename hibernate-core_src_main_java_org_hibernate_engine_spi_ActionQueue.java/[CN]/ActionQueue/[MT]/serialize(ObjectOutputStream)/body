@@ -1,7 +1,17 @@
 {
   LOG.trace("Serializing action-queue");
+  if (unresolvedInsertions == null) {
+    unresolvedInsertions=new UnresolvedEntityInsertActions();
+  }
   unresolvedInsertions.serialize(oos);
-  for (  ExecutableList<?> l : executableLists) {
-    l.writeExternal(oos);
+  for (  ListProvider p : EXECUTABLE_LISTS) {
+    ExecutableList<?> l=p.get(this);
+    if (l == null) {
+      oos.writeBoolean(false);
+    }
+ else {
+      oos.writeBoolean(true);
+      l.writeExternal(oos);
+    }
   }
 }
