@@ -1,8 +1,6 @@
 {
   try {
     final ConfigurationService cfgService=serviceRegistry.getService(ConfigurationService.class);
-    final Properties properties=toProperties(cfgService.getSettings());
-    final Settings settings=new SettingsFactory().buildSettings(properties,serviceRegistry);
     String factoryType=cfgService.getSetting(AvailableSettings.CACHE_REGION_FACTORY,StandardConverters.STRING);
     Class clazz=Thread.currentThread().getContextClassLoader().loadClass(factoryType);
     InfinispanRegionFactory regionFactory;
@@ -12,6 +10,9 @@
  else {
       regionFactory=(InfinispanRegionFactory)clazz.newInstance();
     }
+    final SessionFactoryOptionsImpl sessionFactoryOptions=new SessionFactoryOptionsImpl((StandardServiceRegistry)serviceRegistry);
+    final Settings settings=new Settings(sessionFactoryOptions);
+    final Properties properties=toProperties(cfgService.getSettings());
     regionFactory.start(settings,properties);
     return regionFactory;
   }

@@ -1,5 +1,10 @@
 {
-  Properties p=new Properties();
-  p.setProperty("hibernate.cache.region.factory_class","org.hibernate.cache.infinispan.JndiInfinispanRegionFactory");
-  SettingsFactory.createRegionFactory(p,true);
+  StandardServiceRegistry ssr=new StandardServiceRegistryBuilder().applySetting(AvailableSettings.CACHE_REGION_FACTORY,JndiInfinispanRegionFactory.class.getName()).build();
+  try {
+    RegionFactory regionFactory=ssr.getService(RegionFactory.class);
+    assertTyping(JndiInfinispanRegionFactory.class,regionFactory);
+  }
+  finally {
+    StandardServiceRegistryBuilder.destroy(ssr);
+  }
 }
