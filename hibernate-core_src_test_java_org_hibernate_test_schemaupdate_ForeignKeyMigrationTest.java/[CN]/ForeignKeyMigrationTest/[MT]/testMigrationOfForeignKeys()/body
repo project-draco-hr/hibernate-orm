@@ -1,0 +1,13 @@
+{
+  StandardServiceRegistry ssr=new StandardServiceRegistryBuilder().build();
+  try {
+    final MetadataImplementor metadata=(MetadataImplementor)new MetadataSources(ssr).addAnnotatedClass(Box.class).addAnnotatedClass(Thing.class).buildMetadata();
+    metadata.validate();
+    new SchemaExport(metadata).create(Target.EXPORT);
+    new SchemaUpdate(metadata).execute(Target.EXPORT);
+    new SchemaExport(metadata).drop(Target.EXPORT);
+  }
+  finally {
+    StandardServiceRegistryBuilder.destroy(ssr);
+  }
+}
