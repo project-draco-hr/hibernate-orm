@@ -1,20 +1,3 @@
 {
-  Table idTable=new Table(entityMapping.getTemporaryIdTableName());
-  if (catalog != null) {
-    idTable.setCatalog(catalog);
-  }
-  if (schema != null) {
-    idTable.setSchema(schema);
-  }
-  Iterator itr=entityMapping.getTable().getPrimaryKey().getColumnIterator();
-  while (itr.hasNext()) {
-    Column column=(Column)itr.next();
-    idTable.addColumn(column.clone());
-  }
-  Column sessionIdColumn=new Column("hib_sess_id");
-  sessionIdColumn.setSqlType("CHAR(36)");
-  sessionIdColumn.setComment("Used to hold the Hibernate Session identifier");
-  idTable.addColumn(sessionIdColumn);
-  idTable.setComment("Used to hold id values for the " + entityMapping.getEntityName() + " class");
-  return idTable;
+  return MultiTableBulkIdHelper.INSTANCE.generateIdTableDefinition(entityMapping,catalog,schema,true);
 }

@@ -29,10 +29,7 @@
   this.initializeLazyStateOutsideTransactions=cfgService.getSetting(ENABLE_LAZY_LOAD_NO_TRANS,BOOLEAN,false);
   this.multiTenancyStrategy=MultiTenancyStrategy.determineMultiTenancyStrategy(configurationSettings);
   this.currentTenantIdentifierResolver=strategySelector.resolveStrategy(CurrentTenantIdentifierResolver.class,configurationSettings.get(MULTI_TENANT_IDENTIFIER_RESOLVER));
-  this.multiTableBulkIdStrategy=strategySelector.resolveStrategy(MultiTableBulkIdStrategy.class,configurationSettings.get(HQL_BULK_ID_STRATEGY));
-  if (this.multiTableBulkIdStrategy == null) {
-    this.multiTableBulkIdStrategy=jdbcServices.getDialect().supportsTemporaryTables() ? TemporaryTableBulkIdStrategy.INSTANCE : new PersistentTableBulkIdStrategy();
-  }
+  this.multiTableBulkIdStrategy=strategySelector.resolveDefaultableStrategy(MultiTableBulkIdStrategy.class,configurationSettings.get(HQL_BULK_ID_STRATEGY),jdbcServices.getJdbcEnvironment().getDialect().getDefaultMultiTableBulkIdStrategy());
   this.batchFetchStyle=BatchFetchStyle.interpret(configurationSettings.get(BATCH_FETCH_STYLE));
   this.defaultBatchFetchSize=ConfigurationHelper.getInt(DEFAULT_BATCH_FETCH_SIZE,configurationSettings,-1);
   this.maximumFetchDepth=ConfigurationHelper.getInteger(MAX_FETCH_DEPTH,configurationSettings);
