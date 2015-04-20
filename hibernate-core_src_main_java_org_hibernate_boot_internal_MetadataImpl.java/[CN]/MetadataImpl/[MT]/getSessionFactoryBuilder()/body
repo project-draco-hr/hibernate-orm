@@ -1,10 +1,11 @@
 {
+  final SessionFactoryBuilder defaultBuilder=new SessionFactoryBuilderImpl(this);
   final ClassLoaderService cls=metadataBuildingOptions.getServiceRegistry().getService(ClassLoaderService.class);
   final java.util.Collection<SessionFactoryBuilderFactory> discoveredBuilderFactories=cls.loadJavaServices(SessionFactoryBuilderFactory.class);
   SessionFactoryBuilder builder=null;
   List<String> activeFactoryNames=null;
   for (  SessionFactoryBuilderFactory discoveredBuilderFactory : discoveredBuilderFactories) {
-    final SessionFactoryBuilder returnedBuilder=discoveredBuilderFactory.getSessionFactoryBuilder(this);
+    final SessionFactoryBuilder returnedBuilder=discoveredBuilderFactory.getSessionFactoryBuilder(this,defaultBuilder);
     if (returnedBuilder != null) {
       if (activeFactoryNames == null) {
         activeFactoryNames=new ArrayList<String>();
@@ -19,5 +20,5 @@
   if (builder != null) {
     return builder;
   }
-  return new SessionFactoryBuilderImpl(this);
+  return defaultBuilder;
 }
