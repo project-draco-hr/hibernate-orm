@@ -6,7 +6,7 @@
   final boolean useLimitOffset=hasFirstRow && useLimit && limitHandler.supportsLimitOffset();
   final boolean callable=queryParameters.isCallable();
   final ScrollMode scrollMode=getScrollMode(scroll,hasFirstRow,useLimitOffset,queryParameters);
-  final PreparedStatement st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareQueryStatement(sql,callable,scrollMode);
+  final PreparedStatement st=session.getJdbcCoordinator().getStatementPreparer().prepareQueryStatement(sql,callable,scrollMode);
   try {
     int col=1;
     col+=limitHandler.bindLimitParametersAtStartOfQuery(selection,st,col);
@@ -42,11 +42,13 @@
     }
   }
  catch (  SQLException sqle) {
-    session.getTransactionCoordinator().getJdbcCoordinator().release(st);
+    session.getJdbcCoordinator().getResourceRegistry().release(st);
+    session.getJdbcCoordinator().afterStatementExecution();
     throw sqle;
   }
 catch (  HibernateException he) {
-    session.getTransactionCoordinator().getJdbcCoordinator().release(st);
+    session.getJdbcCoordinator().getResourceRegistry().release(st);
+    session.getJdbcCoordinator().afterStatementExecution();
     throw he;
   }
   return st;

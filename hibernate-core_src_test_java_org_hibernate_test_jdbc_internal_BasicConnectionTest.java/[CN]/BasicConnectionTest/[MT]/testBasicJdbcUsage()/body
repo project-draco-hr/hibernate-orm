@@ -1,7 +1,7 @@
 {
   Session session=openSession();
   SessionImplementor sessionImpl=(SessionImplementor)session;
-  JdbcCoordinator jdbcCoord=sessionImpl.getTransactionCoordinator().getJdbcCoordinator();
+  JdbcCoordinator jdbcCoord=sessionImpl.getJdbcCoordinator();
   try {
     Statement statement=jdbcCoord.getStatementPreparer().createStatement();
     String dropSql=getDialect().getDropTableString("SANDBOX_JDBC_TST");
@@ -11,10 +11,10 @@
  catch (    Exception e) {
     }
     jdbcCoord.getResultSetReturn().execute(statement,"create table SANDBOX_JDBC_TST ( ID integer, NAME varchar(100) )");
-    assertTrue(jdbcCoord.hasRegisteredResources());
+    assertTrue(getResourceRegistry(jdbcCoord).hasRegisteredResources());
     assertTrue(jdbcCoord.getLogicalConnection().isPhysicallyConnected());
-    jdbcCoord.release(statement);
-    assertFalse(jdbcCoord.hasRegisteredResources());
+    getResourceRegistry(jdbcCoord).release(statement);
+    assertFalse(getResourceRegistry(jdbcCoord).hasRegisteredResources());
     assertTrue(jdbcCoord.getLogicalConnection().isPhysicallyConnected());
     PreparedStatement ps=jdbcCoord.getStatementPreparer().prepareStatement("insert into SANDBOX_JDBC_TST( ID, NAME ) values ( ?, ? )");
     ps.setLong(1,1);
@@ -22,7 +22,7 @@
     jdbcCoord.getResultSetReturn().execute(ps);
     ps=jdbcCoord.getStatementPreparer().prepareStatement("select * from SANDBOX_JDBC_TST");
     jdbcCoord.getResultSetReturn().extract(ps);
-    assertTrue(jdbcCoord.hasRegisteredResources());
+    assertTrue(getResourceRegistry(jdbcCoord).hasRegisteredResources());
   }
  catch (  SQLException e) {
     fail("incorrect exception type : sqlexception");
@@ -30,5 +30,5 @@
  finally {
     session.close();
   }
-  assertFalse(jdbcCoord.hasRegisteredResources());
+  assertFalse(getResourceRegistry(jdbcCoord).hasRegisteredResources());
 }

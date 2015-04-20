@@ -6,40 +6,5 @@
     return;
   }
   final SessionImplementor session=(SessionImplementor)internalGetSession();
-  final TransactionCoordinator transactionCoordinator=session.getTransactionCoordinator();
-  final TransactionImplementor transaction=transactionCoordinator.getTransaction();
-  transaction.markForJoin();
-  transactionCoordinator.pulse();
-  LOG.debug("Looking for a JTA transaction to join");
-  if (!transactionCoordinator.isTransactionJoinable()) {
-    if (explicitRequest) {
-      LOG.unableToJoinTransaction(Environment.TRANSACTION_STRATEGY);
-    }
-  }
-  try {
-    if (transaction.getJoinStatus() == JoinStatus.JOINED) {
-      LOG.debug("Transaction already joined");
-      return;
-    }
-    transaction.join();
-    if (transaction.getJoinStatus() == JoinStatus.NOT_JOINED) {
-      if (explicitRequest) {
-        throw new TransactionRequiredException("No active JTA transaction on joinTransaction call");
-      }
- else {
-        LOG.debug("Unable to join JTA transaction");
-        return;
-      }
-    }
- else     if (transaction.getJoinStatus() == JoinStatus.MARKED_FOR_JOINED) {
-      throw new AssertionFailure("Transaction MARKED_FOR_JOINED after isOpen() call");
-    }
-    final SynchronizationCallbackCoordinator callbackCoordinator=transactionCoordinator.getSynchronizationCallbackCoordinator();
-    callbackCoordinator.setManagedFlushChecker(new ManagedFlushCheckerImpl());
-    callbackCoordinator.setExceptionMapper(new CallbackExceptionMapperImpl());
-    callbackCoordinator.setAfterCompletionAction(new AfterCompletionActionImpl(session,transactionType));
-  }
- catch (  HibernateException he) {
-    throw convert(he);
-  }
+  session.getTransactionCoordinator().explicitJoin();
 }

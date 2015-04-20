@@ -1,0 +1,44 @@
+{
+  log.trace("Releasing JDBC resources");
+  for (  Map.Entry<Statement,Set<ResultSet>> entry : xref.entrySet()) {
+    if (entry.getValue() != null) {
+      closeAll(entry.getValue());
+    }
+    close(entry.getKey());
+  }
+  xref.clear();
+  closeAll(unassociatedResultSets);
+  if (blobs != null) {
+    for (    Blob blob : blobs) {
+      try {
+        blob.free();
+      }
+ catch (      SQLException e) {
+        log.debugf("Unable to free JDBC Blob reference [%s]",e.getMessage());
+      }
+    }
+    blobs.clear();
+  }
+  if (clobs != null) {
+    for (    Clob clob : clobs) {
+      try {
+        clob.free();
+      }
+ catch (      SQLException e) {
+        log.debugf("Unable to free JDBC Clob reference [%s]",e.getMessage());
+      }
+    }
+    clobs.clear();
+  }
+  if (nclobs != null) {
+    for (    NClob nclob : nclobs) {
+      try {
+        nclob.free();
+      }
+ catch (      SQLException e) {
+        log.debugf("Unable to free JDBC NClob reference [%s]",e.getMessage());
+      }
+    }
+    nclobs.clear();
+  }
+}

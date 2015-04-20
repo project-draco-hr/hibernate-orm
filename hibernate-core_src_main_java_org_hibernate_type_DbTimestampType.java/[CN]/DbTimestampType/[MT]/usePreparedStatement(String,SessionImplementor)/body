@@ -1,8 +1,8 @@
 {
   PreparedStatement ps=null;
   try {
-    ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(timestampSelectString,false);
-    ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(ps);
+    ps=session.getJdbcCoordinator().getStatementPreparer().prepareStatement(timestampSelectString,false);
+    ResultSet rs=session.getJdbcCoordinator().getResultSetReturn().extract(ps);
     rs.next();
     Timestamp ts=rs.getTimestamp(1);
     if (LOG.isTraceEnabled()) {
@@ -15,7 +15,8 @@
   }
  finally {
     if (ps != null) {
-      session.getTransactionCoordinator().getJdbcCoordinator().release(ps);
+      session.getJdbcCoordinator().getResourceRegistry().release(ps);
+      session.getJdbcCoordinator().afterStatementExecution();
     }
   }
 }

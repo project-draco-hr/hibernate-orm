@@ -31,10 +31,13 @@
     tx.commit();
     fail("Optimistic locking should work");
   }
- catch (  StaleStateException e) {
+ catch (  TransactionException e) {
+    assertTrue(e.getCause() instanceof StaleStateException);
   }
  finally {
-    if (tx != null)     tx.rollback();
+    if (tx != null) {
+      tx.rollback();
+    }
     s.close();
   }
 }

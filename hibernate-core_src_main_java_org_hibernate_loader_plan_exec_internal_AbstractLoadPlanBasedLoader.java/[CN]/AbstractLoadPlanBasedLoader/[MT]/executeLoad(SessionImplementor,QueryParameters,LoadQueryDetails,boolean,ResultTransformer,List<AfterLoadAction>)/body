@@ -23,8 +23,9 @@
     }
   finally {
       if (wrapper != null) {
-        session.getTransactionCoordinator().getJdbcCoordinator().release(wrapper.getResultSet(),wrapper.getStatement());
-        session.getTransactionCoordinator().getJdbcCoordinator().release(wrapper.getStatement());
+        session.getJdbcCoordinator().getResourceRegistry().release(wrapper.getResultSet(),wrapper.getStatement());
+        session.getJdbcCoordinator().getResourceRegistry().release(wrapper.getStatement());
+        session.getJdbcCoordinator().afterStatementExecution();
       }
       persistenceContext.afterLoad();
     }

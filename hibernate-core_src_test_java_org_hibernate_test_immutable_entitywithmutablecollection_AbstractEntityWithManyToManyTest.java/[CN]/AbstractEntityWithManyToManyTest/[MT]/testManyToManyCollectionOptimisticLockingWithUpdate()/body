@@ -29,11 +29,11 @@
     t.commit();
     assertFalse(isContractVersioned);
   }
- catch (  StaleStateException ex) {
+ catch (  TransactionException e) {
     t.rollback();
     assertTrue(isContractVersioned);
     if (!sessionFactory().getSettings().isJdbcBatchVersionedData()) {
-      assertTrue(StaleObjectStateException.class.isInstance(ex));
+      assertTrue(StaleObjectStateException.class.isInstance(e.getCause()));
     }
   }
   s.close();

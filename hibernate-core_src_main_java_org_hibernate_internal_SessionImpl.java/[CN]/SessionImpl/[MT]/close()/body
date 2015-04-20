@@ -9,14 +9,11 @@
   getEventListenerManager().end();
   try {
     if (!isTransactionCoordinatorShared) {
-      return transactionCoordinator.close();
+      return jdbcCoordinator.close();
     }
  else {
       if (getActionQueue().hasBeforeTransactionActions() || getActionQueue().hasAfterTransactionActions()) {
         LOG.warn("On close, shared Session had before / after transaction actions that have not yet been processed");
-      }
- else {
-        transactionCoordinator.removeObserver(transactionObserver);
       }
       return null;
     }

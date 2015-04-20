@@ -1,10 +1,7 @@
 {
   Session session=openSession();
   SessionImplementor sessionImpl=(SessionImplementor)session;
-  TransactionCoordinator transactionCoordinator=sessionImpl.getTransactionCoordinator();
-  JournalingTransactionObserver observer=new JournalingTransactionObserver();
-  transactionCoordinator.addObserver(observer);
-  final JdbcCoordinator jdbcCoordinator=transactionCoordinator.getJdbcCoordinator();
+  final JdbcCoordinator jdbcCoordinator=sessionImpl.getJdbcCoordinator();
   LogicalConnectionImplementor logicalConnection=jdbcCoordinator.getLogicalConnection();
   Statement statement=jdbcCoordinator.getStatementPreparer().createStatement();
   String dropSql=getDialect().getDropTableString("SANDBOX_JDBC_TST");
@@ -14,14 +11,13 @@
  catch (  Exception e) {
   }
   jdbcCoordinator.getResultSetReturn().execute(statement,"create table SANDBOX_JDBC_TST ( ID integer, NAME varchar(100) )");
-  assertTrue(jdbcCoordinator.hasRegisteredResources());
+  assertTrue(jdbcCoordinator.getResourceRegistry().hasRegisteredResources());
   assertTrue(logicalConnection.isPhysicallyConnected());
-  jdbcCoordinator.release(statement);
-  assertFalse(jdbcCoordinator.hasRegisteredResources());
+  jdbcCoordinator.getResourceRegistry().release(statement);
+  assertFalse(jdbcCoordinator.getResourceRegistry().hasRegisteredResources());
   assertTrue(logicalConnection.isPhysicallyConnected());
-  TransactionImplementor txn=transactionCoordinator.getTransaction();
+  Transaction txn=session.getTransaction();
   txn.begin();
-  assertEquals(1,observer.getBegins());
   final BatchBuilder batchBuilder=new BatchBuilderImpl(2);
   final BatchKey batchKey=new BasicBatchKey("this",Expectations.BASIC);
   final Batch insertBatch=batchBuilder.buildBatch(batchKey,jdbcCoordinator);
@@ -37,7 +33,7 @@
   insertBatch.addToBatch();
   assertEquals(0,batchObserver.getExplicitExecutionCount());
   assertEquals(0,batchObserver.getImplicitExecutionCount());
-  assertTrue(jdbcCoordinator.hasRegisteredResources());
+  assertTrue(jdbcCoordinator.getResourceRegistry().hasRegisteredResources());
   PreparedStatement insert2=insertBatch.getBatchStatement(insertSql,false);
   assertSame(insert,insert2);
   insert=insert2;
@@ -48,11 +44,11 @@
   insertBatch.addToBatch();
   assertEquals(0,batchObserver.getExplicitExecutionCount());
   assertEquals(1,batchObserver.getImplicitExecutionCount());
-  assertTrue(jdbcCoordinator.hasRegisteredResources());
+  assertTrue(jdbcCoordinator.getResourceRegistry().hasRegisteredResources());
   insertBatch.execute();
   assertEquals(1,batchObserver.getExplicitExecutionCount());
   assertEquals(1,batchObserver.getImplicitExecutionCount());
-  assertFalse(jdbcCoordinator.hasRegisteredResources());
+  assertFalse(jdbcCoordinator.getResourceRegistry().hasRegisteredResources());
   insertBatch.release();
   txn.commit();
   session.close();

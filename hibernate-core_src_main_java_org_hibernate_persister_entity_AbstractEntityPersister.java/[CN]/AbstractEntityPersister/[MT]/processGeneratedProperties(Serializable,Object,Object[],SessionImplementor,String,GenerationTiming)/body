@@ -1,10 +1,10 @@
 {
-  session.getTransactionCoordinator().getJdbcCoordinator().executeBatch();
+  session.getJdbcCoordinator().executeBatch();
   try {
-    PreparedStatement ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(selectionSQL);
+    PreparedStatement ps=session.getJdbcCoordinator().getStatementPreparer().prepareStatement(selectionSQL);
     try {
       getIdentifierType().nullSafeSet(ps,id,1,session);
-      ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(ps);
+      ResultSet rs=session.getJdbcCoordinator().getResultSetReturn().extract(ps);
       try {
         if (!rs.next()) {
           throw new HibernateException("Unable to locate row for retrieval of generated properties: " + MessageHelper.infoString(this,id,getFactory()));
@@ -22,12 +22,13 @@
       }
   finally {
         if (rs != null) {
-          session.getTransactionCoordinator().getJdbcCoordinator().release(rs,ps);
+          session.getJdbcCoordinator().getResourceRegistry().release(rs,ps);
         }
       }
     }
   finally {
-      session.getTransactionCoordinator().getJdbcCoordinator().release(ps);
+      session.getJdbcCoordinator().getResourceRegistry().release(ps);
+      session.getJdbcCoordinator().afterStatementExecution();
     }
   }
  catch (  SQLException e) {

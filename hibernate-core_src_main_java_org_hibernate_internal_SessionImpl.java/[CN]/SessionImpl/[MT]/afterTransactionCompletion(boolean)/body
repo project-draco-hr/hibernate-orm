@@ -1,0 +1,21 @@
+{
+  LOG.trace("after transaction completion");
+  persistenceContext.afterTransactionCompletion();
+  actionQueue.afterTransactionCompletion(successful);
+  getEventListenerManager().transactionCompletion(successful);
+  if (factory.getStatistics().isStatisticsEnabled()) {
+    factory.getStatisticsImplementor().endTransaction(successful);
+  }
+  try {
+    interceptor.afterTransactionCompletion(currentHibernateTransaction);
+  }
+ catch (  Throwable t) {
+    LOG.exceptionInAfterTransactionCompletionInterceptor(t);
+  }
+  if (shouldAutoClose() && !isClosed()) {
+    managedClose();
+  }
+  if (autoClear) {
+    internalClear();
+  }
+}

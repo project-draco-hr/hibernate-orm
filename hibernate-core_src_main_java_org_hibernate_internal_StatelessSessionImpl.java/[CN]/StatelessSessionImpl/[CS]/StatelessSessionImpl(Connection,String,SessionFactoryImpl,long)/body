@@ -1,5 +1,8 @@
 {
   super(factory,tenantIdentifier);
-  this.transactionCoordinator=new TransactionCoordinatorImpl(connection,this);
+  this.jdbcSessionContext=new JdbcSessionContextImpl(factory,EmptyInterceptor.INSTANCE);
+  this.jdbcCoordinator=new JdbcCoordinatorImpl(connection,this);
+  this.transactionCoordinator=getTransactionCoordinatorBuilder().buildTransactionCoordinator(jdbcCoordinator);
+  this.currentHibernateTransaction=getTransaction();
   this.timestamp=timestamp;
 }

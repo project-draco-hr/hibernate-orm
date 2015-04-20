@@ -11,9 +11,9 @@
     if (hasDeferred) {
       final String sql=rootPersister.getSequentialSelect(getEntityName());
       if (sql != null) {
-        sequentialSelect=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql);
+        sequentialSelect=session.getJdbcCoordinator().getStatementPreparer().prepareStatement(sql);
         rootPersister.getIdentifierType().nullSafeSet(sequentialSelect,id,1,session);
-        sequentialResultSet=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(sequentialSelect);
+        sequentialResultSet=session.getJdbcCoordinator().getResultSetReturn().extract(sequentialSelect);
         if (!sequentialResultSet.next()) {
           sequentialSelectEmpty=true;
         }
@@ -44,13 +44,14 @@
       }
     }
     if (sequentialResultSet != null) {
-      session.getTransactionCoordinator().getJdbcCoordinator().release(sequentialResultSet,sequentialSelect);
+      session.getJdbcCoordinator().getResourceRegistry().release(sequentialResultSet,sequentialSelect);
     }
     return values;
   }
   finally {
     if (sequentialSelect != null) {
-      session.getTransactionCoordinator().getJdbcCoordinator().release(sequentialSelect);
+      session.getJdbcCoordinator().getResourceRegistry().release(sequentialSelect);
+      session.getJdbcCoordinator().afterStatementExecution();
     }
   }
 }

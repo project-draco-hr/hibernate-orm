@@ -1,0 +1,17 @@
+{
+  log.tracev("Releasing statement [{0}]",statement);
+  if (log.isDebugEnabled() && !xref.containsKey(statement)) {
+    log.unregisteredStatement();
+  }
+ else {
+    final Set<ResultSet> resultSets=xref.get(statement);
+    if (resultSets != null) {
+      closeAll(resultSets);
+    }
+    xref.remove(statement);
+  }
+  close(statement);
+  if (lastQuery == statement) {
+    lastQuery=null;
+  }
+}

@@ -1,18 +1,19 @@
 {
   try {
-    PreparedStatement st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sqlSelectSizeString);
+    PreparedStatement st=session.getJdbcCoordinator().getStatementPreparer().prepareStatement(sqlSelectSizeString);
     try {
       getKeyType().nullSafeSet(st,key,1,session);
-      ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(st);
+      ResultSet rs=session.getJdbcCoordinator().getResultSetReturn().extract(st);
       try {
         return rs.next() ? rs.getInt(1) - baseIndex : 0;
       }
   finally {
-        session.getTransactionCoordinator().getJdbcCoordinator().release(rs,st);
+        session.getJdbcCoordinator().getResourceRegistry().release(rs,st);
       }
     }
   finally {
-      session.getTransactionCoordinator().getJdbcCoordinator().release(st);
+      session.getJdbcCoordinator().getResourceRegistry().release(st);
+      session.getJdbcCoordinator().afterStatementExecution();
     }
   }
  catch (  SQLException sqle) {

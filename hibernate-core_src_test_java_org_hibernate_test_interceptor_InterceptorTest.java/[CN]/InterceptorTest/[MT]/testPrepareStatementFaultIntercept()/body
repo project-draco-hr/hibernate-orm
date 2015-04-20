@@ -6,9 +6,16 @@
   }
 ;
   Session s=openSession(interceptor);
-  Transaction t=s.beginTransaction();
-  User u=new User("Kinga","Mroz");
-  s.persist(u);
-  t.commit();
-  s.close();
+  try {
+    Transaction t=s.beginTransaction();
+    User u=new User("Kinga","Mroz");
+    s.persist(u);
+    t.commit();
+  }
+ catch (  TransactionException e) {
+    assertTrue(e.getCause() instanceof AssertionFailure);
+  }
+ finally {
+    s.close();
+  }
 }

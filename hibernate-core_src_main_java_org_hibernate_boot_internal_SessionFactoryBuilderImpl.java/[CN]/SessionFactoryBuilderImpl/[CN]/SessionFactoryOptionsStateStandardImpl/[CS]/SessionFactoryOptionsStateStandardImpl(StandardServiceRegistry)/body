@@ -75,10 +75,11 @@
   this.jdbcFetchSize=ConfigurationHelper.getInteger(STATEMENT_FETCH_SIZE,configurationSettings);
   final String releaseModeName=ConfigurationHelper.getString(RELEASE_CONNECTIONS,configurationSettings,"auto");
   if ("auto".equals(releaseModeName)) {
-    this.connectionReleaseMode=serviceRegistry.getService(TransactionFactory.class).getDefaultReleaseMode();
+    this.connectionReleaseMode=serviceRegistry.getService(TransactionCoordinatorBuilder.class).getDefaultConnectionReleaseMode();
   }
  else {
     connectionReleaseMode=ConnectionReleaseMode.parse(releaseModeName);
   }
   this.commentsEnabled=ConfigurationHelper.getBoolean(USE_SQL_COMMENTS,configurationSettings);
+  this.preferUserTransaction=ConfigurationHelper.getBoolean(PREFER_USER_TRANSACTION,configurationSettings,false);
 }

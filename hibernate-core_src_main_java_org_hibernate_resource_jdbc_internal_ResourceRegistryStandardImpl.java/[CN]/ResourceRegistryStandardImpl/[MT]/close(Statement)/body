@@ -1,0 +1,26 @@
+{
+  log.tracef("Closing prepared statement [%s]",statement);
+  try {
+    try {
+      if (statement.getMaxRows() != 0) {
+        statement.setMaxRows(0);
+      }
+      if (statement.getQueryTimeout() != 0) {
+        statement.setQueryTimeout(0);
+      }
+    }
+ catch (    SQLException sqle) {
+      if (log.isDebugEnabled()) {
+        log.debugf("Exception clearing maxRows/queryTimeout [%s]",sqle.getMessage());
+      }
+      return;
+    }
+    statement.close();
+  }
+ catch (  SQLException e) {
+    log.debugf("Unable to release JDBC statement [%s]",e.getMessage());
+  }
+catch (  Exception e) {
+    log.debugf("Unable to release JDBC statement [%s]",e.getMessage());
+  }
+}

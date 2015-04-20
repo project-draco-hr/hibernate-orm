@@ -8,10 +8,10 @@
   }
   Type propertyType=getSubclassPropertyType(propertyIndex);
   try {
-    PreparedStatement ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(generateIdByUniqueKeySelectString(uniquePropertyName));
+    PreparedStatement ps=session.getJdbcCoordinator().getStatementPreparer().prepareStatement(generateIdByUniqueKeySelectString(uniquePropertyName));
     try {
       propertyType.nullSafeSet(ps,key,1,session);
-      ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(ps);
+      ResultSet rs=session.getJdbcCoordinator().getResultSetReturn().extract(ps);
       try {
         if (!rs.next()) {
           return null;
@@ -19,11 +19,12 @@
         return (Serializable)getIdentifierType().nullSafeGet(rs,getIdentifierAliases(),session,null);
       }
   finally {
-        session.getTransactionCoordinator().getJdbcCoordinator().release(rs,ps);
+        session.getJdbcCoordinator().getResourceRegistry().release(rs,ps);
       }
     }
   finally {
-      session.getTransactionCoordinator().getJdbcCoordinator().release(ps);
+      session.getJdbcCoordinator().getResourceRegistry().release(ps);
+      session.getJdbcCoordinator().afterStatementExecution();
     }
   }
  catch (  SQLException e) {

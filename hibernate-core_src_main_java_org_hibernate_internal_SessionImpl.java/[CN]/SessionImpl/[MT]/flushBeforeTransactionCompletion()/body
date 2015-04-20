@@ -1,0 +1,12 @@
+{
+  boolean flush=false;
+  try {
+    flush=(!isFlushModeNever() && !flushBeforeCompletionEnabled) || (!isClosed() && !isFlushModeNever() && flushBeforeCompletionEnabled&& !JtaStatusHelper.isRollback(getSessionFactory().getSettings().getJtaPlatform().getCurrentStatus()));
+  }
+ catch (  SystemException se) {
+    throw new HibernateException("could not determine transaction status in beforeCompletion()",se);
+  }
+  if (flush) {
+    managedFlush();
+  }
+}

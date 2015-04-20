@@ -1,10 +1,10 @@
 {
   try {
-    PreparedStatement st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sqlSelectRowByIndexString);
+    PreparedStatement st=session.getJdbcCoordinator().getStatementPreparer().prepareStatement(sqlSelectRowByIndexString);
     try {
       getKeyType().nullSafeSet(st,key,1,session);
       getIndexType().nullSafeSet(st,incrementIndexByBase(index),keyColumnNames.length + 1,session);
-      ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(st);
+      ResultSet rs=session.getJdbcCoordinator().getResultSetReturn().extract(st);
       try {
         if (rs.next()) {
           return getElementType().nullSafeGet(rs,elementColumnAliases,session,owner);
@@ -14,11 +14,12 @@
         }
       }
   finally {
-        session.getTransactionCoordinator().getJdbcCoordinator().release(rs,st);
+        session.getJdbcCoordinator().getResourceRegistry().release(rs,st);
       }
     }
   finally {
-      session.getTransactionCoordinator().getJdbcCoordinator().release(st);
+      session.getJdbcCoordinator().getResourceRegistry().release(st);
+      session.getJdbcCoordinator().afterStatementExecution();
     }
   }
  catch (  SQLException sqle) {

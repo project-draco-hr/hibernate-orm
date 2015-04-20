@@ -3,10 +3,10 @@
     LOG.tracev("Getting current persistent state for: {0}",MessageHelper.infoString(this,id,getFactory()));
   }
   try {
-    PreparedStatement ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(getSQLSnapshotSelectString());
+    PreparedStatement ps=session.getJdbcCoordinator().getStatementPreparer().prepareStatement(getSQLSnapshotSelectString());
     try {
       getIdentifierType().nullSafeSet(ps,id,1,session);
-      ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(ps);
+      ResultSet rs=session.getJdbcCoordinator().getResultSetReturn().extract(ps);
       try {
         if (!rs.next()) {
           return null;
@@ -22,11 +22,12 @@
         return values;
       }
   finally {
-        session.getTransactionCoordinator().getJdbcCoordinator().release(rs,ps);
+        session.getJdbcCoordinator().getResourceRegistry().release(rs,ps);
       }
     }
   finally {
-      session.getTransactionCoordinator().getJdbcCoordinator().release(ps);
+      session.getJdbcCoordinator().getResourceRegistry().release(ps);
+      session.getJdbcCoordinator().afterStatementExecution();
     }
   }
  catch (  SQLException e) {

@@ -1,22 +1,23 @@
 {
   try {
-    PreparedStatement st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql);
+    PreparedStatement st=session.getJdbcCoordinator().getStatementPreparer().prepareStatement(sql);
     try {
       getKeyType().nullSafeSet(st,key,1,session);
       indexOrElementType.nullSafeSet(st,indexOrElement,keyColumnNames.length + 1,session);
-      ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(st);
+      ResultSet rs=session.getJdbcCoordinator().getResultSetReturn().extract(st);
       try {
         return rs.next();
       }
   finally {
-        session.getTransactionCoordinator().getJdbcCoordinator().release(rs,st);
+        session.getJdbcCoordinator().getResourceRegistry().release(rs,st);
       }
     }
  catch (    TransientObjectException e) {
       return false;
     }
  finally {
-      session.getTransactionCoordinator().getJdbcCoordinator().release(st);
+      session.getJdbcCoordinator().getResourceRegistry().release(st);
+      session.getJdbcCoordinator().afterStatementExecution();
     }
   }
  catch (  SQLException sqle) {

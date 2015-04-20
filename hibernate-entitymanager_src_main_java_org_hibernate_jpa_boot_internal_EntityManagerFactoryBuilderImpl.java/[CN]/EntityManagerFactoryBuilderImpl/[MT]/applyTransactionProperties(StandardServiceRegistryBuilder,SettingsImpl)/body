@@ -7,16 +7,16 @@
     txnType=PersistenceUnitTransactionType.RESOURCE_LOCAL;
   }
   settings.setTransactionType(txnType);
-  boolean hasTxStrategy=configurationValues.containsKey(Environment.TRANSACTION_STRATEGY);
+  boolean hasTxStrategy=configurationValues.containsKey(Environment.TRANSACTION_COORDINATOR_STRATEGY);
   if (hasTxStrategy) {
-    LOG.overridingTransactionStrategyDangerous(Environment.TRANSACTION_STRATEGY);
+    LOG.overridingTransactionStrategyDangerous(Environment.TRANSACTION_COORDINATOR_STRATEGY);
   }
  else {
     if (txnType == PersistenceUnitTransactionType.JTA) {
-      ssrBuilder.applySetting(Environment.TRANSACTION_STRATEGY,CMTTransactionFactory.class);
+      ssrBuilder.applySetting(Environment.TRANSACTION_COORDINATOR_STRATEGY,JtaTransactionCoordinatorBuilderImpl.class);
     }
  else     if (txnType == PersistenceUnitTransactionType.RESOURCE_LOCAL) {
-      ssrBuilder.applySetting(Environment.TRANSACTION_STRATEGY,JdbcTransactionFactory.class);
+      ssrBuilder.applySetting(Environment.TRANSACTION_COORDINATOR_STRATEGY,ResourceLocalTransactionCoordinatorBuilderImpl.class);
     }
   }
 }

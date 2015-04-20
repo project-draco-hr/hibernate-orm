@@ -32,7 +32,7 @@
         final String updateSql=update.toStatementString();
         int rowCount=((Session)sessionImplementor).doReturningWork(new ReturningWork<Integer>(){
           @Override public Integer execute(          Connection connection) throws SQLException {
-            PreparedStatement preparedStatement=sessionImplementor.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(updateSql);
+            PreparedStatement preparedStatement=sessionImplementor.getJdbcCoordinator().getStatementPreparer().prepareStatement(updateSql);
             try {
               int index=1;
               final Number revisionNumber=enversService.getRevisionInfoNumberReader().getRevisionNumber(revision);
@@ -50,10 +50,11 @@
               index+=idType.getColumnSpan(sessionImplementor.getFactory());
               final Type revType=rootAuditedEntityQueryable.getPropertyType(enversService.getAuditEntitiesConfiguration().getRevisionNumberPath());
               revType.nullSafeSet(preparedStatement,revisionNumber,index,sessionImplementor);
-              return sessionImplementor.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().executeUpdate(preparedStatement);
+              return sessionImplementor.getJdbcCoordinator().getResultSetReturn().executeUpdate(preparedStatement);
             }
   finally {
-              sessionImplementor.getTransactionCoordinator().getJdbcCoordinator().release(preparedStatement);
+              sessionImplementor.getJdbcCoordinator().getResourceRegistry().release(preparedStatement);
+              sessionImplementor.getJdbcCoordinator().afterStatementExecution();
             }
           }
         }

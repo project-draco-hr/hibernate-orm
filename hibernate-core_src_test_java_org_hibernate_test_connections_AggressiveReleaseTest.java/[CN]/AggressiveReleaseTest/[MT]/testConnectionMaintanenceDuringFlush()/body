@@ -1,7 +1,7 @@
 {
+  final Statistics statistics=sessionFactory().getStatistics();
   prepare();
   Session s=getSessionUnderTest();
-  s.beginTransaction();
   List<Silly> entities=new ArrayList<Silly>();
   for (int i=0; i < 10; i++) {
     Other other=new Other("other-" + i);
@@ -14,9 +14,9 @@
     silly.setName("new-" + silly.getName());
     silly.getOther().setName("new-" + silly.getOther().getName());
   }
-  long initialCount=sessionFactory().getStatistics().getConnectCount();
+  long initialCount=statistics.getConnectCount();
   s.flush();
-  assertEquals("connection not maintained through flush",initialCount + 1,sessionFactory().getStatistics().getConnectCount());
+  assertEquals("connection not maintained through flush",initialCount + 1,statistics.getConnectCount());
   s.createQuery("delete from Silly").executeUpdate();
   s.createQuery("delete from Other").executeUpdate();
   s.getTransaction().commit();

@@ -5,7 +5,7 @@
   final boolean[] valueNullness=determineValueNullness(naturalIdValues);
   final String sqlEntityIdByNaturalIdString=determinePkByNaturalIdQuery(valueNullness);
   try {
-    PreparedStatement ps=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sqlEntityIdByNaturalIdString);
+    PreparedStatement ps=session.getJdbcCoordinator().getStatementPreparer().prepareStatement(sqlEntityIdByNaturalIdString);
     try {
       int positions=1;
       int loop=0;
@@ -17,7 +17,7 @@
           positions+=type.getColumnSpan(session.getFactory());
         }
       }
-      ResultSet rs=session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract(ps);
+      ResultSet rs=session.getJdbcCoordinator().getResultSetReturn().extract(ps);
       try {
         if (!rs.next()) {
           return null;
@@ -26,11 +26,12 @@
         return (Serializable)getIdentifierType().resolve(hydratedId,session,null);
       }
   finally {
-        session.getTransactionCoordinator().getJdbcCoordinator().release(rs,ps);
+        session.getJdbcCoordinator().getResourceRegistry().release(rs,ps);
       }
     }
   finally {
-      session.getTransactionCoordinator().getJdbcCoordinator().release(ps);
+      session.getJdbcCoordinator().getResourceRegistry().release(ps);
+      session.getJdbcCoordinator().afterStatementExecution();
     }
   }
  catch (  SQLException e) {

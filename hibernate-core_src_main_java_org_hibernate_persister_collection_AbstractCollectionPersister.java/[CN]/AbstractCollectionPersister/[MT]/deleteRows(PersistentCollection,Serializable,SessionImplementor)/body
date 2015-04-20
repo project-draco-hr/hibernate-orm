@@ -24,10 +24,10 @@
           if (deleteBatchKey == null) {
             deleteBatchKey=new BasicBatchKey(getRole() + "#DELETE",expectation);
           }
-          st=session.getTransactionCoordinator().getJdbcCoordinator().getBatch(deleteBatchKey).getBatchStatement(sql,callable);
+          st=session.getJdbcCoordinator().getBatch(deleteBatchKey).getBatchStatement(sql,callable);
         }
  else {
-          st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,callable);
+          st=session.getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,callable);
         }
         try {
           expectation.prepare(st);
@@ -46,22 +46,23 @@
             }
           }
           if (useBatch) {
-            session.getTransactionCoordinator().getJdbcCoordinator().getBatch(deleteBatchKey).addToBatch();
+            session.getJdbcCoordinator().getBatch(deleteBatchKey).addToBatch();
           }
  else {
-            expectation.verifyOutcome(session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().executeUpdate(st),st,-1);
+            expectation.verifyOutcome(session.getJdbcCoordinator().getResultSetReturn().executeUpdate(st),st,-1);
           }
           count++;
         }
  catch (        SQLException sqle) {
           if (useBatch) {
-            session.getTransactionCoordinator().getJdbcCoordinator().abortBatch();
+            session.getJdbcCoordinator().abortBatch();
           }
           throw sqle;
         }
  finally {
           if (!useBatch) {
-            session.getTransactionCoordinator().getJdbcCoordinator().release(st);
+            session.getJdbcCoordinator().getResourceRegistry().release(st);
+            session.getJdbcCoordinator().afterStatementExecution();
           }
         }
         LOG.debugf("Done deleting collection rows: %s deleted",count);

@@ -1,14 +1,14 @@
 {
   try {
-    jdbcCoordinator.getLogicalConnection().getJdbcServices().getSqlStatementLogger().logStatement(sql);
+    getJdbcService().getSqlStatementLogger().logStatement(sql);
     final PreparedStatement preparedStatement;
     try {
-      jdbcCoordinator.getTransactionCoordinator().getTransactionContext().startPrepareStatement();
+      jdbcCoordinator.getJdbcSessionOwner().getJdbcSessionContext().getObserver().jdbcPrepareStatementStart();
       preparedStatement=doPrepare();
       setStatementTimeout(preparedStatement);
     }
   finally {
-      jdbcCoordinator.getTransactionCoordinator().getTransactionContext().endPrepareStatement();
+      jdbcCoordinator.getJdbcSessionOwner().getJdbcSessionContext().getObserver().jdbcPrepareStatementEnd();
     }
     postProcess(preparedStatement);
     return preparedStatement;

@@ -1,0 +1,18 @@
+{
+  TransactionStatus status=transactionDriverControl.getStatus();
+  if (status != TransactionStatus.ACTIVE && status != TransactionStatus.FAILED_COMMIT) {
+    throw new TransactionException("Transaction not successfully started");
+  }
+  LOG.debug("rolling back");
+  if (status != TransactionStatus.FAILED_COMMIT || allowFailedCommitToPhysicallyRollback()) {
+    try {
+      this.transactionDriverControl.rollback();
+    }
+ catch (    Exception e) {
+      throw new TransactionException("rollback failed",e);
+    }
+ finally {
+      invalidate();
+    }
+  }
+}

@@ -27,11 +27,11 @@
             insertBatchKey=new BasicBatchKey(getRole() + "#INSERT",expectation);
           }
           if (st == null) {
-            st=session.getTransactionCoordinator().getJdbcCoordinator().getBatch(insertBatchKey).getBatchStatement(sql,callable);
+            st=session.getJdbcCoordinator().getBatch(insertBatchKey).getBatchStatement(sql,callable);
           }
         }
  else {
-          st=session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,callable);
+          st=session.getJdbcCoordinator().getStatementPreparer().prepareStatement(sql,callable);
         }
         try {
           offset+=expectation.prepare(st);
@@ -44,23 +44,24 @@
           }
           writeElement(st,collection.getElement(entry),offset,session);
           if (useBatch) {
-            session.getTransactionCoordinator().getJdbcCoordinator().getBatch(insertBatchKey).addToBatch();
+            session.getJdbcCoordinator().getBatch(insertBatchKey).addToBatch();
           }
  else {
-            expectation.verifyOutcome(session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().executeUpdate(st),st,-1);
+            expectation.verifyOutcome(session.getJdbcCoordinator().getResultSetReturn().executeUpdate(st),st,-1);
           }
           collection.afterRowInsert(this,entry,i);
           count++;
         }
  catch (        SQLException sqle) {
           if (useBatch) {
-            session.getTransactionCoordinator().getJdbcCoordinator().abortBatch();
+            session.getJdbcCoordinator().abortBatch();
           }
           throw sqle;
         }
  finally {
           if (!useBatch) {
-            session.getTransactionCoordinator().getJdbcCoordinator().release(st);
+            session.getJdbcCoordinator().getResourceRegistry().release(st);
+            session.getJdbcCoordinator().afterStatementExecution();
           }
         }
       }
