@@ -55,8 +55,15 @@
     log.warn(e.getMessage() + "  Ignoring");
   }
   final ExtractedDatabaseMetaData meta=jdbcServices.getExtractedMetaDataSupport();
-  this.dataDefinitionImplicitCommit=meta.doesDataDefinitionCauseTransactionCommit();
-  this.dataDefinitionInTransactionSupported=meta.supportsDataDefinitionInTransaction();
+  this.tempTableDdlTransactionHandling=TempTableDdlTransactionHandling.NONE;
+  if (meta.doesDataDefinitionCauseTransactionCommit()) {
+    if (meta.supportsDataDefinitionInTransaction()) {
+      this.tempTableDdlTransactionHandling=TempTableDdlTransactionHandling.ISOLATE_AND_TRANSACT;
+    }
+ else {
+      this.tempTableDdlTransactionHandling=TempTableDdlTransactionHandling.ISOLATE;
+    }
+  }
   this.jdbcBatchSize=ConfigurationHelper.getInt(STATEMENT_BATCH_SIZE,configurationSettings,0);
   if (!meta.supportsBatchUpdates()) {
     this.jdbcBatchSize=0;

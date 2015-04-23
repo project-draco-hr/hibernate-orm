@@ -1,0 +1,11 @@
+{
+  TemporaryTableCreationWork work=new TemporaryTableCreationWork(idTableInfo,session.getFactory());
+  if (ddlTransactionHandling == TempTableDdlTransactionHandling.NONE) {
+    final Connection connection=session.getTransactionCoordinator().getJdbcCoordinator().getLogicalConnection().getConnection();
+    work.execute(connection);
+    session.getTransactionCoordinator().getJdbcCoordinator().afterStatementExecution();
+  }
+ else {
+    session.getTransactionCoordinator().getTransaction().createIsolationDelegate().delegateWork(work,ddlTransactionHandling == TempTableDdlTransactionHandling.ISOLATE_AND_TRANSACT);
+  }
+}

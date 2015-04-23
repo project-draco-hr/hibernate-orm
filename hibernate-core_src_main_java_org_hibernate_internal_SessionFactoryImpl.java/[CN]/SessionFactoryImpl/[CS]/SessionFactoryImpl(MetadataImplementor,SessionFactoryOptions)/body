@@ -75,7 +75,6 @@ class IntegratorObserver implements SessionFactoryObserver {
   Map cacheAccessStrategiesMap=new HashMap();
   Map<String,ClassMetadata> inFlightClassMetadataMap=new HashMap<String,ClassMetadata>();
   for (  final PersistentClass model : metadata.getEntityBindings()) {
-    model.prepareTemporaryTables(metadata,getDialect());
     final String cacheRegionName=cacheRegionPrefix + model.getRootClass().getCacheRegionName();
     final EntityRegionAccessStrategy accessStrategy=determineEntityRegionAccessStrategy(regionFactory,cacheAccessStrategiesMap,model,cacheRegionName);
     final NaturalIdRegionAccessStrategy naturalIdAccessStrategy=determineNaturalIdRegionAccessStrategy(regionFactory,cacheRegionPrefix,cacheAccessStrategiesMap,model);
@@ -142,7 +141,7 @@ class IntegratorObserver implements SessionFactoryObserver {
     persister.postInstantiate();
   }
   LOG.debug("Instantiated session factory");
-  settings.getMultiTableBulkIdStrategy().prepare(jdbcServices,buildLocalConnectionAccess(),metadata);
+  settings.getMultiTableBulkIdStrategy().prepare(jdbcServices,buildLocalConnectionAccess(),metadata,sessionFactoryOptions);
   if (settings.isAutoCreateSchema()) {
     new SchemaExport(serviceRegistry,metadata).setImportSqlCommandExtractor(serviceRegistry.getService(ImportSqlCommandExtractor.class)).create(false,true);
   }

@@ -1,0 +1,27 @@
+{
+  super(factory,walker);
+  DeleteStatement deleteStatement=(DeleteStatement)walker.getAST();
+  FromElement fromElement=deleteStatement.getFromClause().getFromElement();
+  this.targetedPersister=fromElement.getQueryable();
+  final String bulkTargetAlias=fromElement.getTableAlias();
+  final ProcessedWhereClause processedWhereClause=processWhereClause(deleteStatement.getWhereClause());
+  this.idSelectParameterSpecifications=processedWhereClause.getIdSelectParameterSpecifications();
+  this.idInsertSelect=generateIdInsertSelect(bulkTargetAlias,idTableInfo,processedWhereClause);
+  log.tracev("Generated ID-INSERT-SELECT SQL (multi-table delete) : {0}",idInsertSelect);
+  final String idSubselect=generateIdSubselect(targetedPersister,idTableInfo);
+  deletes=new ArrayList<String>();
+  for (  Type type : targetedPersister.getPropertyTypes()) {
+    if (type.isCollectionType()) {
+      CollectionType cType=(CollectionType)type;
+      AbstractCollectionPersister cPersister=(AbstractCollectionPersister)factory.getCollectionPersister(cType.getRole());
+      if (cPersister.isManyToMany()) {
+        deletes.add(generateDelete(cPersister.getTableName(),cPersister.getKeyColumnNames(),idSubselect,"bulk delete - m2m join table cleanup"));
+      }
+    }
+  }
+  String[] tableNames=targetedPersister.getConstraintOrderedTableNameClosure();
+  String[][] columnNames=targetedPersister.getContraintOrderedTableKeyColumnClosure();
+  for (int i=0; i < tableNames.length; i++) {
+    deletes.add(generateDelete(tableNames[i],columnNames[i],idSubselect,"bulk delete"));
+  }
+}

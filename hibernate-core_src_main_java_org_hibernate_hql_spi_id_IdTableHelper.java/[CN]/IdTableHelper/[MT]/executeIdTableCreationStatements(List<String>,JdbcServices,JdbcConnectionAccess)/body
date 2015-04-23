@@ -1,0 +1,38 @@
+{
+  try {
+    Connection connection;
+    try {
+      connection=connectionAccess.obtainConnection();
+    }
+ catch (    UnsupportedOperationException e) {
+      log.debug("Unable to obtain JDBC connection; assuming ID tables already exist or wont be needed");
+      return;
+    }
+    try {
+      Statement statement=connection.createStatement();
+      for (      String creationStatement : creationStatements) {
+        try {
+          jdbcServices.getSqlStatementLogger().logStatement(creationStatement);
+          statement.execute(creationStatement);
+        }
+ catch (        SQLException e) {
+          log.debugf("Error attempting to export id-table [%s] : %s",creationStatement,e.getMessage());
+        }
+      }
+      statement.close();
+    }
+ catch (    SQLException e) {
+      log.error("Unable to use JDBC Connection to create Statement",e);
+    }
+ finally {
+      try {
+        connectionAccess.releaseConnection(connection);
+      }
+ catch (      SQLException ignore) {
+      }
+    }
+  }
+ catch (  SQLException e) {
+    log.error("Unable obtain JDBC Connection",e);
+  }
+}

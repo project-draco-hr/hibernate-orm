@@ -1,0 +1,15 @@
+{
+  final UpdateStatement updateStatement=(UpdateStatement)walker.getAST();
+  final FromElement fromElement=updateStatement.getFromClause().getFromElement();
+  final Queryable targetedPersister=fromElement.getQueryable();
+  final IdTableInfoImpl tableInfo=getIdTableInfo(targetedPersister);
+  return new TableBasedUpdateHandlerImpl(factory,walker,tableInfo){
+    @Override protected void prepareForUse(    Queryable persister,    SessionImplementor session){
+      Helper.INSTANCE.createTempTable(tableInfo,ddlTransactionHandling,session);
+    }
+    @Override protected void releaseFromUse(    Queryable persister,    SessionImplementor session){
+      Helper.INSTANCE.releaseTempTable(tableInfo,afterUseAction,ddlTransactionHandling,session);
+    }
+  }
+;
+}

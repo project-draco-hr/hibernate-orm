@@ -1,0 +1,24 @@
+{
+  if (hsqldbVersion < 20) {
+    return new GlobalTemporaryTableBulkIdStrategy(new IdTableSupportStandardImpl(){
+      @Override public String generateIdTableName(      String baseName){
+        return "HT_" + baseName;
+      }
+      @Override public String getCreateIdTableCommand(){
+        return "create global temporary table";
+      }
+    }
+,AfterUseAction.CLEAN);
+  }
+ else {
+    return new LocalTemporaryTableBulkIdStrategy(new IdTableSupportStandardImpl(){
+      @Override public String generateIdTableName(      String baseName){
+        return "MODULE.HT_" + baseName;
+      }
+      @Override public String getCreateIdTableCommand(){
+        return "declare local temporary table";
+      }
+    }
+,AfterUseAction.DROP,TempTableDdlTransactionHandling.NONE);
+  }
+}

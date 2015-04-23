@@ -1,0 +1,14 @@
+{
+  final DeleteStatement updateStatement=(DeleteStatement)walker.getAST();
+  final FromElement fromElement=updateStatement.getFromClause().getFromElement();
+  final Queryable targetedPersister=fromElement.getQueryable();
+  return new TableBasedDeleteHandlerImpl(factory,walker,getIdTableInfo(targetedPersister)){
+    @Override protected void releaseFromUse(    Queryable persister,    SessionImplementor session){
+      if (afterUseAction == AfterUseAction.NONE) {
+        return;
+      }
+      cleanUpRows(getIdTableInfo(persister).getQualifiedIdTableName(),session);
+    }
+  }
+;
+}
