@@ -1,0 +1,13 @@
+{
+  this.observers=new ArrayList<TransactionObserver>();
+  this.transactionCoordinatorBuilder=transactionCoordinatorBuilder;
+  this.transactionCoordinatorOwner=owner;
+  this.autoJoinTransactions=autoJoinTransactions;
+  final JdbcSessionContext jdbcSessionContext=owner.getJdbcSessionOwner().getJdbcSessionContext();
+  this.jtaPlatform=jdbcSessionContext.getServiceRegistry().getService(JtaPlatform.class);
+  final SessionFactoryOptions sessionFactoryOptions=jdbcSessionContext.getSessionFactory().getSessionFactoryOptions();
+  this.preferUserTransactions=sessionFactoryOptions.isPreferUserTransaction();
+  this.performJtaThreadTracking=sessionFactoryOptions.isJtaTrackByThread();
+  synchronizationRegistered=false;
+  pulse();
+}

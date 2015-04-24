@@ -1,0 +1,81 @@
+{
+  super(factory,tenantIdentifier);
+  this.timestamp=timestamp;
+  this.sessionOwner=sessionOwner;
+  this.interceptor=interceptor == null ? EmptyInterceptor.INSTANCE : interceptor;
+  this.actionQueue=new ActionQueue(this);
+  this.persistenceContext=new StatefulPersistenceContext(this);
+  this.autoCloseSessionEnabled=autoCloseSessionEnabled;
+  this.flushBeforeCompletionEnabled=flushBeforeCompletionEnabled;
+  if (statementInspector == null) {
+    this.statementInspector=new StatementInspector(){
+      @Override public String inspect(      String sql){
+        return SessionImpl.this.interceptor.onPrepareStatement(sql);
+      }
+    }
+;
+  }
+ else {
+    this.statementInspector=statementInspector;
+  }
+  this.jdbcSessionContext=new JdbcSessionContextImpl(factory,this.statementInspector);
+  if (transactionCoordinator == null) {
+    this.isTransactionCoordinatorShared=false;
+    this.connectionReleaseMode=connectionReleaseMode;
+    this.autoJoinTransactions=autoJoinTransactions;
+    this.jdbcCoordinator=new JdbcCoordinatorImpl(connection,this);
+    this.transactionCoordinator=getTransactionCoordinatorBuilder().buildTransactionCoordinator(this.jdbcCoordinator,this);
+    this.currentHibernateTransaction=getTransaction();
+  }
+ else {
+    if (connection != null) {
+      throw new SessionException("Cannot simultaneously share transaction context and specify connection");
+    }
+    this.transactionCoordinator=transactionCoordinator;
+    this.jdbcCoordinator=jdbcCoordinator;
+    this.currentHibernateTransaction=transaction;
+    this.isTransactionCoordinatorShared=true;
+    this.autoJoinTransactions=false;
+    if (transactionCompletionProcesses != null) {
+      actionQueue.setTransactionCompletionProcesses(transactionCompletionProcesses,true);
+    }
+    if (autoJoinTransactions) {
+      LOG.debug("Session creation specified 'autoJoinTransactions', which is invalid in conjunction " + "with sharing JDBC connection between sessions; ignoring");
+    }
+    if (connectionReleaseMode != this.jdbcCoordinator.getConnectionReleaseMode()) {
+      LOG.debug("Session creation specified 'getConnectionReleaseMode', which is invalid in conjunction " + "with sharing JDBC connection between sessions; ignoring");
+    }
+    this.connectionReleaseMode=this.jdbcCoordinator.getConnectionReleaseMode();
+    transactionObserver=new TransactionObserver(){
+      @Override public void afterBegin(){
+      }
+      @Override public void beforeCompletion(){
+        if (isOpen() && flushBeforeCompletionEnabled) {
+          SessionImpl.this.managedFlush();
+        }
+        actionQueue.beforeTransactionCompletion();
+        try {
+          interceptor.beforeTransactionCompletion(currentHibernateTransaction);
+        }
+ catch (        Throwable t) {
+          LOG.exceptionInBeforeTransactionCompletionInterceptor(t);
+        }
+      }
+      @Override public void afterCompletion(      boolean successful){
+        afterTransactionCompletion(successful);
+        if (isOpen() && autoCloseSessionEnabled) {
+          managedClose();
+        }
+      }
+    }
+;
+    transactionCoordinator.addObserver(transactionObserver);
+  }
+  loadQueryInfluencers=new LoadQueryInfluencers(factory);
+  if (factory.getStatistics().isStatisticsEnabled()) {
+    factory.getStatisticsImplementor().openSession();
+  }
+  if (TRACE_ENABLED) {
+    LOG.tracef("Opened session at timestamp: %s",timestamp);
+  }
+}

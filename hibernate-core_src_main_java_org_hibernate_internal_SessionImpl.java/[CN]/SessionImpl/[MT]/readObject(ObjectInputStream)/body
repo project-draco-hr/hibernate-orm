@@ -11,10 +11,10 @@
   autoCloseSessionEnabled=ois.readBoolean();
   interceptor=(Interceptor)ois.readObject();
   factory=SessionFactoryImpl.deserialize(ois);
-  this.jdbcSessionContext=new JdbcSessionContextImpl(factory,interceptor);
+  this.jdbcSessionContext=new JdbcSessionContextImpl(factory,statementInspector);
   sessionOwner=(SessionOwner)ois.readObject();
   jdbcCoordinator=JdbcCoordinatorImpl.deserialize(ois,this);
-  this.transactionCoordinator=getTransactionCoordinatorBuilder().buildTransactionCoordinator(jdbcCoordinator);
+  this.transactionCoordinator=getTransactionCoordinatorBuilder().buildTransactionCoordinator(jdbcCoordinator,this);
   persistenceContext=StatefulPersistenceContext.deserialize(ois,this);
   actionQueue=ActionQueue.deserialize(ois,this);
   loadQueryInfluencers=(LoadQueryInfluencers)ois.readObject();
