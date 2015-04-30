@@ -1,0 +1,25 @@
+{
+  final URL classUrl=OsgiSessionFactoryService.class.getClassLoader().getResource(OsgiSessionFactoryService.class.getName().replace('.','/') + ".class");
+  if (classUrl == null) {
+    fail("Unable to setup hibernate-osgi feature for PaxExam : could not resolve 'known class' url");
+  }
+  final File classFile=new File(classUrl.getFile());
+  if (!classFile.exists()) {
+    fail("Unable to setup hibernate-osgi feature for PaxExam : could not resolve 'known class' url to File");
+  }
+  final int packageCount=new StringTokenizer(OsgiSessionFactoryService.class.getPackage().getName(),".",false).countTokens();
+  File dir=classFile.getParentFile();
+  for (int i=0; i < packageCount; i++) {
+    dir=dir.getParentFile();
+  }
+  dir=dir.getParentFile();
+  dir=new File(dir,"libs");
+  final String featureFileName=String.format(Locale.ENGLISH,"hibernate-osgi-%s-karaf.xml",determineProjectVersion());
+  final URL url=new File(dir,featureFileName).toURI().toURL();
+  return new UrlReference(){
+    @Override public String getURL(){
+      return url.toExternalForm();
+    }
+  }
+;
+}
