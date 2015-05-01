@@ -5,6 +5,11 @@
     }
     return;
   }
-  final SessionImplementor session=(SessionImplementor)internalGetSession();
-  session.getTransactionCoordinator().explicitJoin();
+  try {
+    final TransactionCoordinator transactionCoordinator=((SessionImplementor)internalGetSession()).getTransactionCoordinator();
+    transactionCoordinator.explicitJoin();
+  }
+ catch (  HibernateException he) {
+    throw convert(he);
+  }
 }

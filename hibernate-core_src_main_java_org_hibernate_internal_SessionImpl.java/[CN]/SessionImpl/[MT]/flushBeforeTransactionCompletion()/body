@@ -1,12 +1,14 @@
 {
-  boolean flush=false;
+  boolean flush=isTransactionFlushable() && managedFlushChecker.shouldDoManagedFlush(this);
   try {
-    flush=(!isFlushModeNever() && !flushBeforeCompletionEnabled) || (!isClosed() && !isFlushModeNever() && flushBeforeCompletionEnabled&& !JtaStatusHelper.isRollback(getSessionFactory().getSettings().getJtaPlatform().getCurrentStatus()));
+    if (flush) {
+      managedFlush();
+    }
   }
- catch (  SystemException se) {
-    throw new HibernateException("could not determine transaction status in beforeCompletion()",se);
+ catch (  HibernateException he) {
+    throw exceptionMapper.mapManagedFlushFailure("error during managed flush",he);
   }
-  if (flush) {
-    managedFlush();
+catch (  RuntimeException re) {
+    throw exceptionMapper.mapManagedFlushFailure("error during managed flush",re);
   }
 }

@@ -2,11 +2,18 @@
   try {
     transactionCoordinatorOwner.beforeTransactionCompletion();
   }
- catch (  Exception e) {
+ catch (  HibernateException e) {
     physicalTransactionDelegate.markRollbackOnly();
+    throw e;
   }
-  synchronizationRegistry.notifySynchronizationsBeforeTransactionCompletion();
-  for (  TransactionObserver observer : observers) {
-    observer.beforeCompletion();
+catch (  RuntimeException re) {
+    physicalTransactionDelegate.markRollbackOnly();
+    throw re;
+  }
+ finally {
+    synchronizationRegistry.notifySynchronizationsBeforeTransactionCompletion();
+    for (    TransactionObserver observer : observers) {
+      observer.beforeCompletion();
+    }
   }
 }
