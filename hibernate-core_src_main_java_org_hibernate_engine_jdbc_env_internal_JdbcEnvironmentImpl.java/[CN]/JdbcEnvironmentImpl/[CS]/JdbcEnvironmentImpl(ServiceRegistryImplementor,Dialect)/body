@@ -6,8 +6,7 @@
   }
   this.sqlExceptionHelper=buildSqlExceptionHelper(dialect);
   this.extractedMetaDataSupport=new ExtractedDatabaseMetaDataImpl.Builder(this).build();
-  reservedWords.addAll(AnsiSqlKeywords.INSTANCE.sql2003());
-  reservedWords.addAll(dialect.getKeywords());
+  reservedWords.addAll(dialect.determineKeywordsForAutoQuoting(Collections.<String>emptySet()));
   final boolean globallyQuoteIdentifiers=serviceRegistry.getService(ConfigurationService.class).getSetting(AvailableSettings.GLOBALLY_QUOTED_IDENTIFIERS,StandardConverters.BOOLEAN,false);
   this.identifierHelper=new NormalizingIdentifierHelperImpl(this,nameQualifierSupport,globallyQuoteIdentifiers,true,false,false,false,true,false);
   this.currentCatalog=identifierHelper.toIdentifier(serviceRegistry.getService(ConfigurationService.class).getSetting(AvailableSettings.DEFAULT_CATALOG,StandardConverters.STRING));
