@@ -1,0 +1,27 @@
+{
+  SynchronizationRegistryStandardImpl registry=new SynchronizationRegistryStandardImpl();
+  Synchronization synchronization=new SynchronizationErrorImpl(true,false);
+  registry.registerSynchronization(synchronization);
+  try {
+    registry.notifySynchronizationsBeforeTransactionCompletion();
+    fail("Expecting LocalSynchronizationException, but call succeeded");
+  }
+ catch (  LocalSynchronizationException expected) {
+  }
+catch (  Exception e) {
+    fail("Was expecting LocalSynchronizationException, but got " + e.getClass().getName());
+  }
+  registry.clearSynchronizations();
+  registry=new SynchronizationRegistryStandardImpl();
+  synchronization=new SynchronizationErrorImpl(false,true);
+  registry.registerSynchronization(synchronization);
+  try {
+    registry.notifySynchronizationsAfterTransactionCompletion(Status.STATUS_COMMITTED);
+    fail("Expecting LocalSynchronizationException, but call succeeded");
+  }
+ catch (  LocalSynchronizationException expected) {
+  }
+catch (  Exception e) {
+    fail("Was expecting LocalSynchronizationException, but got " + e.getClass().getName());
+  }
+}

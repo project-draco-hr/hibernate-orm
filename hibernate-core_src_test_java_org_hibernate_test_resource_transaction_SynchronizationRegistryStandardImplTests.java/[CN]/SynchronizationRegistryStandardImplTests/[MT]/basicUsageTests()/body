@@ -1,0 +1,45 @@
+{
+  final SynchronizationRegistryStandardImpl registry=new SynchronizationRegistryStandardImpl();
+  try {
+    registry.registerSynchronization(null);
+    fail("Was expecting NullSynchronizationException, but call succeeded");
+  }
+ catch (  NullSynchronizationException expected) {
+  }
+catch (  Exception e) {
+    fail("Was expecting NullSynchronizationException, but got " + e.getClass().getName());
+  }
+  final SynchronizationCollectorImpl synchronization=new SynchronizationCollectorImpl();
+  assertEquals(0,registry.getNumberOfRegisteredSynchronizations());
+  registry.registerSynchronization(synchronization);
+  assertEquals(1,registry.getNumberOfRegisteredSynchronizations());
+  registry.registerSynchronization(synchronization);
+  assertEquals(1,registry.getNumberOfRegisteredSynchronizations());
+  assertEquals(0,synchronization.getBeforeCompletionCount());
+  assertEquals(0,synchronization.getSuccessfulCompletionCount());
+  assertEquals(0,synchronization.getFailedCompletionCount());
+{
+    registry.notifySynchronizationsBeforeTransactionCompletion();
+    assertEquals(1,synchronization.getBeforeCompletionCount());
+    assertEquals(0,synchronization.getSuccessfulCompletionCount());
+    assertEquals(0,synchronization.getFailedCompletionCount());
+    registry.notifySynchronizationsAfterTransactionCompletion(Status.STATUS_COMMITTED);
+    assertEquals(1,synchronization.getBeforeCompletionCount());
+    assertEquals(1,synchronization.getSuccessfulCompletionCount());
+    assertEquals(0,synchronization.getFailedCompletionCount());
+  }
+  assertEquals(0,registry.getNumberOfRegisteredSynchronizations());
+  synchronization.reset();
+  assertEquals(0,synchronization.getBeforeCompletionCount());
+  assertEquals(0,synchronization.getSuccessfulCompletionCount());
+  assertEquals(0,synchronization.getFailedCompletionCount());
+  registry.registerSynchronization(synchronization);
+  assertEquals(1,registry.getNumberOfRegisteredSynchronizations());
+{
+    registry.notifySynchronizationsAfterTransactionCompletion(Status.STATUS_ROLLEDBACK);
+    assertEquals(0,synchronization.getBeforeCompletionCount());
+    assertEquals(0,synchronization.getSuccessfulCompletionCount());
+    assertEquals(1,synchronization.getFailedCompletionCount());
+    assertEquals(0,registry.getNumberOfRegisteredSynchronizations());
+  }
+}
