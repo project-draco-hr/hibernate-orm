@@ -1,13 +1,5 @@
 {
+  final Properties paxExamEnvironment=loadPaxExamEnvironmentProperties();
   final boolean debug=ConfigurationHelper.getBoolean("org.hibernate.testing.osgi.paxExam.debug",Environment.getProperties(),DEBUG);
-  return options(when(debug).useOptions(debugConfiguration("5005",true)),karafDistributionConfiguration().karafVersion(karafVersion()).frameworkUrl(karafDistributionUrl()).unpackDirectory(new File("target/karaf")).useDeployFolder(false),repositories(repository("https://repository.jboss.org/nexus/content/groups/public-jboss/").id("jboss-nexus").allowSnapshots()),configureConsole().ignoreLocalConsole().ignoreRemoteShell(),when(debug).useOptions(keepRuntimeFolder()),logLevel(LogLevelOption.LogLevel.INFO),mavenBundle().groupId("com.h2database").artifactId("h2").version("1.3.170").start(),junitBundles(),features(hibernateKarafFeatureFile(),"hibernate-native","hibernate-jpa"),new Customizer(){
-    @Override public void customizeEnvironment(    File workingFolder){
-      super.customizeEnvironment(workingFolder);
-      Locale.setDefault(Locale.ENGLISH);
-    }
-    @Override public InputStream customizeTestProbe(    InputStream testProbe) throws Exception {
-      return org.ops4j.pax.tinybundles.core.TinyBundles.bundle().read(super.customizeTestProbe(testProbe)).add("/hibernate.cfg.xml",probeCfgXmlFile().toURI().toURL()).add("/META-INF/persistence.xml",probePersistenceXmlFile().toURI().toURL()).add("/OSGI-INF/blueprint/blueprint.xml",probeBlueprintXmlFile().toURI().toURL()).add(DataPoint.class).add(OsgiTestActivator.class).add(SomeService.class).add(SomeServiceContributor.class).add(TestIntegrator.class).add(TestStrategyRegistrationProvider.class).add(TestTypeContributor.class).build();
-    }
-  }
-);
+  return options(when(debug).useOptions(debugConfiguration("5005",true)),karafDistributionConfiguration().frameworkUrl(paxExamEnvironment.getProperty("org.ops4j.pax.exam.container.karaf.distroUrl")).karafVersion(paxExamEnvironment.getProperty("org.ops4j.pax.exam.container.karaf.version")).name("Apache Karaf").unpackDirectory(new File(paxExamEnvironment.getProperty("org.ops4j.pax.exam.container.karaf.unpackDir"))).useDeployFolder(false),repositories(repository("https://repository.jboss.org/nexus/content/groups/public-jboss/").id("jboss-nexus").allowSnapshots()),configureConsole().ignoreLocalConsole().ignoreRemoteShell(),when(debug).useOptions(keepRuntimeFolder()),logLevel(LogLevelOption.LogLevel.INFO),features(featureXmlUrl(paxExamEnvironment),"hibernate-native","hibernate-jpa"),features(testingFeatureXmlUrl(),"hibernate-osgi-testing"));
 }
