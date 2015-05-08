@@ -1,5 +1,5 @@
 {
-  LOG.trace("after transaction completion");
+  LOG.tracef("SessionImpl#afterTransactionCompletion(successful=%s, delayed=%s)",successful,delayed);
   persistenceContext.afterTransactionCompletion();
   actionQueue.afterTransactionCompletion(successful);
   getEventListenerManager().transactionCompletion(successful);
@@ -12,8 +12,10 @@
  catch (  Throwable t) {
     LOG.exceptionInAfterTransactionCompletionInterceptor(t);
   }
-  if (shouldAutoClose() && !isClosed()) {
-    managedClose();
+  if (!delayed) {
+    if (shouldAutoClose() && !isClosed()) {
+      managedClose();
+    }
   }
   if (autoClear) {
     internalClear();

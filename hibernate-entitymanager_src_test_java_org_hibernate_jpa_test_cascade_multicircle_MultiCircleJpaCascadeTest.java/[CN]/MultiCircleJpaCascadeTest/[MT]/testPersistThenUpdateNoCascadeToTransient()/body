@@ -14,10 +14,7 @@
  catch (  RollbackException ex) {
     assertTrue(ex.getCause() instanceof IllegalStateException);
     IllegalStateException ise=(IllegalStateException)ex.getCause();
-    assertTrue(ise.getCause() instanceof TransactionException);
-    Throwable cause=ise.getCause().getCause();
-    assertTrue(cause instanceof TransientPropertyValueException);
-    TransientPropertyValueException tpve=(TransientPropertyValueException)cause;
+    TransientPropertyValueException tpve=assertTyping(TransientPropertyValueException.class,ise.getCause());
     assertEquals(E.class.getName(),tpve.getTransientEntityName());
     assertEquals(D.class.getName(),tpve.getPropertyOwnerEntityName());
     assertEquals("e",tpve.getPropertyName());

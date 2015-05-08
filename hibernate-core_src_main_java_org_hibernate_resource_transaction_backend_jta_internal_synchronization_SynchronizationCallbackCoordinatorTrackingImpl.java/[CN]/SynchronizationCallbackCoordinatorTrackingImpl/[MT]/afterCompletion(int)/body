@@ -1,12 +1,13 @@
 {
+  log.tracef("Synchronization coordinator: afterCompletion(status=%s)",status);
   if (JtaStatusHelper.isRollback(status)) {
     final long currentThreadId=Thread.currentThread().getId();
     final boolean isRegistrationThread=currentThreadId == registrationThreadId;
     if (!isRegistrationThread) {
       delayedCompletionHandling=true;
-      log.warn("Rollback from background thread (update code to use message logger)");
+      log.rollbackFromBackgroundThread(status);
       return;
     }
   }
-  doAfterCompletion(JtaStatusHelper.isCommitted(status));
+  doAfterCompletion(JtaStatusHelper.isCommitted(status),false);
 }
