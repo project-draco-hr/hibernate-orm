@@ -8,14 +8,14 @@
     final CacheKey ck=generateCacheKey(id,persister.getIdentifierType(),persister.getRootEntityName());
     persister.getCacheAccessStrategy().evict(ck);
   }
-  String previousFetchProfile=this.getFetchProfile();
+  String previousFetchProfile=this.getLoadQueryInfluencers().getInternalFetchProfile();
   Object result=null;
   try {
-    this.setFetchProfile("refresh");
+    this.getLoadQueryInfluencers().setInternalFetchProfile("refresh");
     result=persister.load(id,entity,lockMode,this);
   }
   finally {
-    this.setFetchProfile(previousFetchProfile);
+    this.getLoadQueryInfluencers().setInternalFetchProfile(previousFetchProfile);
   }
   UnresolvableObjectException.throwIfNull(result,id,persister.getEntityName());
 }

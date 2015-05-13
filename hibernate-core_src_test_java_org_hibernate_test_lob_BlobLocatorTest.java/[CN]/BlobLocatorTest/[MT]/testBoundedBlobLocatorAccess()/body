@@ -11,7 +11,7 @@
   s.close();
   s=openSession();
   s.beginTransaction();
-  entity=(LobHolder)s.get(LobHolder.class,entity.getId());
+  entity=s.get(LobHolder.class,entity.getId());
   Assert.assertEquals(BLOB_SIZE,entity.getBlobLocator().length());
   assertEquals(original,extractData(entity.getBlobLocator()));
   s.getTransaction().commit();
@@ -19,14 +19,14 @@
   if (getDialect().supportsLobValueChangePropogation()) {
     s=openSession();
     s.beginTransaction();
-    entity=(LobHolder)s.get(LobHolder.class,entity.getId(),LockMode.UPGRADE);
+    entity=(LobHolder)s.byId(LobHolder.class).with(LockOptions.UPGRADE).load(entity.getId());
     entity.getBlobLocator().truncate(1);
     entity.getBlobLocator().setBytes(1,changed);
     s.getTransaction().commit();
     s.close();
     s=openSession();
     s.beginTransaction();
-    entity=(LobHolder)s.get(LobHolder.class,entity.getId(),LockMode.UPGRADE);
+    entity=(LobHolder)s.byId(LobHolder.class).with(LockOptions.UPGRADE).load(entity.getId());
     assertNotNull(entity.getBlobLocator());
     Assert.assertEquals(BLOB_SIZE,entity.getBlobLocator().length());
     assertEquals(changed,extractData(entity.getBlobLocator()));
@@ -37,7 +37,7 @@
   }
   s=openSession();
   s.beginTransaction();
-  entity=(LobHolder)s.get(LobHolder.class,entity.getId(),LockMode.UPGRADE);
+  entity=(LobHolder)s.byId(LobHolder.class).with(LockOptions.UPGRADE).load(entity.getId());
   assertNotNull(entity.getBlobLocator());
   Assert.assertEquals(BLOB_SIZE,entity.getBlobLocator().length());
   assertEquals(original,extractData(entity.getBlobLocator()));
@@ -46,7 +46,7 @@
   s.close();
   s=openSession();
   s.beginTransaction();
-  entity=(LobHolder)s.get(LobHolder.class,entity.getId());
+  entity=s.get(LobHolder.class,entity.getId());
   Assert.assertEquals(BLOB_SIZE,entity.getBlobLocator().length());
   assertEquals(changed,extractData(entity.getBlobLocator()));
   entity.setBlobLocator(s.getLobHelper().createBlob(empty));
@@ -54,7 +54,7 @@
   s.close();
   s=openSession();
   s.beginTransaction();
-  entity=(LobHolder)s.get(LobHolder.class,entity.getId());
+  entity=s.get(LobHolder.class,entity.getId());
   if (entity.getBlobLocator() != null) {
     Assert.assertEquals(empty.length,entity.getBlobLocator().length());
     assertEquals(empty,extractData(entity.getBlobLocator()));

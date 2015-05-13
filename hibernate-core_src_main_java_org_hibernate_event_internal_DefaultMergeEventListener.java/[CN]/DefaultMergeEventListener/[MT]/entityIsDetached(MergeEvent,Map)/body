@@ -14,11 +14,11 @@
       throw new HibernateException("merge requested with id not matching id of passed entity");
     }
   }
-  String previousFetchProfile=source.getFetchProfile();
-  source.setFetchProfile("merge");
+  String previousFetchProfile=source.getLoadQueryInfluencers().getInternalFetchProfile();
+  source.getLoadQueryInfluencers().setInternalFetchProfile("merge");
   final Serializable clonedIdentifier=(Serializable)persister.getIdentifierType().deepCopy(id,source.getFactory());
   final Object result=source.get(entityName,clonedIdentifier);
-  source.setFetchProfile(previousFetchProfile);
+  source.getLoadQueryInfluencers().setInternalFetchProfile(previousFetchProfile);
   if (result == null) {
     entityIsTransient(event,copyCache);
   }

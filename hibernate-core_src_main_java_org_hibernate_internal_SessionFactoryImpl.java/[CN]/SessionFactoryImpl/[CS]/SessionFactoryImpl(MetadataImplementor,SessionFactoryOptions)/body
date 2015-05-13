@@ -74,6 +74,7 @@ class IntegratorObserver implements SessionFactoryObserver {
   this.entityPersisters=new HashMap<String,EntityPersister>();
   Map cacheAccessStrategiesMap=new HashMap();
   Map<String,ClassMetadata> inFlightClassMetadataMap=new HashMap<String,ClassMetadata>();
+  this.entityProxyInterfaceMap=CollectionHelper.concurrentMap(metadata.getEntityBindings().size());
   for (  final PersistentClass model : metadata.getEntityBindings()) {
     final String cacheRegionName=cacheRegionPrefix + model.getRootClass().getCacheRegionName();
     final EntityRegionAccessStrategy accessStrategy=determineEntityRegionAccessStrategy(regionFactory,cacheAccessStrategiesMap,model,cacheRegionName);
@@ -81,6 +82,17 @@ class IntegratorObserver implements SessionFactoryObserver {
     final EntityPersister cp=persisterFactory.createEntityPersister(model,accessStrategy,naturalIdAccessStrategy,persisterCreationContext);
     entityPersisters.put(model.getEntityName(),cp);
     inFlightClassMetadataMap.put(model.getEntityName(),cp.getClassMetadata());
+    if (cp.getConcreteProxyClass() != null && cp.getConcreteProxyClass().isInterface() && !Map.class.isAssignableFrom(cp.getConcreteProxyClass()) && cp.getMappedClass() != cp.getConcreteProxyClass()) {
+      if (cp.getMappedClass().equals(cp.getConcreteProxyClass())) {
+        LOG.debugf("Entity [%s] mapped same interface [%s] as class and proxy",cp.getEntityName(),cp.getMappedClass());
+      }
+ else {
+        final String old=entityProxyInterfaceMap.put(cp.getConcreteProxyClass(),cp.getEntityName());
+        if (old != null) {
+          throw new HibernateException(String.format(Locale.ENGLISH,"Multiple entities [%s, %s] named the same interface [%s] as their proxy which is not supported",old,cp.getEntityName(),cp.getConcreteProxyClass().getName()));
+        }
+      }
+    }
   }
   this.classMetadata=Collections.unmodifiableMap(inFlightClassMetadataMap);
   this.collectionPersisters=new HashMap<String,CollectionPersister>();

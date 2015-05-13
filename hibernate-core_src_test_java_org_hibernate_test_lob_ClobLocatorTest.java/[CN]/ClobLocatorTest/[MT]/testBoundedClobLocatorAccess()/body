@@ -11,7 +11,7 @@
   s.close();
   s=openSession();
   s.beginTransaction();
-  entity=(LobHolder)s.get(LobHolder.class,entity.getId());
+  entity=s.get(LobHolder.class,entity.getId());
   assertEquals(CLOB_SIZE,entity.getClobLocator().length());
   assertEquals(original,extractData(entity.getClobLocator()));
   s.getTransaction().commit();
@@ -19,14 +19,14 @@
   if (getDialect().supportsLobValueChangePropogation()) {
     s=openSession();
     s.beginTransaction();
-    entity=(LobHolder)s.get(LobHolder.class,entity.getId(),LockMode.UPGRADE);
+    entity=(LobHolder)s.byId(LobHolder.class).with(LockOptions.UPGRADE).load(entity.getId());
     entity.getClobLocator().truncate(1);
     entity.getClobLocator().setString(1,changed);
     s.getTransaction().commit();
     s.close();
     s=openSession();
     s.beginTransaction();
-    entity=(LobHolder)s.get(LobHolder.class,entity.getId(),LockMode.UPGRADE);
+    entity=(LobHolder)s.byId(LobHolder.class).with(LockOptions.UPGRADE).load(entity.getId());
     assertNotNull(entity.getClobLocator());
     assertEquals(CLOB_SIZE,entity.getClobLocator().length());
     assertEquals(changed,extractData(entity.getClobLocator()));
@@ -37,7 +37,7 @@
   }
   s=openSession();
   s.beginTransaction();
-  entity=(LobHolder)s.get(LobHolder.class,entity.getId(),LockMode.UPGRADE);
+  entity=(LobHolder)s.byId(LobHolder.class).with(LockOptions.UPGRADE).load(entity.getId());
   assertNotNull(entity.getClobLocator());
   assertEquals(CLOB_SIZE,entity.getClobLocator().length());
   assertEquals(original,extractData(entity.getClobLocator()));
@@ -47,7 +47,7 @@
   if (!(getDialect() instanceof SybaseASE157Dialect)) {
     s=openSession();
     s.beginTransaction();
-    entity=(LobHolder)s.get(LobHolder.class,entity.getId());
+    entity=s.get(LobHolder.class,entity.getId());
     assertEquals(CLOB_SIZE,entity.getClobLocator().length());
     assertEquals(changed,extractData(entity.getClobLocator()));
     entity.setClobLocator(s.getLobHelper().createClob(empty));
@@ -55,7 +55,7 @@
     s.close();
     s=openSession();
     s.beginTransaction();
-    entity=(LobHolder)s.get(LobHolder.class,entity.getId());
+    entity=s.get(LobHolder.class,entity.getId());
     if (entity.getClobLocator() != null) {
       assertEquals(empty.length(),entity.getClobLocator().length());
       assertEquals(empty,extractData(entity.getClobLocator()));

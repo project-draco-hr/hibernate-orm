@@ -42,9 +42,9 @@
   s.close();
   Session s2=openSession();
   s2.beginTransaction();
-  TestInterSystemsFunctionsClass test=(TestInterSystemsFunctionsClass)s2.get(TestInterSystemsFunctionsClass.class,Long.valueOf(10));
+  TestInterSystemsFunctionsClass test=s2.get(TestInterSystemsFunctionsClass.class,10L);
   assertTrue(test.getDate1().equals(testvalue));
-  test=(TestInterSystemsFunctionsClass)s2.get(TestInterSystemsFunctionsClass.class,Long.valueOf(10),LockMode.UPGRADE);
+  test=(TestInterSystemsFunctionsClass)s2.byId(TestInterSystemsFunctionsClass.class).with(LockOptions.NONE).load(10L);
   assertTrue(test.getDate1().equals(testvalue));
   Date value=(Date)s2.createQuery("select nvl(o.date,o.dateText) from TestInterSystemsFunctionsClass as o").list().get(0);
   assertTrue(value.equals(testvalue));
