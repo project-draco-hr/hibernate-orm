@@ -1,5 +1,5 @@
 {
-  sessionFactory().evictQueries();
+  sessionFactory().getCache().evictQueryRegions();
   sessionFactory().getStatistics().clear();
   Session s=openSession();
   Transaction t=s.beginTransaction();
@@ -24,7 +24,7 @@
   s.close();
   assertEquals(qs.getCacheHitCount(),0);
   assertEquals(s.getSessionFactory().getStatistics().getEntityFetchCount(),0);
-  sessionFactory().evict(Item.class);
+  sessionFactory().getCache().evictEntityRegion(Item.class);
   s=openSession();
   t=s.beginTransaction();
   result=s.createQuery(queryString).setCacheable(true).list();

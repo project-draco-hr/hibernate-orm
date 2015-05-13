@@ -1,13 +1,14 @@
 {
+  JdbcConnectionAccess connectionAccess=sessionFactory().getServiceRegistry().getService(JdbcServices.class).getBootstrapJdbcConnectionAccess();
   Connection conn=null;
   try {
-    conn=sessionFactory().getConnectionProvider().getConnection();
+    conn=connectionAccess.obtainConnection();
     return conn.getTransactionIsolation() >= Connection.TRANSACTION_SERIALIZABLE;
   }
   finally {
     if (conn != null) {
       try {
-        sessionFactory().getConnectionProvider().closeConnection(conn);
+        connectionAccess.releaseConnection(conn);
       }
  catch (      Throwable ignore) {
       }

@@ -4,7 +4,8 @@
   StandardServiceRegistryImpl serviceRegistry=(StandardServiceRegistryImpl)new StandardServiceRegistryBuilder().applySettings(props).build();
   JdbcServices jdbcServices=serviceRegistry.getService(JdbcServices.class);
   assertTrue(jdbcServices.getDialect() instanceof H2Dialect);
-  assertTrue(jdbcServices.getConnectionProvider().isUnwrappableAs(DriverManagerConnectionProviderImpl.class));
+  final ConnectionProviderJdbcConnectionAccess connectionAccess=assertTyping(ConnectionProviderJdbcConnectionAccess.class,jdbcServices.getBootstrapJdbcConnectionAccess());
+  assertTrue(connectionAccess.getConnectionProvider().isUnwrappableAs(DriverManagerConnectionProviderImpl.class));
   assertTrue(jdbcServices.getSqlStatementLogger().isLogToStdout());
   serviceRegistry.destroy();
 }

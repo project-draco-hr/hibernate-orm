@@ -18,14 +18,14 @@
   chaos.getParticles().add(p);
   s.flush();
   s.clear();
-  s.getSessionFactory().evict(Chaos.class);
-  Chaos resultChaos=(Chaos)s.load(Chaos.class,chaos.getId());
+  s.getSessionFactory().getCache().evictEntityRegion(Chaos.class);
+  Chaos resultChaos=s.load(Chaos.class,chaos.getId());
   assertEquals(2,resultChaos.getParticles().size());
   resultChaos.getParticles().remove(resultChaos.getParticles().iterator().next());
   resultChaos.getParticles().remove(resultChaos.getParticles().iterator().next());
   s.flush();
   s.clear();
-  resultChaos=(Chaos)s.load(Chaos.class,chaos.getId());
+  resultChaos=s.load(Chaos.class,chaos.getId());
   assertEquals(0,resultChaos.getParticles().size());
   tx.rollback();
   s.close();

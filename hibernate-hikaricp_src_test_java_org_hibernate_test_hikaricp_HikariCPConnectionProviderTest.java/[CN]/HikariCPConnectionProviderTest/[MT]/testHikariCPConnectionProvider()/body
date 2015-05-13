@@ -1,8 +1,8 @@
 {
   JdbcServices jdbcServices=serviceRegistry().getService(JdbcServices.class);
-  ConnectionProvider provider=jdbcServices.getConnectionProvider();
-  assertTrue(provider instanceof HikariCPConnectionProvider);
-  HikariCPConnectionProvider hikariCP=(HikariCPConnectionProvider)provider;
+  ConnectionProviderJdbcConnectionAccess connectionAccess=assertTyping(ConnectionProviderJdbcConnectionAccess.class,jdbcServices.getBootstrapJdbcConnectionAccess());
+  assertTyping(HikariCPConnectionProvider.class,connectionAccess.getConnectionProvider());
+  HikariCPConnectionProvider hikariCP=(HikariCPConnectionProvider)connectionAccess.getConnectionProvider();
   final List<Connection> conns=new ArrayList<Connection>();
   for (int i=0; i < 2; i++) {
     Connection conn=hikariCP.getConnection();
