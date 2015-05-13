@@ -12,14 +12,14 @@
     context.getProcessingState(entityReference).registerHydratedState(values);
   }
  catch (  SQLException e) {
-    throw context.getSession().getFactory().getJdbcServices().getSqlExceptionHelper().convert(e,"Could not read entity state from ResultSet : " + entityKey);
+    throw context.getSession().getFactory().getServiceRegistry().getService(JdbcServices.class).getSqlExceptionHelper().convert(e,"Could not read entity state from ResultSet : " + entityKey);
   }
   final Object rowId;
   try {
     rowId=concreteEntityPersister.hasRowId() ? resultSet.getObject(entityReferenceAliases.getColumnAliases().getRowIdAlias()) : null;
   }
  catch (  SQLException e) {
-    throw context.getSession().getFactory().getJdbcServices().getSqlExceptionHelper().convert(e,"Could not read entity row-id from ResultSet : " + entityKey);
+    throw context.getSession().getFactory().getServiceRegistry().getService(JdbcServices.class).getSqlExceptionHelper().convert(e,"Could not read entity row-id from ResultSet : " + entityKey);
   }
   final EntityType entityType=EntityFetch.class.isInstance(entityReference) ? ((EntityFetch)entityReference).getFetchedType() : entityReference.getEntityPersister().getEntityMetamodel().getEntityType();
   if (entityType != null) {
