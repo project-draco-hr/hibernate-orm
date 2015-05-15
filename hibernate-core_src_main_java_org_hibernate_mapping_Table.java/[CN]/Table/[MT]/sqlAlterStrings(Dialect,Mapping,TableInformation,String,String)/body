@@ -4,7 +4,7 @@
   List results=new ArrayList();
   while (iter.hasNext()) {
     final Column column=(Column)iter.next();
-    final ColumnInformation columnInfo=tableInfo.getColumn(Identifier.toIdentifier(column.getName()));
+    final ColumnInformation columnInfo=tableInfo.getColumn(Identifier.toIdentifier(column.getName(),column.isQuoted()));
     if (columnInfo == null) {
       StringBuilder alter=new StringBuilder(root.toString()).append(' ').append(column.getQuotedName(dialect)).append(' ').append(column.getSqlType(dialect,p));
       String defaultValue=column.getDefaultValue();
@@ -33,6 +33,9 @@
       alter.append(dialect.getAddColumnSuffixString());
       results.add(alter.toString());
     }
+  }
+  if (results.isEmpty()) {
+    Logger.getLogger(SchemaUpdate.class).debugf("No alter strings for table : %s",getQuotedName());
   }
   return results.iterator();
 }

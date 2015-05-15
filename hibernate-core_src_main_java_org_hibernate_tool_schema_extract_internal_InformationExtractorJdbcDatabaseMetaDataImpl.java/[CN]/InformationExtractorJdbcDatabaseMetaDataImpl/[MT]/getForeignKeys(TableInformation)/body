@@ -4,7 +4,7 @@
     ResultSet resultSet=extractionContext.getJdbcDatabaseMetaData().getImportedKeys(identifierHelper().toMetaDataCatalogName(tableInformation.getName().getCatalogName()),identifierHelper().toMetaDataSchemaName(tableInformation.getName().getSchemaName()),identifierHelper().toMetaDataObjectName(tableInformation.getName().getTableName()));
     try {
       while (resultSet.next()) {
-        final Identifier fkIdentifier=Identifier.toIdentifier(resultSet.getString("FK_NAME"));
+        final Identifier fkIdentifier=identifierHelper().fromMetaDataObjectName(resultSet.getString("FK_NAME"));
         ForeignKeyBuilder fkBuilder=fkBuilders.get(fkIdentifier);
         if (fkBuilder == null) {
           fkBuilder=generateForeignKeyBuilder(fkIdentifier);
@@ -15,8 +15,8 @@
         if (pkTableInformation == null) {
           continue;
         }
-        final Identifier fkColumnIdentifier=Identifier.toIdentifier(resultSet.getString("FKCOLUMN_NAME"));
-        final Identifier pkColumnIdentifier=Identifier.toIdentifier(resultSet.getString("PKCOLUMN_NAME"));
+        final Identifier fkColumnIdentifier=identifierHelper().fromMetaDataObjectName(resultSet.getString("FKCOLUMN_NAME"));
+        final Identifier pkColumnIdentifier=identifierHelper().fromMetaDataObjectName(resultSet.getString("PKCOLUMN_NAME"));
         fkBuilder.addColumnMapping(tableInformation.getColumn(fkColumnIdentifier),pkTableInformation.getColumn(pkColumnIdentifier));
       }
     }
