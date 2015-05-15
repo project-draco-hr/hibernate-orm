@@ -2,15 +2,15 @@
   if (ps != null) {
     LOG.debug("Closing iterator");
     session.getJdbcCoordinator().getResourceRegistry().release(ps);
-    session.getJdbcCoordinator().afterStatementExecution();
-    ps=null;
-    rs=null;
-    hasNext=false;
     try {
       session.getPersistenceContext().getLoadContexts().cleanup(rs);
     }
  catch (    Throwable ignore) {
       LOG.debugf("Exception trying to cleanup load context : %s",ignore.getMessage());
     }
+    session.getJdbcCoordinator().afterStatementExecution();
+    ps=null;
+    rs=null;
+    hasNext=false;
   }
 }

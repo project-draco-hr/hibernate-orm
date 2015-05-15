@@ -1,7 +1,7 @@
 {
   String[] columnNames=new String[getColumnSpan()];
   String[] referencedColumnNames=new String[getColumnSpan()];
-  final Iterator referencedColumnItr;
+  final Iterator<Column> referencedColumnItr;
   if (isReferenceToPrimaryKey()) {
     referencedColumnItr=referencedTable.getPrimaryKey().getColumnIterator();
   }
@@ -12,7 +12,7 @@
   int i=0;
   while (columnItr.hasNext()) {
     columnNames[i]=((Column)columnItr.next()).getQuotedName(dialect);
-    referencedColumnNames[i]=((Column)referencedColumnItr.next()).getQuotedName(dialect);
+    referencedColumnNames[i]=referencedColumnItr.next().getQuotedName(dialect);
     i++;
   }
   final String result=dialect.getAddForeignKeyConstraintString(constraintName,columnNames,referencedTable.getQualifiedName(dialect,defaultCatalog,defaultSchema),referencedColumnNames,isReferenceToPrimaryKey());

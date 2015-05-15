@@ -4,10 +4,12 @@
     resultId=id;
   }
  else {
-    Type idType=persister.getIdentifierType();
+    final Type idType=persister.getIdentifierType();
     resultId=(Serializable)idType.nullSafeGet(rs,getEntityAliases()[i].getSuffixedKeyAliases(),session,null);
     final boolean idIsResultId=id != null && resultId != null && idType.isEqual(id,resultId,factory);
-    if (idIsResultId)     resultId=id;
+    if (idIsResultId) {
+      resultId=id;
+    }
   }
   return resultId == null ? null : session.generateEntityKey(resultId,persister);
 }

@@ -1,10 +1,10 @@
 {
-  if (fk_secondPassList == null || fk_secondPassList.isEmpty()) {
+  if (fkSecondPassList == null || fkSecondPassList.isEmpty()) {
     return;
   }
   Map<String,Set<FkSecondPass>> isADependencyOf=new HashMap<String,Set<FkSecondPass>>();
-  List<FkSecondPass> endOfQueueFkSecondPasses=new ArrayList<FkSecondPass>(fk_secondPassList.size());
-  for (  FkSecondPass sp : fk_secondPassList) {
+  List<FkSecondPass> endOfQueueFkSecondPasses=new ArrayList<FkSecondPass>(fkSecondPassList.size());
+  for (  FkSecondPass sp : fkSecondPassList) {
     if (sp.isInPrimaryKey()) {
       final String referenceEntityName=sp.getReferencedEntityName();
       final PersistentClass classMapping=getEntityBinding(referenceEntityName);
@@ -18,7 +18,7 @@
       endOfQueueFkSecondPasses.add(sp);
     }
   }
-  List<FkSecondPass> orderedFkSecondPasses=new ArrayList<FkSecondPass>(fk_secondPassList.size());
+  List<FkSecondPass> orderedFkSecondPasses=new ArrayList<FkSecondPass>(fkSecondPassList.size());
   for (  String tableName : isADependencyOf.keySet()) {
     buildRecursiveOrderedFkSecondPasses(orderedFkSecondPasses,isADependencyOf,tableName,tableName);
   }
@@ -26,5 +26,5 @@
     sp.doSecondPass(getEntityBindingMap());
   }
   processEndOfQueue(endOfQueueFkSecondPasses);
-  fk_secondPassList.clear();
+  fkSecondPassList.clear();
 }

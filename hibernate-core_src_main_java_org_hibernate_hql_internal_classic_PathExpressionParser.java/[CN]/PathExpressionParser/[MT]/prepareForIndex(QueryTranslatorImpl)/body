@@ -1,10 +1,16 @@
 {
   QueryableCollection collPersister=q.getCollectionPersister(collectionRole);
-  if (!collPersister.hasIndex())   throw new QueryException("unindexed collection before []: " + path);
+  if (!collPersister.hasIndex()) {
+    throw new QueryException("unindexed collection before []: " + path);
+  }
   String[] indexCols=collPersister.getIndexColumnNames();
-  if (indexCols.length != 1)   throw new QueryException("composite-index appears in []: " + path);
+  if (indexCols.length != 1) {
+    throw new QueryException("composite-index appears in []: " + path);
+  }
   JoinSequence fromJoins=new JoinSequence(q.getFactory()).setUseThetaStyle(useThetaStyleJoin).setRoot(collPersister,collectionName).setNext(joinSequence.copy());
-  if (!continuation)   addJoin(collectionName,collPersister.getCollectionType());
+  if (!continuation) {
+    addJoin(collectionName,collPersister.getCollectionType());
+  }
   joinSequence.addCondition(collectionName + '.' + indexCols[0]+ " = ");
   CollectionElement elem=new CollectionElement();
   elem.elementColumns=collPersister.getElementColumnNames(collectionName);
