@@ -9,7 +9,9 @@
   }
  else   if (lcToken.equals("join")) {
     if (!afterJoinType) {
-      if (!(expectingJoin | expectingAs))       throw new QueryException("unexpected token: join");
+      if (!(expectingJoin | expectingAs)) {
+        throw new QueryException("unexpected token: join");
+      }
       joinType=JoinType.INNER_JOIN;
       expectingJoin=false;
       expectingAs=false;
@@ -120,14 +122,18 @@
       }
       if (afterClass) {
         Queryable p=q.getEntityPersisterUsingImports(token);
-        if (p == null)         throw new QueryException("persister not found: " + token);
+        if (p == null) {
+          throw new QueryException("persister not found: " + token);
+        }
         q.addFromClass(alias,p);
       }
  else {
         peParser.setJoinType(JoinType.INNER_JOIN);
         peParser.setUseThetaStyleJoin(true);
         ParserHelper.parse(peParser,q.unalias(token),ParserHelper.PATH_SEPARATORS,q);
-        if (!peParser.isCollectionValued())         throw new QueryException("path expression did not resolve to collection: " + token);
+        if (!peParser.isCollectionValued()) {
+          throw new QueryException("path expression did not resolve to collection: " + token);
+        }
         String nm=peParser.addFromCollection(q);
         q.setAliasName(alias,nm);
       }
