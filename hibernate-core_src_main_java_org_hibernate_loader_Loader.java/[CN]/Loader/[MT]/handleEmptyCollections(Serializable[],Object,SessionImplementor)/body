@@ -2,11 +2,13 @@
   if (keys != null) {
     final boolean debugEnabled=LOG.isDebugEnabled();
     CollectionPersister[] collectionPersisters=getCollectionPersisters();
-    for (    CollectionPersister collectionPersister : collectionPersisters)     for (    Serializable key : keys) {
-      if (debugEnabled) {
-        LOG.debugf("Result set contains (possibly empty) collection: %s",MessageHelper.collectionInfoString(collectionPersister,key,getFactory()));
+    for (    CollectionPersister collectionPersister : collectionPersisters) {
+      for (      Serializable key : keys) {
+        if (debugEnabled) {
+          LOG.debugf("Result set contains (possibly empty) collection: %s",MessageHelper.collectionInfoString(collectionPersister,key,getFactory()));
+        }
+        session.getPersistenceContext().getLoadContexts().getCollectionLoadContext((ResultSet)resultSetId).getLoadingCollection(collectionPersister,key);
       }
-      session.getPersistenceContext().getLoadContexts().getCollectionLoadContext((ResultSet)resultSetId).getLoadingCollection(collectionPersister,key);
     }
   }
 }
