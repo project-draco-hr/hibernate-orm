@@ -1,0 +1,20 @@
+{
+  StandardServiceRegistry ssr=new StandardServiceRegistryBuilder().applySetting(AvailableSettings.DIALECT,MyExtendedH2Dialect.class).build();
+  try {
+    final MetadataImplementor metadata=(MetadataImplementor)new MetadataSources(ssr).addAnnotatedClass(MyEntity.class).buildMetadata();
+    metadata.validate();
+    try {
+      new SchemaUpdate(metadata).execute(Target.EXPORT);
+    }
+  finally {
+      try {
+        new SchemaExport(metadata).drop(Target.EXPORT);
+      }
+ catch (      Exception ignore) {
+      }
+    }
+  }
+  finally {
+    StandardServiceRegistryBuilder.destroy(ssr);
+  }
+}
