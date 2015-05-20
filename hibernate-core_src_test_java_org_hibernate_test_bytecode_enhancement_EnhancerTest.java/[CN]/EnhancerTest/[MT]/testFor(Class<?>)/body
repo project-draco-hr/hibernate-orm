@@ -22,12 +22,6 @@
   Method nextSetter=entityClass.getMethod(EnhancerConstants.PREVIOUS_SETTER_NAME,ManagedEntity.class);
   nextSetter.invoke(entityInstance,entityInstance);
   assertSame(entityInstance,nextGetter.invoke(entityInstance));
-  Method interceptorGetter=entityClass.getMethod(EnhancerConstants.INTERCEPTOR_GETTER_NAME);
-  assertNull(interceptorGetter.invoke(entityInstance));
-  entityClass.getMethod("getId").invoke(entityInstance);
-  Method interceptorSetter=entityClass.getMethod(EnhancerConstants.INTERCEPTOR_SETTER_NAME,PersistentAttributeInterceptor.class);
-  interceptorSetter.invoke(entityInstance,new EnhancerTestUtils.LocalPersistentAttributeInterceptor());
-  assertNotNull(interceptorGetter.invoke(entityInstance));
   entityClass.getMethod("getId").invoke(entityInstance);
   entityClass.getMethod("setId",Long.class).invoke(entityInstance,entityClass.getMethod("getId").invoke(entityInstance));
   entityClass.getMethod("setId",Long.class).invoke(entityInstance,1L);
@@ -50,8 +44,6 @@
     Class<?> countryClass=EnhancerTestUtils.enhanceAndDecompile(Country.class,cl);
     entityClass=EnhancerTestUtils.enhanceAndDecompile(entityClassToEnhance,cl);
     entityInstance=entityClass.newInstance();
-    interceptorSetter=entityClass.getMethod(EnhancerConstants.INTERCEPTOR_SETTER_NAME,PersistentAttributeInterceptor.class);
-    interceptorSetter.invoke(entityInstance,new EnhancerTestUtils.LocalPersistentAttributeInterceptor());
     List<String> strings=new ArrayList<String>();
     strings.add("FooBar");
     entityClass.getMethod("setSomeStrings",List.class).invoke(entityInstance,strings);
