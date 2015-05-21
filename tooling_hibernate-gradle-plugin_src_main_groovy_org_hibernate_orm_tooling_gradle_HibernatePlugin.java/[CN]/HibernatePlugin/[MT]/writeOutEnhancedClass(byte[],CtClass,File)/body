@@ -1,0 +1,36 @@
+{
+  try {
+    if (file.delete()) {
+      if (!file.createNewFile()) {
+        logger.error("Unable to recreate class file [" + ctClass.getName() + "]");
+      }
+    }
+ else {
+      logger.error("Unable to delete class file [" + ctClass.getName() + "]");
+    }
+  }
+ catch (  IOException e) {
+    logger.warn("Problem preparing class file for writing out enhancements [" + ctClass.getName() + "]");
+  }
+  try {
+    FileOutputStream outputStream=new FileOutputStream(file,false);
+    try {
+      outputStream.write(enhancedBytecode);
+      outputStream.flush();
+    }
+ catch (    IOException e) {
+      throw new GradleException("Error writing to enhanced class [" + ctClass.getName() + "] to file ["+ file.getAbsolutePath()+ "]",e);
+    }
+ finally {
+      try {
+        outputStream.close();
+        ctClass.detach();
+      }
+ catch (      IOException ignore) {
+      }
+    }
+  }
+ catch (  FileNotFoundException e) {
+    throw new GradleException("Error opening class file for writing : " + file.getAbsolutePath(),e);
+  }
+}
