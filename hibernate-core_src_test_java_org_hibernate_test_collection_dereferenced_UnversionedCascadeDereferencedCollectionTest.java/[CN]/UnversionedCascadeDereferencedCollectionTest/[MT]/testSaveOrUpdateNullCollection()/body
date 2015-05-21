@@ -1,0 +1,27 @@
+{
+  Session s=openSession();
+  s.getTransaction().begin();
+  UnversionedCascadeOne one=new UnversionedCascadeOne();
+  assertNull(one.getManies());
+  s.save(one);
+  assertNull(one.getManies());
+  EntityEntry eeOne=getEntityEntry(s,one);
+  assertNull(eeOne.getLoadedValue("manies"));
+  s.flush();
+  assertNull(one.getManies());
+  assertNull(eeOne.getLoadedValue("manies"));
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.getTransaction().begin();
+  s.saveOrUpdate(one);
+  assertNull(one.getManies());
+  eeOne=getEntityEntry(s,one);
+  assertNull(eeOne.getLoadedValue("manies"));
+  s.flush();
+  assertNull(one.getManies());
+  assertSame(eeOne,getEntityEntry(s,one));
+  assertNull(eeOne.getLoadedValue("manies"));
+  s.getTransaction().commit();
+  s.close();
+}
