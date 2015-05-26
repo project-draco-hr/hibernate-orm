@@ -39,6 +39,12 @@
         buf.append(" not null");
       }
     }
+    if (col.isUnique()) {
+      String keyName=Constraint.generateName("UK_",table,col);
+      UniqueKey uk=table.getOrCreateUniqueKey(keyName);
+      uk.addColumn(col);
+      buf.append(dialect.getUniqueDelegate().getColumnDefinitionUniquenessFragment(col));
+    }
     if (col.getCheckConstraint() != null && dialect.supportsColumnCheck()) {
       buf.append(" check (").append(col.getCheckConstraint()).append(")");
     }
