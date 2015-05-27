@@ -1,21 +1,28 @@
 {
+  log.tracef("Interpreting return value [%s] from DatabaseMetaData as identifier",text);
   if (globallyQuoteIdentifiers) {
+    log.trace("Forcing DatabaseMetaData return value as quoted due to global quoting");
+    return Identifier.toIdentifier(text,true);
+  }
+  if (isReservedWord(text)) {
+    log.trace("Forcing DatabaseMetaData return value as quoted as it was recognized as a reserved word");
     return Identifier.toIdentifier(text,true);
   }
   final boolean isUpperCase=text.toUpperCase(Locale.ROOT).equals(text);
   final boolean isLowerCase=text.toLowerCase(Locale.ROOT).equals(text);
   final boolean isMixedCase=!isLowerCase && !isUpperCase;
-  if (jdbcEnvironment.isReservedWord(text)) {
+  if (quotedCaseStrategy == IdentifierCaseStrategy.MIXED && isMixedCase) {
+    log.trace("Interpreting return value as quoted due to case strategy");
     return Identifier.toIdentifier(text,true);
   }
-  if (storesMixedCaseQuotedIdentifiers && isMixedCase) {
+  if (quotedCaseStrategy == IdentifierCaseStrategy.LOWER && isLowerCase) {
+    log.trace("Interpreting return value as quoted due to case strategy");
     return Identifier.toIdentifier(text,true);
   }
-  if (storesLowerCaseQuotedIdentifiers && isLowerCase) {
+  if (quotedCaseStrategy == IdentifierCaseStrategy.UPPER && isUpperCase) {
+    log.trace("Interpreting return value as quoted due to case strategy");
     return Identifier.toIdentifier(text,true);
   }
-  if (storesUpperCaseQuotedIdentifiers && isUpperCase) {
-    return Identifier.toIdentifier(text,true);
-  }
+  log.trace("Interpreting return value as unquoted due to case strategy");
   return Identifier.toIdentifier(text);
 }

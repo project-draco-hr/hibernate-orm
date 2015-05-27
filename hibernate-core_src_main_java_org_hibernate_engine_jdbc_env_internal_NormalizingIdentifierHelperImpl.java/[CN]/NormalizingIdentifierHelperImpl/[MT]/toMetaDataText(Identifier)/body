@@ -3,31 +3,41 @@
     throw new IllegalArgumentException("Identifier cannot be null; bad usage");
   }
   if (identifier.isQuoted()) {
-    if (storesMixedCaseQuotedIdentifiers) {
-      return identifier.getText();
+switch (quotedCaseStrategy) {
+case UPPER:
+{
+        log.tracef("Rendering quoted identifier [%s] in upper case for use in DatabaseMetaData",identifier);
+        return identifier.getText().toUpperCase(Locale.ROOT);
+      }
+case LOWER:
+{
+      log.tracef("Rendering quoted identifier [%s] in lower case for use in DatabaseMetaData",identifier);
+      return identifier.getText().toLowerCase(Locale.ROOT);
     }
- else     if (storesUpperCaseQuotedIdentifiers) {
-      return identifier.getText().toUpperCase(Locale.ENGLISH);
-    }
- else     if (storesLowerCaseQuotedIdentifiers) {
-      return identifier.getText().toLowerCase(Locale.ENGLISH);
-    }
- else {
-      return identifier.getText();
-    }
+default :
+{
+    log.tracef("Rendering quoted identifier [%s] in mixed case for use in DatabaseMetaData",identifier);
+    return identifier.getText();
   }
+}
+}
  else {
-    if (storesMixedCaseIdentifiers) {
-      return identifier.getText();
-    }
- else     if (storesUpperCaseIdentifiers) {
-      return identifier.getText().toUpperCase(Locale.ENGLISH);
-    }
- else     if (storesLowerCaseIdentifiers) {
-      return identifier.getText().toLowerCase(Locale.ENGLISH);
-    }
- else {
-      return identifier.getText();
-    }
-  }
+switch (unquotedCaseStrategy) {
+case MIXED:
+{
+  log.tracef("Rendering unquoted identifier [%s] in mixed case for use in DatabaseMetaData",identifier);
+  return identifier.getText();
+}
+case LOWER:
+{
+log.tracef("Rendering unquoted identifier [%s] in lower case for use in DatabaseMetaData",identifier);
+return identifier.getText().toLowerCase(Locale.ROOT);
+}
+default :
+{
+log.tracef("Rendering unquoted identifier [%s] in upper case for use in DatabaseMetaData",identifier);
+return identifier.getText().toUpperCase(Locale.ROOT);
+}
+}
+}
 }

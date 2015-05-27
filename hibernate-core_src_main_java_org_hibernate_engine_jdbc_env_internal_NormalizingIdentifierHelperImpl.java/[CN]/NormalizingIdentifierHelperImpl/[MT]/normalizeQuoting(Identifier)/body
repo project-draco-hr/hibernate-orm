@@ -1,4 +1,5 @@
 {
+  log.tracef("Normalizing identifier quoting [%s]",identifier);
   if (identifier == null) {
     return null;
   }
@@ -6,9 +7,11 @@
     return identifier;
   }
   if (globallyQuoteIdentifiers) {
+    log.tracef("Forcing identifier [%s] to quoted for global quoting",identifier);
     return Identifier.toIdentifier(identifier.getText(),true);
   }
-  if (jdbcEnvironment.isReservedWord(identifier.getText())) {
+  if (isReservedWord(identifier.getText())) {
+    log.tracef("Forcing identifier [%s] to quoted as recognized reserveed word",identifier);
     return Identifier.toIdentifier(identifier.getText(),true);
   }
   return identifier;

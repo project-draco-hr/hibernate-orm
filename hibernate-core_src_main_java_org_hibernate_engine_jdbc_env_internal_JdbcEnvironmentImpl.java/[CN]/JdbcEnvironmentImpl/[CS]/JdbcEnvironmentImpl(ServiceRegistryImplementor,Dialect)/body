@@ -1,16 +1,28 @@
 {
   this.dialect=dialect;
+  final ConfigurationService cfgService=serviceRegistry.getService(ConfigurationService.class);
   NameQualifierSupport nameQualifierSupport=dialect.getNameQualifierSupport();
   if (nameQualifierSupport == null) {
     nameQualifierSupport=NameQualifierSupport.BOTH;
   }
   this.sqlExceptionHelper=buildSqlExceptionHelper(dialect);
   this.extractedMetaDataSupport=new ExtractedDatabaseMetaDataImpl.Builder(this).build();
-  reservedWords.addAll(dialect.determineKeywordsForAutoQuoting(Collections.<String>emptySet()));
-  final boolean globallyQuoteIdentifiers=serviceRegistry.getService(ConfigurationService.class).getSetting(AvailableSettings.GLOBALLY_QUOTED_IDENTIFIERS,StandardConverters.BOOLEAN,false);
-  this.identifierHelper=new NormalizingIdentifierHelperImpl(this,nameQualifierSupport,globallyQuoteIdentifiers,true,false,false,false,true,false);
-  this.currentCatalog=identifierHelper.toIdentifier(serviceRegistry.getService(ConfigurationService.class).getSetting(AvailableSettings.DEFAULT_CATALOG,StandardConverters.STRING));
-  this.currentSchema=Identifier.toIdentifier(serviceRegistry.getService(ConfigurationService.class).getSetting(AvailableSettings.DEFAULT_SCHEMA,StandardConverters.STRING));
+  final IdentifierHelperBuilder identifierHelperBuilder=IdentifierHelperBuilder.from(this);
+  identifierHelperBuilder.setGloballyQuoteIdentifiers(globalQuoting(cfgService));
+  identifierHelperBuilder.setNameQualifierSupport(nameQualifierSupport);
+  IdentifierHelper identifierHelper=null;
+  try {
+    identifierHelper=dialect.buildIdentifierHelper(identifierHelperBuilder,null);
+  }
+ catch (  SQLException sqle) {
+    log.debug("There was a problem accessing DatabaseMetaData in building the JdbcEnvironment",sqle);
+  }
+  if (identifierHelper == null) {
+    identifierHelper=identifierHelperBuilder.build();
+  }
+  this.identifierHelper=identifierHelper;
+  this.currentCatalog=identifierHelper.toIdentifier(cfgService.getSetting(AvailableSettings.DEFAULT_CATALOG,StandardConverters.STRING));
+  this.currentSchema=Identifier.toIdentifier(cfgService.getSetting(AvailableSettings.DEFAULT_SCHEMA,StandardConverters.STRING));
   this.qualifiedObjectNameFormatter=new QualifiedObjectNameFormatterStandardImpl(nameQualifierSupport);
   this.lobCreatorBuilder=LobCreatorBuilderImpl.makeLobCreatorBuilder();
 }

@@ -1,0 +1,41 @@
+{
+  if (metaData == null) {
+    return;
+  }
+  final int unquotedAffirmatives=ArrayHelper.countTrue(metaData.storesLowerCaseIdentifiers(),metaData.storesUpperCaseIdentifiers(),metaData.storesMixedCaseIdentifiers());
+  if (unquotedAffirmatives == 0) {
+    log.debug("JDBC driver metadata reported database stores unquoted identifiers in neither upper, lower nor mixed case");
+  }
+ else {
+    if (unquotedAffirmatives > 1) {
+      log.debug("JDBC driver metadata reported database stores unquoted identifiers in more than one case");
+    }
+    if (metaData.storesUpperCaseIdentifiers()) {
+      this.unquotedCaseStrategy=IdentifierCaseStrategy.UPPER;
+    }
+ else     if (metaData.storesLowerCaseIdentifiers()) {
+      this.unquotedCaseStrategy=IdentifierCaseStrategy.LOWER;
+    }
+ else {
+      this.unquotedCaseStrategy=IdentifierCaseStrategy.MIXED;
+    }
+  }
+  final int quotedAffirmatives=ArrayHelper.countTrue(metaData.storesLowerCaseQuotedIdentifiers(),metaData.storesUpperCaseQuotedIdentifiers(),metaData.storesMixedCaseQuotedIdentifiers());
+  if (quotedAffirmatives == 0) {
+    log.debug("JDBC driver metadata reported database stores quoted identifiers in neither upper, lower nor mixed case");
+  }
+ else {
+    if (quotedAffirmatives > 1) {
+      log.debug("JDBC driver metadata reported database stores quoted identifiers in more than one case");
+    }
+    if (metaData.storesMixedCaseQuotedIdentifiers()) {
+      this.quotedCaseStrategy=IdentifierCaseStrategy.MIXED;
+    }
+ else     if (metaData.storesLowerCaseQuotedIdentifiers()) {
+      this.quotedCaseStrategy=IdentifierCaseStrategy.LOWER;
+    }
+ else {
+      this.quotedCaseStrategy=IdentifierCaseStrategy.UPPER;
+    }
+  }
+}

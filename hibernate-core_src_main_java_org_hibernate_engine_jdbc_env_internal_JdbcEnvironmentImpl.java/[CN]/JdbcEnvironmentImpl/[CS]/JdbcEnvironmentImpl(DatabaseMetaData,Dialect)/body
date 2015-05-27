@@ -6,9 +6,19 @@
   if (nameQualifierSupport == null) {
     nameQualifierSupport=determineNameQualifierSupport(databaseMetaData);
   }
-  reservedWords.addAll(dialect.determineKeywordsForAutoQuoting(extractedMetaDataSupport.getExtraKeywords()));
-  final boolean globallyQuoteIdentifiers=false;
-  this.identifierHelper=new NormalizingIdentifierHelperImpl(this,nameQualifierSupport,globallyQuoteIdentifiers,true,false,false,false,true,false);
+  final IdentifierHelperBuilder identifierHelperBuilder=IdentifierHelperBuilder.from(this);
+  identifierHelperBuilder.setNameQualifierSupport(nameQualifierSupport);
+  IdentifierHelper identifierHelper=null;
+  try {
+    identifierHelper=dialect.buildIdentifierHelper(identifierHelperBuilder,databaseMetaData);
+  }
+ catch (  SQLException sqle) {
+    log.debug("There was a problem accessing DatabaseMetaData in building the JdbcEnvironment",sqle);
+  }
+  if (identifierHelper == null) {
+    identifierHelper=identifierHelperBuilder.build();
+  }
+  this.identifierHelper=identifierHelper;
   this.currentCatalog=null;
   this.currentSchema=null;
   this.qualifiedObjectNameFormatter=new QualifiedObjectNameFormatterStandardImpl(nameQualifierSupport,databaseMetaData);

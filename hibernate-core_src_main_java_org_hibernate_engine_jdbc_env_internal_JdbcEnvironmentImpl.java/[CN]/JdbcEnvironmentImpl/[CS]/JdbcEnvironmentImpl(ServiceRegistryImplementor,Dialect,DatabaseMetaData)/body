@@ -1,17 +1,29 @@
 {
   this.dialect=dialect;
+  final ConfigurationService cfgService=serviceRegistry.getService(ConfigurationService.class);
   this.sqlExceptionHelper=buildSqlExceptionHelper(dialect);
   this.extractedMetaDataSupport=new ExtractedDatabaseMetaDataImpl.Builder(this).apply(databaseMetaData).setConnectionSchemaName(determineCurrentSchemaName(databaseMetaData,serviceRegistry,dialect)).build();
   NameQualifierSupport nameQualifierSupport=dialect.getNameQualifierSupport();
   if (nameQualifierSupport == null) {
     nameQualifierSupport=determineNameQualifierSupport(databaseMetaData);
   }
-  reservedWords.addAll(dialect.determineKeywordsForAutoQuoting(extractedMetaDataSupport.getExtraKeywords()));
-  final boolean globallyQuoteIdentifiers=serviceRegistry.getService(ConfigurationService.class).getSetting(AvailableSettings.GLOBALLY_QUOTED_IDENTIFIERS,StandardConverters.BOOLEAN,false);
-  this.identifierHelper=new NormalizingIdentifierHelperImpl(this,nameQualifierSupport,globallyQuoteIdentifiers,databaseMetaData.storesMixedCaseQuotedIdentifiers(),databaseMetaData.storesLowerCaseQuotedIdentifiers(),databaseMetaData.storesUpperCaseQuotedIdentifiers(),databaseMetaData.storesMixedCaseIdentifiers(),databaseMetaData.storesUpperCaseIdentifiers(),databaseMetaData.storesLowerCaseIdentifiers());
+  final IdentifierHelperBuilder identifierHelperBuilder=IdentifierHelperBuilder.from(this);
+  identifierHelperBuilder.setGloballyQuoteIdentifiers(globalQuoting(cfgService));
+  identifierHelperBuilder.setNameQualifierSupport(nameQualifierSupport);
+  IdentifierHelper identifierHelper=null;
+  try {
+    identifierHelper=dialect.buildIdentifierHelper(identifierHelperBuilder,databaseMetaData);
+  }
+ catch (  SQLException sqle) {
+    log.debug("There was a problem accessing DatabaseMetaData in building the JdbcEnvironment",sqle);
+  }
+  if (identifierHelper == null) {
+    identifierHelper=identifierHelperBuilder.build();
+  }
+  this.identifierHelper=identifierHelper;
   this.currentCatalog=identifierHelper.toIdentifier(extractedMetaDataSupport.getConnectionCatalogName());
   this.currentSchema=identifierHelper.toIdentifier(extractedMetaDataSupport.getConnectionSchemaName());
   this.qualifiedObjectNameFormatter=new QualifiedObjectNameFormatterStandardImpl(nameQualifierSupport,databaseMetaData);
   this.typeInfoSet.addAll(TypeInfo.extractTypeInfo(databaseMetaData));
-  this.lobCreatorBuilder=LobCreatorBuilderImpl.makeLobCreatorBuilder(serviceRegistry.getService(ConfigurationService.class).getSettings(),databaseMetaData.getConnection());
+  this.lobCreatorBuilder=LobCreatorBuilderImpl.makeLobCreatorBuilder(cfgService.getSettings(),databaseMetaData.getConnection());
 }
