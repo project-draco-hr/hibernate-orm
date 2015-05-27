@@ -5,8 +5,9 @@
     LOG.tracev("Refreshing transient {0}",MessageHelper.infoString(persister,id,this.getFactory()));
   }
   if (persister.hasCache()) {
-    final CacheKey ck=generateCacheKey(id,persister.getIdentifierType(),persister.getRootEntityName());
-    persister.getCacheAccessStrategy().evict(ck);
+    final EntityRegionAccessStrategy cache=persister.getCacheAccessStrategy();
+    final EntityCacheKey ck=cache.generateCacheKey(id,persister,getFactory(),getTenantIdentifier());
+    cache.evict(ck);
   }
   String previousFetchProfile=this.getLoadQueryInfluencers().getInternalFetchProfile();
   Object result=null;

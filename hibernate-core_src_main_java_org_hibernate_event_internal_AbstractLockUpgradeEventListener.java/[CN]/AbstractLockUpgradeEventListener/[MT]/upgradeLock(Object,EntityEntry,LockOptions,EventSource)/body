@@ -8,17 +8,15 @@
     if (log.isTraceEnabled()) {
       log.tracev("Locking {0} in mode: {1}",MessageHelper.infoString(persister,entry.getId(),source.getFactory()),requestedLockMode);
     }
-    final SoftLock lock;
-    final CacheKey ck;
-    if (persister.hasCache()) {
-      ck=source.generateCacheKey(entry.getId(),persister.getIdentifierType(),persister.getRootEntityName());
-      lock=persister.getCacheAccessStrategy().lockItem(ck,entry.getVersion());
-    }
- else {
-      ck=null;
-      lock=null;
-    }
+    final boolean cachingEnabled=persister.hasCache();
+    SoftLock lock=null;
+    EntityCacheKey ck=null;
     try {
+      if (cachingEnabled) {
+        EntityRegionAccessStrategy cache=persister.getCacheAccessStrategy();
+        ck=cache.generateCacheKey(entry.getId(),persister,source.getFactory(),source.getTenantIdentifier());
+        lock=cache.lockItem(ck,entry.getVersion());
+      }
       if (persister.isVersioned() && requestedLockMode == LockMode.FORCE) {
         Object nextVersion=persister.forceVersionIncrement(entry.getId(),entry.getVersion(),source);
         entry.forceLocked(object,nextVersion);
@@ -29,7 +27,7 @@
       entry.setLockMode(requestedLockMode);
     }
   finally {
-      if (persister.hasCache()) {
+      if (cachingEnabled) {
         persister.getCacheAccessStrategy().unlockItem(ck,lock);
       }
     }

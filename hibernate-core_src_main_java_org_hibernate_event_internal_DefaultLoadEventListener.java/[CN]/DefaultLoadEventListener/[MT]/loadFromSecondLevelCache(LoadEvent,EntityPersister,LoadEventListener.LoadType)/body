@@ -5,14 +5,15 @@
     return null;
   }
   final SessionFactoryImplementor factory=source.getFactory();
-  final CacheKey ck=source.generateCacheKey(event.getEntityId(),persister.getIdentifierType(),persister.getRootEntityName());
+  final EntityRegionAccessStrategy cache=persister.getCacheAccessStrategy();
+  final EntityCacheKey ck=cache.generateCacheKey(event.getEntityId(),persister,factory,source.getTenantIdentifier());
   final Object ce=CacheHelper.fromSharedCache(source,ck,persister.getCacheAccessStrategy());
   if (factory.getStatistics().isStatisticsEnabled()) {
     if (ce == null) {
-      factory.getStatisticsImplementor().secondLevelCacheMiss(persister.getCacheAccessStrategy().getRegion().getName());
+      factory.getStatisticsImplementor().secondLevelCacheMiss(cache.getRegion().getName());
     }
  else {
-      factory.getStatisticsImplementor().secondLevelCacheHit(persister.getCacheAccessStrategy().getRegion().getName());
+      factory.getStatisticsImplementor().secondLevelCacheHit(cache.getRegion().getName());
     }
   }
   if (ce == null) {

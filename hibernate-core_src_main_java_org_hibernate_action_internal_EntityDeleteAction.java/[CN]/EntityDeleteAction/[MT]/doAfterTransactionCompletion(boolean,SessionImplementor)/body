@@ -1,7 +1,9 @@
 {
-  if (getPersister().hasCache()) {
-    final CacheKey ck=getSession().generateCacheKey(getId(),getPersister().getIdentifierType(),getPersister().getRootEntityName());
-    getPersister().getCacheAccessStrategy().unlockItem(ck,lock);
+  EntityPersister entityPersister=getPersister();
+  if (entityPersister.hasCache()) {
+    EntityRegionAccessStrategy cache=entityPersister.getCacheAccessStrategy();
+    final EntityCacheKey ck=cache.generateCacheKey(getId(),entityPersister,session.getFactory(),session.getTenantIdentifier());
+    cache.unlockItem(ck,lock);
   }
   postCommitDelete(success);
 }

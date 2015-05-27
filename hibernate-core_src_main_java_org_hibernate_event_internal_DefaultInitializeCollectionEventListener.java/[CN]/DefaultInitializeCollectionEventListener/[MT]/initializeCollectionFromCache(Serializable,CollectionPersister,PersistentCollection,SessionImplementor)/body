@@ -8,14 +8,15 @@
     return false;
   }
   final SessionFactoryImplementor factory=source.getFactory();
-  final CacheKey ck=source.generateCacheKey(id,persister.getKeyType(),persister.getRole());
+  final CollectionRegionAccessStrategy cacheAccessStrategy=persister.getCacheAccessStrategy();
+  final CollectionCacheKey ck=cacheAccessStrategy.generateCacheKey(id,persister,factory,source.getTenantIdentifier());
   final Object ce=CacheHelper.fromSharedCache(source,ck,persister.getCacheAccessStrategy());
   if (factory.getStatistics().isStatisticsEnabled()) {
     if (ce == null) {
-      factory.getStatisticsImplementor().secondLevelCacheMiss(persister.getCacheAccessStrategy().getRegion().getName());
+      factory.getStatisticsImplementor().secondLevelCacheMiss(cacheAccessStrategy.getRegion().getName());
     }
  else {
-      factory.getStatisticsImplementor().secondLevelCacheHit(persister.getCacheAccessStrategy().getRegion().getName());
+      factory.getStatisticsImplementor().secondLevelCacheHit(cacheAccessStrategy.getRegion().getName());
     }
   }
   if (ce == null) {

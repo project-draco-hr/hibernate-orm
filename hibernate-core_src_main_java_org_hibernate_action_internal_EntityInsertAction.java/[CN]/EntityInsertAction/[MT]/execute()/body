@@ -7,7 +7,8 @@
   final boolean veto=preInsert();
   if (!veto) {
     persister.insert(id,getState(),instance,session);
-    final EntityEntry entry=session.getPersistenceContext().getEntry(instance);
+    PersistenceContext persistenceContext=session.getPersistenceContext();
+    final EntityEntry entry=persistenceContext.getEntry(instance);
     if (entry == null) {
       throw new AssertionFailure("possible non-threadsafe access to session");
     }
@@ -19,16 +20,17 @@
       }
       entry.postUpdate(instance,getState(),version);
     }
-    getSession().getPersistenceContext().registerInsertedKey(getPersister(),getId());
+    persistenceContext.registerInsertedKey(persister,getId());
   }
-  final SessionFactoryImplementor factory=getSession().getFactory();
+  final SessionFactoryImplementor factory=session.getFactory();
   if (isCachePutEnabled(persister,session)) {
     final CacheEntry ce=persister.buildCacheEntry(instance,getState(),version,session);
     cacheEntry=persister.getCacheEntryStructure().structure(ce);
-    final CacheKey ck=session.generateCacheKey(id,persister.getIdentifierType(),persister.getRootEntityName());
+    final EntityRegionAccessStrategy cache=persister.getCacheAccessStrategy();
+    final EntityCacheKey ck=cache.generateCacheKey(id,persister,factory,session.getTenantIdentifier());
     final boolean put=cacheInsert(persister,ck);
     if (put && factory.getStatistics().isStatisticsEnabled()) {
-      factory.getStatisticsImplementor().secondLevelCachePut(getPersister().getCacheAccessStrategy().getRegion().getName());
+      factory.getStatisticsImplementor().secondLevelCachePut(cache.getRegion().getName());
     }
   }
   handleNaturalIdPostSaveNotifications(id);

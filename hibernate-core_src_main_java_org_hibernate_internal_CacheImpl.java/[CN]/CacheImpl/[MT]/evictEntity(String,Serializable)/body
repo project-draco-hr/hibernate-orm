@@ -4,6 +4,8 @@
     if (LOG.isDebugEnabled()) {
       LOG.debugf("Evicting second-level cache: %s",MessageHelper.infoString(p,identifier,sessionFactory));
     }
-    p.getCacheAccessStrategy().evict(buildCacheKey(identifier,p));
+    EntityRegionAccessStrategy cache=p.getCacheAccessStrategy();
+    EntityCacheKey key=cache.generateCacheKey(identifier,p,sessionFactory,null);
+    cache.evict(key);
   }
 }

@@ -1,5 +1,8 @@
 {
-  LOG.debug("Evict CollectionRegion " + collectionPersister.getRole() + " for id "+ id);
-  CacheKey key=session.generateCacheKey(id,collectionPersister.getKeyType(),collectionPersister.getRole());
-  collectionPersister.getCacheAccessStrategy().evict(key);
+  if (LOG.isDebugEnabled()) {
+    LOG.debug("Evict CollectionRegion " + collectionPersister.getRole() + " for id "+ id);
+  }
+  CollectionRegionAccessStrategy cache=collectionPersister.getCacheAccessStrategy();
+  CollectionCacheKey key=cache.generateCacheKey(id,collectionPersister,session.getFactory(),session.getTenantIdentifier());
+  cache.evict(key);
 }

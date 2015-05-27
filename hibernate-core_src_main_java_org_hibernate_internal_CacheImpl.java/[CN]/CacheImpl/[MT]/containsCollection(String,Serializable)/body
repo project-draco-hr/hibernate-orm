@@ -1,4 +1,11 @@
 {
   CollectionPersister p=sessionFactory.getCollectionPersister(role);
-  return p.hasCache() && p.getCacheAccessStrategy().getRegion().contains(buildCacheKey(ownerIdentifier,p));
+  if (p.hasCache()) {
+    CollectionRegionAccessStrategy cache=p.getCacheAccessStrategy();
+    CollectionCacheKey key=cache.generateCacheKey(ownerIdentifier,p,sessionFactory,null);
+    return cache.getRegion().contains(key);
+  }
+ else {
+    return false;
+  }
 }

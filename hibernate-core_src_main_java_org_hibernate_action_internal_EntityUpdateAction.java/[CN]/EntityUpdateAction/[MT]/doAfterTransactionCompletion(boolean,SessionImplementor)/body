@@ -1,15 +1,16 @@
 {
   final EntityPersister persister=getPersister();
   if (persister.hasCache()) {
-    final CacheKey ck=getSession().generateCacheKey(getId(),persister.getIdentifierType(),persister.getRootEntityName());
+    final EntityRegionAccessStrategy cache=persister.getCacheAccessStrategy();
+    final EntityCacheKey ck=cache.generateCacheKey(getId(),persister,session.getFactory(),session.getTenantIdentifier());
     if (success && cacheEntry != null) {
-      final boolean put=cacheAfterUpdate(persister,ck);
+      final boolean put=cacheAfterUpdate(cache,ck);
       if (put && getSession().getFactory().getStatistics().isStatisticsEnabled()) {
-        getSession().getFactory().getStatisticsImplementor().secondLevelCachePut(getPersister().getCacheAccessStrategy().getRegion().getName());
+        getSession().getFactory().getStatisticsImplementor().secondLevelCachePut(cache.getRegion().getName());
       }
     }
  else {
-      persister.getCacheAccessStrategy().unlockItem(ck,lock);
+      cache.unlockItem(ck,lock);
     }
   }
   postCommitUpdate(success);

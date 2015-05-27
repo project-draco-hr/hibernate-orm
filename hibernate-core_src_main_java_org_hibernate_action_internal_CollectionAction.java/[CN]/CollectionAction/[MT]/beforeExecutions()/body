@@ -1,7 +1,8 @@
 {
   if (persister.hasCache()) {
-    final CacheKey ck=session.generateCacheKey(key,persister.getKeyType(),persister.getRole());
-    final SoftLock lock=persister.getCacheAccessStrategy().lockItem(ck,null);
+    final CollectionRegionAccessStrategy cache=persister.getCacheAccessStrategy();
+    final CollectionCacheKey ck=cache.generateCacheKey(key,persister,session.getFactory(),session.getTenantIdentifier());
+    final SoftLock lock=cache.lockItem(ck,null);
     afterTransactionProcess=new CacheCleanupProcess(key,persister,lock);
   }
 }

@@ -1,10 +1,12 @@
 {
   final EntityPersister persister=getPersister();
   if (success && isCachePutEnabled(persister,getSession())) {
-    final CacheKey ck=getSession().generateCacheKey(getId(),persister.getIdentifierType(),persister.getRootEntityName());
-    final boolean put=cacheAfterInsert(persister,ck);
-    if (put && getSession().getFactory().getStatistics().isStatisticsEnabled()) {
-      getSession().getFactory().getStatisticsImplementor().secondLevelCachePut(getPersister().getCacheAccessStrategy().getRegion().getName());
+    final EntityRegionAccessStrategy cache=persister.getCacheAccessStrategy();
+    SessionFactoryImplementor sessionFactoryImplementor=session.getFactory();
+    final EntityCacheKey ck=cache.generateCacheKey(getId(),persister,sessionFactoryImplementor,session.getTenantIdentifier());
+    final boolean put=cacheAfterInsert(cache,ck);
+    if (put && sessionFactoryImplementor.getStatistics().isStatisticsEnabled()) {
+      sessionFactoryImplementor.getStatisticsImplementor().secondLevelCachePut(cache.getRegion().getName());
     }
   }
   postCommitInsert(success);

@@ -4,7 +4,8 @@
     if (LOG.isDebugEnabled()) {
       LOG.debugf("Evicting second-level cache: %s",MessageHelper.collectionInfoString(p,ownerIdentifier,sessionFactory));
     }
-    CacheKey cacheKey=buildCacheKey(ownerIdentifier,p);
-    p.getCacheAccessStrategy().evict(cacheKey);
+    CollectionRegionAccessStrategy cache=p.getCacheAccessStrategy();
+    CollectionCacheKey key=cache.generateCacheKey(ownerIdentifier,p,sessionFactory,null);
+    cache.evict(key);
   }
 }

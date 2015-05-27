@@ -7,8 +7,9 @@
   Hibernate.initialize(sp.getOrders());
   CollectionPersister persister=sessionFactory().getCollectionPersister(Salesperson.class.getName() + ".orders");
   assertTrue("No cache for collection",persister.hasCache());
-  CacheKey cacheKey=((SessionImplementor)session).generateCacheKey(testData.steveId,persister.getKeyType(),persister.getRole());
-  CollectionCacheEntry cachedData=(CollectionCacheEntry)persister.getCacheAccessStrategy().get(cacheKey,ts);
+  CollectionRegionAccessStrategy cache=persister.getCacheAccessStrategy();
+  CollectionCacheKey cacheKey=cache.generateCacheKey(testData.steveId,persister,sessionFactory(),session.getTenantIdentifier());
+  CollectionCacheEntry cachedData=(CollectionCacheEntry)cache.get(cacheKey,ts);
   assertNotNull("collection was not in cache",cachedData);
   session.close();
   session=openSession();
@@ -16,7 +17,7 @@
   session.enableFilter("fulfilledOrders").setParameter("asOfDate",testData.lastMonth.getTime());
   sp=(Salesperson)session.createQuery("from Salesperson as s where s.id = :id").setLong("id",testData.steveId).uniqueResult();
   assertEquals("Filtered-collection not bypassing 2L-cache",1,sp.getOrders().size());
-  CacheKey cacheKey2=((SessionImplementor)session).generateCacheKey(testData.steveId,persister.getKeyType(),persister.getRole());
+  CollectionCacheKey cacheKey2=cache.generateCacheKey(testData.steveId,persister,sessionFactory(),session.getTenantIdentifier());
   CollectionCacheEntry cachedData2=(CollectionCacheEntry)persister.getCacheAccessStrategy().get(cacheKey2,ts);
   assertNotNull("collection no longer in cache!",cachedData2);
   assertSame("Different cache values!",cachedData,cachedData2);

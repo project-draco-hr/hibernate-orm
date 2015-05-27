@@ -1,7 +1,9 @@
 {
   final String instanceClass=getInstanceClass(rs,i,persister,key.getIdentifier(),session);
   if (session.getCacheMode().isGetEnabled() && persister.canUseReferenceCacheEntries()) {
-    final Object cachedEntry=CacheHelper.fromSharedCache(session,session.generateCacheKey(key.getIdentifier(),persister.getEntityMetamodel().getEntityType(),key.getEntityName()),persister.getCacheAccessStrategy());
+    final EntityRegionAccessStrategy cache=persister.getCacheAccessStrategy();
+    final EntityCacheKey ck=cache.generateCacheKey(key.getIdentifier(),persister,session.getFactory(),session.getTenantIdentifier());
+    final Object cachedEntry=CacheHelper.fromSharedCache(session,ck,cache);
     if (cachedEntry != null) {
       CacheEntry entry=(CacheEntry)persister.getCacheEntryStructure().destructure(cachedEntry,factory);
       return ((ReferenceCacheEntryImpl)entry).getReference();

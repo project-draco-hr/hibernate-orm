@@ -1,8 +1,9 @@
 {
   SoftLock lock=null;
-  final CacheKey ck;
+  final EntityCacheKey ck;
+  final EntityRegionAccessStrategy cache=persister.getCacheAccessStrategy();
   if (persister.hasCache()) {
-    ck=source.generateCacheKey(event.getEntityId(),persister.getIdentifierType(),persister.getRootEntityName());
+    ck=cache.generateCacheKey(event.getEntityId(),persister,source.getFactory(),source.getTenantIdentifier());
     lock=persister.getCacheAccessStrategy().lockItem(ck,null);
   }
  else {
@@ -14,7 +15,7 @@
   }
   finally {
     if (persister.hasCache()) {
-      persister.getCacheAccessStrategy().unlockItem(ck,lock);
+      cache.unlockItem(ck,lock);
     }
   }
   return event.getSession().getPersistenceContext().proxyFor(persister,keyToLoad,entity);

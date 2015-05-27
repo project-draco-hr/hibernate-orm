@@ -8,10 +8,11 @@
   if (persister.isVersionPropertyGenerated()) {
     version=persister.getVersion(instance);
   }
-  final CacheKey ck;
+  final EntityCacheKey ck;
   if (persister.hasCache()) {
-    ck=session.generateCacheKey(id,persister.getIdentifierType(),persister.getRootEntityName());
-    lock=persister.getCacheAccessStrategy().lockItem(ck,version);
+    final EntityRegionAccessStrategy cache=persister.getCacheAccessStrategy();
+    ck=cache.generateCacheKey(id,persister,session.getFactory(),session.getTenantIdentifier());
+    lock=cache.lockItem(ck,version);
   }
  else {
     ck=null;

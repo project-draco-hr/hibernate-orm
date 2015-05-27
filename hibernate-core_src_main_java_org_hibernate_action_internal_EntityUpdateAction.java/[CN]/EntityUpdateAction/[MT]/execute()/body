@@ -4,15 +4,16 @@
   final SessionImplementor session=getSession();
   final Object instance=getInstance();
   final boolean veto=preUpdate();
-  final SessionFactoryImplementor factory=getSession().getFactory();
+  final SessionFactoryImplementor factory=session.getFactory();
   Object previousVersion=this.previousVersion;
   if (persister.isVersionPropertyGenerated()) {
     previousVersion=persister.getVersion(instance);
   }
-  final CacheKey ck;
+  final EntityCacheKey ck;
   if (persister.hasCache()) {
-    ck=session.generateCacheKey(id,persister.getIdentifierType(),persister.getRootEntityName());
-    lock=persister.getCacheAccessStrategy().lockItem(ck,previousVersion);
+    final EntityRegionAccessStrategy cache=persister.getCacheAccessStrategy();
+    ck=cache.generateCacheKey(id,persister,factory,session.getTenantIdentifier());
+    lock=cache.lockItem(ck,previousVersion);
   }
  else {
     ck=null;
@@ -20,7 +21,7 @@
   if (!veto) {
     persister.update(id,state,dirtyFields,hasDirtyCollection,previousState,previousVersion,instance,rowId,session);
   }
-  final EntityEntry entry=getSession().getPersistenceContext().getEntry(instance);
+  final EntityEntry entry=session.getPersistenceContext().getEntry(instance);
   if (entry == null) {
     throw new AssertionFailure("possible nonthreadsafe access to session");
   }
