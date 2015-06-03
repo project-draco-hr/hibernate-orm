@@ -7,21 +7,30 @@
     final Properties properties=CacheTestUtil.toProperties(ssrb.getSettings());
     boolean invalidation=false;
     avoidConcurrentFlush();
-    GeneralDataRegion localRegion=(GeneralDataRegion)createRegion(regionFactory,getStandardRegionName(REGION_PREFIX),properties,null);
+    final GeneralDataRegion localRegion=(GeneralDataRegion)createRegion(regionFactory,getStandardRegionName(REGION_PREFIX),properties,null);
     regionFactory=CacheTestUtil.startRegionFactory(registry2,getCacheTestSupport());
-    GeneralDataRegion remoteRegion=(GeneralDataRegion)createRegion(regionFactory,getStandardRegionName(REGION_PREFIX),properties,null);
+    final GeneralDataRegion remoteRegion=(GeneralDataRegion)createRegion(regionFactory,getStandardRegionName(REGION_PREFIX),properties,null);
     assertNull("local is clean",localRegion.get(KEY));
     assertNull("remote is clean",remoteRegion.get(KEY));
     regionPut(localRegion);
-    sleep(250);
-    assertEquals(VALUE1,localRegion.get(KEY));
-    sleep(250);
+    Callable<Object> getFromLocalRegion=new Callable<Object>(){
+      @Override public Object call() throws Exception {
+        return localRegion.get(KEY);
+      }
+    }
+;
+    Callable<Object> getFromRemoteRegion=new Callable<Object>(){
+      @Override public Object call() throws Exception {
+        return remoteRegion.get(KEY);
+      }
+    }
+;
+    assertEqualsEventually(VALUE1,getFromLocalRegion,10,TimeUnit.SECONDS);
     Object expected=invalidation ? null : VALUE1;
-    assertEquals(expected,remoteRegion.get(KEY));
+    assertEqualsEventually(expected,getFromRemoteRegion,10,TimeUnit.SECONDS);
     regionEvict(localRegion);
-    sleep(250);
-    assertEquals(null,localRegion.get(KEY));
-    assertEquals(null,remoteRegion.get(KEY));
+    assertEqualsEventually(null,getFromLocalRegion,10,TimeUnit.SECONDS);
+    assertEqualsEventually(null,getFromRemoteRegion,10,TimeUnit.SECONDS);
   }
   finally {
     StandardServiceRegistryBuilder.destroy(registry1);

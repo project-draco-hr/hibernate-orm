@@ -1,0 +1,13 @@
+{
+  long now, deadline=timeout <= 0 ? Long.MAX_VALUE : System.currentTimeMillis() + timeUnit.toMillis(timeout);
+  for (; ; ) {
+    T value=callable.call();
+    if (EqualsHelper.equals(value,expected))     return;
+    now=System.currentTimeMillis();
+    if (now < deadline) {
+      Thread.sleep(Math.min(100,deadline - now));
+    }
+ else     break;
+  }
+  throw new TimeoutException();
+}
