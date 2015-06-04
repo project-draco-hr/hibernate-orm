@@ -1,8 +1,9 @@
 {
+  final ClassLoaderService classLoaderService=getMetadata().getMetadataBuildingOptions().getServiceRegistry().getService(ClassLoaderService.class);
   try {
-    return ReflectHelper.classForName(componentClassName);
+    return classLoaderService.classForName(componentClassName);
   }
- catch (  ClassNotFoundException cnfe) {
-    throw new MappingException("component class not found: " + componentClassName,cnfe);
+ catch (  ClassLoadingException e) {
+    throw new MappingException("component class not found: " + componentClassName,e);
   }
 }

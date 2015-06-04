@@ -3,8 +3,9 @@
   String[] params=getNamedParameters();
   for (  String namedParam : params) {
     try {
-      Getter getter=ReflectHelper.getGetter(clazz,namedParam);
-      Class retType=getter.getReturnType();
+      final PropertyAccess propertyAccess=BuiltInPropertyAccessStrategies.BASIC.getStrategy().buildPropertyAccess(clazz,namedParam);
+      final Getter getter=propertyAccess.getGetter();
+      final Class retType=getter.getReturnType();
       final Object object=getter.get(bean);
       if (Collection.class.isAssignableFrom(retType)) {
         setParameterList(namedParam,(Collection)object);

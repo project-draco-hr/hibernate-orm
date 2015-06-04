@@ -2,6 +2,8 @@
   if (mappingProperty == null || !mappingProperty.getPersistentClass().hasPojoRepresentation()) {
     return null;
   }
-  PropertyAccessor pa=PropertyAccessorFactory.getPropertyAccessor(mappingProperty,EntityMode.POJO);
-  return pa.getGetter(mappingProperty.getPersistentClass().getMappedClass(),mappingProperty.getName());
+  final PropertyAccessStrategyResolver propertyAccessStrategyResolver=mappingProperty.getPersistentClass().getServiceRegistry().getService(PropertyAccessStrategyResolver.class);
+  final PropertyAccessStrategy propertyAccessStrategy=propertyAccessStrategyResolver.resolvePropertyAccessStrategy(mappingProperty.getPropertyAccessorName(),EntityMode.POJO);
+  final PropertyAccess propertyAccess=propertyAccessStrategy.buildPropertyAccess(mappingProperty.getPersistentClass().getMappedClass(),mappingProperty.getName());
+  return propertyAccess.getGetter();
 }

@@ -1,11 +1,10 @@
 {
-  XMLHelper xmlHelper=new XMLHelper();
-  ClassLoader cl=Thread.currentThread().getContextClassLoader();
-  InputStream is=cl.getResourceAsStream("org/hibernate/test/annotations/reflection/orm.xml");
+  final XMLHelper xmlHelper=new XMLHelper(ClassLoaderServiceTestingImpl.INSTANCE);
+  final XMLContext context=new XMLContext(ClassLoaderAccessTestingImpl.INSTANCE);
+  InputStream is=ClassLoaderServiceTestingImpl.INSTANCE.locateResourceStream("org/hibernate/test/annotations/reflection/orm.xml");
   Assert.assertNotNull("ORM.xml not found",is);
-  XMLContext context=new XMLContext();
-  ErrorLogger errorLogger=new ErrorLogger();
-  SAXReader saxReader=xmlHelper.createSAXReader(errorLogger,EJB3DTDEntityResolver.INSTANCE);
+  final ErrorLogger errorLogger=new ErrorLogger();
+  final SAXReader saxReader=xmlHelper.createSAXReader(errorLogger,EJB3DTDEntityResolver.INSTANCE);
   try {
     saxReader.setFeature("http://apache.org/xml/features/validation/schema",true);
   }

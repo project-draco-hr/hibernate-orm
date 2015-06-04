@@ -9,9 +9,10 @@
     }
     final XProperty xProperty=(XProperty)typeParameters.get(DynamicParameterizedType.XPROPERTY);
     final Annotation[] annotations=xProperty == null ? null : xProperty.getAnnotations();
-    typeParameters.put(DynamicParameterizedType.PARAMETER_TYPE,new ParameterTypeImpl(ReflectHelper.classForName(typeParameters.getProperty(DynamicParameterizedType.RETURNED_CLASS)),annotations,table.getCatalog(),table.getSchema(),table.getName(),Boolean.valueOf(typeParameters.getProperty(DynamicParameterizedType.IS_PRIMARY_KEY)),columnsNames));
+    final ClassLoaderService classLoaderService=getMetadata().getMetadataBuildingOptions().getServiceRegistry().getService(ClassLoaderService.class);
+    typeParameters.put(DynamicParameterizedType.PARAMETER_TYPE,new ParameterTypeImpl(classLoaderService.classForName(typeParameters.getProperty(DynamicParameterizedType.RETURNED_CLASS)),annotations,table.getCatalog(),table.getSchema(),table.getName(),Boolean.valueOf(typeParameters.getProperty(DynamicParameterizedType.IS_PRIMARY_KEY)),columnsNames));
   }
- catch (  ClassNotFoundException cnfe) {
-    throw new MappingException("Could not create DynamicParameterizedType for type: " + typeName,cnfe);
+ catch (  ClassLoadingException e) {
+    throw new MappingException("Could not create DynamicParameterizedType for type: " + typeName,e);
   }
 }

@@ -9,7 +9,7 @@
   SimpleIdMapperBuilder mapper;
   if (idMapper != null) {
     final Class componentClass=ReflectionTools.loadClass(((Component)pc.getIdentifier()).getComponentClassName(),mainGenerator.getClassLoaderService());
-    mapper=new MultipleIdMapper(componentClass);
+    mapper=new MultipleIdMapper(componentClass,pc.getServiceRegistry());
     if (!addIdProperties(relIdMapping,(Iterator<Property>)idMapper.getPropertyIterator(),mapper,false,audited)) {
       return null;
     }
@@ -20,7 +20,7 @@
  else   if (idProp.isComposite()) {
     final Component idComponent=(Component)idProp.getValue();
     final Class embeddableClass=ReflectionTools.loadClass(idComponent.getComponentClassName(),mainGenerator.getClassLoaderService());
-    mapper=new EmbeddedIdMapper(getIdPropertyData(idProp),embeddableClass);
+    mapper=new EmbeddedIdMapper(getIdPropertyData(idProp),embeddableClass,pc.getServiceRegistry());
     if (!addIdProperties(relIdMapping,(Iterator<Property>)idComponent.getPropertyIterator(),mapper,false,audited)) {
       return null;
     }
@@ -29,7 +29,7 @@
     }
   }
  else {
-    mapper=new SingleIdMapper();
+    mapper=new SingleIdMapper(pc.getServiceRegistry());
     mainGenerator.getBasicMetadataGenerator().addBasic(relIdMapping,getIdPersistentPropertyAuditingData(idProp),idProp.getValue(),mapper,true,false);
     mainGenerator.getBasicMetadataGenerator().addBasic(origIdMapping,getIdPersistentPropertyAuditingData(idProp),idProp.getValue(),null,true,true);
   }

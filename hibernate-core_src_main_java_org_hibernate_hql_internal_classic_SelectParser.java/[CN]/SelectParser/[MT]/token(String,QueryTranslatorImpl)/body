@@ -14,10 +14,10 @@
   if (afterNew) {
     afterNew=false;
     try {
-      holderClass=ReflectHelper.classForName(QuerySplitter.getImportedClass(token,q.getFactory()));
+      holderClass=q.getFactory().getServiceRegistry().getService(ClassLoaderService.class).classForName(QuerySplitter.getImportedClass(token,q.getFactory()));
     }
- catch (    ClassNotFoundException cnfe) {
-      throw new QueryException(cnfe);
+ catch (    ClassLoadingException e) {
+      throw new QueryException(e);
     }
     if (holderClass == null) {
       throw new QueryException("class not found: " + token);

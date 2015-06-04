@@ -5,10 +5,10 @@
     throw new SemanticException("Unable to locate class [" + path + "]");
   }
   try {
-    Class holderClass=ReflectHelper.classForName(className);
+    final Class holderClass=getSessionFactoryHelper().getFactory().getServiceRegistry().getService(ClassLoaderService.class).classForName(className);
     return ReflectHelper.getConstructor(holderClass,constructorArgumentTypes);
   }
- catch (  ClassNotFoundException e) {
+ catch (  ClassLoadingException e) {
     throw new DetailedSemanticException("Unable to locate class [" + className + "]",e);
   }
 catch (  PropertyNotFoundException e) {

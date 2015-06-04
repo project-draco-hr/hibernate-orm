@@ -1,0 +1,20 @@
+{
+  identifierType=type;
+  final JdbcEnvironment jdbcEnvironment=serviceRegistry.getService(JdbcEnvironment.class);
+  final Dialect dialect=jdbcEnvironment.getDialect();
+  qualifiedTableName=determineGeneratorTableName(params,dialect);
+  renderedTableName=jdbcEnvironment.getQualifiedObjectNameFormatter().format(qualifiedTableName,dialect);
+  segmentColumnName=determineSegmentColumnName(params,dialect);
+  valueColumnName=determineValueColumnName(params,dialect);
+  segmentValue=determineSegmentValue(params);
+  segmentValueLength=determineSegmentColumnSize(params);
+  initialValue=determineInitialValue(params);
+  incrementSize=determineIncrementSize(params);
+  this.selectQuery=buildSelectQuery(dialect);
+  this.updateQuery=buildUpdateQuery();
+  this.insertQuery=buildInsertQuery();
+  final String defaultPooledOptimizerStrategy=ConfigurationHelper.getBoolean(Environment.PREFER_POOLED_VALUES_LO,params,false) ? StandardOptimizerDescriptor.POOLED_LO.getExternalName() : StandardOptimizerDescriptor.POOLED.getExternalName();
+  final String defaultOptimizerStrategy=incrementSize <= 1 ? StandardOptimizerDescriptor.NONE.getExternalName() : defaultPooledOptimizerStrategy;
+  final String optimizationStrategy=ConfigurationHelper.getString(OPT_PARAM,params,defaultOptimizerStrategy);
+  optimizer=OptimizerFactory.buildOptimizer(optimizationStrategy,identifierType.getReturnedClass(),incrementSize,ConfigurationHelper.getInt(INITIAL_PARAM,params,-1));
+}

@@ -8,10 +8,11 @@
   Class generatorClass=generatorStrategyToClassNameMap.get(strategy);
   try {
     if (generatorClass == null) {
-      generatorClass=ReflectHelper.classForName(strategy);
+      final ClassLoaderService cls=serviceRegistry.getService(ClassLoaderService.class);
+      generatorClass=cls.classForName(strategy);
     }
   }
- catch (  ClassNotFoundException e) {
+ catch (  ClassLoadingException e) {
     throw new MappingException(String.format("Could not interpret id generator strategy [%s]",strategy));
   }
   return generatorClass;

@@ -1,0 +1,24 @@
+{
+  Class checkClass=containerClass;
+  Method getter=null;
+  while (getter == null && checkClass != null) {
+    if (checkClass.equals(Object.class)) {
+      break;
+    }
+    getter=getGetterOrNull(checkClass,propertyName);
+    checkClass=checkClass.getSuperclass();
+  }
+  if (getter == null) {
+    for (    Class theInterface : containerClass.getInterfaces()) {
+      getter=getGetterOrNull(theInterface,propertyName);
+      if (getter != null) {
+        break;
+      }
+    }
+  }
+  if (getter == null) {
+    throw new PropertyNotFoundException(String.format(Locale.ROOT,"Could not locate getter method for property [%s#%s]",containerClass.getName(),propertyName));
+  }
+  getter.setAccessible(true);
+  return getter;
+}

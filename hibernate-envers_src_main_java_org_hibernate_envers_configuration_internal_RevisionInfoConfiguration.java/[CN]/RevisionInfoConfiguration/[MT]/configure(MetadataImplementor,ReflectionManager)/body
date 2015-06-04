@@ -35,11 +35,11 @@
         final Class<? extends RevisionListener> revisionListenerClass=getRevisionListenerClass(revisionEntity.value());
         revisionInfoTimestampType=persistentClass.getProperty(revisionInfoTimestampData.getName()).getType();
         if (globalCfg.isTrackEntitiesChangedInRevision() || (globalCfg.isUseRevisionEntityWithNativeId() && DefaultTrackingModifiedEntitiesRevisionEntity.class.isAssignableFrom(revisionInfoClass)) || (!globalCfg.isUseRevisionEntityWithNativeId() && SequenceIdTrackingModifiedEntitiesRevisionEntity.class.isAssignableFrom(revisionInfoClass))|| modifiedEntityNamesFound.isSet()) {
-          revisionInfoGenerator=new DefaultTrackingModifiedEntitiesRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,revisionListenerClass,revisionInfoTimestampData,isTimestampAsDate(),modifiedEntityNamesData);
+          revisionInfoGenerator=new DefaultTrackingModifiedEntitiesRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,revisionListenerClass,revisionInfoTimestampData,isTimestampAsDate(),modifiedEntityNamesData,metadata.getMetadataBuildingOptions().getServiceRegistry());
           globalCfg.setTrackEntitiesChangedInRevision(true);
         }
  else {
-          revisionInfoGenerator=new DefaultRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,revisionListenerClass,revisionInfoTimestampData,isTimestampAsDate());
+          revisionInfoGenerator=new DefaultRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,revisionListenerClass,revisionInfoTimestampData,isTimestampAsDate(),metadata.getMetadataBuildingOptions().getServiceRegistry());
         }
       }
     }
@@ -50,13 +50,13 @@
     if (globalCfg.isTrackEntitiesChangedInRevision()) {
       revisionInfoClass=globalCfg.isUseRevisionEntityWithNativeId() ? DefaultTrackingModifiedEntitiesRevisionEntity.class : SequenceIdTrackingModifiedEntitiesRevisionEntity.class;
       revisionInfoEntityName=revisionInfoClass.getName();
-      revisionInfoGenerator=new DefaultTrackingModifiedEntitiesRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,revisionListenerClass,revisionInfoTimestampData,isTimestampAsDate(),modifiedEntityNamesData);
+      revisionInfoGenerator=new DefaultTrackingModifiedEntitiesRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,revisionListenerClass,revisionInfoTimestampData,isTimestampAsDate(),modifiedEntityNamesData,metadata.getMetadataBuildingOptions().getServiceRegistry());
     }
  else {
       revisionInfoClass=globalCfg.isUseRevisionEntityWithNativeId() ? DefaultRevisionEntity.class : SequenceIdRevisionEntity.class;
-      revisionInfoGenerator=new DefaultRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,revisionListenerClass,revisionInfoTimestampData,isTimestampAsDate());
+      revisionInfoGenerator=new DefaultRevisionInfoGenerator(revisionInfoEntityName,revisionInfoClass,revisionListenerClass,revisionInfoTimestampData,isTimestampAsDate(),metadata.getMetadataBuildingOptions().getServiceRegistry());
     }
     revisionInfoXmlMapping=generateDefaultRevisionInfoXmlMapping();
   }
-  return new RevisionInfoConfigurationResult(revisionInfoGenerator,revisionInfoXmlMapping,new RevisionInfoQueryCreator(revisionInfoEntityName,revisionInfoIdData.getName(),revisionInfoTimestampData.getName(),isTimestampAsDate()),generateRevisionInfoRelationMapping(),new RevisionInfoNumberReader(revisionInfoClass,revisionInfoIdData),globalCfg.isTrackEntitiesChangedInRevision() ? new ModifiedEntityNamesReader(revisionInfoClass,modifiedEntityNamesData) : null,revisionInfoEntityName,revisionInfoClass,revisionInfoTimestampData);
+  return new RevisionInfoConfigurationResult(revisionInfoGenerator,revisionInfoXmlMapping,new RevisionInfoQueryCreator(revisionInfoEntityName,revisionInfoIdData.getName(),revisionInfoTimestampData.getName(),isTimestampAsDate()),generateRevisionInfoRelationMapping(),new RevisionInfoNumberReader(revisionInfoClass,revisionInfoIdData,metadata.getMetadataBuildingOptions().getServiceRegistry()),globalCfg.isTrackEntitiesChangedInRevision() ? new ModifiedEntityNamesReader(revisionInfoClass,modifiedEntityNamesData,metadata.getMetadataBuildingOptions().getServiceRegistry()) : null,revisionInfoEntityName,revisionInfoClass,revisionInfoTimestampData);
 }

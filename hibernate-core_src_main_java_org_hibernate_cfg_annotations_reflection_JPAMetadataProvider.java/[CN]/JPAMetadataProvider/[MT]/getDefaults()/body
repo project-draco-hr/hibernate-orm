@@ -8,9 +8,9 @@
     List<Class> entityListeners=new ArrayList<Class>();
     for (    String className : xmlContext.getDefaultEntityListeners()) {
       try {
-        entityListeners.add(ReflectHelper.classForName(className,this.getClass()));
+        entityListeners.add(classLoaderAccess.classForName(className));
       }
- catch (      ClassNotFoundException e) {
+ catch (      ClassLoadingException e) {
         throw new IllegalStateException("Default entity listener class not found: " + className);
       }
     }
@@ -39,28 +39,28 @@
         namedQueries=new ArrayList<NamedQuery>();
         defaults.put(NamedQuery.class,namedQueries);
       }
-      List<NamedQuery> currentNamedQueries=JPAOverriddenAnnotationReader.buildNamedQueries(element,false,xmlDefaults);
+      List<NamedQuery> currentNamedQueries=JPAOverriddenAnnotationReader.buildNamedQueries(element,false,xmlDefaults,classLoaderAccess);
       namedQueries.addAll(currentNamedQueries);
       List<NamedNativeQuery> namedNativeQueries=(List<NamedNativeQuery>)defaults.get(NamedNativeQuery.class);
       if (namedNativeQueries == null) {
         namedNativeQueries=new ArrayList<NamedNativeQuery>();
         defaults.put(NamedNativeQuery.class,namedNativeQueries);
       }
-      List<NamedNativeQuery> currentNamedNativeQueries=JPAOverriddenAnnotationReader.buildNamedQueries(element,true,xmlDefaults);
+      List<NamedNativeQuery> currentNamedNativeQueries=JPAOverriddenAnnotationReader.buildNamedQueries(element,true,xmlDefaults,classLoaderAccess);
       namedNativeQueries.addAll(currentNamedNativeQueries);
       List<SqlResultSetMapping> sqlResultSetMappings=(List<SqlResultSetMapping>)defaults.get(SqlResultSetMapping.class);
       if (sqlResultSetMappings == null) {
         sqlResultSetMappings=new ArrayList<SqlResultSetMapping>();
         defaults.put(SqlResultSetMapping.class,sqlResultSetMappings);
       }
-      List<SqlResultSetMapping> currentSqlResultSetMappings=JPAOverriddenAnnotationReader.buildSqlResultsetMappings(element,xmlDefaults);
+      List<SqlResultSetMapping> currentSqlResultSetMappings=JPAOverriddenAnnotationReader.buildSqlResultsetMappings(element,xmlDefaults,classLoaderAccess);
       sqlResultSetMappings.addAll(currentSqlResultSetMappings);
       List<NamedStoredProcedureQuery> namedStoredProcedureQueries=(List<NamedStoredProcedureQuery>)defaults.get(NamedStoredProcedureQuery.class);
       if (namedStoredProcedureQueries == null) {
         namedStoredProcedureQueries=new ArrayList<NamedStoredProcedureQuery>();
         defaults.put(NamedStoredProcedureQuery.class,namedStoredProcedureQueries);
       }
-      List<NamedStoredProcedureQuery> currentNamedStoredProcedureQueries=JPAOverriddenAnnotationReader.buildNamedStoreProcedureQueries(element,xmlDefaults);
+      List<NamedStoredProcedureQuery> currentNamedStoredProcedureQueries=JPAOverriddenAnnotationReader.buildNamedStoreProcedureQueries(element,xmlDefaults,classLoaderAccess);
       namedStoredProcedureQueries.addAll(currentNamedStoredProcedureQueries);
     }
   }

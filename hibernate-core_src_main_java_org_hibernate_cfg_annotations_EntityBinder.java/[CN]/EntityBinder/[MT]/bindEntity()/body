@@ -57,10 +57,10 @@
     org.hibernate.annotations.Entity entityAnn=annotatedClass.getAnnotation(org.hibernate.annotations.Entity.class);
     if (entityAnn != null && !BinderHelper.isEmptyAnnotationValue(entityAnn.persister())) {
       try {
-        persister=ReflectHelper.classForName(entityAnn.persister());
+        persister=context.getClassLoaderAccess().classForName(entityAnn.persister());
       }
- catch (      ClassNotFoundException cnfe) {
-        throw new AnnotationException("Could not find persister class: " + persister);
+ catch (      ClassLoadingException e) {
+        throw new AnnotationException("Could not find persister class: " + entityAnn.persister(),e);
       }
     }
   }

@@ -4,14 +4,15 @@
     return;
   }
   final ConfigurationService cfgService=activationContext.getServiceRegistry().getService(ConfigurationService.class);
+  final ClassLoaderService classLoaderService=activationContext.getServiceRegistry().getService(ClassLoaderService.class);
   if (cfgService.getSettings().get(Environment.CHECK_NULLABILITY) == null) {
     activationContext.getSessionFactory().getSettings().setCheckNullability(false);
   }
-  final BeanValidationEventListener listener=new BeanValidationEventListener(validatorFactory,cfgService.getSettings());
+  final BeanValidationEventListener listener=new BeanValidationEventListener(validatorFactory,cfgService.getSettings(),classLoaderService);
   final EventListenerRegistry listenerRegistry=activationContext.getServiceRegistry().getService(EventListenerRegistry.class);
   listenerRegistry.addDuplicationStrategy(DuplicationStrategyImpl.INSTANCE);
   listenerRegistry.appendListeners(EventType.PRE_INSERT,listener);
   listenerRegistry.appendListeners(EventType.PRE_UPDATE,listener);
   listenerRegistry.appendListeners(EventType.PRE_DELETE,listener);
-  listener.initialize(cfgService.getSettings());
+  listener.initialize(cfgService.getSettings(),classLoaderService);
 }

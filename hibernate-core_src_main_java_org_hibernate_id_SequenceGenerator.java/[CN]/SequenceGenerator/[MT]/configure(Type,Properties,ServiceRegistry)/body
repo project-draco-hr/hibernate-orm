@@ -1,0 +1,10 @@
+{
+  identifierType=type;
+  parameters=params.getProperty(PARAMETERS);
+  final JdbcEnvironment jdbcEnvironment=serviceRegistry.getService(JdbcEnvironment.class);
+  final Dialect dialect=jdbcEnvironment.getDialect();
+  final ObjectNameNormalizer normalizer=(ObjectNameNormalizer)params.get(IDENTIFIER_NORMALIZER);
+  qualifiedSequenceName=QualifiedNameParser.INSTANCE.parse(ConfigurationHelper.getString(SEQUENCE,params,"hibernate_sequence"),normalizer.normalizeIdentifierQuoting(params.getProperty(CATALOG)),normalizer.normalizeIdentifierQuoting(params.getProperty(SCHEMA)));
+  sequenceName=jdbcEnvironment.getQualifiedObjectNameFormatter().format(qualifiedSequenceName,dialect);
+  sql=dialect.getSequenceNextValString(sequenceName);
+}

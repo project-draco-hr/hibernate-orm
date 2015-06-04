@@ -1,3 +1,12 @@
 {
-  return new OsgiPersistenceProvider(osgiClassLoader,osgiJtaPlatform,osgiServiceUtil,requestingBundle);
+  final OsgiClassLoader osgiClassLoader=new OsgiClassLoader();
+  osgiClassLoader.addBundle(requestingBundle);
+  final ClassLoader originalTccl=Thread.currentThread().getContextClassLoader();
+  Thread.currentThread().setContextClassLoader(osgiClassLoader);
+  try {
+    return new OsgiPersistenceProvider(osgiClassLoader,osgiJtaPlatform,osgiServiceUtil,requestingBundle);
+  }
+  finally {
+    Thread.currentThread().setContextClassLoader(originalTccl);
+  }
 }

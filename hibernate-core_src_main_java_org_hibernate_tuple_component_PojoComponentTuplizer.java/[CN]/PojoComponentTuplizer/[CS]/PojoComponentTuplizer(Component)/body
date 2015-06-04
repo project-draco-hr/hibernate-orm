@@ -15,9 +15,10 @@
     parentGetter=null;
   }
  else {
-    PropertyAccessor pa=PropertyAccessorFactory.getPropertyAccessor(null);
-    parentSetter=pa.getSetter(componentClass,parentPropertyName);
-    parentGetter=pa.getGetter(componentClass,parentPropertyName);
+    final ServiceRegistry serviceRegistry=component.getMetadata().getMetadataBuildingOptions().getServiceRegistry();
+    final PropertyAccess propertyAccess=PropertyAccessStrategyBasicImpl.INSTANCE.buildPropertyAccess(componentClass,parentPropertyName);
+    parentSetter=propertyAccess.getSetter();
+    parentGetter=propertyAccess.getGetter();
   }
   if (hasCustomAccessors || !Environment.useReflectionOptimizer()) {
     optimizer=null;

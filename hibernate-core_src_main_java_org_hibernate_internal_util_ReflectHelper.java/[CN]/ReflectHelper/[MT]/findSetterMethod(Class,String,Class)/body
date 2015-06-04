@@ -1,0 +1,24 @@
+{
+  Class checkClass=containerClass;
+  Method setter=null;
+  while (setter == null && checkClass != null) {
+    if (checkClass.equals(Object.class)) {
+      break;
+    }
+    setter=setterOrNull(checkClass,propertyName,propertyType);
+    checkClass=checkClass.getSuperclass();
+  }
+  if (setter == null) {
+    for (    Class theInterface : containerClass.getInterfaces()) {
+      setter=setterOrNull(theInterface,propertyName,propertyType);
+      if (setter != null) {
+        break;
+      }
+    }
+  }
+  if (setter == null) {
+    throw new PropertyNotFoundException(String.format(Locale.ROOT,"Could not locate setter method for property [%s#%s]",containerClass.getName(),propertyName));
+  }
+  setter.setAccessible(true);
+  return setter;
+}

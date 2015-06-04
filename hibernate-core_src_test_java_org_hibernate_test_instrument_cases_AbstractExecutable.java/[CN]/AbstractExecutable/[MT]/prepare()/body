@@ -1,9 +1,17 @@
 {
-  Configuration cfg=new Configuration().setProperty(Environment.HBM2DDL_AUTO,"create-drop");
-  String[] resources=getResources();
-  for (  String resource : resources) {
-    cfg.addResource(resource);
+  BootstrapServiceRegistryBuilder bsrb=new BootstrapServiceRegistryBuilder();
+  ClassLoader classLoader=Thread.currentThread().getContextClassLoader();
+  if (classLoader == null) {
+    throw new RuntimeException("Isolated ClassLoader not yet set as TCCL");
   }
-  serviceRegistry=ServiceRegistryBuilder.buildServiceRegistry(cfg.getProperties());
-  factory=cfg.buildSessionFactory(serviceRegistry);
+  if (!InstrumentedClassLoader.class.isInstance(classLoader)) {
+    throw new RuntimeException("Isolated ClassLoader not yet set as TCCL");
+  }
+  bsrb.applyClassLoader(classLoader);
+  serviceRegistry=new StandardServiceRegistryBuilder(bsrb.build()).applySetting(Environment.HBM2DDL_AUTO,"create-drop").build();
+  MetadataSources metadataSources=new MetadataSources(serviceRegistry);
+  for (  String resource : getResources()) {
+    metadataSources.addResource(resource);
+  }
+  factory=metadataSources.buildMetadata().buildSessionFactory();
 }
