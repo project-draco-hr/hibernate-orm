@@ -1,3 +1,13 @@
 {
-  return JavassistLazyInitializer.getProxy(factory,entityName,persistentClass,interfaces,getIdentifierMethod,setIdentifierMethod,componentIdType,id,session,overridesEquals);
+  final JavassistLazyInitializer initializer=new JavassistLazyInitializer(entityName,persistentClass,interfaces,id,getIdentifierMethod,setIdentifierMethod,componentIdType,session,overridesEquals);
+  try {
+    final HibernateProxy proxy=(HibernateProxy)proxyClass.newInstance();
+    ((Proxy)proxy).setHandler(initializer);
+    initializer.constructed();
+    return proxy;
+  }
+ catch (  Throwable t) {
+    LOG.error(LOG.javassistEnhancementFailed(entityName),t);
+    throw new HibernateException(LOG.javassistEnhancementFailed(entityName),t);
+  }
 }
