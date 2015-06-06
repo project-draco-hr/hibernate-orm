@@ -1,0 +1,16 @@
+{
+  if (lazyFields != null && lazyFields.contains(fieldName) && initializedFields.contains(fieldName)) {
+    if (session == null) {
+      throw new LazyInitializationException("entity with lazy properties is not associated with a session");
+    }
+ else     if (!session.isOpen() || !session.isConnected()) {
+      throw new LazyInitializationException("session is not connected");
+    }
+    Object loadedValue=((LazyPropertyInitializer)session.getFactory().getEntityPersister(entityName)).initializeLazyProperty(fieldName,target,session);
+    initializedFields.add(fieldName);
+    return loadedValue;
+  }
+ else {
+    return value;
+  }
+}

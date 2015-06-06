@@ -2,8 +2,14 @@
   if (isInstrumented()) {
     Set<String> lazyProps=lazyPropertiesAreUnfetched && getEntityMetamodel().hasLazyProperties() ? lazyPropertyNames : null;
     FieldInterceptionHelper.injectFieldInterceptor(entity,getEntityName(),lazyProps,session);
-    if (entity instanceof org.hibernate.engine.spi.SelfDirtinessTracker) {
-      ((org.hibernate.engine.spi.SelfDirtinessTracker)entity).$$_hibernate_clearDirtyAttributes();
+  }
+  if (entity instanceof PersistentAttributeInterceptable) {
+    if (lazyPropertiesAreUnfetched && getEntityMetamodel().hasLazyProperties()) {
+      PersistentAttributeInterceptor interceptor=new LazyAttributeLoader(session,lazyPropertyNames,getEntityName());
+      ((PersistentAttributeInterceptable)entity).$$_hibernate_setInterceptor(interceptor);
     }
+  }
+  if (entity instanceof SelfDirtinessTracker) {
+    ((SelfDirtinessTracker)entity).$$_hibernate_clearDirtyAttributes();
   }
 }

@@ -5,12 +5,14 @@
   this.lifecycleImplementor=Lifecycle.class.isAssignableFrom(mappedClass);
   this.isInstrumented=entityMetamodel.isInstrumented();
   Iterator iter=mappedEntity.getPropertyClosureIterator();
+  Set<String> tmpLazyPropertyNames=new HashSet<String>();
   while (iter.hasNext()) {
     Property property=(Property)iter.next();
     if (property.isLazy()) {
-      lazyPropertyNames.add(property.getName());
+      tmpLazyPropertyNames.add(property.getName());
     }
   }
+  lazyPropertyNames=tmpLazyPropertyNames.isEmpty() ? null : Collections.unmodifiableSet(tmpLazyPropertyNames);
   String[] getterNames=new String[propertySpan];
   String[] setterNames=new String[propertySpan];
   Class[] propTypes=new Class[propertySpan];
