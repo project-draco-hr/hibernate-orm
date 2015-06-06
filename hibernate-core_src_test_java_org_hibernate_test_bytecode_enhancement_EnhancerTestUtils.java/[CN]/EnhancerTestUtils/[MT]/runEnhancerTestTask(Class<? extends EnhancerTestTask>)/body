@@ -1,0 +1,26 @@
+{
+  EnhancerTestTask taskObject=null;
+  ClassLoader defaultCL=Thread.currentThread().getContextClassLoader();
+  try {
+    ClassLoader cl=EnhancerTestUtils.getEnhancerClassLoader(task.getPackage().getName());
+    EnhancerTestUtils.setupClassLoader(cl,task);
+    EnhancerTestUtils.setupClassLoader(cl,task.newInstance().getAnnotatedClasses());
+    Thread.currentThread().setContextClassLoader(cl);
+    taskObject=((Class<? extends EnhancerTestTask>)cl.loadClass(task.getName())).newInstance();
+    taskObject.prepare();
+    taskObject.execute();
+  }
+ catch (  Exception e) {
+    throw new HibernateException("could not execute task",e);
+  }
+ finally {
+    try {
+      if (taskObject != null) {
+        taskObject.complete();
+      }
+    }
+ catch (    Throwable ignore) {
+    }
+    Thread.currentThread().setContextClassLoader(defaultCL);
+  }
+}

@@ -1,0 +1,19 @@
+{
+  Session s=getFactory().openSession();
+  s.beginTransaction();
+  Child loadedChild=s.load(Child.class,lastChildID);
+  EnhancerTestUtils.checkDirtyTracking(loadedChild);
+  loadedChild.setName("Barrabas");
+  EnhancerTestUtils.checkDirtyTracking(loadedChild,"name");
+  Parent loadedParent=loadedChild.getParent();
+  EnhancerTestUtils.checkDirtyTracking(loadedChild,"name");
+  EnhancerTestUtils.checkDirtyTracking(loadedParent);
+  List<Child> loadedChildren=new ArrayList<Child>(loadedParent.getChildren());
+  loadedChildren.remove(0);
+  loadedChildren.remove(loadedChild);
+  loadedParent.setChildren(loadedChildren);
+  EnhancerTestUtils.checkDirtyTracking(loadedParent);
+  Assert.assertNull(loadedChild.parent);
+  s.getTransaction().commit();
+  s.close();
+}
