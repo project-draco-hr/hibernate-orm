@@ -20,22 +20,10 @@
   jpaMetadataProvider.getXMLContext().applyDiscoveredAttributeConverters(attributeConverterManager);
   final ClassLoaderService cls=rootMetadataBuildingContext.getBuildingOptions().getServiceRegistry().getService(ClassLoaderService.class);
   for (  String className : sources.getAnnotatedClassNames()) {
-    final Class clazz=cls.classForName(className);
-    final XClass xClass=reflectionManager.toXClass(clazz);
-    if (xClass.isAnnotationPresent(Converter.class)) {
-      attributeConverterManager.addAttributeConverter(clazz);
-    }
- else {
-      xClasses.add(xClass);
-    }
+    final Class annotatedClass=cls.classForName(className);
+    categorizeAnnotatedClass(annotatedClass,attributeConverterManager);
   }
-  for (  Class annotateClass : sources.getAnnotatedClasses()) {
-    final XClass xClass=reflectionManager.toXClass(annotateClass);
-    if (xClass.isAnnotationPresent(Converter.class)) {
-      attributeConverterManager.addAttributeConverter(annotateClass);
-    }
- else {
-      xClasses.add(xClass);
-    }
+  for (  Class annotatedClass : sources.getAnnotatedClasses()) {
+    categorizeAnnotatedClass(annotatedClass,attributeConverterManager);
   }
 }
