@@ -8,7 +8,10 @@
     if (region == null) {
       return null;
     }
-    slcs=new ConcurrentSecondLevelCacheStatisticsImpl(region);
+    RegionAccessStrategy accessStrategy=sessionFactory.getSecondLevelCacheRegionAccessStrategy(regionName);
+    EntityRegionAccessStrategy entityRegionAccessStrategy=accessStrategy instanceof EntityRegionAccessStrategy ? (EntityRegionAccessStrategy)accessStrategy : null;
+    CollectionRegionAccessStrategy collectionRegionAccessStrategy=accessStrategy instanceof CollectionRegionAccessStrategy ? (CollectionRegionAccessStrategy)accessStrategy : null;
+    slcs=new ConcurrentSecondLevelCacheStatisticsImpl(region,entityRegionAccessStrategy,collectionRegionAccessStrategy);
     ConcurrentSecondLevelCacheStatisticsImpl previous;
     if ((previous=(ConcurrentSecondLevelCacheStatisticsImpl)secondLevelCacheStatistics.putIfAbsent(regionName,slcs)) != null) {
       slcs=previous;
