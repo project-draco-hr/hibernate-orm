@@ -1,0 +1,10 @@
+{
+  Session session=sessionFactory().openSession();
+  JdbcResourceLocalTransactionCoordinatorImpl tc=ExtraAssertions.assertTyping(JdbcResourceLocalTransactionCoordinatorImpl.class,((SessionImplementor)session).getTransactionCoordinator());
+  assertFalse(tc.isJoined());
+  session.beginTransaction();
+  tc=ExtraAssertions.assertTyping(JdbcResourceLocalTransactionCoordinatorImpl.class,((SessionImplementor)session).getTransactionCoordinator());
+  assertTrue(tc.isJoined());
+  session.getTransaction().rollback();
+  session.close();
+}
