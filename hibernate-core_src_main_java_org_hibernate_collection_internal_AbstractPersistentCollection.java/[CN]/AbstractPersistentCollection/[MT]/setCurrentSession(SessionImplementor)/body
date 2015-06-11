@@ -3,13 +3,15 @@
     return false;
   }
  else {
-    if (isConnectedToSession()) {
-      final CollectionEntry ce=session.getPersistenceContext().getCollectionEntry(this);
-      if (ce == null) {
-        throw new HibernateException("Illegal attempt to associate a collection with two open sessions");
+    if (this.session != null) {
+      final String msg=generateUnexpectedSessionStateMessage(session);
+      if (isConnectedToSession()) {
+        throw new HibernateException("Illegal attempt to associate a collection with two open sessions. " + msg);
       }
  else {
-        throw new HibernateException("Illegal attempt to associate a collection with two open sessions: " + MessageHelper.collectionInfoString(ce.getLoadedPersister(),this,ce.getLoadedKey(),session));
+        LOG.logUnexpectedSessionInCollectionNotConnected(msg);
+        this.session=session;
+        return true;
       }
     }
  else {

@@ -1,0 +1,22 @@
+{
+  final String roleCurrent=role;
+  final Serializable keyCurrent=key;
+  final StringBuilder sb=new StringBuilder("Collection : ");
+  if (roleCurrent != null) {
+    sb.append(MessageHelper.collectionInfoString(roleCurrent,keyCurrent));
+  }
+ else {
+    final CollectionEntry ce=session.getPersistenceContext().getCollectionEntry(this);
+    if (ce != null) {
+      sb.append(MessageHelper.collectionInfoString(ce.getLoadedPersister(),this,ce.getLoadedKey(),session));
+    }
+ else {
+      sb.append("<unknown>");
+    }
+  }
+  if (LOG.isDebugEnabled()) {
+    final String collectionContents=wasInitialized() ? toString() : "<uninitialized>";
+    sb.append("\nCollection contents: [").append(collectionContents).append("]");
+  }
+  return sb.toString();
+}
