@@ -1,0 +1,18 @@
+{
+  StandardServiceRegistry ssr=new StandardServiceRegistryBuilder().build();
+  try {
+    org.hibernate.boot.Metadata metadata=new MetadataSources(ssr).addAnnotatedClass(Employee.class).buildMetadata();
+    boolean passed=false;
+    List<String> commands=new SchemaCreatorImpl().generateCreationCommands(metadata,false);
+    for (    String command : commands) {
+      LOGGER.info(command);
+      if (EXPECTED_SQL.equals(command)) {
+        passed=true;
+      }
+    }
+    assertTrue("Expected create table command for Employee entity not found",passed);
+  }
+  finally {
+    StandardServiceRegistryBuilder.destroy(ssr);
+  }
+}
