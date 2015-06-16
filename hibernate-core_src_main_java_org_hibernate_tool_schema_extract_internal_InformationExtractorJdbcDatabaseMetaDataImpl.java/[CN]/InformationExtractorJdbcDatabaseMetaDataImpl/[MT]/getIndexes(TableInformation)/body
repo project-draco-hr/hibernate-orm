@@ -7,13 +7,13 @@
         if (resultSet.getShort("TYPE") == DatabaseMetaData.tableIndexStatistic) {
           continue;
         }
-        final Identifier indexIdentifier=identifierHelper().fromMetaDataObjectName(resultSet.getString("INDEX_NAME"));
+        final Identifier indexIdentifier=identifierHelper().toIdentifier(resultSet.getString("INDEX_NAME"));
         IndexInformationImpl.Builder builder=builders.get(indexIdentifier);
         if (builder == null) {
           builder=IndexInformationImpl.builder(indexIdentifier);
           builders.put(indexIdentifier,builder);
         }
-        final Identifier columnIdentifier=identifierHelper().fromMetaDataObjectName(resultSet.getString("COLUMN_NAME"));
+        final Identifier columnIdentifier=identifierHelper().toIdentifier(resultSet.getString("COLUMN_NAME"));
         final ColumnInformation columnInformation=tableInformation.getColumn(columnIdentifier);
         if (columnInformation == null) {
           throw new SchemaManagementException("Could not locate column information using identifier [" + columnIdentifier.getText() + "]");
