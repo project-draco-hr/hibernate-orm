@@ -4,8 +4,8 @@
   final ClassLoader infinispanClassLoader=InfinispanRegionFactory.class.getClassLoader();
   return serviceRegistry.getService(ClassLoaderService.class).workWithClassLoader(new ClassLoaderService.Work<EmbeddedCacheManager>(){
     @Override public EmbeddedCacheManager doWork(    ClassLoader classLoader){
+      InputStream is=null;
       try {
-        InputStream is;
         is=fileLookup.lookupFile(configLoc,classLoader);
         if (is == null) {
           classLoader=infinispanClassLoader;
@@ -21,6 +21,9 @@
       }
  catch (      IOException e) {
         throw new CacheException("Unable to create default cache manager",e);
+      }
+ finally {
+        Util.close(is);
       }
     }
   }
