@@ -1,0 +1,13 @@
+{
+  final Thread currentThread=Thread.currentThread();
+  final ClassLoader originalContextClassLoader=currentThread.getContextClassLoader();
+  try {
+    currentThread.setContextClassLoader(infinispanClassLoader);
+    ConfigurationBuilderHolder builderHolder=configurationParser.parse(is);
+    builderHolder.getGlobalConfigurationBuilder().classLoader(infinispanClassLoader);
+    return builderHolder;
+  }
+  finally {
+    currentThread.setContextClassLoader(originalContextClassLoader);
+  }
+}
