@@ -1,13 +1,12 @@
 {
   final String configLoc=ConfigurationHelper.getString(INFINISPAN_CONFIG_RESOURCE_PROP,properties,DEF_INFINISPAN_CONFIG_RESOURCE);
+  final FileLookup fileLookup=FileLookupFactory.newInstance();
   return serviceRegistry.getService(ClassLoaderService.class).workWithClassLoader(new ClassLoaderService.Work<EmbeddedCacheManager>(){
     @Override public EmbeddedCacheManager doWork(    ClassLoader classLoader){
       try {
         InputStream is;
-        try {
-          is=FileLookupFactory.newInstance().lookupFileStrict(configLoc,classLoader);
-        }
- catch (        FileNotFoundException e) {
+        is=fileLookup.lookupFile(configLoc,classLoader);
+        if (is == null) {
           classLoader=this.getClass().getClassLoader();
           is=FileLookupFactory.newInstance().lookupFileStrict(configLoc,classLoader);
         }
