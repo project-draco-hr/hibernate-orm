@@ -1,0 +1,14 @@
+{
+  Configuration cacheConfiguration=cache.getCacheConfiguration();
+  Configuration pendingPutsConfiguration=cacheManager.getCacheConfiguration(InfinispanRegionFactory.PENDING_PUTS_CACHE_NAME);
+  ConfigurationBuilder configurationBuilder=new ConfigurationBuilder();
+  if (pendingPutsConfiguration != null) {
+    configurationBuilder.read(pendingPutsConfiguration);
+  }
+  configurationBuilder.dataContainer().keyEquivalence(cacheConfiguration.dataContainer().keyEquivalence());
+  String pendingPutsName=cache.getName() + "-" + InfinispanRegionFactory.PENDING_PUTS_CACHE_NAME;
+  cacheManager.defineConfiguration(pendingPutsName,configurationBuilder.build());
+  this.pendingPuts=cacheManager.getCache(pendingPutsName);
+  this.transactionManager=tm;
+  this.nakedPutInvalidationPeriod=nakedPutInvalidationPeriod;
+}

@@ -1,0 +1,24 @@
+{
+  this.entityName=entityName;
+  this.tenantId=session.getTenantIdentifier();
+  this.naturalIdValues=new Serializable[naturalIdValues.length];
+  final SessionFactoryImplementor factory=session.getFactory();
+  final int prime=31;
+  int result=1;
+  result=prime * result + ((this.entityName == null) ? 0 : this.entityName.hashCode());
+  result=prime * result + ((this.tenantId == null) ? 0 : this.tenantId.hashCode());
+  for (int i=0; i < naturalIdValues.length; i++) {
+    final int naturalIdPropertyIndex=naturalIdPropertyIndexes[i];
+    final Type type=propertyTypes[naturalIdPropertyIndex];
+    final Object value=naturalIdValues[i];
+    result=prime * result + (value != null ? type.getHashCode(value,factory) : 0);
+    if (type instanceof EntityType && type.getSemiResolvedType(factory).getReturnedClass().isInstance(value)) {
+      this.naturalIdValues[i]=(Serializable)value;
+    }
+ else {
+      this.naturalIdValues[i]=type.disassemble(value,session,null);
+    }
+  }
+  this.hashCode=result;
+  initTransients();
+}
