@@ -1,0 +1,51 @@
+{
+  final ScanEnvironment scanEnvironment=options.getScanEnvironment();
+  final ServiceRegistry serviceRegistry=options.getServiceRegistry();
+  final ClassLoaderService classLoaderService=serviceRegistry.getService(ClassLoaderService.class);
+  final Set<String> nonLocatedMappingFileNames=new HashSet<String>();
+  final List<String> explicitMappingFileNames=scanEnvironment.getExplicitlyListedMappingFiles();
+  if (explicitMappingFileNames != null) {
+    nonLocatedMappingFileNames.addAll(explicitMappingFileNames);
+  }
+  for (  MappingFileDescriptor mappingFileDescriptor : scanResult.getLocatedMappingFiles()) {
+    managedResources.addXmlBinding(xmlMappingBinderAccess.bind(mappingFileDescriptor.getStreamAccess()));
+    nonLocatedMappingFileNames.remove(mappingFileDescriptor.getName());
+  }
+  for (  String name : nonLocatedMappingFileNames) {
+    final URL url=classLoaderService.locateResource(name);
+    if (url == null) {
+      throw new MappingException("Unable to resolve explicitly named mapping-file : " + name,new Origin(SourceType.RESOURCE,name));
+    }
+    final UrlInputStreamAccess inputStreamAccess=new UrlInputStreamAccess(url);
+    managedResources.addXmlBinding(xmlMappingBinderAccess.bind(inputStreamAccess));
+  }
+  final List<String> unresolvedListedClassNames=scanEnvironment.getExplicitlyListedClassNames() == null ? new ArrayList<String>() : new ArrayList<String>(scanEnvironment.getExplicitlyListedClassNames());
+  for (  ClassDescriptor classDescriptor : scanResult.getLocatedClasses()) {
+    if (classDescriptor.getCategorization() == ClassDescriptor.Categorization.CONVERTER) {
+      managedResources.addAttributeConverterDefinition(AttributeConverterDefinition.from(classLoaderService.<AttributeConverter>classForName(classDescriptor.getName())));
+    }
+ else     if (classDescriptor.getCategorization() == ClassDescriptor.Categorization.MODEL) {
+      managedResources.addAnnotatedClassName(classDescriptor.getName());
+    }
+    unresolvedListedClassNames.remove(classDescriptor.getName());
+  }
+  for (  PackageDescriptor packageDescriptor : scanResult.getLocatedPackages()) {
+    managedResources.addAnnotatedPackageName(packageDescriptor.getName());
+    unresolvedListedClassNames.remove(packageDescriptor.getName());
+  }
+  for (  String unresolvedListedClassName : unresolvedListedClassNames) {
+    final String classFileName=unresolvedListedClassName.replace('.','/') + ".class";
+    final URL classFileUrl=classLoaderService.locateResource(classFileName);
+    if (classFileUrl != null) {
+      managedResources.addAnnotatedClassName(unresolvedListedClassName);
+      continue;
+    }
+    final String packageInfoFileName=unresolvedListedClassName.replace('.','/') + "/package-info.class";
+    final URL packageInfoFileUrl=classLoaderService.locateResource(packageInfoFileName);
+    if (packageInfoFileUrl != null) {
+      managedResources.addAnnotatedPackageName(unresolvedListedClassName);
+      continue;
+    }
+    log.debugf("Unable to resolve class [%s] named in persistence unit [%s]",unresolvedListedClassName,scanEnvironment.getRootUrl().toExternalForm());
+  }
+}
