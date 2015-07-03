@@ -1,16 +1,18 @@
 {
-  Collection<String> generatedModelClasses=new ArrayList<String>();
   for (  MetaEntity entity : context.getMetaEntities()) {
+    if (context.isAlreadyGenerated(entity.getQualifiedName())) {
+      continue;
+    }
     context.logMessage(Diagnostic.Kind.OTHER,"Writing meta model for entity " + entity);
     ClassWriter.writeFile(entity,context);
-    generatedModelClasses.add(entity.getQualifiedName());
+    context.markGenerated(entity.getQualifiedName());
   }
   Collection<MetaEntity> toProcessEntities=context.getMetaEmbeddables();
   while (!toProcessEntities.isEmpty()) {
     Set<MetaEntity> processedEntities=new HashSet<MetaEntity>();
     int toProcessCountBeforeLoop=toProcessEntities.size();
     for (    MetaEntity entity : toProcessEntities) {
-      if (generatedModelClasses.contains(entity.getQualifiedName())) {
+      if (context.isAlreadyGenerated(entity.getQualifiedName())) {
         processedEntities.add(entity);
         continue;
       }
@@ -19,6 +21,7 @@
       }
       context.logMessage(Diagnostic.Kind.OTHER,"Writing meta model for embeddable/mapped superclass" + entity);
       ClassWriter.writeFile(entity,context);
+      context.markGenerated(entity.getQualifiedName());
       processedEntities.add(entity);
     }
     toProcessEntities.removeAll(processedEntities);
