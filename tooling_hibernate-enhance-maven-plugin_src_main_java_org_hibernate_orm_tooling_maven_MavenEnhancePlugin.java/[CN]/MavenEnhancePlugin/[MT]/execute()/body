@@ -5,7 +5,7 @@
   getLog().info("Starting Hibernate enhancement for class sourceSet on " + dir);
   File root=new File(this.dir);
   walkDir(root);
-  final ClassLoader classLoader=toClassLoader(sourceSet);
+  final ClassLoader classLoader=toClassLoader(Arrays.asList(root));
   EnhancementContext enhancementContext=new DefaultEnhancementContext(){
     @Override public ClassLoader getLoadingClassLoader(){
       return classLoader;
@@ -20,7 +20,7 @@
       return enableLazyInitialization;
     }
     @Override public boolean isLazyLoadable(    CtField field){
-      return true;
+      return enableLazyInitialization;
     }
   }
 ;
@@ -31,11 +31,12 @@
     if (ctClass == null) {
       continue;
     }
-    if (!ctClass.hasAnnotation(Entity.class) && !ctClass.hasAnnotation(Embedded.class)) {
-      getLog().debug("Skipping class file [" + file.getAbsolutePath() + "], not an entity nor embedded");
+    if (!enhancementContext.isEntityClass(ctClass) && !enhancementContext.isCompositeClass(ctClass)) {
+      getLog().info("Skipping class file [" + file.getAbsolutePath() + "], not an entity nor embeddable");
       continue;
     }
     final byte[] enhancedBytecode=doEnhancement(ctClass,enhancer);
     writeOutEnhancedClass(enhancedBytecode,ctClass,file);
+    getLog().info("Successfully enhanced class [" + ctClass.getName() + "]");
   }
 }
