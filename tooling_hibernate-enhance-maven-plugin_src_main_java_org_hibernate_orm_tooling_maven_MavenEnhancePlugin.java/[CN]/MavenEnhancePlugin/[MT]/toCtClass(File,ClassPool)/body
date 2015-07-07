@@ -5,7 +5,12 @@
       return classPool.makeClass(is);
     }
  catch (    IOException e) {
-      throw new MojoExecutionException("Javassist unable to load class in preparation for enhancing : " + file.getAbsolutePath(),e);
+      String msg="Javassist unable to load class in preparation for enhancing: " + file.getAbsolutePath();
+      if (failOnError) {
+        throw new MojoExecutionException(msg,e);
+      }
+      getLog().warn(msg);
+      return null;
     }
  finally {
       try {
@@ -17,6 +22,11 @@
     }
   }
  catch (  FileNotFoundException e) {
-    throw new MojoExecutionException("Unable to locate class file for InputStream: " + file.getAbsolutePath(),e);
+    String msg="Unable to locate class file for InputStream: " + file.getAbsolutePath();
+    if (failOnError) {
+      throw new MojoExecutionException(msg,e);
+    }
+    getLog().warn(msg);
+    return null;
   }
 }

@@ -1,4 +1,7 @@
 {
+  if (enhancedBytecode == null) {
+    return;
+  }
   try {
     if (file.delete()) {
       if (!file.createNewFile()) {
@@ -19,7 +22,11 @@
       outputStream.flush();
     }
  catch (    IOException e) {
-      throw new MojoExecutionException("Error writing to enhanced class [" + ctClass.getName() + "] to file ["+ file.getAbsolutePath()+ "]",e);
+      String msg=String.format("Error writing to enhanced class [%s] to file [%s]",ctClass.getName(),file.getAbsolutePath());
+      if (failOnError) {
+        throw new MojoExecutionException(msg,e);
+      }
+      getLog().warn(msg);
     }
  finally {
       try {
@@ -31,6 +38,10 @@
     }
   }
  catch (  FileNotFoundException e) {
-    throw new MojoExecutionException("Error opening class file for writing : " + file.getAbsolutePath(),e);
+    String msg="Error opening class file for writing: " + file.getAbsolutePath();
+    if (failOnError) {
+      throw new MojoExecutionException(msg,e);
+    }
+    getLog().warn(msg);
   }
 }
