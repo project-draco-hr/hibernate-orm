@@ -1,0 +1,13 @@
+{
+  Session session=getFactory().openSession();
+  List<Person> persons=(List<Person>)session.createQuery(query).list();
+  session.close();
+  for (  Person person : persons) {
+    assertTrue(Hibernate.isInitialized(person));
+    if (person.getId() < 3) {
+      assertNotNull(person.getVehicle());
+      assertTrue(Hibernate.isInitialized(person.getVehicle()));
+      assertNotNull(person.getVehicle().getDriver());
+    }
+  }
+}
