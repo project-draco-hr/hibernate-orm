@@ -1,6 +1,10 @@
 {
+  em=getOrCreateEntityManager();
   em.getTransaction().begin();
   entity=em.find(EntityWithLazyProperty.class,entity.getId());
-  assertEquals(expected,entity.getLazyData());
+  assertFalse(Hibernate.isPropertyInitialized(entity,"lazyData"));
+  assertTrue(ArrayHelper.isEquals(expected,entity.getLazyData()));
+  assertTrue(Hibernate.isPropertyInitialized(entity,"lazyData"));
   em.getTransaction().commit();
+  em.close();
 }
