@@ -1,4 +1,15 @@
 {
   String resourceName=aClass.getName().replace('.','/') + ".class";
-  return cp.makeClass(aClass.getClassLoader().getResourceAsStream(resourceName));
+  InputStream resourceAsStream=aClass.getClassLoader().getResourceAsStream(resourceName);
+  try {
+    return cp.makeClass(resourceAsStream);
+  }
+  finally {
+    try {
+      resourceAsStream.close();
+    }
+ catch (    IOException ioe) {
+      log.debugf("An error occurs closing InputStream for class [%s]",aClass.getName());
+    }
+  }
 }
