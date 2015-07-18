@@ -1,11 +1,15 @@
 {
-  final Dialect dialect=database.getJdbcEnvironment().getDialect();
-  final Schema schema=database.locateSchema(qualifiedTableName.getCatalogName(),qualifiedTableName.getSchemaName());
-  Table table=schema.locateTable(qualifiedTableName.getObjectName());
-  if (table != null) {
-    return;
+  final JdbcEnvironment jdbcEnvironment=database.getJdbcEnvironment();
+  final Dialect dialect=jdbcEnvironment.getDialect();
+  final Schema schema=database.locateSchema(logicalQualifiedTableName.getCatalogName(),logicalQualifiedTableName.getSchemaName());
+  Table table=schema.locateTable(logicalQualifiedTableName.getObjectName());
+  if (table == null) {
+    table=schema.createTable(logicalQualifiedTableName.getObjectName(),false);
   }
-  table=schema.createTable(qualifiedTableName.getObjectName(),false);
+  this.tableNameText=jdbcEnvironment.getQualifiedObjectNameFormatter().format(table.getQualifiedTableName(),dialect);
+  this.valueColumnNameText=logicalValueColumnNameIdentifier.render(dialect);
+  this.selectQuery="select " + valueColumnNameText + " as id_val"+ " from "+ dialect.appendLockHint(LockMode.PESSIMISTIC_WRITE,tableNameText)+ dialect.getForUpdateString();
+  this.updateQuery="update " + tableNameText + " set "+ valueColumnNameText+ "= ?"+ " where "+ valueColumnNameText+ "=?";
   ExportableColumn valueColumn=new ExportableColumn(database,table,valueColumnNameText,LongType.INSTANCE);
   table.addColumn(valueColumn);
   database.addInitCommand(new InitCommand("insert into " + tableNameText + " values ( "+ initialValue+ " )"));
