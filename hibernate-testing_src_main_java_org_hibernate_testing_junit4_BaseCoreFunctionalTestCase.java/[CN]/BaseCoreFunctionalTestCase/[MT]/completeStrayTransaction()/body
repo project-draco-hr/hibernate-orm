@@ -1,0 +1,15 @@
+{
+  if (session == null) {
+    return;
+  }
+  if (((SessionImplementor)session).isClosed()) {
+    return;
+  }
+  if (!session.isConnected()) {
+    return;
+  }
+  final TransactionCoordinator.TransactionDriver tdc=((SessionImplementor)session).getTransactionCoordinator().getTransactionDriverControl();
+  if (tdc.getStatus().canRollback()) {
+    session.getTransaction().rollback();
+  }
+}
