@@ -18,6 +18,9 @@
   if (tryToCreateCatalogs || tryToCreateSchemas) {
     Set<Identifier> exportedCatalogs=new HashSet<Identifier>();
     for (    Namespace namespace : database.getNamespaces()) {
+      if (!filter.includeNamespace(namespace)) {
+        continue;
+      }
       if (tryToCreateCatalogs) {
         final Identifier catalogLogicalName=namespace.getName().getCatalog();
         final Identifier catalogPhysicalName=namespace.getPhysicalName().getCatalog();
@@ -41,12 +44,21 @@
     }
   }
   for (  Namespace namespace : database.getNamespaces()) {
+    if (!filter.includeNamespace(namespace)) {
+      continue;
+    }
     for (    Sequence sequence : namespace.getSequences()) {
+      if (!filter.includeSequence(sequence)) {
+        continue;
+      }
       checkExportIdentifier(sequence,exportIdentifiers);
       applySqlStrings(targets,dialect.getCreateSequenceStrings(jdbcEnvironment.getQualifiedObjectNameFormatter().format(sequence.getName(),dialect),sequence.getInitialValue(),sequence.getIncrementSize()));
     }
     for (    Table table : namespace.getTables()) {
       if (!table.isPhysicalTable()) {
+        continue;
+      }
+      if (!filter.includeTable(table)) {
         continue;
       }
       checkExportIdentifier(table,exportIdentifiers);

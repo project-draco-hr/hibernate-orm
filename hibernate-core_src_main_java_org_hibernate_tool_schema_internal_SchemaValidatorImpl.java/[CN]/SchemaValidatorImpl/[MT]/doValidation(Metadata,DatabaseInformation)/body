@@ -1,6 +1,12 @@
 {
   for (  Namespace namespace : metadata.getDatabase().getNamespaces()) {
+    if (!schemaFilter.includeNamespace(namespace)) {
+      continue;
+    }
     for (    Table table : namespace.getTables()) {
+      if (!schemaFilter.includeTable(table)) {
+        continue;
+      }
       if (!table.isPhysicalTable()) {
         continue;
       }
@@ -9,7 +15,13 @@
     }
   }
   for (  Namespace namespace : metadata.getDatabase().getNamespaces()) {
+    if (!schemaFilter.includeNamespace(namespace)) {
+      continue;
+    }
     for (    Sequence sequence : namespace.getSequences()) {
+      if (!schemaFilter.includeSequence(sequence)) {
+        continue;
+      }
       final SequenceInformation sequenceInformation=databaseInformation.getSequenceInformation(sequence.getName());
       validateSequence(sequence,sequenceInformation);
     }

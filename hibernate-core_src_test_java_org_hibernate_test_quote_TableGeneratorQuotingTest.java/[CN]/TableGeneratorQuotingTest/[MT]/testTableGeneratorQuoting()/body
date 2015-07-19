@@ -3,7 +3,8 @@
   final ConnectionProvider connectionProvider=serviceRegistry.getService(ConnectionProvider.class);
   final Target target=new TargetDatabaseImpl(new JdbcConnectionAccessImpl(connectionProvider));
   final SchemaManagementTool tool=serviceRegistry.getService(SchemaManagementTool.class);
-  tool.getSchemaCreator(null).doCreation(metadata,false,target);
+  Map options=Collections.emptyMap();
+  tool.getSchemaCreator(options).doCreation(metadata,false,target);
   try {
     new SchemaValidator(serviceRegistry,(MetadataImplementor)metadata).validate();
   }
@@ -11,6 +12,6 @@
     fail("The identifier generator table should have validated.  " + e.getMessage());
   }
  finally {
-    tool.getSchemaDropper(null).doDrop(metadata,false,target);
+    tool.getSchemaDropper(options).doDrop(metadata,false,target);
   }
 }

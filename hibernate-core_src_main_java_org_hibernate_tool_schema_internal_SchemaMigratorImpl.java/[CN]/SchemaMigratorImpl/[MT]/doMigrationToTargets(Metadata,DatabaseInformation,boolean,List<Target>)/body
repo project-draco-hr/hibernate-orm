@@ -30,6 +30,9 @@
   }
   Set<Identifier> exportedCatalogs=new HashSet<Identifier>();
   for (  Namespace namespace : database.getNamespaces()) {
+    if (!filter.includeNamespace(namespace)) {
+      continue;
+    }
     if (tryToCreateCatalogs || tryToCreateSchemas) {
       if (tryToCreateCatalogs) {
         final Identifier catalogLogicalName=namespace.getName().getCatalog();
@@ -47,6 +50,9 @@
       if (!table.isPhysicalTable()) {
         continue;
       }
+      if (!filter.includeTable(table)) {
+        continue;
+      }
       checkExportIdentifier(table,exportIdentifiers);
       final TableInformation tableInformation=existingDatabase.getTableInformation(table.getQualifiedTableName());
       if (tableInformation != null && !tableInformation.isPhysicalTable()) {
@@ -61,6 +67,9 @@
     }
     for (    Table table : namespace.getTables()) {
       if (!table.isPhysicalTable()) {
+        continue;
+      }
+      if (!filter.includeTable(table)) {
         continue;
       }
       final TableInformation tableInformation=existingDatabase.getTableInformation(table.getQualifiedTableName());

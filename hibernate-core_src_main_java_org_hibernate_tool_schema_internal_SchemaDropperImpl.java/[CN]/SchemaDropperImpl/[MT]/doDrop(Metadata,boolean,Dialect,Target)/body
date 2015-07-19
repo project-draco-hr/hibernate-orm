@@ -25,9 +25,15 @@
     applySqlStrings(targets,dialect.getAuxiliaryDatabaseObjectExporter().getSqlDropStrings(auxiliaryDatabaseObject,metadata));
   }
   for (  Namespace namespace : database.getNamespaces()) {
+    if (!filter.includeNamespace(namespace)) {
+      continue;
+    }
     applyConstraintDropping(targets,namespace,metadata);
     for (    Table table : namespace.getTables()) {
       if (!table.isPhysicalTable()) {
+        continue;
+      }
+      if (!filter.includeTable(table)) {
         continue;
       }
       checkExportIdentifier(table,exportIdentifiers);
@@ -50,6 +56,9 @@
   if (tryToDropCatalogs || tryToDropSchemas) {
     Set<Identifier> exportedCatalogs=new HashSet<Identifier>();
     for (    Namespace namespace : database.getNamespaces()) {
+      if (!filter.includeNamespace(namespace)) {
+        continue;
+      }
       if (tryToDropSchemas && namespace.getPhysicalName().getSchema() != null) {
         applySqlStrings(targets,dialect.getDropSchemaCommand(namespace.getPhysicalName().getSchema().render(dialect)));
       }
