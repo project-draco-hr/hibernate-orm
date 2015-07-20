@@ -16,14 +16,18 @@
   }
   session=openSession();
   try {
-    LazyAbstractEntityReference reference=(LazyAbstractEntityReference)session.get(LazyAbstractEntityReference.class,entityReferenceId);
+    session.beginTransaction();
+    LazyAbstractEntityReference reference=session.get(LazyAbstractEntityReference.class,entityReferenceId);
     AbstractEntity abstractEntityProxy=reference.getEntity();
     assertTrue((abstractEntityProxy instanceof HibernateProxy) && !Hibernate.isInitialized(abstractEntityProxy));
     Hibernate.initialize(abstractEntityProxy);
     assertTrue(Hibernate.isInitialized(abstractEntityProxy));
-    ConcreteEntity concreteEntityProxy=(ConcreteEntity)session.load(ConcreteEntity.class,abstractEntityProxy.getId());
+    ConcreteEntity concreteEntityProxy=session.load(ConcreteEntity.class,abstractEntityProxy.getId());
     assertTrue(Hibernate.isInitialized(concreteEntityProxy));
     assertTrue(session.contains(concreteEntityProxy));
+    session.delete(reference);
+    session.delete(concreteEntityProxy);
+    session.getTransaction().commit();
   }
   finally {
     session.close();

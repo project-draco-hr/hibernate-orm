@@ -1,6 +1,8 @@
 {
+  String role=User.class.getName() + ".roles";
+  assertEquals("User_Role",metadata().getCollectionBinding(role).getCollectionTable().getName());
   Session s=openSession();
-  Transaction tx=s.beginTransaction();
+  s.beginTransaction();
   User u=new User();
   s.persist(u);
   Role r=new Role();
@@ -8,10 +10,8 @@
   u.getRoles().add(r);
   s.flush();
   s.clear();
-  u=(User)s.get(User.class,u.getId());
+  u=s.get(User.class,u.getId());
   assertEquals(1,u.getRoles().size());
-  tx.rollback();
-  String role=User.class.getName() + ".roles";
-  assertEquals("User_Role",metadata().getCollectionBinding(role).getCollectionTable().getName());
+  s.getTransaction().rollback();
   s.close();
 }

@@ -15,11 +15,14 @@
   session.getTransaction().commit();
   session.close();
   session=openSession();
+  session.beginTransaction();
   EntitySerialize persistedSerialize=(EntitySerialize)session.get(EntitySerialize.class,entitySerialize.id);
   assertEquals("explicitLob",persistedSerialize.explicitLob.value);
   assertEquals("explicit",persistedSerialize.explicit.value);
   assertEquals("implicit",persistedSerialize.implicit.value);
   assertEquals("explicitOverridingImplicit",persistedSerialize.explicitOverridingImplicit.value);
   assertEquals("defaultExplicitLob",persistedSerialize.explicitLob.defaultValue);
+  session.delete(persistedSerialize);
+  session.getTransaction().commit();
   session.close();
 }

@@ -18,9 +18,17 @@
       assertNotNull(theEntity.id);
       s=sf.openSession();
       s.beginTransaction();
-      s.delete(theEntity);
-      s.getTransaction().commit();
-      s.close();
+      try {
+        s.delete(theEntity);
+        s.getTransaction().commit();
+      }
+ catch (      Exception e) {
+        s.getTransaction().rollback();
+        throw e;
+      }
+ finally {
+        s.close();
+      }
     }
   finally {
       try {

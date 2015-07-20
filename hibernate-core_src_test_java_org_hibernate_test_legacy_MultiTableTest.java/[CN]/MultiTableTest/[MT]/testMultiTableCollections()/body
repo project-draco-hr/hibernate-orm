@@ -37,7 +37,28 @@
     if (o instanceof Multi)     foundMulti++;
   }
   assertTrue(foundSimple == 2 && foundMulti == 1);
-  assertEquals(3,doDelete(s,"from Top"));
   t.commit();
   s.close();
+  s=openSession();
+  t=s.beginTransaction();
+  try {
+    ls=s.load(Lower.class,id);
+    ls.setOther(null);
+    ls.setAnother(null);
+    ls.setYetanother(null);
+    for (    Object o : ls.getSet()) {
+      s.delete(o);
+    }
+    ls.getSet().clear();
+    s.flush();
+    s.delete(ls);
+    t.commit();
+  }
+ catch (  Exception e) {
+    t.rollback();
+    throw e;
+  }
+ finally {
+    s.close();
+  }
 }

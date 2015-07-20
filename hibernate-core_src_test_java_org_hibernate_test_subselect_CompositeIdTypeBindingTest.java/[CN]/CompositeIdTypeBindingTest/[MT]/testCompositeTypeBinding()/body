@@ -12,6 +12,7 @@
   session.getTransaction().commit();
   session.close();
   session=openSession();
+  session.beginTransaction();
   List<EmployeeGroupId> parameters=new ArrayList<EmployeeGroupId>();
   parameters.add(new EmployeeGroupId("a","b"));
   parameters.add(new EmployeeGroupId("c","d"));
@@ -22,5 +23,17 @@
   Assert.assertEquals("a",employeegroup.getId().getGroupName());
   Assert.assertNotNull(employeegroup.getEmployees());
   Assert.assertEquals(2,employeegroup.getEmployees().size());
+  session.getTransaction().commit();
+  session.close();
+  session=openSession();
+  session.beginTransaction();
+  List<EmployeeGroup> egs=session.createQuery("from EmployeeGroup").list();
+  for (  EmployeeGroup eg : egs) {
+    eg.getEmployees().clear();
+  }
+  session.flush();
+  session.createQuery("delete from EmployeeGroup").executeUpdate();
+  session.createQuery("delete from Employee").executeUpdate();
+  session.getTransaction().commit();
   session.close();
 }

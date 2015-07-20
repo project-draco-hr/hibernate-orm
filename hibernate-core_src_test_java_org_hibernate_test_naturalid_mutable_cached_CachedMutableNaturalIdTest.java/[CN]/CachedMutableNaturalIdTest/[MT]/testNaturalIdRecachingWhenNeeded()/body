@@ -10,7 +10,7 @@
   session=openSession();
   for (int i=0; i < 10; i++) {
     session.beginTransaction();
-    it=(Another)session.byId(Another.class).load(id);
+    it=session.byId(Another.class).load(id);
     if (i == 9) {
       it.setName("name" + i);
     }
@@ -19,11 +19,12 @@
   }
   session=openSession();
   session.beginTransaction();
-  it=(Another)session.bySimpleNaturalId(Another.class).load("it");
+  it=session.bySimpleNaturalId(Another.class).load("it");
   assertNull(it);
   assertEquals(0,session.getSessionFactory().getStatistics().getNaturalIdCacheHitCount());
-  it=(Another)session.byId(Another.class).load(id);
+  it=session.byId(Another.class).load(id);
   session.delete(it);
   session.getTransaction().commit();
+  session.close();
   assertEquals(2,session.getSessionFactory().getStatistics().getNaturalIdCachePutCount());
 }
