@@ -1,0 +1,15 @@
+{
+  User user=new User();
+  user.login=UUID.randomUUID().toString();
+  Customer customer=new Customer();
+  customer.user=user;
+  Assert.assertEquals(customer,EnhancerTestUtils.getFieldByReflection(user,"customer"));
+  EnhancerTestUtils.checkDirtyTracking(user,"login","customer");
+  User anotherUser=new User();
+  anotherUser.login=UUID.randomUUID().toString();
+  customer.user=anotherUser;
+  Assert.assertNull(user.customer);
+  Assert.assertEquals(customer,EnhancerTestUtils.getFieldByReflection(anotherUser,"customer"));
+  user.customer=new Customer();
+  Assert.assertEquals(user,user.customer.user);
+}

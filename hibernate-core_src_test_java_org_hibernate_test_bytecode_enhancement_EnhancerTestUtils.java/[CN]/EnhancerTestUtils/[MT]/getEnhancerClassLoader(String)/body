@@ -8,27 +8,28 @@
       if (c != null) {
         return c;
       }
-      final InputStream is=this.getResourceAsStream(getFilenameForClassName(name));
+      final InputStream is=this.getResourceAsStream(name.replace('.','/') + ".class");
       if (is == null) {
         throw new ClassNotFoundException(name + " not found");
       }
       try {
         final byte[] original=new byte[is.available()];
         new BufferedInputStream(is).read(original);
-        final Class p=getParent().loadClass(name);
-        if (p.getAnnotation(Entity.class) != null || p.getAnnotation(Embeddable.class) != null) {
-          final byte[] enhanced=new Enhancer(enhancementContext).enhance(name,original);
-          Path debugOutput=Paths.get(workingDir + File.separator + getFilenameForClassName(name));
-          Files.createDirectories(debugOutput.getParent());
-          Files.write(debugOutput,enhanced,StandardOpenOption.CREATE);
-          return defineClass(name,enhanced,0,enhanced.length);
-        }
- else {
-          return defineClass(name,original,0,original.length);
-        }
+        final byte[] enhanced=new Enhancer(enhancementContext).enhance(name,original);
+        Path debugOutput=Paths.get(workingDir + File.separator + name.replace('.','/')+ ".class");
+        Files.createDirectories(debugOutput.getParent());
+        Files.write(debugOutput,enhanced,StandardOpenOption.CREATE);
+        return defineClass(name,enhanced,0,enhanced.length);
       }
  catch (      Throwable t) {
         throw new ClassNotFoundException(name + " not found",t);
+      }
+ finally {
+        try {
+          is.close();
+        }
+ catch (        IOException e) {
+        }
       }
     }
   }

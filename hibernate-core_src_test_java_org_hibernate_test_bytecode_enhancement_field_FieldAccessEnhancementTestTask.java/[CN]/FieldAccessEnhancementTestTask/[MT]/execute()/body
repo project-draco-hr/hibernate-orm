@@ -1,0 +1,21 @@
+{
+  SimpleEntity entity=new SimpleEntity();
+  ((PersistentAttributeInterceptable)entity).$$_hibernate_setInterceptor(new ObjectAttributeMarkerInterceptor());
+  Object decoy=new Object();
+  entity.anUnspecifiedObject=decoy;
+  Object gotByReflection=EnhancerTestUtils.getFieldByReflection(entity,"anUnspecifiedObject");
+  Assert.assertNotSame(gotByReflection,decoy);
+  Assert.assertSame(gotByReflection,ObjectAttributeMarkerInterceptor.WRITE_MARKER);
+  Object entityObject=entity.anUnspecifiedObject;
+  Assert.assertNotSame(entityObject,decoy);
+  Assert.assertSame(entityObject,ObjectAttributeMarkerInterceptor.READ_MARKER);
+  ((PersistentAttributeInterceptable)entity).$$_hibernate_setInterceptor(null);
+  entity.id=1234567890l;
+  Assert.assertEquals(entity.id,1234567890l);
+  entity.name="Entity Name";
+  Assert.assertSame(entity.name,"Entity Name");
+  entity.active=true;
+  Assert.assertTrue(entity.active);
+  entity.someStrings=Arrays.asList("A","B","C","D");
+  Assert.assertArrayEquals(new String[]{"A","B","C","D"},entity.someStrings.toArray());
+}
