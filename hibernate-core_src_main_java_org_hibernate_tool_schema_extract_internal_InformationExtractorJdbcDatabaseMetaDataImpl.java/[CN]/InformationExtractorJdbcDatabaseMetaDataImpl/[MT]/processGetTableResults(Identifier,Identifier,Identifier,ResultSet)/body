@@ -1,0 +1,21 @@
+{
+  try {
+    if (!resultSet.next()) {
+      log.tableNotFound(tableName.render());
+      return null;
+    }
+    final TableInformation tableInformation=extractTableInformation(catalog,schema,tableName,resultSet);
+    if (resultSet.next()) {
+      log.multipleTablesFound(tableName.render());
+      throw new SchemaExtractionException(String.format(Locale.ENGLISH,"More than one table found in namespace (%s, %s) : %s",catalog.render(),schema.render(),tableName.render()));
+    }
+    return tableInformation;
+  }
+  finally {
+    try {
+      resultSet.close();
+    }
+ catch (    SQLException ignore) {
+    }
+  }
+}

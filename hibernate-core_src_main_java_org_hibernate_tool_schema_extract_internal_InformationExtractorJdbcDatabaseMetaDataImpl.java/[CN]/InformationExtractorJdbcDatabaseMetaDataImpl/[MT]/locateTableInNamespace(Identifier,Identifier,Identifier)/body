@@ -1,0 +1,34 @@
+{
+  final String catalogFilter;
+  final String schemaFilter;
+  if (extractionContext.getJdbcEnvironment().getNameQualifierSupport().supportsCatalogs()) {
+    if (catalog == null) {
+      catalogFilter="";
+    }
+ else {
+      catalogFilter=toMetaDataObjectName(catalog);
+    }
+  }
+ else {
+    catalogFilter=null;
+  }
+  if (extractionContext.getJdbcEnvironment().getNameQualifierSupport().supportsSchemas()) {
+    if (schema == null) {
+      schemaFilter="";
+    }
+ else {
+      schemaFilter=toMetaDataObjectName(schema);
+    }
+  }
+ else {
+    schemaFilter=null;
+  }
+  final String tableNameFilter=toMetaDataObjectName(tableName);
+  try {
+    ResultSet resultSet=extractionContext.getJdbcDatabaseMetaData().getTables(catalogFilter,schemaFilter,tableNameFilter,tableTypes);
+    return processGetTableResults(catalog,schema,tableName,resultSet);
+  }
+ catch (  SQLException sqlException) {
+    throw convertSQLException(sqlException,"Error accessing table metadata");
+  }
+}
