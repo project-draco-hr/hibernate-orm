@@ -1,6 +1,16 @@
 {
   final Database database=metadata.getDatabase();
   final JdbcEnvironment jdbcEnvironment=database.getJdbcEnvironment();
+  boolean tryToDropCatalogs=false;
+  boolean tryToDropSchemas=false;
+  if (dropNamespaces) {
+    if (dialect.canCreateSchema()) {
+      tryToDropSchemas=true;
+    }
+    if (dialect.canCreateCatalog()) {
+      tryToDropCatalogs=true;
+    }
+  }
   for (  Target target : targets) {
     target.prepare();
   }
@@ -37,12 +47,20 @@
     }
     applySqlStrings(targets,auxiliaryDatabaseObject.sqlDropStrings(jdbcEnvironment.getDialect()));
   }
-  for (  Namespace namespace : database.getNamespaces()) {
-    if (dropSchemas) {
-      if (namespace.getName().getSchema() == null) {
-        continue;
+  if (tryToDropCatalogs || tryToDropSchemas) {
+    Set<Identifier> exportedCatalogs=new HashSet<Identifier>();
+    for (    Namespace namespace : database.getNamespaces()) {
+      if (tryToDropSchemas && namespace.getPhysicalName().getSchema() != null) {
+        applySqlStrings(targets,dialect.getDropSchemaCommand(namespace.getPhysicalName().getSchema().render(dialect)));
       }
-      applySqlStrings(targets,dialect.getDropSchemaCommand(namespace.getName().getSchema().render(dialect)));
+      if (tryToDropCatalogs) {
+        final Identifier catalogLogicalName=namespace.getName().getCatalog();
+        final Identifier catalogPhysicalName=namespace.getPhysicalName().getCatalog();
+        if (catalogPhysicalName != null && !exportedCatalogs.contains(catalogLogicalName)) {
+          applySqlStrings(targets,dialect.getDropCatalogCommand(catalogPhysicalName.render(dialect)));
+          exportedCatalogs.add(catalogLogicalName);
+        }
+      }
     }
   }
   for (  Target target : targets) {

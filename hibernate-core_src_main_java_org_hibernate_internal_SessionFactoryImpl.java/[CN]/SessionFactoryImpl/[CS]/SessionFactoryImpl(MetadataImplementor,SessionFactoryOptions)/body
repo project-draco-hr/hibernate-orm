@@ -153,8 +153,9 @@ class IntegratorObserver implements SessionFactoryObserver {
   }
   LOG.debug("Instantiated session factory");
   settings.getMultiTableBulkIdStrategy().prepare(jdbcServices,buildLocalConnectionAccess(),metadata,sessionFactoryOptions);
+  boolean createDropNamespaces=ConfigurationHelper.getBoolean(HBM2DLL_CREATE_NAMESPACES,properties,false);
   if (settings.isAutoCreateSchema()) {
-    new SchemaExport(serviceRegistry,metadata).setImportSqlCommandExtractor(serviceRegistry.getService(ImportSqlCommandExtractor.class)).create(false,true);
+    new SchemaExport(serviceRegistry,metadata,createDropNamespaces).setImportSqlCommandExtractor(serviceRegistry.getService(ImportSqlCommandExtractor.class)).create(false,true);
   }
   if (settings.isAutoUpdateSchema()) {
     new SchemaUpdate(serviceRegistry,metadata).execute(false,true);
@@ -163,7 +164,7 @@ class IntegratorObserver implements SessionFactoryObserver {
     new SchemaValidator(serviceRegistry,metadata).validate();
   }
   if (settings.isAutoDropSchema()) {
-    schemaExport=new SchemaExport(serviceRegistry,metadata).setImportSqlCommandExtractor(serviceRegistry.getService(ImportSqlCommandExtractor.class));
+    schemaExport=new SchemaExport(serviceRegistry,metadata,createDropNamespaces).setImportSqlCommandExtractor(serviceRegistry.getService(ImportSqlCommandExtractor.class));
   }
   currentSessionContext=buildCurrentSessionContext();
   if (settings.isNamedQueryStartupCheckingEnabled()) {

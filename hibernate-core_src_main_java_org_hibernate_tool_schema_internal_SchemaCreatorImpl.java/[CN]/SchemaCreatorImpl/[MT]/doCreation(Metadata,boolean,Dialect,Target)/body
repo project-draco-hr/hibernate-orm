@@ -1,16 +1,34 @@
 {
+  boolean tryToCreateCatalogs=false;
+  boolean tryToCreateSchemas=false;
+  if (createNamespaces) {
+    if (dialect.canCreateSchema()) {
+      tryToCreateSchemas=true;
+    }
+    if (dialect.canCreateCatalog()) {
+      tryToCreateCatalogs=true;
+    }
+  }
   final Database database=metadata.getDatabase();
   final JdbcEnvironment jdbcEnvironment=database.getJdbcEnvironment();
   for (  Target target : targets) {
     target.prepare();
   }
   final Set<String> exportIdentifiers=new HashSet<String>(50);
-  for (  Namespace namespace : database.getNamespaces()) {
-    if (createSchemas) {
-      if (namespace.getName().getSchema() == null) {
-        continue;
+  if (tryToCreateCatalogs || tryToCreateSchemas) {
+    Set<Identifier> exportedCatalogs=new HashSet<Identifier>();
+    for (    Namespace namespace : database.getNamespaces()) {
+      if (tryToCreateCatalogs) {
+        final Identifier catalogLogicalName=namespace.getName().getCatalog();
+        final Identifier catalogPhysicalName=namespace.getPhysicalName().getCatalog();
+        if (catalogPhysicalName != null && !exportedCatalogs.contains(catalogLogicalName)) {
+          applySqlStrings(targets,dialect.getCreateCatalogCommand(catalogPhysicalName.render(dialect)));
+          exportedCatalogs.add(catalogLogicalName);
+        }
       }
-      applySqlStrings(targets,dialect.getCreateSchemaCommand(namespace.getName().getSchema().render(dialect)));
+      if (tryToCreateSchemas && namespace.getPhysicalName().getSchema() != null) {
+        applySqlStrings(targets,dialect.getCreateSchemaCommand(namespace.getPhysicalName().getSchema().render(dialect)));
+      }
     }
   }
   for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects()) {
