@@ -17,35 +17,22 @@
       throw new AssertionFailure("Unknown EnumType: " + enumType);
     }
     if (isOrdinal) {
-      treatAsOrdinal();
+      this.enumValueMapper=new OrdinalEnumValueMapper();
     }
  else {
-      treatAsNamed();
+      this.enumValueMapper=new NamedEnumValueMapper();
     }
     sqlType=enumValueMapper.getSqlType();
   }
  else {
-    String enumClassName=(String)parameters.get(ENUM);
+    final String enumClassName=(String)parameters.get(ENUM);
     try {
       enumClass=ReflectHelper.classForName(enumClassName,this.getClass()).asSubclass(Enum.class);
     }
  catch (    ClassNotFoundException exception) {
-      throw new HibernateException("Enum class not found",exception);
+      throw new HibernateException("Enum class not found: " + enumClassName,exception);
     }
-    final Object useNamedSetting=parameters.get(NAMED);
-    if (useNamedSetting != null) {
-      final boolean useNamed=ConfigurationHelper.getBoolean(NAMED,parameters);
-      if (useNamed) {
-        treatAsNamed();
-      }
- else {
-        treatAsOrdinal();
-      }
-      sqlType=enumValueMapper.getSqlType();
-    }
-  }
-  final String type=(String)parameters.get(TYPE);
-  if (type != null) {
-    sqlType=Integer.decode(type);
+    this.enumValueMapper=interpretParameters(parameters);
+    this.sqlType=enumValueMapper.getSqlType();
   }
 }
