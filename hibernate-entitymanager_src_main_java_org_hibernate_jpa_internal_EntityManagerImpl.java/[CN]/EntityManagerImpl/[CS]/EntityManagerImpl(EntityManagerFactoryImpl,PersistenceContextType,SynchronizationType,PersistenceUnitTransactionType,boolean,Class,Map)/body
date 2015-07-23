@@ -11,10 +11,11 @@
       sessionInterceptorClass=(Class)localSessionInterceptor;
     }
  else     if (localSessionInterceptor instanceof String) {
+      final ClassLoaderService cls=entityManagerFactory.getSessionFactory().getServiceRegistry().getService(ClassLoaderService.class);
       try {
-        sessionInterceptorClass=ReflectHelper.classForName((String)localSessionInterceptor,EntityManagerImpl.class);
+        sessionInterceptorClass=cls.classForName((String)localSessionInterceptor);
       }
- catch (      ClassNotFoundException e) {
+ catch (      ClassLoadingException e) {
         throw new PersistenceException("Unable to instanciate interceptor: " + localSessionInterceptor,e);
       }
     }
