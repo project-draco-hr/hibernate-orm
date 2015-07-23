@@ -11,7 +11,7 @@
     final TableSpecificationSource tableSpecSource=pluralAttributeSource.getCollectionTableSpecificationSource();
     final Identifier logicalCatalogName=determineCatalogName(tableSpecSource);
     final Identifier logicalSchemaName=determineSchemaName(tableSpecSource);
-    final Schema schema=database.locateSchema(logicalCatalogName,logicalSchemaName);
+    final Namespace namespace=database.locateNamespace(logicalCatalogName,logicalSchemaName);
     final Table collectionTable;
     if (tableSpecSource instanceof TableSource) {
       final TableSource tableSource=(TableSource)tableSpecSource;
@@ -38,10 +38,10 @@
 ;
         logicalName=mappingDocument.getBuildingOptions().getImplicitNamingStrategy().determineCollectionTableName(implicitNamingSource);
       }
-      collectionTable=schema.createTable(logicalName,false);
+      collectionTable=namespace.createTable(logicalName,false);
     }
  else {
-      collectionTable=new Table(schema,((InLineViewSource)tableSpecSource).getSelectStatement(),false);
+      collectionTable=new Table(namespace,((InLineViewSource)tableSpecSource).getSelectStatement(),false);
     }
     collectionBinding.setCollectionTable(collectionTable);
   }

@@ -2,15 +2,15 @@
   final PersistentClass persistentClass=secondaryTableJoin.getPersistentClass();
   final Identifier catalogName=determineCatalogName(secondaryTableSource.getTableSource());
   final Identifier schemaName=determineSchemaName(secondaryTableSource.getTableSource());
-  final Schema schema=database.locateSchema(catalogName,schemaName);
+  final Namespace namespace=database.locateNamespace(catalogName,schemaName);
   Table secondaryTable;
   final Identifier logicalTableName;
   if (TableSource.class.isInstance(secondaryTableSource.getTableSource())) {
     final TableSource tableSource=(TableSource)secondaryTableSource.getTableSource();
     logicalTableName=database.toIdentifier(tableSource.getExplicitTableName());
-    secondaryTable=schema.locateTable(logicalTableName);
+    secondaryTable=namespace.locateTable(logicalTableName);
     if (secondaryTable == null) {
-      secondaryTable=schema.createTable(logicalTableName,false);
+      secondaryTable=namespace.createTable(logicalTableName,false);
     }
  else {
       secondaryTable.setAbstract(false);
@@ -19,7 +19,7 @@
   }
  else {
     final InLineViewSource inLineViewSource=(InLineViewSource)secondaryTableSource.getTableSource();
-    secondaryTable=new Table(schema,inLineViewSource.getSelectStatement(),false);
+    secondaryTable=new Table(namespace,inLineViewSource.getSelectStatement(),false);
     logicalTableName=Identifier.toIdentifier(inLineViewSource.getLogicalName());
   }
   secondaryTableJoin.setTable(secondaryTable);

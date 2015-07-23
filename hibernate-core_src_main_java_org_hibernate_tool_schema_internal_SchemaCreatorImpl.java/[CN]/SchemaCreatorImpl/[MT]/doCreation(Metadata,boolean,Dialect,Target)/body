@@ -5,12 +5,12 @@
     target.prepare();
   }
   final Set<String> exportIdentifiers=new HashSet<String>(50);
-  for (  Schema schema : database.getSchemas()) {
+  for (  Namespace namespace : database.getNamespaces()) {
     if (createSchemas) {
-      if (schema.getName().getSchema() == null) {
+      if (namespace.getName().getSchema() == null) {
         continue;
       }
-      applySqlStrings(targets,dialect.getCreateSchemaCommand(schema.getName().getSchema().render(dialect)));
+      applySqlStrings(targets,dialect.getCreateSchemaCommand(namespace.getName().getSchema().render(dialect)));
     }
   }
   for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects()) {
@@ -21,19 +21,19 @@
       applySqlStrings(targets,dialect.getAuxiliaryDatabaseObjectExporter().getSqlCreateStrings(auxiliaryDatabaseObject,metadata));
     }
   }
-  for (  Schema schema : database.getSchemas()) {
-    for (    Sequence sequence : schema.getSequences()) {
+  for (  Namespace namespace : database.getNamespaces()) {
+    for (    Sequence sequence : namespace.getSequences()) {
       checkExportIdentifier(sequence,exportIdentifiers);
       applySqlStrings(targets,dialect.getCreateSequenceStrings(jdbcEnvironment.getQualifiedObjectNameFormatter().format(sequence.getName(),dialect),sequence.getInitialValue(),sequence.getIncrementSize()));
     }
-    for (    Table table : schema.getTables()) {
+    for (    Table table : namespace.getTables()) {
       if (!table.isPhysicalTable()) {
         continue;
       }
       checkExportIdentifier(table,exportIdentifiers);
       applySqlStrings(targets,dialect.getTableExporter().getSqlCreateStrings(table,metadata));
     }
-    for (    Table table : schema.getTables()) {
+    for (    Table table : namespace.getTables()) {
       final Iterator indexItr=table.getIndexIterator();
       while (indexItr.hasNext()) {
         final Index index=(Index)indexItr.next();

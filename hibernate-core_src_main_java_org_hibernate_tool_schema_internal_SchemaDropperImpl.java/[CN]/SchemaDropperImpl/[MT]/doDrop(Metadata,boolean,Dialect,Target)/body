@@ -14,16 +14,16 @@
     }
     applySqlStrings(targets,dialect.getAuxiliaryDatabaseObjectExporter().getSqlDropStrings(auxiliaryDatabaseObject,metadata));
   }
-  for (  Schema schema : database.getSchemas()) {
-    applyConstraintDropping(targets,schema,metadata);
-    for (    Table table : schema.getTables()) {
+  for (  Namespace namespace : database.getNamespaces()) {
+    applyConstraintDropping(targets,namespace,metadata);
+    for (    Table table : namespace.getTables()) {
       if (!table.isPhysicalTable()) {
         continue;
       }
       checkExportIdentifier(table,exportIdentifiers);
       applySqlStrings(targets,dialect.getTableExporter().getSqlDropStrings(table,metadata));
     }
-    for (    Sequence sequence : schema.getSequences()) {
+    for (    Sequence sequence : namespace.getSequences()) {
       checkExportIdentifier(sequence,exportIdentifiers);
       applySqlStrings(targets,dialect.getSequenceExporter().getSqlDropStrings(sequence,metadata));
     }
@@ -37,12 +37,12 @@
     }
     applySqlStrings(targets,auxiliaryDatabaseObject.sqlDropStrings(jdbcEnvironment.getDialect()));
   }
-  for (  Schema schema : database.getSchemas()) {
+  for (  Namespace namespace : database.getNamespaces()) {
     if (dropSchemas) {
-      if (schema.getName().getSchema() == null) {
+      if (namespace.getName().getSchema() == null) {
         continue;
       }
-      applySqlStrings(targets,dialect.getDropSchemaCommand(schema.getName().getSchema().render(dialect)));
+      applySqlStrings(targets,dialect.getDropSchemaCommand(namespace.getName().getSchema().render(dialect)));
     }
   }
   for (  Target target : targets) {

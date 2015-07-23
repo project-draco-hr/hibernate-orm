@@ -1,15 +1,15 @@
 {
   final Set<String> exportIdentifiers=new HashSet<String>(50);
   final Database database=metadata.getDatabase();
-  for (  Schema schema : database.getSchemas()) {
+  for (  Namespace namespace : database.getNamespaces()) {
     if (createSchemas) {
-      if (schema.getName().getSchema() != null) {
-        if (!existingDatabase.schemaExists(schema.getName())) {
-          applySqlString(database.getJdbcEnvironment().getDialect().getCreateSchemaCommand(schema.getName().getSchema().render(database.getJdbcEnvironment().getDialect())),targets,false);
+      if (namespace.getName().getSchema() != null) {
+        if (!existingDatabase.schemaExists(namespace.getName())) {
+          applySqlString(database.getJdbcEnvironment().getDialect().getCreateSchemaCommand(namespace.getName().getSchema().render(database.getJdbcEnvironment().getDialect())),targets,false);
         }
       }
     }
-    for (    Table table : schema.getTables()) {
+    for (    Table table : namespace.getTables()) {
       if (!table.isPhysicalTable()) {
         continue;
       }
@@ -22,7 +22,7 @@
         migrateTable(table,tableInformation,targets,metadata);
       }
     }
-    for (    Table table : schema.getTables()) {
+    for (    Table table : namespace.getTables()) {
       if (!table.isPhysicalTable()) {
         continue;
       }
@@ -34,7 +34,7 @@
       applyUniqueKeys(table,tableInformation,metadata,targets);
       applyForeignKeys(table,tableInformation,metadata,targets);
     }
-    for (    Sequence sequence : schema.getSequences()) {
+    for (    Sequence sequence : namespace.getSequences()) {
       checkExportIdentifier(sequence,exportIdentifiers);
       final SequenceInformation sequenceInformation=existingDatabase.getSequenceInformation(sequence.getName());
       if (sequenceInformation != null) {

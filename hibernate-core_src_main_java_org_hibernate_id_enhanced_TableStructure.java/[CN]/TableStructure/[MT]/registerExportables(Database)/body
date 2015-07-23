@@ -1,10 +1,10 @@
 {
   final JdbcEnvironment jdbcEnvironment=database.getJdbcEnvironment();
   final Dialect dialect=jdbcEnvironment.getDialect();
-  final Schema schema=database.locateSchema(logicalQualifiedTableName.getCatalogName(),logicalQualifiedTableName.getSchemaName());
-  Table table=schema.locateTable(logicalQualifiedTableName.getObjectName());
+  final Namespace namespace=database.locateNamespace(logicalQualifiedTableName.getCatalogName(),logicalQualifiedTableName.getSchemaName());
+  Table table=namespace.locateTable(logicalQualifiedTableName.getObjectName());
   if (table == null) {
-    table=schema.createTable(logicalQualifiedTableName.getObjectName(),false);
+    table=namespace.createTable(logicalQualifiedTableName.getObjectName(),false);
   }
   this.tableNameText=jdbcEnvironment.getQualifiedObjectNameFormatter().format(table.getQualifiedTableName(),dialect);
   this.valueColumnNameText=logicalValueColumnNameIdentifier.render(dialect);

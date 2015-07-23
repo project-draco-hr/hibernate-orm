@@ -1,5 +1,5 @@
 {
-  final Schema schema=database.locateSchema(determineCatalogName(tableSpecSource),determineSchemaName(tableSpecSource));
+  final Namespace namespace=database.locateNamespace(determineCatalogName(tableSpecSource),determineSchemaName(tableSpecSource));
   final boolean isTable=TableSource.class.isInstance(tableSpecSource);
   final boolean isAbstract=entityDescriptor.isAbstract() == null ? false : entityDescriptor.isAbstract();
   final String subselect;
@@ -23,10 +23,10 @@
       logicalTableName=mappingDocument.getBuildingOptions().getImplicitNamingStrategy().determinePrimaryTableName(implicitNamingSource);
     }
     if (denormalizedSuperTable == null) {
-      table=schema.createTable(logicalTableName,isAbstract);
+      table=namespace.createTable(logicalTableName,isAbstract);
     }
  else {
-      table=schema.createDenormalizedTable(logicalTableName,isAbstract,denormalizedSuperTable);
+      table=namespace.createDenormalizedTable(logicalTableName,isAbstract,denormalizedSuperTable);
     }
   }
  else {
@@ -34,10 +34,10 @@
     subselect=inLineViewSource.getSelectStatement();
     logicalTableName=database.toIdentifier(inLineViewSource.getLogicalName());
     if (denormalizedSuperTable == null) {
-      table=new Table(schema,subselect,isAbstract);
+      table=new Table(namespace,subselect,isAbstract);
     }
  else {
-      table=new DenormalizedTable(schema,subselect,isAbstract,denormalizedSuperTable);
+      table=new DenormalizedTable(namespace,subselect,isAbstract,denormalizedSuperTable);
     }
     table.setName(logicalTableName.render());
   }

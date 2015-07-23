@@ -1,5 +1,5 @@
 {
-  final Schema schema=getDatabase().locateSchema(getDatabase().toIdentifier(catalogName),getDatabase().toIdentifier(schemaName));
+  final Namespace namespace=getDatabase().locateNamespace(getDatabase().toIdentifier(catalogName),getDatabase().toIdentifier(schemaName));
   final Identifier logicalName;
   if (name != null) {
     logicalName=getDatabase().toIdentifier(name);
@@ -8,15 +8,15 @@
     logicalName=null;
   }
   if (subselectFragment != null) {
-    return new DenormalizedTable(schema,logicalName,subselectFragment,isAbstract,includedTable);
+    return new DenormalizedTable(namespace,logicalName,subselectFragment,isAbstract,includedTable);
   }
  else {
-    Table table=schema.locateTable(logicalName);
+    Table table=namespace.locateTable(logicalName);
     if (table != null) {
       throw new DuplicateMappingException(DuplicateMappingException.Type.TABLE,logicalName.toString());
     }
  else {
-      table=schema.createDenormalizedTable(logicalName,isAbstract,includedTable);
+      table=namespace.createDenormalizedTable(logicalName,isAbstract,includedTable);
     }
     return table;
   }
