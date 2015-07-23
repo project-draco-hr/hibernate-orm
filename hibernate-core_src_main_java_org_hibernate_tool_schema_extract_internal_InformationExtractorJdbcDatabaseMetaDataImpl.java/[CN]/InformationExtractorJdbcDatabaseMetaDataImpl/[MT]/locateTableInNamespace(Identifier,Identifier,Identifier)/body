@@ -1,4 +1,6 @@
 {
+  Identifier catalogToUse=null;
+  Identifier schemaToUse=null;
   final String catalogFilter;
   final String schemaFilter;
   if (extractionContext.getJdbcEnvironment().getNameQualifierSupport().supportsCatalogs()) {
@@ -6,6 +8,7 @@
       catalogFilter="";
     }
  else {
+      catalogToUse=catalog;
       catalogFilter=toMetaDataObjectName(catalog);
     }
   }
@@ -17,6 +20,7 @@
       schemaFilter="";
     }
  else {
+      schemaToUse=schema;
       schemaFilter=toMetaDataObjectName(schema);
     }
   }
@@ -26,7 +30,7 @@
   final String tableNameFilter=toMetaDataObjectName(tableName);
   try {
     ResultSet resultSet=extractionContext.getJdbcDatabaseMetaData().getTables(catalogFilter,schemaFilter,tableNameFilter,tableTypes);
-    return processGetTableResults(catalog,schema,tableName,resultSet);
+    return processGetTableResults(catalogToUse,schemaToUse,tableName,resultSet);
   }
  catch (  SQLException sqlException) {
     throw convertSQLException(sqlException,"Error accessing table metadata");
