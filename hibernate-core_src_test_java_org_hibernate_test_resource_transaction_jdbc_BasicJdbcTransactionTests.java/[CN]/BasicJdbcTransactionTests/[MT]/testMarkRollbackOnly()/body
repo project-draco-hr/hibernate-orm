@@ -1,0 +1,20 @@
+{
+  final TransactionCoordinatorOwnerTestingImpl owner=new TransactionCoordinatorOwnerTestingImpl();
+  final JdbcResourceLocalTransactionCoordinatorBuilderImpl transactionCoordinatorBuilder=new JdbcResourceLocalTransactionCoordinatorBuilderImpl();
+  final TransactionCoordinator transactionCoordinator=transactionCoordinatorBuilder.buildTransactionCoordinator(owner,new TransactionCoordinatorBuilder.TransactionCoordinatorOptions(){
+    @Override public boolean shouldAutoJoinTransaction(){
+      return false;
+    }
+  }
+);
+  transactionCoordinator.getTransactionDriverControl().begin();
+  transactionCoordinator.getTransactionDriverControl().markRollbackOnly();
+  try {
+    transactionCoordinator.getTransactionDriverControl().commit();
+  }
+ catch (  TransactionException expected) {
+  }
+ finally {
+    transactionCoordinator.getTransactionDriverControl().rollback();
+  }
+}
