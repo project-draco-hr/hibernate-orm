@@ -7,14 +7,18 @@
     }
   }
 );
+  assertEquals(TransactionStatus.NOT_ACTIVE,transactionCoordinator.getTransactionDriverControl().getStatus());
   transactionCoordinator.getTransactionDriverControl().begin();
+  assertEquals(TransactionStatus.ACTIVE,transactionCoordinator.getTransactionDriverControl().getStatus());
   transactionCoordinator.getTransactionDriverControl().markRollbackOnly();
+  assertEquals(TransactionStatus.MARKED_ROLLBACK,transactionCoordinator.getTransactionDriverControl().getStatus());
   try {
     transactionCoordinator.getTransactionDriverControl().commit();
   }
  catch (  TransactionException expected) {
   }
  finally {
+    assertEquals(TransactionStatus.MARKED_ROLLBACK,transactionCoordinator.getTransactionDriverControl().getStatus());
     transactionCoordinator.getTransactionDriverControl().rollback();
   }
 }
