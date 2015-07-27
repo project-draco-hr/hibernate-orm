@@ -32,6 +32,9 @@
       }
       checkExportIdentifier(table,exportIdentifiers);
       final TableInformation tableInformation=existingDatabase.getTableInformation(table.getQualifiedTableName());
+      if (tableInformation != null && !tableInformation.isPhysicalTable()) {
+        continue;
+      }
       if (tableInformation == null) {
         createTable(table,metadata,targets);
       }
@@ -46,6 +49,9 @@
       final TableInformation tableInformation=existingDatabase.getTableInformation(table.getQualifiedTableName());
       if (tableInformation == null) {
         throw new SchemaManagementException("BIG PROBLEM");
+      }
+      if (!tableInformation.isPhysicalTable()) {
+        continue;
       }
       applyIndexes(table,tableInformation,metadata,targets);
       applyUniqueKeys(table,tableInformation,metadata,targets);
