@@ -12,7 +12,7 @@
   if (persister.hasCache()) {
     final EntityRegionAccessStrategy cache=persister.getCacheAccessStrategy();
     ck=cache.generateCacheKey(id,persister,session.getFactory(),session.getTenantIdentifier());
-    lock=cache.lockItem(ck,version);
+    lock=cache.lockItem(session,ck,version);
   }
  else {
     ck=null;
@@ -29,7 +29,7 @@
   persistenceContext.removeEntity(entry.getEntityKey());
   persistenceContext.removeProxy(entry.getEntityKey());
   if (persister.hasCache()) {
-    persister.getCacheAccessStrategy().remove(ck);
+    persister.getCacheAccessStrategy().remove(session,ck);
   }
   persistenceContext.getNaturalIdHelper().removeSharedNaturalIdCrossReference(persister,id,naturalIdValues);
   postDelete();

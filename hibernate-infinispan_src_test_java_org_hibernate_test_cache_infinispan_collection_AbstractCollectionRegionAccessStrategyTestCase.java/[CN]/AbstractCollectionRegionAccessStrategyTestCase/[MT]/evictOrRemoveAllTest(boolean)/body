@@ -2,12 +2,12 @@
   final Object KEY=TestingKeyFactory.generateCollectionCacheKey(KEY_BASE + testCount++);
   assertEquals(0,getValidKeyCount(localCollectionRegion.getCache().keySet()));
   assertEquals(0,getValidKeyCount(remoteCollectionRegion.getCache().keySet()));
-  assertNull("local is clean",localAccessStrategy.get(KEY,System.currentTimeMillis()));
-  assertNull("remote is clean",remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
-  localAccessStrategy.putFromLoad(KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
-  assertEquals(VALUE1,localAccessStrategy.get(KEY,System.currentTimeMillis()));
-  remoteAccessStrategy.putFromLoad(KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
-  assertEquals(VALUE1,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
+  assertNull("local is clean",localAccessStrategy.get(null,KEY,System.currentTimeMillis()));
+  assertNull("remote is clean",remoteAccessStrategy.get(null,KEY,System.currentTimeMillis()));
+  localAccessStrategy.putFromLoad(null,KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
+  assertEquals(VALUE1,localAccessStrategy.get(null,KEY,System.currentTimeMillis()));
+  remoteAccessStrategy.putFromLoad(null,KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
+  assertEquals(VALUE1,remoteAccessStrategy.get(null,KEY,System.currentTimeMillis()));
   sleep(250);
   Caches.withinTx(localCollectionRegion.getTransactionManager(),new Callable<Void>(){
     @Override public Void call() throws Exception {
@@ -17,14 +17,14 @@
     }
   }
 );
-  assertNull(localAccessStrategy.get(KEY,System.currentTimeMillis()));
+  assertNull(localAccessStrategy.get(null,KEY,System.currentTimeMillis()));
   assertEquals(0,getValidKeyCount(localCollectionRegion.getCache().keySet()));
-  assertEquals(null,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
+  assertEquals(null,remoteAccessStrategy.get(null,KEY,System.currentTimeMillis()));
   assertEquals(0,getValidKeyCount(remoteCollectionRegion.getCache().keySet()));
-  remoteAccessStrategy.putFromLoad(KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
-  assertEquals(VALUE1,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
+  remoteAccessStrategy.putFromLoad(null,KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
+  assertEquals(VALUE1,remoteAccessStrategy.get(null,KEY,System.currentTimeMillis()));
   assertEquals(1,getValidKeyCount(remoteCollectionRegion.getCache().keySet()));
   sleep(250);
-  assertEquals("local is correct",(isUsingInvalidation() ? null : VALUE1),localAccessStrategy.get(KEY,System.currentTimeMillis()));
-  assertEquals("remote is correct",VALUE1,remoteAccessStrategy.get(KEY,System.currentTimeMillis()));
+  assertEquals("local is correct",(isUsingInvalidation() ? null : VALUE1),localAccessStrategy.get(null,KEY,System.currentTimeMillis()));
+  assertEquals("remote is correct",VALUE1,remoteAccessStrategy.get(null,KEY,System.currentTimeMillis()));
 }

@@ -15,7 +15,7 @@
       if (cachingEnabled) {
         EntityRegionAccessStrategy cache=persister.getCacheAccessStrategy();
         ck=cache.generateCacheKey(entry.getId(),persister,source.getFactory(),source.getTenantIdentifier());
-        lock=cache.lockItem(ck,entry.getVersion());
+        lock=cache.lockItem(source,ck,entry.getVersion());
       }
       if (persister.isVersioned() && requestedLockMode == LockMode.FORCE) {
         Object nextVersion=persister.forceVersionIncrement(entry.getId(),entry.getVersion(),source);
@@ -28,7 +28,7 @@
     }
   finally {
       if (cachingEnabled) {
-        persister.getCacheAccessStrategy().unlockItem(ck,lock);
+        persister.getCacheAccessStrategy().unlockItem(source,ck,lock);
       }
     }
   }

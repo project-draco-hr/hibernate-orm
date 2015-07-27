@@ -13,7 +13,7 @@
   if (persister.hasCache()) {
     final EntityRegionAccessStrategy cache=persister.getCacheAccessStrategy();
     ck=cache.generateCacheKey(id,persister,factory,session.getTenantIdentifier());
-    lock=cache.lockItem(ck,previousVersion);
+    lock=cache.lockItem(session,ck,previousVersion);
   }
  else {
     ck=null;
@@ -37,7 +37,7 @@
   }
   if (persister.hasCache()) {
     if (persister.isCacheInvalidationRequired() || entry.getStatus() != Status.MANAGED) {
-      persister.getCacheAccessStrategy().remove(ck);
+      persister.getCacheAccessStrategy().remove(session,ck);
     }
  else {
       final CacheEntry ce=persister.buildCacheEntry(instance,state,nextVersion,getSession());

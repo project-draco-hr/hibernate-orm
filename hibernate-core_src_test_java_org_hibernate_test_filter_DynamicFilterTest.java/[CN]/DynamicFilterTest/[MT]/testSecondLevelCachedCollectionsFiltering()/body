@@ -9,7 +9,7 @@
   assertTrue("No cache for collection",persister.hasCache());
   CollectionRegionAccessStrategy cache=persister.getCacheAccessStrategy();
   Object cacheKey=cache.generateCacheKey(testData.steveId,persister,sessionFactory(),session.getTenantIdentifier());
-  CollectionCacheEntry cachedData=(CollectionCacheEntry)cache.get(cacheKey,ts);
+  CollectionCacheEntry cachedData=(CollectionCacheEntry)cache.get((SessionImplementor)session,cacheKey,ts);
   assertNotNull("collection was not in cache",cachedData);
   session.close();
   session=openSession();
@@ -18,7 +18,7 @@
   sp=(Salesperson)session.createQuery("from Salesperson as s where s.id = :id").setLong("id",testData.steveId).uniqueResult();
   assertEquals("Filtered-collection not bypassing 2L-cache",1,sp.getOrders().size());
   Object cacheKey2=cache.generateCacheKey(testData.steveId,persister,sessionFactory(),session.getTenantIdentifier());
-  CollectionCacheEntry cachedData2=(CollectionCacheEntry)persister.getCacheAccessStrategy().get(cacheKey2,ts);
+  CollectionCacheEntry cachedData2=(CollectionCacheEntry)persister.getCacheAccessStrategy().get((SessionImplementor)session,cacheKey2,ts);
   assertNotNull("collection no longer in cache!",cachedData2);
   assertSame("Different cache values!",cachedData,cachedData2);
   session.close();

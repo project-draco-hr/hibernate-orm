@@ -32,13 +32,13 @@
     final EntityRegionAccessStrategy cache=persister.getCacheAccessStrategy();
     final Object cacheKey=cache.generateCacheKey(id,persister,factory,session.getTenantIdentifier());
     if (session.getPersistenceContext().wasInsertedDuringTransaction(persister,id)) {
-      cache.update(cacheKey,persister.getCacheEntryStructure().structure(entry),version,version);
+      cache.update(session,cacheKey,persister.getCacheEntryStructure().structure(entry),version,version);
     }
  else {
       final SessionEventListenerManager eventListenerManager=session.getEventListenerManager();
       try {
         eventListenerManager.cachePutStart();
-        final boolean put=cache.putFromLoad(cacheKey,persister.getCacheEntryStructure().structure(entry),session.getTimestamp(),version,useMinimalPuts(session,entityEntry));
+        final boolean put=cache.putFromLoad(session,cacheKey,persister.getCacheEntryStructure().structure(entry),session.getTimestamp(),version,useMinimalPuts(session,entityEntry));
         if (put && factory.getStatistics().isStatisticsEnabled()) {
           factory.getStatisticsImplementor().secondLevelCachePut(cache.getRegion().getName());
         }
