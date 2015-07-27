@@ -24,32 +24,41 @@
       return;
     }
   }
-  final PendingPut pendingPut=new PendingPut(getOwnerForPut());
+  final PendingPut pendingPut=new PendingPut(getLocalLockOwner());
   final PendingPutMap pendingForKey=new PendingPutMap(pendingPut);
-  final PendingPutMap existing=pendingPuts.putIfAbsent(key,pendingForKey);
-  if (existing != null) {
-    if (existing.acquireLock(10,TimeUnit.SECONDS)) {
-      try {
-        if (!existing.hasInvalidator()) {
-          existing.put(pendingPut);
+  for (; ; ) {
+    final PendingPutMap existing=pendingPuts.putIfAbsent(key,pendingForKey);
+    if (existing != null) {
+      if (existing.acquireLock(10,TimeUnit.SECONDS)) {
+        try {
+          if (existing.isRemoved()) {
+            if (trace) {
+              log.tracef("Record removed when waiting for the lock.");
+            }
+            continue;
+          }
+          if (!existing.hasInvalidator()) {
+            existing.put(pendingPut);
+          }
+        }
+  finally {
+          existing.releaseLock();
+        }
+        if (trace) {
+          log.tracef("registerPendingPut(%s#%s, %d) ended with %s",cache.getName(),key,txTimestamp,existing);
         }
       }
-  finally {
-        existing.releaseLock();
-      }
-      if (trace) {
-        log.tracef("registerPendingPut(%s#%s, %d) ended with %s",cache.getName(),key,txTimestamp,existing);
+ else {
+        if (trace) {
+          log.tracef("registerPendingPut(%s#%s, %d) failed to acquire lock",cache.getName(),key,txTimestamp);
+        }
       }
     }
  else {
       if (trace) {
-        log.tracef("registerPendingPut(%s#%s, %d) failed to acquire lock",cache.getName(),key,txTimestamp);
+        log.tracef("registerPendingPut(%s#%s, %d) registered using putIfAbsent: %s",cache.getName(),key,txTimestamp,pendingForKey);
       }
     }
-  }
- else {
-    if (trace) {
-      log.tracef("registerPendingPut(%s#%s, %d) registered using putIfAbsent: %s",cache.getName(),key,txTimestamp,pendingForKey);
-    }
+    return;
   }
 }

@@ -1,0 +1,31 @@
+{
+  if (ctx.isOriginLocal()) {
+    for (    WriteCommand wc : command.getModifications()) {
+      if (wc instanceof InvalidateCommand) {
+        for (        Object key : ((InvalidateCommand)wc).getKeys()) {
+          dataContainer.remove(key);
+        }
+      }
+ else {
+        for (        Object key : wc.getAffectedKeys()) {
+          dataContainer.remove(key);
+        }
+      }
+    }
+  }
+ else {
+    for (    WriteCommand wc : command.getModifications()) {
+      if (wc instanceof InvalidateCommand) {
+        for (        Object key : ((InvalidateCommand)wc).getKeys()) {
+          putFromLoadValidator.beginInvalidatingKey(key,ctx.getLockOwner());
+        }
+      }
+ else {
+        for (        Object key : wc.getAffectedKeys()) {
+          putFromLoadValidator.beginInvalidatingKey(key,ctx.getLockOwner());
+        }
+      }
+    }
+  }
+  return invokeNextInterceptor(ctx,command);
+}

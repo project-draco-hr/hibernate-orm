@@ -2,7 +2,6 @@
   if (trace) {
     log.tracef("acquirePutFromLoadLock(%s#%s, %d)",cache.getName(),key,txTimestamp);
   }
-  boolean valid=false;
   boolean locked=false;
   PendingPutMap pending=pendingPuts.get(key);
   for (; ; ) {
@@ -10,8 +9,18 @@
       if (pending != null) {
         locked=pending.acquireLock(100,TimeUnit.MILLISECONDS);
         if (locked) {
+          boolean valid=false;
           try {
-            final PendingPut toCancel=pending.remove(getOwnerForPut());
+            if (pending.isRemoved()) {
+              pending.releaseLock();
+              locked=false;
+              pending=null;
+              if (trace) {
+                log.tracef("Record removed when waiting for the lock.");
+              }
+              continue;
+            }
+            final PendingPut toCancel=pending.remove(getLocalLockOwner());
             if (toCancel != null) {
               valid=!toCancel.completed;
               toCancel.completed=true;
@@ -20,19 +29,22 @@
               if (pending.hasInvalidator()) {
                 valid=false;
               }
- else {
+ else               if (pending.lastInvalidationEnd != Long.MIN_VALUE) {
                 valid=txTimestamp > pending.lastInvalidationEnd;
+              }
+ else {
+                valid=txTimestamp > regionInvalidationTimestamp;
               }
             }
             return valid ? pending : null;
           }
   finally {
-            if (!valid) {
+            if (!valid && pending != null) {
               pending.releaseLock();
               locked=false;
             }
             if (trace) {
-              log.tracef("acquirePutFromLoadLock(%s#%s, %d) ended with %s",cache.getName(),key,txTimestamp,pending);
+              log.tracef("acquirePutFromLoadLock(%s#%s, %d) ended with %s, valid: %s",cache.getName(),key,txTimestamp,pending,valid);
             }
           }
         }
@@ -44,13 +56,19 @@
         }
       }
  else {
+        long regionInvalidationTimestamp=this.regionInvalidationTimestamp;
         if (txTimestamp <= regionInvalidationTimestamp) {
           if (trace) {
-            log.tracef("acquirePutFromLoadLock(%s#%s, %d) failed due to invalidated region",cache.getName(),key,txTimestamp);
+            log.tracef("acquirePutFromLoadLock(%s#%s, %d) failed due to region invalidated at %d",cache.getName(),key,txTimestamp,regionInvalidationTimestamp);
           }
           return null;
         }
-        PendingPut pendingPut=new PendingPut(getOwnerForPut());
+ else {
+          if (trace) {
+            log.tracef("Region invalidated at %d, this transaction started at %d",regionInvalidationTimestamp,txTimestamp);
+          }
+        }
+        PendingPut pendingPut=new PendingPut(getLocalLockOwner());
         pending=new PendingPutMap(pendingPut);
         PendingPutMap existing=pendingPuts.putIfAbsent(key,pending);
         if (existing != null) {

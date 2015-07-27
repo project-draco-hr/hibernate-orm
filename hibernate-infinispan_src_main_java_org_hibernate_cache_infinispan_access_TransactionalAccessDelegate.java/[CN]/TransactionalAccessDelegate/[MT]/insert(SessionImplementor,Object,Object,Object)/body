@@ -1,0 +1,16 @@
+{
+  if (!region.checkValid()) {
+    return false;
+  }
+  if (!putValidator.beginInvalidatingKey(key)) {
+    throw new CacheException("Failed to invalidate pending putFromLoad calls for key " + key + " from region "+ region.getName());
+  }
+  putValidator.setCurrentSession(session);
+  try {
+    writeCache.put(key,value);
+  }
+  finally {
+    putValidator.resetCurrentSession();
+  }
+  return true;
+}

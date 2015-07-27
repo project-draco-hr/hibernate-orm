@@ -1,0 +1,32 @@
+{
+  if (!region.checkValid()) {
+    if (TRACE_ENABLED) {
+      log.tracef("Region %s not valid",region.getName());
+    }
+    return false;
+  }
+  if (minimalPutOverride && cache.containsKey(key)) {
+    return false;
+  }
+  PutFromLoadValidator.Lock lock=putValidator.acquirePutFromLoadLock(key,txTimestamp);
+  if (lock == null) {
+    if (TRACE_ENABLED) {
+      log.tracef("Put from load lock not acquired for key %s",key);
+    }
+    return false;
+  }
+  putValidator.setCurrentSession(session);
+  try {
+    if (region.isRegionInvalidatedInCurrentTx()) {
+      writeCache.put(key,value);
+    }
+ else {
+      writeCache.putForExternalRead(key,value);
+    }
+  }
+  finally {
+    putValidator.resetCurrentSession();
+    putValidator.releasePutFromLoadLock(key,lock);
+  }
+  return true;
+}

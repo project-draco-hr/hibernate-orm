@@ -1,9 +1,12 @@
 {
-  List<CommandInterceptor> interceptorChain=cache.getInterceptorChain();
-  int index=0;
-  for (; index < interceptorChain.size(); ++index) {
-    if (interceptorChain.get(index).getClass().getName().startsWith(PutFromLoadValidator.class.getName())) {
-      cache.removeInterceptor(index);
+  cache.removeInterceptor(TxPutFromLoadInterceptor.class);
+  cache.removeInterceptor(NonTxPutFromLoadInterceptor.class);
+  for (  Object i : cache.getInterceptorChain()) {
+    if (i instanceof NonTxInvalidationInterceptor) {
+      InvalidationInterceptor invalidationInterceptor=new InvalidationInterceptor();
+      cache.getComponentRegistry().registerComponent(invalidationInterceptor,InvalidationInterceptor.class);
+      cache.addInterceptorBefore(invalidationInterceptor,NonTxInvalidationInterceptor.class);
+      cache.removeInterceptor(NonTxInvalidationInterceptor.class);
       break;
     }
   }
