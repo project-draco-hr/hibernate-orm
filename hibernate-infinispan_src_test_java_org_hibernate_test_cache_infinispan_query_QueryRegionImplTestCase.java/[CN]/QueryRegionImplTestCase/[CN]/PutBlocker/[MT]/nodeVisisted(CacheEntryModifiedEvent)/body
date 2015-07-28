@@ -1,0 +1,16 @@
+{
+  if (!event.isPre() && event.getKey().equals(key)) {
+    try {
+synchronized (this) {
+        if (enabled) {
+          triggerLatch.countDown();
+          enabled=false;
+          blockLatch.await();
+        }
+      }
+    }
+ catch (    InterruptedException e) {
+      log.error("Interrupted waiting for latch",e);
+    }
+  }
+}

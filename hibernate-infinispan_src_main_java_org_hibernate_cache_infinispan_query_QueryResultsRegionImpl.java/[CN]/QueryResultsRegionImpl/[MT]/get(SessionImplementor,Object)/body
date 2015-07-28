@@ -6,10 +6,18 @@
   if (!checkValid()) {
     return null;
   }
+  Object result;
   if (skipCacheStore) {
-    return getCache.withFlags(Flag.SKIP_CACHE_STORE).get(key);
+    result=getCache.withFlags(Flag.SKIP_CACHE_STORE).get(key);
   }
  else {
-    return getCache.get(key);
+    result=getCache.get(key);
   }
+  if (result == null) {
+    Map map=transactionContext.get(session);
+    if (map != null) {
+      result=map.get(key);
+    }
+  }
+  return result;
 }

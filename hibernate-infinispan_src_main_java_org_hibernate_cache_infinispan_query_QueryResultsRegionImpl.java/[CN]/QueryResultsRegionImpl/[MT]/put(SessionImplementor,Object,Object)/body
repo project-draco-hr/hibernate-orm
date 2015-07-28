@@ -1,5 +1,15 @@
 {
   if (checkValid()) {
+    TransactionCoordinator tc=session.getTransactionCoordinator();
+    if (tc != null && tc.isJoined()) {
+      tc.getLocalSynchronizations().registerSynchronization(new PostTransactionQueryUpdate(tc,session,key,value));
+      Map map=transactionContext.get(session);
+      if (map == null) {
+        transactionContext.put(session,map=new HashMap());
+      }
+      map.put(key,value);
+      return;
+    }
     putCache.put(key,value);
   }
 }

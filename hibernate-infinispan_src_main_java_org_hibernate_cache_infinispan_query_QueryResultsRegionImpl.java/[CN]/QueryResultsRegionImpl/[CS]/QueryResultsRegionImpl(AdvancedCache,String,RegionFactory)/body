@@ -4,4 +4,10 @@
   this.evictCache=localOnly ? Caches.localCache(cache) : cache;
   this.putCache=localOnly ? Caches.failSilentWriteCache(cache,Flag.CACHE_MODE_LOCAL) : Caches.failSilentWriteCache(cache);
   this.getCache=Caches.failSilentReadCache(cache);
+  TransactionConfiguration transactionConfiguration=putCache.getCacheConfiguration().transaction();
+  boolean transactional=transactionConfiguration.transactionMode() != TransactionMode.NON_TRANSACTIONAL;
+  this.putCacheRequiresTransaction=transactional && !transactionConfiguration.autoCommit();
+  if (transactional) {
+    log.warn("Use non-transactional query caches for best performance!");
+  }
 }
