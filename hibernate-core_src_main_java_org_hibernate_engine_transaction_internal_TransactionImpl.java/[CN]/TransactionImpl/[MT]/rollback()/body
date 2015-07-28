@@ -1,5 +1,10 @@
 {
   TransactionStatus status=transactionDriverControl.getStatus();
+  if (status == TransactionStatus.ROLLED_BACK || status == TransactionStatus.NOT_ACTIVE) {
+    LOG.debug("rollback() called on an inactive transaction");
+    invalidate();
+    return;
+  }
   if (!status.canRollback()) {
     throw new TransactionException("Cannot rollback transaction in current status [" + status.name() + "]");
   }
