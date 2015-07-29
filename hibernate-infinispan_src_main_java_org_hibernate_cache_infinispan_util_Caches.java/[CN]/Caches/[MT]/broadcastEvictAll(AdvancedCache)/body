@@ -4,6 +4,7 @@
     final CacheCommandInitializer factory=cache.getComponentRegistry().getComponent(CacheCommandInitializer.class);
     final boolean isSync=isSynchronousCache(cache);
     final EvictAllCommand cmd=factory.buildEvictAllCommand(cache.getName());
-    rpcManager.broadcastRpcCommand(cmd,isSync);
+    final RpcOptions options=rpcManager.getDefaultRpcOptions(isSync);
+    rpcManager.invokeRemotely(null,cmd,options);
   }
 }
