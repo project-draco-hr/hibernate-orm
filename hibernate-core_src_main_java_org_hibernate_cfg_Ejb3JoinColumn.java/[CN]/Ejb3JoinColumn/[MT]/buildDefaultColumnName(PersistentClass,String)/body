@@ -2,13 +2,12 @@
   final Database database=getBuildingContext().getMetadataCollector().getDatabase();
   final ImplicitNamingStrategy implicitNamingStrategy=getBuildingContext().getBuildingOptions().getImplicitNamingStrategy();
   final PhysicalNamingStrategy physicalNamingStrategy=getBuildingContext().getBuildingOptions().getPhysicalNamingStrategy();
-  String columnName;
+  Identifier columnIdentifier;
   boolean mappedBySide=mappedByTableName != null || mappedByPropertyName != null;
   boolean ownerSide=getPropertyName() != null;
   Boolean isRefColumnQuoted=StringHelper.isQuoted(logicalReferencedColumn);
   final String unquotedLogicalReferenceColumn=isRefColumnQuoted ? StringHelper.unquote(logicalReferencedColumn) : logicalReferencedColumn;
   if (mappedBySide) {
-    final Identifier columnIdentifier;
     final AttributePath attributePath=AttributePath.parse(mappedByPropertyName);
     final ImplicitJoinColumnNameSource.Nature implicitNamingNature;
     if (getPropertyHolder().isEntity()) {
@@ -74,9 +73,8 @@
       }
     }
 );
-    columnName=columnIdentifier.render();
     if (isRefColumnQuoted || StringHelper.isQuoted(mappedByTableName)) {
-      columnName=StringHelper.quote(columnName);
+      columnIdentifier=Identifier.quote(columnIdentifier);
     }
   }
  else   if (ownerSide) {
@@ -91,7 +89,7 @@
  else {
       implicitNamingNature=ImplicitJoinColumnNameSource.Nature.ENTITY_COLLECTION;
     }
-    Identifier columnNameIdentifier=getBuildingContext().getBuildingOptions().getImplicitNamingStrategy().determineJoinColumnName(new ImplicitJoinColumnNameSource(){
+    columnIdentifier=getBuildingContext().getBuildingOptions().getImplicitNamingStrategy().determineJoinColumnName(new ImplicitJoinColumnNameSource(){
       private final EntityNaming entityNaming=new EntityNaming(){
         @Override public String getClassName(){
           return referencedEntity.getClassName();
@@ -128,13 +126,12 @@
     }
 );
     if (isRefColumnQuoted || StringHelper.isQuoted(logicalTableName)) {
-      Identifier.quote(columnNameIdentifier);
+      columnIdentifier=Identifier.quote(columnIdentifier);
     }
-    columnName=columnNameIdentifier.render();
   }
  else {
     final Identifier logicalTableName=database.toIdentifier(getBuildingContext().getMetadataCollector().getLogicalTableName(referencedEntity.getTable()));
-    Identifier columnIdentifier=implicitNamingStrategy.determinePrimaryKeyJoinColumnName(new ImplicitPrimaryKeyJoinColumnNameSource(){
+    columnIdentifier=implicitNamingStrategy.determinePrimaryKeyJoinColumnName(new ImplicitPrimaryKeyJoinColumnNameSource(){
       @Override public MetadataBuildingContext getBuildingContext(){
         return Ejb3JoinColumn.this.getBuildingContext();
       }
@@ -149,7 +146,6 @@
     if (!columnIdentifier.isQuoted() && (isRefColumnQuoted || logicalTableName.isQuoted())) {
       columnIdentifier=Identifier.quote(columnIdentifier);
     }
-    columnName=columnIdentifier.render();
   }
-  return columnName;
+  return physicalNamingStrategy.toPhysicalColumnName(columnIdentifier,database.getJdbcEnvironment()).render(database.getJdbcEnvironment().getDialect());
 }
