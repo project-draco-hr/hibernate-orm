@@ -15,17 +15,10 @@
     }
     return false;
   }
-  putValidator.setCurrentSession(session);
   try {
-    if (region.isRegionInvalidatedInCurrentTx()) {
-      writeCache.put(key,value);
-    }
- else {
-      writeCache.putForExternalRead(key,value);
-    }
+    writeCache.putForExternalRead(key,value);
   }
   finally {
-    putValidator.resetCurrentSession();
     putValidator.releasePutFromLoadLock(key,lock);
   }
   return true;

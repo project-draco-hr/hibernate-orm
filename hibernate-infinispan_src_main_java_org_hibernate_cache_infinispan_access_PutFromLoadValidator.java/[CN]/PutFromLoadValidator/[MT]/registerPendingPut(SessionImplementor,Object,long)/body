@@ -1,28 +1,10 @@
 {
   long invalidationTimestamp=this.regionInvalidationTimestamp;
   if (txTimestamp <= invalidationTimestamp) {
-    boolean skip;
-    if (invalidationTimestamp == Long.MAX_VALUE) {
-      skip=true;
+    if (trace) {
+      log.tracef("registerPendingPut(%s#%s, %d) skipped due to region invalidation (%d)",cache.getName(),key,txTimestamp,invalidationTimestamp);
     }
- else {
-      Transaction tx=null;
-      if (transactionManager != null) {
-        try {
-          tx=transactionManager.getTransaction();
-        }
- catch (        SystemException e) {
-          log.error("TransactionManager failed to provide transaction",e);
-        }
-      }
-      skip=tx == null || !regionInvalidators.contains(tx);
-    }
-    if (skip) {
-      if (trace) {
-        log.tracef("registerPendingPut(%s#%s, %d) skipped due to region invalidation (%d)",cache.getName(),key,txTimestamp,invalidationTimestamp);
-      }
-      return;
-    }
+    return;
   }
   final PendingPut pendingPut=new PendingPut(session);
   final PendingPutMap pendingForKey=new PendingPutMap(pendingPut);
