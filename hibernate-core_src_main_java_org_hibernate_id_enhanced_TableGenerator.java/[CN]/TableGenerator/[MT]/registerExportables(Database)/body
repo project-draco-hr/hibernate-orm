@@ -1,13 +1,20 @@
 {
   final Dialect dialect=database.getJdbcEnvironment().getDialect();
   final Namespace namespace=database.locateNamespace(qualifiedTableName.getCatalogName(),qualifiedTableName.getSchemaName());
-  final Table table=namespace.createTable(qualifiedTableName.getObjectName(),false);
-  final Column segmentColumn=new ExportableColumn(database,table,segmentColumnName,StringType.INSTANCE,dialect.getTypeName(Types.VARCHAR,segmentValueLength,0,0));
-  segmentColumn.setNullable(false);
-  table.addColumn(segmentColumn);
-  table.setPrimaryKey(new PrimaryKey());
-  table.getPrimaryKey().setTable(table);
-  table.getPrimaryKey().addColumn(segmentColumn);
-  final Column valueColumn=new ExportableColumn(database,table,valueColumnName,LongType.INSTANCE);
-  table.addColumn(valueColumn);
+  Table table=namespace.locateTable(qualifiedTableName.getObjectName());
+  if (table == null) {
+    table=namespace.createTable(qualifiedTableName.getObjectName(),false);
+    final Column segmentColumn=new ExportableColumn(database,table,segmentColumnName,StringType.INSTANCE,dialect.getTypeName(Types.VARCHAR,segmentValueLength,0,0));
+    segmentColumn.setNullable(false);
+    table.addColumn(segmentColumn);
+    table.setPrimaryKey(new PrimaryKey());
+    table.getPrimaryKey().setTable(table);
+    table.getPrimaryKey().addColumn(segmentColumn);
+    final Column valueColumn=new ExportableColumn(database,table,valueColumnName,LongType.INSTANCE);
+    table.addColumn(valueColumn);
+  }
+  this.renderedTableName=database.getJdbcEnvironment().getQualifiedObjectNameFormatter().format(table.getQualifiedTableName(),dialect);
+  this.selectQuery=buildSelectQuery(dialect);
+  this.updateQuery=buildUpdateQuery();
+  this.insertQuery=buildInsertQuery();
 }
