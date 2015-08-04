@@ -2,10 +2,11 @@
   BasicTestingJdbcServiceImpl jdbcServices=new BasicTestingJdbcServiceImpl();
   jdbcServices.prepare(false);
   serviceRegistry=new StandardServiceRegistryBuilder().enableAutoClose().addService(JdbcEnvironment.class,jdbcServices.getJdbcEnvironment()).addService(JdbcServices.class,jdbcServices).applySetting(AvailableSettings.HBM2DDL_AUTO,"create-drop").build();
-  generator=new SequenceHiLoGenerator();
+  generator=new SequenceStyleGenerator();
   Properties properties=new Properties();
-  properties.setProperty(SequenceGenerator.SEQUENCE,TEST_SEQUENCE);
-  properties.setProperty(SequenceHiLoGenerator.MAX_LO,"0");
+  properties.setProperty(SequenceStyleGenerator.SEQUENCE_PARAM,TEST_SEQUENCE);
+  properties.setProperty(SequenceStyleGenerator.OPT_PARAM,"legacy-hilo");
+  properties.setProperty(SequenceStyleGenerator.INCREMENT_PARAM,"0");
   properties.put(PersistentIdentifierGenerator.IDENTIFIER_NORMALIZER,new ObjectNameNormalizer(){
     @Override protected MetadataBuildingContext getBuildingContext(){
       return new MetadataBuildingContextTestingImpl(serviceRegistry);
@@ -14,6 +15,6 @@
 );
   generator.configure(StandardBasicTypes.LONG,properties,serviceRegistry);
   final Metadata metadata=new MetadataSources(serviceRegistry).buildMetadata();
-  metadata.getDatabase().addAuxiliaryDatabaseObject(new SimpleAuxiliaryDatabaseObject(Collections.<String>emptySet(),null,null,generator.sqlCreateStrings(TestingDatabaseInfo.DIALECT),generator.sqlDropStrings(TestingDatabaseInfo.DIALECT)));
+  generator.registerExportables(metadata.getDatabase());
   sessionFactory=(SessionFactoryImplementor)metadata.buildSessionFactory();
 }
