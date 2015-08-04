@@ -8,7 +8,8 @@
       Callable<Boolean> pferCallable=new Callable<Boolean>(){
         public Boolean call() throws Exception {
           testee.registerPendingPut(KEY1);
-          if (testee.acquirePutFromLoadLock(KEY1)) {
+          PutFromLoadValidator.Lock lock=testee.acquirePutFromLoadLock(KEY1);
+          if (lock != null) {
             try {
               removeLatch.countDown();
               pferLatch.await();
@@ -16,7 +17,7 @@
               return Boolean.TRUE;
             }
   finally {
-              testee.releasePutFromLoadLock(KEY1);
+              testee.releasePutFromLoadLock(KEY1,lock);
             }
           }
           return Boolean.FALSE;
@@ -27,7 +28,7 @@
         public Void call() throws Exception {
           removeLatch.await();
           if (keyOnly) {
-            testee.invalidateKey(KEY1);
+            testee.beginInvalidatingKey(KEY1);
           }
  else {
             testee.invalidateRegion();

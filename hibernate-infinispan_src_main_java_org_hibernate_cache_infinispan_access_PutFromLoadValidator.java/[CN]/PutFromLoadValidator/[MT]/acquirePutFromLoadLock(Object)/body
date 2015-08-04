@@ -1,54 +1,75 @@
 {
   boolean valid=false;
   boolean locked=false;
-  final long now=System.currentTimeMillis();
-  try {
-    final PendingPutMap pending=pendingPuts.get(key);
-    if (pending != null) {
-      locked=pending.acquireLock(100,TimeUnit.MILLISECONDS);
-      if (locked) {
-        try {
-          final PendingPut toCancel=pending.remove(getOwnerForPut());
-          if (toCancel != null) {
-            valid=!toCancel.completed;
-            toCancel.completed=true;
+  long now=Long.MIN_VALUE;
+  PendingPutMap pending=pendingPuts.get(key);
+  for (; ; ) {
+    try {
+      if (pending != null) {
+        locked=pending.acquireLock(100,TimeUnit.MILLISECONDS);
+        if (locked) {
+          try {
+            final PendingPut toCancel=pending.remove(getOwnerForPut());
+            if (toCancel != null) {
+              valid=!toCancel.completed;
+              toCancel.completed=true;
+            }
+ else {
+              if (pending.hasInvalidator()) {
+                valid=false;
+              }
+ else {
+                if (now == Long.MIN_VALUE) {
+                  now=System.currentTimeMillis();
+                }
+                valid=now > pending.nakedPutsDeadline;
+              }
+            }
+            return valid ? pending : null;
           }
-        }
   finally {
-          if (!valid) {
-            pending.releaseLock();
-            locked=false;
+            if (!valid) {
+              pending.releaseLock();
+              locked=false;
+            }
           }
         }
-      }
-    }
  else {
-      if (now > invalidationTimestamp) {
-        final Long removedTime=recentRemovals.get(key);
-        if (removedTime == null || now > removedTime) {
-          registerPendingPut(key);
-          locked=acquirePutFromLoadLock(key);
-          valid=locked;
+          return null;
+        }
+      }
+ else {
+        long invalidationTimestamp=this.invalidationTimestamp;
+        if (invalidationTimestamp != Long.MIN_VALUE) {
+          now=System.currentTimeMillis();
+          if (now > invalidationTimestamp) {
+            invalidationUpdater.compareAndSet(this,invalidationTimestamp,Long.MIN_VALUE);
+          }
+ else {
+            return null;
+          }
+        }
+        PendingPut pendingPut=new PendingPut(getOwnerForPut());
+        pending=new PendingPutMap(pendingPut);
+        PendingPutMap existing=pendingPuts.putIfAbsent(key,pending);
+        if (existing != null) {
+          pending=existing;
         }
       }
     }
-  }
- catch (  Throwable t) {
-    if (locked) {
-      final PendingPutMap toRelease=pendingPuts.get(key);
-      if (toRelease != null) {
-        toRelease.releaseLock();
+ catch (    Throwable t) {
+      if (locked) {
+        pending.releaseLock();
+      }
+      if (t instanceof RuntimeException) {
+        throw (RuntimeException)t;
+      }
+ else       if (t instanceof Error) {
+        throw (Error)t;
+      }
+ else {
+        throw new RuntimeException(t);
       }
     }
-    if (t instanceof RuntimeException) {
-      throw (RuntimeException)t;
-    }
- else     if (t instanceof Error) {
-      throw (Error)t;
-    }
- else {
-      throw new RuntimeException(t);
-    }
   }
-  return valid;
 }

@@ -1,27 +1,19 @@
 {
   final PendingPut pendingPut=new PendingPut(getOwnerForPut());
   final PendingPutMap pendingForKey=new PendingPutMap(pendingPut);
-  for (; ; ) {
-    final PendingPutMap existing=pendingPuts.putIfAbsent(key,pendingForKey);
-    if (existing != null) {
-      if (existing.acquireLock(10,TimeUnit.SECONDS)) {
-        try {
+  final PendingPutMap existing=pendingPuts.putIfAbsent(key,pendingForKey);
+  if (existing != null) {
+    if (existing.acquireLock(10,TimeUnit.SECONDS)) {
+      try {
+        if (!existing.hasInvalidator()) {
           existing.put(pendingPut);
-          final PendingPutMap doublecheck=pendingPuts.putIfAbsent(key,existing);
-          if (doublecheck == null || doublecheck == existing) {
-            break;
-          }
-        }
-  finally {
-          existing.releaseLock();
         }
       }
- else {
-        break;
+  finally {
+        existing.releaseLock();
       }
     }
  else {
-      break;
     }
   }
 }

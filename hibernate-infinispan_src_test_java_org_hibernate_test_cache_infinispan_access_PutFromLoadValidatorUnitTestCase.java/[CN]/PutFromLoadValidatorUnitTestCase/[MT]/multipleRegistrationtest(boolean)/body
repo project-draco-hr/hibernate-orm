@@ -14,13 +14,14 @@
             testee.registerPendingPut(KEY1);
             registeredLatch.countDown();
             registeredLatch.await(5,TimeUnit.SECONDS);
-            if (testee.acquirePutFromLoadLock(KEY1)) {
+            PutFromLoadValidator.Lock lock=testee.acquirePutFromLoadLock(KEY1);
+            if (lock != null) {
               try {
                 log.trace("Put from load lock acquired for key = " + KEY1);
                 success.incrementAndGet();
               }
   finally {
-                testee.releasePutFromLoadLock(KEY1);
+                testee.releasePutFromLoadLock(KEY1,lock);
               }
             }
  else {

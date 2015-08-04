@@ -1,0 +1,18 @@
+{
+  PendingPutMap pending=pendingPuts.get(key);
+  if (pending == null) {
+    return true;
+  }
+  if (pending.acquireLock(60,TimeUnit.SECONDS)) {
+    try {
+      pending.removeInvalidator(getOwnerForPut());
+      return true;
+    }
+  finally {
+      pending.releaseLock();
+    }
+  }
+ else {
+    return false;
+  }
+}

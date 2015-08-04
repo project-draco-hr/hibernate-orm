@@ -11,16 +11,17 @@
           testee.invalidateRegion();
         }
  else {
-          testee.invalidateKey(KEY1);
+          testee.beginInvalidatingKey(KEY1);
         }
-        boolean lockable=testee.acquirePutFromLoadLock(KEY1);
+        PutFromLoadValidator.Lock lock=testee.acquirePutFromLoadLock(KEY1);
         try {
-          assertFalse(lockable);
+          assertNull(lock);
         }
   finally {
-          if (lockable) {
-            testee.releasePutFromLoadLock(KEY1);
+          if (lock != null) {
+            testee.releasePutFromLoadLock(KEY1,lock);
           }
+          testee.endInvalidatingKey(KEY1);
         }
       }
  catch (      Exception e) {

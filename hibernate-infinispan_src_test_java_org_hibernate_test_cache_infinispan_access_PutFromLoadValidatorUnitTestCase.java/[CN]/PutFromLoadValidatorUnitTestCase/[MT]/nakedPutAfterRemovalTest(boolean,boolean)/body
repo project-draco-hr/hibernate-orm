@@ -2,29 +2,9 @@
   withCacheManager(new CacheManagerCallable(TestCacheManagerFactory.createCacheManager(false)){
     @Override public void call(){
       PutFromLoadValidator testee=new PutFromLoadValidator(cm.getCache().getAdvancedCache(),cm,transactional ? tm : null,PutFromLoadValidator.NAKED_PUT_INVALIDATION_PERIOD);
-      if (removeRegion) {
-        testee.invalidateRegion();
-      }
- else {
-        testee.invalidateKey(KEY1);
-      }
-      try {
-        if (transactional) {
-          tm.begin();
-        }
-        boolean lockable=testee.acquirePutFromLoadLock(KEY1);
-        try {
-          assertFalse(lockable);
-        }
-  finally {
-          if (lockable) {
-            testee.releasePutFromLoadLock(KEY1);
-          }
-        }
-      }
- catch (      Exception e) {
-        throw new RuntimeException(e);
-      }
+      Invalidation invalidation=new Invalidation(testee,removeRegion);
+      NakedPut nakedPut=new NakedPut(testee,false);
+      exec(transactional,invalidation,nakedPut);
     }
   }
 );

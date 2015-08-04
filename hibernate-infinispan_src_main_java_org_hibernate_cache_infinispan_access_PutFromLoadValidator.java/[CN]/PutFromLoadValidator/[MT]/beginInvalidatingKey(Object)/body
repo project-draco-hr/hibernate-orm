@@ -1,0 +1,20 @@
+{
+  PendingPutMap pending=new PendingPutMap(null);
+  PendingPutMap prev=pendingPuts.putIfAbsent(key,pending);
+  if (prev != null) {
+    pending=prev;
+  }
+  if (pending.acquireLock(60,TimeUnit.SECONDS)) {
+    try {
+      pending.invalidate();
+      pending.addInvalidator(getOwnerForPut(),System.currentTimeMillis() + nakedPutInvalidationPeriod);
+    }
+  finally {
+      pending.releaseLock();
+    }
+    return true;
+  }
+ else {
+    return false;
+  }
+}
