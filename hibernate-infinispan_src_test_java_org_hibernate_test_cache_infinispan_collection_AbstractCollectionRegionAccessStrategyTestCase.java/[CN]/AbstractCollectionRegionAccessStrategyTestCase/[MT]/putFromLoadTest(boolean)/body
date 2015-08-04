@@ -8,13 +8,13 @@
       try {
         long txTimestamp=System.currentTimeMillis();
         BatchModeTransactionManager.getInstance().begin();
-        assertEquals("node1 starts clean",null,localAccessStrategy.get(null,KEY,txTimestamp));
+        assertEquals("node1 starts clean",null,localAccessStrategy.get(localSession,KEY,txTimestamp));
         writeLatch1.await();
         if (useMinimalAPI) {
-          localAccessStrategy.putFromLoad(null,KEY,VALUE2,txTimestamp,new Integer(2),true);
+          localAccessStrategy.putFromLoad(localSession,KEY,VALUE2,txTimestamp,new Integer(2),true);
         }
  else {
-          localAccessStrategy.putFromLoad(null,KEY,VALUE2,txTimestamp,new Integer(2));
+          localAccessStrategy.putFromLoad(localSession,KEY,VALUE2,txTimestamp,new Integer(2));
         }
         BatchModeTransactionManager.getInstance().commit();
       }
@@ -39,15 +39,15 @@ catch (      AssertionFailedError e) {
       try {
         long txTimestamp=System.currentTimeMillis();
         BatchModeTransactionManager.getInstance().begin();
-        assertNull("node2 starts clean",remoteAccessStrategy.get(null,KEY,txTimestamp));
+        assertNull("node2 starts clean",remoteAccessStrategy.get(remoteSession,KEY,txTimestamp));
         writeLatch1.countDown();
         writeLatch2.await();
         sleep(200);
         if (useMinimalAPI) {
-          remoteAccessStrategy.putFromLoad(null,KEY,VALUE1,txTimestamp,new Integer(1),true);
+          remoteAccessStrategy.putFromLoad(remoteSession,KEY,VALUE1,txTimestamp,new Integer(1),true);
         }
  else {
-          remoteAccessStrategy.putFromLoad(null,KEY,VALUE1,txTimestamp,new Integer(1));
+          remoteAccessStrategy.putFromLoad(remoteSession,KEY,VALUE1,txTimestamp,new Integer(1));
         }
         BatchModeTransactionManager.getInstance().commit();
       }
@@ -93,6 +93,6 @@ catch (      AssertionFailedError e) {
     expected1=VALUE2;
     expected2=VALUE2;
   }
-  assertEquals(msg1,expected1,localAccessStrategy.get(null,KEY,txTimestamp));
-  assertEquals(msg2,expected2,remoteAccessStrategy.get(null,KEY,txTimestamp));
+  assertEquals(msg1,expected1,localAccessStrategy.get(localSession,KEY,txTimestamp));
+  assertEquals(msg2,expected2,remoteAccessStrategy.get(remoteSession,KEY,txTimestamp));
 }

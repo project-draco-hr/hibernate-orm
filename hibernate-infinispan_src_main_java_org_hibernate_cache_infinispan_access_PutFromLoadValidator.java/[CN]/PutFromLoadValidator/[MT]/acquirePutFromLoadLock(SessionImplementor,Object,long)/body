@@ -20,7 +20,7 @@
               }
               continue;
             }
-            final PendingPut toCancel=pending.remove(getLocalLockOwner());
+            final PendingPut toCancel=pending.remove(session);
             if (toCancel != null) {
               valid=!toCancel.completed;
               toCancel.completed=true;
@@ -68,7 +68,7 @@
             log.tracef("Region invalidated at %d, this transaction started at %d",regionInvalidationTimestamp,txTimestamp);
           }
         }
-        PendingPut pendingPut=new PendingPut(getLocalLockOwner());
+        PendingPut pendingPut=new PendingPut(session);
         pending=new PendingPutMap(pendingPut);
         PendingPutMap existing=pendingPuts.putIfAbsent(key,pending);
         if (existing != null) {

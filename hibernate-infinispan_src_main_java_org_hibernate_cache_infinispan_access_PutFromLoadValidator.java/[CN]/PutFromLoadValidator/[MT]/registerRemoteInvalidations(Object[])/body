@@ -1,29 +1,4 @@
 {
-  Transaction tx=null;
-  try {
-    if (transactionManager != null) {
-      tx=transactionManager.getTransaction();
-    }
-  }
- catch (  SystemException se) {
-    throw new CacheException("Could not obtain transaction",se);
-  }
-  if (tx != null) {
-    if (trace) {
-      log.tracef("Registering lock owner %s for %s: %s",tx,cache.getName(),Arrays.toString(keys));
-    }
-    try {
-      Synchronization sync=new Synchronization(nonTxPutFromLoadInterceptor,keys);
-      tx.registerSynchronization(sync);
-      return sync.uuid;
-    }
- catch (    SystemException se) {
-      throw new CacheException("Cannot register synchronization",se);
-    }
-catch (    RollbackException e) {
-      return null;
-    }
-  }
   SessionImplementor session=currentSession.get();
   TransactionCoordinator transactionCoordinator=session == null ? null : session.getTransactionCoordinator();
   if (transactionCoordinator != null) {

@@ -8,8 +8,8 @@
       try {
         long txTimestamp=System.currentTimeMillis();
         BatchModeTransactionManager.getInstance().begin();
-        assertNull("Correct initial value",localAccessStrategy.get(null,KEY,txTimestamp));
-        localAccessStrategy.insert(null,KEY,VALUE1,new Integer(1));
+        assertNull("Correct initial value",localAccessStrategy.get(localSession,KEY,txTimestamp));
+        localAccessStrategy.insert(localSession,KEY,VALUE1,new Integer(1));
         readLatch.countDown();
         commitLatch.await();
         BatchModeTransactionManager.getInstance().commit();
@@ -36,7 +36,7 @@ catch (      AssertionFailedError e) {
         BatchModeTransactionManager.getInstance().begin();
         readLatch.await();
         Object expected=null;
-        assertEquals("Correct initial value",expected,localAccessStrategy.get(null,KEY,txTimestamp));
+        assertEquals("Correct initial value",expected,localAccessStrategy.get(localSession,KEY,txTimestamp));
         BatchModeTransactionManager.getInstance().commit();
       }
  catch (      Exception e) {
@@ -62,7 +62,7 @@ catch (      AssertionFailedError e) {
   assertTrue("Threads completed",completionLatch.await(1,TimeUnit.SECONDS));
   assertThreadsRanCleanly();
   long txTimestamp=System.currentTimeMillis();
-  assertEquals("Correct node1 value",VALUE1,localAccessStrategy.get(null,KEY,txTimestamp));
+  assertEquals("Correct node1 value",VALUE1,localAccessStrategy.get(localSession,KEY,txTimestamp));
   Object expected=isUsingInvalidation() ? null : VALUE1;
-  assertEquals("Correct node2 value",expected,remoteAccessStrategy.get(null,KEY,txTimestamp));
+  assertEquals("Correct node2 value",expected,remoteAccessStrategy.get(remoteSession,KEY,txTimestamp));
 }

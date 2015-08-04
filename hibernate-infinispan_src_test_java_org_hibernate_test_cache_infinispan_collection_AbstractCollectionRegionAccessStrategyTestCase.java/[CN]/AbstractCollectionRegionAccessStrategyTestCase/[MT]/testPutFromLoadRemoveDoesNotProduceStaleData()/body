@@ -9,7 +9,8 @@
       final TransactionManager localTm=localCollectionRegion.getTransactionManager();
       Callable<Void> pferCallable=new Callable<Void>(){
         public Void call() throws Exception {
-          delegate.putFromLoad(null,"k1","v1",0,null);
+          SessionImplementor session=mock(SessionImplementor.class);
+          delegate.putFromLoad(session,"k1","v1",0,null);
           return null;
         }
       }
@@ -19,7 +20,8 @@
           removeLatch.await();
           Caches.withinTx(localTm,new Callable<Void>(){
             @Override public Void call() throws Exception {
-              delegate.remove(null,"k1");
+              SessionImplementor session=mock(SessionImplementor.class);
+              delegate.remove(session,"k1");
               return null;
             }
           }
