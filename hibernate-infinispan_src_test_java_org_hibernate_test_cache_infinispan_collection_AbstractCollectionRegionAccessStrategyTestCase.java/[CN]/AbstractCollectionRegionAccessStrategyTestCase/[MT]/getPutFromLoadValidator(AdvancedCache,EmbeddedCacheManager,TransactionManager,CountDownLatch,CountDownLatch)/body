@@ -1,0 +1,22 @@
+{
+  PutFromLoadValidator.removeFromCache(cache);
+  return new PutFromLoadValidator(cache,cm,tm){
+    @Override public Lock acquirePutFromLoadLock(    Object key,    long txTimestamp){
+      Lock lock=super.acquirePutFromLoadLock(key,txTimestamp);
+      try {
+        removeLatch.countDown();
+        pferLatch.await(2,TimeUnit.SECONDS);
+      }
+ catch (      InterruptedException e) {
+        log.debug("Interrupted");
+        Thread.currentThread().interrupt();
+      }
+catch (      Exception e) {
+        log.error("Error",e);
+        throw new RuntimeException("Error",e);
+      }
+      return lock;
+    }
+  }
+;
+}

@@ -1,0 +1,12 @@
+{
+  List<CommandInterceptor> interceptorChain=cache.getInterceptorChain();
+  int index=0;
+  for (; index < interceptorChain.size(); ++index) {
+    if (interceptorChain.get(index).getClass().getName().startsWith(PutFromLoadValidator.class.getName())) {
+      cache.removeInterceptor(index);
+      break;
+    }
+  }
+  CacheCommandInitializer cci=cache.getComponentRegistry().getComponent(CacheCommandInitializer.class);
+  cci.removePutFromLoadValidator(cache.getName());
+}

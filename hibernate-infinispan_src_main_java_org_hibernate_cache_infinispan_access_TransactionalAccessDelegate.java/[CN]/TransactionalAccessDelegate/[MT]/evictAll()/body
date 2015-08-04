@@ -1,7 +1,12 @@
 {
-  if (!putValidator.invalidateRegion()) {
-    throw new CacheException("Failed to invalidate pending putFromLoad calls for region " + region.getName());
+  try {
+    if (!putValidator.beginInvalidatingRegion()) {
+      throw new CacheException("Failed to invalidate pending putFromLoad calls for region " + region.getName());
+    }
+    region.invalidateRegion();
+    Caches.broadcastEvictAll(cache);
   }
-  region.invalidateRegion();
-  Caches.broadcastEvictAll(cache);
+  finally {
+    putValidator.endInvalidatingRegion();
+  }
 }

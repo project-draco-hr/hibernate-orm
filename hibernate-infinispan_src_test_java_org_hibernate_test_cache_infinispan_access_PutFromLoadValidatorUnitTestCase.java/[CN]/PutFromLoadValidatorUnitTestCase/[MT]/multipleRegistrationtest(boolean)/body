@@ -1,20 +1,21 @@
 {
-  withCacheManager(new CacheManagerCallable(TestCacheManagerFactory.createCacheManager(false)){
+  withCacheManager(new CacheManagerCallable(createCacheManager()){
     @Override public void call(){
-      final PutFromLoadValidator testee=new PutFromLoadValidator(cm.getCache().getAdvancedCache(),cm,transactional ? tm : null,PutFromLoadValidator.NAKED_PUT_INVALIDATION_PERIOD);
+      final PutFromLoadValidator testee=new PutFromLoadValidator(cm.getCache().getAdvancedCache(),cm,transactional ? tm : null);
       final CountDownLatch registeredLatch=new CountDownLatch(3);
       final CountDownLatch finishedLatch=new CountDownLatch(3);
       final AtomicInteger success=new AtomicInteger();
       Runnable r=new Runnable(){
         public void run(){
           try {
+            long txTimestamp=System.currentTimeMillis();
             if (transactional) {
               tm.begin();
             }
-            testee.registerPendingPut(KEY1);
+            testee.registerPendingPut(KEY1,txTimestamp);
             registeredLatch.countDown();
             registeredLatch.await(5,TimeUnit.SECONDS);
-            PutFromLoadValidator.Lock lock=testee.acquirePutFromLoadLock(KEY1);
+            PutFromLoadValidator.Lock lock=testee.acquirePutFromLoadLock(KEY1,txTimestamp);
             if (lock != null) {
               try {
                 log.trace("Put from load lock acquired for key = " + KEY1);
@@ -36,7 +37,14 @@
       }
 ;
       ExecutorService executor=Executors.newFixedThreadPool(3);
-      testee.invalidateRegion();
+      testee.beginInvalidatingRegion();
+      testee.endInvalidatingRegion();
+      try {
+        Thread.sleep(10);
+      }
+ catch (      InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
       executor.execute(r);
       executor.execute(r);
       executor.execute(r);

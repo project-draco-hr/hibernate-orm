@@ -1,0 +1,55 @@
+{
+  long invalidationTimestamp=this.regionInvalidationTimestamp;
+  if (txTimestamp <= invalidationTimestamp) {
+    boolean skip;
+    if (invalidationTimestamp == Long.MAX_VALUE) {
+      skip=true;
+    }
+ else {
+      Transaction tx=null;
+      if (transactionManager != null) {
+        try {
+          tx=transactionManager.getTransaction();
+        }
+ catch (        SystemException e) {
+          log.error("TransactionManager failed to provide transaction",e);
+        }
+      }
+      skip=tx == null || !regionInvalidators.contains(tx);
+    }
+    if (skip) {
+      if (trace) {
+        log.tracef("registerPendingPut(%s#%s, %d) skipped due to region invalidation (%d)",cache.getName(),key,txTimestamp,invalidationTimestamp);
+      }
+      return;
+    }
+  }
+  final PendingPut pendingPut=new PendingPut(getOwnerForPut());
+  final PendingPutMap pendingForKey=new PendingPutMap(pendingPut);
+  final PendingPutMap existing=pendingPuts.putIfAbsent(key,pendingForKey);
+  if (existing != null) {
+    if (existing.acquireLock(10,TimeUnit.SECONDS)) {
+      try {
+        if (!existing.hasInvalidator()) {
+          existing.put(pendingPut);
+        }
+      }
+  finally {
+        existing.releaseLock();
+      }
+      if (trace) {
+        log.tracef("registerPendingPut(%s#%s, %d) ended with %s",cache.getName(),key,txTimestamp,existing);
+      }
+    }
+ else {
+      if (trace) {
+        log.tracef("registerPendingPut(%s#%s, %d) failed to acquire lock",cache.getName(),key,txTimestamp);
+      }
+    }
+  }
+ else {
+    if (trace) {
+      log.tracef("registerPendingPut(%s#%s, %d) registered using putIfAbsent: %s",cache.getName(),key,txTimestamp,pendingForKey);
+    }
+  }
+}

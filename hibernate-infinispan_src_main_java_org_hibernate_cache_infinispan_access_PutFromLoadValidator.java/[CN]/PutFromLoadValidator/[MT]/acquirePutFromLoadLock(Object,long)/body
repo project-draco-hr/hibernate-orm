@@ -1,0 +1,76 @@
+{
+  if (trace) {
+    log.tracef("acquirePutFromLoadLock(%s#%s, %d)",cache.getName(),key,txTimestamp);
+  }
+  boolean valid=false;
+  boolean locked=false;
+  PendingPutMap pending=pendingPuts.get(key);
+  for (; ; ) {
+    try {
+      if (pending != null) {
+        locked=pending.acquireLock(100,TimeUnit.MILLISECONDS);
+        if (locked) {
+          try {
+            final PendingPut toCancel=pending.remove(getOwnerForPut());
+            if (toCancel != null) {
+              valid=!toCancel.completed;
+              toCancel.completed=true;
+            }
+ else {
+              if (pending.hasInvalidator()) {
+                valid=false;
+              }
+ else {
+                valid=txTimestamp > pending.lastInvalidationEnd;
+              }
+            }
+            return valid ? pending : null;
+          }
+  finally {
+            if (!valid) {
+              pending.releaseLock();
+              locked=false;
+            }
+            if (trace) {
+              log.tracef("acquirePutFromLoadLock(%s#%s, %d) ended with %s",cache.getName(),key,txTimestamp,pending);
+            }
+          }
+        }
+ else {
+          if (trace) {
+            log.tracef("acquirePutFromLoadLock(%s#%s, %d) failed to lock",cache.getName(),key,txTimestamp);
+          }
+          return null;
+        }
+      }
+ else {
+        if (txTimestamp <= regionInvalidationTimestamp) {
+          if (trace) {
+            log.tracef("acquirePutFromLoadLock(%s#%s, %d) failed due to invalidated region",cache.getName(),key,txTimestamp);
+          }
+          return null;
+        }
+        PendingPut pendingPut=new PendingPut(getOwnerForPut());
+        pending=new PendingPutMap(pendingPut);
+        PendingPutMap existing=pendingPuts.putIfAbsent(key,pending);
+        if (existing != null) {
+          pending=existing;
+        }
+      }
+    }
+ catch (    Throwable t) {
+      if (locked) {
+        pending.releaseLock();
+      }
+      if (t instanceof RuntimeException) {
+        throw (RuntimeException)t;
+      }
+ else       if (t instanceof Error) {
+        throw (Error)t;
+      }
+ else {
+        throw new RuntimeException(t);
+      }
+    }
+  }
+}

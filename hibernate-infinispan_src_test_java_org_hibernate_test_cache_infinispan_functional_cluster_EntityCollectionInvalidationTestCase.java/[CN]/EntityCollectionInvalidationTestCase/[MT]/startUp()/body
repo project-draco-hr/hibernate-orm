@@ -1,0 +1,23 @@
+{
+  super.startUp();
+  localManager=ClusterAwareRegionFactory.getCacheManager(DualNodeTestCase.LOCAL);
+  localCustomerCache=localManager.getCache(Customer.class.getName());
+  localContactCache=localManager.getCache(Contact.class.getName());
+  localCollectionCache=localManager.getCache(Customer.class.getName() + ".contacts");
+  localListener=new MyListener("local");
+  localCustomerCache.addListener(localListener);
+  localContactCache.addListener(localListener);
+  localCollectionCache.addListener(localListener);
+  remoteManager=ClusterAwareRegionFactory.getCacheManager(DualNodeTestCase.REMOTE);
+  remoteCustomerCache=remoteManager.getCache(Customer.class.getName());
+  remoteContactCache=remoteManager.getCache(Contact.class.getName());
+  remoteCollectionCache=remoteManager.getCache(Customer.class.getName() + ".contacts");
+  remoteListener=new MyListener("remote");
+  remoteCustomerCache.addListener(remoteListener);
+  remoteContactCache.addListener(remoteListener);
+  remoteCollectionCache.addListener(remoteListener);
+  localFactory=sessionFactory();
+  remoteFactory=secondNodeEnvironment().getSessionFactory();
+  localTM=DualNodeJtaTransactionManagerImpl.getInstance(DualNodeTestCase.LOCAL);
+  remoteTM=DualNodeJtaTransactionManagerImpl.getInstance(DualNodeTestCase.REMOTE);
+}

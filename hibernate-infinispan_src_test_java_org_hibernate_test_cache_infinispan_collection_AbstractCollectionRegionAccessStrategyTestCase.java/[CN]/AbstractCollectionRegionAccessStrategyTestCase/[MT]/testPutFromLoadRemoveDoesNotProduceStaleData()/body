@@ -2,27 +2,9 @@
   final CountDownLatch pferLatch=new CountDownLatch(1);
   final CountDownLatch removeLatch=new CountDownLatch(1);
   final TransactionManager remoteTm=remoteCollectionRegion.getTransactionManager();
-  withCacheManager(new CacheManagerCallable(TestCacheManagerFactory.createCacheManager(false)){
+  withCacheManager(new CacheManagerCallable(createCacheManager()){
     @Override public void call(){
-      PutFromLoadValidator validator=new PutFromLoadValidator(remoteCollectionRegion.getCache(),cm,remoteTm,20000){
-        @Override public Lock acquirePutFromLoadLock(        Object key){
-          Lock lock=super.acquirePutFromLoadLock(key);
-          try {
-            removeLatch.countDown();
-            pferLatch.await(2,TimeUnit.SECONDS);
-          }
- catch (          InterruptedException e) {
-            log.debug("Interrupted");
-            Thread.currentThread().interrupt();
-          }
-catch (          Exception e) {
-            log.error("Error",e);
-            throw new RuntimeException("Error",e);
-          }
-          return lock;
-        }
-      }
-;
+      PutFromLoadValidator validator=getPutFromLoadValidator(remoteCollectionRegion.getCache(),cm,remoteTm,removeLatch,pferLatch);
       final TransactionalAccessDelegate delegate=new TransactionalAccessDelegate(localCollectionRegion,validator);
       final TransactionManager localTm=localCollectionRegion.getTransactionManager();
       Callable<Void> pferCallable=new Callable<Void>(){

@@ -1,0 +1,30 @@
+{
+  final List<Citizen> citizens=saveSomeCitizens();
+  withTx(tm,new Callable<Void>(){
+    @Override public Void call() throws Exception {
+      Session s=openSession();
+      Transaction tx=s.beginTransaction();
+      Cache cache=s.getSessionFactory().getCache();
+      cache.evictEntityRegions();
+      cache.evictEntityRegions();
+      tx.commit();
+      s.close();
+      return null;
+    }
+  }
+);
+  withTx(tm,new Callable<Void>(){
+    @Override public Void call() throws Exception {
+      Session s=openSession();
+      Transaction tx=s.beginTransaction();
+      Cache cache=s.getSessionFactory().getCache();
+      cache.evictEntityRegions();
+      s.delete(s.load(Citizen.class,citizens.get(0).getId()));
+      s.delete(s.load(Citizen.class,citizens.get(1).getId()));
+      tx.commit();
+      s.close();
+      return null;
+    }
+  }
+);
+}

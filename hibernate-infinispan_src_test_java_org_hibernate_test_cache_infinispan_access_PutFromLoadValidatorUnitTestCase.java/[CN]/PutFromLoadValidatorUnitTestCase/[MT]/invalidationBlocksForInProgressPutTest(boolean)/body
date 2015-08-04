@@ -1,14 +1,15 @@
 {
-  withCacheManager(new CacheManagerCallable(TestCacheManagerFactory.createCacheManager(false)){
+  withCacheManager(new CacheManagerCallable(createCacheManager()){
     @Override public void call(){
-      final PutFromLoadValidator testee=new PutFromLoadValidator(cm.getCache().getAdvancedCache(),cm,null,PutFromLoadValidator.NAKED_PUT_INVALIDATION_PERIOD);
+      final PutFromLoadValidator testee=new PutFromLoadValidator(cm.getCache().getAdvancedCache(),cm,null);
       final CountDownLatch removeLatch=new CountDownLatch(1);
       final CountDownLatch pferLatch=new CountDownLatch(1);
       final AtomicReference<Object> cache=new AtomicReference<Object>("INITIAL");
       Callable<Boolean> pferCallable=new Callable<Boolean>(){
         public Boolean call() throws Exception {
-          testee.registerPendingPut(KEY1);
-          PutFromLoadValidator.Lock lock=testee.acquirePutFromLoadLock(KEY1);
+          long txTimestamp=System.currentTimeMillis();
+          testee.registerPendingPut(KEY1,txTimestamp);
+          PutFromLoadValidator.Lock lock=testee.acquirePutFromLoadLock(KEY1,txTimestamp);
           if (lock != null) {
             try {
               removeLatch.countDown();
@@ -31,7 +32,7 @@
             testee.beginInvalidatingKey(KEY1);
           }
  else {
-            testee.invalidateRegion();
+            testee.beginInvalidatingRegion();
           }
           cache.set(null);
           return null;

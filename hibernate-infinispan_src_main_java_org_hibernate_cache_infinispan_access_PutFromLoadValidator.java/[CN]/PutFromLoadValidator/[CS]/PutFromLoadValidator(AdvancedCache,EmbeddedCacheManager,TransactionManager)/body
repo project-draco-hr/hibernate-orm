@@ -1,0 +1,24 @@
+{
+  Configuration cacheConfiguration=cache.getCacheConfiguration();
+  Configuration pendingPutsConfiguration=cacheManager.getCacheConfiguration(InfinispanRegionFactory.PENDING_PUTS_CACHE_NAME);
+  ConfigurationBuilder configurationBuilder=new ConfigurationBuilder();
+  configurationBuilder.read(pendingPutsConfiguration);
+  configurationBuilder.dataContainer().keyEquivalence(cacheConfiguration.dataContainer().keyEquivalence());
+  String pendingPutsName=cache.getName() + "-" + InfinispanRegionFactory.PENDING_PUTS_CACHE_NAME;
+  cacheManager.defineConfiguration(pendingPutsName,configurationBuilder.build());
+  if (pendingPutsConfiguration.expiration() != null && pendingPutsConfiguration.expiration().maxIdle() > 0) {
+    this.expirationPeriod=pendingPutsConfiguration.expiration().maxIdle();
+  }
+ else {
+    throw new IllegalArgumentException("Pending puts cache needs to have maxIdle expiration set!");
+  }
+  if (cacheConfiguration.clustering().cacheMode().isClustered()) {
+    RpcManager rpcManager=cache.getComponentRegistry().getComponent(RpcManager.class);
+    CacheCommandInitializer cacheCommandInitializer=cache.getComponentRegistry().getComponent(CacheCommandInitializer.class);
+    cache.addInterceptorBefore(new PutFromLoadInterceptor(cache.getName(),rpcManager,cacheCommandInitializer),EntryWrappingInterceptor.class);
+    cacheCommandInitializer.addPutFromLoadValidator(cache.getName(),this);
+  }
+  this.cache=cache;
+  this.pendingPuts=cacheManager.getCache(pendingPutsName);
+  this.transactionManager=tm;
+}

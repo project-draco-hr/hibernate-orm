@@ -1,0 +1,59 @@
+{
+  if (trace) {
+    log.trace("Started invalidating region " + cache.getName());
+  }
+  boolean ok=true;
+  long now=System.currentTimeMillis();
+synchronized (this) {
+    regionInvalidationTimestamp=Long.MAX_VALUE;
+    regionInvalidations++;
+  }
+  if (transactionManager != null) {
+    for (Iterator<Transaction> it=regionInvalidators.iterator(); it.hasNext(); ) {
+      Transaction tx=it.next();
+      try {
+switch (tx.getStatus()) {
+case Status.STATUS_COMMITTED:
+case Status.STATUS_ROLLEDBACK:
+case Status.STATUS_UNKNOWN:
+case Status.STATUS_NO_TRANSACTION:
+          it.remove();
+      }
+    }
+ catch (    SystemException e) {
+      log.error("Cannot retrieve transaction status",e);
+    }
+  }
+  try {
+    Transaction tx=transactionManager.getTransaction();
+    if (tx != null) {
+      regionInvalidators.add(tx);
+    }
+  }
+ catch (  SystemException e) {
+    log.error("TransactionManager failed to provide transaction",e);
+    return false;
+  }
+}
+try {
+  for (Iterator<PendingPutMap> it=pendingPuts.values().iterator(); it.hasNext(); ) {
+    PendingPutMap entry=it.next();
+    if (entry.acquireLock(60,TimeUnit.SECONDS)) {
+      try {
+        entry.invalidate(now,expirationPeriod);
+      }
+  finally {
+        entry.releaseLock();
+      }
+      it.remove();
+    }
+ else {
+      ok=false;
+    }
+  }
+}
+ catch (Exception e) {
+  ok=false;
+}
+return ok;
+}
