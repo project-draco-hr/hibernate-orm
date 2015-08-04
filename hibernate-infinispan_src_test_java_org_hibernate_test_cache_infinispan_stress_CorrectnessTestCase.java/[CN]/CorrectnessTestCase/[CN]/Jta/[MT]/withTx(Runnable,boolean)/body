@@ -1,0 +1,24 @@
+{
+  int node=threadNode.get();
+  TransactionManager tm=transactionManager;
+  tm.begin();
+  try {
+    runnable.run();
+  }
+ catch (  RuntimeException e) {
+    tm.setRollbackOnly();
+    throw e;
+  }
+ finally {
+    if (!rolledBack && tm.getStatus() == Status.STATUS_ACTIVE) {
+      log.trace("TM commit begin");
+      tm.commit();
+      log.trace("TM commit end");
+    }
+ else {
+      log.trace("TM rollback begin");
+      tm.rollback();
+      log.trace("TM rollback end");
+    }
+  }
+}

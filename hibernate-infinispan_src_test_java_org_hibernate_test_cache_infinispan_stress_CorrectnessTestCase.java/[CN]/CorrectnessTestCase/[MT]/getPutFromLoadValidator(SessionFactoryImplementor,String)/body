@@ -1,0 +1,12 @@
+{
+  RegionAccessStrategy strategy=sfi.getSecondLevelCacheRegionAccessStrategy(regionName);
+  if (strategy == null) {
+    return null;
+  }
+  Field delegateField=strategy.getClass().getDeclaredField("delegate");
+  delegateField.setAccessible(true);
+  Object delegate=delegateField.get(strategy);
+  Field validatorField=TransactionalAccessDelegate.class.getDeclaredField("putValidator");
+  validatorField.setAccessible(true);
+  return (PutFromLoadValidator)validatorField.get(delegate);
+}
