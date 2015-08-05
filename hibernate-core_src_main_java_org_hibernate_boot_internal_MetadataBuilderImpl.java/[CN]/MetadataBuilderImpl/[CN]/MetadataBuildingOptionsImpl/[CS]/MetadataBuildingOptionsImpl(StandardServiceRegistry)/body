@@ -44,7 +44,12 @@
   }
 ,serviceRegistry.getService(RegionFactory.class) == null ? null : serviceRegistry.getService(RegionFactory.class).getDefaultAccessType());
   specjProprietarySyntaxEnabled=configService.getSetting("hibernate.enable_specj_proprietary_syntax",StandardConverters.BOOLEAN,false);
-  implicitNamingStrategy=strategySelector.resolveDefaultableStrategy(ImplicitNamingStrategy.class,configService.getSettings().get(AvailableSettings.IMPLICIT_NAMING_STRATEGY),ImplicitNamingStrategyLegacyJpaImpl.INSTANCE);
+  implicitNamingStrategy=strategySelector.resolveDefaultableStrategy(ImplicitNamingStrategy.class,configService.getSettings().get(AvailableSettings.IMPLICIT_NAMING_STRATEGY),new Callable<ImplicitNamingStrategy>(){
+    @Override public ImplicitNamingStrategy call() throws Exception {
+      return strategySelector.resolveDefaultableStrategy(ImplicitNamingStrategy.class,"default",ImplicitNamingStrategyJpaCompliantImpl.INSTANCE);
+    }
+  }
+);
   physicalNamingStrategy=strategySelector.resolveDefaultableStrategy(PhysicalNamingStrategy.class,configService.getSettings().get(AvailableSettings.PHYSICAL_NAMING_STRATEGY),PhysicalNamingStrategyStandardImpl.INSTANCE);
   sourceProcessOrdering=resolveInitialSourceProcessOrdering(configService);
   final boolean useNewIdentifierGenerators=configService.getSetting(AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS,StandardConverters.BOOLEAN,true);
