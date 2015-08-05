@@ -1,10 +1,19 @@
 {
   final Namespace namespace=database.locateNamespace(qualifiedTableName.getCatalogName(),qualifiedTableName.getSchemaName());
-  final Table table=namespace.createTable(qualifiedTableName.getObjectName(),false);
-  table.setPrimaryKey(new PrimaryKey());
-  final Column pkColumn=new ExportableColumn(database,table,pkColumnName,StringType.INSTANCE,database.getDialect().getTypeName(Types.VARCHAR,keySize,0,0));
-  table.addColumn(pkColumn);
-  table.getPrimaryKey().addColumn(pkColumn);
-  final Column valueColumn=new ExportableColumn(database,table,valueColumnName,LongType.INSTANCE);
-  table.addColumn(valueColumn);
+  Table table=namespace.locateTable(qualifiedTableName.getObjectName());
+  if (table == null) {
+    table=namespace.createTable(qualifiedTableName.getObjectName(),false);
+    table.setPrimaryKey(new PrimaryKey());
+    final Column pkColumn=new ExportableColumn(database,table,segmentColumnName,StringType.INSTANCE,database.getDialect().getTypeName(Types.VARCHAR,keySize,0,0));
+    pkColumn.setNullable(false);
+    table.addColumn(pkColumn);
+    table.getPrimaryKey().addColumn(pkColumn);
+    final Column valueColumn=new ExportableColumn(database,table,valueColumnName,LongType.INSTANCE);
+    table.addColumn(valueColumn);
+  }
+  final JdbcEnvironment jdbcEnvironment=database.getJdbcEnvironment();
+  tableName=jdbcEnvironment.getQualifiedObjectNameFormatter().format(table.getQualifiedTableName(),jdbcEnvironment.getDialect());
+  query="select " + valueColumnName + " from "+ jdbcEnvironment.getDialect().appendLockHint(LockMode.PESSIMISTIC_WRITE,tableName)+ " where "+ segmentColumnName+ " = '"+ segmentName+ "'"+ jdbcEnvironment.getDialect().getForUpdateString();
+  update="update " + tableName + " set "+ valueColumnName+ " = ? where "+ valueColumnName+ " = ? and "+ segmentColumnName+ " = '"+ segmentName+ "'";
+  insert="insert into " + tableName + "("+ segmentColumnName+ ", "+ valueColumnName+ ") "+ "values('"+ segmentName+ "', ?)";
 }

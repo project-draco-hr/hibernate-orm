@@ -1,0 +1,11 @@
+{
+  final String tableName=ConfigurationHelper.getString(ID_TABLE,params,DEFAULT_TABLE);
+  if (tableName.contains(".")) {
+    return QualifiedNameParser.INSTANCE.parse(tableName);
+  }
+ else {
+    final Identifier catalog=jdbcEnvironment.getIdentifierHelper().toIdentifier(ConfigurationHelper.getString(CATALOG,params));
+    final Identifier schema=jdbcEnvironment.getIdentifierHelper().toIdentifier(ConfigurationHelper.getString(SCHEMA,params));
+    return new QualifiedNameParser.NameParts(catalog,schema,jdbcEnvironment.getIdentifierHelper().toIdentifier(tableName));
+  }
+}
