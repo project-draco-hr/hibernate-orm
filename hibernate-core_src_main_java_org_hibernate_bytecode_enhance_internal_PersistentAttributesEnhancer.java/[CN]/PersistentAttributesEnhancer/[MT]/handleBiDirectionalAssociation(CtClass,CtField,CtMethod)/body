@@ -1,35 +1,58 @@
 {
-  if (!isPossibleBiDirectionalAssociation(persistentField)) {
+  if (!PersistentAttributesHelper.isPossibleBiDirectionalAssociation(persistentField)) {
     return;
   }
-  final CtClass targetEntity=getTargetEntityClass(persistentField);
+  final CtClass targetEntity=PersistentAttributesHelper.getTargetEntityClass(managedCtClass,persistentField);
   if (targetEntity == null) {
-    log.debugf("Could not find type of bi-directional association for field [%s#%s]",managedCtClass.getName(),persistentField.getName());
+    log.infof("Could not find type of bi-directional association for field [%s#%s]",managedCtClass.getName(),persistentField.getName());
     return;
   }
-  final String mappedBy=getMappedBy(persistentField,targetEntity);
-  if (mappedBy.isEmpty()) {
-    log.warnf("Could not find bi-directional association for field [%s#%s]",managedCtClass.getName(),persistentField.getName());
+  final String mappedBy=PersistentAttributesHelper.getMappedBy(persistentField,targetEntity,enhancementContext);
+  if (mappedBy == null || mappedBy.isEmpty()) {
+    log.infof("Could not find bi-directional association for field [%s#%s]",managedCtClass.getName(),persistentField.getName());
     return;
   }
   final String mappedByGetterName=EnhancerConstants.PERSISTENT_FIELD_READER_PREFIX + mappedBy;
   final String mappedBySetterName=EnhancerConstants.PERSISTENT_FIELD_WRITER_PREFIX + mappedBy;
-  MethodWriter.addGetter(targetEntity,mappedBy,mappedByGetterName);
-  MethodWriter.addSetter(targetEntity,mappedBy,mappedBySetterName);
-  if (persistentField.hasAnnotation(OneToOne.class)) {
-    fieldWriter.insertBefore(String.format("if ($0.%s != null && $1 != null) $0.%<s.%s(null);%n",persistentField.getName(),mappedBySetterName));
-    fieldWriter.insertAfter(String.format("if ($1 != null && $1.%s() != $0) $1.%s($0);%n",mappedByGetterName,mappedBySetterName));
+  CtMethod getter;
+  CtMethod setter;
+  boolean tmpTargetMethods=false;
+  try {
+    getter=targetEntity.getDeclaredMethod(mappedByGetterName);
+    setter=targetEntity.getDeclaredMethod(mappedByGetterName);
   }
-  if (persistentField.hasAnnotation(OneToMany.class)) {
-    fieldWriter.insertBefore(String.format("if ($0.%s != null) { Object[] array = $0.%<s.toArray(); for (int i = 0; i < array.length; i++) { %s target = (%<s) array[i]; if ($1 == null || !$1.contains(target)) target.%s(null); } }%n",persistentField.getName(),targetEntity.getName(),mappedBySetterName));
-    fieldWriter.insertAfter(String.format("if ($1 != null) { Object[] array = $1.toArray(); for (int i = 0; i < array.length; i++) { %s target = (%<s) array[i]; if (target.%s() != $0) target.%s((%s)$0); } }%n",targetEntity.getName(),mappedByGetterName,mappedBySetterName,managedCtClass.getName()));
+ catch (  NotFoundException nfe) {
+    getter=MethodWriter.addGetter(targetEntity,mappedBy,mappedByGetterName);
+    setter=MethodWriter.addSetter(targetEntity,mappedBy,mappedBySetterName);
+    tmpTargetMethods=true;
   }
-  if (persistentField.hasAnnotation(ManyToOne.class)) {
-    fieldWriter.insertBefore(String.format("if ($0.%1$s != null && $0.%1$s.%2$s() != null) $0.%1$s.%2$s().remove($0);%n",persistentField.getName(),mappedByGetterName));
-    fieldWriter.insertAfter(String.format("if ($1 != null) { java.util.Collection c = $1.%s(); if (c != null && !c.contains($0)) c.add($0); }%n",mappedByGetterName));
+  String currentAssociationLoaded=String.format("%s.isPropertyInitialized(this.%s, \"%s\")",Hibernate.class.getName(),persistentField.getName(),mappedBy);
+  String targetElementLoaded=String.format("%s.isPropertyInitialized(target, \"%s\")",Hibernate.class.getName(),mappedBy);
+  String newAssociationLoaded=String.format("%s.isPropertyInitialized($1, \"%s\")",Hibernate.class.getName(),mappedBy);
+  if (PersistentAttributesHelper.hasAnnotation(persistentField,OneToOne.class)) {
+    fieldWriter.insertBefore(String.format("  if (this.%1$s != null && %2$s && $1 != null) { this.%1$s.%3$s(null); }%n",persistentField.getName(),currentAssociationLoaded,mappedBySetterName));
+    fieldWriter.insertAfter(String.format("  if ($1 != null && %s && $1.%s() != this) { $1.%s(this); }%n",newAssociationLoaded,mappedByGetterName,mappedBySetterName));
   }
-  if (persistentField.hasAnnotation(ManyToMany.class)) {
-    fieldWriter.insertBefore(String.format("if ($0.%s != null) { Object[] array = $0.%<s.toArray(); for (int i = 0; i < array.length; i++) { %s target = (%<s) array[i]; if ($1 == null || !$1.contains(target)) target.%s().remove($0); } }%n",persistentField.getName(),targetEntity.getName(),mappedByGetterName));
-    fieldWriter.insertAfter(String.format("if ($1 != null) { Object[] array = $1.toArray(); for (int i = 0; i < array.length; i++) { %s target = (%<s) array[i]; java.util.Collection c = target.%s(); if ( c != $0 && c != null) c.add($0); } }%n",targetEntity.getName(),mappedByGetterName));
+  if (PersistentAttributesHelper.hasAnnotation(persistentField,OneToMany.class)) {
+    boolean isMap=PersistentAttributesHelper.isAssignable(persistentField.getType(),Map.class.getName());
+    String toArrayMethod=isMap ? "values().toArray()" : "toArray()";
+    fieldWriter.insertBefore(String.format("  if (this.%3$s != null && %1$s) {%n" + "    Object[] array = this.%3$s.%2$s;%n" + "    for (int i = 0; i < array.length; i++) {%n"+ "      %4$s target = (%4$s) array[i];%n"+ "      if ($1 == null || !$1.contains(target)) { target.%5$s(null); }%n"+ "    }%n"+ "  }%n",currentAssociationLoaded,toArrayMethod,persistentField.getName(),targetEntity.getName(),mappedBySetterName));
+    fieldWriter.insertAfter(String.format("  if ($1 != null && %1$s) {%n" + "    Object[] array = $1.%2$s;%n" + "    for (int i = 0; i < array.length; i++) {%n"+ "      %4$s target = (%4$s) array[i];%n"+ "      if (%3$s && target.%5$s() != this) { target.%6$s(this); }%n"+ "    }%n"+ "  }%n",newAssociationLoaded,toArrayMethod,targetElementLoaded,targetEntity.getName(),mappedByGetterName,mappedBySetterName));
+  }
+  if (PersistentAttributesHelper.hasAnnotation(persistentField,ManyToOne.class)) {
+    fieldWriter.insertBefore(String.format("  if (this.%2$s != null && %1$s && this.%2$s.%3$s() != null) { this.%2$s.%3$s().remove(this); }%n",currentAssociationLoaded,persistentField.getName(),mappedByGetterName));
+    fieldWriter.insertAfter(String.format("  if ($1 != null && %s) {%n" + "    java.util.Collection c = $1.%s();%n" + "    if (c != null && !c.contains(this)) { c.add(this); }%n"+ "  }%n",newAssociationLoaded,mappedByGetterName));
+  }
+  if (PersistentAttributesHelper.hasAnnotation(persistentField,ManyToMany.class)) {
+    if (PersistentAttributesHelper.isAssignable(persistentField.getType(),Map.class.getName()) || PersistentAttributesHelper.isAssignable(targetEntity.getField(mappedBy).getType(),Map.class.getName())) {
+      log.infof("Bi-directional association for field [%s#%s] not managed: @ManyToMany in java.util.Map attribute not supported ",managedCtClass.getName(),persistentField.getName());
+      return;
+    }
+    fieldWriter.insertBefore(String.format("  if (this.%2$s != null && %1$s) {%n" + "    Object[] array = this.%2$s.toArray();%n" + "    for (int i = 0; i < array.length; i++) {%n"+ "      %3$s target = (%3$s) array[i];%n"+ "      if ($1 == null || !$1.contains(target)) { target.%4$s().remove(this); }%n"+ "    }%n"+ "  }%n",currentAssociationLoaded,persistentField.getName(),targetEntity.getName(),mappedByGetterName));
+    fieldWriter.insertAfter(String.format("  if ($1 != null && %s) {%n" + "    Object[] array = $1.toArray();%n" + "    for (int i = 0; i < array.length; i++) {%n"+ "      %s target = (%<s) array[i];%n"+ "	   if (%s) {%n"+ "        java.util.Collection c = target.%s();%n"+ "        if (c != this && c != null) { c.add(this); }%n"+ "      }%n"+ "    }%n"+ "  }%n",newAssociationLoaded,targetEntity.getName(),targetElementLoaded,mappedByGetterName));
+  }
+  if (tmpTargetMethods) {
+    targetEntity.removeMethod(getter);
+    targetEntity.removeMethod(setter);
   }
 }

@@ -3,19 +3,21 @@
   final String writerName=EnhancerConstants.PERSISTENT_FIELD_WRITER_PREFIX + fieldName;
   try {
     final CtMethod writer;
-    if (!enhancementContext.isLazyLoadable(persistentField)) {
+    if (!enhancementContext.hasLazyLoadableAttributes(managedCtClass) || !enhancementContext.isLazyLoadable(persistentField)) {
       writer=MethodWriter.addSetter(managedCtClass,fieldName,writerName);
     }
  else {
-      writer=MethodWriter.write(managedCtClass,"public void %s(%s %s) {%n  %s%n}",writerName,persistentField.getType().getName(),fieldName,typeDescriptor.buildWriteInterceptionBodyFragment(fieldName));
+      writer=MethodWriter.write(managedCtClass,"public void %s(%s %s) {%n%s%n}",writerName,persistentField.getType().getName(),fieldName,typeDescriptor.buildWriteInterceptionBodyFragment(fieldName));
     }
-    if (enhancementContext.isCompositeClass(managedCtClass)) {
-      writer.insertBefore(String.format("if (%s != null) { %<s.callOwner(\".%s\"); }%n",EnhancerConstants.TRACKER_COMPOSITE_FIELD_NAME,fieldName));
+    if (enhancementContext.doDirtyCheckingInline(managedCtClass)) {
+      if (enhancementContext.isCompositeClass(managedCtClass)) {
+        writer.insertBefore(String.format("  if (%1$s != null) { %1$s.callOwner(\"\"); }%n",EnhancerConstants.TRACKER_COMPOSITE_FIELD_NAME));
+      }
+ else {
+        writer.insertBefore(typeDescriptor.buildInLineDirtyCheckingBodyFragment(enhancementContext,persistentField));
+      }
+      handleCompositeField(managedCtClass,persistentField,writer);
     }
- else     if (enhancementContext.doDirtyCheckingInline(managedCtClass)) {
-      writer.insertBefore(typeDescriptor.buildInLineDirtyCheckingBodyFragment(enhancementContext,persistentField));
-    }
-    handleCompositeField(managedCtClass,persistentField,writer);
     if (enhancementContext.doBiDirectionalAssociationManagement(persistentField)) {
       handleBiDirectionalAssociation(managedCtClass,persistentField,writer);
     }

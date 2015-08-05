@@ -1,16 +1,14 @@
 {
   final StringBuilder builder=new StringBuilder();
   try {
-    for (    Object o : currentValue.getType().getAnnotations()) {
-      if (o instanceof Id) {
-        return "";
-      }
+    if (PersistentAttributesHelper.hasAnnotation(currentValue,Id.class)) {
+      return "";
     }
     if (currentValue.getType().isPrimitive() || currentValue.getType().isEnum()) {
-      builder.append(String.format("if (%s != $1)",currentValue.getName()));
+      builder.append(String.format("  if (%s != $1)",currentValue.getName()));
     }
  else     if (currentValue.getType().getName().startsWith("java.lang") || currentValue.getType().getName().startsWith("java.math.Big") || currentValue.getType().getName().startsWith("java.sql.Time")|| currentValue.getType().getName().startsWith("java.sql.Date")|| currentValue.getType().getName().startsWith("java.util.Date")|| currentValue.getType().getName().startsWith("java.util.Calendar")) {
-      builder.append(String.format("if (%s == null || !%<s.equals($1))",currentValue.getName()));
+      builder.append(String.format("  if (%s == null || !%<s.equals($1))",currentValue.getName()));
     }
  else {
       for (      CtClass ctClass : currentValue.getType().getInterfaces()) {
@@ -20,14 +18,11 @@
           }
         }
       }
-      builder.append(String.format("if (%1$s == null || !%2$s.equals(%1$s, $1))",currentValue.getName(),EqualsHelper.class.getName()));
+      builder.append(String.format("  if (%1$s == null || !%2$s.equals(%1$s, $1))",currentValue.getName(),EqualsHelper.class.getName()));
     }
     builder.append(String.format("  {  %s(\"%s\");  }",EnhancerConstants.TRACKER_CHANGER_NAME,currentValue.getName()));
   }
- catch (  ClassNotFoundException e) {
-    e.printStackTrace();
-  }
-catch (  NotFoundException e) {
+ catch (  NotFoundException e) {
     e.printStackTrace();
   }
   return builder.toString();

@@ -1,0 +1,24 @@
+{
+  if (ctClass == null) {
+    return null;
+  }
+  CtMethod method=getterOrNull(ctClass,propertyName);
+  if (method != null) {
+    return method;
+  }
+  try {
+    method=findGetterOrNull(ctClass.getSuperclass(),propertyName);
+    if (method != null) {
+      return method;
+    }
+    for (    CtClass interfaceCtClass : ctClass.getInterfaces()) {
+      method=getterOrNull(interfaceCtClass,propertyName);
+      if (method != null) {
+        return method;
+      }
+    }
+  }
+ catch (  NotFoundException nfe) {
+  }
+  return null;
+}
