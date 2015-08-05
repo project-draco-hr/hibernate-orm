@@ -1,0 +1,33 @@
+{
+  Session s=getFactory().openSession();
+  s.beginTransaction();
+  ParentEntity parent=s.get(ParentEntity.class,entityId);
+  s.getTransaction().commit();
+  s.close();
+  EnhancerTestUtils.checkDirtyTracking(parent);
+  parent.address.country.name="Paraguai";
+  EnhancerTestUtils.checkDirtyTracking(parent,"address.country");
+  s=getFactory().openSession();
+  s.beginTransaction();
+  ParentEntity mergedParent=(ParentEntity)s.merge(parent);
+  EnhancerTestUtils.checkDirtyTracking(parent,"address.country");
+  EnhancerTestUtils.checkDirtyTracking(mergedParent,"address.country");
+  s.getTransaction().commit();
+  s.close();
+  EnhancerTestUtils.checkDirtyTracking(parent,"address.country");
+  EnhancerTestUtils.checkDirtyTracking(mergedParent);
+  mergedParent.address.country.name="Honduras";
+  EnhancerTestUtils.checkDirtyTracking(mergedParent,"address.country");
+  s=getFactory().openSession();
+  s.beginTransaction();
+  s.saveOrUpdate(mergedParent);
+  EnhancerTestUtils.checkDirtyTracking(mergedParent,"address.country");
+  s.getTransaction().commit();
+  s.close();
+  s=getFactory().openSession();
+  s.beginTransaction();
+  parent=s.get(ParentEntity.class,entityId);
+  s.getTransaction().commit();
+  s.close();
+  Assert.assertEquals("Honduras",parent.address.country.name);
+}

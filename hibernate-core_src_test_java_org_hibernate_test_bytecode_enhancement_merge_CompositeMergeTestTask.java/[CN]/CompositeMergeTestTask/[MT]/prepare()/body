@@ -1,0 +1,21 @@
+{
+  Configuration cfg=new Configuration();
+  cfg.setProperty(Environment.ENABLE_LAZY_LOAD_NO_TRANS,"true");
+  cfg.setProperty(Environment.USE_SECOND_LEVEL_CACHE,"false");
+  super.prepare(cfg);
+  ParentEntity parent=new ParentEntity();
+  parent.description="desc";
+  parent.address=new Address();
+  parent.address.street="Sesame street";
+  parent.address.country=new Country();
+  parent.address.country.name="Suriname";
+  parent.address.country.languages=Arrays.asList("english","spanish");
+  parent.lazyField=new byte[100];
+  Session s=getFactory().openSession();
+  s.beginTransaction();
+  s.persist(parent);
+  s.getTransaction().commit();
+  s.close();
+  EnhancerTestUtils.checkDirtyTracking(parent);
+  entityId=parent.id;
+}
