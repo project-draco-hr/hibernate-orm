@@ -1,0 +1,29 @@
+{
+  this.strategy=strategy;
+  final Field field=fieldOrNull(containerJavaType,propertyName);
+  final Method getterMethod=getterMethodOrNull(containerJavaType,propertyName);
+  final Class propertyJavaType;
+  if (field == null && getterMethod == null) {
+    String msg=String.format("Could not locate field nor getter method for property named [%s#%s]",containerJavaType.getName(),propertyName);
+    throw new PropertyAccessBuildingException(msg);
+  }
+ else   if (field != null) {
+    propertyJavaType=field.getType();
+    this.getter=resolveGetterForField(containerJavaType,propertyName,field);
+  }
+ else {
+    propertyJavaType=getterMethod.getReturnType();
+    this.getter=new EnhancedGetterMethodImpl(containerJavaType,propertyName,getterMethod);
+  }
+  final Method setterMethod=setterMethodOrNull(containerJavaType,propertyName,propertyJavaType);
+  if (field == null && setterMethod == null) {
+    String msg=String.format("Could not locate field nor getter method for property named [%s#%s]",containerJavaType.getName(),propertyName);
+    throw new PropertyAccessBuildingException(msg);
+  }
+ else   if (field != null) {
+    this.setter=resolveSetterForField(containerJavaType,propertyName,field);
+  }
+ else {
+    this.setter=new EnhancedSetterMethodImpl(containerJavaType,propertyName,setterMethod);
+  }
+}

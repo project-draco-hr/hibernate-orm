@@ -1,0 +1,37 @@
+{
+  try {
+    if (target instanceof SelfDirtinessTracker) {
+      ((SelfDirtinessTracker)target).$$_hibernate_suspendDirtyTracking(true);
+      setterMethod.invoke(target,value);
+      ((SelfDirtinessTracker)target).$$_hibernate_suspendDirtyTracking(false);
+    }
+ else {
+      setterMethod.invoke(target,value);
+    }
+  }
+ catch (  NullPointerException npe) {
+    if (value == null && isPrimitive) {
+      throw new PropertyAccessException(npe,"Null value was assigned to a property of primitive type",true,containerClass,propertyName);
+    }
+ else {
+      throw new PropertyAccessException(npe,"NullPointerException occurred while calling",true,containerClass,propertyName);
+    }
+  }
+catch (  InvocationTargetException ite) {
+    throw new PropertyAccessException(ite,"Exception occurred inside",true,containerClass,propertyName);
+  }
+catch (  IllegalAccessException iae) {
+    throw new PropertyAccessException(iae,"IllegalAccessException occurred while calling",true,containerClass,propertyName);
+  }
+catch (  IllegalArgumentException iae) {
+    if (value == null && isPrimitive) {
+      throw new PropertyAccessException(iae,"Null value was assigned to a property of primitive type",true,containerClass,propertyName);
+    }
+ else {
+      final Class expectedType=setterMethod.getParameterTypes()[0];
+      LOG.illegalPropertySetterArgument(containerClass.getName(),propertyName);
+      LOG.expectedType(expectedType.getName(),value == null ? null : value.getClass().getName());
+      throw new PropertySetterAccessException(iae,containerClass,propertyName,expectedType,target,value);
+    }
+  }
+}
