@@ -27,7 +27,8 @@
 );
   }
   EntityRegionImpl region=(EntityRegionImpl)sessionFactory().getSecondLevelCacheRegion(Item.class.getName());
-  CloseableIteratorSet keySet=region.getCache().withFlags(Flag.CACHE_MODE_LOCAL).keySet();
-  assertEquals(1,keySet.size());
-  assertEquals(sessionFactory().getClassMetadata(Item.class).getIdentifierType().getReturnedClass(),keySet.iterator().next().getClass());
+  AdvancedCache localCache=region.getCache().withFlags(Flag.CACHE_MODE_LOCAL);
+  CloseableIterable keys=Caches.keys(localCache);
+  assertEquals(1,localCache.size());
+  assertEquals(sessionFactory().getClassMetadata(Item.class).getIdentifierType().getReturnedClass(),keys.iterator().next().getClass());
 }

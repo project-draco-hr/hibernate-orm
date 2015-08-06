@@ -1,7 +1,7 @@
 {
   final Object KEY=TestingKeyFactory.generateEntityCacheKey(KEY_BASE + testCount++);
-  assertEquals(0,getValidKeyCount(localEntityRegion.getCache().keySet()));
-  assertEquals(0,getValidKeyCount(remoteEntityRegion.getCache().keySet()));
+  assertEquals(0,localEntityRegion.getCache().size());
+  assertEquals(0,remoteEntityRegion.getCache().size());
   assertNull("local is clean",localAccessStrategy.get(null,KEY,System.currentTimeMillis()));
   assertNull("remote is clean",remoteAccessStrategy.get(null,KEY,System.currentTimeMillis()));
   localAccessStrategy.putFromLoad(null,KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
@@ -24,12 +24,12 @@
   }
 );
   assertNull(localAccessStrategy.get(null,KEY,System.currentTimeMillis()));
-  assertEquals(0,getValidKeyCount(localEntityRegion.getCache().keySet()));
+  assertEquals(0,localEntityRegion.getCache().size());
   assertEquals(null,remoteAccessStrategy.get(null,KEY,System.currentTimeMillis()));
-  assertEquals(0,getValidKeyCount(remoteEntityRegion.getCache().keySet()));
+  assertEquals(0,remoteEntityRegion.getCache().size());
   remoteAccessStrategy.putFromLoad(null,KEY,VALUE1,System.currentTimeMillis(),new Integer(1));
   assertEquals(VALUE1,remoteAccessStrategy.get(null,KEY,System.currentTimeMillis()));
-  assertEquals(1,getValidKeyCount(remoteEntityRegion.getCache().keySet()));
+  assertEquals(1,remoteEntityRegion.getCache().size());
   sleep(250);
   assertEquals("local is correct",(isUsingInvalidation() ? null : VALUE1),localAccessStrategy.get(null,KEY,System.currentTimeMillis()));
   assertEquals("remote is correct",VALUE1,remoteAccessStrategy.get(null,KEY,System.currentTimeMillis()));
