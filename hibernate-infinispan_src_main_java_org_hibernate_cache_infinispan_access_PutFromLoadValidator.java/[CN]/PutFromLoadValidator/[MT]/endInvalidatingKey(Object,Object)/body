@@ -1,28 +1,3 @@
 {
-  PendingPutMap pending=pendingPuts.get(key);
-  if (pending == null) {
-    if (trace) {
-      log.tracef("endInvalidatingKey(%s#%s, %s) could not find pending puts",cache.getName(),key,lockOwner);
-    }
-    return true;
-  }
-  if (pending.acquireLock(60,TimeUnit.SECONDS)) {
-    try {
-      long now=System.currentTimeMillis();
-      pending.removeInvalidator(lockOwner,now);
-      return true;
-    }
-  finally {
-      pending.releaseLock();
-      if (trace) {
-        log.tracef("endInvalidatingKey(%s#%s, %s) ends with %s",cache.getName(),key,lockOwner,pending);
-      }
-    }
-  }
- else {
-    if (trace) {
-      log.tracef("endInvalidatingKey(%s#%s, %s) failed to acquire lock",cache.getName(),key,lockOwner);
-    }
-    return false;
-  }
+  return endInvalidatingKey(lockOwner,key,false);
 }

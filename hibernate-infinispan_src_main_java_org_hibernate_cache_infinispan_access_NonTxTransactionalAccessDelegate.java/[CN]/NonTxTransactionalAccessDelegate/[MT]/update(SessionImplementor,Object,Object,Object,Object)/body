@@ -1,0 +1,13 @@
+{
+  if (!putValidator.beginInvalidatingWithPFER(session,key,value)) {
+    throw new CacheException("Failed to invalidate pending putFromLoad calls for key " + key + " from region "+ region.getName());
+  }
+  putValidator.setCurrentSession(session);
+  try {
+    writeCache.remove(key);
+  }
+  finally {
+    putValidator.resetCurrentSession();
+  }
+  return true;
+}

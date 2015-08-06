@@ -1,0 +1,17 @@
+{
+  incrementInvalidations();
+  InvalidateCommand invalidateCommand;
+  Object lockOwner=putFromLoadValidator.registerRemoteInvalidations(keys);
+  if (!isLocalModeForced(command)) {
+    if (lockOwner == null) {
+      invalidateCommand=commandsFactory.buildInvalidateCommand(InfinispanCollections.<Flag>emptySet(),keys);
+    }
+ else {
+      invalidateCommand=commandInitializer.buildBeginInvalidationCommand(InfinispanCollections.<Flag>emptySet(),keys,lockOwner);
+    }
+    if (log.isDebugEnabled()) {
+      log.debug("Cache [" + rpcManager.getAddress() + "] replicating "+ invalidateCommand);
+    }
+    rpcManager.invokeRemotely(null,invalidateCommand,rpcManager.getDefaultRpcOptions(isSynchronous(command)));
+  }
+}

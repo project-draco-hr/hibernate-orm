@@ -10,8 +10,14 @@
   assertEquals(VALUE1,remoteAccessStrategy.get(remoteSession,KEY,System.currentTimeMillis()));
   Caches.withinTx(localEntityRegion.getTransactionManager(),new Callable<Void>(){
     @Override public Void call() throws Exception {
-      if (evict)       localAccessStrategy.evict(KEY);
- else       localAccessStrategy.remove(localSession,KEY);
+      if (evict) {
+        localAccessStrategy.evict(KEY);
+      }
+ else {
+        SoftLock softLock=localAccessStrategy.lockItem(localSession,KEY,null);
+        localAccessStrategy.remove(localSession,KEY);
+        localAccessStrategy.unlockItem(localSession,KEY,softLock);
+      }
       return null;
     }
   }

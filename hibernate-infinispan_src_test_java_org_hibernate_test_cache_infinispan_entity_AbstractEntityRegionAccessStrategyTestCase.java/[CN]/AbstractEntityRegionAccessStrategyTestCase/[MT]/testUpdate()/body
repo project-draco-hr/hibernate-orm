@@ -15,7 +15,9 @@
         log.debug("Transaction began, get initial value");
         assertEquals("Correct initial value",VALUE1,localAccessStrategy.get(localSession,KEY,txTimestamp));
         log.debug("Now update value");
+        SoftLock softLock=localAccessStrategy.lockItem(localSession,KEY,null);
         localAccessStrategy.update(localSession,KEY,VALUE2,new Integer(2),new Integer(1));
+        localAccessStrategy.unlockItem(localSession,KEY,softLock);
         log.debug("Notify the read latch");
         readLatch.countDown();
         readerUnlocked=true;

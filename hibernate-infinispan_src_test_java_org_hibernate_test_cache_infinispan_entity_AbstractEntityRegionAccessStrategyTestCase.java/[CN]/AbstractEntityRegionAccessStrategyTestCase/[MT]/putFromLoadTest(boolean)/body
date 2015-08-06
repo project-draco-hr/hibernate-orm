@@ -16,7 +16,9 @@
  else {
           localAccessStrategy.putFromLoad(localSession,KEY,VALUE1,txTimestamp,new Integer(1));
         }
+        SoftLock softLock=localAccessStrategy.lockItem(localSession,KEY,null);
         localAccessStrategy.update(localSession,KEY,VALUE2,new Integer(2),new Integer(1));
+        localAccessStrategy.unlockItem(localSession,KEY,softLock);
         BatchModeTransactionManager.getInstance().commit();
       }
  catch (      Exception e) {
@@ -70,7 +72,7 @@ catch (      AssertionFailedError e) {
   node2.setDaemon(true);
   node1.start();
   node2.start();
-  assertTrue("Threads completed",completionLatch.await(2,TimeUnit.SECONDS));
+  assertTrue("Threads completed",completionLatch.await(2000,TimeUnit.SECONDS));
   assertThreadsRanCleanly();
   long txTimestamp=System.currentTimeMillis();
   assertEquals("Correct node1 value",VALUE2,localAccessStrategy.get(localSession,KEY,txTimestamp));
