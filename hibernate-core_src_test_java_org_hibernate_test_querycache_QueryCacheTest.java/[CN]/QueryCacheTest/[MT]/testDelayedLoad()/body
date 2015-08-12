@@ -1,0 +1,41 @@
+{
+  DelayLoadOperations interceptor=new DelayLoadOperations();
+  final SessionBuilder sessionBuilder=sessionFactory().withOptions().interceptor(interceptor);
+  Item item1=new Item();
+  item1.setName("Item1");
+  item1.setDescription("Washington");
+  Session s1=sessionBuilder.openSession();
+  Transaction tx1=s1.beginTransaction();
+  s1.persist(item1);
+  tx1.commit();
+  s1.close();
+  Item item2=new Item();
+  item2.setName("Item2");
+  item2.setDescription("Chicago");
+  Session s2=sessionBuilder.openSession();
+  Transaction tx2=s2.beginTransaction();
+  s2.persist(item2);
+  tx2.commit();
+  s2.close();
+  interceptor.blockOnLoad();
+  Future<Item> fetchedItem=executor.submit(new Callable<Item>(){
+    public Item call() throws Exception {
+      return findByDescription(sessionBuilder,"Washington");
+    }
+  }
+);
+  interceptor.waitOnLoad();
+  Session s3=sessionBuilder.openSession();
+  Transaction tx3=s3.beginTransaction();
+  item1.setDescription("New York");
+  item2.setDescription("Washington");
+  s3.update(item1);
+  s3.update(item2);
+  tx3.commit();
+  s3.close();
+  interceptor.unblockOnLoad();
+  Item fetched=fetchedItem.get();
+  assertEquals("Item1",fetched.getName());
+  fetched=findByDescription(sessionBuilder,"Washington");
+  assertEquals("Item2",fetched.getName());
+}
