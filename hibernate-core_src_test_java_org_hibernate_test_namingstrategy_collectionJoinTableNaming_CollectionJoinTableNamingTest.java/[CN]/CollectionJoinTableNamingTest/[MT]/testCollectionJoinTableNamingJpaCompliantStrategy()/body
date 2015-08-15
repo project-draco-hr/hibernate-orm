@@ -1,0 +1,17 @@
+{
+  Configuration cfg=new Configuration();
+  cfg.setNamingStrategy(EJB3NamingStrategy.INSTANCE);
+  cfg.addAnnotatedClass(Input.class);
+  cfg.addAnnotatedClass(Ptx.class);
+  cfg.buildMappings();
+  Collection inputs1Mapping=cfg.getCollectionMapping(Ptx.class.getName() + ".inputs1");
+  assertEquals("ptx_input",inputs1Mapping.getCollectionTable().getName());
+  Collection inputs2Mapping=cfg.getCollectionMapping(Ptx.class.getName() + ".inputs2");
+  assertEquals("ptx_input",inputs2Mapping.getCollectionTable().getName());
+  assertSame(inputs1Mapping.getCollectionTable(),inputs2Mapping.getCollectionTable());
+  new SchemaExport(cfg).create(true,false);
+  for (int i=0; i < inputs1Mapping.getCollectionTable().getColumnSpan(); i++) {
+    final Column column=inputs1Mapping.getCollectionTable().getColumn(i);
+    assertFalse(column.isNullable());
+  }
+}
