@@ -29,10 +29,18 @@
   doc.setName("Doc Name 1");
   doc.setSummary("v");
   Document docManaged=(Document)s.merge(doc);
-  Assert.assertEquals("v",docManaged.getSummary());
-  Assert.assertTrue(Hibernate.isPropertyInitialized(docManaged,"summary"));
-  s.getTransaction().commit();
-  s.close();
+  try {
+    Assert.assertEquals("v",docManaged.getSummary());
+    Assert.assertTrue(Hibernate.isPropertyInitialized(docManaged,"summary"));
+    s.getTransaction().commit();
+  }
+ catch (  Exception e) {
+    s.getTransaction().rollback();
+    throw e;
+  }
+ finally {
+    s.close();
+  }
   s=getFactory().openSession();
   s.getTransaction().begin();
   docManaged=(Document)s.get(Document.class,doc.getId());
