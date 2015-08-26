@@ -1,12 +1,24 @@
 {
+  Object commandInvocationId=null;
+  if (commandInvocationIdField != null) {
+    try {
+      commandInvocationId=commandInvocationIdField.get(this);
+    }
+ catch (    IllegalAccessException e) {
+      throw new IllegalStateException(e);
+    }
+  }
   if (keys == null || keys.length == 0) {
-    return new Object[]{0,lockOwner};
+    return new Object[]{flags,sessionTransactionId,commandInvocationId,0};
   }
   if (keys.length == 1) {
-    return new Object[]{1,keys[0],lockOwner};
+    return new Object[]{flags,sessionTransactionId,commandInvocationId,1,keys[0]};
   }
-  Object[] retval=new Object[keys.length + 2];
-  retval[0]=keys.length;
-  System.arraycopy(keys,0,retval,1,keys.length);
+  Object[] retval=new Object[keys.length + 4];
+  retval[0]=flags;
+  retval[1]=sessionTransactionId;
+  retval[2]=commandInvocationId;
+  retval[3]=keys.length;
+  System.arraycopy(keys,0,retval,4,keys.length);
   return retval;
 }

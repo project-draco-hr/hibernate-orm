@@ -2,13 +2,23 @@
   if (commandId != CacheCommandIds.BEGIN_INVALIDATION) {
     throw new IllegalStateException("Invalid method id");
   }
-  int size=(Integer)args[0];
+  flags=(Set<Flag>)args[0];
+  sessionTransactionId=args[1];
+  Object commandInvocationId=args[2];
+  if (commandInvocationIdField != null) {
+    try {
+      commandInvocationIdField.set(this,commandInvocationId);
+    }
+ catch (    IllegalAccessException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+  int size=(Integer)args[3];
   keys=new Object[size];
   if (size == 1) {
-    keys[0]=args[1];
+    keys[0]=args[4];
   }
  else   if (size > 0) {
-    System.arraycopy(args,1,keys,0,size);
+    System.arraycopy(args,4,keys,0,size);
   }
-  lockOwner=args[args.length - 1];
 }
