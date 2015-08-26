@@ -1,0 +1,22 @@
+{
+  if (session.isClosed()) {
+    TransactionManager tm=region.getTransactionManager();
+    if (tm != null) {
+      try {
+switch (tm.getStatus()) {
+case Status.STATUS_COMMITTED:
+case Status.STATUS_COMMITTING:
+          return true;
+default :
+        return false;
+    }
+  }
+ catch (  SystemException e) {
+    log.debug("Failed to retrieve transaction status",e);
+    return false;
+  }
+}
+}
+TransactionCoordinator tc=session.getTransactionCoordinator();
+return tc != null && tc.getTransactionDriverControl().getStatus() == TransactionStatus.COMMITTED;
+}

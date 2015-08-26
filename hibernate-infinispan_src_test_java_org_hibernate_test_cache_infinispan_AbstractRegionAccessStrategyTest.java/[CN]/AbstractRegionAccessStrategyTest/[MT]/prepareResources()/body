@@ -1,0 +1,16 @@
+{
+  StandardServiceRegistryBuilder ssrb=createStandardServiceRegistryBuilder();
+  localEnvironment=new NodeEnvironment(ssrb);
+  localEnvironment.prepare();
+  localRegion=getRegion(localEnvironment);
+  localAccessStrategy=getAccessStrategy(localRegion);
+  transactional=Caches.isTransactionalCache(localRegion.getCache());
+  invalidation=Caches.isInvalidationCache(localRegion.getCache());
+  synchronous=Caches.isSynchronousCache(localRegion.getCache());
+  avoidConcurrentFlush();
+  remoteEnvironment=new NodeEnvironment(ssrb);
+  remoteEnvironment.prepare();
+  remoteRegion=getRegion(remoteEnvironment);
+  remoteAccessStrategy=getAccessStrategy(remoteRegion);
+  waitForClusterToForm(localRegion.getCache(),remoteRegion.getCache());
+}

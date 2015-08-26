@@ -1,6 +1,13 @@
 {
-  if (AccessType.READ_ONLY.equals(accessType) || AccessType.TRANSACTIONAL.equals(accessType)) {
-    return new TransactionalAccess(this);
-  }
+  checkAccessType(accessType);
+  getValidator();
+  AccessDelegate delegate=InvalidationCacheAccessDelegate.create(this,getValidator());
+switch (accessType) {
+case READ_ONLY:
+case READ_WRITE:
+case TRANSACTIONAL:
+    return new CollectionAccess(this,delegate);
+default :
   throw new CacheException("Unsupported access type [" + accessType.getExternalName() + "]");
+}
 }

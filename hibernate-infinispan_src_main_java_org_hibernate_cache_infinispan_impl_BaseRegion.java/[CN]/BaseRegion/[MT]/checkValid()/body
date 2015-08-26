@@ -4,15 +4,7 @@
 synchronized (invalidationMutex) {
       if (invalidateState.compareAndSet(InvalidateState.INVALID,InvalidateState.CLEARING)) {
         try {
-          Transaction tx=getCurrentTransaction();
-          if (tx != null) {
-            log.tracef("Transaction, clearing one element at the time");
-            Caches.removeAll(localAndSkipLoadCache);
-          }
- else {
-            log.tracef("Non-transactional, clear in one go");
-            localAndSkipLoadCache.clear();
-          }
+          runInvalidation(getCurrentTransaction() != null);
           log.tracef("Transition state from CLEARING to VALID");
           invalidateState.compareAndSet(InvalidateState.CLEARING,InvalidateState.VALID);
         }

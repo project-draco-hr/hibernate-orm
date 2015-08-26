@@ -12,8 +12,12 @@
  else {
     throw new IllegalArgumentException("Pending puts cache needs to have maxIdle expiration set!");
   }
+  CacheMode cacheMode=cache.getCacheConfiguration().clustering().cacheMode();
   NonTxPutFromLoadInterceptor nonTxPutFromLoadInterceptor=null;
-  if (cacheConfiguration.clustering().cacheMode().isClustered()) {
+  if (cacheMode.isClustered()) {
+    if (!cacheMode.isInvalidation()) {
+      throw new IllegalArgumentException("PutFromLoadValidator in clustered caches requires invalidation mode.");
+    }
     List<CommandInterceptor> interceptorChain=cache.getInterceptorChain();
     log.debug("Interceptor chain was: " + interceptorChain);
     int position=0;

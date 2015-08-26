@@ -1,9 +1,15 @@
 {
+  checkAccessType(accessType);
+  if (!getCacheDataDescription().isMutable()) {
+    accessType=AccessType.READ_ONLY;
+  }
+  AccessDelegate delegate=InvalidationCacheAccessDelegate.create(this,getValidator());
 switch (accessType) {
 case READ_ONLY:
-    return new ReadOnlyAccess(this);
+    return new ReadOnlyAccess(this,delegate);
+case READ_WRITE:
 case TRANSACTIONAL:
-  return new TransactionalAccess(this);
+  return new ReadWriteAccess(this,delegate);
 default :
 throw new CacheException("Unsupported access type [" + accessType.getExternalName() + "]");
 }
