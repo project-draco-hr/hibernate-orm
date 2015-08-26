@@ -1,0 +1,10 @@
+{
+  super.amendCacheConfiguration(cacheName,configurationBuilder);
+  if (!cacheName.equals("timestamps") && !cacheName.endsWith(InfinispanRegionFactory.PENDING_PUTS_CACHE_NAME)) {
+    configurationBuilder.customInterceptors().addInterceptor().interceptorClass(FailureInducingInterceptor.class).position(InterceptorConfiguration.Position.FIRST);
+    log.trace("Injecting FailureInducingInterceptor into " + cacheName);
+  }
+ else {
+    log.trace("Not injecting into " + cacheName);
+  }
+}

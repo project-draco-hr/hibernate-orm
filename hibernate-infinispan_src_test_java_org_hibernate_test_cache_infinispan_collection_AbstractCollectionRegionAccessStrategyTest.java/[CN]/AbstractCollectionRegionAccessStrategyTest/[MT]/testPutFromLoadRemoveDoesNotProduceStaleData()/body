@@ -1,47 +1,5 @@
 {
-  final CountDownLatch pferLatch=new CountDownLatch(1);
-  final CountDownLatch removeLatch=new CountDownLatch(1);
-  final TransactionManager remoteTm=remoteRegion.getTransactionManager();
-  withCacheManager(new CacheManagerCallable(createCacheManager()){
-    @Override public void call(){
-      PutFromLoadValidator validator=getPutFromLoadValidator(remoteRegion.getCache(),cm,removeLatch,pferLatch);
-      final InvalidationCacheAccessDelegate delegate=InvalidationCacheAccessDelegate.create(localRegion,validator);
-      Callable<Void> pferCallable=new Callable<Void>(){
-        public Void call() throws Exception {
-          SessionImplementor session=mockedSession();
-          delegate.putFromLoad(session,"k1","v1",0,null);
-          return null;
-        }
-      }
-;
-      Callable<Void> removeCallable=new Callable<Void>(){
-        public Void call() throws Exception {
-          removeLatch.await();
-          SessionImplementor session=mockedSession();
-          withTx(localEnvironment,session,new Callable<Void>(){
-            @Override public Void call() throws Exception {
-              delegate.remove(session,"k1");
-              return null;
-            }
-          }
-);
-          pferLatch.countDown();
-          return null;
-        }
-      }
-;
-      ExecutorService executorService=Executors.newCachedThreadPool();
-      Future<Void> pferFuture=executorService.submit(pferCallable);
-      Future<Void> removeFuture=executorService.submit(removeCallable);
-      try {
-        pferFuture.get();
-        removeFuture.get();
-      }
- catch (      Exception e) {
-        throw new RuntimeException(e);
-      }
-      assertFalse(localRegion.getCache().containsKey("k1"));
-    }
+  if (cacheMode.isInvalidation()) {
+    doPutFromLoadRemoveDoesNotProduceStaleDataInvalidation();
   }
-);
 }

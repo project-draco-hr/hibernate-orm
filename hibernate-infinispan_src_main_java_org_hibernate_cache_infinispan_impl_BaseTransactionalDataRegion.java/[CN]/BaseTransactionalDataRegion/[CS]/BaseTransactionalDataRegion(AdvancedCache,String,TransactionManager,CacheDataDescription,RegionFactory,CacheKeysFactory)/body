@@ -2,4 +2,19 @@
   super(cache,name,transactionManager,factory);
   this.metadata=metadata;
   this.cacheKeysFactory=cacheKeysFactory;
+  Configuration configuration=cache.getCacheConfiguration();
+  CacheMode cacheMode=configuration.clustering().cacheMode();
+  useTombstones=cacheMode.isDistributed() || cacheMode.isReplicated();
+  tombstoneExpiration=InfinispanRegionFactory.PENDING_PUTS_CACHE_CONFIGURATION.expiration().maxIdle();
+  requiresTransaction=configuration.transaction().transactionMode().isTransactional() && !configuration.transaction().autoCommit();
+  if (useTombstones) {
+    if (configuration.eviction().maxEntries() >= 0) {
+      log.warn("Setting eviction on cache using tombstones can introduce inconsistencies!");
+    }
+    cache.removeInterceptor(CallInterceptor.class);
+    TombstoneCallInterceptor tombstoneCallInterceptor=new TombstoneCallInterceptor(tombstoneExpiration);
+    cache.getComponentRegistry().registerComponent(tombstoneCallInterceptor,TombstoneCallInterceptor.class);
+    List<CommandInterceptor> interceptorChain=cache.getInterceptorChain();
+    cache.addInterceptor(tombstoneCallInterceptor,interceptorChain.size());
+  }
 }

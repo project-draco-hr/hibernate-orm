@@ -3,10 +3,17 @@
   if (strategy == null) {
     return null;
   }
-  Field delegateField=strategy.getClass().getDeclaredField("delegate");
-  delegateField.setAccessible(true);
+  Field delegateField=getField(strategy.getClass(),"delegate");
   Object delegate=delegateField.get(strategy);
-  Field validatorField=InvalidationCacheAccessDelegate.class.getDeclaredField("putValidator");
-  validatorField.setAccessible(true);
-  return (PutFromLoadValidator)validatorField.get(delegate);
+  if (delegate == null) {
+    return null;
+  }
+  if (InvalidationCacheAccessDelegate.class.isInstance(delegate)) {
+    Field validatorField=InvalidationCacheAccessDelegate.class.getDeclaredField("putValidator");
+    validatorField.setAccessible(true);
+    return (PutFromLoadValidator)validatorField.get(delegate);
+  }
+ else {
+    return null;
+  }
 }

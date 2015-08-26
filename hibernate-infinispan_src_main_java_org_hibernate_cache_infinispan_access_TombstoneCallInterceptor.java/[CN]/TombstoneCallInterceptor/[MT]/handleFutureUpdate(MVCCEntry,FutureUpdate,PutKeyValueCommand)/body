@@ -1,0 +1,31 @@
+{
+  Object storedValue=e.getValue();
+  if (storedValue instanceof FutureUpdate) {
+    FutureUpdate storedFutureUpdate=(FutureUpdate)storedValue;
+    if (futureUpdate.getUuid().equals(storedFutureUpdate.getUuid())) {
+      if (futureUpdate.getValue() != null) {
+        setValue(e,futureUpdate.getValue());
+      }
+ else {
+        setValue(e,storedFutureUpdate.getValue());
+      }
+    }
+ else {
+      setValue(e,new FutureUpdate(ZERO,null));
+      e.setMetadata(expiringMetadata);
+      command.setMetadata(expiringMetadata);
+    }
+  }
+ else   if (storedValue instanceof Tombstone) {
+    return null;
+  }
+ else {
+    if (futureUpdate.getValue() != null) {
+      removeValue(e);
+    }
+ else {
+      setValue(e,new FutureUpdate(futureUpdate.getUuid(),null));
+    }
+  }
+  return null;
+}

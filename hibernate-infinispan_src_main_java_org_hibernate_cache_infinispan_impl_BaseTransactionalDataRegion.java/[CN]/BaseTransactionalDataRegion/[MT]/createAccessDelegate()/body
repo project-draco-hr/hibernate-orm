@@ -1,0 +1,14 @@
+{
+  CacheMode cacheMode=cache.getCacheConfiguration().clustering().cacheMode();
+  if (cacheMode.isDistributed() || cacheMode.isReplicated()) {
+    return new TombstoneAccessDelegate(this);
+  }
+ else {
+    if (cache.getCacheConfiguration().transaction().transactionMode().isTransactional()) {
+      return new TxInvalidationCacheAccessDelegate(this,getValidator());
+    }
+ else {
+      return new NonTxInvalidationCacheAccessDelegate(this,getValidator());
+    }
+  }
+}

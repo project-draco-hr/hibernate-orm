@@ -1,0 +1,19 @@
+{
+  MVCCEntry e=(MVCCEntry)ctx.lookupEntry(command.getKey());
+  if (e == null) {
+    return null;
+  }
+  Object value=command.getValue();
+  if (value instanceof TombstoneUpdate) {
+    return handleTombstoneUpdate(e,(TombstoneUpdate)value);
+  }
+ else   if (value instanceof Tombstone) {
+    return handleTombstone(e,(Tombstone)value);
+  }
+ else   if (value instanceof FutureUpdate) {
+    return handleFutureUpdate(e,(FutureUpdate)value,command);
+  }
+ else {
+    return super.visitPutKeyValueCommand(ctx,command);
+  }
+}

@@ -27,5 +27,10 @@
   sleep(250);
   assertLoadedFromCache(remoteListener,ids.customerId,ids.contactIds);
   assertEquals(0,localCollectionCache.size());
-  assertEquals(0,localCustomerCache.size());
+  if (localCustomerCache.getCacheConfiguration().clustering().cacheMode().isInvalidation()) {
+    assertEquals(0,localCustomerCache.size());
+  }
+ else {
+    assertEquals(1,localCustomerCache.size());
+  }
 }

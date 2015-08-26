@@ -1,0 +1,32 @@
+{
+  CyclicBarrier loadBarrier=new CyclicBarrier(2);
+  CountDownLatch preFlushLatch=new CountDownLatch(1);
+  CountDownLatch flushLatch=new CountDownLatch(1);
+  CountDownLatch commitLatch=new CountDownLatch(1);
+  Future<Boolean> first=updateFlushWait(itemId,loadBarrier,null,flushLatch,commitLatch);
+  Future<Boolean> second=removeFlushWait(itemId,loadBarrier,preFlushLatch,null,commitLatch);
+  awaitOrThrow(flushLatch);
+  Map contents=Caches.entrySet(entityCache).toMap();
+  assertEquals(1,contents.size());
+  assertEquals(FutureUpdate.class,contents.get(itemId).getClass());
+  preFlushLatch.countDown();
+  commitLatch.countDown();
+  first.get(WAIT_TIMEOUT,TimeUnit.SECONDS);
+  boolean removeSucceeded=second.get(WAIT_TIMEOUT,TimeUnit.SECONDS);
+  contents=Caches.entrySet(entityCache).toMap();
+  assertEquals(1,contents.size());
+  Object value=contents.get(itemId);
+  if (removeSucceeded) {
+    assertEquals(Tombstone.class,value.getClass());
+    TIME_SERVICE.advance(TOMBSTONE_TIMEOUT + 1);
+    assertNull(entityCache.get(itemId));
+    contents=Caches.entrySet(entityCache).toMap();
+    assertEquals(Collections.EMPTY_MAP,contents);
+  }
+ else {
+    assertNotNull(value);
+    assertEquals(StandardCacheEntryImpl.class,value.getClass());
+    TIME_SERVICE.advance(TOMBSTONE_TIMEOUT + 1);
+    assertEquals(value,entityCache.get(itemId));
+  }
+}

@@ -1,21 +1,3 @@
 {
-  boolean valid=isValid();
-  if (!valid) {
-synchronized (invalidationMutex) {
-      if (invalidateState.compareAndSet(InvalidateState.INVALID,InvalidateState.CLEARING)) {
-        try {
-          runInvalidation(getCurrentTransaction() != null);
-          log.tracef("Transition state from CLEARING to VALID");
-          invalidateState.compareAndSet(InvalidateState.CLEARING,InvalidateState.VALID);
-        }
- catch (        Exception e) {
-          if (log.isTraceEnabled()) {
-            log.trace("Could not invalidate region: ",e);
-          }
-        }
-      }
-    }
-    valid=isValid();
-  }
-  return valid;
+  return lastRegionInvalidation != Long.MAX_VALUE;
 }

@@ -1,2 +1,15 @@
 {
+  if (transactional) {
+    if (!cacheName.endsWith("query") && !cacheName.equals(DEF_TIMESTAMPS_RESOURCE)) {
+      configurationBuilder.transaction().transactionMode(TransactionMode.TRANSACTIONAL).useSynchronization(true);
+    }
+  }
+ else {
+    configurationBuilder.transaction().transactionMode(TransactionMode.NON_TRANSACTIONAL);
+  }
+  if (cacheMode != null) {
+    if (configurationBuilder.clustering().cacheMode().isInvalidation()) {
+      configurationBuilder.clustering().cacheMode(cacheMode);
+    }
+  }
 }

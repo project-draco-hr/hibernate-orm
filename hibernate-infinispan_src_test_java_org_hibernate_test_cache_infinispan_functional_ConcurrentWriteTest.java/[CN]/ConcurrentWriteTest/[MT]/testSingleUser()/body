@@ -1,13 +1,15 @@
 {
   sessionFactory().getStatistics().clear();
+  Thread.sleep(1);
   Customer customer=createCustomer(0);
   final Integer customerId=customer.getId();
   getCustomerIDs().add(customerId);
+  Thread.sleep(1);
   assertNull("contact exists despite not being added",getFirstContact(customerId));
   SecondLevelCacheStatistics customerSlcs=sessionFactory().getStatistics().getSecondLevelCacheStatistics(Customer.class.getName());
-  assertEquals(customerSlcs.getPutCount(),1);
-  assertEquals(customerSlcs.getElementCountInMemory(),1);
-  assertEquals(customerSlcs.getEntries().size(),1);
+  assertEquals(1,customerSlcs.getPutCount());
+  assertEquals(1,customerSlcs.getElementCountInMemory());
+  assertEquals(1,customerSlcs.getEntries().size());
   log.infof("Add contact to customer {0}",customerId);
   SecondLevelCacheStatistics contactsCollectionSlcs=sessionFactory().getStatistics().getSecondLevelCacheStatistics(Customer.class.getName() + ".contacts");
   assertEquals(1,contactsCollectionSlcs.getPutCount());

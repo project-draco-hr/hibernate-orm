@@ -1,0 +1,18 @@
+{
+  Set<Flag> flags=command.getFlags();
+  int size=0;
+  Map<Object,CacheEntry> contextEntries=ctx.getLookedUpEntries();
+  AdvancedCache decoratedCache=cache.getAdvancedCache().withFlags(flags != null ? flags.toArray(new Flag[flags.size()]) : null);
+  CloseableIterable<CacheEntry<Object,Object>> iterable=decoratedCache.filterEntries(Tombstone.EXCLUDE_TOMBSTONES).converter(FutureUpdate.VALUE_EXTRACTOR);
+  try {
+    for (    CacheEntry<Object,Object> entry : iterable) {
+      if (entry.getValue() != null && size++ == Integer.MAX_VALUE) {
+        return Integer.MAX_VALUE;
+      }
+    }
+  }
+  finally {
+    iterable.close();
+  }
+  return size;
+}
