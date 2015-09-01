@@ -14,7 +14,6 @@
   entityName=collectionBinding.getOwnerEntityName();
   ownerPersister=factory.getEntityPersister(entityName);
   queryLoaderName=collectionBinding.getLoaderName();
-  nodeName=collectionBinding.getNodeName();
   isMutable=collectionBinding.isMutable();
   mappedByProperty=collectionBinding.getMappedByProperty();
   Table table=collectionBinding.getCollectionTable();
@@ -53,18 +52,13 @@
     keyColumnAliases[k]=col.getAlias(dialect,table);
     k++;
   }
-  String elemNode=collectionBinding.getElementNodeName();
   if (elementType.isEntityType()) {
     String entityName=((EntityType)elementType).getAssociatedEntityName();
     elementPersister=factory.getEntityPersister(entityName);
-    if (elemNode == null) {
-      elemNode=creationContext.getMetadata().getEntityBinding(entityName).getNodeName();
-    }
   }
  else {
     elementPersister=null;
   }
-  elementNodeName=elemNode;
   int elementSpan=collectionBinding.getElement().getColumnSpan();
   elementColumnAliases=new String[elementSpan];
   elementColumnNames=new String[elementSpan];
@@ -137,7 +131,6 @@
     }
     indexContainsFormula=hasFormula;
     baseIndex=indexedCollection.isList() ? ((List)indexedCollection).getBaseIndex() : 0;
-    indexNodeName=indexedCollection.getIndexNodeName();
   }
  else {
     indexContainsFormula=false;
@@ -148,7 +141,6 @@
     indexColumnNames=null;
     indexColumnAliases=null;
     baseIndex=0;
-    indexNodeName=null;
   }
   hasIdentifier=collectionBinding.isIdentified();
   if (hasIdentifier) {
