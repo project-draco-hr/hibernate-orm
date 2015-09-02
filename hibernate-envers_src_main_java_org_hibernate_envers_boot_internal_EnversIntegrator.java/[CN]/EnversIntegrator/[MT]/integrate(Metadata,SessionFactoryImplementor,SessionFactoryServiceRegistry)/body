@@ -1,10 +1,20 @@
 {
   final EnversService enversService=serviceRegistry.getService(EnversService.class);
   if (!enversService.isEnabled()) {
+    log.debug("Skipping Envers listener registrations : EnversService disabled");
+    return;
+  }
+  final boolean autoRegister=serviceRegistry.getService(ConfigurationService.class).getSetting(AUTO_REGISTER,StandardConverters.BOOLEAN,true);
+  if (!autoRegister) {
+    log.debug("Skipping Envers listener registrations : Listener auto-registration disabled");
     return;
   }
   if (!enversService.isInitialized()) {
     throw new HibernateException("Expecting EnversService to have been initialized prior to call to EnversIntegrator#integrate");
+  }
+  if (!enversService.getEntitiesConfigurations().hasAuditedEntities()) {
+    log.debug("Skipping Envers listener registrations : No audited entities found");
+    return;
   }
   final EventListenerRegistry listenerRegistry=serviceRegistry.getService(EventListenerRegistry.class);
   listenerRegistry.addDuplicationStrategy(EnversListenerDuplicationStrategy.INSTANCE);
