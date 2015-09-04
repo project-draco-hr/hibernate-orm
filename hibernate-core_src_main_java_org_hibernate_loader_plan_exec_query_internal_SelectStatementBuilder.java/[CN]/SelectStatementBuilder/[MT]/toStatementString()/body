@@ -1,5 +1,5 @@
 {
-  final StringBuilder buf=new StringBuilder(guesstimatedBufferSize);
+  StringBuilder buf=new StringBuilder(guesstimatedBufferSize);
   if (StringHelper.isNotEmpty(comment)) {
     buf.append("/* ").append(comment).append(" */ ");
   }
@@ -23,7 +23,7 @@
     buf.append(" order by ").append(orderByClause);
   }
   if (lockOptions.getLockMode() != LockMode.NONE) {
-    buf.append(dialect.getForUpdateString(lockOptions));
+    buf=new StringBuilder(dialect.applyLocksToSql(buf.toString(),lockOptions,null));
   }
   return dialect.transformSelectString(buf.toString());
 }
