@@ -1,14 +1,3 @@
 {
-class WorkImpl implements Work {
-    private long value;
-    public void execute(    Connection connection) throws SQLException {
-      PreparedStatement query=session.getJdbcCoordinator().getStatementPreparer().prepareStatement("select currval('" + TEST_SEQUENCE + "');");
-      ResultSet resultSet=session.getJdbcCoordinator().getResultSetReturn().extract(query);
-      resultSet.next();
-      value=resultSet.getLong(1);
-    }
-  }
-  WorkImpl work=new WorkImpl();
-  ((Session)session).doWork(work);
-  return work.value;
+  return sequenceValueExtractor.extractSequenceValue(sessionImpl);
 }

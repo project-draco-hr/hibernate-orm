@@ -1,9 +1,16 @@
 {
   Session s=openSession();
   s.beginTransaction();
-  s.createQuery("select cast(e.theLostNumber as string) from MyEntity e").list();
-  s.createQuery("select cast(e.theLostNumber as java.lang.String) from MyEntity e").list();
-  s.createQuery("select cast(e.theLostNumber as org.hibernate.type.StringType) from MyEntity e").list();
+  if (getDialect() instanceof DerbyDialect) {
+    s.createQuery("select cast(char(e.theLostNumber) as string) from MyEntity e").list();
+    s.createQuery("select cast(char(e.theLostNumber) as java.lang.String) from MyEntity e").list();
+    s.createQuery("select cast(char(e.theLostNumber) as org.hibernate.type.StringType) from MyEntity e").list();
+  }
+ else {
+    s.createQuery("select cast(e.theLostNumber as string) from MyEntity e").list();
+    s.createQuery("select cast(e.theLostNumber as java.lang.String) from MyEntity e").list();
+    s.createQuery("select cast(e.theLostNumber as org.hibernate.type.StringType) from MyEntity e").list();
+  }
   s.getTransaction().commit();
   s.close();
 }

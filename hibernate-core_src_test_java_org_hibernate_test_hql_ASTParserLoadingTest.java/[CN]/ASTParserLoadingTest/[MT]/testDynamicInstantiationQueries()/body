@@ -1,6 +1,7 @@
 {
   createTestBaseData();
   Session session=openSession();
+  Transaction t=session.beginTransaction();
   List results=session.createQuery("select new Animal(an.description, an.bodyWeight) from Animal an").list();
   assertEquals("Incorrect result size",2,results.size());
   assertClassAssignability(results.get(0).getClass(),Animal.class);
@@ -61,6 +62,7 @@
   assertEquals("dynamic intantiation query not served from cache",initCacheHits + 1,stats.getCacheHitCount());
   assertEquals("incorrect result size",2,results.size());
   assertClassAssignability(Animal.class,results.get(0).getClass());
+  t.commit();
   session.close();
   destroyTestBaseData();
 }

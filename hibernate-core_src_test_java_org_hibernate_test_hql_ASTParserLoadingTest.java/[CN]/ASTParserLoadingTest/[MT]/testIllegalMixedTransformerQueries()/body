@@ -1,5 +1,6 @@
 {
   Session session=openSession();
+  Transaction t=session.beginTransaction();
   try {
     getSelectNewQuery(session).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
     fail("'select new' together with a resulttransformer should result in error!");
@@ -21,5 +22,6 @@
  catch (  HibernateException he) {
     assertTrue(he.getMessage().indexOf("ResultTransformer") == 0);
   }
+  t.commit();
   session.close();
 }

@@ -2,6 +2,7 @@
   createTestBaseData();
   String query="select an.description as description, an.bodyWeight as bodyWeight from Animal an order by bodyWeight desc";
   Session session=openSession();
+  Transaction t=session.beginTransaction();
   List results=session.createQuery(query).setResultTransformer(Transformers.aliasToBean(Animal.class)).list();
   assertEquals("Incorrect result size",results.size(),2);
   assertTrue("Incorrect return type",results.get(0) instanceof Animal);
@@ -10,20 +11,26 @@
   assertEquals("Mammal #1",firstAnimal.getDescription());
   assertEquals("Mammal #2",secondAnimal.getDescription());
   assertFalse(session.contains(firstAnimal));
+  t.commit();
   session.close();
   session=openSession();
+  t=session.beginTransaction();
   Iterator iter=session.createQuery(query).setResultTransformer(Transformers.aliasToBean(Animal.class)).iterate();
   assertTrue("Incorrect result size",iter.hasNext());
   assertTrue("Incorrect return type",iter.next() instanceof Animal);
+  t.commit();
   session.close();
   session=openSession();
+  t=session.beginTransaction();
   ScrollableResults sr=session.createQuery(query).setResultTransformer(Transformers.aliasToBean(Animal.class)).scroll();
   assertTrue("Incorrect result size",sr.next());
   assertTrue("Incorrect return type",sr.get(0) instanceof Animal);
   assertFalse(session.contains(sr.get(0)));
   sr.close();
+  t.commit();
   session.close();
   session=openSession();
+  t=session.beginTransaction();
   results=session.createQuery("select a from Animal a, Animal b order by a.id").setResultTransformer(DistinctRootEntityResultTransformer.INSTANCE).list();
   assertEquals("Incorrect result size",2,results.size());
   assertTrue("Incorrect return type",results.get(0) instanceof Animal);
@@ -31,6 +38,7 @@
   secondAnimal=(Animal)results.get(1);
   assertEquals("Mammal #1",firstAnimal.getDescription());
   assertEquals("Mammal #2",secondAnimal.getDescription());
+  t.commit();
   session.close();
   destroyTestBaseData();
 }

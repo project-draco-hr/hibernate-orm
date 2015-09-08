@@ -1,7 +1,16 @@
 {
   Session s=openSession();
-  s.beginTransaction();
-  s.createQuery("delete from java.lang.Object").executeUpdate();
-  s.getTransaction().commit();
-  s.close();
+  Transaction transaction=s.beginTransaction();
+  try {
+    s.createQuery("delete from java.lang.Object").executeUpdate();
+    transaction.commit();
+  }
+ catch (  Exception e) {
+    if (transaction.getStatus().canRollback()) {
+      transaction.rollback();
+    }
+  }
+ finally {
+    s.close();
+  }
 }

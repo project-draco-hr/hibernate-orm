@@ -1,7 +1,5 @@
 {
-  BasicTestingJdbcServiceImpl jdbcServices=new BasicTestingJdbcServiceImpl();
-  jdbcServices.prepare(false);
-  serviceRegistry=new StandardServiceRegistryBuilder().enableAutoClose().addService(JdbcEnvironment.class,jdbcServices.getJdbcEnvironment()).addService(JdbcServices.class,jdbcServices).applySetting(AvailableSettings.HBM2DDL_AUTO,"create-drop").build();
+  serviceRegistry=new StandardServiceRegistryBuilder().enableAutoClose().applySetting(AvailableSettings.HBM2DDL_AUTO,"create-drop").build();
   generator=new SequenceStyleGenerator();
   Properties properties=new Properties();
   properties.setProperty(SequenceStyleGenerator.SEQUENCE_PARAM,TEST_SEQUENCE);
@@ -17,4 +15,5 @@
   final Metadata metadata=new MetadataSources(serviceRegistry).buildMetadata();
   generator.registerExportables(metadata.getDatabase());
   sessionFactory=(SessionFactoryImplementor)metadata.buildSessionFactory();
+  sequenceValueExtractor=new SequenceValueExtractor(sessionFactory.getDialect(),TEST_SEQUENCE);
 }

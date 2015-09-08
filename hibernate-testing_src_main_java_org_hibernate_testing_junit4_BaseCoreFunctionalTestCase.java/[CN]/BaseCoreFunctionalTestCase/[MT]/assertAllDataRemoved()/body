@@ -6,6 +6,7 @@
     return;
   }
   Session tmpSession=sessionFactory.openSession();
+  Transaction transaction=tmpSession.beginTransaction();
   try {
     List list=tmpSession.createQuery("select o from java.lang.Object o").list();
     Map<String,Integer> items=new HashMap<String,Integer>();
@@ -19,11 +20,16 @@
         items.put(tmpSession.getEntityName(element),l);
         System.out.println("Data left: " + element);
       }
+      transaction.rollback();
       fail("Data is left in the database: " + items.toString());
     }
+    transaction.rollback();
   }
   finally {
     try {
+      if (transaction.getStatus().canRollback()) {
+        transaction.rollback();
+      }
       tmpSession.close();
     }
  catch (    Throwable t) {
