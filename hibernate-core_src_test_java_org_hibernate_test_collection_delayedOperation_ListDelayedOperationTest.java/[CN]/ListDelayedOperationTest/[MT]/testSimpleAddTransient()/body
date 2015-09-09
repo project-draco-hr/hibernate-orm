@@ -1,0 +1,33 @@
+{
+  Session s=openSession();
+  s.getTransaction().begin();
+  Parent p=s.get(Parent.class,parentId);
+  assertFalse(Hibernate.isInitialized(p.getChildren()));
+  p.addChild(new Child("Darwin"));
+  assertFalse(Hibernate.isInitialized(p.getChildren()));
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.getTransaction().begin();
+  p=s.get(Parent.class,parentId);
+  assertFalse(Hibernate.isInitialized(p.getChildren()));
+  assertEquals(3,p.getChildren().size());
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.getTransaction().begin();
+  p=s.get(Parent.class,parentId);
+  assertFalse(Hibernate.isInitialized(p.getChildren()));
+  p.addChild(new Child("Comet"));
+  assertFalse(Hibernate.isInitialized(p.getChildren()));
+  s.merge(p);
+  s.getTransaction().commit();
+  s.close();
+  s=openSession();
+  s.getTransaction().begin();
+  p=s.get(Parent.class,parentId);
+  assertFalse(Hibernate.isInitialized(p.getChildren()));
+  assertEquals(4,p.getChildren().size());
+  s.getTransaction().commit();
+  s.close();
+}

@@ -3,6 +3,10 @@
     return null;
   }
   if (!Hibernate.isInitialized(original)) {
+    if (((PersistentCollection)original).hasQueuedOperations()) {
+      final AbstractPersistentCollection pc=(AbstractPersistentCollection)original;
+      pc.replaceQueuedOperationValues(getPersister(session),copyCache);
+    }
     return target;
   }
   Object result=target == null || target == original ? instantiateResult(original) : target;

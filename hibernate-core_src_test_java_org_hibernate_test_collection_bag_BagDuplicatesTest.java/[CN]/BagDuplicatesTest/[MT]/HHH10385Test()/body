@@ -1,0 +1,66 @@
+{
+  Session session=null;
+  Transaction transaction=null;
+  Long parentId=null;
+  try {
+    session=openSession();
+    transaction=session.beginTransaction();
+    Parent parent=new Parent();
+    session.persist(parent);
+    session.flush();
+    parentId=parent.getId();
+    transaction.commit();
+  }
+ catch (  HibernateException e) {
+    if (transaction != null) {
+      transaction.rollback();
+    }
+    fail(e.getMessage());
+  }
+ finally {
+    if (session != null) {
+      session.close();
+    }
+  }
+  try {
+    session=openSession();
+    transaction=session.beginTransaction();
+    Parent parent=session.get(Parent.class,parentId);
+    Child child1=new Child();
+    child1.setName("child1");
+    child1.setParent(parent);
+    parent.addChild(child1);
+    parent=(Parent)session.merge(parent);
+    session.flush();
+    transaction.commit();
+  }
+ catch (  HibernateException e) {
+    if (transaction != null) {
+      transaction.rollback();
+    }
+    fail(e.getMessage());
+  }
+ finally {
+    if (session != null) {
+      session.close();
+    }
+  }
+  try {
+    session=openSession();
+    transaction=session.beginTransaction();
+    Parent parent=session.get(Parent.class,parentId);
+    assertEquals(1,parent.getChildren().size());
+    transaction.commit();
+  }
+ catch (  HibernateException e) {
+    if (transaction != null) {
+      transaction.rollback();
+    }
+    fail(e.getMessage());
+  }
+ finally {
+    if (session != null) {
+      session.close();
+    }
+  }
+}
