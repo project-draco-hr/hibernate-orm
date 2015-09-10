@@ -1,0 +1,18 @@
+{
+  Session s=getFactory().openSession();
+  s.beginTransaction();
+  Parent parent=s.load(Parent.class,parentID);
+  assertThat(parent,notNullValue());
+  assertThat(parent,not(instanceOf(HibernateProxy.class)));
+  assertThat(parent,not(instanceOf(HibernateProxy.class)));
+  assertFalse(Hibernate.isPropertyInitialized(parent,"children"));
+  EnhancerTestUtils.checkDirtyTracking(parent);
+  List children1=parent.getChildren();
+  List children2=parent.getChildren();
+  assertTrue(Hibernate.isPropertyInitialized(parent,"children"));
+  EnhancerTestUtils.checkDirtyTracking(parent);
+  assertThat(children1,sameInstance(children2));
+  assertThat(children1.size(),equalTo(CHILDREN_SIZE));
+  s.getTransaction().commit();
+  s.close();
+}

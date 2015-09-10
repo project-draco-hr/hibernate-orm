@@ -2,4 +2,13 @@
   this.session=session;
   this.lazyFields=lazyFields;
   this.entityName=entityName;
+  this.allowLoadOutsideTransaction=session.getFactory().getSessionFactoryOptions().isInitializeLazyStateOutsideTransactionsEnabled();
+  if (this.allowLoadOutsideTransaction) {
+    try {
+      this.sessionFactoryUuid=(String)session.getFactory().getReference().get("uuid").getContent();
+    }
+ catch (    NamingException e) {
+      log.debug("Unable to determine SF UUID in preparation for `allowLoadOutsideTransaction`");
+    }
+  }
 }

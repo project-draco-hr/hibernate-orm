@@ -1,0 +1,59 @@
+{
+  SessionImplementor session=consumer.getLinkedSession();
+  boolean isTempSession=false;
+  boolean isJta=false;
+  if (session == null) {
+    if (consumer.allowLoadOutsideTransaction()) {
+      session=openTemporarySessionForLoading(lazyInitializationWork);
+      isTempSession=true;
+    }
+ else {
+      throwLazyInitializationException(Cause.NO_SESSION,lazyInitializationWork);
+    }
+  }
+ else   if (!session.isOpen()) {
+    if (consumer.allowLoadOutsideTransaction()) {
+      session=openTemporarySessionForLoading(lazyInitializationWork);
+      isTempSession=true;
+    }
+ else {
+      throwLazyInitializationException(Cause.CLOSED_SESSION,lazyInitializationWork);
+    }
+  }
+ else   if (!session.isConnected()) {
+    if (consumer.allowLoadOutsideTransaction()) {
+      session=openTemporarySessionForLoading(lazyInitializationWork);
+      isTempSession=true;
+    }
+ else {
+      throwLazyInitializationException(Cause.DISCONNECTED_SESSION,lazyInitializationWork);
+    }
+  }
+  if (isTempSession) {
+    isJta=session.getTransactionCoordinator().getTransactionCoordinatorBuilder().isJta();
+    if (!isJta) {
+      ((Session)session).beginTransaction();
+    }
+  }
+  try {
+    return lazyInitializationWork.doWork(session,isTempSession);
+  }
+  finally {
+    if (isTempSession) {
+      try {
+        if (!isJta) {
+          ((Session)session).getTransaction().commit();
+        }
+      }
+ catch (      Exception e) {
+        log.warn("Unable to commit JDBC transaction on temporary session used to load lazy " + "collection associated to no session");
+      }
+      try {
+        ((Session)session).close();
+      }
+ catch (      Exception e) {
+        log.warn("Unable to close temporary session used to load lazy collection associated to no session");
+      }
+    }
+  }
+}

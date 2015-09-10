@@ -1,0 +1,10 @@
+{
+  if (consumer.getSessionFactoryUuid() == null) {
+    throwLazyInitializationException(Cause.NO_SF_UUID,lazyInitializationWork);
+  }
+  final SessionFactoryImplementor sf=(SessionFactoryImplementor)SessionFactoryRegistry.INSTANCE.getSessionFactory(consumer.getSessionFactoryUuid());
+  final SessionImplementor session=(SessionImplementor)sf.openSession();
+  session.getPersistenceContext().setDefaultReadOnly(true);
+  session.setFlushMode(FlushMode.MANUAL);
+  return session;
+}

@@ -5,6 +5,14 @@
     }
     ((HibernateProxy)o).getHibernateLazyInitializer().unsetSession();
   }
+  for (  Entry<Object,EntityEntry> objectEntityEntryEntry : entityEntryContext.reentrantSafeEntityEntries()) {
+    if (objectEntityEntryEntry.getKey() instanceof PersistentAttributeInterceptable) {
+      final PersistentAttributeInterceptor interceptor=((PersistentAttributeInterceptable)objectEntityEntryEntry.getKey()).$$_hibernate_getInterceptor();
+      if (interceptor instanceof LazyAttributeLoader) {
+        ((LazyAttributeLoader)interceptor).unsetSession();
+      }
+    }
+  }
   for (  Map.Entry<PersistentCollection,CollectionEntry> aCollectionEntryArray : IdentityMap.concurrentEntries(collectionEntries)) {
     aCollectionEntryArray.getKey().unsetSession(getSession());
   }

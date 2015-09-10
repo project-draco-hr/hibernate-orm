@@ -1,6 +1,25 @@
 {
-  final Serializable id=session.getContextEntityIdentifier(entity);
   final EntityEntry entry=session.getPersistenceContext().getEntry(entity);
+  if (hasCollections()) {
+    final Type type=getPropertyType(fieldName);
+    if (type.isCollectionType()) {
+      final CollectionType collectionType=(CollectionType)type;
+      final CollectionPersister persister=factory.getCollectionPersister(collectionType.getRole());
+      final Serializable key=getCollectionKey(persister,entity,entry,session);
+      PersistentCollection collection=session.getPersistenceContext().getCollection(new CollectionKey(persister,key));
+      if (collection == null) {
+        collection=collectionType.instantiate(session,persister,key);
+        collection.setOwner(entity);
+        session.getPersistenceContext().addUninitializedCollection(persister,collection,key);
+      }
+      session.initializeCollection(collection,false);
+      if (collectionType.isArrayType()) {
+        session.getPersistenceContext().addCollectionHolder(collection);
+      }
+      return collection;
+    }
+  }
+  final Serializable id=session.getContextEntityIdentifier(entity);
   if (entry == null) {
     throw new HibernateException("entity is not associated with the session: " + id);
   }
