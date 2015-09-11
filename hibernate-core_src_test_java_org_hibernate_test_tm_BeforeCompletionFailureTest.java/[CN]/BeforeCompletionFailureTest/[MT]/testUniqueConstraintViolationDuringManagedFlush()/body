@@ -1,0 +1,42 @@
+{
+  Session session=openSession();
+  session.getTransaction().begin();
+  session.save(newEntity(1));
+  session.getTransaction().commit();
+  session.close();
+  final TransactionManager tm=JtaPlatformStandardTestingImpl.INSTANCE.transactionManager();
+  assertEquals(Status.STATUS_NO_TRANSACTION,tm.getStatus());
+  tm.begin();
+  session=openSession();
+  session.save(newEntity(2));
+  try {
+    tm.commit();
+    fail("Expecting a failure from JTA commit");
+  }
+ catch (  RollbackException expected) {
+    log.info("Test encountered expected JTA RollbackException; looking for nested JDBCException",expected);
+    boolean violationExceptionFound=false;
+    Throwable cause=expected;
+    while (cause != null) {
+      if (cause instanceof JDBCException) {
+        log.info("Found JDBCException, assuming related to UK violation",cause);
+        violationExceptionFound=true;
+        break;
+      }
+      cause=cause.getCause();
+    }
+    if (!violationExceptionFound) {
+      fail("Did not find JDBCException in JTA RollbackException chain");
+    }
+  }
+ finally {
+    if (!((SessionImplementor)session).isClosed()) {
+      session.close();
+    }
+  }
+  session=openSession();
+  session.getTransaction().begin();
+  session.createQuery("delete SimpleEntity").executeUpdate();
+  session.getTransaction().commit();
+  session.close();
+}
