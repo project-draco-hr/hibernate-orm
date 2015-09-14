@@ -1,9 +1,17 @@
 {
   ArrayList<Object[]> modes=new ArrayList<>();
-  modes.add(new Object[]{CacheMode.INVALIDATION_SYNC});
-  if (!useTransactionalCache()) {
-    modes.add(new Object[]{CacheMode.REPL_SYNC});
-    modes.add(new Object[]{CacheMode.DIST_SYNC});
+  for (  AccessType accessType : new AccessType[]{AccessType.TRANSACTIONAL,AccessType.READ_ONLY,AccessType.READ_WRITE}) {
+    modes.add(new Object[]{CacheMode.INVALIDATION_SYNC,accessType});
+  }
+  for (  AccessType accessType : new AccessType[]{AccessType.READ_ONLY,AccessType.READ_WRITE,AccessType.NONSTRICT_READ_WRITE}) {
+    modes.add(new Object[]{CacheMode.REPL_SYNC,accessType});
+    modes.add(new Object[]{CacheMode.DIST_SYNC,accessType});
+    if (canUseLocalMode()) {
+      modes.add(new Object[]{CacheMode.LOCAL,accessType});
+    }
+  }
+  if (canUseLocalMode()) {
+    modes.add(new Object[]{CacheMode.LOCAL,AccessType.TRANSACTIONAL});
   }
   return modes;
 }

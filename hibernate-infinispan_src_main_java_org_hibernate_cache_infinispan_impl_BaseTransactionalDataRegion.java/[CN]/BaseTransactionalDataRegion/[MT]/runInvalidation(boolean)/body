@@ -1,39 +1,16 @@
 {
-  if (!useTombstones) {
-    super.runInvalidation(inTransaction);
+  if (strategy == null) {
     return;
   }
-  boolean startedTx=false;
-  if (!inTransaction && requiresTransaction) {
-    try {
-      tm.begin();
-      startedTx=true;
-    }
- catch (    Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-  try {
-    AdvancedCache localCache=Caches.localCache(cache);
-    CloseableIterator<CacheEntry> it=Caches.entrySet(localCache,Tombstone.EXCLUDE_TOMBSTONES).iterator();
-    try {
-      while (it.hasNext()) {
-        CacheEntry entry=it.next();
-        localCache.remove(entry.getKey(),entry.getValue());
-      }
-    }
-  finally {
-      it.close();
-    }
-  }
-  finally {
-    if (startedTx) {
-      try {
-        tm.commit();
-      }
- catch (      Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
-  }
+switch (strategy) {
+case VALIDATION:
+    super.runInvalidation(inTransaction);
+  return;
+case TOMBSTONES:
+removeEntries(inTransaction,Tombstone.EXCLUDE_TOMBSTONES);
+return;
+case VERSIONED_ENTRIES:
+removeEntries(inTransaction,VersionedEntry.EXCLUDE_EMPTY_EXTRACT_VALUE);
+return;
+}
 }

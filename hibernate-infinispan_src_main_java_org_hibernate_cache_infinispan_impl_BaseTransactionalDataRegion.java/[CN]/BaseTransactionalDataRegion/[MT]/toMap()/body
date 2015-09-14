@@ -1,9 +1,15 @@
 {
-  if (useTombstones) {
-    AdvancedCache localCache=Caches.localCache(cache);
-    return Caches.entrySet(localCache,Tombstone.EXCLUDE_TOMBSTONES,FutureUpdate.VALUE_EXTRACTOR).toMap();
+  if (strategy == null) {
+    return Collections.EMPTY_MAP;
   }
- else {
+switch (strategy) {
+case VALIDATION:
     return super.toMap();
-  }
+case TOMBSTONES:
+  return Caches.entrySet(Caches.localCache(cache),Tombstone.EXCLUDE_TOMBSTONES,FutureUpdate.VALUE_EXTRACTOR).toMap();
+case VERSIONED_ENTRIES:
+return Caches.entrySet(Caches.localCache(cache),VersionedEntry.EXCLUDE_EMPTY_EXTRACT_VALUE,VersionedEntry.EXCLUDE_EMPTY_EXTRACT_VALUE).toMap();
+default :
+throw new IllegalStateException(strategy.toString());
+}
 }
