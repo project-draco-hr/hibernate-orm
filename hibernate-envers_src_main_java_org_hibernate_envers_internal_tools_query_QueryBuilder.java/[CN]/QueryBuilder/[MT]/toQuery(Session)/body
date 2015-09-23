@@ -4,7 +4,12 @@
   build(querySb,queryParamValues);
   final Query query=session.createQuery(querySb.toString());
   for (  Map.Entry<String,Object> paramValue : queryParamValues.entrySet()) {
-    query.setParameter(paramValue.getKey(),paramValue.getValue());
+    if (paramValue.getValue() instanceof RevisionType) {
+      query.setParameter(paramValue.getKey(),paramValue.getValue(),new CustomType(new RevisionTypeType()));
+    }
+ else {
+      query.setParameter(paramValue.getKey(),paramValue.getValue());
+    }
   }
   return query;
 }
