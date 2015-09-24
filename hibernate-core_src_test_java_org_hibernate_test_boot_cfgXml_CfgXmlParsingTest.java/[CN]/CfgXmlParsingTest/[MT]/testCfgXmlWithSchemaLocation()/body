@@ -1,4 +1,11 @@
 {
   StandardServiceRegistry ssr=new StandardServiceRegistryBuilder().configure("org/hibernate/test/boot/cfgXml/hibernate.cfg.xml").build();
-  StandardServiceRegistryBuilder.destroy(ssr);
+  try {
+    final ConfigurationService cs=ssr.getService(ConfigurationService.class);
+    assertNotNull(cs.getSettings().get("hibernate.cache.provider_class"));
+    assertNotNull(cs.getSettings().get("cache.provider_class"));
+  }
+  finally {
+    StandardServiceRegistryBuilder.destroy(ssr);
+  }
 }
