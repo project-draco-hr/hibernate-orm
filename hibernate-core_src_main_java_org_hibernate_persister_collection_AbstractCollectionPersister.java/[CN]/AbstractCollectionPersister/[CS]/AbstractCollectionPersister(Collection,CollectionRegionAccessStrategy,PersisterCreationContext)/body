@@ -1,7 +1,9 @@
 {
+  final Database database=creationContext.getMetadata().getDatabase();
+  final JdbcEnvironment jdbcEnvironment=database.getJdbcEnvironment();
   this.factory=creationContext.getSessionFactory();
   this.cacheAccessStrategy=cacheAccessStrategy;
-  if (factory.getSettings().isStructuredCacheEntriesEnabled()) {
+  if (factory.getSessionFactoryOptions().isStructuredCacheEntriesEnabled()) {
     cacheEntryStructure=collectionBinding.isMap() ? StructuredMapCacheEntry.INSTANCE : StructuredCollectionCacheEntry.INSTANCE;
   }
  else {
@@ -22,7 +24,7 @@
   isPrimitiveArray=collectionBinding.isPrimitiveArray();
   isArray=collectionBinding.isArray();
   subselectLoadable=collectionBinding.isSubselectLoadable();
-  qualifiedTableName=table.getQualifiedName(dialect,factory.getSettings().getDefaultCatalogName(),factory.getSettings().getDefaultSchemaName());
+  qualifiedTableName=determineTableName(table,jdbcEnvironment);
   int spacesSize=1 + collectionBinding.getSynchronizedTables().size();
   spaces=new String[spacesSize];
   spaces[0]=qualifiedTableName;
@@ -36,7 +38,7 @@
   hasOrphanDelete=collectionBinding.hasOrphanDelete();
   int batch=collectionBinding.getBatchSize();
   if (batch == -1) {
-    batch=factory.getSettings().getDefaultBatchFetchSize();
+    batch=factory.getSessionFactoryOptions().getDefaultBatchFetchSize();
   }
   batchSize=batch;
   isVersioned=collectionBinding.isOptimisticLocked();

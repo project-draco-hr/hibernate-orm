@@ -1,13 +1,15 @@
 {
   super(persistentClass,cacheAccessStrategy,naturalIdRegionAccessStrategy,creationContext);
   final SessionFactoryImplementor factory=creationContext.getSessionFactory();
+  final Database database=creationContext.getMetadata().getDatabase();
+  final JdbcEnvironment jdbcEnvironment=database.getJdbcEnvironment();
   joinSpan=persistentClass.getJoinClosureSpan() + 1;
   qualifiedTableNames=new String[joinSpan];
   isInverseTable=new boolean[joinSpan];
   isNullableTable=new boolean[joinSpan];
   keyColumnNames=new String[joinSpan][];
   final Table table=persistentClass.getRootTable();
-  qualifiedTableNames[0]=table.getQualifiedName(factory.getDialect(),factory.getSettings().getDefaultCatalogName(),factory.getSettings().getDefaultSchemaName());
+  qualifiedTableNames[0]=determineTableName(table,jdbcEnvironment);
   isInverseTable[0]=false;
   isNullableTable[0]=false;
   keyColumnNames[0]=getIdentifierColumnNames();
@@ -34,7 +36,7 @@
   int j=1;
   while (joinIter.hasNext()) {
     Join join=(Join)joinIter.next();
-    qualifiedTableNames[j]=join.getTable().getQualifiedName(factory.getDialect(),factory.getSettings().getDefaultCatalogName(),factory.getSettings().getDefaultSchemaName());
+    qualifiedTableNames[j]=determineTableName(join.getTable(),jdbcEnvironment);
     isInverseTable[j]=join.isInverse();
     isNullableTable[j]=join.isOptional();
     cascadeDeleteEnabled[j]=join.getKey().isCascadeDeleteEnabled() && factory.getDialect().supportsCascadeDelete();

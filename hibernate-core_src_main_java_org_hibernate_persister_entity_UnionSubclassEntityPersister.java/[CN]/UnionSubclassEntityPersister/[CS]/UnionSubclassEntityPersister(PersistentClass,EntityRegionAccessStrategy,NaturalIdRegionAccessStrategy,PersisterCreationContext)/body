@@ -1,10 +1,12 @@
 {
   super(persistentClass,cacheAccessStrategy,naturalIdRegionAccessStrategy,creationContext);
-  final SessionFactoryImplementor factory=creationContext.getSessionFactory();
   if (getIdentifierGenerator() instanceof IdentityGenerator) {
     throw new MappingException("Cannot use identity column key generation with <union-subclass> mapping for: " + getEntityName());
   }
-  tableName=persistentClass.getTable().getQualifiedName(factory.getDialect(),factory.getSettings().getDefaultCatalogName(),factory.getSettings().getDefaultSchemaName());
+  final SessionFactoryImplementor factory=creationContext.getSessionFactory();
+  final Database database=creationContext.getMetadata().getDatabase();
+  final JdbcEnvironment jdbcEnvironment=database.getJdbcEnvironment();
+  tableName=determineTableName(persistentClass.getTable(),jdbcEnvironment);
   String sql;
   boolean callable=false;
   ExecuteUpdateResultCheckStyle checkStyle=null;
@@ -51,8 +53,8 @@
   HashSet subclassTables=new HashSet();
   iter=persistentClass.getSubclassTableClosureIterator();
   while (iter.hasNext()) {
-    Table table=(Table)iter.next();
-    subclassTables.add(table.getQualifiedName(factory.getDialect(),factory.getSettings().getDefaultCatalogName(),factory.getSettings().getDefaultSchemaName()));
+    final Table table=(Table)iter.next();
+    subclassTables.add(determineTableName(table,jdbcEnvironment));
   }
   subclassSpaces=ArrayHelper.toStringArray(subclassTables);
   subquery=generateSubquery(persistentClass,creationContext.getMetadata());
@@ -68,7 +70,7 @@
     while (iter.hasNext()) {
       Table tab=(Table)iter.next();
       if (!tab.isAbstractUnionTable()) {
-        String tableName=tab.getQualifiedName(factory.getDialect(),factory.getSettings().getDefaultCatalogName(),factory.getSettings().getDefaultSchemaName());
+        final String tableName=determineTableName(tab,jdbcEnvironment);
         tableNames.add(tableName);
         String[] key=new String[idColumnSpan];
         Iterator citer=tab.getPrimaryKey().getColumnIterator();
