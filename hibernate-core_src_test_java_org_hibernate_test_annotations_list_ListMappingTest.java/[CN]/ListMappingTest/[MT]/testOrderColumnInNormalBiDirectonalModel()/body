@@ -1,0 +1,23 @@
+{
+  Metadata metadata=new MetadataSources(ssr).addAnnotatedClass(Order.class).addAnnotatedClass(LineItem.class).buildMetadata();
+  Collection lineItemsBinding=metadata.getCollectionBindings().iterator().next();
+  assertThat(lineItemsBinding,instanceOf(org.hibernate.mapping.List.class));
+  org.hibernate.mapping.List asList=(org.hibernate.mapping.List)lineItemsBinding;
+  final Column positionColumn=(Column)asList.getIndex().getColumnIterator().next();
+  assertThat(positionColumn.getName(),equalTo("position"));
+  assertTrue(asList.getCollectionTable().containsColumn(positionColumn));
+class TargetImpl extends TargetStdoutImpl {
+    boolean found=false;
+    @Override public void accept(    String action){
+      super.accept(action);
+      if (action.startsWith("create table t_line_item")) {
+        if (action.contains("position")) {
+          found=true;
+        }
+      }
+    }
+  }
+  TargetImpl target=new TargetImpl();
+  ssr.getService(SchemaManagementTool.class).getSchemaCreator(Collections.emptyMap()).doCreation(metadata,true,Collections.<Target>singletonList(target));
+  assertTrue(target.found);
+}
