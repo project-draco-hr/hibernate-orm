@@ -1,6 +1,23 @@
 {
   final Set<String> exportIdentifiers=new HashSet<String>(50);
   final Database database=metadata.getDatabase();
+  final JdbcEnvironment jdbcEnvironment=database.getJdbcEnvironment();
+  final Dialect dialect=jdbcEnvironment.getDialect();
+  for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects()) {
+    if (!auxiliaryDatabaseObject.appliesToDialect(dialect)) {
+      continue;
+    }
+    applySqlStrings(dialect.getAuxiliaryDatabaseObjectExporter().getSqlDropStrings(auxiliaryDatabaseObject,metadata),targets,true);
+  }
+  for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects()) {
+    if (auxiliaryDatabaseObject.beforeTablesOnCreation()) {
+      continue;
+    }
+    if (!auxiliaryDatabaseObject.appliesToDialect(dialect)) {
+      continue;
+    }
+    applySqlStrings(auxiliaryDatabaseObject.sqlCreateStrings(jdbcEnvironment.getDialect()),targets,true);
+  }
   boolean tryToCreateCatalogs=false;
   boolean tryToCreateSchemas=false;
   if (createNamespaces) {
@@ -65,5 +82,14 @@
       }
       applySqlStrings(database.getJdbcEnvironment().getDialect().getSequenceExporter().getSqlCreateStrings(sequence,metadata),targets,false);
     }
+  }
+  for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects()) {
+    if (!auxiliaryDatabaseObject.beforeTablesOnCreation()) {
+      continue;
+    }
+    if (!auxiliaryDatabaseObject.appliesToDialect(dialect)) {
+      continue;
+    }
+    applySqlStrings(auxiliaryDatabaseObject.sqlCreateStrings(jdbcEnvironment.getDialect()),targets,true);
   }
 }
