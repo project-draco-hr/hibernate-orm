@@ -1,0 +1,62 @@
+{
+  final StandardServiceRegistry ssr=new StandardServiceRegistryBuilder().applySetting(AvailableSettings.HBM2DDL_AUTO,"create-drop").build();
+  try {
+    MetadataImplementor metadata=(MetadataImplementor)new MetadataSources(ssr).addAnnotatedClass(EntityWithConvertibleField.class).getMetadataBuilder().applyAttributeConverter(ConvertibleEnumConverter.class,true).build();
+    PersistentClass tester=metadata.getEntityBinding(EntityWithConvertibleField.class.getName());
+    Property nameProp=tester.getProperty("convertibleEnum");
+    SimpleValue nameValue=(SimpleValue)nameProp.getValue();
+    Type type=nameValue.getType();
+    assertNotNull(type);
+    assertTyping(BasicType.class,type);
+    if (!AttributeConverterTypeAdapter.class.isInstance(type)) {
+      fail("AttributeConverter not applied");
+    }
+    AbstractStandardBasicType basicType=assertTyping(AbstractStandardBasicType.class,type);
+    assertTyping(EnumJavaTypeDescriptor.class,basicType.getJavaTypeDescriptor());
+    assertEquals(Types.VARCHAR,basicType.getSqlTypeDescriptor().getSqlType());
+    final SessionFactory sf=metadata.buildSessionFactory();
+    try {
+      Session s=sf.openSession();
+      s.getTransaction().begin();
+      EntityWithConvertibleField entity=new EntityWithConvertibleField();
+      entity.setId("ID");
+      entity.setConvertibleEnum(ConvertibleEnum.VALUE);
+      String entityID=entity.getId();
+      s.persist(entity);
+      s.getTransaction().commit();
+      s.close();
+      s=sf.openSession();
+      s.beginTransaction();
+      entity=(EntityWithConvertibleField)s.load(EntityWithConvertibleField.class,entityID);
+      assertEquals(ConvertibleEnum.VALUE,entity.getConvertibleEnum());
+      s.getTransaction().commit();
+      s.close();
+      JavaConstantNode javaConstantNode=new JavaConstantNode();
+      javaConstantNode.setExpectedType(type);
+      javaConstantNode.setSessionFactory((SessionFactoryImplementor)sf);
+      javaConstantNode.setText("org.hibernate.test.converter.AttributeConverterTest$ConvertibleEnum.VALUE");
+      final String outcome=javaConstantNode.getRenderText((SessionFactoryImplementor)sf);
+      assertEquals("'VALUE'",outcome);
+      s=sf.openSession();
+      s.beginTransaction();
+      s.createQuery("FROM EntityWithConvertibleField e where e.convertibleEnum = org.hibernate.test.converter.AttributeConverterTest$ConvertibleEnum.VALUE").list();
+      s.getTransaction().commit();
+      s.close();
+      s=sf.openSession();
+      s.beginTransaction();
+      s.delete(entity);
+      s.getTransaction().commit();
+      s.close();
+    }
+  finally {
+      try {
+        sf.close();
+      }
+ catch (      Exception ignore) {
+      }
+    }
+  }
+  finally {
+    StandardServiceRegistryBuilder.destroy(ssr);
+  }
+}
