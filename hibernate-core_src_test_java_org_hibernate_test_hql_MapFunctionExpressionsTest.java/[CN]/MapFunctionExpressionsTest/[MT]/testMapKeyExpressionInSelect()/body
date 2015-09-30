@@ -1,8 +1,12 @@
 {
   Session s=openSession();
   s.getTransaction().begin();
-  s.createQuery("select key(a) from Contact c join c.addresses a").list();
-  s.createQuery("select key(c.addresses) from Contact c").list();
+  List types=s.createQuery("select key(a) from Contact c join c.addresses a").list();
+  assertEquals(1,types.size());
+  assertTyping(AddressType.class,types.get(0));
+  types=s.createQuery("select key(c.addresses) from Contact c").list();
+  assertEquals(1,types.size());
+  assertTyping(AddressType.class,types.get(0));
   s.getTransaction().commit();
   s.close();
 }

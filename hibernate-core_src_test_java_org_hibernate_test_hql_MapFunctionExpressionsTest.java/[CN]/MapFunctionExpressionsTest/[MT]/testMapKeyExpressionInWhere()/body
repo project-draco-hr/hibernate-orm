@@ -1,8 +1,12 @@
 {
   Session s=openSession();
   s.getTransaction().begin();
-  s.createQuery("from Contact c join c.addresses a where key(a) = 'HOME'").list();
-  s.createQuery("from Contact c where key(c.addresses) = 'HOME'").list();
+  List contacts=s.createQuery("select c from Contact c join c.addresses a where key(a) is not null").list();
+  assertEquals(1,contacts.size());
+  Contact contact=assertTyping(Contact.class,contacts.get(0));
+  contacts=s.createQuery("select c from Contact c where key(c.addresses) is not null").list();
+  assertEquals(1,contacts.size());
+  contact=assertTyping(Contact.class,contacts.get(0));
   s.getTransaction().commit();
   s.close();
 }
