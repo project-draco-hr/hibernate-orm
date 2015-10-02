@@ -1,9 +1,7 @@
 {
   Configuration cfg=new Configuration().setProperty(AvailableSettings.SESSION_FACTORY_NAME_IS_JNDI,"false");
   SessionFactory factory=cfg.buildSessionFactory();
-  Reference reference=factory.getReference();
-  StringRefAddr refAddr=(StringRefAddr)reference.get("uuid");
-  String uuid=(String)refAddr.getContent();
+  String uuid=((SessionFactoryImplementor)factory).getUuid();
   SessionFactoryRegistry.INSTANCE.removeSessionFactory(uuid,null,false,null);
   SessionFactoryRegistry.INSTANCE.addSessionFactory("some-other-uuid",null,false,factory,null);
   try {
