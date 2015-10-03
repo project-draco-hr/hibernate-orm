@@ -35,7 +35,12 @@
     simpleValue.setTypeName(type);
   }
   if (persistentClassName != null || attributeConverterDefinition != null) {
-    simpleValue.setTypeUsingReflection(persistentClassName,propertyName);
+    try {
+      simpleValue.setTypeUsingReflection(persistentClassName,propertyName);
+    }
+ catch (    Exception e) {
+      throw new MappingException(String.format(Locale.ROOT,"Unable to determine basic type mapping via reflection [%s -> %s]",persistentClassName,propertyName),e);
+    }
   }
   if (!simpleValue.isTypeSpecified() && isVersion()) {
     simpleValue.setTypeName("integer");

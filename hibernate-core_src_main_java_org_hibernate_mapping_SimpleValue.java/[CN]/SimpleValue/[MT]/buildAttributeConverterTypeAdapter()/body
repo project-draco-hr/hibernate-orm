@@ -3,6 +3,19 @@
   final Class databaseColumnJavaType=attributeConverterDefinition.getDatabaseColumnType();
   final JavaTypeDescriptor entityAttributeJavaTypeDescriptor=JavaTypeDescriptorRegistry.INSTANCE.getDescriptor(entityAttributeJavaType);
   int jdbcTypeCode=JdbcTypeJavaClassMappings.INSTANCE.determineJdbcTypeCodeForJavaClass(databaseColumnJavaType);
+  if (isLob()) {
+    if (LobTypeMappings.INSTANCE.hasCorrespondingLobCode(jdbcTypeCode)) {
+      jdbcTypeCode=LobTypeMappings.INSTANCE.getCorrespondingLobCode(jdbcTypeCode);
+    }
+ else {
+      if (Serializable.class.isAssignableFrom(entityAttributeJavaType)) {
+        jdbcTypeCode=Types.BLOB;
+      }
+ else {
+        throw new IllegalArgumentException(String.format(Locale.ROOT,"JDBC type-code [%s (%s)] not known to have a corresponding LOB equivalent, and Java type is not Serializable (to use BLOB)",jdbcTypeCode,JdbcTypeNameMapper.getTypeName(jdbcTypeCode)));
+      }
+    }
+  }
   if (isNationalized()) {
     jdbcTypeCode=NationalizedTypeMappings.INSTANCE.getCorrespondingNationalizedCode(jdbcTypeCode);
   }
