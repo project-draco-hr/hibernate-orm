@@ -1,6 +1,6 @@
 {
-  final Class entityAttributeJavaType=attributeConverterDefinition.getEntityAttributeType();
-  final Class databaseColumnJavaType=attributeConverterDefinition.getDatabaseColumnType();
+  final Class entityAttributeJavaType=attributeConverterDescriptor.getDomainType();
+  final Class databaseColumnJavaType=attributeConverterDescriptor.getJdbcType();
   final JavaTypeDescriptor entityAttributeJavaTypeDescriptor=JavaTypeDescriptorRegistry.INSTANCE.getDescriptor(entityAttributeJavaType);
   int jdbcTypeCode=JdbcTypeJavaClassMappings.INSTANCE.determineJdbcTypeCodeForJavaClass(databaseColumnJavaType);
   if (isLob()) {
@@ -21,8 +21,8 @@
   }
   final SqlTypeDescriptor sqlTypeDescriptor=SqlTypeDescriptorRegistry.INSTANCE.getDescriptor(jdbcTypeCode);
   final JavaTypeDescriptor intermediateJavaTypeDescriptor=JavaTypeDescriptorRegistry.INSTANCE.getDescriptor(databaseColumnJavaType);
-  final SqlTypeDescriptor sqlTypeDescriptorAdapter=new AttributeConverterSqlTypeDescriptorAdapter(attributeConverterDefinition.getAttributeConverter(),sqlTypeDescriptor,intermediateJavaTypeDescriptor);
-  final String name=AttributeConverterTypeAdapter.NAME_PREFIX + attributeConverterDefinition.getAttributeConverter().getClass().getName();
+  final SqlTypeDescriptor sqlTypeDescriptorAdapter=new AttributeConverterSqlTypeDescriptorAdapter(attributeConverterDescriptor.getAttributeConverter(),sqlTypeDescriptor,intermediateJavaTypeDescriptor);
+  final String name=AttributeConverterTypeAdapter.NAME_PREFIX + attributeConverterDescriptor.getAttributeConverter().getClass().getName();
   final String description=String.format("BasicType adapter for AttributeConverter<%s,%s>",entityAttributeJavaType.getSimpleName(),databaseColumnJavaType.getSimpleName());
-  return new AttributeConverterTypeAdapter(name,description,attributeConverterDefinition.getAttributeConverter(),sqlTypeDescriptorAdapter,entityAttributeJavaType,databaseColumnJavaType,entityAttributeJavaTypeDescriptor);
+  return new AttributeConverterTypeAdapter(name,description,attributeConverterDescriptor.getAttributeConverter(),sqlTypeDescriptorAdapter,entityAttributeJavaType,databaseColumnJavaType,entityAttributeJavaTypeDescriptor);
 }
