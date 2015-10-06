@@ -1,10 +1,19 @@
 {
   if (!shouldApply()) {
+    getLog().info("Skipping Hibernate enhancement plugin execution since there is no feature enabled");
     return;
   }
-  getLog().info("Starting Hibernate enhancement for class sourceSet on " + dir);
   File root=new File(this.dir);
+  if (!root.exists()) {
+    getLog().info("Skipping Hibernate enhancement plugin execution since there is no classes dir " + dir);
+    return;
+  }
   walkDir(root);
+  if (sourceSet.isEmpty()) {
+    getLog().info("Skipping Hibernate enhancement plugin execution since there are no classes to enhance on " + dir);
+    return;
+  }
+  getLog().info("Starting Hibernate enhancement for classes on " + dir);
   final ClassLoader classLoader=toClassLoader(Collections.singletonList(root));
   EnhancementContext enhancementContext=new DefaultEnhancementContext(){
     @Override public ClassLoader getLoadingClassLoader(){
