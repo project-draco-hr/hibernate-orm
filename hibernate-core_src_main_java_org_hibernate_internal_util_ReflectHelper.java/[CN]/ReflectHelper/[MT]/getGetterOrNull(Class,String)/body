@@ -8,16 +8,18 @@
     }
     final String methodName=method.getName();
     if (methodName.startsWith("get")) {
-      String testStdMethod=Introspector.decapitalize(methodName.substring(3));
-      String testOldMethod=methodName.substring(3);
-      if (testStdMethod.equals(propertyName) || testOldMethod.equals(propertyName)) {
+      final String stemName=methodName.substring(3);
+      final String decapitalizedStemName=Introspector.decapitalize(stemName);
+      if (stemName.equals(propertyName) || decapitalizedStemName.equals(propertyName)) {
+        verifyNoIsVariantExists(containerClass,propertyName,method,stemName);
         return method;
       }
     }
     if (methodName.startsWith("is")) {
-      String testStdMethod=Introspector.decapitalize(methodName.substring(2));
-      String testOldMethod=methodName.substring(2);
-      if (testStdMethod.equals(propertyName) || testOldMethod.equals(propertyName)) {
+      final String stemName=methodName.substring(2);
+      String decapitalizedStemName=Introspector.decapitalize(stemName);
+      if (stemName.equals(propertyName) || decapitalizedStemName.equals(propertyName)) {
+        verifyNoGetVariantExists(containerClass,propertyName,method,stemName);
         return method;
       }
     }
