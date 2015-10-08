@@ -4,16 +4,7 @@
   }
   if (AttributeConverterTypeAdapter.class.isInstance(expectedType)) {
     final AttributeConverterTypeAdapter adapterType=(AttributeConverterTypeAdapter)expectedType;
-    if (getDataType().getReturnedClass().equals(adapterType.getModelType())) {
-      final AttributeConverter converter=((AttributeConverterTypeAdapter)expectedType).getAttributeConverter();
-      final Object converted=converter.convertToDatabaseColumn(getLiteralValue());
-      if (isCharacterData(adapterType.sqlType())) {
-        setText("'" + converted.toString() + "'");
-      }
- else {
-        setText(converted.toString());
-      }
-    }
+    setText(determineConvertedValue(adapterType,getLiteralValue()));
     this.expectedType=expectedType;
   }
 }
