@@ -3,12 +3,19 @@
   final boolean hasGroupedIndexes=!groupedIndexNameSet.isEmpty();
   final Set<String> groupedUniqueKeyNameSet=splitNames(groupedUniqueKeyNames);
   final boolean hasGroupedUniqueKeys=!groupedUniqueKeyNameSet.isEmpty();
-  if (hasGroupedIndexes && StringHelper.isNotEmpty(columnAttribute)) {
+  if (hasGroupedIndexes) {
+    if (isNotEmpty(columnAttribute)) {
+      for (      String name : groupedIndexNameSet) {
+        callback.registerIndexColumn(name,logicalTableName,columnAttribute);
+      }
+    }
+  }
+  if (hasGroupedIndexes && isNotEmpty(columnAttribute)) {
     for (    String name : groupedIndexNameSet) {
       callback.registerIndexColumn(name,logicalTableName,columnAttribute);
     }
   }
-  if (hasGroupedUniqueKeys && StringHelper.isNotEmpty(columnAttribute)) {
+  if (hasGroupedUniqueKeys && isNotEmpty(columnAttribute)) {
     for (    String name : groupedUniqueKeyNameSet) {
       callback.registerUniqueKeyColumn(name,logicalTableName,columnAttribute);
     }
@@ -18,7 +25,7 @@
       continue;
     }
     final JaxbHbmColumnType column=(JaxbHbmColumnType)oColumn;
-    if (StringHelper.isNotEmpty(column.getIndex())) {
+    if (isNotEmpty(column.getIndex())) {
       callback.registerIndexColumn(column.getIndex(),logicalTableName,column.getName());
     }
     if (hasGroupedIndexes) {
@@ -26,7 +33,7 @@
         callback.registerIndexColumn(name,logicalTableName,column.getName());
       }
     }
-    if (StringHelper.isNotEmpty(column.getUniqueKey())) {
+    if (isNotEmpty(column.getUniqueKey())) {
       callback.registerUniqueKeyColumn(column.getUniqueKey(),logicalTableName,column.getName());
     }
     if (hasGroupedUniqueKeys) {
