@@ -18,20 +18,12 @@
     if (generationTiming == GenerationTiming.ALWAYS || generationTiming == GenerationTiming.INSERT) {
       property.setValueGenerationStrategy(new GeneratedValueGeneration(generationTiming));
       if (property.isInsertable()) {
-        if (singularAttributeSource.isInsertable() == null) {
-          property.setInsertable(false);
-        }
- else {
-          throw new MappingException(String.format(Locale.ENGLISH,"Cannot specify both insert=\"true\" and generated=\"%s\" for property %s",generationTiming.name().toLowerCase(Locale.ROOT),propertySource.getName()),mappingDocument.getOrigin());
-        }
+        log.debugf("Property [%s] specified %s generation, setting insertable to false : %s",propertySource.getName(),generationTiming.name(),mappingDocument.getOrigin());
+        property.setInsertable(false);
       }
       if (property.isUpdateable() && generationTiming == GenerationTiming.ALWAYS) {
-        if (singularAttributeSource.isUpdatable() == null) {
-          property.setUpdateable(false);
-        }
- else {
-          throw new MappingException(String.format(Locale.ENGLISH,"Cannot specify both update=\"true\" and generated=\"%s\" for property %s",generationTiming.name().toLowerCase(Locale.ROOT),propertySource.getName()),mappingDocument.getOrigin());
-        }
+        log.debugf("Property [%s] specified ALWAYS generation, setting updateable to false : %s",propertySource.getName(),mappingDocument.getOrigin());
+        property.setUpdateable(false);
       }
     }
   }
