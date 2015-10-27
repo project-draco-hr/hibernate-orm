@@ -1,5 +1,6 @@
 {
-  final String propRef=getPluralAttributeSource().getKeySource().getReferencedPropertyName();
+  final PluralAttributeKeySource keySource=getPluralAttributeSource().getKeySource();
+  final String propRef=keySource.getReferencedPropertyName();
   getCollectionBinding().setReferencedPropertyName(propRef);
   final KeyValue keyVal;
   if (propRef == null) {
@@ -9,6 +10,7 @@
     keyVal=(KeyValue)getCollectionBinding().getOwner().getRecursiveProperty(propRef).getValue();
   }
   final DependantValue key=new DependantValue(mappingDocument.getMetadataCollector(),getCollectionBinding().getCollectionTable(),keyVal);
+  key.setForeignKeyName(keySource.getExplicitForeignKeyName());
   key.setCascadeDeleteEnabled(getPluralAttributeSource().getKeySource().isCascadeDeleteEnabled());
   final ImplicitJoinColumnNameSource.Nature implicitNamingNature;
   if (getPluralAttributeSource().getElementSource() instanceof PluralAttributeElementSourceManyToMany || getPluralAttributeSource().getElementSource() instanceof PluralAttributeElementSourceOneToMany) {
