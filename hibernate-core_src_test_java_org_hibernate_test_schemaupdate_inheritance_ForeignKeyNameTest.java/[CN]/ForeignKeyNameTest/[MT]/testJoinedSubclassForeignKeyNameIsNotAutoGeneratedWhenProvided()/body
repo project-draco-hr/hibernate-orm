@@ -1,0 +1,20 @@
+{
+  StandardServiceRegistry ssr=new StandardServiceRegistryBuilder().applySetting(Environment.HBM2DDL_AUTO,"none").build();
+  try {
+    File output=File.createTempFile("update_script",".sql");
+    output.deleteOnExit();
+    final MetadataImplementor metadata=(MetadataImplementor)new MetadataSources(ssr).addResource("org/hibernate/test/schemaupdate/inheritance/Employee.hbm.xml").addResource("org/hibernate/test/schemaupdate/inheritance/Person.hbm.xml").addResource("org/hibernate/test/schemaupdate/inheritance/Manager.hbm.xml").addResource("org/hibernate/test/schemaupdate/inheritance/Payment.hbm.xml").buildMetadata();
+    metadata.validate();
+    SchemaUpdate su=new SchemaUpdate(ssr,metadata);
+    su.setHaltOnError(true);
+    su.setOutputFile(output.getAbsolutePath());
+    su.setDelimiter(";");
+    su.setFormat(true);
+    su.execute(true,false);
+    String fileContent=new String(Files.readAllBytes(output.toPath()));
+    assertThat(fileContent.toLowerCase().contains("fk_emp_per"),is(true));
+  }
+  finally {
+    StandardServiceRegistryBuilder.destroy(ssr);
+  }
+}
