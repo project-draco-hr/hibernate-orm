@@ -1,0 +1,16 @@
+{
+  Session session=openSession();
+  Transaction trx=session.getTransaction();
+  User user1=new User(1,"Chris");
+  User user2=new User(2,"Steve");
+  trx.begin();
+  session.save(user1);
+  session.save(user2);
+  trx.commit();
+  session.close();
+  session=openSession();
+  trx=session.getTransaction();
+  Criteria criteria=session.createCriteria(User.class);
+  criteria.add(Restrictions.eq("name",user1.getName().toLowerCase()).ignoreCase());
+  assertEquals(1,criteria.list().size());
+}
