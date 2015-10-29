@@ -1,7 +1,8 @@
 {
   final String name=attribute.getName();
   try {
-    final Field field=attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.EMBEDDED ? metamodelClass.getField(name) : metamodelClass.getDeclaredField(name);
+    final boolean allowNonDeclaredFieldReference=attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.EMBEDDED || attribute.getDeclaringType().getPersistenceType() == Type.PersistenceType.EMBEDDABLE;
+    final Field field=allowNonDeclaredFieldReference ? metamodelClass.getField(name) : metamodelClass.getDeclaredField(name);
     try {
       field.setAccessible(true);
       field.set(null,attribute);
