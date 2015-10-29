@@ -11,14 +11,19 @@ catch (    FileNotFoundException e) {
     }
   }
  else {
-    try {
-      return readSerFile();
+    if (!serFileObsolete) {
+      try {
+        return readSerFile();
+      }
+ catch (      SerializationException e) {
+        log.unableToDeserializeCache(serFile.getName(),e);
+      }
+catch (      FileNotFoundException e) {
+        log.cachedFileNotFound(serFile.getName(),e);
+      }
     }
- catch (    SerializationException e) {
-      log.unableToDeserializeCache(serFile.getName(),e);
-    }
-catch (    FileNotFoundException e) {
-      log.cachedFileNotFound(serFile.getName(),e);
+ else {
+      log.cachedFileObsolete(serFile);
     }
     log.readingMappingsFromFile(xmlFile.getPath());
     final Binding binding=FileXmlSource.doBind(binder,xmlFile,getOrigin());
