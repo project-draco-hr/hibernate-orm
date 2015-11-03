@@ -1,0 +1,19 @@
+{
+  Configuration cfg=new Configuration().setProperty(AvailableSettings.SESSION_FACTORY_NAME,NAME).setProperty(AvailableSettings.SESSION_FACTORY_NAME_IS_JNDI,"false");
+  SessionFactoryImplementor factory=(SessionFactoryImplementor)cfg.buildSessionFactory();
+  assertSame(factory,SessionFactoryRegistry.INSTANCE.getNamedSessionFactory(NAME));
+  SessionFactoryRegistry.INSTANCE.removeSessionFactory(factory.getUuid(),NAME,false,null);
+  assertNull(SessionFactoryRegistry.INSTANCE.findSessionFactory(factory.getUuid(),NAME));
+  TypeFactory typeFactory=factory.getTypeResolver().getTypeFactory();
+  byte[] typeFactoryBytes=SerializationHelper.serialize(typeFactory);
+  typeFactory=(TypeFactory)SerializationHelper.deserialize(typeFactoryBytes);
+  try {
+    typeFactory.resolveSessionFactory();
+    fail("should have failed with HibernateException because session factory is not registered.");
+  }
+ catch (  HibernateException ex) {
+  }
+  SessionFactoryRegistry.INSTANCE.addSessionFactory(factory.getUuid(),NAME,false,factory,null);
+  assertSame(factory,typeFactory.resolveSessionFactory());
+  factory.close();
+}

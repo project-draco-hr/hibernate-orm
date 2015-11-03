@@ -1,0 +1,10 @@
+{
+  Configuration cfg=new Configuration().setProperty(AvailableSettings.SESSION_FACTORY_NAME,NAME).setProperty(AvailableSettings.SESSION_FACTORY_NAME_IS_JNDI,"false");
+  SessionFactoryImplementor factory=(SessionFactoryImplementor)cfg.buildSessionFactory();
+  assertSame(factory,SessionFactoryRegistry.INSTANCE.getNamedSessionFactory(NAME));
+  TypeFactory typeFactory=factory.getTypeResolver().getTypeFactory();
+  byte[] typeFactoryBytes=SerializationHelper.serialize(typeFactory);
+  typeFactory=(TypeFactory)SerializationHelper.deserialize(typeFactoryBytes);
+  assertSame(factory,typeFactory.resolveSessionFactory());
+  factory.close();
+}

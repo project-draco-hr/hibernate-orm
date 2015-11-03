@@ -1,0 +1,19 @@
+{
+  Configuration cfg=new Configuration();
+  SessionFactoryImplementor factory=(SessionFactoryImplementor)cfg.buildSessionFactory();
+  assertSame(factory,SessionFactoryRegistry.INSTANCE.findSessionFactory(factory.getUuid(),null));
+  SessionFactoryRegistry.INSTANCE.removeSessionFactory(factory.getUuid(),null,false,null);
+  assertNull(SessionFactoryRegistry.INSTANCE.findSessionFactory(factory.getUuid(),null));
+  TypeFactory typeFactory=factory.getTypeResolver().getTypeFactory();
+  byte[] typeFactoryBytes=SerializationHelper.serialize(typeFactory);
+  typeFactory=(TypeFactory)SerializationHelper.deserialize(typeFactoryBytes);
+  try {
+    typeFactory.resolveSessionFactory();
+    fail("should have failed with HibernateException because session factory is not registered.");
+  }
+ catch (  HibernateException ex) {
+  }
+  SessionFactoryRegistry.INSTANCE.addSessionFactory(factory.getUuid(),null,false,factory,null);
+  assertSame(factory,typeFactory.resolveSessionFactory());
+  factory.close();
+}

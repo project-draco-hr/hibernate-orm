@@ -1,0 +1,27 @@
+{
+  Configuration cfg=new Configuration();
+  SessionFactoryImplementor factory=(SessionFactoryImplementor)cfg.buildSessionFactory();
+  assertSame(factory,SessionFactoryRegistry.INSTANCE.getSessionFactory(factory.getUuid()));
+  SessionFactoryRegistry.INSTANCE.removeSessionFactory(factory.getUuid(),null,false,null);
+  assertNull(SessionFactoryRegistry.INSTANCE.getSessionFactory(factory.getUuid()));
+  TypeFactory typeFactory=factory.getTypeResolver().getTypeFactory();
+  byte[] typeFactoryBytes=SerializationHelper.serialize(typeFactory);
+  typeFactory=(TypeFactory)SerializationHelper.deserialize(typeFactoryBytes);
+  try {
+    typeFactory.resolveSessionFactory();
+    fail("should have failed with HibernateException because session factory is not registered.");
+  }
+ catch (  HibernateException ex) {
+  }
+  SessionFactoryImplementor factoryWithDiffUuid=(SessionFactoryImplementor)cfg.buildSessionFactory();
+  assertSame(factoryWithDiffUuid,SessionFactoryRegistry.INSTANCE.getSessionFactory(factoryWithDiffUuid.getUuid()));
+  assertFalse(factory.getUuid().equals(factoryWithDiffUuid.getUuid()));
+  try {
+    typeFactory.resolveSessionFactory();
+    fail("should have failed with HibernateException because session factories were not registered with the same non-null name.");
+  }
+ catch (  HibernateException ex) {
+  }
+  factory.close();
+  factoryWithDiffUuid.close();
+}
