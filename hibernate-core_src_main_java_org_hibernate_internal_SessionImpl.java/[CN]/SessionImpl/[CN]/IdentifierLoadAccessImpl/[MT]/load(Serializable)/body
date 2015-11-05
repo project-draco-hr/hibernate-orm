@@ -1,19 +1,18 @@
 {
-  if (this.lockOptions != null) {
-    LoadEvent event=new LoadEvent(id,entityPersister.getEntityName(),lockOptions,SessionImpl.this);
-    fireLoad(event,LoadEventListener.GET);
-    return (T)event.getResult();
+  CacheMode sessionCacheMode=getCacheMode();
+  boolean cacheModeChanged=false;
+  if (cacheMode != null) {
+    if (cacheMode != sessionCacheMode) {
+      setCacheMode(cacheMode);
+      cacheModeChanged=true;
+    }
   }
-  LoadEvent event=new LoadEvent(id,entityPersister.getEntityName(),false,SessionImpl.this);
-  boolean success=false;
   try {
-    fireLoad(event,LoadEventListener.GET);
-    success=true;
+    return doLoad(id);
   }
- catch (  ObjectNotFoundException e) {
+  finally {
+    if (cacheModeChanged) {
+      setCacheMode(sessionCacheMode);
+    }
   }
- finally {
-    afterOperation(success);
-  }
-  return (T)event.getResult();
 }

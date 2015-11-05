@@ -1,0 +1,49 @@
+{
+  List<T> result=CollectionHelper.arrayList(ids.length);
+  if (sessionCheckingEnabled) {
+    boolean foundAnyManagedEntities=false;
+    final List<K> nonManagedIds=new ArrayList<K>();
+    for (    K id : ids) {
+      final EntityKey entityKey=new EntityKey(id,persister);
+      final T managedEntity=(T)session.getPersistenceContext().getEntity(entityKey);
+      if (managedEntity != null) {
+        foundAnyManagedEntities=true;
+        result.add(managedEntity);
+      }
+ else {
+        nonManagedIds.add(id);
+      }
+    }
+    if (foundAnyManagedEntities) {
+      if (nonManagedIds.isEmpty()) {
+        return result;
+      }
+ else {
+        ids=nonManagedIds.toArray((K[])Array.newInstance(ids.getClass().getComponentType(),nonManagedIds.size()));
+      }
+    }
+  }
+  if (lockOptions == null) {
+    lockOptions=new LockOptions(LockMode.NONE);
+  }
+  int numberOfIdsLeft=ids.length;
+  final int maxBatchSize;
+  if (explicitBatchSize != null && explicitBatchSize > 0) {
+    maxBatchSize=explicitBatchSize;
+  }
+ else {
+    maxBatchSize=session.getFactory().getDialect().getDefaultBatchLoadSizingStrategy().determineOptimalBatchLoadSize(persister.getIdentifierType().getColumnSpan(session.getFactory()),numberOfIdsLeft);
+  }
+  int idPosition=0;
+  while (numberOfIdsLeft > 0) {
+    int batchSize=Math.min(numberOfIdsLeft,maxBatchSize);
+    final DynamicEntityLoader batchingLoader=new DynamicEntityLoader(persister,batchSize,lockOptions,session.getFactory(),session.getLoadQueryInfluencers());
+    Serializable[] idsInBatch=new Serializable[batchSize];
+    System.arraycopy(ids,idPosition,idsInBatch,0,batchSize);
+    QueryParameters qp=buildMultiLoadQueryParameters(persister,idsInBatch,lockOptions);
+    result.addAll(batchingLoader.doEntityBatchFetch(session,qp,idsInBatch));
+    numberOfIdsLeft=numberOfIdsLeft - batchSize;
+    idPosition+=batchSize;
+  }
+  return result;
+}
