@@ -1,4 +1,14 @@
 {
   super(criteriaBuilder,javaType,pathSource,joinAttribute,joinType);
-  this.model=(Bindable<X>)(Attribute.PersistentAttributeType.EMBEDDED == joinAttribute.getPersistentAttributeType() ? joinAttribute : javaType != null ? criteriaBuilder.getEntityManagerFactory().getMetamodel().managedType(javaType) : joinAttribute.getType());
+  if (Attribute.PersistentAttributeType.EMBEDDED == joinAttribute.getPersistentAttributeType()) {
+    this.model=(Bindable<X>)joinAttribute;
+  }
+ else {
+    if (javaType != null) {
+      this.model=(Bindable<X>)criteriaBuilder.getEntityManagerFactory().getMetamodel().managedType(javaType);
+    }
+ else {
+      this.model=(Bindable<X>)joinAttribute.getType();
+    }
+  }
 }
