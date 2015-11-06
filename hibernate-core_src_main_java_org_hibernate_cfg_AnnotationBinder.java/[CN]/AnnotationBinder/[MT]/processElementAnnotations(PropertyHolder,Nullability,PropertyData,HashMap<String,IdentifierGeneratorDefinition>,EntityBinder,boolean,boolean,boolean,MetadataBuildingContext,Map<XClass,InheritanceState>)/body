@@ -311,6 +311,9 @@
         }
         if (isId || (!optional && nullability != Nullability.FORCED_NULL)) {
           for (          Ejb3Column col : columns) {
+            if (isId && col.isFormula()) {
+              throw new CannotForceNonNullableException(String.format(Locale.ROOT,"Identifier property [%s] cannot contain formula mapping [%s]",HCANNHelper.annotatedElementSignature(property),col.getFormulaString()));
+            }
             col.forceNotNull();
           }
         }
