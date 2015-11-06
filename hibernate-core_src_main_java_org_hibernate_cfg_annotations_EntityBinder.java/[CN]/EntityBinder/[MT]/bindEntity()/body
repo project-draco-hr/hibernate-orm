@@ -87,11 +87,12 @@
   if (loader != null) {
     persistentClass.setLoaderName(loader.namedQuery());
   }
+  final JdbcEnvironment jdbcEnvironment=context.getMetadataCollector().getDatabase().getJdbcEnvironment();
   if (annotatedClass.isAnnotationPresent(Synchronize.class)) {
     Synchronize synchronizedWith=annotatedClass.getAnnotation(Synchronize.class);
     String[] tables=synchronizedWith.value();
     for (    String table : tables) {
-      persistentClass.addSynchronizedTable(table);
+      persistentClass.addSynchronizedTable(context.getBuildingOptions().getPhysicalNamingStrategy().toPhysicalTableName(jdbcEnvironment.getIdentifierHelper().toIdentifier(table),jdbcEnvironment).render(jdbcEnvironment.getDialect()));
     }
   }
   if (annotatedClass.isAnnotationPresent(Subselect.class)) {
