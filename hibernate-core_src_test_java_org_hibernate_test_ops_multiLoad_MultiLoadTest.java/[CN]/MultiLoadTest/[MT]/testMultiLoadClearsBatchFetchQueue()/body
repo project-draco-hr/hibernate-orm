@@ -1,0 +1,12 @@
+{
+  final EntityKey entityKey=new EntityKey(1,sessionFactory().getEntityPersister(SimpleEntity.class.getName()));
+  Session session=openSession();
+  session.getTransaction().begin();
+  SimpleEntity first=session.byId(SimpleEntity.class).getReference(1);
+  assertTrue(((SessionImplementor)session).getPersistenceContext().getBatchFetchQueue().containsEntityKey(entityKey));
+  List<SimpleEntity> list=session.byMultipleIds(SimpleEntity.class).enableSessionCheck(true).multiLoad(ids(56));
+  assertEquals(56,list.size());
+  assertFalse(((SessionImplementor)session).getPersistenceContext().getBatchFetchQueue().containsEntityKey(entityKey));
+  session.getTransaction().commit();
+  session.close();
+}
