@@ -6,12 +6,12 @@
       return;
     }
     for (    String role : collectionRoles) {
-      CollectionPersister collectionPersister=factory.getCollectionPersister(role);
+      final CollectionPersister collectionPersister=factory.getCollectionPersister(role);
       if (!collectionPersister.hasCache()) {
         continue;
       }
       String mappedBy=collectionPersister.getMappedByProperty();
-      if (mappedBy != null) {
+      if (mappedBy != null && !mappedBy.isEmpty()) {
         int i=persister.getEntityMetamodel().getPropertyIndex(mappedBy);
         Serializable oldId=null;
         if (oldState != null) {
@@ -20,7 +20,10 @@
         Object ref=persister.getPropertyValue(entity,i);
         Serializable id=null;
         if (ref != null) {
-          id=session.getIdentifier(ref);
+          id=session.getContextEntityIdentifier(ref);
+          if (id == null) {
+            id=session.getSessionFactory().getClassMetadata(ref.getClass()).getIdentifier(ref,session);
+          }
         }
         if (id != null && !id.equals(oldId)) {
           evict(id,collectionPersister,session);
@@ -31,11 +34,20 @@
       }
  else {
         LOG.debug("Evict CollectionRegion " + role);
-        collectionPersister.getCacheAccessStrategy().evictAll();
+        final SoftLock softLock=collectionPersister.getCacheAccessStrategy().lockRegion();
+        session.getActionQueue().registerProcess(new AfterTransactionCompletionProcess(){
+          @Override public void doAfterTransactionCompletion(          boolean success,          SessionImplementor session){
+            collectionPersister.getCacheAccessStrategy().unlockRegion(softLock);
+          }
+        }
+);
       }
     }
   }
  catch (  Exception e) {
+    if (propagateException) {
+      throw new IllegalStateException(e);
+    }
     LOG.error("",e);
   }
 }
