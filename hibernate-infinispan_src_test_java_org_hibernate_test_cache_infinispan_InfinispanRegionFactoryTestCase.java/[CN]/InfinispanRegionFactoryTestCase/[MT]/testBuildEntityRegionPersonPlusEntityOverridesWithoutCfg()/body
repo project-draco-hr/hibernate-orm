@@ -6,16 +6,14 @@
   p.setProperty("hibernate.cache.infinispan.com.acme.Person.expiration.max_idle","30000");
   p.setProperty("hibernate.cache.infinispan.entity.cfg","myentity-cache");
   p.setProperty("hibernate.cache.infinispan.entity.eviction.strategy","FIFO");
-  p.setProperty("hibernate.cache.infinispan.entity.eviction.wake_up_interval","3000");
   p.setProperty("hibernate.cache.infinispan.entity.eviction.max_entries","10000");
-  InfinispanRegionFactory factory=createRegionFactory(p);
+  p.setProperty("hibernate.cache.infinispan.entity.expiration.wake_up_interval","3000");
+  TestInfinispanRegionFactory factory=createRegionFactory(p);
   try {
     factory.getCacheManager();
-    assertNotNull(factory.getTypeOverrides().get(person));
-    assertFalse(factory.getDefinedConfigurations().contains(person));
+    assertFalse(isDefinedCache(factory,person));
     EntityRegionImpl region=(EntityRegionImpl)factory.buildEntityRegion(person,p,MUTABLE_NON_VERSIONED);
-    assertNotNull(factory.getTypeOverrides().get(person));
-    assertTrue(factory.getDefinedConfigurations().contains(person));
+    assertTrue(isDefinedCache(factory,person));
     AdvancedCache cache=region.getCache();
     Configuration cacheCfg=cache.getCacheConfiguration();
     assertEquals(EvictionStrategy.LRU,cacheCfg.eviction().strategy());

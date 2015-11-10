@@ -1,6 +1,9 @@
 {
   PutFromLoadValidator.removeFromCache(cache);
-  return new PutFromLoadValidator(cache,cm){
+  InfinispanRegionFactory regionFactory=new InfinispanRegionFactory();
+  regionFactory.setCacheManager(cm);
+  regionFactory.start(CacheTestUtil.sfOptionsForStart(),new Properties());
+  return new PutFromLoadValidator(cache,regionFactory,cm){
     @Override public Lock acquirePutFromLoadLock(    SessionImplementor session,    Object key,    long txTimestamp){
       Lock lock=super.acquirePutFromLoadLock(session,key,txTimestamp);
       try {

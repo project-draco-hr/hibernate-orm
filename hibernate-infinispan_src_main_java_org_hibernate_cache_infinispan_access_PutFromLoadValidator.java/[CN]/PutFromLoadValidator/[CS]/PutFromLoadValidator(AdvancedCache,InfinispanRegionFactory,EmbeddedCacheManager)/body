@@ -1,0 +1,61 @@
+{
+  Configuration cacheConfiguration=cache.getCacheConfiguration();
+  Configuration pendingPutsConfiguration=regionFactory.getPendingPutsCacheConfiguration();
+  ConfigurationBuilder configurationBuilder=new ConfigurationBuilder();
+  configurationBuilder.read(pendingPutsConfiguration);
+  configurationBuilder.dataContainer().keyEquivalence(cacheConfiguration.dataContainer().keyEquivalence());
+  String pendingPutsName=cache.getName() + "-" + InfinispanRegionFactory.DEF_PENDING_PUTS_RESOURCE;
+  cacheManager.defineConfiguration(pendingPutsName,configurationBuilder.build());
+  if (pendingPutsConfiguration.expiration() != null && pendingPutsConfiguration.expiration().maxIdle() > 0) {
+    this.expirationPeriod=pendingPutsConfiguration.expiration().maxIdle();
+  }
+ else {
+    throw new IllegalArgumentException("Pending puts cache needs to have maxIdle expiration set!");
+  }
+  CacheMode cacheMode=cache.getCacheConfiguration().clustering().cacheMode();
+  NonTxPutFromLoadInterceptor nonTxPutFromLoadInterceptor=null;
+  if (cacheMode.isClustered()) {
+    if (!cacheMode.isInvalidation()) {
+      throw new IllegalArgumentException("PutFromLoadValidator in clustered caches requires invalidation mode.");
+    }
+    List<CommandInterceptor> interceptorChain=cache.getInterceptorChain();
+    log.debug("Interceptor chain was: " + interceptorChain);
+    int position=0;
+    int invalidationPosition=0;
+    int entryWrappingPosition=0;
+    for (    CommandInterceptor ci : interceptorChain) {
+      if (ci instanceof InvalidationInterceptor) {
+        invalidationPosition=position;
+      }
+      if (ci instanceof EntryWrappingInterceptor) {
+        entryWrappingPosition=position;
+      }
+      position++;
+    }
+    boolean transactional=cache.getCacheConfiguration().transaction().transactionMode().isTransactional();
+    if (transactional) {
+      cache.removeInterceptor(invalidationPosition);
+      TxInvalidationInterceptor txInvalidationInterceptor=new TxInvalidationInterceptor();
+      cache.getComponentRegistry().registerComponent(txInvalidationInterceptor,TxInvalidationInterceptor.class);
+      cache.addInterceptor(txInvalidationInterceptor,invalidationPosition);
+      TxPutFromLoadInterceptor txPutFromLoadInterceptor=new TxPutFromLoadInterceptor(this,cache.getName());
+      cache.getComponentRegistry().registerComponent(txPutFromLoadInterceptor,TxPutFromLoadInterceptor.class);
+      cache.addInterceptor(txPutFromLoadInterceptor,entryWrappingPosition);
+    }
+ else {
+      cache.removeInterceptor(invalidationPosition);
+      NonTxInvalidationInterceptor nonTxInvalidationInterceptor=new NonTxInvalidationInterceptor(this);
+      cache.getComponentRegistry().registerComponent(nonTxInvalidationInterceptor,NonTxInvalidationInterceptor.class);
+      cache.addInterceptor(nonTxInvalidationInterceptor,invalidationPosition);
+      nonTxPutFromLoadInterceptor=new NonTxPutFromLoadInterceptor(this,cache.getName());
+      cache.getComponentRegistry().registerComponent(nonTxPutFromLoadInterceptor,NonTxPutFromLoadInterceptor.class);
+      cache.addInterceptor(nonTxPutFromLoadInterceptor,entryWrappingPosition);
+    }
+    log.debug("New interceptor chain is: " + cache.getInterceptorChain());
+    CacheCommandInitializer cacheCommandInitializer=cache.getComponentRegistry().getComponent(CacheCommandInitializer.class);
+    cacheCommandInitializer.addPutFromLoadValidator(cache.getName(),this);
+  }
+  this.cache=cache;
+  this.pendingPuts=cacheManager.getCache(pendingPutsName);
+  this.nonTxPutFromLoadInterceptor=nonTxPutFromLoadInterceptor;
+}

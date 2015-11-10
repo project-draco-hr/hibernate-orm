@@ -2,11 +2,14 @@
   Properties p=createProperties();
   InfinispanRegionFactory factory=createRegionFactory(p);
   try {
-    Configuration ppConfig=factory.getPendingPutsCacheConfiguration();
-    ConfigurationBuilder cb=new ConfigurationBuilder().read(ppConfig);
-    cb.transaction().useSynchronization(false);
-    ppConfig=cb.build();
-    assertEquals(InfinispanRegionFactory.DEFAULT_PENDING_PUTS_CACHE_CONFIGURATION,ppConfig);
+    Configuration ppConfig=factory.getCacheManager().getCacheConfiguration(DEF_PENDING_PUTS_RESOURCE);
+    assertTrue(ppConfig.isTemplate());
+    assertFalse(ppConfig.clustering().cacheMode().isClustered());
+    assertTrue(ppConfig.simpleCache());
+    assertEquals(TransactionMode.NON_TRANSACTIONAL,ppConfig.transaction().transactionMode());
+    assertEquals(60000,ppConfig.expiration().maxIdle());
+    assertFalse(ppConfig.jmxStatistics().enabled());
+    assertFalse(ppConfig.jmxStatistics().available());
   }
   finally {
     factory.stop();

@@ -1,0 +1,26 @@
+{
+  final FileLookup fileLookup=FileLookupFactory.newInstance();
+  final ClassLoader infinispanClassLoader=InfinispanRegionFactory.class.getClassLoader();
+  return serviceRegistry.getService(ClassLoaderService.class).workWithClassLoader(new ClassLoaderService.Work<ConfigurationBuilderHolder>(){
+    @Override public ConfigurationBuilderHolder doWork(    ClassLoader classLoader){
+      InputStream is=null;
+      try {
+        is=fileLookup.lookupFile(configFile,classLoader);
+        if (is == null) {
+          classLoader=infinispanClassLoader;
+          is=FileLookupFactory.newInstance().lookupFileStrict(configFile,classLoader);
+        }
+        final ParserRegistry parserRegistry=new ParserRegistry(infinispanClassLoader);
+        final ConfigurationBuilderHolder holder=parseWithOverridenClassLoader(parserRegistry,is,infinispanClassLoader);
+        return holder;
+      }
+ catch (      IOException e) {
+        throw new CacheException("Unable to create default cache manager",e);
+      }
+ finally {
+        Util.close(is);
+      }
+    }
+  }
+);
+}

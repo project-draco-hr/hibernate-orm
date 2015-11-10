@@ -1,0 +1,49 @@
+{
+  if (!manager.cacheExists(regionName)) {
+    String templateCacheName=baseConfigurations.get(regionName);
+    Configuration configuration=null;
+    ConfigurationBuilder builder=new ConfigurationBuilder();
+    if (templateCacheName != null) {
+      configuration=manager.getCacheConfiguration(templateCacheName);
+      if (configuration == null) {
+        log.errorf("Region '%s' should use cache '%s' but its configuration is not defined - using configuration by type (%s).",regionName,templateCacheName,type.key);
+      }
+ else {
+        log.debugf("Region '%s' will use cache template '%s'",regionName,templateCacheName);
+        builder.read(configuration);
+        configureTransactionManager(builder);
+      }
+    }
+    if (configuration == null) {
+      configuration=dataTypeConfigurations.get(type);
+      if (configuration == null) {
+        throw new IllegalStateException("Configuration not defined for type " + type.key);
+      }
+      builder.read(configuration);
+    }
+    ConfigurationBuilder override=configOverrides.get(regionName);
+    if (override != null) {
+      log.debugf("Region '%s' has additional configuration set through properties.",regionName);
+      builder.read(override.build(false));
+    }
+    if (settings.getMultiTenancyStrategy() == MultiTenancyStrategy.NONE) {
+      if (metadata != null && metadata.getKeyType() != null) {
+        builder.dataContainer().keyEquivalence(new TypeEquivalance(metadata.getKeyType()));
+      }
+    }
+    if (globalStats != null) {
+      builder.jmxStatistics().enabled(globalStats).available(globalStats);
+    }
+    if (manager.getCacheConfiguration(regionName) != null) {
+      log.warnf("Cache configuration for region '%s' was already defined! Cache exists? %s",regionName,manager.cacheExists(regionName));
+    }
+    configuration=builder.build();
+    type.validate(configuration);
+    manager.defineConfiguration(regionName,configuration);
+  }
+  final AdvancedCache cache=manager.getCache(regionName).getAdvancedCache();
+  if (!cache.getStatus().allowInvocations()) {
+    cache.start();
+  }
+  return createCacheWrapper(cache);
+}

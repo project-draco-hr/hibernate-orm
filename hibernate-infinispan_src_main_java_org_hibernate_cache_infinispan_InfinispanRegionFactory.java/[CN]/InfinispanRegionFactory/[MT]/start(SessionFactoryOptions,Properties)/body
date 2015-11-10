@@ -1,37 +1,23 @@
 {
   log.debug("Starting Infinispan region factory");
   try {
+    this.settings=settings;
     transactionManagerlookup=createTransactionManagerLookup(settings,properties);
     transactionManager=transactionManagerlookup.getTransactionManager();
-    manager=createCacheManager(properties,settings.getServiceRegistry());
-    this.settings=settings;
-    initGenericDataTypeOverrides();
     final Enumeration keys=properties.propertyNames();
     while (keys.hasMoreElements()) {
       final String key=(String)keys.nextElement();
       int prefixLoc;
       if ((prefixLoc=key.indexOf(PREFIX)) != -1) {
-        dissectProperty(prefixLoc,key,properties);
+        parseProperty(prefixLoc,key,extractProperty(key,properties));
       }
     }
-    defineGenericDataTypeCacheConfigurations(properties);
-    pendingPutsCacheConfiguration=manager.getCacheConfiguration(PENDING_PUTS_CACHE_NAME);
-    if (pendingPutsCacheConfiguration == null) {
-      pendingPutsCacheConfiguration=DEFAULT_PENDING_PUTS_CACHE_CONFIGURATION;
-      manager.defineConfiguration(PENDING_PUTS_CACHE_NAME,pendingPutsCacheConfiguration);
+    defaultConfiguration=loadConfiguration(settings.getServiceRegistry(),DEF_INFINISPAN_CONFIG_RESOURCE);
+    manager=createCacheManager(properties,settings.getServiceRegistry());
+    if (!manager.getCacheManagerConfiguration().isClustered()) {
+      defaultConfiguration=loadConfiguration(settings.getServiceRegistry(),INFINISPAN_CONFIG_LOCAL_RESOURCE);
     }
- else {
-      if (pendingPutsCacheConfiguration.clustering().cacheMode().isClustered()) {
-        throw new IllegalStateException("Pending-puts cache must not be clustered!");
-      }
-      if (pendingPutsCacheConfiguration.transaction().transactionMode().isTransactional()) {
-        throw new IllegalStateException("Pending-puts cache must not be transactional!");
-      }
-      ExpirationConfiguration expiration=pendingPutsCacheConfiguration.expiration();
-      if (expiration.maxIdle() <= 0 && expiration.lifespan() <= 0) {
-        log.warn("Pending-puts cache should expire old entries");
-      }
-    }
+    defineDataTypeCacheConfigurations();
   }
  catch (  CacheException ce) {
     throw ce;

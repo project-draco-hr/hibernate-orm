@@ -3,14 +3,14 @@
   Properties p=createProperties();
   p.setProperty("hibernate.cache.infinispan.myquery.cfg","timestamps-none-eviction");
   p.setProperty("hibernate.cache.infinispan.myquery.eviction.strategy","LIRS");
-  p.setProperty("hibernate.cache.infinispan.myquery.eviction.wake_up_interval","2222");
+  p.setProperty("hibernate.cache.infinispan.myquery.expiration.wake_up_interval","2222");
   p.setProperty("hibernate.cache.infinispan.myquery.eviction.max_entries","11111");
-  InfinispanRegionFactory factory=createRegionFactory(p);
+  TestInfinispanRegionFactory factory=createRegionFactory(p);
   try {
-    assertTrue(factory.getDefinedConfigurations().contains("local-query"));
+    assertTrue(isDefinedCache(factory,"local-query"));
     QueryResultsRegionImpl region=(QueryResultsRegionImpl)factory.buildQueryResultsRegion(queryRegionName,p);
-    assertNotNull(factory.getTypeOverrides().get(queryRegionName));
-    assertTrue(factory.getDefinedConfigurations().contains(queryRegionName));
+    assertNotNull(factory.getBaseConfiguration(queryRegionName));
+    assertTrue(isDefinedCache(factory,queryRegionName));
     AdvancedCache cache=region.getCache();
     Configuration cacheCfg=cache.getCacheConfiguration();
     assertEquals(EvictionStrategy.LIRS,cacheCfg.eviction().strategy());
