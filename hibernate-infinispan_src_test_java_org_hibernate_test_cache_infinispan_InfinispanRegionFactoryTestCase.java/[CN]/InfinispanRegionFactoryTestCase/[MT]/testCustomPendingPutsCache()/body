@@ -1,0 +1,13 @@
+{
+  Properties p=createProperties();
+  p.setProperty(InfinispanRegionFactory.INFINISPAN_CONFIG_RESOURCE_PROP,"alternative-infinispan-configs.xml");
+  InfinispanRegionFactory factory=createRegionFactory(p);
+  try {
+    Configuration ppConfig=factory.getPendingPutsCacheConfiguration();
+    assertEquals(120000,ppConfig.expiration().maxIdle());
+    assertNotEquals(120000,InfinispanRegionFactory.DEFAULT_PENDING_PUTS_CACHE_CONFIGURATION.expiration().maxIdle());
+  }
+  finally {
+    factory.stop();
+  }
+}

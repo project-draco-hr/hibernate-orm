@@ -1,0 +1,14 @@
+{
+  Properties p=createProperties();
+  InfinispanRegionFactory factory=createRegionFactory(p);
+  try {
+    Configuration ppConfig=factory.getPendingPutsCacheConfiguration();
+    ConfigurationBuilder cb=new ConfigurationBuilder().read(ppConfig);
+    cb.transaction().useSynchronization(false);
+    ppConfig=cb.build();
+    assertEquals(InfinispanRegionFactory.DEFAULT_PENDING_PUTS_CACHE_CONFIGURATION,ppConfig);
+  }
+  finally {
+    factory.stop();
+  }
+}
