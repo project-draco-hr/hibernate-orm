@@ -1,12 +1,10 @@
 {
   final EntityEntry e;
-  if ((entity instanceof ManagedEntity) && ((ManagedEntity)entity).$$_hibernate_getEntityEntry() != null && status == Status.READ_ONLY) {
-    e=((ManagedEntity)entity).$$_hibernate_getEntityEntry();
-    e.setStatus(status);
+  if (persister.getEntityEntryFactory() instanceof MutableEntityEntryFactory) {
+    e=((MutableEntityEntryFactory)persister.getEntityEntryFactory()).createEntityEntry(status,loadedState,rowId,id,version,lockMode,existsInDatabase,persister,disableVersionIncrement,this);
   }
  else {
-    final EntityEntryFactory entityEntryFactory=persister.getEntityEntryFactory();
-    e=entityEntryFactory.createEntityEntry(status,loadedState,rowId,id,version,lockMode,existsInDatabase,persister,disableVersionIncrement,this);
+    e=((ImmutableEntityEntryFactory)persister.getEntityEntryFactory()).createEntityEntry(status,loadedState,rowId,id,version,lockMode,existsInDatabase,persister,disableVersionIncrement,this);
   }
   entityEntryContext.addEntityEntry(entity,e);
   setHasNonReadOnlyEnties(status);

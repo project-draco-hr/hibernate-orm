@@ -1,0 +1,12 @@
+{
+  final EntityPersister subclassPersister=referenceCacheEntry.getSubclassPersister();
+  final StatefulPersistenceContext statefulPersistenceContext=(StatefulPersistenceContext)session.getPersistenceContext();
+  if ((entity instanceof ManagedEntity)) {
+    statefulPersistenceContext.addReferenceEntry(entity,Status.READ_ONLY);
+  }
+ else {
+    TwoPhaseLoad.addUninitializedCachedEntity(entityKey,entity,subclassPersister,LockMode.NONE,referenceCacheEntry.areLazyPropertiesUnfetched(),referenceCacheEntry.getVersion(),session);
+  }
+  subclassPersister.afterInitialize(entity,referenceCacheEntry.areLazyPropertiesUnfetched(),session);
+  statefulPersistenceContext.initializeNonLazyCollections();
+}
