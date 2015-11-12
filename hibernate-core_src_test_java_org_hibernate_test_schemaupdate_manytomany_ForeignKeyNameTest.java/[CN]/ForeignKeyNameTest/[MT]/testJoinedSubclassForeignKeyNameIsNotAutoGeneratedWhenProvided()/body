@@ -1,0 +1,20 @@
+{
+  StandardServiceRegistry ssr=new StandardServiceRegistryBuilder().applySetting(Environment.HBM2DDL_AUTO,"none").build();
+  try {
+    File output=File.createTempFile("update_script",".sql");
+    output.deleteOnExit();
+    final MetadataImplementor metadata=(MetadataImplementor)new MetadataSources(ssr).addResource("org/hibernate/test/schemaupdate/manytomany/UserGroup.hbm.xml").buildMetadata();
+    metadata.validate();
+    SchemaExport schemaExport=new SchemaExport(ssr,metadata);
+    schemaExport.setOutputFile(output.getAbsolutePath());
+    schemaExport.setDelimiter(";");
+    schemaExport.setFormat(true);
+    schemaExport.create(true,false);
+    String fileContent=new String(Files.readAllBytes(output.toPath()));
+    assertThat(fileContent.toLowerCase().contains("fk_user_group"),is(true));
+    assertThat(fileContent.toLowerCase().contains("fk_group_user"),is(true));
+  }
+  finally {
+    StandardServiceRegistryBuilder.destroy(ssr);
+  }
+}
