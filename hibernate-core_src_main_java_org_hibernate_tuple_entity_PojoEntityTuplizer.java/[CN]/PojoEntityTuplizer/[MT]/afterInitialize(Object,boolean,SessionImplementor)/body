@@ -1,11 +1,7 @@
 {
-  if (isInstrumented()) {
-    Set<String> lazyProps=lazyPropertiesAreUnfetched && getEntityMetamodel().hasLazyProperties() ? lazyPropertyNames : null;
-    FieldInterceptionHelper.injectFieldInterceptor(entity,getEntityName(),lazyProps,session);
-  }
   if (entity instanceof PersistentAttributeInterceptable) {
     if (lazyPropertiesAreUnfetched && getEntityMetamodel().hasLazyProperties()) {
-      PersistentAttributeInterceptor interceptor=new LazyAttributeLoader(session,lazyPropertyNames,getEntityName());
+      PersistentAttributeInterceptor interceptor=new LazyAttributeLoadingInterceptor(session,lazyPropertyNames,getEntityName());
       ((PersistentAttributeInterceptable)entity).$$_hibernate_setInterceptor(interceptor);
     }
   }

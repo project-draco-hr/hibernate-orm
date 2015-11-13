@@ -6,8 +6,12 @@
   entityType=sessionFactory.getTypeResolver().getTypeFactory().manyToOne(name);
   identifierAttribute=PropertyFactory.buildIdentifierAttribute(persistentClass,sessionFactory.getIdentifierGenerator(rootName));
   versioned=persistentClass.isVersioned();
-  instrumentationMetadata=persistentClass.hasPojoRepresentation() ? Environment.getBytecodeProvider().getEntityInstrumentationMetadata(persistentClass.getMappedClass()) : new NonPojoInstrumentationMetadata(persistentClass.getEntityName());
-  lazyLoadingBytecodeEnhanced=(persistentClass.getMappedClass() != null && PersistentAttributeInterceptable.class.isAssignableFrom(persistentClass.getMappedClass()));
+  if (persistentClass.hasPojoRepresentation()) {
+    bytecodeEnhancementMetadata=new BytecodeEnhancementMetadataPojoImpl(persistentClass.getMappedClass());
+  }
+ else {
+    bytecodeEnhancementMetadata=new BytecodeEnhancementMetadataNonPojoImpl(persistentClass.getEntityName());
+  }
   boolean hasLazy=false;
   propertySpan=persistentClass.getPropertyClosureSpan();
   properties=new NonIdentifierAttribute[propertySpan];
@@ -42,10 +46,10 @@
     Property prop=(Property)iter.next();
     if (prop == persistentClass.getVersion()) {
       tempVersionProperty=i;
-      properties[i]=PropertyFactory.buildVersionProperty(persister,sessionFactory,i,prop,instrumentationMetadata.isInstrumented());
+      properties[i]=PropertyFactory.buildVersionProperty(persister,sessionFactory,i,prop,bytecodeEnhancementMetadata.isEnhancedForLazyLoading());
     }
  else {
-      properties[i]=PropertyFactory.buildEntityBasedAttribute(persister,sessionFactory,i,prop,instrumentationMetadata.isInstrumented());
+      properties[i]=PropertyFactory.buildEntityBasedAttribute(persister,sessionFactory,i,prop,bytecodeEnhancementMetadata.isEnhancedForLazyLoading());
     }
     if (prop.isNaturalIdentifier()) {
       naturalIdNumbers.add(i);
@@ -56,7 +60,7 @@
     if ("id".equals(prop.getName())) {
       foundNonIdentifierPropertyNamedId=true;
     }
-    boolean lazy=prop.isLazy() && (instrumentationMetadata.isInstrumented() || lazyLoadingBytecodeEnhanced);
+    boolean lazy=prop.isLazy() && bytecodeEnhancementMetadata.isEnhancedForLazyLoading();
     if (lazy) {
       hasLazy=true;
     }

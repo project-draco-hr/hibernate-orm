@@ -10,9 +10,9 @@
     }
     sureFromUs=true;
   }
-  if (FieldInterceptionHelper.isInstrumented(entity)) {
-    FieldInterceptor interceptor=FieldInterceptionHelper.extractFieldInterceptor(entity);
-    final boolean isInitialized=interceptor == null || interceptor.isInitialized(attributeName);
+  if (entity instanceof PersistentAttributeInterceptable) {
+    final LazyAttributeLoadingInterceptor interceptor=extractInterceptor((PersistentAttributeInterceptable)entity);
+    final boolean isInitialized=interceptor == null || interceptor.isAttributeLoaded(attributeName);
     LoadState state;
     if (isInitialized && interceptor != null) {
       try {

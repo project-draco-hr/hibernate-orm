@@ -1,18 +1,11 @@
 {
-  if (getEntityMetamodel().getInstrumentationMetadata().isInstrumented()) {
-    FieldInterceptor interceptor=getEntityMetamodel().getInstrumentationMetadata().extractInterceptor(entity);
-    if (interceptor != null) {
-      interceptor.setSession(session);
+  if (getEntityMetamodel().getBytecodeEnhancementMetadata().isEnhancedForLazyLoading()) {
+    LazyAttributeLoadingInterceptor interceptor=getEntityMetamodel().getBytecodeEnhancementMetadata().extractInterceptor(entity);
+    if (interceptor == null) {
+      getEntityMetamodel().getBytecodeEnhancementMetadata().injectInterceptor(entity,null,session);
     }
  else {
-      FieldInterceptor fieldInterceptor=getEntityMetamodel().getInstrumentationMetadata().injectInterceptor(entity,getEntityName(),null,session);
-      fieldInterceptor.dirty();
-    }
-  }
-  if (entity instanceof PersistentAttributeInterceptable) {
-    PersistentAttributeInterceptor interceptor=((PersistentAttributeInterceptable)entity).$$_hibernate_getInterceptor();
-    if (interceptor != null && interceptor instanceof LazyAttributeLoader) {
-      ((LazyAttributeLoader)interceptor).setSession(session);
+      interceptor.setSession(session);
     }
   }
   handleNaturalIdReattachment(entity,session);
