@@ -99,18 +99,7 @@ class IntegratorObserver implements SessionFactoryObserver {
   Map<String,CollectionMetadata> tmpCollectionMetadata=new HashMap<String,CollectionMetadata>();
   for (  final Collection model : metadata.getCollectionBindings()) {
     final String cacheRegionName=cacheRegionPrefix + model.getCacheRegionName();
-    final AccessType accessType=AccessType.fromExternalName(model.getCacheConcurrencyStrategy());
-    final CollectionRegionAccessStrategy accessStrategy;
-    if (accessType != null && settings.isSecondLevelCacheEnabled()) {
-      LOG.tracev("Building shared cache region for collection data [{0}]",model.getRole());
-      CollectionRegion collectionRegion=regionFactory.buildCollectionRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
-      accessStrategy=collectionRegion.buildAccessStrategy(accessType);
-      cacheAccessStrategiesMap.put(cacheRegionName,accessStrategy);
-      cacheAccess.addCacheRegion(cacheRegionName,collectionRegion);
-    }
- else {
-      accessStrategy=null;
-    }
+    final CollectionRegionAccessStrategy accessStrategy=determineCollectionRegionAccessStrategy(regionFactory,cacheAccessStrategiesMap,model,cacheRegionName);
     final CollectionPersister persister=persisterFactory.createCollectionPersister(model,accessStrategy,persisterCreationContext);
     collectionPersisters.put(model.getRole(),persister);
     tmpCollectionMetadata.put(model.getRole(),persister.getCollectionMetadata());

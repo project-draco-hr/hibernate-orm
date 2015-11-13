@@ -1,0 +1,14 @@
+{
+  CollectionRegionAccessStrategy accessStrategy=(CollectionRegionAccessStrategy)cacheAccessStrategiesMap.get(cacheRegionName);
+  if (accessStrategy == null && settings.isSecondLevelCacheEnabled()) {
+    final AccessType accessType=AccessType.fromExternalName(model.getCacheConcurrencyStrategy());
+    if (accessType != null) {
+      LOG.tracev("Building shared cache region for collection data [{0}]",model.getRole());
+      CollectionRegion collectionRegion=regionFactory.buildCollectionRegion(cacheRegionName,properties,CacheDataDescriptionImpl.decode(model));
+      accessStrategy=collectionRegion.buildAccessStrategy(accessType);
+      cacheAccessStrategiesMap.put(cacheRegionName,accessStrategy);
+      cacheAccess.addCacheRegion(cacheRegionName,collectionRegion);
+    }
+  }
+  return accessStrategy;
+}
