@@ -1,9 +1,11 @@
 {
   final Session s=openSession();
-  s.getTransaction().begin();
-  final Query q=s.createQuery("from Transaction where value > :amount");
-  q.setParameter("amount",new MonetoryAmount(BigDecimal.ZERO,Currency.getInstance("EUR")));
-  q.list();
-  s.getTransaction().commit();
-  s.close();
+  try {
+    final Query q=s.createQuery("from Transaction where value > :amount");
+    q.setParameter("amount",new MonetoryAmount(BigDecimal.ZERO,Currency.getInstance("EUR")));
+    q.list();
+  }
+  finally {
+    s.close();
+  }
 }
