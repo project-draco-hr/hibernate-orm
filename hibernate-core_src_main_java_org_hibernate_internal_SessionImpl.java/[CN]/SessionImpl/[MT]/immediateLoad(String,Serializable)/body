@@ -3,7 +3,27 @@
     EntityPersister persister=getFactory().getEntityPersister(entityName);
     LOG.debugf("Initializing proxy: %s",MessageHelper.infoString(persister,id,getFactory()));
   }
-  LoadEvent event=new LoadEvent(id,entityName,true,this);
+  LoadEvent event=loadEvent;
+  loadEvent=null;
+  if (event == null) {
+    event=new LoadEvent(id,entityName,true,this);
+  }
+ else {
+    event.setEntityClassName(entityName);
+    event.setEntityId(id);
+    event.setInstanceToLoad(null);
+    event.setLockMode(LoadEvent.DEFAULT_LOCK_MODE);
+    event.setLockScope(LoadEvent.DEFAULT_LOCK_OPTIONS.getScope());
+    event.setLockTimeout(LoadEvent.DEFAULT_LOCK_OPTIONS.getTimeOut());
+  }
   fireLoad(event,LoadEventListener.IMMEDIATE_LOAD);
-  return event.getResult();
+  Object result=event.getResult();
+  if (loadEvent == null) {
+    event.setEntityClassName(null);
+    event.setEntityId(null);
+    event.setInstanceToLoad(null);
+    event.setResult(null);
+    loadEvent=event;
+  }
+  return result;
 }
