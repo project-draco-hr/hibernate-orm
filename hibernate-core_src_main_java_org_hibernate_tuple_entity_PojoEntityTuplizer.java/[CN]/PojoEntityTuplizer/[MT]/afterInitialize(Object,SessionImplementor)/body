@@ -1,0 +1,16 @@
+{
+  if (entity instanceof PersistentAttributeInterceptable) {
+    final LazyAttributeLoadingInterceptor interceptor=getEntityMetamodel().getBytecodeEnhancementMetadata().extractInterceptor(entity);
+    if (interceptor == null) {
+      getEntityMetamodel().getBytecodeEnhancementMetadata().injectInterceptor(entity,session);
+    }
+ else {
+      if (interceptor.getLinkedSession() == null) {
+        interceptor.setSession(session);
+      }
+    }
+  }
+  if (entity instanceof SelfDirtinessTracker) {
+    ((SelfDirtinessTracker)entity).$$_hibernate_clearDirtyAttributes();
+  }
+}

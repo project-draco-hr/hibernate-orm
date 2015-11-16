@@ -8,7 +8,7 @@
   EntityPersister subclassPersister=factory.getEntityPersister(entry.getSubclass());
   Object result=optionalObject == null ? session.instantiate(subclassPersister,id) : optionalObject;
   final EntityKey entityKey=session.generateEntityKey(id,subclassPersister);
-  TwoPhaseLoad.addUninitializedCachedEntity(entityKey,result,subclassPersister,LockMode.NONE,entry.areLazyPropertiesUnfetched(),entry.getVersion(),session);
+  TwoPhaseLoad.addUninitializedCachedEntity(entityKey,result,subclassPersister,LockMode.NONE,entry.getVersion(),session);
   Type[] types=subclassPersister.getPropertyTypes();
   Object[] values=entry.assemble(result,id,subclassPersister,session.getInterceptor(),session);
   TypeHelper.deepCopy(values,types,subclassPersister.getPropertyUpdateability(),values,session);
@@ -25,8 +25,8 @@
  else {
     isReadOnly=true;
   }
-  persistenceContext.addEntry(result,(isReadOnly ? Status.READ_ONLY : Status.MANAGED),values,null,id,version,LockMode.NONE,true,subclassPersister,false,entry.areLazyPropertiesUnfetched());
-  subclassPersister.afterInitialize(result,entry.areLazyPropertiesUnfetched(),session);
+  persistenceContext.addEntry(result,(isReadOnly ? Status.READ_ONLY : Status.MANAGED),values,null,id,version,LockMode.NONE,true,subclassPersister,false);
+  subclassPersister.afterInitialize(result,session);
   persistenceContext.initializeNonLazyCollections();
   PostLoadEvent postLoadEvent=new PostLoadEvent(session).setEntity(result).setId(id).setPersister(persister);
   for (  PostLoadEventListener listener : postLoadEventListeners(session)) {

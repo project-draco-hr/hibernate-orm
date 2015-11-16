@@ -1,3 +1,8 @@
 {
-  return (session.getFactory().getSettings().isMinimalPutsEnabled() && session.getCacheMode() != CacheMode.REFRESH) || (entityEntry.getPersister().hasLazyProperties() && entityEntry.isLoadedWithLazyPropertiesUnfetched() && entityEntry.getPersister().isLazyPropertiesCacheable());
+  if (session.getFactory().getSessionFactoryOptions().isMinimalPutsEnabled()) {
+    return session.getCacheMode() != CacheMode.REFRESH;
+  }
+ else {
+    return entityEntry.getPersister().hasLazyProperties() && entityEntry.getPersister().isLazyPropertiesCacheable();
+  }
 }

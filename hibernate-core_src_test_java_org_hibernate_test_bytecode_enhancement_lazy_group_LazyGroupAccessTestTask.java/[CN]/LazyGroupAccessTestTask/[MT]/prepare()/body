@@ -1,0 +1,24 @@
+{
+  Configuration cfg=new Configuration();
+  cfg.setProperty(Environment.ENABLE_LAZY_LOAD_NO_TRANS,"true");
+  cfg.setProperty(Environment.USE_SECOND_LEVEL_CACHE,"false");
+  super.prepare(cfg);
+  Session s=getFactory().openSession();
+  s.beginTransaction();
+  Child c1=new Child("steve","hibernater");
+  Child c2=new Child("sally","Joe Mama");
+  Parent p1=new Parent("Hibernate");
+  Parent p2=new Parent("Swimming");
+  c1.setParent(p1);
+  p1.getChildren().add(c1);
+  c1.setAlternateParent(p2);
+  p2.getAlternateChildren().add(c1);
+  c2.setAlternateParent(p1);
+  p1.getAlternateChildren().add(c2);
+  c2.setParent(p2);
+  p2.getChildren().add(c2);
+  s.save(p1);
+  s.save(p2);
+  s.getTransaction().commit();
+  s.close();
+}

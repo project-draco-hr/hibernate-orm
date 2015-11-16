@@ -2,12 +2,12 @@
   final Serializable id=key.getIdentifier();
   final Loadable persister=(Loadable)getFactory().getEntityPersister(instanceEntityName);
   if (LOG.isTraceEnabled()) {
-    LOG.tracev("Initializing object from ResultSet: {0}",MessageHelper.infoString(persister,id,getFactory()));
+    LOG.tracef("Initializing object from ResultSet: %s",MessageHelper.infoString(persister,id,getFactory()));
   }
-  boolean eagerPropertyFetch=isEagerPropertyFetchEnabled(i);
-  TwoPhaseLoad.addUninitializedEntity(key,object,persister,lockMode,!eagerPropertyFetch,session);
+  boolean fetchAllPropertiesRequested=isEagerPropertyFetchEnabled(i);
+  TwoPhaseLoad.addUninitializedEntity(key,object,persister,lockMode,session);
   final String[][] cols=persister == rootPersister ? getEntityAliases()[i].getSuffixedPropertyAliases() : getEntityAliases()[i].getSuffixedPropertyAliases(persister);
-  final Object[] values=persister.hydrate(rs,id,object,rootPersister,cols,eagerPropertyFetch,session);
+  final Object[] values=persister.hydrate(rs,id,object,rootPersister,cols,fetchAllPropertiesRequested,session);
   final Object rowId=persister.hasRowId() ? rs.getObject(rowIdAlias) : null;
   final AssociationType[] ownerAssociationTypes=getOwnerAssociationTypes();
   if (ownerAssociationTypes != null && ownerAssociationTypes[i] != null) {
@@ -19,5 +19,5 @@
       session.getPersistenceContext().addEntity(euk,object);
     }
   }
-  TwoPhaseLoad.postHydrate(persister,id,values,rowId,object,lockMode,!eagerPropertyFetch,session);
+  TwoPhaseLoad.postHydrate(persister,id,values,rowId,object,lockMode,session);
 }

@@ -1,0 +1,28 @@
+{
+  Session s=getFactory().openSession();
+  s.beginTransaction();
+  Child c1=(Child)s.createQuery("from Child c where c.name = :name").setString("name","steve").uniqueResult();
+  assertLoaded(c1,"name");
+  assertNotLoaded(c1,"nickName");
+  assertNotLoaded(c1,"parent");
+  assertNotLoaded(c1,"alternateParent");
+  c1.getNickName();
+  assertLoaded(c1,"nickName");
+  assertLoaded(c1,"parent");
+  assertNotLoaded(c1,"alternateParent");
+  assertEquals("Hibernate",c1.getParent().getNombre());
+  assertFalse(c1.getParent() instanceof HibernateProxy);
+  Child c2=(Child)s.createQuery("from Child c where c.name = :name").setString("name","sally").uniqueResult();
+  assertLoaded(c2,"name");
+  assertNotLoaded(c2,"nickName");
+  assertNotLoaded(c2,"parent");
+  assertNotLoaded(c2,"alternateParent");
+  c2.getAlternateParent();
+  assertNotLoaded(c2,"nickName");
+  assertNotLoaded(c2,"parent");
+  assertLoaded(c2,"alternateParent");
+  assertEquals("Hibernate",c2.getAlternateParent().getNombre());
+  assertFalse(c2.getAlternateParent() instanceof HibernateProxy);
+  s.getTransaction().commit();
+  s.close();
+}

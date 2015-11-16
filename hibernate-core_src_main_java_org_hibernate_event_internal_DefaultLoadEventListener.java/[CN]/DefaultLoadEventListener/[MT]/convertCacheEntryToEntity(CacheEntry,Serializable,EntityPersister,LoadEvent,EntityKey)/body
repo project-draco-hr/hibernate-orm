@@ -23,7 +23,7 @@
     final Object optionalObject=event.getInstanceToLoad();
     entity=optionalObject == null ? session.instantiate(subclassPersister,entityId) : optionalObject;
   }
-  TwoPhaseLoad.addUninitializedCachedEntity(entityKey,entity,subclassPersister,LockMode.NONE,entry.areLazyPropertiesUnfetched(),entry.getVersion(),session);
+  TwoPhaseLoad.addUninitializedCachedEntity(entityKey,entity,subclassPersister,LockMode.NONE,entry.getVersion(),session);
   final PersistenceContext persistenceContext=session.getPersistenceContext();
   final Object[] values;
   final Object version;
@@ -49,8 +49,8 @@
       isReadOnly=session.isDefaultReadOnly();
     }
   }
-  persistenceContext.addEntry(entity,(isReadOnly ? Status.READ_ONLY : Status.MANAGED),values,null,entityId,version,LockMode.NONE,true,subclassPersister,false,entry.areLazyPropertiesUnfetched());
-  subclassPersister.afterInitialize(entity,entry.areLazyPropertiesUnfetched(),session);
+  persistenceContext.addEntry(entity,(isReadOnly ? Status.READ_ONLY : Status.MANAGED),values,null,entityId,version,LockMode.NONE,true,subclassPersister,false);
+  subclassPersister.afterInitialize(entity,session);
   persistenceContext.initializeNonLazyCollections();
   PostLoadEvent postLoadEvent=new PostLoadEvent(session).setEntity(entity).setId(entityId).setPersister(persister);
   for (  PostLoadEventListener listener : postLoadEventListeners(session)) {

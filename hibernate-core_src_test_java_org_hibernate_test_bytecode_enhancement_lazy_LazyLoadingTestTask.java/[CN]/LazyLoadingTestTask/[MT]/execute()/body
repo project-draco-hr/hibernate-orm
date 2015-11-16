@@ -2,10 +2,15 @@
   Session s=getFactory().openSession();
   s.beginTransaction();
   Child loadedChild=s.load(Child.class,lastChildID);
+  Object nameByReflection=EnhancerTestUtils.getFieldByReflection(loadedChild,"name");
+  Assert.assertNotNull("Non-lazy field 'name' was not loaded",nameByReflection);
   Object parentByReflection=EnhancerTestUtils.getFieldByReflection(loadedChild,"parent");
   Assert.assertNull("Lazy field 'parent' is initialized",parentByReflection);
   Assert.assertFalse(loadedChild instanceof HibernateProxy);
   Parent loadedParent=loadedChild.getParent();
+  assertThat(loadedChild.getName(),notNullValue());
+  assertThat(loadedParent,notNullValue());
+  assertThat(loadedChild.getParent(),notNullValue());
   EnhancerTestUtils.checkDirtyTracking(loadedChild);
   parentByReflection=EnhancerTestUtils.getFieldByReflection(loadedChild,"parent");
   Object childrenByReflection=EnhancerTestUtils.getFieldByReflection(loadedParent,"children");
