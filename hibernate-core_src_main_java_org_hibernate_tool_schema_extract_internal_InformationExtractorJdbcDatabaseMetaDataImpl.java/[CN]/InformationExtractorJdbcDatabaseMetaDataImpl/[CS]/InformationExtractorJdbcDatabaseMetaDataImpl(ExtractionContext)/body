@@ -1,10 +1,21 @@
 {
   this.extractionContext=extractionContext;
   ConfigurationService configService=extractionContext.getServiceRegistry().getService(ConfigurationService.class);
+  final String extraPhysycalTableTypesConfig=configService.getSetting(AvailableSettings.EXTRA_PHYSICAL_TABLE_TYPES,StandardConverters.STRING,"");
+  if (!"".equals(extraPhysycalTableTypesConfig.trim())) {
+    this.extraPhysicalTableTypes=StringHelper.splitTrimmingTokens(",;",extraPhysycalTableTypesConfig,false);
+  }
+  final String[] tempTableTypes;
   if (ConfigurationHelper.getBoolean(AvailableSettings.ENABLE_SYNONYMS,configService.getSettings(),false)) {
-    this.tableTypes=new String[]{"TABLE","VIEW","SYNONYM"};
+    tempTableTypes=new String[]{"TABLE","VIEW","SYNONYM"};
   }
  else {
-    this.tableTypes=new String[]{"TABLE","VIEW"};
+    tempTableTypes=new String[]{"TABLE","VIEW"};
+  }
+  if (this.extraPhysicalTableTypes != null) {
+    this.tableTypes=ArrayHelper.join(tempTableTypes,this.extraPhysicalTableTypes);
+  }
+ else {
+    this.tableTypes=tempTableTypes;
   }
 }
