@@ -1,0 +1,28 @@
+{
+  Iterator<XProperty> propertyIterator=fields.iterator();
+  while (propertyIterator.hasNext()) {
+    final XProperty xProperty=propertyIterator.next();
+    final Access localAccessAnnotation=xProperty.getAnnotation(Access.class);
+    if (localAccessAnnotation == null || localAccessAnnotation.value() != javax.persistence.AccessType.FIELD) {
+      continue;
+    }
+    propertyIterator.remove();
+    persistentAttributeMap.put(xProperty.getName(),xProperty);
+  }
+  propertyIterator=getters.iterator();
+  while (propertyIterator.hasNext()) {
+    final XProperty xProperty=propertyIterator.next();
+    final Access localAccessAnnotation=xProperty.getAnnotation(Access.class);
+    if (localAccessAnnotation == null || localAccessAnnotation.value() != javax.persistence.AccessType.PROPERTY) {
+      continue;
+    }
+    propertyIterator.remove();
+    final String name=xProperty.getName();
+    final XProperty previous=persistentAttributesFromGetters.get(name);
+    if (previous != null) {
+      throw new org.hibernate.boot.MappingException(LOG.ambiguousPropertyMethods(xClass.getName(),HCANNHelper.annotatedElementSignature(previous),HCANNHelper.annotatedElementSignature(xProperty)),new Origin(SourceType.ANNOTATION,xClass.getName()));
+    }
+    persistentAttributeMap.put(name,xProperty);
+    persistentAttributesFromGetters.put(name,xProperty);
+  }
+}
