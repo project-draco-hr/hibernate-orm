@@ -1,6 +1,6 @@
 {
   if (tableInformation == null) {
-    throw new SchemaManagementException(String.format("Schema-validation: missing table [%s]",table.getName()));
+    throw new SchemaManagementException(String.format("Schema-validation: missing table [%s]",table.getQualifiedTableName().toString()));
   }
   final Iterator selectableItr=table.getColumnIterator();
   while (selectableItr.hasNext()) {
@@ -11,7 +11,7 @@
     final Column column=(Column)selectable;
     final ColumnInformation existingColumn=tableInformation.getColumn(Identifier.toIdentifier(column.getQuotedName()));
     if (existingColumn == null) {
-      throw new SchemaManagementException(String.format("Schema-validation: missing column [%s] in table [%s]",column.getName(),table.getName()));
+      throw new SchemaManagementException(String.format("Schema-validation: missing column [%s] in table [%s]",column.getName(),table.getQualifiedTableName()));
     }
     validateColumnType(table,column,existingColumn,metadata,options,dialect);
   }
