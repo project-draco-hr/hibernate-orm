@@ -1,15 +1,6 @@
 {
-  return new WrapperOptions(){
-    public boolean useStreamForLobBinding(){
-      return Environment.useStreamsForBinary() || session.getFactory().getDialect().useInputStreamToInsertBlob();
-    }
-    public LobCreator getLobCreator(){
-      return Hibernate.getLobCreator(session);
-    }
-    public SqlTypeDescriptor remapSqlTypeDescriptor(    SqlTypeDescriptor sqlTypeDescriptor){
-      final SqlTypeDescriptor remapped=sqlTypeDescriptor.canBeRemapped() ? session.getFactory().getDialect().remapSqlTypeDescriptor(sqlTypeDescriptor) : sqlTypeDescriptor;
-      return remapped == null ? sqlTypeDescriptor : remapped;
-    }
+  if (session instanceof WrapperOptionsContext) {
+    return ((WrapperOptionsContext)session).getWrapperOptions();
   }
-;
+  return new WrapperOptionsImpl(session);
 }
