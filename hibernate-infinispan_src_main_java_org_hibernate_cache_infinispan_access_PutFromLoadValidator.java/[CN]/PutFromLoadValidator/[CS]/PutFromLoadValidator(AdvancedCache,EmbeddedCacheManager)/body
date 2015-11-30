@@ -34,6 +34,10 @@
     }
     boolean transactional=cache.getCacheConfiguration().transaction().transactionMode().isTransactional();
     if (transactional) {
+      cache.removeInterceptor(invalidationPosition);
+      TxInvalidationInterceptor txInvalidationInterceptor=new TxInvalidationInterceptor();
+      cache.getComponentRegistry().registerComponent(txInvalidationInterceptor,TxInvalidationInterceptor.class);
+      cache.addInterceptor(txInvalidationInterceptor,invalidationPosition);
       TxPutFromLoadInterceptor txPutFromLoadInterceptor=new TxPutFromLoadInterceptor(this,cache.getName());
       cache.getComponentRegistry().registerComponent(txPutFromLoadInterceptor,TxPutFromLoadInterceptor.class);
       cache.addInterceptor(txPutFromLoadInterceptor,entryWrappingPosition);

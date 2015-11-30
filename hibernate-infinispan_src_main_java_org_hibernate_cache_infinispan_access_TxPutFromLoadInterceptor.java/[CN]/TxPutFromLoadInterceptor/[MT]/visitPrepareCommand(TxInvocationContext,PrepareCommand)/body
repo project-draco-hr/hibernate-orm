@@ -17,11 +17,18 @@
     for (    WriteCommand wc : command.getModifications()) {
       if (wc instanceof InvalidateCommand) {
         for (        Object key : ((InvalidateCommand)wc).getKeys()) {
+          if (log.isTraceEnabled()) {
+            log.tracef("Invalidating key %s with lock owner %s",key,ctx.getLockOwner());
+          }
           putFromLoadValidator.beginInvalidatingKey(ctx.getLockOwner(),key);
         }
       }
  else {
-        for (        Object key : wc.getAffectedKeys()) {
+        Set<Object> keys=wc.getAffectedKeys();
+        if (log.isTraceEnabled()) {
+          log.tracef("Invalidating keys %s with lock owner %s",keys,ctx.getLockOwner());
+        }
+        for (        Object key : keys) {
           putFromLoadValidator.beginInvalidatingKey(ctx.getLockOwner(),key);
         }
       }

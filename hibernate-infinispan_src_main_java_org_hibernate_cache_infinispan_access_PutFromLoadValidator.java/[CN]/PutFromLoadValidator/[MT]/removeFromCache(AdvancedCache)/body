@@ -9,6 +9,13 @@
       cache.removeInterceptor(NonTxInvalidationInterceptor.class);
       break;
     }
+ else     if (i instanceof TxInvalidationInterceptor) {
+      InvalidationInterceptor invalidationInterceptor=new InvalidationInterceptor();
+      cache.getComponentRegistry().registerComponent(invalidationInterceptor,InvalidationInterceptor.class);
+      cache.addInterceptorBefore(invalidationInterceptor,TxInvalidationInterceptor.class);
+      cache.removeInterceptor(TxInvalidationInterceptor.class);
+      break;
+    }
   }
   CacheCommandInitializer cci=cache.getComponentRegistry().getComponent(CacheCommandInitializer.class);
   cci.removePutFromLoadValidator(cache.getName());

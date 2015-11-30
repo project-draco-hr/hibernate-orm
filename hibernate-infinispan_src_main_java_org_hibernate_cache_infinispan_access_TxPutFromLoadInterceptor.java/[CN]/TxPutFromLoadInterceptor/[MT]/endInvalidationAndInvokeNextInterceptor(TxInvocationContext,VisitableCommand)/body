@@ -2,6 +2,9 @@
   try {
     if (ctx.isOriginLocal()) {
       Set<Object> affectedKeys=ctx.getAffectedKeys();
+      if (log.isTraceEnabled()) {
+        log.tracef("Sending end invalidation for keys %s asynchronously",affectedKeys);
+      }
       if (!affectedKeys.isEmpty()) {
         EndInvalidationCommand commitCommand=cacheCommandInitializer.buildEndInvalidationCommand(cacheName,affectedKeys.toArray(),ctx.getGlobalTransaction());
         rpcManager.invokeRemotely(null,commitCommand,rpcManager.getDefaultRpcOptions(false,DeliverOrder.NONE));
