@@ -1,6 +1,6 @@
 {
-  final ConstPool constPool=managedCtClass.getClassFile().getConstPool();
-  for (  Object oMethod : managedCtClass.getClassFile().getMethods()) {
+  final ConstPool constPool=aCtClass.getClassFile().getConstPool();
+  for (  Object oMethod : aCtClass.getClassFile().getMethods()) {
     final MethodInfo methodInfo=(MethodInfo)oMethod;
     final String methodName=methodInfo.getName();
     if (methodName.startsWith("$$_hibernate_") || methodInfo.getCodeAttribute() == null) {
@@ -20,10 +20,10 @@
         if (!enhancementContext.isEntityClass(targetCtClass) && !enhancementContext.isCompositeClass(targetCtClass)) {
           continue;
         }
-        if (targetCtClass == managedCtClass || !enhancementContext.isPersistentField(targetCtClass.getField(fieldName)) || PersistentAttributesHelper.hasAnnotation(targetCtClass,fieldName,Id.class) || "this$0".equals(fieldName)) {
+        if (targetCtClass == aCtClass || !enhancementContext.isPersistentField(targetCtClass.getField(fieldName)) || PersistentAttributesHelper.hasAnnotation(targetCtClass,fieldName,Id.class) || "this$0".equals(fieldName)) {
           continue;
         }
-        log.debugf("Transforming access to field [%s] from method [%s]",fieldName,methodName);
+        log.debugf("Extended enhancement: Transforming access to field [%s.%s] from method [%s#%s]",fieldClassName,fieldName,aCtClass.getName(),methodName);
         if (op == Opcode.GETFIELD) {
           int fieldReaderMethodIndex=constPool.addMethodrefInfo(constPool.addClassInfo(fieldClassName),EnhancerConstants.PERSISTENT_FIELD_READER_PREFIX + fieldName,"()" + constPool.getFieldrefType(itr.u16bitAt(index + 1)));
           itr.writeByte(Opcode.INVOKEVIRTUAL,index);
@@ -38,11 +38,11 @@
       methodInfo.getCodeAttribute().setAttribute(MapMaker.make(classPool,methodInfo));
     }
  catch (    BadBytecode bb) {
-      final String msg=String.format("Unable to perform field access transformation in method [%s]",methodName);
+      final String msg=String.format("Unable to perform extended enhancement in method [%s]",methodName);
       throw new EnhancementException(msg,bb);
     }
 catch (    NotFoundException nfe) {
-      final String msg=String.format("Unable to perform field access transformation in method [%s]",methodName);
+      final String msg=String.format("Unable to perform extended enhancement in method [%s]",methodName);
       throw new EnhancementException(msg,nfe);
     }
   }
