@@ -8,13 +8,10 @@
     SchemaUpdate su=new SchemaUpdate(ssr,metadata);
     su.setHaltOnError(true);
     su.setOutputFile(output.getAbsolutePath());
-    su.setDelimiter(EXPECTED_DELIMITER);
-    su.setFormat(false);
+    su.setDelimiter(DELIMITER);
+    su.setFormat(true);
     su.execute(Target.SCRIPT);
-    List<String> sqlLines=Files.readAllLines(output.toPath());
-    for (    String line : sqlLines) {
-      assertThat("The expected delimiter is not applied " + line,line.endsWith(EXPECTED_DELIMITER),is(true));
-    }
+    Assert.assertEquals(AFTER_FORMAT,new String(Files.readAllBytes(output.toPath())));
   }
   finally {
     StandardServiceRegistryBuilder.destroy(ssr);
