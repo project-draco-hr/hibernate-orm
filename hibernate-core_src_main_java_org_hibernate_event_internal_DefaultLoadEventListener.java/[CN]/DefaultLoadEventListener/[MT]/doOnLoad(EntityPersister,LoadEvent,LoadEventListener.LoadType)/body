@@ -1,0 +1,20 @@
+{
+  try {
+    final EntityKey keyToLoad=event.getSession().generateEntityKey(event.getEntityId(),persister);
+    if (loadType.isNakedEntityReturned()) {
+      event.setResult(load(event,persister,keyToLoad,loadType));
+    }
+ else {
+      if (event.getLockMode() == LockMode.NONE) {
+        event.setResult(proxyOrLoad(event,persister,keyToLoad,loadType));
+      }
+ else {
+        event.setResult(lockAndLoad(event,persister,keyToLoad,loadType,event.getSession()));
+      }
+    }
+  }
+ catch (  HibernateException e) {
+    LOG.unableToLoadCommand(e);
+    throw e;
+  }
+}

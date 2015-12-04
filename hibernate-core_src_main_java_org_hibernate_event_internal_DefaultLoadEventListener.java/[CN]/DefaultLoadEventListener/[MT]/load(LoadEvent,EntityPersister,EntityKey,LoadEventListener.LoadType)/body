@@ -5,14 +5,12 @@
     }
     persister.setIdentifier(event.getInstanceToLoad(),event.getEntityId(),event.getSession());
   }
-  Object entity=doLoad(event,persister,keyToLoad,options);
+  final Object entity=doLoad(event,persister,keyToLoad,options);
   boolean isOptionalInstance=event.getInstanceToLoad() != null;
-  if (!options.isAllowNulls() || isOptionalInstance) {
-    if (entity == null) {
-      event.getSession().getFactory().getEntityNotFoundDelegate().handleEntityNotFound(event.getEntityClassName(),event.getEntityId());
-    }
+  if (entity == null && (!options.isAllowNulls() || isOptionalInstance)) {
+    event.getSession().getFactory().getEntityNotFoundDelegate().handleEntityNotFound(event.getEntityClassName(),event.getEntityId());
   }
-  if (isOptionalInstance && entity != event.getInstanceToLoad()) {
+ else   if (isOptionalInstance && entity != event.getInstanceToLoad()) {
     throw new NonUniqueObjectException(event.getEntityId(),event.getEntityClassName());
   }
   return entity;

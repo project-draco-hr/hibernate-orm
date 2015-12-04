@@ -1,50 +1,9 @@
 {
-  final SessionImplementor source=event.getSession();
-  EntityPersister persister;
-  if (event.getInstanceToLoad() != null) {
-    persister=source.getEntityPersister(null,event.getInstanceToLoad());
-    event.setEntityClassName(event.getInstanceToLoad().getClass().getName());
-  }
- else {
-    persister=source.getFactory().getEntityPersister(event.getEntityClassName());
-  }
+  final EntityPersister persister=getPersister(event);
   if (persister == null) {
     throw new HibernateException("Unable to locate persister: " + event.getEntityClassName());
   }
   final Class idClass=persister.getIdentifierType().getReturnedClass();
-  if (idClass != null && !idClass.isInstance(event.getEntityId())) {
-    if (persister.getEntityMetamodel().getIdentifierProperty().isEmbedded()) {
-      final EmbeddedComponentType dependentIdType=(EmbeddedComponentType)persister.getEntityMetamodel().getIdentifierProperty().getType();
-      if (dependentIdType.getSubtypes().length == 1) {
-        final Type singleSubType=dependentIdType.getSubtypes()[0];
-        if (singleSubType.isEntityType()) {
-          final EntityType dependentParentType=(EntityType)singleSubType;
-          final Type dependentParentIdType=dependentParentType.getIdentifierOrUniqueKeyType(source.getFactory());
-          if (dependentParentIdType.getReturnedClass().isInstance(event.getEntityId())) {
-            loadByDerivedIdentitySimplePkValue(event,loadType,persister,dependentIdType,source.getFactory().getEntityPersister(dependentParentType.getAssociatedEntityName()));
-            return;
-          }
-        }
-      }
-    }
-    throw new TypeMismatchException("Provided id of the wrong type for class " + persister.getEntityName() + ". Expected: "+ idClass+ ", got "+ event.getEntityId().getClass());
-  }
-  final EntityKey keyToLoad=source.generateEntityKey(event.getEntityId(),persister);
-  try {
-    if (loadType.isNakedEntityReturned()) {
-      event.setResult(load(event,persister,keyToLoad,loadType));
-    }
- else {
-      if (event.getLockMode() == LockMode.NONE) {
-        event.setResult(proxyOrLoad(event,persister,keyToLoad,loadType));
-      }
- else {
-        event.setResult(lockAndLoad(event,persister,keyToLoad,loadType,source));
-      }
-    }
-  }
- catch (  HibernateException e) {
-    LOG.unableToLoadCommand(e);
-    throw e;
-  }
+  if (idClass != null && !idClass.isInstance(event.getEntityId()))   checkIdClass(persister,event,loadType,idClass);
+  doOnLoad(persister,event,loadType);
 }

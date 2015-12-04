@@ -1,5 +1,4 @@
 {
-  final boolean traceEnabled=LOG.isTraceEnabled();
   if (traceEnabled) {
     LOG.tracev("Attempting to resolve: {0}",MessageHelper.infoString(persister,event.getEntityId(),event.getSession().getFactory()));
   }
@@ -18,7 +17,7 @@
     }
     return entity;
   }
-  entity=loadFromSecondLevelCache(event,persister,options,keyToLoad);
+  entity=loadFromSecondLevelCache(event,persister,keyToLoad);
   if (entity != null) {
     if (traceEnabled) {
       LOG.tracev("Resolved object in second-level cache: {0}",MessageHelper.infoString(persister,event.getEntityId(),event.getSession().getFactory()));
@@ -28,7 +27,7 @@
     if (traceEnabled) {
       LOG.tracev("Object not resolved in any cache: {0}",MessageHelper.infoString(persister,event.getEntityId(),event.getSession().getFactory()));
     }
-    entity=loadFromDatasource(event,persister,keyToLoad,options);
+    entity=loadFromDatasource(event,persister);
   }
   if (entity != null && persister.hasNaturalIdentifier()) {
     event.getSession().getPersistenceContext().getNaturalIdHelper().cacheNaturalIdCrossReferenceFromLoad(persister,event.getEntityId(),event.getSession().getPersistenceContext().getNaturalIdHelper().extractNaturalIdValues(entity,persister));

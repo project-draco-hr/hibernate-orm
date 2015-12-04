@@ -1,7 +1,9 @@
 {
   Object existing=persistenceContext.getEntity(keyToLoad);
   if (existing != null) {
-    LOG.trace("Entity found in session cache");
+    if (traceEnabled) {
+      LOG.trace("Entity found in session cache");
+    }
     if (options.isCheckDeleted()) {
       EntityEntry entry=persistenceContext.getEntry(existing);
       Status status=entry.getStatus();
@@ -11,7 +13,9 @@
     }
     return existing;
   }
-  LOG.trace("Creating new proxy for entity");
+  if (traceEnabled) {
+    LOG.trace("Creating new proxy for entity");
+  }
   Object proxy=persister.createProxy(event.getEntityId(),event.getSession());
   persistenceContext.getBatchFetchQueue().addBatchLoadableEntityKey(keyToLoad);
   persistenceContext.addProxy(keyToLoad,proxy);
