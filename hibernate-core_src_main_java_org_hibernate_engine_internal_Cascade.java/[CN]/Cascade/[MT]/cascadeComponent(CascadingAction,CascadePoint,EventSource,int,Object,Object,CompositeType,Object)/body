@@ -1,10 +1,14 @@
 {
-  final Object[] children=componentType.getPropertyValues(child,eventSource);
+  Object[] children=null;
   final Type[] types=componentType.getSubtypes();
+  final String[] propertyNames=componentType.getPropertyNames();
   for (int i=0; i < types.length; i++) {
     final CascadeStyle componentPropertyStyle=componentType.getCascadeStyle(i);
-    final String subPropertyName=componentType.getPropertyNames()[i];
+    final String subPropertyName=propertyNames[i];
     if (componentPropertyStyle.doCascade(action)) {
+      if (children == null) {
+        children=componentType.getPropertyValues(child,eventSource);
+      }
       cascadeProperty(action,cascadePoint,eventSource,componentPathStackDepth + 1,parent,children[i],types[i],componentPropertyStyle,subPropertyName,anything,false);
     }
   }
