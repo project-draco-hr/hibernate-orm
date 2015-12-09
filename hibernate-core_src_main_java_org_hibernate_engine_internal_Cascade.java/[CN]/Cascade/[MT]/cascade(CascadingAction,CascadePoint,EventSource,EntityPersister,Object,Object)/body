@@ -12,11 +12,16 @@
     for (int i=0; i < types.length; i++) {
       final CascadeStyle style=cascadeStyles[i];
       final String propertyName=propertyNames[i];
-      if (hasUninitializedLazyProperties && persister.getPropertyLaziness()[i] && !action.performOnLazyProperty()) {
-        continue;
-      }
       if (style.doCascade(action)) {
-        cascadeProperty(action,cascadePoint,eventSource,componentPathStackDepth,parent,persister.getPropertyValue(parent,i),types[i],style,propertyName,anything,false);
+        Object child;
+        if (hasUninitializedLazyProperties && persister.getPropertyLaziness()[i] && action.performOnLazyProperty()) {
+          LazyAttributeLoadingInterceptor interceptor=persister.getInstrumentationMetadata().extractInterceptor(parent);
+          child=interceptor.fetchAttribute(parent,propertyName);
+        }
+ else {
+          child=persister.getPropertyValue(parent,i);
+        }
+        cascadeProperty(action,cascadePoint,eventSource,componentPathStackDepth,parent,child,types[i],style,propertyName,anything,false);
       }
  else       if (action.requiresNoCascadeChecking()) {
         action.noCascade(eventSource,parent,persister,types[i],i);
