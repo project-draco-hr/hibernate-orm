@@ -1,17 +1,23 @@
 {
-  for (  Class clazz : classHierarchy) {
-    try {
-      final Field field=clazz.getDeclaredField(attributeName);
-      if (field != null) {
-        return new FieldAttributeAccess(field);
+  final PrivilegedAction<AttributeAccess> action=new PrivilegedAction<AttributeAccess>(){
+    @Override public AttributeAccess run(){
+      for (      Class clazz : classHierarchy) {
+        try {
+          final Field field=clazz.getDeclaredField(attributeName);
+          if (field != null) {
+            return new FieldAttributeAccess(field);
+          }
+        }
+ catch (        NoSuchFieldException e) {
+          final Method method=getMethod(clazz,attributeName);
+          if (method != null) {
+            return new MethodAttributeAccess(attributeName,method);
+          }
+        }
       }
-    }
- catch (    NoSuchFieldException e) {
-      final Method method=getMethod(clazz,attributeName);
-      if (method != null) {
-        return new MethodAttributeAccess(attributeName,method);
-      }
+      return new NoSuchAttributeAccess(specifiedClass,attributeName);
     }
   }
-  return new NoSuchAttributeAccess(specifiedClass,attributeName);
+;
+  return System.getSecurityManager() != null ? AccessController.doPrivileged(action) : action.run();
 }
