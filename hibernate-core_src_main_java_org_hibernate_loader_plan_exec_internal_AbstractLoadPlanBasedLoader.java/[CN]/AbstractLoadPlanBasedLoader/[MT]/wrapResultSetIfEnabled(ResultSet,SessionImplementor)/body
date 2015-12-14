@@ -4,7 +4,10 @@
       if (log.isDebugEnabled()) {
         log.debugf("Wrapping result set [%s]",rs);
       }
-      return session.getFactory().getServiceRegistry().getService(JdbcServices.class).getResultSetWrapper().wrap(rs,retreiveColumnNameToIndexCache(rs));
+      ResultSetWrapper wrapper=session.getFactory().getServiceRegistry().getService(JdbcServices.class).getResultSetWrapper();
+synchronized (this) {
+        return wrapper.wrap(rs,retreiveColumnNameToIndexCache(rs));
+      }
     }
  catch (    SQLException e) {
       log.unableToWrapResultSet(e);
