@@ -1,7 +1,8 @@
 {
   super(collectionPersister.getFactory());
   this.collectionPersister=collectionPersister;
-  final FetchStyleLoadPlanBuildingAssociationVisitationStrategy strategy=new FetchStyleLoadPlanBuildingAssociationVisitationStrategy(collectionPersister.getFactory(),buildingParameters.getQueryInfluencers(),buildingParameters.getLockMode() != null ? buildingParameters.getLockMode() : buildingParameters.getLockOptions().getLockMode());
+  this.lockOptions=buildingParameters.getLockMode() != null ? new LockOptions(buildingParameters.getLockMode()) : buildingParameters.getLockOptions();
+  final FetchStyleLoadPlanBuildingAssociationVisitationStrategy strategy=new FetchStyleLoadPlanBuildingAssociationVisitationStrategy(collectionPersister.getFactory(),buildingParameters.getQueryInfluencers(),this.lockOptions.getLockMode());
   final LoadPlan plan=MetamodelDrivenLoadPlanBuilder.buildRootCollectionLoadPlan(strategy,collectionPersister);
   this.staticLoadQuery=BatchingLoadQueryDetailsFactory.INSTANCE.makeCollectionLoadQueryDetails(collectionPersister,plan,buildingParameters);
 }
