@@ -1,0 +1,24 @@
+{
+  final SourceMock sequence=new SourceMock(1,5000);
+  final Optimizer optimizer=buildPooledThreadLocalLoOptimizer(1,5000);
+  assertEquals(0,sequence.getTimesCalled());
+  assertEquals(-1,sequence.getCurrentValue());
+  Long next=(Long)optimizer.generate(sequence);
+  assertEquals(1,next.intValue());
+  assertEquals(1,sequence.getTimesCalled());
+  assertEquals(1,sequence.getCurrentValue());
+  next=(Long)optimizer.generate(sequence);
+  assertEquals(2,next.intValue());
+  assertEquals(1,sequence.getTimesCalled());
+  assertEquals(1,sequence.getCurrentValue());
+  next=(Long)optimizer.generate(sequence);
+  assertEquals(3,next.intValue());
+  assertEquals(1,sequence.getTimesCalled());
+  assertEquals(1,sequence.getCurrentValue());
+  for (int looper=0; looper < 5001; looper++) {
+    next=(Long)optimizer.generate(sequence);
+  }
+  assertEquals(3 + 5001,next.intValue());
+  assertEquals(2,sequence.getTimesCalled());
+  assertEquals(5001,sequence.getCurrentValue());
+}
