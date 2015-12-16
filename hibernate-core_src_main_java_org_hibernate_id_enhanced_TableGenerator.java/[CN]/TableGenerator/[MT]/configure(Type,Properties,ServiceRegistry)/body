@@ -8,8 +8,6 @@
   segmentValueLength=determineSegmentColumnSize(params);
   initialValue=determineInitialValue(params);
   incrementSize=determineIncrementSize(params);
-  final String defaultPooledOptimizerStrategy=ConfigurationHelper.getBoolean(Environment.PREFER_POOLED_VALUES_LO,params,false) ? StandardOptimizerDescriptor.POOLED_LO.getExternalName() : StandardOptimizerDescriptor.POOLED.getExternalName();
-  final String defaultOptimizerStrategy=incrementSize <= 1 ? StandardOptimizerDescriptor.NONE.getExternalName() : defaultPooledOptimizerStrategy;
-  final String optimizationStrategy=ConfigurationHelper.getString(OPT_PARAM,params,defaultOptimizerStrategy);
+  final String optimizationStrategy=ConfigurationHelper.getString(OPT_PARAM,params,OptimizerFactory.determineImplicitOptimizerName(incrementSize,params));
   optimizer=OptimizerFactory.buildOptimizer(optimizationStrategy,identifierType.getReturnedClass(),incrementSize,ConfigurationHelper.getInt(INITIAL_PARAM,params,-1));
 }
