@@ -2,31 +2,33 @@
   GenerationState local=null;
   if (callback.getTenantIdentifier() == null) {
     local=localAssignedIds.get();
-  }
- else   if (tenantSpecificState != null) {
-    local=tenantSpecificState.get(callback.getTenantIdentifier());
-  }
-  if (local != null && local.value.lt(local.upperLimitValue)) {
-    return local.value.makeValueThenIncrement();
+    if (local != null && local.value.lt(local.upperLimitValue)) {
+      return local.value.makeValueThenIncrement();
+    }
   }
 synchronized (this) {
-    final GenerationState generationState=locateGenerationState(callback);
+    final GenerationState generationState=locateGenerationState(callback.getTenantIdentifier());
+    if (generationState.lastSourceValue == null || !generationState.value.lt(generationState.upperLimitValue)) {
+      generationState.lastSourceValue=callback.getNextValue();
+      generationState.upperLimitValue=generationState.lastSourceValue.copy().add(incrementSize);
+      generationState.value=generationState.lastSourceValue.copy();
+      while (generationState.value.lt(1)) {
+        generationState.value.increment();
+      }
+    }
     if (callback.getTenantIdentifier() != null) {
       return generationState.value.makeValueThenIncrement();
     }
  else {
       if (local == null) {
-        localAssignedIds.set(generationState);
+        local=new GenerationState();
+        localAssignedIds.set(local);
       }
-      if (!generationState.value.lt(generationState.upperLimitValue)) {
-        generationState.lastSourceValue=callback.getNextValue();
-        generationState.upperLimitValue=generationState.lastSourceValue.copy().add(incrementSize);
-        generationState.value=generationState.lastSourceValue.copy();
-        while (generationState.value.lt(1)) {
-          generationState.value.increment();
-        }
-      }
-      return generationState.value.makeValueThenIncrement();
+      local.upperLimitValue=generationState.upperLimitValue.copy();
+      local.value=generationState.value.copy();
+      local.lastSourceValue=generationState.lastSourceValue.copy();
+      generationState.value=generationState.upperLimitValue.copy();
+      return local.value.makeValueThenIncrement();
     }
   }
 }
