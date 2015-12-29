@@ -20,7 +20,24 @@
     builder.setResultSetRef(implicitResultSetMappingDefinition.getName());
     context.getMetadataCollector().addSecondPass(new SecondPass(){
       @Override public void doSecondPass(      Map persistentClasses) throws MappingException {
-        context.getMetadataCollector().addResultSetMapping(ResultSetMappingBinder.bind(implicitResultSetMappingDefinition,context));
+        ResultSetMappingDefinition resultSetMappingDefinition=ResultSetMappingBinder.bind(implicitResultSetMappingDefinition,context);
+        context.getMetadataCollector().addResultSetMapping(resultSetMappingDefinition);
+        NativeSQLQueryReturn[] newQueryReturns=resultSetMappingDefinition.getQueryReturns();
+        if (newQueryReturns != null && newQueryReturns.length > 0) {
+          List<NativeSQLQueryReturn> queryReturnList=new ArrayList<NativeSQLQueryReturn>();
+          NamedSQLQueryDefinition queryDefinition=context.getMetadataCollector().getNamedNativeQueryDefinition(queryName);
+          NativeSQLQueryReturn[] existingQueryReturns=queryDefinition.getQueryReturns();
+          if (existingQueryReturns != null && existingQueryReturns.length > 0) {
+            for (            NativeSQLQueryReturn queryReturn : existingQueryReturns) {
+              queryReturnList.add(queryReturn);
+            }
+          }
+          for (          NativeSQLQueryReturn queryReturn : newQueryReturns) {
+            queryReturnList.add(queryReturn);
+          }
+          NativeSQLQueryReturn[] allQueryReturns=queryReturnList.toArray(new NativeSQLQueryReturn[queryReturnList.size()]);
+          queryDefinition.setQueryReturns(allQueryReturns);
+        }
       }
     }
 );
