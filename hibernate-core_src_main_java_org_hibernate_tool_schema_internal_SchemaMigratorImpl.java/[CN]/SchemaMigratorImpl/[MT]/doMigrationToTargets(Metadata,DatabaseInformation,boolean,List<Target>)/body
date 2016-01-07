@@ -69,7 +69,6 @@
       }
       applyIndexes(table,tableInformation,metadata,targets);
       applyUniqueKeys(table,tableInformation,metadata,targets);
-      applyForeignKeys(table,tableInformation,metadata,targets);
     }
     for (    Sequence sequence : namespace.getSequences()) {
       checkExportIdentifier(sequence,exportIdentifiers);
@@ -78,6 +77,15 @@
         continue;
       }
       applySqlStrings(database.getJdbcEnvironment().getDialect().getSequenceExporter().getSqlCreateStrings(sequence,metadata),targets,false);
+    }
+  }
+  for (  Namespace namespace : database.getNamespaces()) {
+    for (    Table table : namespace.getTables()) {
+      final TableInformation tableInformation=existingDatabase.getTableInformation(table.getQualifiedTableName());
+      if (tableInformation != null && !tableInformation.isPhysicalTable()) {
+        continue;
+      }
+      applyForeignKeys(table,tableInformation,metadata,targets);
     }
   }
   for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects()) {
