@@ -1,0 +1,11 @@
+{
+  final MetadataSources metadataSources=new MetadataSources(ssr);
+  metadataSources.addAnnotatedClass(SchemaOneEntity.class);
+  metadataSources.addAnnotatedClass(SchemaTwoEntity.class);
+  metadata=(MetadataImplementor)metadataSources.buildMetadata();
+  metadata.validate();
+  final Database database=metadata.getDatabase();
+  DatabaseInformation dbInfo=new DatabaseInformationImpl(ssr,database.getJdbcEnvironment(),ssr.getService(JdbcServices.class).getBootstrapJdbcConnectionAccess(),database.getDefaultNamespace().getPhysicalName().getCatalog(),database.getDefaultNamespace().getPhysicalName().getSchema());
+  ssr.getService(SchemaManagementTool.class).getSchemaMigrator(Collections.emptyMap()).doMigration(metadata,dbInfo,true,Arrays.asList(new TargetStdoutImpl(),new TargetDatabaseImpl(ssr.getService(JdbcServices.class).getBootstrapJdbcConnectionAccess())));
+  ssr.getService(SchemaManagementTool.class).getSchemaDropper(null).doDrop(metadata,false,Arrays.asList(new TargetStdoutImpl(),new TargetDatabaseImpl(ssr.getService(JdbcServices.class).getBootstrapJdbcConnectionAccess())));
+}
