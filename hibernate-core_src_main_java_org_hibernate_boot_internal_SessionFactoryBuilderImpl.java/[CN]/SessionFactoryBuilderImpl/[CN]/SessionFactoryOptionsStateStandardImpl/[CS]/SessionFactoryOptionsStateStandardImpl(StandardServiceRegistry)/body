@@ -74,13 +74,21 @@
   this.wrapResultSetsEnabled=ConfigurationHelper.getBoolean(WRAP_RESULT_SETS,configurationSettings,false);
   this.getGeneratedKeysEnabled=ConfigurationHelper.getBoolean(USE_GET_GENERATED_KEYS,configurationSettings,meta.supportsGetGeneratedKeys());
   this.jdbcFetchSize=ConfigurationHelper.getInteger(STATEMENT_FETCH_SIZE,configurationSettings);
+  final ConnectionAcquisitionMode connectionAcquisitionMode=ConnectionAcquisitionMode.interpret(ConfigurationHelper.getString(ACQUIRE_CONNECTIONS,configurationSettings,ConnectionAcquisitionMode.AS_NEEDED.name()));
+  final ConnectionReleaseMode connectionReleaseMode;
   final String releaseModeName=ConfigurationHelper.getString(RELEASE_CONNECTIONS,configurationSettings,"auto");
   if ("auto".equals(releaseModeName)) {
-    this.connectionReleaseMode=serviceRegistry.getService(TransactionCoordinatorBuilder.class).getDefaultConnectionReleaseMode();
+    if (connectionAcquisitionMode == ConnectionAcquisitionMode.IMMEDIATELY) {
+      connectionReleaseMode=ConnectionReleaseMode.ON_CLOSE;
+    }
+ else {
+      connectionReleaseMode=serviceRegistry.getService(TransactionCoordinatorBuilder.class).getDefaultConnectionReleaseMode();
+    }
   }
  else {
     connectionReleaseMode=ConnectionReleaseMode.parse(releaseModeName);
   }
+  this.connectionHandlingMode=PhysicalConnectionHandlingMode.interpret(connectionAcquisitionMode,connectionReleaseMode);
   this.commentsEnabled=ConfigurationHelper.getBoolean(USE_SQL_COMMENTS,configurationSettings);
   this.preferUserTransaction=ConfigurationHelper.getBoolean(PREFER_USER_TRANSACTION,configurationSettings,false);
 }

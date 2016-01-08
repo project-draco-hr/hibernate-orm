@@ -2,12 +2,9 @@
   this.jdbcConnectionAccess=jdbcConnectionAccess;
   this.observer=jdbcSessionContext.getObserver();
   this.sqlExceptionHelper=jdbcSessionContext.getServiceRegistry().getService(JdbcServices.class).getSqlExceptionHelper();
-  this.connectionReleaseMode=jdbcSessionContext.getConnectionReleaseMode();
+  this.physicalConnectionHandlingMode=jdbcSessionContext.getPhysicalConnectionHandlingMode();
   this.resourceRegistry=resourceRegistry;
-  if (jdbcSessionContext.getConnectionAcquisitionMode() == ConnectionAcquisitionMode.IMMEDIATELY) {
-    if (jdbcSessionContext.getConnectionReleaseMode() != ConnectionReleaseMode.ON_CLOSE) {
-      throw new IllegalStateException("Illegal combination of ConnectionAcquisitionMode#IMMEDIATELY with !ConnectionReleaseMode.ON_CLOSE");
-    }
+  if (physicalConnectionHandlingMode.getAcquisitionMode() == ConnectionAcquisitionMode.IMMEDIATELY) {
     acquireConnectionIfNeeded();
   }
 }
