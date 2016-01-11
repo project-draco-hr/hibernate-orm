@@ -1,0 +1,22 @@
+{
+  EntityManager entityManager=null;
+  EntityTransaction txn=null;
+  try {
+    entityManager=factorySupplier.get().createEntityManager();
+    function.beforeTransactionCompletion();
+    txn=entityManager.getTransaction();
+    txn.begin();
+    function.accept(entityManager);
+    txn.commit();
+  }
+ catch (  RuntimeException e) {
+    if (txn != null && txn.isActive())     txn.rollback();
+    throw e;
+  }
+ finally {
+    function.afterTransactionCompletion();
+    if (entityManager != null) {
+      entityManager.close();
+    }
+  }
+}
