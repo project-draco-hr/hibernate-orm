@@ -1,0 +1,29 @@
+{
+  final String protocol=url.getProtocol();
+  final boolean check=StringHelper.isEmpty(protocol) || "file".equals(protocol) || "vfszip".equals(protocol)|| "vfsfile".equals(protocol);
+  if (!check) {
+    return url;
+  }
+  final String filePart=extractLocalFilePath(url);
+  if (filePart.startsWith("/")) {
+    return url;
+  }
+ else {
+    final File rootUrlFile=new File(extractLocalFilePath(rootUrl));
+    try {
+      if (rootUrlFile.isDirectory()) {
+        final File combined=new File(rootUrlFile,filePart);
+        if (combined.exists()) {
+          return combined.toURI().toURL();
+        }
+      }
+ else {
+        return new URL("jar:" + protocol + "://"+ rootUrlFile.getAbsolutePath()+ "!/"+ filePart);
+      }
+    }
+ catch (    MalformedURLException e) {
+      log.debugf(e,"Unable to adjust relative <jar-file/> URL [%s] relative to root URL [%s]",filePart,rootUrlFile.getAbsolutePath());
+    }
+    return url;
+  }
+}
