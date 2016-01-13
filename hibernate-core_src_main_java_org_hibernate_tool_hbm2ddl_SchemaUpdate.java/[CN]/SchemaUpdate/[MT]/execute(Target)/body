@@ -12,5 +12,10 @@
  catch (  SQLException e) {
     throw jdbcServices.getSqlExceptionHelper().convert(e,"Error creating DatabaseInformation for schema migration");
   }
-  schemaMigrator.doMigration(metadata,databaseInformation,true,toolTargets);
+  try {
+    schemaMigrator.doMigration(metadata,databaseInformation,true,toolTargets);
+  }
+  finally {
+    databaseInformation.cleanup();
+  }
 }
