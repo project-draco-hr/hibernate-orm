@@ -6,7 +6,7 @@
     if (templateCacheName != null) {
       configuration=manager.getCacheConfiguration(templateCacheName);
       if (configuration == null) {
-        log.errorf("Region '%s' should use cache '%s' but its configuration is not defined - using configuration by type (%s).",regionName,templateCacheName,type.key);
+        log.customConfigForRegionNotFound(templateCacheName,regionName,type.key);
       }
  else {
         log.debugf("Region '%s' will use cache template '%s'",regionName,templateCacheName);
@@ -33,9 +33,6 @@
     }
     if (globalStats != null) {
       builder.jmxStatistics().enabled(globalStats).available(globalStats);
-    }
-    if (manager.getCacheConfiguration(regionName) != null) {
-      log.warnf("Cache configuration for region '%s' was already defined! Cache exists? %s",regionName,manager.cacheExists(regionName));
     }
     configuration=builder.build();
     type.validate(configuration);
