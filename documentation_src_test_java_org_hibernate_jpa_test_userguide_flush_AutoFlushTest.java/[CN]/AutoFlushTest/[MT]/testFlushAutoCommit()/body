@@ -1,0 +1,22 @@
+{
+  EntityManager entityManager=null;
+  EntityTransaction txn=null;
+  try {
+    entityManager=entityManagerFactory().createEntityManager();
+    txn=entityManager.getTransaction();
+    txn.begin();
+    Person person=new Person("John Doe");
+    entityManager.persist(person);
+    log.info("Entity is in persisted state");
+    txn.commit();
+  }
+ catch (  RuntimeException e) {
+    if (txn != null && txn.isActive())     txn.rollback();
+    throw e;
+  }
+ finally {
+    if (entityManager != null) {
+      entityManager.close();
+    }
+  }
+}
