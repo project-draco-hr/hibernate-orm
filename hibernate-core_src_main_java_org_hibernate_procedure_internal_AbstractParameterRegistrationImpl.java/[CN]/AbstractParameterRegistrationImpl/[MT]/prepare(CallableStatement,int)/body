@@ -40,7 +40,13 @@ for (int i=0; i < sqlTypesToUse.length; i++) {
 }
 if (mode == ParameterMode.INOUT || mode == ParameterMode.IN) {
 if (bind == null || bind.getValue() == null) {
-  log.debugf("Stored procedure [%s] IN/INOUT parameter [%s] not bound; assuming procedure defines default value",procedureCall.getProcedureName(),this);
+  if (passNulls) {
+    log.debugf("Stored procedure [%s] IN/INOUT parameter [%s] not bound and `passNulls` was set to true; binding NULL",procedureCall.getProcedureName(),this);
+    typeToUse.nullSafeSet(statement,null,startIndex,session());
+  }
+ else {
+    log.debugf("Stored procedure [%s] IN/INOUT parameter [%s] not bound and `passNulls` was set to false; assuming procedure defines default value",procedureCall.getProcedureName(),this);
+  }
 }
  else {
   typeToUse.nullSafeSet(statement,bind.getValue(),startIndex,session());

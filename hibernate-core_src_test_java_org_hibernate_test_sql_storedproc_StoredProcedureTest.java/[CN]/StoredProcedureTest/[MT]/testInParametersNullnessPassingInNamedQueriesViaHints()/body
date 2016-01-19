@@ -1,0 +1,26 @@
+{
+  Session session=openSession();
+  session.beginTransaction();
+{
+    ProcedureCall query=session.getNamedProcedureCall("findUserRangeNoNullPassing");
+    query.getParameterRegistration(2).bindValue(2);
+    try {
+      query.getOutputs();
+      fail("Expecting failure due to missing parameter bind");
+    }
+ catch (    JDBCException ignore) {
+    }
+  }
+{
+    ProcedureCall query=session.getNamedProcedureCall("findUserRangeNamedNullPassing");
+    query.getParameterRegistration("secondArg").bindValue(2);
+    query.getOutputs();
+  }
+{
+    ProcedureCall query=session.getNamedProcedureCall("findUserRangeOrdinalNullPassing");
+    query.getParameterRegistration(2).bindValue(2);
+    query.getOutputs();
+  }
+  session.getTransaction().commit();
+  session.close();
+}
