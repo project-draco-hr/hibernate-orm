@@ -42,14 +42,24 @@ if (mode == ParameterMode.INOUT || mode == ParameterMode.IN) {
 if (bind == null || bind.getValue() == null) {
   if (passNulls) {
     log.debugf("Stored procedure [%s] IN/INOUT parameter [%s] not bound and `passNulls` was set to true; binding NULL",procedureCall.getProcedureName(),this);
-    typeToUse.nullSafeSet(statement,null,startIndex,session());
+    if (this.procedureCall.getParameterStrategy() == ParameterStrategy.NAMED && canDoNameParameterBinding()) {
+      ((ProcedureParameterNamedBinder)typeToUse).nullSafeSet(statement,null,this.getName(),session());
+    }
+ else {
+      typeToUse.nullSafeSet(statement,null,startIndex,session());
+    }
   }
  else {
     log.debugf("Stored procedure [%s] IN/INOUT parameter [%s] not bound and `passNulls` was set to false; assuming procedure defines default value",procedureCall.getProcedureName(),this);
   }
 }
  else {
-  typeToUse.nullSafeSet(statement,bind.getValue(),startIndex,session());
+  if (this.procedureCall.getParameterStrategy() == ParameterStrategy.NAMED && canDoNameParameterBinding()) {
+    ((ProcedureParameterNamedBinder)typeToUse).nullSafeSet(statement,bind.getValue(),this.getName(),session());
+  }
+ else {
+    typeToUse.nullSafeSet(statement,bind.getValue(),startIndex,session());
+  }
 }
 }
 }
