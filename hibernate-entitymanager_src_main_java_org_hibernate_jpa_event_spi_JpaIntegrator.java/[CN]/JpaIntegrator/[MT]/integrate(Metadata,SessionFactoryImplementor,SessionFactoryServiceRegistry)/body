@@ -34,13 +34,13 @@
   final ReflectionManager reflectionManager=((MetadataImpl)metadata).getMetadataBuildingOptions().getReflectionManager();
   this.callbackRegistry=new CallbackRegistryImpl();
   final Object beanManagerRef=sessionFactory.getSessionFactoryOptions().getBeanManagerReference();
-  this.jpaListenerFactory=beanManagerRef == null ? new StandardListenerFactory() : buildBeanManagerListenerFactory(beanManagerRef);
-  this.callbackProcessor=new LegacyCallbackProcessor(jpaListenerFactory,reflectionManager);
+  this.jpaListenerFactory=beanManagerRef == null ? new ListenerFactoryStandardImpl() : buildBeanManagerListenerFactory(beanManagerRef);
+  this.entityCallbackBuilder=new EntityCallbackBuilderLegacyImpl(jpaListenerFactory,reflectionManager);
   for (  PersistentClass persistentClass : metadata.getEntityBindings()) {
     if (persistentClass.getClassName() == null) {
       continue;
     }
-    callbackProcessor.processCallbacksForEntity(persistentClass.getClassName(),callbackRegistry);
+    entityCallbackBuilder.buildCallbacksForEntity(persistentClass.getClassName(),callbackRegistry);
   }
   for (  EventType eventType : EventType.values()) {
     final EventListenerGroup eventListenerGroup=eventListenerRegistry.getEventListenerGroup(eventType);
