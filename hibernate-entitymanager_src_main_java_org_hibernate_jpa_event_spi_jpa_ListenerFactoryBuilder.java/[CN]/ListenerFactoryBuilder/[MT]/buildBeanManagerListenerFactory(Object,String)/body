@@ -1,0 +1,21 @@
+{
+  try {
+    final Class beanManagerListenerFactoryClass=ListenerFactoryBuilder.class.getClassLoader().loadClass(factoryClassName);
+    final Method beanManagerListenerFactoryBuilderMethod=beanManagerListenerFactoryClass.getMethod(CDI_LISTENER_FACTORY_METHOD_NAME,Object.class);
+    try {
+      return (ListenerFactory)beanManagerListenerFactoryBuilderMethod.invoke(null,beanManagerRef);
+    }
+ catch (    InvocationTargetException e) {
+      throw e.getTargetException();
+    }
+  }
+ catch (  ClassNotFoundException e) {
+    throw new HibernateException("Could not locate BeanManager ListenerFactory class [" + factoryClassName + "] to handle CDI extensions",e);
+  }
+catch (  HibernateException e) {
+    throw e;
+  }
+catch (  Throwable e) {
+    throw new HibernateException("Could not access BeanManagerListenerFactory class to handle CDI extensions",e);
+  }
+}
