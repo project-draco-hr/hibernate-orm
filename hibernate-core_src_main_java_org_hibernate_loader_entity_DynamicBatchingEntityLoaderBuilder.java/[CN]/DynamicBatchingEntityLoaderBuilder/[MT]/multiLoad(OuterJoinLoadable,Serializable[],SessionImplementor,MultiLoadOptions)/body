@@ -1,11 +1,11 @@
 {
-  List<T> result=CollectionHelper.arrayList(ids.length);
-  if (sessionCheckingEnabled) {
+  List result=CollectionHelper.arrayList(ids.length);
+  if (loadOptions.isSessionCheckingEnabled()) {
     boolean foundAnyManagedEntities=false;
-    final List<K> nonManagedIds=new ArrayList<K>();
-    for (    K id : ids) {
+    final List<Serializable> nonManagedIds=new ArrayList<Serializable>();
+    for (    Serializable id : ids) {
       final EntityKey entityKey=new EntityKey(id,persister);
-      final T managedEntity=(T)session.getPersistenceContext().getEntity(entityKey);
+      final Object managedEntity=session.getPersistenceContext().getEntity(entityKey);
       if (managedEntity != null) {
         foundAnyManagedEntities=true;
         result.add(managedEntity);
@@ -19,17 +19,15 @@
         return result;
       }
  else {
-        ids=nonManagedIds.toArray((K[])Array.newInstance(ids.getClass().getComponentType(),nonManagedIds.size()));
+        ids=nonManagedIds.toArray((Serializable[])Array.newInstance(ids.getClass().getComponentType(),nonManagedIds.size()));
       }
     }
   }
-  if (lockOptions == null) {
-    lockOptions=new LockOptions(LockMode.NONE);
-  }
+  final LockOptions lockOptions=(loadOptions.getLockOptions() == null) ? new LockOptions(LockMode.NONE) : loadOptions.getLockOptions();
   int numberOfIdsLeft=ids.length;
   final int maxBatchSize;
-  if (explicitBatchSize != null && explicitBatchSize > 0) {
-    maxBatchSize=explicitBatchSize;
+  if (loadOptions.getBatchSize() != null && loadOptions.getBatchSize() > 0) {
+    maxBatchSize=loadOptions.getBatchSize();
   }
  else {
     maxBatchSize=session.getFactory().getDialect().getDefaultBatchLoadSizingStrategy().determineOptimalBatchLoadSize(persister.getIdentifierType().getColumnSpan(session.getFactory()),numberOfIdsLeft);
