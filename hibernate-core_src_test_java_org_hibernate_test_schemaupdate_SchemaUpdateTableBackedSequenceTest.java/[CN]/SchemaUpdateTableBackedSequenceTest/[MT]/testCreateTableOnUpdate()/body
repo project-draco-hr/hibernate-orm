@@ -6,18 +6,9 @@
   assertEquals(1,database.getDefaultNamespace().getTables().size());
   Table table=database.getDefaultNamespace().getTables().iterator().next();
   assertEquals(1,table.getInitCommands().size());
-class TargetImpl extends TargetStdoutImpl {
-    boolean found=false;
-    @Override public void accept(    String action){
-      super.accept(action);
-      if (action.startsWith("insert into test_seq")) {
-        found=true;
-      }
-    }
-  }
   TargetImpl target=new TargetImpl();
   DatabaseInformation dbInfo=new DatabaseInformationImpl(ssr,database.getJdbcEnvironment(),ssr.getService(JdbcServices.class).getBootstrapJdbcConnectionAccess(),database.getDefaultNamespace().getPhysicalName().getCatalog(),database.getDefaultNamespace().getPhysicalName().getSchema());
-  ssr.getService(SchemaManagementTool.class).getSchemaMigrator(Collections.emptyMap()).doMigration(metadata,dbInfo,true,Arrays.asList(target,new TargetDatabaseImpl(ssr.getService(JdbcServices.class).getBootstrapJdbcConnectionAccess())));
+  ssr.getService(SchemaManagementTool.class).getSchemaMigrator(Collections.emptyMap()).doMigration(metadata,dbInfo,true,buildTargets(target));
   assertTrue(target.found);
-  ssr.getService(SchemaManagementTool.class).getSchemaDropper(null).doDrop(metadata,false,Arrays.asList(target,new TargetDatabaseImpl(ssr.getService(JdbcServices.class).getBootstrapJdbcConnectionAccess())));
+  ssr.getService(SchemaManagementTool.class).getSchemaDropper(Collections.emptyMap()).doDrop(metadata,false,buildTargets(target));
 }
