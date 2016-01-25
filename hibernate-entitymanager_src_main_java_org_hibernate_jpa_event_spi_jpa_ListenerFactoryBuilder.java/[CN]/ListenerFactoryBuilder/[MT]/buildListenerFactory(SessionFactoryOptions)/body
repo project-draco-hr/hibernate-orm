@@ -4,9 +4,15 @@
     return new ListenerFactoryStandardImpl();
   }
  else   if (ExtendedBeanManager.class.isInstance(beanManagerRef)) {
-    return buildLazyBeanManagerListenerFactory(beanManagerRef);
+    return buildExtendedBeanManagerListenerFactory(beanManagerRef);
   }
  else {
-    return buildStandardBeanManagerListenerFactory(beanManagerRef);
+    final boolean delayAccessToCdi=options.getServiceRegistry().getService(ConfigurationService.class).getSetting(AvailableSettings.DELAY_CDI_ACCESS,StandardConverters.BOOLEAN,false);
+    if (delayAccessToCdi) {
+      return buildDelayedBeanManagerListenerFactory(beanManagerRef);
+    }
+ else {
+      return buildStandardBeanManagerListenerFactory(beanManagerRef);
+    }
   }
 }
