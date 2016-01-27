@@ -1,0 +1,20 @@
+{
+  StandardServiceRegistry serviceRegistry=new StandardServiceRegistryBuilder().applySetting(AvailableSettings.TRANSACTION_COORDINATOR_STRATEGY,"jta").build();
+  Metadata metadata=new MetadataSources(serviceRegistry).addAnnotatedClass(Customer.class).getMetadataBuilder().build();
+  SessionFactory sessionFactory=metadata.getSessionFactoryBuilder().build();
+  Session session=sessionFactory.openSession();
+  try {
+    session.getTransaction().begin();
+    session.persist(new Customer());
+    Customer customer=(Customer)session.createQuery("select c from Customer c").uniqueResult();
+    session.getTransaction().commit();
+  }
+ catch (  Exception e) {
+    if (session.getTransaction().getStatus() == TransactionStatus.ACTIVE || session.getTransaction().getStatus() == TransactionStatus.MARKED_ROLLBACK) {
+      session.getTransaction().rollback();
+    }
+  }
+ finally {
+    session.close();
+  }
+}
