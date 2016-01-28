@@ -1,0 +1,29 @@
+{
+  int entityCount=100;
+  EntityManager entityManager=null;
+  EntityTransaction txn=null;
+  try {
+    entityManager=entityManagerFactory().createEntityManager();
+    txn=entityManager.getTransaction();
+    txn.begin();
+    int batchSize=25;
+    for (int i=0; i < entityCount; ++i) {
+      Customer customer=new Customer(String.format("Customer %d",i));
+      entityManager.persist(customer);
+      if (i % batchSize == 0) {
+        entityManager.flush();
+        entityManager.clear();
+      }
+    }
+    txn.commit();
+  }
+ catch (  RuntimeException e) {
+    if (txn != null && txn.isActive())     txn.rollback();
+    throw e;
+  }
+ finally {
+    if (entityManager != null) {
+      entityManager.close();
+    }
+  }
+}
