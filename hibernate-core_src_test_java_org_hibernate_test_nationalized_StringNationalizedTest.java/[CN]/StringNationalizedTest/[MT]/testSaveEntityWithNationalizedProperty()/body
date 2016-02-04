@@ -1,0 +1,19 @@
+{
+  Session s=openSession();
+  s.getTransaction().begin();
+  try {
+    NationalizedEntity ne=new NationalizedEntity();
+    ne.name="Hello";
+    s.save(ne);
+    s.getTransaction().commit();
+  }
+ catch (  Exception e) {
+    if (s.getTransaction().getStatus() == TransactionStatus.ACTIVE) {
+      s.getTransaction().rollback();
+    }
+    throw e;
+  }
+ finally {
+    s.close();
+  }
+}
