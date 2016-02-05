@@ -3,9 +3,13 @@
   try {
     final MetadataImplementor metadata=(MetadataImplementor)new MetadataSources(ssr).addAnnotatedClass(Box.class).addAnnotatedClass(Thing.class).buildMetadata();
     metadata.validate();
-    new SchemaExport(metadata).create(Target.EXPORT);
-    new SchemaUpdate(metadata).execute(Target.EXPORT);
-    new SchemaExport(metadata).drop(Target.EXPORT);
+    new SchemaExport().create(EnumSet.of(TargetType.DATABASE),metadata);
+    try {
+      new SchemaUpdate().execute(EnumSet.of(TargetType.DATABASE),metadata);
+    }
+  finally {
+      new SchemaExport().drop(EnumSet.of(TargetType.DATABASE),metadata);
+    }
   }
   finally {
     StandardServiceRegistryBuilder.destroy(ssr);

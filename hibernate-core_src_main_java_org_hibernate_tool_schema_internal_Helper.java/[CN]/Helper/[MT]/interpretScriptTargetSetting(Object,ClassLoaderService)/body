@@ -1,0 +1,19 @@
+{
+  if (scriptTargetSetting == null) {
+    return null;
+  }
+ else   if (Writer.class.isInstance(scriptTargetSetting)) {
+    return new ScriptTargetOutputToWriter((Writer)scriptTargetSetting);
+  }
+ else {
+    final String scriptTargetSettingString=scriptTargetSetting.toString();
+    log.debugf("Attempting to resolve script source setting : %s",scriptTargetSettingString);
+    log.trace("Trying as URL...");
+    final URL url=classLoaderService.locateResource(scriptTargetSettingString);
+    if (url != null) {
+      return new ScriptTargetOutputToUrl(url);
+    }
+    final File file=new File(scriptTargetSettingString);
+    return new ScriptTargetOutputToFile(file);
+  }
+}

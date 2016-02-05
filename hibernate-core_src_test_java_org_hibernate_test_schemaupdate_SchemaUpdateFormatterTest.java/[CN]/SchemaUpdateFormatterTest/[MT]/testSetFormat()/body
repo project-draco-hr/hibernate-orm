@@ -1,21 +1,11 @@
 {
   StandardServiceRegistry ssr=new StandardServiceRegistryBuilder().applySetting(Environment.HBM2DDL_AUTO,"none").build();
-  final Dialect dialect=ssr.getService(JdbcServices.class).getDialect();
-  if (!H2Dialect.class.isInstance(dialect)) {
-    SkipLog.reportSkip("Test should only run when using H2Dialect due to dialect-specific script; skip because dialect is " + dialect.getClass().getName());
-    return;
-  }
   try {
     File output=File.createTempFile("update_script",".sql");
     output.deleteOnExit();
     final MetadataImplementor metadata=(MetadataImplementor)new MetadataSources(ssr).addAnnotatedClass(TestEntity.class).buildMetadata();
     metadata.validate();
-    SchemaUpdate su=new SchemaUpdate(ssr,metadata);
-    su.setHaltOnError(true);
-    su.setOutputFile(output.getAbsolutePath());
-    su.setDelimiter(DELIMITER);
-    su.setFormat(true);
-    su.execute(Target.SCRIPT);
+    new SchemaUpdate().setHaltOnError(true).setOutputFile(output.getAbsolutePath()).setDelimiter(DELIMITER).setFormat(true).execute(EnumSet.of(TargetType.SCRIPT),metadata);
     Assert.assertEquals(AFTER_FORMAT,new String(Files.readAllBytes(output.toPath())));
   }
   finally {

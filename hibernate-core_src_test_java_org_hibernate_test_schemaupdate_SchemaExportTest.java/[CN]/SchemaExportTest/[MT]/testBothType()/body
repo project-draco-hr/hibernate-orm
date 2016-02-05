@@ -1,14 +1,14 @@
 {
-  final SchemaExport schemaExport=createSchemaExport(metadata,serviceRegistry);
-  schemaExport.execute(false,true,false,false);
+  final SchemaExport schemaExport=new SchemaExport();
+  schemaExport.execute(EnumSet.of(TargetType.DATABASE),SchemaExport.Action.DROP,metadata);
   if (doesDialectSupportDropTableIfExist()) {
     assertEquals(0,schemaExport.getExceptions().size());
   }
  else {
     assertEquals(1,schemaExport.getExceptions().size());
   }
-  schemaExport.execute(false,true,false,false);
+  schemaExport.execute(EnumSet.of(TargetType.DATABASE),SchemaExport.Action.BOTH,metadata);
   assertEquals(0,schemaExport.getExceptions().size());
-  schemaExport.execute(false,true,true,false);
+  schemaExport.execute(EnumSet.of(TargetType.DATABASE),SchemaExport.Action.DROP,metadata);
   assertEquals(0,schemaExport.getExceptions().size());
 }

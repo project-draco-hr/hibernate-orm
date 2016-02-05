@@ -1,0 +1,34 @@
+{
+  final ServiceRegistry serviceRegistry=tool.getServiceRegistry();
+  final ClassLoaderService classLoaderService=serviceRegistry.getService(ClassLoaderService.class);
+  final Formatter formatter=FormatStyle.NONE.getFormatter();
+  final Object importScriptSetting=options.getConfigurationValues().get(HBM2DDL_LOAD_SCRIPT_SOURCE);
+  if (importScriptSetting != null) {
+    final ScriptSourceInput importScriptInput=interpretScriptSourceSetting(importScriptSetting,classLoaderService);
+    log.executingImportScript(importScriptInput.toString());
+    importScriptInput.prepare();
+    try {
+      for (      String command : importScriptInput.read(commandExtractor)) {
+        applySqlString(command,formatter,options,targets);
+      }
+    }
+  finally {
+      importScriptInput.release();
+    }
+  }
+  final String importFiles=ConfigurationHelper.getString(AvailableSettings.HBM2DDL_IMPORT_FILES,options.getConfigurationValues(),DEFAULT_IMPORT_FILE);
+  for (  String currentFile : importFiles.split(",")) {
+    final String resourceName=currentFile.trim();
+    final ScriptSourceInput importScriptInput=interpretLegacyImportScriptSetting(resourceName,classLoaderService);
+    importScriptInput.prepare();
+    try {
+      log.executingImportScript(importScriptInput.toString());
+      for (      String command : importScriptInput.read(commandExtractor)) {
+        applySqlString(command,formatter,options,targets);
+      }
+    }
+  finally {
+      importScriptInput.release();
+    }
+  }
+}

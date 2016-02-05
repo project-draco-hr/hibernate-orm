@@ -1,15 +1,7 @@
 {
   try {
     final CommandLineArgs commandLineArgs=CommandLineArgs.parseCommandLineArgs(args);
-    StandardServiceRegistry serviceRegistry=buildStandardServiceRegistry(commandLineArgs);
-    try {
-      final MetadataImplementor metadata=buildMetadata(commandLineArgs,serviceRegistry);
-      SchemaExport schemaExport=new SchemaExport(serviceRegistry,metadata,commandLineArgs.exportSchemas).setHaltOnError(commandLineArgs.halt).setOutputFile(commandLineArgs.outputFile).setDelimiter(commandLineArgs.delimiter).setImportSqlCommandExtractor(serviceRegistry.getService(ImportSqlCommandExtractor.class)).setFormat(commandLineArgs.format);
-      schemaExport.execute(commandLineArgs.script,commandLineArgs.export,commandLineArgs.drop,commandLineArgs.create);
-    }
-  finally {
-      StandardServiceRegistryBuilder.destroy(serviceRegistry);
-    }
+    execute(commandLineArgs);
   }
  catch (  Exception e) {
     LOG.unableToCreateSchema(e);

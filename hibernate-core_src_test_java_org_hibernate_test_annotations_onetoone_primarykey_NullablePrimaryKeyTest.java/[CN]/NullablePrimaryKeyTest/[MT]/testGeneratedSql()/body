@@ -8,21 +8,7 @@
     ms.addAnnotatedClass(Address.class);
     ms.addAnnotatedClass(Person.class);
     final Metadata metadata=ms.buildMetadata();
-    final SchemaCreator schemaCreator=serviceRegistry.getService(SchemaManagementTool.class).getSchemaCreator(serviceRegistry.getService(ConfigurationService.class).getSettings());
-    final List<String> commands=new ArrayList<String>();
-    schemaCreator.doCreation(metadata,false,new Target(){
-      @Override public boolean acceptsImportScriptActions(){
-        return false;
-      }
-      @Override public void prepare(){
-      }
-      @Override public void accept(      String action){
-        commands.add(action);
-      }
-      @Override public void release(){
-      }
-    }
-);
+    final List<String> commands=new SchemaCreatorImpl(serviceRegistry).generateCreationCommands(metadata,false);
     for (    String s : commands) {
       log.debug(s);
     }

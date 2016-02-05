@@ -1,0 +1,15 @@
+{
+  final JdbcContext jdbcContext=tool.resolveJdbcContext(options.getConfigurationValues());
+  final DatabaseInformation databaseInformation=Helper.buildDatabaseInformation(tool.getServiceRegistry(),new JdbcConnectionContextNonSharedImpl(jdbcContext.getJdbcConnectionAccess(),jdbcContext.getSqlStatementLogger(),false),metadata.getDatabase().getDefaultNamespace().getName());
+  try {
+    performValidation(metadata,databaseInformation,options,jdbcContext.getDialect());
+  }
+  finally {
+    try {
+      databaseInformation.cleanup();
+    }
+ catch (    Exception e) {
+      log.debug("Problem releasing DatabaseInformation : " + e.getMessage());
+    }
+  }
+}

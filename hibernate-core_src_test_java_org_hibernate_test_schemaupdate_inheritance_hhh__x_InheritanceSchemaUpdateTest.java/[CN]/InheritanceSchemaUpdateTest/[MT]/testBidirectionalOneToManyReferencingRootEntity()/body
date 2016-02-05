@@ -3,12 +3,14 @@
   MetadataImplementor metadata=(MetadataImplementor)new MetadataSources(ssr).addAnnotatedClass(Step.class).addAnnotatedClass(GroupStep.class).buildMetadata();
   metadata.validate();
   try {
-    SchemaUpdate su=new SchemaUpdate(ssr,metadata);
-    su.execute(Target.EXPORT);
+    try {
+      new SchemaUpdate().execute(EnumSet.of(TargetType.DATABASE),metadata);
+    }
+  finally {
+      new SchemaExport().drop(EnumSet.of(TargetType.DATABASE),metadata);
+    }
   }
   finally {
-    SchemaExport schemaExport=new SchemaExport(ssr,metadata);
-    schemaExport.drop(Target.EXPORT);
     StandardServiceRegistryBuilder.destroy(ssr);
   }
 }

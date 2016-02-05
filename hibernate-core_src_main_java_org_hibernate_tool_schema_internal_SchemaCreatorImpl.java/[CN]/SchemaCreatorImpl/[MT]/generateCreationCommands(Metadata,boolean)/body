@@ -1,17 +1,19 @@
 {
-  final ArrayList<String> commands=new ArrayList<String>();
-  doCreation(metadata,createNamespaces,new Target(){
-    @Override public boolean acceptsImportScriptActions(){
-      return true;
+  final JournalingGenerationTarget target=new JournalingGenerationTarget();
+  final ServiceRegistry serviceRegistry=((MetadataImplementor)metadata).getMetadataBuildingOptions().getServiceRegistry();
+  final Dialect dialect=serviceRegistry.getService(JdbcEnvironment.class).getDialect();
+  final ExecutionOptions options=new ExecutionOptions(){
+    @Override public boolean shouldManageNamespaces(){
+      return manageNamespaces;
     }
-    @Override public void prepare(){
+    @Override public Map getConfigurationValues(){
+      return Collections.emptyMap();
     }
-    @Override public void accept(    String action){
-      commands.add(action);
-    }
-    @Override public void release(){
+    @Override public ExceptionHandler getExceptionHandler(){
+      return ExceptionHandlerHaltImpl.INSTANCE;
     }
   }
-);
-  return commands;
+;
+  createFromMetadata(metadata,options,dialect,FormatStyle.NONE.getFormatter(),target);
+  return target.commands;
 }

@@ -1,0 +1,19 @@
+{
+  try {
+    jdbcConnectionContext.logSqlStatement(command);
+    final Statement jdbcStatement=jdbcStatement();
+    jdbcStatement.execute(command);
+    try {
+      SQLWarning warnings=jdbcStatement.getWarnings();
+      if (warnings != null) {
+        sqlExceptionHelper.logAndClearWarnings(jdbcStatement);
+      }
+    }
+ catch (    SQLException e) {
+      log.unableToLogSqlWarnings(e);
+    }
+  }
+ catch (  SQLException e) {
+    throw new CommandAcceptanceException("Unable to execute command [" + command + "]",e);
+  }
+}

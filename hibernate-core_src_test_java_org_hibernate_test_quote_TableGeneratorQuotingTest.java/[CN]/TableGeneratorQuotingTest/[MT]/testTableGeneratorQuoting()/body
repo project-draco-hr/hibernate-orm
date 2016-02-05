@@ -1,17 +1,15 @@
 {
   final Metadata metadata=new MetadataSources(serviceRegistry).addAnnotatedClass(TestEntity.class).buildMetadata();
   final ConnectionProvider connectionProvider=serviceRegistry.getService(ConnectionProvider.class);
-  final Target target=new TargetDatabaseImpl(new JdbcConnectionAccessImpl(connectionProvider));
-  final SchemaManagementTool tool=serviceRegistry.getService(SchemaManagementTool.class);
-  Map options=Collections.emptyMap();
-  tool.getSchemaCreator(options).doCreation(metadata,false,target);
+  final GenerationTarget target=new GenerationTargetToDatabase(new JdbcConnectionContextNonSharedImpl(new JdbcEnvironmentInitiator.ConnectionProviderJdbcConnectionAccess(connectionProvider),serviceRegistry.getService(JdbcServices.class).getSqlStatementLogger(),true));
+  new SchemaCreatorImpl(serviceRegistry).doCreation(metadata,false,target);
   try {
-    new SchemaValidator(serviceRegistry,(MetadataImplementor)metadata).validate();
+    new SchemaValidator().validate(metadata);
   }
  catch (  HibernateException e) {
     fail("The identifier generator table should have validated.  " + e.getMessage());
   }
  finally {
-    tool.getSchemaDropper(options).doDrop(metadata,false,target);
+    new SchemaDropperImpl(serviceRegistry).doDrop(metadata,false,target);
   }
 }

@@ -10,10 +10,12 @@
   ms.addAnnotatedClass(Invoice.class);
   Metadata metadata=ms.buildMetadata();
   ((RootClass)metadata.getEntityBinding(Customer.class.getName())).setCacheConcurrencyStrategy("read-write");
-  final TargetDatabaseImpl acmeTarget=new TargetDatabaseImpl(new JdbcConnectionAccessImpl(acmeProvider));
-  final TargetDatabaseImpl jbossTarget=new TargetDatabaseImpl(new JdbcConnectionAccessImpl(jbossProvider));
-  serviceRegistry.getService(SchemaManagementTool.class).getSchemaDropper(settings).doDrop(metadata,true,acmeTarget,jbossTarget);
-  serviceRegistry.getService(SchemaManagementTool.class).getSchemaCreator(settings).doCreation(metadata,true,acmeTarget,jbossTarget);
+  HibernateSchemaManagementTool tool=new HibernateSchemaManagementTool();
+  tool.injectServices(serviceRegistry);
+  final GenerationTargetToDatabase acmeTarget=new GenerationTargetToDatabase(new JdbcConnectionContextNonSharedImpl(new JdbcConnectionAccessImpl(acmeProvider),new SqlStatementLogger(false,true),true));
+  final GenerationTargetToDatabase jbossTarget=new GenerationTargetToDatabase(new JdbcConnectionContextNonSharedImpl(new JdbcConnectionAccessImpl(jbossProvider),new SqlStatementLogger(false,true),true));
+  new SchemaDropperImpl(serviceRegistry).doDrop(metadata,serviceRegistry,settings,true,acmeTarget,jbossTarget);
+  new SchemaCreatorImpl(serviceRegistry).doCreation(metadata,serviceRegistry,settings,true,acmeTarget,jbossTarget);
   final SessionFactoryBuilder sfb=metadata.getSessionFactoryBuilder();
   configure(sfb);
   sessionFactory=(SessionFactoryImplementor)sfb.build();

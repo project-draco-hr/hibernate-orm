@@ -5,12 +5,7 @@
     output.deleteOnExit();
     final MetadataImplementor metadata=(MetadataImplementor)new MetadataSources(ssr).addAnnotatedClass(TestEntity.class).buildMetadata();
     metadata.validate();
-    SchemaUpdate su=new SchemaUpdate(ssr,metadata);
-    su.setHaltOnError(true);
-    su.setOutputFile(output.getAbsolutePath());
-    su.setDelimiter(";");
-    su.setFormat(true);
-    su.execute(true,false);
+    new SchemaUpdate().setHaltOnError(true).setOutputFile(output.getAbsolutePath()).setDelimiter(";").setFormat(true).execute(EnumSet.of(TargetType.SCRIPT),metadata);
     String fileContent=new String(Files.readAllBytes(output.toPath()));
     assertThat(fileContent.toLowerCase().contains("create table test_entity"),is(true));
   }

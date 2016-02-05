@@ -1,0 +1,17 @@
+{
+  final Exporter<Index> exporter=dialect.getIndexExporter();
+  final Iterator<Index> indexItr=table.getIndexIterator();
+  while (indexItr.hasNext()) {
+    final Index index=indexItr.next();
+    if (StringHelper.isEmpty(index.getName())) {
+      continue;
+    }
+    if (tableInformation != null) {
+      final IndexInformation existingIndex=findMatchingIndex(index,tableInformation);
+      if (existingIndex != null) {
+        continue;
+      }
+    }
+    applySqlStrings(false,exporter.getSqlCreateStrings(index,metadata),formatter,options,targets);
+  }
+}

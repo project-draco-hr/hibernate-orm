@@ -1,0 +1,109 @@
+{
+  final boolean format=Helper.interpretFormattingEnabled(options.getConfigurationValues());
+  final Formatter formatter=format ? FormatStyle.DDL.getFormatter() : FormatStyle.NONE.getFormatter();
+  final Set<String> exportIdentifiers=new HashSet<String>(50);
+  final Database database=metadata.getDatabase();
+  for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects()) {
+    if (!auxiliaryDatabaseObject.appliesToDialect(dialect)) {
+      continue;
+    }
+    applySqlStrings(true,dialect.getAuxiliaryDatabaseObjectExporter().getSqlDropStrings(auxiliaryDatabaseObject,metadata),formatter,options,targets);
+  }
+  for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects()) {
+    if (auxiliaryDatabaseObject.beforeTablesOnCreation()) {
+      continue;
+    }
+    if (!auxiliaryDatabaseObject.appliesToDialect(dialect)) {
+      continue;
+    }
+    applySqlStrings(true,auxiliaryDatabaseObject.sqlCreateStrings(dialect),formatter,options,targets);
+  }
+  boolean tryToCreateCatalogs=false;
+  boolean tryToCreateSchemas=false;
+  if (options.shouldManageNamespaces()) {
+    if (dialect.canCreateSchema()) {
+      tryToCreateSchemas=true;
+    }
+    if (dialect.canCreateCatalog()) {
+      tryToCreateCatalogs=true;
+    }
+  }
+  Set<Identifier> exportedCatalogs=new HashSet<Identifier>();
+  for (  Namespace namespace : database.getNamespaces()) {
+    if (!schemaFilter.includeNamespace(namespace)) {
+      continue;
+    }
+    if (tryToCreateCatalogs || tryToCreateSchemas) {
+      if (tryToCreateCatalogs) {
+        final Identifier catalogLogicalName=namespace.getName().getCatalog();
+        final Identifier catalogPhysicalName=namespace.getPhysicalName().getCatalog();
+        if (catalogPhysicalName != null && !exportedCatalogs.contains(catalogLogicalName) && !existingDatabase.catalogExists(catalogLogicalName)) {
+          applySqlStrings(false,dialect.getCreateCatalogCommand(catalogPhysicalName.render(dialect)),formatter,options,targets);
+          exportedCatalogs.add(catalogLogicalName);
+        }
+      }
+      if (tryToCreateSchemas && namespace.getPhysicalName().getSchema() != null && !existingDatabase.schemaExists(namespace.getName())) {
+        applySqlStrings(false,dialect.getCreateSchemaCommand(namespace.getPhysicalName().getSchema().render(dialect)),formatter,options,targets);
+      }
+    }
+    for (    Table table : namespace.getTables()) {
+      if (!table.isPhysicalTable()) {
+        continue;
+      }
+      if (!schemaFilter.includeTable(table)) {
+        continue;
+      }
+      checkExportIdentifier(table,exportIdentifiers);
+      final TableInformation tableInformation=existingDatabase.getTableInformation(table.getQualifiedTableName());
+      if (tableInformation != null && !tableInformation.isPhysicalTable()) {
+        continue;
+      }
+      if (tableInformation == null) {
+        createTable(table,dialect,metadata,formatter,options,targets);
+      }
+ else {
+        migrateTable(table,tableInformation,dialect,metadata,formatter,options,targets);
+      }
+    }
+    for (    Table table : namespace.getTables()) {
+      if (!table.isPhysicalTable()) {
+        continue;
+      }
+      if (!schemaFilter.includeTable(table)) {
+        continue;
+      }
+      final TableInformation tableInformation=existingDatabase.getTableInformation(table.getQualifiedTableName());
+      if (tableInformation != null && !tableInformation.isPhysicalTable()) {
+        continue;
+      }
+      applyIndexes(table,tableInformation,dialect,metadata,formatter,options,targets);
+      applyUniqueKeys(table,tableInformation,dialect,metadata,formatter,options,targets);
+    }
+    for (    Sequence sequence : namespace.getSequences()) {
+      checkExportIdentifier(sequence,exportIdentifiers);
+      final SequenceInformation sequenceInformation=existingDatabase.getSequenceInformation(sequence.getName());
+      if (sequenceInformation != null) {
+        continue;
+      }
+      applySqlStrings(false,dialect.getSequenceExporter().getSqlCreateStrings(sequence,metadata),formatter,options,targets);
+    }
+  }
+  for (  Namespace namespace : database.getNamespaces()) {
+    for (    Table table : namespace.getTables()) {
+      final TableInformation tableInformation=existingDatabase.getTableInformation(table.getQualifiedTableName());
+      if (tableInformation != null && !tableInformation.isPhysicalTable()) {
+        continue;
+      }
+      applyForeignKeys(table,tableInformation,dialect,metadata,formatter,options,targets);
+    }
+  }
+  for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects()) {
+    if (!auxiliaryDatabaseObject.beforeTablesOnCreation()) {
+      continue;
+    }
+    if (!auxiliaryDatabaseObject.appliesToDialect(dialect)) {
+      continue;
+    }
+    applySqlStrings(true,auxiliaryDatabaseObject.sqlCreateStrings(dialect),formatter,options,targets);
+  }
+}

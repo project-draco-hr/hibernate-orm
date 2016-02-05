@@ -1,0 +1,32 @@
+{
+  Map config=new HashMap();
+  config.putAll(serviceRegistry.getService(ConfigurationService.class).getSettings());
+  config.put(AvailableSettings.HBM2DDL_DELIMITER,delimiter);
+  config.put(AvailableSettings.FORMAT_SQL,format);
+  config.put(AvailableSettings.HBM2DDL_IMPORT_FILES,importFiles);
+  final SchemaManagementTool tool=serviceRegistry.getService(SchemaManagementTool.class);
+  final ExceptionHandler exceptionHandler=haltOnError ? ExceptionHandlerHaltImpl.INSTANCE : new ExceptionHandlerCollectingImpl();
+  final ExecutionOptions executionOptions=SchemaManagementToolCoordinator.buildExecutionOptions(config,exceptionHandler);
+  final SourceDescriptor sourceDescriptor=new SourceDescriptor(){
+    @Override public SourceType getSourceType(){
+      return SourceType.METADATA;
+    }
+    @Override public ScriptSourceInput getScriptSourceInput(){
+      return null;
+    }
+  }
+;
+  try {
+    if (action.doDrop()) {
+      tool.getSchemaDropper(config).doDrop(metadata,executionOptions,sourceDescriptor,targetDescriptor);
+    }
+    if (action.doCreate()) {
+      tool.getSchemaCreator(config).doCreation(metadata,executionOptions,sourceDescriptor,targetDescriptor);
+    }
+  }
+  finally {
+    if (exceptionHandler instanceof ExceptionHandlerCollectingImpl) {
+      exceptions.addAll(((ExceptionHandlerCollectingImpl)exceptionHandler).getExceptions());
+    }
+  }
+}

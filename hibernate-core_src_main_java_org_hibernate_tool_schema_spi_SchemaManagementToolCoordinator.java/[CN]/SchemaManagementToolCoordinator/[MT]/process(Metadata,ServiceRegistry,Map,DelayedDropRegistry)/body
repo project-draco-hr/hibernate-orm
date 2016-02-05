@@ -1,0 +1,14 @@
+{
+  final ActionGrouping actions=ActionGrouping.interpret(configurationValues);
+  if (actions.getDatabaseAction() == Action.NONE && actions.getScriptAction() == Action.NONE) {
+    log.debug("No actions specified; doing nothing");
+    return;
+  }
+  final SchemaManagementTool tool=serviceRegistry.getService(SchemaManagementTool.class);
+  final ExecutionOptions executionOptions=buildExecutionOptions(configurationValues,ExceptionHandlerLoggedImpl.INSTANCE);
+  performDatabaseAction(actions.getDatabaseAction(),metadata,tool,serviceRegistry,executionOptions);
+  performScriptAction(actions.getScriptAction(),metadata,tool,serviceRegistry,executionOptions);
+  if (actions.getDatabaseAction() == Action.CREATE_DROP) {
+    delayedDropRegistry.registerOnCloseAction(tool.getSchemaDropper(configurationValues).buildDelayedAction(metadata,executionOptions,buildDatabaseTargetDescriptor(configurationValues,DropSettingSelector.INSTANCE,serviceRegistry)));
+  }
+}

@@ -1,0 +1,35 @@
+{
+switch (scriptAction) {
+case CREATE_ONLY:
+{
+      final JpaTargetAndSourceDescriptor createDescriptor=buildScriptTargetDescriptor(executionOptions.getConfigurationValues(),CreateSettingSelector.INSTANCE,serviceRegistry);
+      tool.getSchemaCreator(executionOptions.getConfigurationValues()).doCreation(metadata,executionOptions,createDescriptor,createDescriptor);
+      break;
+    }
+case CREATE:
+case CREATE_DROP:
+{
+    final JpaTargetAndSourceDescriptor dropDescriptor=buildScriptTargetDescriptor(executionOptions.getConfigurationValues(),DropSettingSelector.INSTANCE,serviceRegistry);
+    tool.getSchemaDropper(executionOptions.getConfigurationValues()).doDrop(metadata,executionOptions,dropDescriptor,dropDescriptor);
+    final JpaTargetAndSourceDescriptor createDescriptor=buildScriptTargetDescriptor(executionOptions.getConfigurationValues(),CreateSettingSelector.INSTANCE,serviceRegistry);
+    tool.getSchemaCreator(executionOptions.getConfigurationValues()).doCreation(metadata,executionOptions,createDescriptor,createDescriptor);
+    break;
+  }
+case DROP:
+{
+  final JpaTargetAndSourceDescriptor dropDescriptor=buildScriptTargetDescriptor(executionOptions.getConfigurationValues(),DropSettingSelector.INSTANCE,serviceRegistry);
+  tool.getSchemaDropper(executionOptions.getConfigurationValues()).doDrop(metadata,executionOptions,dropDescriptor,dropDescriptor);
+  break;
+}
+case UPDATE:
+{
+final JpaTargetAndSourceDescriptor migrateDescriptor=buildScriptTargetDescriptor(executionOptions.getConfigurationValues(),MigrateSettingSelector.INSTANCE,serviceRegistry);
+tool.getSchemaMigrator(executionOptions.getConfigurationValues()).doMigration(metadata,executionOptions,migrateDescriptor);
+break;
+}
+case VALIDATE:
+{
+throw new SchemaManagementException("VALIDATE is not valid SchemaManagementTool action for script output");
+}
+}
+}

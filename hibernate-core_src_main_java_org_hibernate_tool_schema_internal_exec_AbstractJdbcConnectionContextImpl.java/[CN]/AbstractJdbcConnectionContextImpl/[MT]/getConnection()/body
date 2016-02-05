@@ -1,0 +1,20 @@
+{
+  if (jdbcConnection == null) {
+    try {
+      this.jdbcConnection=jdbcConnectionAccess.obtainConnection();
+    }
+ catch (    SQLException e) {
+      throw new SchemaManagementException("Unable to obtain JDBC Connection",e);
+    }
+    try {
+      if (needsAutoCommit) {
+        wasInitiallyAutoCommit=jdbcConnection.getAutoCommit();
+        jdbcConnection.setAutoCommit(true);
+      }
+    }
+ catch (    SQLException e) {
+      throw new SchemaManagementException("Unable to manage auto-commit",e);
+    }
+  }
+  return jdbcConnection;
+}

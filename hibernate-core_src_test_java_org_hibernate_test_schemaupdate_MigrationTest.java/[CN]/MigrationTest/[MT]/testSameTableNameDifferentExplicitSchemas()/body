@@ -1,10 +1,10 @@
 {
   MetadataImplementor metadata=(MetadataImplementor)new MetadataSources(serviceRegistry).addAnnotatedClass(CustomerInfo.class).addAnnotatedClass(PersonInfo.class).buildMetadata();
-  new SchemaExport(metadata,true).execute(Target.EXPORT,SchemaExport.Type.BOTH);
+  new SchemaExport().execute(EnumSet.of(TargetType.DATABASE),SchemaExport.Action.BOTH,metadata);
   try {
-    new SchemaUpdate(metadata).execute(Target.EXPORT);
+    new SchemaUpdate().execute(EnumSet.of(TargetType.DATABASE),metadata);
   }
   finally {
-    new SchemaExport(metadata,true).execute(Target.EXPORT,SchemaExport.Type.DROP);
+    new SchemaExport().drop(EnumSet.of(TargetType.DATABASE),metadata);
   }
 }

@@ -1,24 +1,36 @@
 {
+  String targetText=null;
+  boolean script=true;
+  boolean export=true;
+  String actionText=null;
+  boolean drop=false;
+  boolean create=false;
   CommandLineArgs parsedArgs=new CommandLineArgs();
   for (  String arg : args) {
     if (arg.startsWith("--")) {
       if (arg.equals("--quiet")) {
-        parsedArgs.script=false;
+        script=false;
+      }
+ else       if (arg.equals("--text")) {
+        export=false;
       }
  else       if (arg.equals("--drop")) {
-        parsedArgs.drop=true;
+        drop=true;
       }
  else       if (arg.equals("--create")) {
-        parsedArgs.create=true;
+        create=true;
+      }
+ else       if (arg.startsWith("--action=")) {
+        actionText=arg.substring(9);
+      }
+ else       if (arg.startsWith("--target=")) {
+        targetText=arg.substring(9);
       }
  else       if (arg.equals("--schemas")) {
-        parsedArgs.exportSchemas=true;
+        parsedArgs.manageNamespaces=true;
       }
  else       if (arg.equals("--haltonerror")) {
         parsedArgs.halt=true;
-      }
- else       if (arg.equals("--text")) {
-        parsedArgs.export=false;
       }
  else       if (arg.startsWith("--output=")) {
         parsedArgs.outputFile=arg.substring(9);
@@ -56,6 +68,24 @@
         parsedArgs.hbmXmlFiles.add(arg);
       }
     }
+  }
+  if (actionText == null) {
+    parsedArgs.action=Action.interpret(drop,create);
+  }
+ else {
+    if (drop || create) {
+      LOG.warn("--drop or --create was used; prefer --action=none|create|drop|drop-and-create instead");
+    }
+    parsedArgs.action=Action.parseCommandLineOption(actionText);
+  }
+  if (targetText == null) {
+    parsedArgs.targetTypes=TargetTypeHelper.parseLegacyCommandLineOptions(script,export,parsedArgs.outputFile);
+  }
+ else {
+    if (!script || !export) {
+      LOG.warn("--text or --quiet was used; prefer --target=none|(stdout|database|script)*");
+    }
+    parsedArgs.targetTypes=TargetTypeHelper.parseCommandLineOptions(targetText);
   }
   return parsedArgs;
 }

@@ -5,12 +5,7 @@
     output.deleteOnExit();
     final MetadataImplementor metadata=(MetadataImplementor)new MetadataSources(ssr).addAnnotatedClass(TestEntity.class).buildMetadata();
     metadata.validate();
-    SchemaUpdate su=new SchemaUpdate(ssr,metadata);
-    su.setHaltOnError(true);
-    su.setOutputFile(output.getAbsolutePath());
-    su.setDelimiter(EXPECTED_DELIMITER);
-    su.setFormat(false);
-    su.execute(Target.SCRIPT);
+    new SchemaUpdate().setHaltOnError(true).setOutputFile(output.getAbsolutePath()).setDelimiter(EXPECTED_DELIMITER).setFormat(false).execute(EnumSet.of(TargetType.SCRIPT),metadata);
     List<String> sqlLines=Files.readAllLines(output.toPath(),Charset.defaultCharset());
     for (    String line : sqlLines) {
       assertThat("The expected delimiter is not applied " + line,line.endsWith(EXPECTED_DELIMITER),is(true));

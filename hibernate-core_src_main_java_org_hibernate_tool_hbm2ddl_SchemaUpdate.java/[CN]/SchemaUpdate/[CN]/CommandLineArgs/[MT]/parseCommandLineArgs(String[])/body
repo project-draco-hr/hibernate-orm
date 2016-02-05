@@ -1,9 +1,18 @@
 {
   final CommandLineArgs parsedArgs=new CommandLineArgs();
+  String targetText=null;
+  boolean script=true;
+  boolean doUpdate=true;
   for (  String arg : args) {
     if (arg.startsWith("--")) {
       if (arg.equals("--quiet")) {
-        parsedArgs.script=false;
+        script=false;
+      }
+ else       if (arg.startsWith("--text")) {
+        doUpdate=false;
+      }
+ else       if (arg.startsWith("--target=")) {
+        targetText=arg.substring(9);
       }
  else       if (arg.startsWith("--properties=")) {
         parsedArgs.propertiesFile=arg.substring(13);
@@ -11,11 +20,8 @@
  else       if (arg.startsWith("--config=")) {
         parsedArgs.cfgXmlFile=arg.substring(9);
       }
- else       if (arg.startsWith("--text")) {
-        parsedArgs.doUpdate=false;
-      }
  else       if (arg.startsWith("--output=")) {
-        parsedArgs.outFile=arg.substring(9);
+        parsedArgs.outputFile=arg.substring(9);
       }
  else       if (arg.startsWith("--naming=")) {
         DeprecationLogger.DEPRECATION_LOGGER.logDeprecatedNamingStrategyArgument();
@@ -38,6 +44,15 @@
         parsedArgs.hbmXmlFiles.add(arg);
       }
     }
+  }
+  if (targetText == null) {
+    parsedArgs.targetTypes=TargetTypeHelper.parseLegacyCommandLineOptions(script,doUpdate,parsedArgs.outputFile);
+  }
+ else {
+    if (!script || !doUpdate) {
+      LOG.warn("--text or --quiet was used; prefer --target=none|(stdout|database|script)*");
+    }
+    parsedArgs.targetTypes=TargetTypeHelper.parseCommandLineOptions(targetText);
   }
   return parsedArgs;
 }

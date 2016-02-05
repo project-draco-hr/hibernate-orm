@@ -1,0 +1,97 @@
+{
+  boolean tryToCreateCatalogs=false;
+  boolean tryToCreateSchemas=false;
+  if (options.shouldManageNamespaces()) {
+    if (dialect.canCreateSchema()) {
+      tryToCreateSchemas=true;
+    }
+    if (dialect.canCreateCatalog()) {
+      tryToCreateCatalogs=true;
+    }
+  }
+  final Database database=metadata.getDatabase();
+  final JdbcEnvironment jdbcEnvironment=database.getJdbcEnvironment();
+  final Set<String> exportIdentifiers=new HashSet<String>(50);
+  if (tryToCreateCatalogs || tryToCreateSchemas) {
+    Set<Identifier> exportedCatalogs=new HashSet<Identifier>();
+    for (    Namespace namespace : database.getNamespaces()) {
+      if (!schemaFilter.includeNamespace(namespace)) {
+        continue;
+      }
+      if (tryToCreateCatalogs) {
+        final Identifier catalogLogicalName=namespace.getName().getCatalog();
+        final Identifier catalogPhysicalName=namespace.getPhysicalName().getCatalog();
+        if (catalogPhysicalName != null && !exportedCatalogs.contains(catalogLogicalName)) {
+          applySqlStrings(dialect.getCreateCatalogCommand(catalogPhysicalName.render(dialect)),formatter,options,targets);
+          exportedCatalogs.add(catalogLogicalName);
+        }
+      }
+      if (tryToCreateSchemas && namespace.getPhysicalName().getSchema() != null) {
+        applySqlStrings(dialect.getCreateSchemaCommand(namespace.getPhysicalName().getSchema().render(dialect)),formatter,options,targets);
+      }
+    }
+  }
+  for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects()) {
+    if (!auxiliaryDatabaseObject.beforeTablesOnCreation()) {
+      continue;
+    }
+    if (auxiliaryDatabaseObject.appliesToDialect(dialect)) {
+      checkExportIdentifier(auxiliaryDatabaseObject,exportIdentifiers);
+      applySqlStrings(dialect.getAuxiliaryDatabaseObjectExporter().getSqlCreateStrings(auxiliaryDatabaseObject,metadata),formatter,options,targets);
+    }
+  }
+  for (  Namespace namespace : database.getNamespaces()) {
+    if (!schemaFilter.includeNamespace(namespace)) {
+      continue;
+    }
+    for (    Sequence sequence : namespace.getSequences()) {
+      if (!schemaFilter.includeSequence(sequence)) {
+        continue;
+      }
+      checkExportIdentifier(sequence,exportIdentifiers);
+      applySqlStrings(dialect.getCreateSequenceStrings(jdbcEnvironment.getQualifiedObjectNameFormatter().format(sequence.getName(),dialect),sequence.getInitialValue(),sequence.getIncrementSize()),formatter,options,targets);
+    }
+    for (    Table table : namespace.getTables()) {
+      if (!table.isPhysicalTable()) {
+        continue;
+      }
+      if (!schemaFilter.includeTable(table)) {
+        continue;
+      }
+      checkExportIdentifier(table,exportIdentifiers);
+      applySqlStrings(dialect.getTableExporter().getSqlCreateStrings(table,metadata),formatter,options,targets);
+    }
+    for (    Table table : namespace.getTables()) {
+      final Iterator indexItr=table.getIndexIterator();
+      while (indexItr.hasNext()) {
+        final Index index=(Index)indexItr.next();
+        checkExportIdentifier(index,exportIdentifiers);
+        applySqlStrings(dialect.getIndexExporter().getSqlCreateStrings(index,metadata),formatter,options,targets);
+      }
+      final Iterator ukItr=table.getUniqueKeyIterator();
+      while (ukItr.hasNext()) {
+        final UniqueKey uniqueKey=(UniqueKey)ukItr.next();
+        checkExportIdentifier(uniqueKey,exportIdentifiers);
+        applySqlStrings(dialect.getUniqueKeyExporter().getSqlCreateStrings(uniqueKey,metadata),formatter,options,targets);
+      }
+    }
+  }
+  for (  Namespace namespace : database.getNamespaces()) {
+    for (    Table table : namespace.getTables()) {
+      final Iterator fkItr=table.getForeignKeyIterator();
+      while (fkItr.hasNext()) {
+        final ForeignKey foreignKey=(ForeignKey)fkItr.next();
+        applySqlStrings(dialect.getForeignKeyExporter().getSqlCreateStrings(foreignKey,metadata),formatter,options,targets);
+      }
+    }
+  }
+  for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects()) {
+    if (auxiliaryDatabaseObject.appliesToDialect(dialect) && !auxiliaryDatabaseObject.beforeTablesOnCreation()) {
+      checkExportIdentifier(auxiliaryDatabaseObject,exportIdentifiers);
+      applySqlStrings(dialect.getAuxiliaryDatabaseObjectExporter().getSqlCreateStrings(auxiliaryDatabaseObject,metadata),formatter,options,targets);
+    }
+  }
+  for (  InitCommand initCommand : database.getInitCommands()) {
+    applySqlStrings(initCommand.getInitCommands(),formatter,options,targets);
+  }
+}

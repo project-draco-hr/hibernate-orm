@@ -1,0 +1,54 @@
+{
+  final BootstrapServiceRegistry bsr=new BootstrapServiceRegistryBuilder().build();
+  final StandardServiceRegistryBuilder ssrBuilder=new StandardServiceRegistryBuilder(bsr);
+  final MetadataSources metadataSources=new MetadataSources(bsr);
+  if (configurationFile != null) {
+    ssrBuilder.configure(configurationFile);
+  }
+  if (propertiesFile != null) {
+    ssrBuilder.loadProperties(propertiesFile);
+  }
+  ssrBuilder.applySettings(getProject().getProperties());
+  for (  String fileName : getFiles()) {
+    if (fileName.endsWith(".jar")) {
+      metadataSources.addJar(new File(fileName));
+    }
+ else {
+      metadataSources.addFile(fileName);
+    }
+  }
+  ssrBuilder.applySetting(AvailableSettings.HBM2DDL_DELIMITER,delimiter);
+  ExportType exportType=ExportType.interpret(drop,create);
+  Target output=Target.interpret(!quiet,!text);
+  if (output.doScript()) {
+    ssrBuilder.applySetting(AvailableSettings.HBM2DDL_SCRIPTS_ACTION,exportType.getAction());
+    final Object scriptTarget;
+    if (outputFile == null) {
+      scriptTarget=new OutputStreamWriter(System.out);
+    }
+ else {
+      scriptTarget=outputFile;
+    }
+    if (exportType.doCreate()) {
+      ssrBuilder.applySetting(AvailableSettings.HBM2DDL_SCRIPTS_CREATE_TARGET,scriptTarget);
+    }
+    if (exportType.doDrop()) {
+      ssrBuilder.applySetting(AvailableSettings.HBM2DDL_SCRIPTS_DROP_TARGET,scriptTarget);
+    }
+  }
+  if (output.doExport()) {
+    ssrBuilder.applySetting(AvailableSettings.HBM2DDL_DATABASE_ACTION,exportType.getAction());
+  }
+  final StandardServiceRegistryImpl ssr=(StandardServiceRegistryImpl)ssrBuilder.build();
+  final MetadataBuilder metadataBuilder=metadataSources.getMetadataBuilder(ssr);
+  ClassLoaderService classLoaderService=bsr.getService(ClassLoaderService.class);
+  if (implicitNamingStrategy != null) {
+    metadataBuilder.applyImplicitNamingStrategy((ImplicitNamingStrategy)classLoaderService.classForName(implicitNamingStrategy).newInstance());
+  }
+  if (physicalNamingStrategy != null) {
+    metadataBuilder.applyPhysicalNamingStrategy((PhysicalNamingStrategy)classLoaderService.classForName(physicalNamingStrategy).newInstance());
+  }
+  final MetadataImplementor metadata=(MetadataImplementor)metadataBuilder.build();
+  metadata.validate();
+  SchemaManagementToolCoordinator.process(metadata,ssr,ssr.getService(ConfigurationService.class).getSettings(),DelayedDropRegistryNotAvailableImpl.INSTANCE);
+}

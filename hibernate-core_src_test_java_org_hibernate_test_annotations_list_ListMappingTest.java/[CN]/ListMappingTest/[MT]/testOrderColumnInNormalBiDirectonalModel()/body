@@ -6,7 +6,7 @@
   final Column positionColumn=(Column)asList.getIndex().getColumnIterator().next();
   assertThat(positionColumn.getName(),equalTo("position"));
   assertTrue(asList.getCollectionTable().containsColumn(positionColumn));
-class TargetImpl extends TargetStdoutImpl {
+class TargetImpl extends GenerationTargetToStdout {
     boolean found=false;
     @Override public void accept(    String action){
       super.accept(action);
@@ -18,6 +18,6 @@ class TargetImpl extends TargetStdoutImpl {
     }
   }
   TargetImpl target=new TargetImpl();
-  ssr.getService(SchemaManagementTool.class).getSchemaCreator(Collections.emptyMap()).doCreation(metadata,true,Collections.<Target>singletonList(target));
+  new SchemaCreatorImpl(ssr).doCreation(metadata,true,target);
   assertTrue(target.found);
 }

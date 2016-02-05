@@ -1,0 +1,36 @@
+{
+switch (action) {
+case CREATE_ONLY:
+{
+      final JpaTargetAndSourceDescriptor createDescriptor=buildDatabaseTargetDescriptor(executionOptions.getConfigurationValues(),CreateSettingSelector.INSTANCE,serviceRegistry);
+      tool.getSchemaCreator(executionOptions.getConfigurationValues()).doCreation(metadata,executionOptions,createDescriptor,createDescriptor);
+      break;
+    }
+case CREATE:
+case CREATE_DROP:
+{
+    final JpaTargetAndSourceDescriptor dropDescriptor=buildDatabaseTargetDescriptor(executionOptions.getConfigurationValues(),DropSettingSelector.INSTANCE,serviceRegistry);
+    tool.getSchemaDropper(executionOptions.getConfigurationValues()).doDrop(metadata,executionOptions,dropDescriptor,dropDescriptor);
+    final JpaTargetAndSourceDescriptor createDescriptor=buildDatabaseTargetDescriptor(executionOptions.getConfigurationValues(),CreateSettingSelector.INSTANCE,serviceRegistry);
+    tool.getSchemaCreator(executionOptions.getConfigurationValues()).doCreation(metadata,executionOptions,createDescriptor,createDescriptor);
+    break;
+  }
+case DROP:
+{
+  final JpaTargetAndSourceDescriptor dropDescriptor=buildDatabaseTargetDescriptor(executionOptions.getConfigurationValues(),DropSettingSelector.INSTANCE,serviceRegistry);
+  tool.getSchemaDropper(executionOptions.getConfigurationValues()).doDrop(metadata,executionOptions,dropDescriptor,dropDescriptor);
+  break;
+}
+case UPDATE:
+{
+final JpaTargetAndSourceDescriptor migrateDescriptor=buildDatabaseTargetDescriptor(executionOptions.getConfigurationValues(),MigrateSettingSelector.INSTANCE,serviceRegistry);
+tool.getSchemaMigrator(executionOptions.getConfigurationValues()).doMigration(metadata,executionOptions,migrateDescriptor);
+break;
+}
+case VALIDATE:
+{
+tool.getSchemaValidator(executionOptions.getConfigurationValues()).doValidation(metadata,executionOptions);
+break;
+}
+}
+}
