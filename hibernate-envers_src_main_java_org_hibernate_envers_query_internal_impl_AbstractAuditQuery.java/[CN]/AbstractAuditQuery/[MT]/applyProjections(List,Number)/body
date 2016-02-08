@@ -1,0 +1,24 @@
+{
+  final List result=new ArrayList(queryResult.size());
+  if (hasProjection()) {
+    for (    final Object qr : queryResult) {
+      if (projections.size() == 1) {
+        final Pair<String,AuditProjection> projection=projections.get(0);
+        result.add(projection.getSecond().convertQueryResult(enversService,entityInstantiator,projection.getFirst(),revision,qr));
+      }
+ else {
+        Object[] qresults=(Object[])qr;
+        Object[] tresults=new Object[qresults.length];
+        for (int i=0; i < qresults.length; i++) {
+          final Pair<String,AuditProjection> projection=projections.get(i);
+          tresults[i]=projection.getSecond().convertQueryResult(enversService,entityInstantiator,projection.getFirst(),revision,qresults[i]);
+        }
+        result.add(tresults);
+      }
+    }
+  }
+ else {
+    entityInstantiator.addInstancesFromVersionsEntities(entityName,result,queryResult,revision);
+  }
+  return result;
+}

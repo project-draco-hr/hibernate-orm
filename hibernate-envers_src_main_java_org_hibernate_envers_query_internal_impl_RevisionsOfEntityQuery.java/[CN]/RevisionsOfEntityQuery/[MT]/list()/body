@@ -4,18 +4,18 @@
     qb.getRootParameters().addWhereWithParam(verEntCfg.getRevisionTypePropName(),"<>",RevisionType.DEL);
   }
   for (  AuditCriterion criterion : criterions) {
-    criterion.addToQuery(enversService,versionsReader,entityName,qb,qb.getRootParameters());
+    criterion.addToQuery(enversService,versionsReader,entityName,QueryConstants.REFERENCED_ENTITY_ALIAS,qb,qb.getRootParameters());
   }
-  if (!hasProjection && !hasOrder) {
+  if (!hasProjection() && !hasOrder) {
     String revisionPropertyPath=verEntCfg.getRevisionNumberPath();
-    qb.addOrder(revisionPropertyPath,true);
+    qb.addOrder(QueryConstants.REFERENCED_ENTITY_ALIAS,revisionPropertyPath,true);
   }
   if (!selectEntitiesOnly) {
-    qb.addFrom(enversService.getAuditEntitiesConfiguration().getRevisionInfoEntityName(),"r");
+    qb.addFrom(enversService.getAuditEntitiesConfiguration().getRevisionInfoEntityName(),"r",true);
     qb.getRootParameters().addWhere(enversService.getAuditEntitiesConfiguration().getRevisionNumberPath(),true,"=","r.id",false);
   }
   List<Object> queryResult=buildAndExecuteQuery();
-  if (hasProjection) {
+  if (hasProjection()) {
     return queryResult;
   }
  else {

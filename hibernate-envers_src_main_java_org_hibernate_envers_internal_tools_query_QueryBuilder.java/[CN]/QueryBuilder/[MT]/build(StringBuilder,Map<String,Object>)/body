@@ -4,13 +4,22 @@
     StringTools.append(sb,projections.iterator(),", ");
   }
  else {
-    StringTools.append(sb,getAliasList().iterator(),", ");
+    StringTools.append(sb,getSelectAliasList().iterator(),", ");
   }
   sb.append(" from ");
   StringTools.append(sb,getFromList().iterator(),", ");
-  if (!rootParameters.isEmpty()) {
-    sb.append(" where ");
-    rootParameters.build(sb,queryParamValues);
+  boolean first=true;
+  for (  final Parameters params : parameters) {
+    if (!params.isEmpty()) {
+      if (first) {
+        sb.append(" where ");
+        first=false;
+      }
+ else {
+        sb.append(" and ");
+      }
+      params.build(sb,queryParamValues);
+    }
   }
   if (orders.size() > 0) {
     sb.append(" order by ");

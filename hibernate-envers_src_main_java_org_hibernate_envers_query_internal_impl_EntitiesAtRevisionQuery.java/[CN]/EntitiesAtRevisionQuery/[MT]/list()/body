@@ -8,7 +8,10 @@
     qb.getRootParameters().addWhereWithParam(verEntCfg.getRevisionTypePropName(),"<>",RevisionType.DEL);
   }
   for (  AuditCriterion criterion : criterions) {
-    criterion.addToQuery(enversService,versionsReader,entityName,qb,qb.getRootParameters());
+    criterion.addToQuery(enversService,versionsReader,entityName,QueryConstants.REFERENCED_ENTITY_ALIAS,qb,qb.getRootParameters());
+  }
+  for (  final AuditAssociationQueryImplementor<?> associationQuery : associationQueries) {
+    associationQuery.addCriterionsToQuery(versionsReader);
   }
   Query query=buildQuery();
   List<String> params=Arrays.asList(query.getNamedParameters());
@@ -16,12 +19,5 @@
     query.setParameter(REVISION_PARAMETER,revision);
   }
   List queryResult=query.list();
-  if (hasProjection) {
-    return queryResult;
-  }
- else {
-    List result=new ArrayList();
-    entityInstantiator.addInstancesFromVersionsEntities(entityName,result,queryResult,revision);
-    return result;
-  }
+  return applyProjections(queryResult,revision);
 }
