@@ -1,0 +1,30 @@
+{
+  final String joinString;
+switch (joinType) {
+case INNER_JOIN:
+    joinString=" inner join ";
+  break;
+case LEFT_OUTER_JOIN:
+joinString=" left outer join ";
+break;
+case RIGHT_OUTER_JOIN:
+joinString=" right outer join ";
+break;
+case FULL_JOIN:
+joinString=" full outer join ";
+break;
+default :
+throw new AssertionFailure("undefined join type");
+}
+final StringBuilder buffer=new StringBuilder();
+buffer.append(joinString).append(entityTableText).append(' ').append(entityTableAlias).append(" on ");
+final String filters=entityType.getOnCondition(entityTableAlias,factory,enabledFilters,Collections.<String>emptySet());
+buffer.append(filters);
+if (withClauseFragment != null) {
+if (StringHelper.isNotEmpty(filters)) {
+buffer.append(" and ");
+}
+buffer.append(withClauseFragment);
+}
+return new EntityJoinJoinFragment(buffer.toString());
+}

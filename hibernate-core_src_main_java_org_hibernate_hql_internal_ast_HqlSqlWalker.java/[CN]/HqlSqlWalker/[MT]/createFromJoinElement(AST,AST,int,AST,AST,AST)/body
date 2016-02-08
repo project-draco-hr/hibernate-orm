@@ -3,33 +3,40 @@
   if (fetch && isSubQuery()) {
     throw new QueryException("fetch not allowed in subquery from-elements");
   }
-  if (path.getType() != SqlTokenTypes.DOT) {
-    throw new SemanticException("Path expected for join!");
-  }
-  DotNode dot=(DotNode)path;
-  JoinType hibernateJoinType=JoinProcessor.toHibernateJoinType(joinType);
-  dot.setJoinType(hibernateJoinType);
-  dot.setFetch(fetch);
-  dot.resolve(true,false,alias == null ? null : alias.getText());
-  final FromElement fromElement;
-  if (dot.getDataType() != null && dot.getDataType().isComponentType()) {
-    if (dot.getDataType().isAnyType()) {
-      throw new SemanticException("An AnyType attribute cannot be join fetched");
-    }
-    FromElementFactory factory=new FromElementFactory(getCurrentFromClause(),dot.getLhs().getFromElement(),dot.getPropertyPath(),alias == null ? null : alias.getText(),null,false);
-    fromElement=factory.createComponentJoin((CompositeType)dot.getDataType());
+  final EntityPersister entityJoinReferencedPersister=resolveEntityJoinReferencedPersister(path);
+  if (entityJoinReferencedPersister != null) {
+    final EntityJoinFromElement join=createEntityJoin(entityJoinReferencedPersister,alias,joinType,propertyFetch,with);
+    ((FromReferenceNode)path).setFromElement(join);
   }
  else {
-    fromElement=dot.getImpliedJoin();
-    fromElement.setAllPropertyFetch(propertyFetch != null);
-    if (with != null) {
-      if (fetch) {
-        throw new SemanticException("with-clause not allowed on fetched associations; use filters");
-      }
-      handleWithFragment(fromElement,with);
+    if (path.getType() != SqlTokenTypes.DOT) {
+      throw new SemanticException("Path expected for join!");
     }
-  }
-  if (LOG.isDebugEnabled()) {
-    LOG.debug("createFromJoinElement() : " + getASTPrinter().showAsString(fromElement,"-- join tree --"));
+    DotNode dot=(DotNode)path;
+    JoinType hibernateJoinType=JoinProcessor.toHibernateJoinType(joinType);
+    dot.setJoinType(hibernateJoinType);
+    dot.setFetch(fetch);
+    dot.resolve(true,false,alias == null ? null : alias.getText());
+    final FromElement fromElement;
+    if (dot.getDataType() != null && dot.getDataType().isComponentType()) {
+      if (dot.getDataType().isAnyType()) {
+        throw new SemanticException("An AnyType attribute cannot be join fetched");
+      }
+      FromElementFactory factory=new FromElementFactory(getCurrentFromClause(),dot.getLhs().getFromElement(),dot.getPropertyPath(),alias == null ? null : alias.getText(),null,false);
+      fromElement=factory.createComponentJoin((CompositeType)dot.getDataType());
+    }
+ else {
+      fromElement=dot.getImpliedJoin();
+      fromElement.setAllPropertyFetch(propertyFetch != null);
+      if (with != null) {
+        if (fetch) {
+          throw new SemanticException("with-clause not allowed on fetched associations; use filters");
+        }
+        handleWithFragment(fromElement,with);
+      }
+    }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("createFromJoinElement() : " + getASTPrinter().showAsString(fromElement,"-- join tree --"));
+    }
   }
 }

@@ -1,0 +1,12 @@
+{
+  Session session=openSession();
+  session.beginTransaction();
+  try {
+    List result=session.createQuery("select r.id, c.name, u.id, u.username " + "from FinancialRecord r " + "   inner join r.customer c "+ "	inner join User u on r.lastUpdateBy = u.username").list();
+    assertThat(result.size(),is(1));
+  }
+  finally {
+    session.getTransaction().commit();
+    session.close();
+  }
+}

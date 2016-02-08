@@ -1,0 +1,13 @@
+{
+  initialize(walker);
+  final String tableName=((Joinable)entityPersister).getTableName();
+  final String tableAlias=fromClause.getAliasGenerator().createName(entityPersister.getEntityName());
+  final EntityType entityType=(EntityType)((Queryable)entityPersister).getType();
+  initializeEntity(fromClause,entityPersister.getEntityName(),entityPersister,entityType,alias,tableAlias);
+  EntityJoinJoinSequenceImpl joinSequence=new EntityJoinJoinSequenceImpl(getSessionFactoryHelper().getFactory(),entityType,tableName,tableAlias,joinType);
+  setJoinSequence(joinSequence);
+  setAllPropertyFetch(fetchProperties);
+  fromClause.getWalker().addQuerySpaces(entityPersister.getQuerySpaces());
+  setType(HqlSqlTokenTypes.ENTITY_JOIN);
+  setText(tableName);
+}
