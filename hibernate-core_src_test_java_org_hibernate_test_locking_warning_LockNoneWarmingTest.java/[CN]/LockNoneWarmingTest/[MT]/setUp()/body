@@ -1,0 +1,21 @@
+{
+  buildSessionFactory();
+  final Set messagesPrefixes=new HashSet<>();
+  messagesPrefixes.add("HHH000444");
+  messagesPrefixes.add("HHH000445");
+  triggerable=logInspection.watchForLogMessages(messagesPrefixes);
+  try (Session s=openSession()){
+    Transaction tx=s.beginTransaction();
+    try {
+      Item item=new Item();
+      item.name="ZZZZ";
+      s.persist(item);
+      tx.commit();
+    }
+ catch (    Exception e) {
+      if (tx.isActive()) {
+        tx.rollback();
+      }
+    }
+  }
+ }
