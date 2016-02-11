@@ -7,15 +7,16 @@
   }
   this.nameQualifierSupport=nameQualifierSupport;
   this.sqlExceptionHelper=buildSqlExceptionHelper(dialect,logWarnings(cfgService,dialect));
-  this.extractedMetaDataSupport=new ExtractedDatabaseMetaDataImpl.Builder(this).build();
   final IdentifierHelperBuilder identifierHelperBuilder=IdentifierHelperBuilder.from(this);
   identifierHelperBuilder.setGloballyQuoteIdentifiers(globalQuoting(cfgService));
   identifierHelperBuilder.setSkipGlobalQuotingForColumnDefinitions(globalQuotingSkippedForColumnDefinitions(cfgService));
   identifierHelperBuilder.setAutoQuoteKeywords(autoKeywordQuoting(cfgService));
   identifierHelperBuilder.setNameQualifierSupport(nameQualifierSupport);
   IdentifierHelper identifierHelper=null;
+  ExtractedDatabaseMetaDataImpl.Builder dbMetaDataBuilder=new ExtractedDatabaseMetaDataImpl.Builder(this);
   try {
     identifierHelper=dialect.buildIdentifierHelper(identifierHelperBuilder,null);
+    dbMetaDataBuilder.setSupportsNamedParameters(dialect.supportsNamedParameters(null));
   }
  catch (  SQLException sqle) {
     log.debug("There was a problem accessing DatabaseMetaData in building the JdbcEnvironment",sqle);
@@ -24,6 +25,7 @@
     identifierHelper=identifierHelperBuilder.build();
   }
   this.identifierHelper=identifierHelper;
+  this.extractedMetaDataSupport=dbMetaDataBuilder.build();
   this.currentCatalog=identifierHelper.toIdentifier(cfgService.getSetting(AvailableSettings.DEFAULT_CATALOG,StandardConverters.STRING));
   this.currentSchema=Identifier.toIdentifier(cfgService.getSetting(AvailableSettings.DEFAULT_SCHEMA,StandardConverters.STRING));
   this.qualifiedObjectNameFormatter=new QualifiedObjectNameFormatterStandardImpl(nameQualifierSupport);
