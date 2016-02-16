@@ -3,20 +3,20 @@
   final StrategySelector strategySelector=serviceRegistry.getService(StrategySelector.class);
   final ConfigurationService configService=serviceRegistry.getService(ConfigurationService.class);
   this.mappingDefaults=new MappingDefaultsImpl(serviceRegistry);
-  scanOptions=new StandardScanOptions((String)configService.getSettings().get(AvailableSettings.SCANNER_DISCOVERY),false);
-  scannerSetting=configService.getSettings().get(AvailableSettings.SCANNER);
-  if (scannerSetting == null) {
-    scannerSetting=configService.getSettings().get(AvailableSettings.SCANNER_DEPRECATED);
-    if (scannerSetting != null) {
+  this.scanOptions=new StandardScanOptions((String)configService.getSettings().get(AvailableSettings.SCANNER_DISCOVERY),false);
+  this.scannerSetting=configService.getSettings().get(AvailableSettings.SCANNER);
+  if (this.scannerSetting == null) {
+    this.scannerSetting=configService.getSettings().get(AvailableSettings.SCANNER_DEPRECATED);
+    if (this.scannerSetting != null) {
       DEPRECATION_LOGGER.logDeprecatedScannerSetting();
     }
   }
-  archiveDescriptorFactory=strategySelector.resolveStrategy(ArchiveDescriptorFactory.class,configService.getSettings().get(AvailableSettings.SCANNER_ARCHIVE_INTERPRETER));
-  multiTenancyStrategy=MultiTenancyStrategy.determineMultiTenancyStrategy(configService.getSettings());
-  implicitDiscriminatorsForJoinedInheritanceSupported=configService.getSetting(AvailableSettings.IMPLICIT_DISCRIMINATOR_COLUMNS_FOR_JOINED_SUBCLASS,StandardConverters.BOOLEAN,false);
-  explicitDiscriminatorsForJoinedInheritanceSupported=!configService.getSetting(AvailableSettings.IGNORE_EXPLICIT_DISCRIMINATOR_COLUMNS_FOR_JOINED_SUBCLASS,StandardConverters.BOOLEAN,false);
-  implicitlyForceDiscriminatorInSelect=configService.getSetting(AvailableSettings.FORCE_DISCRIMINATOR_IN_SELECTS_BY_DEFAULT,StandardConverters.BOOLEAN,false);
-  sharedCacheMode=configService.getSetting("javax.persistence.sharedCache.mode",new ConfigurationService.Converter<SharedCacheMode>(){
+  this.archiveDescriptorFactory=strategySelector.resolveStrategy(ArchiveDescriptorFactory.class,configService.getSettings().get(AvailableSettings.SCANNER_ARCHIVE_INTERPRETER));
+  this.multiTenancyStrategy=MultiTenancyStrategy.determineMultiTenancyStrategy(configService.getSettings());
+  this.implicitDiscriminatorsForJoinedInheritanceSupported=configService.getSetting(AvailableSettings.IMPLICIT_DISCRIMINATOR_COLUMNS_FOR_JOINED_SUBCLASS,StandardConverters.BOOLEAN,false);
+  this.explicitDiscriminatorsForJoinedInheritanceSupported=!configService.getSetting(AvailableSettings.IGNORE_EXPLICIT_DISCRIMINATOR_COLUMNS_FOR_JOINED_SUBCLASS,StandardConverters.BOOLEAN,false);
+  this.implicitlyForceDiscriminatorInSelect=configService.getSetting(AvailableSettings.FORCE_DISCRIMINATOR_IN_SELECTS_BY_DEFAULT,StandardConverters.BOOLEAN,false);
+  this.sharedCacheMode=configService.getSetting("javax.persistence.sharedCache.mode",new ConfigurationService.Converter<SharedCacheMode>(){
     @Override public SharedCacheMode convert(    Object value){
       if (value == null) {
         return null;
@@ -28,7 +28,7 @@
     }
   }
 ,SharedCacheMode.UNSPECIFIED);
-  defaultCacheAccessType=configService.getSetting(AvailableSettings.DEFAULT_CACHE_CONCURRENCY_STRATEGY,new ConfigurationService.Converter<AccessType>(){
+  this.defaultCacheAccessType=configService.getSetting(AvailableSettings.DEFAULT_CACHE_CONCURRENCY_STRATEGY,new ConfigurationService.Converter<AccessType>(){
     @Override public AccessType convert(    Object value){
       if (value == null) {
         return null;
@@ -43,21 +43,22 @@
     }
   }
 ,serviceRegistry.getService(RegionFactory.class) == null ? null : serviceRegistry.getService(RegionFactory.class).getDefaultAccessType());
-  specjProprietarySyntaxEnabled=configService.getSetting("hibernate.enable_specj_proprietary_syntax",StandardConverters.BOOLEAN,false);
-  implicitNamingStrategy=strategySelector.resolveDefaultableStrategy(ImplicitNamingStrategy.class,configService.getSettings().get(AvailableSettings.IMPLICIT_NAMING_STRATEGY),new Callable<ImplicitNamingStrategy>(){
+  this.specjProprietarySyntaxEnabled=configService.getSetting("hibernate.enable_specj_proprietary_syntax",StandardConverters.BOOLEAN,false);
+  this.implicitNamingStrategy=strategySelector.resolveDefaultableStrategy(ImplicitNamingStrategy.class,configService.getSettings().get(AvailableSettings.IMPLICIT_NAMING_STRATEGY),new Callable<ImplicitNamingStrategy>(){
     @Override public ImplicitNamingStrategy call() throws Exception {
       return strategySelector.resolveDefaultableStrategy(ImplicitNamingStrategy.class,"default",ImplicitNamingStrategyJpaCompliantImpl.INSTANCE);
     }
   }
 );
-  physicalNamingStrategy=strategySelector.resolveDefaultableStrategy(PhysicalNamingStrategy.class,configService.getSettings().get(AvailableSettings.PHYSICAL_NAMING_STRATEGY),PhysicalNamingStrategyStandardImpl.INSTANCE);
-  sourceProcessOrdering=resolveInitialSourceProcessOrdering(configService);
+  this.physicalNamingStrategy=strategySelector.resolveDefaultableStrategy(PhysicalNamingStrategy.class,configService.getSettings().get(AvailableSettings.PHYSICAL_NAMING_STRATEGY),PhysicalNamingStrategyStandardImpl.INSTANCE);
+  this.sourceProcessOrdering=resolveInitialSourceProcessOrdering(configService);
   final boolean useNewIdentifierGenerators=configService.getSetting(AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS,StandardConverters.BOOLEAN,true);
   if (useNewIdentifierGenerators) {
-    idGenerationTypeInterpreter.disableLegacyFallback();
+    this.idGenerationTypeInterpreter.disableLegacyFallback();
   }
  else {
-    idGenerationTypeInterpreter.enableLegacyFallback();
+    this.idGenerationTypeInterpreter.enableLegacyFallback();
   }
-  reflectionManager=generateDefaultReflectionManager();
+  this.useNationalizedCharacterData=configService.getSetting(AvailableSettings.USE_NATIONALIZED_CHARACTER_DATA,StandardConverters.BOOLEAN,false);
+  this.reflectionManager=generateDefaultReflectionManager();
 }
