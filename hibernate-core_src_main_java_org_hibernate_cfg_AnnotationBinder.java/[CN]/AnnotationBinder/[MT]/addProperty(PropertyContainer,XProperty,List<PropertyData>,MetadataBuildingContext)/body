@@ -1,11 +1,16 @@
 {
+  for (  PropertyData propertyData : inFlightPropertyDataList) {
+    if (propertyData.getPropertyName().equals(property.getName())) {
+      return 0;
+    }
+  }
   final XClass declaringClass=propertyContainer.getDeclaringClass();
   final XClass entity=propertyContainer.getEntityAtStake();
   int idPropertyCounter=0;
   PropertyData propertyAnnotatedElement=new PropertyInferredData(declaringClass,property,propertyContainer.getClassLevelAccessType().getType(),context.getBuildingOptions().getReflectionManager());
   final XAnnotatedElement element=propertyAnnotatedElement.getProperty();
   if (element.isAnnotationPresent(Id.class) || element.isAnnotationPresent(EmbeddedId.class)) {
-    annElts.add(0,propertyAnnotatedElement);
+    inFlightPropertyDataList.add(0,propertyAnnotatedElement);
     if (context.getBuildingOptions().isSpecjProprietarySyntaxEnabled()) {
       if (element.isAnnotationPresent(Id.class) && element.isAnnotationPresent(Column.class)) {
         String columnName=element.getAnnotation(Column.class).name();
@@ -38,7 +43,7 @@
     idPropertyCounter++;
   }
  else {
-    annElts.add(propertyAnnotatedElement);
+    inFlightPropertyDataList.add(propertyAnnotatedElement);
   }
   if (element.isAnnotationPresent(MapsId.class)) {
     context.getMetadataCollector().addPropertyAnnotatedWithMapsId(entity,propertyAnnotatedElement);
