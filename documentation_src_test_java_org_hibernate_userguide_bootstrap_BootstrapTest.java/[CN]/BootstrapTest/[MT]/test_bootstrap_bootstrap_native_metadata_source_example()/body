@@ -5,11 +5,21 @@
       MetadataSources sources=new MetadataSources(standardRegistry).addAnnotatedClass(MyEntity.class).addAnnotatedClassName("org.hibernate.example.Customer").addResource("org/hibernate/example/Order.hbm.xml").addResource("org/hibernate/example/Product.orm.xml");
     }
 {
+      AttributeConverter myAttributeConverter=new AttributeConverter(){
+        @Override public Object convertToDatabaseColumn(        Object attribute){
+          return null;
+        }
+        @Override public Object convertToEntityAttribute(        Object dbData){
+          return null;
+        }
+      }
+;
       ServiceRegistry standardRegistry=new StandardServiceRegistryBuilder().build();
       MetadataSources sources=new MetadataSources(standardRegistry);
       MetadataBuilder metadataBuilder=sources.getMetadataBuilder();
       metadataBuilder.applyImplicitNamingStrategy(ImplicitNamingStrategyJpaCompliantImpl.INSTANCE);
       metadataBuilder.applyImplicitSchemaName("my_default_schema");
+      metadataBuilder.applyAttributeConverter(myAttributeConverter);
       Metadata metadata=metadataBuilder.build();
     }
   }
