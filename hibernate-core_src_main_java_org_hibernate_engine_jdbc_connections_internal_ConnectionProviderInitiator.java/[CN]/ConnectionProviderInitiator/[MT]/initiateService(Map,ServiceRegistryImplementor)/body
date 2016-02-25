@@ -4,14 +4,37 @@
     return null;
   }
   final StrategySelector strategySelector=registry.getService(StrategySelector.class);
+  final Object explicitSetting=configurationValues.get(AvailableSettings.CONNECTION_PROVIDER);
+  if (explicitSetting != null) {
+    if (explicitSetting instanceof ConnectionProvider) {
+      return (ConnectionProvider)explicitSetting;
+    }
+ else     if (explicitSetting instanceof Class) {
+      final Class providerClass=(Class)explicitSetting;
+      LOG.instantiatingExplicitConnectionProvider(providerClass.getName());
+      return instantiateExplicitConnectionProvider(providerClass);
+    }
+ else {
+      String providerName=explicitSetting.toString();
+      if (LEGACY_CONNECTION_PROVIDER_MAPPING.containsKey(providerName)) {
+        final String actualProviderName=LEGACY_CONNECTION_PROVIDER_MAPPING.get(providerName);
+        DeprecationLogger.DEPRECATION_LOGGER.connectionProviderClassDeprecated(providerName,actualProviderName);
+        providerName=actualProviderName;
+      }
+      LOG.instantiatingExplicitConnectionProvider(providerName);
+      final Class providerClass=strategySelector.selectStrategyImplementor(ConnectionProvider.class,providerName);
+      try {
+        return instantiateExplicitConnectionProvider(providerClass);
+      }
+ catch (      Exception e) {
+        throw new HibernateException("Could not instantiate connection provider [" + providerName + "]",e);
+      }
+    }
+  }
+  if (configurationValues.get(AvailableSettings.DATASOURCE) != null) {
+    return new DatasourceConnectionProviderImpl();
+  }
   ConnectionProvider connectionProvider=null;
-  final String providerName=getConfiguredConnectionProviderName(configurationValues);
-  if (providerName != null) {
-    connectionProvider=instantiateExplicitConnectionProvider(providerName,strategySelector);
-  }
- else   if (configurationValues.get(AvailableSettings.DATASOURCE) != null) {
-    connectionProvider=new DatasourceConnectionProviderImpl();
-  }
   if (connectionProvider == null) {
     if (c3p0ConfigDefined(configurationValues)) {
       connectionProvider=instantiateC3p0Provider(strategySelector);
