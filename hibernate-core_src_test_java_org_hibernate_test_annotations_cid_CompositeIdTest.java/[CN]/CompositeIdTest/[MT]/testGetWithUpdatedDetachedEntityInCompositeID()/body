@@ -1,0 +1,29 @@
+{
+  Session s=openSession();
+  Transaction tx=s.beginTransaction();
+  Channel channel=new Channel();
+  Presenter presenter=new Presenter();
+  presenter.name="Jane";
+  TvMagazin tvMagazin=new TvMagazin();
+  tvMagazin.id=new TvMagazinPk();
+  tvMagazin.id.channel=channel;
+  tvMagazin.id.presenter=presenter;
+  s.persist(channel);
+  s.persist(presenter);
+  s.persist(tvMagazin);
+  s.flush();
+  s.clear();
+  channel.name="chnl";
+  TvMagazinPk pkNew=new TvMagazinPk();
+  pkNew.channel=channel;
+  pkNew.presenter=presenter;
+  tvMagazin=s.get(TvMagazin.class,pkNew);
+  channel=s.get(Channel.class,channel.id);
+  assertNull(channel.name);
+  s.flush();
+  s.clear();
+  channel=s.get(Channel.class,channel.id);
+  assertNull(channel.name);
+  tx.rollback();
+  s.close();
+}

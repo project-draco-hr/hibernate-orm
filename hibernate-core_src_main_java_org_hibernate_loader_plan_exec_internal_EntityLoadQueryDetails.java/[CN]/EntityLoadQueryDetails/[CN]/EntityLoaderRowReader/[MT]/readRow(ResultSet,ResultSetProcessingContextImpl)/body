@@ -1,16 +1,9 @@
 {
   final ResultSetProcessingContext.EntityReferenceProcessingState processingState=rootReturnReader.getIdentifierResolutionContext(context);
   if (context.shouldUseOptionalEntityInformation() && context.getQueryParameters().getOptionalId() != null) {
-    EntityKey entityKey=ResultSetProcessorHelper.getOptionalObjectKey(context.getQueryParameters(),context.getSession());
+    final EntityKey entityKey=context.getSession().generateEntityKey(context.getQueryParameters().getOptionalId(),processingState.getEntityReference().getEntityPersister());
     processingState.registerIdentifierHydratedForm(entityKey.getIdentifier());
     processingState.registerEntityKey(entityKey);
-    final EntityPersister entityPersister=processingState.getEntityReference().getEntityPersister();
-    if (entityPersister.getIdentifierType().isComponentType()) {
-      final CompositeType identifierType=(CompositeType)entityPersister.getIdentifierType();
-      if (!identifierType.isEmbedded()) {
-        addKeyManyToOnesToSession(context,identifierType,entityKey.getIdentifier());
-      }
-    }
   }
   return super.readRow(resultSet,context);
 }
