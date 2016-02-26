@@ -62,6 +62,12 @@
       applySqlStrings(dialect.getTableExporter().getSqlCreateStrings(table,metadata),formatter,options,targets);
     }
     for (    Table table : namespace.getTables()) {
+      if (!table.isPhysicalTable()) {
+        continue;
+      }
+      if (!schemaFilter.includeTable(table)) {
+        continue;
+      }
       final Iterator indexItr=table.getIndexIterator();
       while (indexItr.hasNext()) {
         final Index index=(Index)indexItr.next();
