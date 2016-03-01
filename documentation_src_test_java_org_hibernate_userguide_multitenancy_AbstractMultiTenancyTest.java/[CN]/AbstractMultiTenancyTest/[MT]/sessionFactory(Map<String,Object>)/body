@@ -1,0 +1,16 @@
+{
+  ServiceRegistryImplementor serviceRegistry=(ServiceRegistryImplementor)new StandardServiceRegistryBuilder().applySettings(settings()).build();
+  MetadataSources metadataSources=new MetadataSources(serviceRegistry);
+  for (  Class annotatedClasses : getAnnotatedClasses()) {
+    metadataSources.addAnnotatedClass(annotatedClasses);
+  }
+  Metadata metadata=metadataSources.buildMetadata();
+  HibernateSchemaManagementTool tool=new HibernateSchemaManagementTool();
+  tool.injectServices(serviceRegistry);
+  final GenerationTargetToDatabase frontEndSchemaGenerator=new GenerationTargetToDatabase(new JdbcConnectionContextNonSharedImpl(new JdbcConnectionAccessImpl(connectionProviderMap.get(FRONT_END_TENANT)),new SqlStatementLogger(false,true),true));
+  final GenerationTargetToDatabase backEndSchemaGenerator=new GenerationTargetToDatabase(new JdbcConnectionContextNonSharedImpl(new JdbcConnectionAccessImpl(connectionProviderMap.get(BACK_END_TENANT)),new SqlStatementLogger(false,true),true));
+  new SchemaDropperImpl(serviceRegistry).doDrop(metadata,serviceRegistry,settings,true,frontEndSchemaGenerator,backEndSchemaGenerator);
+  new SchemaCreatorImpl(serviceRegistry).doCreation(metadata,serviceRegistry,settings,true,frontEndSchemaGenerator,backEndSchemaGenerator);
+  final SessionFactoryBuilder sessionFactoryBuilder=metadata.getSessionFactoryBuilder();
+  return sessionFactoryBuilder.build();
+}
