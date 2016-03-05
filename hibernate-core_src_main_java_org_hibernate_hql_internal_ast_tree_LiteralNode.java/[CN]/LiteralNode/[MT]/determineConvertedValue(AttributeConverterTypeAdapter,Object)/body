@@ -9,7 +9,15 @@
       return converted.toString();
     }
   }
+ else   if (getDataType().getReturnedClass().equals(converterTypeAdapter.getJdbcType())) {
+    if (isCharacterData(converterTypeAdapter.sqlType())) {
+      return "'" + literalValue.toString() + "'";
+    }
  else {
-    throw new QueryException(String.format(Locale.ROOT,"AttributeConverter domain-model attribute type [%s] did not match query literal type [%s]",converterTypeAdapter.getModelType().getName(),getDataType().getReturnedClass().getName()));
+      return literalValue.toString();
+    }
+  }
+ else {
+    throw new QueryException(String.format(Locale.ROOT,"AttributeConverter domain-model attribute type [%s] and JDBC type [%s] did not match query literal type [%s]",converterTypeAdapter.getModelType().getName(),converterTypeAdapter.getJdbcType().getName(),getDataType().getReturnedClass().getName()));
   }
 }
