@@ -6,17 +6,20 @@
   if (collection == null) {
     collection=persistenceContext.useUnownedCollection(new CollectionKey(persister,key,entityMode));
     if (collection == null) {
-      collection=instantiate(session,persister,key);
-      collection.setOwner(owner);
-      persistenceContext.addUninitializedCollection(persister,collection,key);
-      if (initializeImmediately()) {
-        session.initializeCollection(collection,false);
-      }
- else       if (!persister.isLazy()) {
-        persistenceContext.addNonLazyCollection(collection);
-      }
-      if (hasHolder()) {
-        session.getPersistenceContext().addCollectionHolder(collection);
+      collection=persistenceContext.getCollection(new CollectionKey(persister,key,entityMode));
+      if (collection == null) {
+        collection=instantiate(session,persister,key);
+        collection.setOwner(owner);
+        persistenceContext.addUninitializedCollection(persister,collection,key);
+        if (initializeImmediately()) {
+          session.initializeCollection(collection,false);
+        }
+ else         if (!persister.isLazy()) {
+          persistenceContext.addNonLazyCollection(collection);
+        }
+        if (hasHolder()) {
+          session.getPersistenceContext().addCollectionHolder(collection);
+        }
       }
     }
     if (LOG.isTraceEnabled()) {

@@ -1,11 +1,8 @@
 {
-  SessionImplementor originalSession=null;
-  boolean isTempSession=false;
-  boolean isJTA=false;
+  SessionImplementor tempSession=null;
   if (session == null) {
     if (allowLoadOutsideTransaction) {
-      session=openTemporarySessionForLoading();
-      isTempSession=true;
+      tempSession=openTemporarySessionForLoading();
     }
  else {
       throwLazyInitializationException("could not initialize proxy - no Session");
@@ -13,9 +10,7 @@
   }
  else   if (!session.isOpen()) {
     if (allowLoadOutsideTransaction) {
-      originalSession=session;
-      session=openTemporarySessionForLoading();
-      isTempSession=true;
+      tempSession=openTemporarySessionForLoading();
     }
  else {
       throwLazyInitializationException("could not initialize proxy - the owning Session was closed");
@@ -23,15 +18,18 @@
   }
  else   if (!session.isConnected()) {
     if (allowLoadOutsideTransaction) {
-      originalSession=session;
-      session=openTemporarySessionForLoading();
-      isTempSession=true;
+      tempSession=openTemporarySessionForLoading();
     }
  else {
       throwLazyInitializationException("could not initialize proxy - the owning Session is disconnected");
     }
   }
-  if (isTempSession) {
+  SessionImplementor originalSession=null;
+  boolean isJTA=false;
+  if (tempSession != null) {
+    isTempSession=true;
+    originalSession=session;
+    session=tempSession;
     isJTA=session.getTransactionCoordinator().getTransactionCoordinatorBuilder().isJta();
     if (!isJTA) {
       ((Session)session).beginTransaction();
@@ -42,17 +40,18 @@
     return lazyInitializationWork.doWork();
   }
   finally {
-    if (isTempSession) {
+    if (tempSession != null) {
+      isTempSession=false;
+      session=originalSession;
       try {
         if (!isJTA) {
-          ((Session)session).getTransaction().commit();
+          ((Session)tempSession).getTransaction().commit();
         }
-        ((Session)session).close();
+        ((Session)tempSession).close();
       }
  catch (      Exception e) {
         LOG.warn("Unable to close temporary session used to load lazy collection associated to no session");
       }
-      session=originalSession;
     }
   }
 }
