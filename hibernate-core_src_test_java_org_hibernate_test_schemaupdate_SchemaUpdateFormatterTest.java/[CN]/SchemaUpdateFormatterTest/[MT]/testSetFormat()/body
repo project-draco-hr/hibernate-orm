@@ -6,7 +6,10 @@
     final MetadataImplementor metadata=(MetadataImplementor)new MetadataSources(ssr).addAnnotatedClass(TestEntity.class).buildMetadata();
     metadata.validate();
     new SchemaUpdate().setHaltOnError(true).setOutputFile(output.getAbsolutePath()).setDelimiter(DELIMITER).setFormat(true).execute(EnumSet.of(TargetType.SCRIPT),metadata);
-    Assert.assertEquals(AFTER_FORMAT,new String(Files.readAllBytes(output.toPath())));
+    String outputContent=new String(Files.readAllBytes(output.toPath()));
+    outputContent=outputContent.replaceAll("\r","\n");
+    outputContent=outputContent.replaceAll("\n\n","\n");
+    Assert.assertEquals(AFTER_FORMAT,outputContent);
   }
   finally {
     StandardServiceRegistryBuilder.destroy(ssr);
