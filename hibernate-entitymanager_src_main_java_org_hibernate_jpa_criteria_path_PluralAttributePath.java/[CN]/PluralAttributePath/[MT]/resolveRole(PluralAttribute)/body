@@ -1,3 +1,22 @@
 {
-  return getPathSource().getJavaType().getName() + '.' + attribute.getName();
+  Class<?> roleOwnerType=attribute.getDeclaringType().getJavaType();
+  if (attribute.getDeclaringType().getPersistenceType() == Type.PersistenceType.MAPPED_SUPERCLASS) {
+    if (getPathSource().getModel().getBindableType() == Bindable.BindableType.ENTITY_TYPE) {
+      EntityType entityTypeNearestDeclaringType=(EntityType)getPathSource().getModel();
+      IdentifiableType superType=entityTypeNearestDeclaringType.getSupertype();
+      IdentifiableType previousType=entityTypeNearestDeclaringType;
+      while (superType != attribute.getDeclaringType()) {
+        if (superType == null) {
+          throw new IllegalStateException(String.format("Cannot determine nearest EntityType extending mapped superclass [%s]; [%s] extends [%s], but supertype of [%s] is null",attribute.getDeclaringType().getJavaType().getName(),((EntityType)getPathSource().getModel()).getJavaType().getName(),previousType.getJavaType().getName(),previousType.getJavaType().getName()));
+        }
+        if (superType.getPersistenceType() == Type.PersistenceType.ENTITY) {
+          entityTypeNearestDeclaringType=(EntityType)superType;
+        }
+        previousType=superType;
+        superType=superType.getSupertype();
+      }
+      roleOwnerType=entityTypeNearestDeclaringType.getJavaType();
+    }
+  }
+  return roleOwnerType.getName() + '.' + attribute.getName();
 }
