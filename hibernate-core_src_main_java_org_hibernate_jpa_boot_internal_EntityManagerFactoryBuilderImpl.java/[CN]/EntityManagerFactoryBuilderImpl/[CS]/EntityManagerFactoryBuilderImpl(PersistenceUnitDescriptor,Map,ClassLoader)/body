@@ -1,37 +1,3 @@
 {
-  LogHelper.logPersistenceUnitInformation(persistenceUnit);
-  this.persistenceUnit=persistenceUnit;
-  if (integrationSettings == null) {
-    integrationSettings=Collections.emptyMap();
-  }
-  final BootstrapServiceRegistry bsr=buildBootstrapServiceRegistry(integrationSettings,providedClassLoader);
-  final StandardServiceRegistryBuilder ssrBuilder=new StandardServiceRegistryBuilder(bsr);
-  final MergedSettings mergedSettings=mergeSettings(persistenceUnit,integrationSettings,ssrBuilder);
-  this.configurationValues=mergedSettings.getConfigurationValues();
-  ssrBuilder.applySettings(configurationValues);
-  this.settings=configure(ssrBuilder);
-  this.standardServiceRegistry=ssrBuilder.build();
-  configure(standardServiceRegistry,mergedSettings);
-  final MetadataSources metadataSources=new MetadataSources(bsr);
-  List<AttributeConverterDefinition> attributeConverterDefinitions=populate(metadataSources,mergedSettings,standardServiceRegistry);
-  this.metamodelBuilder=(MetadataBuilderImplementor)metadataSources.getMetadataBuilder(standardServiceRegistry);
-  populate(metamodelBuilder,mergedSettings,standardServiceRegistry,attributeConverterDefinitions);
-  final CfgXmlAccessService cfgXmlAccessService=standardServiceRegistry.getService(CfgXmlAccessService.class);
-  if (cfgXmlAccessService.getAggregatedConfig() != null) {
-    if (cfgXmlAccessService.getAggregatedConfig().getMappingReferences() != null) {
-      for (      MappingReference mappingReference : cfgXmlAccessService.getAggregatedConfig().getMappingReferences()) {
-        mappingReference.apply(metadataSources);
-      }
-    }
-  }
-  this.managedResources=MetadataBuildingProcess.prepare(metadataSources,metamodelBuilder.getMetadataBuildingOptions());
-  withValidatorFactory(configurationValues.get(org.hibernate.cfg.AvailableSettings.JPA_VALIDATION_FACTORY));
-  final boolean dirtyTrackingEnabled=readBooleanConfigurationValue(AvailableSettings.ENHANCER_ENABLE_DIRTY_TRACKING);
-  final boolean lazyInitializationEnabled=readBooleanConfigurationValue(AvailableSettings.ENHANCER_ENABLE_LAZY_INITIALIZATION);
-  final boolean associationManagementEnabled=readBooleanConfigurationValue(AvailableSettings.ENHANCER_ENABLE_ASSOCIATION_MANAGEMENT);
-  if (dirtyTrackingEnabled || lazyInitializationEnabled || associationManagementEnabled) {
-    EnhancementContext enhancementContext=getEnhancementContext(dirtyTrackingEnabled,lazyInitializationEnabled,associationManagementEnabled);
-    persistenceUnit.pushClassTransformer(enhancementContext);
-  }
-  metamodelBuilder.applyTempClassLoader(null);
+  this(persistenceUnit,integrationSettings,providedClassLoader,null);
 }
