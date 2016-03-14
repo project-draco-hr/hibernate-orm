@@ -15,16 +15,10 @@
         int i=persister.getEntityMetamodel().getPropertyIndex(mappedBy);
         Serializable oldId=null;
         if (oldState != null) {
-          oldId=session.getIdentifier(oldState[i]);
+          oldId=getIdentifier(session,oldState[i]);
         }
         Object ref=persister.getPropertyValue(entity,i);
-        Serializable id=null;
-        if (ref != null) {
-          id=session.getContextEntityIdentifier(ref);
-          if (id == null) {
-            id=session.getSessionFactory().getClassMetadata(ref.getClass()).getIdentifier(ref,session);
-          }
-        }
+        Serializable id=getIdentifier(session,ref);
         if (id != null && !id.equals(oldId)) {
           evict(id,collectionPersister,session);
           if (oldId != null) {
