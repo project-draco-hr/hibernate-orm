@@ -8,9 +8,11 @@
       return ((ResultSetIdentifierConsumer)customType.getUserType()).consumeIdentifier(rs);
     }
   }
+  ResultSetMetaData resultSetMetaData=null;
   int columnCount=1;
   try {
-    columnCount=rs.getMetaData().getColumnCount();
+    resultSetMetaData=rs.getMetaData();
+    columnCount=resultSetMetaData.getColumnCount();
   }
  catch (  Exception e) {
   }
@@ -39,26 +41,14 @@
     }
   }
  else {
-    if (clazz == Long.class) {
-      return rs.getLong(identifier);
+    try {
+      return extractIdentifier(rs,identifier,type,clazz);
     }
- else     if (clazz == Integer.class) {
-      return rs.getInt(identifier);
-    }
- else     if (clazz == Short.class) {
-      return rs.getShort(identifier);
-    }
- else     if (clazz == String.class) {
-      return rs.getString(identifier);
-    }
- else     if (clazz == BigInteger.class) {
-      return rs.getBigDecimal(identifier).setScale(0,BigDecimal.ROUND_UNNECESSARY).toBigInteger();
-    }
- else     if (clazz == BigDecimal.class) {
-      return rs.getBigDecimal(identifier).setScale(0,BigDecimal.ROUND_UNNECESSARY);
-    }
- else {
-      throw new IdentifierGenerationException("unrecognized id type : " + type.getName() + " -> "+ clazz.getName());
+ catch (    SQLException e) {
+      if (Identifier.isQuoted(identifier)) {
+        return extractIdentifier(rs,Identifier.toIdentifier(identifier).getText(),type,clazz);
+      }
+      throw e;
     }
   }
 }
