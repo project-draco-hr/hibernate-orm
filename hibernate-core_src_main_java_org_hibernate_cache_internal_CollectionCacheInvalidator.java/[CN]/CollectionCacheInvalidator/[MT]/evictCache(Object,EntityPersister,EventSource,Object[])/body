@@ -19,8 +19,10 @@
         }
         Object ref=persister.getPropertyValue(entity,i);
         Serializable id=getIdentifier(session,ref);
-        if (id != null && !id.equals(oldId)) {
-          evict(id,collectionPersister,session);
+        if ((id != null && !id.equals(oldId)) || (oldId != null && !oldId.equals(id))) {
+          if (id != null) {
+            evict(id,collectionPersister,session);
+          }
           if (oldId != null) {
             evict(oldId,collectionPersister,session);
           }
