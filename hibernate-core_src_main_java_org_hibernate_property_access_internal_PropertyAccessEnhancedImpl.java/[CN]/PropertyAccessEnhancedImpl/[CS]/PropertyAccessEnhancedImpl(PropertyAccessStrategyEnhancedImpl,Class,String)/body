@@ -1,9 +1,15 @@
 {
   this.strategy=strategy;
   final Field field=fieldOrNull(containerJavaType,propertyName);
-  if (field == null) {
+  final Method getterMethod=getterMethodOrNull(containerJavaType,propertyName);
+  if (field == null && getterMethod == null) {
     throw new PropertyAccessBuildingException(String.format("Could not locate field for property [%s] on bytecode-enhanced Class [%s]",propertyName,containerJavaType.getName()));
   }
-  this.getter=new GetterFieldImpl(containerJavaType,propertyName,field);
+ else   if (field != null) {
+    this.getter=new GetterFieldImpl(containerJavaType,propertyName,field);
+  }
+ else {
+    this.getter=new GetterMethodImpl(containerJavaType,propertyName,getterMethod);
+  }
   this.setter=resolveEnhancedSetterForField(containerJavaType,propertyName,field);
 }
