@@ -46,11 +46,22 @@
     }
   }
   if (persister.hasCache()) {
+    Object previousVersion=null;
+    if (persister.isVersionPropertyGenerated()) {
+      previousVersion=persister.getVersion(object);
+    }
     final EntityRegionAccessStrategy cache=persister.getCacheAccessStrategy();
-    Object ck=cache.generateCacheKey(id,persister,source.getFactory(),source.getTenantIdentifier());
-    cache.evict(ck);
+    final Object ck=cache.generateCacheKey(id,persister,source.getFactory(),source.getTenantIdentifier());
+    final SoftLock lock=cache.lockItem(source,ck,previousVersion);
+    source.getActionQueue().registerProcess(new AfterTransactionCompletionProcess(){
+      @Override public void doAfterTransactionCompletion(      boolean success,      SessionImplementor session){
+        cache.unlockItem(session,ck,lock);
+      }
+    }
+);
+    cache.remove(source,ck);
   }
-  evictCachedCollections(persister,id,source.getFactory());
+  evictCachedCollections(persister,id,source);
   String previousFetchProfile=source.getLoadQueryInfluencers().getInternalFetchProfile();
   source.getLoadQueryInfluencers().setInternalFetchProfile("refresh");
   Object result=persister.load(id,object,event.getLockOptions(),source);
