@@ -2,9 +2,12 @@
   String resourceName=aClass.getName().replace('.','/') + ".class";
   InputStream resourceAsStream=aClass.getClassLoader().getResourceAsStream(resourceName);
   try {
-    return cp.makeClass(resourceAsStream);
+    return classPool.makeClass(resourceAsStream);
   }
-  finally {
+ catch (  IOException e) {
+    throw new EnhancementException("Could not prepare Javassist ClassPool",e);
+  }
+ finally {
     try {
       resourceAsStream.close();
     }
