@@ -1,0 +1,16 @@
+{
+  Future<SlowInitializationService>[] serviceIdentities=execute();
+  SlowInitializationService previousResult=null;
+  for (  Future<SlowInitializationService> future : serviceIdentities) {
+    final SlowInitializationService result=future.get();
+    if (previousResult == null) {
+      previousResult=result;
+    }
+ else {
+      assertTrue("There are more than one instance of the service",result == previousResult);
+    }
+    assertTrue("The service is not initialized",result.isInitialized());
+    assertTrue("The service is not configured",result.isConfigured());
+    assertTrue("The service is not started",result.isStarted());
+  }
+}
