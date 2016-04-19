@@ -1,19 +1,15 @@
 {
-  ConcurrentNaturalIdCacheStatisticsImpl nics=(ConcurrentNaturalIdCacheStatisticsImpl)naturalIdCacheStatistics.get(regionName);
-  if (nics == null) {
+  ConcurrentNaturalIdCacheStatisticsImpl stat=naturalIdCacheStatistics.get(regionName);
+  if (stat == null) {
     if (sessionFactory == null) {
       return null;
     }
-    Region region=sessionFactory.getNaturalIdCacheRegion(regionName);
-    if (region == null) {
-      return null;
-    }
-    NaturalIdRegionAccessStrategy accessStrategy=(NaturalIdRegionAccessStrategy)sessionFactory.getNaturalIdCacheRegionAccessStrategy(regionName);
-    nics=new ConcurrentNaturalIdCacheStatisticsImpl(region,accessStrategy);
+    final NaturalIdRegionAccessStrategy accessStrategy=sessionFactory.getCache().getNaturalIdCacheRegionAccessStrategy(regionName);
+    stat=new ConcurrentNaturalIdCacheStatisticsImpl(accessStrategy.getRegion(),accessStrategy);
     ConcurrentNaturalIdCacheStatisticsImpl previous;
-    if ((previous=(ConcurrentNaturalIdCacheStatisticsImpl)naturalIdCacheStatistics.putIfAbsent(regionName,nics)) != null) {
-      nics=previous;
+    if ((previous=naturalIdCacheStatistics.putIfAbsent(regionName,stat)) != null) {
+      stat=previous;
     }
   }
-  return nics;
+  return stat;
 }

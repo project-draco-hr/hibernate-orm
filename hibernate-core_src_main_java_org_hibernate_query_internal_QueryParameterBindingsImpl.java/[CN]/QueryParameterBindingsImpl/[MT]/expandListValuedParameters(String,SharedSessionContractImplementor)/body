@@ -1,0 +1,49 @@
+{
+  if (queryString == null) {
+    return null;
+  }
+  final Dialect dialect=session.getFactory().getServiceRegistry().getService(JdbcServices.class).getJdbcEnvironment().getDialect();
+  final int inExprLimit=dialect.getInExpressionCountLimit();
+  for (  Map.Entry<QueryParameter,QueryParameterListBinding> entry : parameterListBindingMap.entrySet()) {
+    final QueryParameterNamedImpl sourceParam=(QueryParameterNamedImpl)entry.getKey();
+    final Collection bindValues=entry.getValue().getBindValues();
+    if (inExprLimit > 0 && bindValues.size() > inExprLimit) {
+      log.tooManyInExpressions(dialect.getClass().getName(),inExprLimit,sourceParam.getName(),bindValues.size());
+    }
+    final boolean isJpaPositionalParam=sourceParam.isJpaPositionalParameter();
+    final String paramPrefix=isJpaPositionalParam ? "?" : ParserHelper.HQL_VARIABLE_PREFIX;
+    final String placeholder=paramPrefix + sourceParam.getName();
+    final int loc=queryString.indexOf(placeholder);
+    if (loc < 0) {
+      continue;
+    }
+    final String beforePlaceholder=queryString.substring(0,loc);
+    final String afterPlaceholder=queryString.substring(loc + placeholder.length());
+    boolean isEnclosedInParens=StringHelper.getLastNonWhitespaceCharacter(beforePlaceholder) == '(' && StringHelper.getFirstNonWhitespaceCharacter(afterPlaceholder) == ')';
+    if (bindValues.size() == 1 && isEnclosedInParens) {
+      final QueryParameterBinding syntheticBinding=new QueryParameterBindingImpl(entry.getValue().getBindType());
+      syntheticBinding.setBindValue(bindValues.iterator().next());
+      parameterBindingMap.put(sourceParam,syntheticBinding);
+      continue;
+    }
+    StringBuilder expansionList=new StringBuilder();
+    int i=0;
+    for (    Object bindValue : entry.getValue().getBindValues()) {
+      final String syntheticName=(isJpaPositionalParam ? 'x' : "") + sourceParam.getName() + '_'+ i;
+      if (i > 0) {
+        expansionList.append(", ");
+      }
+      expansionList.append(ParserHelper.HQL_VARIABLE_PREFIX).append(syntheticName);
+      final QueryParameter syntheticParam=new QueryParameterNamedImpl<>(syntheticName,sourceParam.getSourceLocations(),sourceParam.isJpaPositionalParameter(),sourceParam.getType());
+      final QueryParameterBinding syntheticBinding=new QueryParameterBindingImpl(entry.getValue().getBindType());
+      syntheticBinding.setBindValue(bindValue);
+      if (parameterBindingMap.put(syntheticParam,syntheticBinding) != null) {
+        throw new HibernateException("Repeated usage of synthetic parameter name [" + syntheticName + "] while expanding list parameter.");
+      }
+      i++;
+    }
+    queryString=StringHelper.replace(beforePlaceholder,afterPlaceholder,placeholder,expansionList.toString(),true,true);
+  }
+  parameterListBindingMap.clear();
+  return queryString;
+}

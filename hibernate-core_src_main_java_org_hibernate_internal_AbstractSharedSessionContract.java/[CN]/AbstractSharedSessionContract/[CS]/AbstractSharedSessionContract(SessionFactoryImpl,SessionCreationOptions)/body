@@ -1,0 +1,44 @@
+{
+  this.factory=factory;
+  this.sessionIdentifier=StandardRandomStrategy.INSTANCE.generateUUID(null);
+  this.timestamp=factory.getCache().getRegionFactory().nextTimestamp();
+  this.tenantIdentifier=options.getTenantIdentifier();
+  if (MultiTenancyStrategy.NONE == factory.getSettings().getMultiTenancyStrategy()) {
+    if (tenantIdentifier != null) {
+      throw new HibernateException("SessionFactory was not configured for multi-tenancy");
+    }
+  }
+ else {
+    if (tenantIdentifier == null) {
+      throw new HibernateException("SessionFactory configured for multi-tenancy, but no tenant identifier specified");
+    }
+  }
+  this.interceptor=interpret(options.getInterceptor());
+  final StatementInspector statementInspector=interpret(options.getStatementInspector());
+  this.jdbcSessionContext=new JdbcSessionContextImpl(this,statementInspector);
+  this.entityNameResolver=new CoordinatingEntityNameResolver(factory,interceptor);
+  if (options instanceof SharedSessionCreationOptions && ((SharedSessionCreationOptions)options).isTransactionCoordinatorShared()) {
+    if (options.getConnection() != null) {
+      throw new SessionException("Cannot simultaneously share transaction context and specify connection");
+    }
+    this.isTransactionCoordinatorShared=true;
+    this.autoJoinTransactions=false;
+    final SharedSessionCreationOptions sharedOptions=(SharedSessionCreationOptions)options;
+    this.transactionCoordinator=sharedOptions.getTransactionCoordinator();
+    this.jdbcCoordinator=sharedOptions.getJdbcCoordinator();
+    this.currentHibernateTransaction=sharedOptions.getTransaction();
+    if (sharedOptions.getSynchronizationType() != null) {
+      log.debug("Session creation specified 'autoJoinTransactions', which is invalid in conjunction " + "with sharing JDBC connection between sessions; ignoring");
+    }
+    if (sharedOptions.getPhysicalConnectionHandlingMode() != this.jdbcCoordinator.getLogicalConnection().getConnectionHandlingMode()) {
+      log.debug("Session creation specified 'PhysicalConnectionHandlingMode which is invalid in conjunction " + "with sharing JDBC connection between sessions; ignoring");
+    }
+  }
+ else {
+    this.isTransactionCoordinatorShared=false;
+    this.autoJoinTransactions=options.getSynchronizationType() == SynchronizationType.SYNCHRONIZED;
+    this.jdbcCoordinator=new JdbcCoordinatorImpl(options.getConnection(),this);
+    this.transactionCoordinator=factory.getServiceRegistry().getService(TransactionCoordinatorBuilder.class).buildTransactionCoordinator(jdbcCoordinator,this);
+    getTransaction();
+  }
+}

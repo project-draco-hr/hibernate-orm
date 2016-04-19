@@ -1,5 +1,5 @@
 {
-  final SessionImplementor session=getLoadContext().getPersistenceContext().getSession();
+  final SharedSessionContractImplementor session=getLoadContext().getPersistenceContext().getSession();
   final SessionFactoryImplementor factory=session.getFactory();
   final boolean debugEnabled=LOG.isDebugEnabled();
   if (debugEnabled) {
@@ -47,9 +47,9 @@
   if (isPutFromLoad) {
     try {
       session.getEventListenerManager().cachePutStart();
-      final boolean put=cache.putFromLoad(session,cacheKey,persister.getCacheEntryStructure().structure(entry),session.getTimestamp(),version,factory.getSettings().isMinimalPutsEnabled() && session.getCacheMode() != CacheMode.REFRESH);
+      final boolean put=cache.putFromLoad(session,cacheKey,persister.getCacheEntryStructure().structure(entry),session.getTimestamp(),version,factory.getSessionFactoryOptions().isMinimalPutsEnabled() && session.getCacheMode() != CacheMode.REFRESH);
       if (put && factory.getStatistics().isStatisticsEnabled()) {
-        factory.getStatisticsImplementor().secondLevelCachePut(persister.getCacheAccessStrategy().getRegion().getName());
+        factory.getStatistics().secondLevelCachePut(persister.getCacheAccessStrategy().getRegion().getName());
       }
     }
   finally {

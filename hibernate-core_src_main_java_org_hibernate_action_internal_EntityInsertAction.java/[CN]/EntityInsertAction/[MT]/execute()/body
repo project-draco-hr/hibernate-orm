@@ -1,7 +1,7 @@
 {
   nullifyTransientReferencesIfNotAlready();
   final EntityPersister persister=getPersister();
-  final SessionImplementor session=getSession();
+  final SharedSessionContractImplementor session=getSession();
   final Object instance=getInstance();
   final Serializable id=getId();
   final boolean veto=preInsert();
@@ -30,13 +30,13 @@
     final Object ck=cache.generateCacheKey(id,persister,factory,session.getTenantIdentifier());
     final boolean put=cacheInsert(persister,ck);
     if (put && factory.getStatistics().isStatisticsEnabled()) {
-      factory.getStatisticsImplementor().secondLevelCachePut(cache.getRegion().getName());
+      factory.getStatistics().secondLevelCachePut(cache.getRegion().getName());
     }
   }
   handleNaturalIdPostSaveNotifications(id);
   postInsert();
   if (factory.getStatistics().isStatisticsEnabled() && !veto) {
-    factory.getStatisticsImplementor().insertEntity(getPersister().getEntityName());
+    factory.getStatistics().insertEntity(getPersister().getEntityName());
   }
   markExecuted();
 }

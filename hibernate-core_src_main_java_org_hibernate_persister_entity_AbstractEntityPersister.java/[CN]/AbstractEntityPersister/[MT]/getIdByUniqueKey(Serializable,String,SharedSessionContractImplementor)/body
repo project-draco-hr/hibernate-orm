@@ -1,0 +1,33 @@
+{
+  if (LOG.isTraceEnabled()) {
+    LOG.tracef("resolving unique key [%s] to identifier for entity [%s]",key,getEntityName());
+  }
+  int propertyIndex=getSubclassPropertyIndex(uniquePropertyName);
+  if (propertyIndex < 0) {
+    throw new HibernateException("Could not determine Type for property [" + uniquePropertyName + "] on entity ["+ getEntityName()+ "]");
+  }
+  Type propertyType=getSubclassPropertyType(propertyIndex);
+  try {
+    PreparedStatement ps=session.getJdbcCoordinator().getStatementPreparer().prepareStatement(generateIdByUniqueKeySelectString(uniquePropertyName));
+    try {
+      propertyType.nullSafeSet(ps,key,1,session);
+      ResultSet rs=session.getJdbcCoordinator().getResultSetReturn().extract(ps);
+      try {
+        if (!rs.next()) {
+          return null;
+        }
+        return (Serializable)getIdentifierType().nullSafeGet(rs,getIdentifierAliases(),session,null);
+      }
+  finally {
+        session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release(rs,ps);
+      }
+    }
+  finally {
+      session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release(ps);
+      session.getJdbcCoordinator().afterStatementExecution();
+    }
+  }
+ catch (  SQLException e) {
+    throw session.getJdbcServices().getSqlExceptionHelper().convert(e,String.format("could not resolve unique property [%s] to identifier for entity [%s]",uniquePropertyName,getEntityName()),getSQLSnapshotSelectString());
+  }
+}

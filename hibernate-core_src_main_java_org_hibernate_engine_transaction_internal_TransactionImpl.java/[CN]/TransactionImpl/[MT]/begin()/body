@@ -1,10 +1,9 @@
 {
-  TransactionStatus status=transactionDriverControl.getStatus();
   if (!valid) {
     throw new TransactionException("Transaction instance is no longer valid");
   }
-  if (status == TransactionStatus.ACTIVE) {
-    return;
+  if (isActive()) {
+    throw new IllegalStateException("Transaction already active");
   }
   LOG.debug("begin");
   this.transactionDriverControl.begin();

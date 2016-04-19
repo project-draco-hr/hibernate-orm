@@ -1,0 +1,17 @@
+{
+  if (closed) {
+    return;
+  }
+  sessionEventsManager.end();
+  if (currentHibernateTransaction != null) {
+    currentHibernateTransaction.invalidate();
+  }
+  try {
+    if (shouldCloseJdbcCoordinatorOnClose(isTransactionCoordinatorShared)) {
+      jdbcCoordinator.close();
+    }
+  }
+  finally {
+    setClosed();
+  }
+}

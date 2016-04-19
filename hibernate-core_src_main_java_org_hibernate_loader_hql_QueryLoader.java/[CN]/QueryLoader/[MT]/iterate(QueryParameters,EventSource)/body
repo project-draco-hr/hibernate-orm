@@ -9,18 +9,18 @@
     if (queryParameters.isCallable()) {
       throw new QueryException("iterate() not supported for callable statements");
     }
-    final SqlStatementWrapper wrapper=executeQueryStatement(queryParameters,false,Collections.<AfterLoadAction>emptyList(),session);
+    final SqlStatementWrapper wrapper=executeQueryStatement(queryParameters,false,Collections.emptyList(),session);
     final ResultSet rs=wrapper.getResultSet();
     final PreparedStatement st=(PreparedStatement)wrapper.getStatement();
     final Iterator result=new IteratorImpl(rs,st,session,queryParameters.isReadOnly(session),queryReturnTypes,queryTranslator.getColumnNames(),buildHolderInstantiator(queryParameters.getResultTransformer()));
     if (stats) {
       final long endTime=System.nanoTime();
       final long milliseconds=TimeUnit.MILLISECONDS.convert(endTime - startTime,TimeUnit.NANOSECONDS);
-      session.getFactory().getStatisticsImplementor().queryExecuted(getQueryIdentifier(),0,milliseconds);
+      session.getFactory().getStatistics().queryExecuted(getQueryIdentifier(),0,milliseconds);
     }
     return result;
   }
  catch (  SQLException sqle) {
-    throw getFactory().getSQLExceptionHelper().convert(sqle,"could not execute query using iterate",getSQLString());
+    throw session.getJdbcServices().getSqlExceptionHelper().convert(sqle,"could not execute query using iterate",getSQLString());
   }
 }

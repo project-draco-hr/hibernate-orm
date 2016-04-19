@@ -1,17 +1,17 @@
 {
-  LOG.tracef("SessionImpl#afterTransactionCompletion(successful=%s, delayed=%s)",successful,delayed);
-  afterCompletionAction.doAction(successful);
+  log.tracef("SessionImpl#afterTransactionCompletion(successful=%s, delayed=%s)",successful,delayed);
+  afterCompletionAction.doAction(successful,this);
   persistenceContext.afterTransactionCompletion();
   actionQueue.afterTransactionCompletion(successful);
   getEventListenerManager().transactionCompletion(successful);
-  if (factory.getStatistics().isStatisticsEnabled()) {
-    factory.getStatisticsImplementor().endTransaction(successful);
+  if (getFactory().getStatistics().isStatisticsEnabled()) {
+    getFactory().getStatistics().endTransaction(successful);
   }
   try {
-    interceptor.afterTransactionCompletion(currentHibernateTransaction);
+    getInterceptor().afterTransactionCompletion(getCurrentTransaction());
   }
  catch (  Throwable t) {
-    LOG.exceptionInAfterTransactionCompletionInterceptor(t);
+    log.exceptionInAfterTransactionCompletionInterceptor(t);
   }
   if (!delayed) {
     if (shouldAutoClose() && !isClosed()) {

@@ -1,0 +1,15 @@
+{
+  if (resultType != null) {
+    resultClassChecking(resultType,queryDefinition);
+  }
+  String queryString=queryDefinition.getQueryString();
+  final NativeQueryImpl query=new NativeQueryImpl(queryDefinition,this,getQueryPlan(queryString,false).getParameterMetadata());
+  query.setHibernateFlushMode(queryDefinition.getFlushMode());
+  query.setComment(queryDefinition.getComment() != null ? queryDefinition.getComment() : queryDefinition.getName());
+  if (queryDefinition.getLockOptions() != null) {
+    query.setLockOptions(queryDefinition.getLockOptions());
+  }
+  initQueryFromNamedDefinition(query,queryDefinition);
+  applyQuerySettingsAndHints(query);
+  return query;
+}

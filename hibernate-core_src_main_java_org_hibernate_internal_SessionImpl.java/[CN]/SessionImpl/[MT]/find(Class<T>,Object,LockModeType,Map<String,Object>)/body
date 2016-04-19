@@ -1,0 +1,44 @@
+{
+  checkOpen();
+  LockOptions lockOptions=null;
+  try {
+    if (properties != null && !properties.isEmpty()) {
+      getLoadQueryInfluencers().setFetchGraph((EntityGraph)properties.get(QueryHints.HINT_FETCHGRAPH));
+      getLoadQueryInfluencers().setLoadGraph((EntityGraph)properties.get(QueryHints.HINT_LOADGRAPH));
+    }
+    final IdentifierLoadAccess<T> loadAccess=byId(entityClass);
+    loadAccess.with(determineAppropriateLocalCacheMode(properties));
+    if (lockModeType != null) {
+      if (!LockModeType.NONE.equals(lockModeType)) {
+        checkTransactionNeeded();
+      }
+      lockOptions=buildLockOptions(lockModeType,properties);
+      loadAccess.with(lockOptions);
+    }
+    return loadAccess.load((Serializable)primaryKey);
+  }
+ catch (  EntityNotFoundException ignored) {
+    if (log.isDebugEnabled()) {
+      String entityName=entityClass != null ? entityClass.getName() : null;
+      String identifierValue=primaryKey != null ? primaryKey.toString() : null;
+      log.ignoringEntityNotFound(entityName,identifierValue);
+    }
+    return null;
+  }
+catch (  ObjectDeletedException e) {
+    return null;
+  }
+catch (  ObjectNotFoundException e) {
+    throw new IllegalArgumentException(e.getMessage(),e);
+  }
+catch (  MappingException|TypeMismatchException|ClassCastException e) {
+    throw convert(new IllegalArgumentException(e.getMessage(),e));
+  }
+catch (  RuntimeException e) {
+    throw convert(e,lockOptions);
+  }
+ finally {
+    getLoadQueryInfluencers().setFetchGraph(null);
+    getLoadQueryInfluencers().setLoadGraph(null);
+  }
+}

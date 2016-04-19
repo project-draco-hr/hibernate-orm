@@ -1,0 +1,19 @@
+{
+  try {
+    final Output rtn=outputs().getCurrent();
+    if (!ResultSetOutput.class.isInstance(rtn)) {
+      throw new IllegalStateException("Current CallableStatement ou was not a ResultSet, but getResultList was called");
+    }
+    return ((ResultSetOutput)rtn).getResultList();
+  }
+ catch (  NoMoreReturnsException e) {
+    return null;
+  }
+catch (  HibernateException he) {
+    throw getProducer().convert(he);
+  }
+catch (  RuntimeException e) {
+    getProducer().markForRollbackOnly();
+    throw e;
+  }
+}

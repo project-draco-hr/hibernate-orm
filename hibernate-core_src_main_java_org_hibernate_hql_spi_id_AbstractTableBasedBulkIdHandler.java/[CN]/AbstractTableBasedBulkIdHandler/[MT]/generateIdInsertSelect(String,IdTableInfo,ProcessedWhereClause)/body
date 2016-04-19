@@ -1,6 +1,7 @@
 {
-  Select select=new Select(sessionFactory.getDialect());
-  SelectValues selectClause=new SelectValues(sessionFactory.getDialect()).addColumns(tableAlias,getTargetedQueryable().getIdentifierColumnNames(),getTargetedQueryable().getIdentifierColumnNames());
+  final Dialect dialect=sessionFactory.getJdbcServices().getJdbcEnvironment().getDialect();
+  final Select select=new Select(dialect);
+  final SelectValues selectClause=new SelectValues(dialect).addColumns(tableAlias,getTargetedQueryable().getIdentifierColumnNames(),getTargetedQueryable().getIdentifierColumnNames());
   addAnyExtraIdSelectValues(selectClause);
   select.setSelectClause(selectClause.render());
   String rootTableName=getTargetedQueryable().getTableName();
@@ -22,8 +23,8 @@
     }
   }
   select.setWhereClause(whereJoinFragment + whereClause.getUserWhereClauseFragment());
-  InsertSelect insert=new InsertSelect(sessionFactory.getDialect());
-  if (sessionFactory.getSettings().isCommentsEnabled()) {
+  InsertSelect insert=new InsertSelect(dialect);
+  if (sessionFactory.getSessionFactoryOptions().isCommentsEnabled()) {
     insert.setComment("insert-select for " + getTargetedQueryable().getEntityName() + " ids");
   }
   insert.setTableName(idTableInfo.getQualifiedIdTableName());

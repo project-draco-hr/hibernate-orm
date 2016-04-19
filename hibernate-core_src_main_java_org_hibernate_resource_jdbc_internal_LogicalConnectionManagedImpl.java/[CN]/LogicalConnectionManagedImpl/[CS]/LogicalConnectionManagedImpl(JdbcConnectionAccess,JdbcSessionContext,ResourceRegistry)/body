@@ -1,10 +1,11 @@
 {
   this.jdbcConnectionAccess=jdbcConnectionAccess;
   this.observer=jdbcSessionContext.getObserver();
-  this.sqlExceptionHelper=jdbcSessionContext.getServiceRegistry().getService(JdbcServices.class).getSqlExceptionHelper();
-  this.physicalConnectionHandlingMode=jdbcSessionContext.getPhysicalConnectionHandlingMode();
   this.resourceRegistry=resourceRegistry;
-  if (physicalConnectionHandlingMode.getAcquisitionMode() == ConnectionAcquisitionMode.IMMEDIATELY) {
+  this.connectionHandlingMode=jdbcSessionContext.getPhysicalConnectionHandlingMode();
+  validateConnectionHandlingMode(connectionHandlingMode,jdbcConnectionAccess);
+  this.sqlExceptionHelper=jdbcSessionContext.getServiceRegistry().getService(JdbcServices.class).getSqlExceptionHelper();
+  if (connectionHandlingMode.getAcquisitionMode() == ConnectionAcquisitionMode.IMMEDIATELY) {
     acquireConnectionIfNeeded();
   }
 }

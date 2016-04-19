@@ -1,0 +1,34 @@
+{
+  super(session,null);
+  this.procedureName=memento.getProcedureName();
+  this.globalParameterPassNullsSetting=session.getFactory().getSessionFactoryOptions().isProcedureParameterNullPassingEnabled();
+  this.queryReturns=memento.getQueryReturns();
+  this.synchronizedQuerySpaces=Util.copy(memento.getSynchronizedQuerySpaces());
+  this.parameterStrategy=memento.getParameterStrategy();
+  if (parameterStrategy == ParameterStrategy.UNKNOWN) {
+    return;
+  }
+  final List<ProcedureCallMementoImpl.ParameterMemento> storedRegistrations=memento.getParameterDeclarations();
+  if (storedRegistrations == null) {
+    LOG.debugf("ParameterStrategy was [%s] on named copy [%s], but no parameters stored",parameterStrategy,procedureName);
+    return;
+  }
+  final List<ParameterRegistrationImplementor<?>> parameterRegistrations=CollectionHelper.arrayList(storedRegistrations.size());
+  for (  ProcedureCallMementoImpl.ParameterMemento storedRegistration : storedRegistrations) {
+    final ParameterRegistrationImplementor<?> registration;
+    if (StringHelper.isNotEmpty(storedRegistration.getName())) {
+      if (parameterStrategy != ParameterStrategy.NAMED) {
+        throw new IllegalStateException("Found named stored procedure parameter associated with positional parameters");
+      }
+      registration=new NamedParameterRegistration(this,storedRegistration.getName(),storedRegistration.getMode(),storedRegistration.getType(),storedRegistration.getHibernateType(),storedRegistration.isPassNullsEnabled());
+    }
+ else {
+      if (parameterStrategy != ParameterStrategy.POSITIONAL) {
+        throw new IllegalStateException("Found named stored procedure parameter associated with positional parameters");
+      }
+      registration=new PositionalParameterRegistration(this,storedRegistration.getPosition(),storedRegistration.getMode(),storedRegistration.getType(),storedRegistration.getHibernateType(),storedRegistration.isPassNullsEnabled());
+    }
+    parameterRegistrations.add(registration);
+  }
+  this.registeredParameters=parameterRegistrations;
+}

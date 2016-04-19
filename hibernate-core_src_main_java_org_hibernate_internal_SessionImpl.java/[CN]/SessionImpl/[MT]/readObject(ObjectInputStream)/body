@@ -1,25 +1,11 @@
 {
-  LOG.trace("Deserializing session");
+  log.tracef("Deserializing Session [%s]",getSessionIdentifier());
+  super.readObject(ois);
   ois.defaultReadObject();
-  entityNameResolver=new CoordinatingEntityNameResolver();
-  connectionReleaseMode=ConnectionReleaseMode.parse((String)ois.readObject());
-  autoClear=ois.readBoolean();
-  autoJoinTransactions=ois.readBoolean();
-  flushMode=FlushMode.valueOf((String)ois.readObject());
-  cacheMode=CacheMode.valueOf((String)ois.readObject());
-  flushBeforeCompletionEnabled=ois.readBoolean();
-  autoCloseSessionEnabled=ois.readBoolean();
-  interceptor=(Interceptor)ois.readObject();
-  factory=SessionFactoryImpl.deserialize(ois);
-  this.jdbcSessionContext=new JdbcSessionContextImpl(factory,statementInspector);
-  sessionOwner=(SessionOwner)ois.readObject();
-  initializeFromSessionOwner(sessionOwner);
-  jdbcCoordinator=JdbcCoordinatorImpl.deserialize(ois,this);
-  this.transactionCoordinator=getTransactionCoordinatorBuilder().buildTransactionCoordinator(jdbcCoordinator,this);
   persistenceContext=StatefulPersistenceContext.deserialize(ois,this);
   actionQueue=ActionQueue.deserialize(ois,this);
   loadQueryInfluencers=(LoadQueryInfluencers)ois.readObject();
   for (  String filterName : loadQueryInfluencers.getEnabledFilterNames()) {
-    ((FilterImpl)loadQueryInfluencers.getEnabledFilter(filterName)).afterDeserialize(factory);
+    ((FilterImpl)loadQueryInfluencers.getEnabledFilter(filterName)).afterDeserialize(getFactory());
   }
 }

@@ -1,0 +1,17 @@
+{
+  if (transactionType != PersistenceUnitTransactionType.JTA) {
+    if (explicitRequest) {
+      log.callingJoinTransactionOnNonJtaEntityManager();
+    }
+    return;
+  }
+  try {
+    getTransactionCoordinator().explicitJoin();
+  }
+ catch (  TransactionRequiredForJoinException e) {
+    throw new TransactionRequiredException(e.getMessage());
+  }
+catch (  HibernateException he) {
+    throw convert(he);
+  }
+}

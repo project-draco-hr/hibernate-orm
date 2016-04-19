@@ -1,8 +1,18 @@
 {
-  errorIfClosed();
+  checkOpen();
   checkTransactionSynchStatus();
-  for (  PersistEventListener listener : listeners(EventType.PERSIST)) {
-    listener.onPersist(event,copiedAlready);
+  try {
+    for (    PersistEventListener listener : listeners(EventType.PERSIST)) {
+      listener.onPersist(event,copiedAlready);
+    }
   }
-  delayedAfterCompletion();
+ catch (  MappingException e) {
+    throw convert(new IllegalArgumentException(e.getMessage()));
+  }
+catch (  RuntimeException e) {
+    throw convert(e);
+  }
+ finally {
+    delayedAfterCompletion();
+  }
 }

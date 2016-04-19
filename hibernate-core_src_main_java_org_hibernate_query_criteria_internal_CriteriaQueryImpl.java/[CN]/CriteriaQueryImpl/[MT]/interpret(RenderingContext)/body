@@ -12,9 +12,9 @@
   final String jpaqlString=jpaqlBuffer.toString();
   log.debugf("Rendered criteria query -> %s",jpaqlString);
   return new CriteriaInterpretation(){
-    @Override @SuppressWarnings("unchecked") public Query buildCompiledQuery(    HibernateEntityManagerImplementor entityManager,    final InterpretedParameterMetadata parameterMetadata){
+    @Override @SuppressWarnings("unchecked") public QueryImplementor buildCompiledQuery(    SessionImplementor entityManager,    final InterpretedParameterMetadata parameterMetadata){
       final Map<String,Class> implicitParameterTypes=extractTypeMap(parameterMetadata.implicitParameterBindings());
-      QueryImpl jpaqlQuery=entityManager.createQuery(jpaqlString,getResultType(),getSelection(),new HibernateEntityManagerImplementor.QueryOptions(){
+      QueryImplementor<T> jpaqlQuery=entityManager.createQuery(jpaqlString,getResultType(),getSelection(),new HibernateEntityManagerImplementor.QueryOptions(){
         @Override public List<ValueHandlerFactory.ValueHandler> getValueHandlers(){
           SelectionImplementor selection=(SelectionImplementor)queryStructure.getSelection();
           return selection == null ? null : selection.getValueHandlers();
@@ -47,7 +47,7 @@
       for (      ImplicitParameterBinding implicitParameterBinding : parameterMetadata.implicitParameterBindings()) {
         implicitParameterBinding.bind(jpaqlQuery);
       }
-      return new CriteriaQueryTypeQueryAdapter(entityManager,jpaqlQuery,parameterMetadata.explicitParameterInfoMap());
+      return jpaqlQuery;
     }
     private Map<String,Class> extractTypeMap(    List<ImplicitParameterBinding> implicitParameterBindings){
       final HashMap<String,Class> map=new HashMap<String,Class>();

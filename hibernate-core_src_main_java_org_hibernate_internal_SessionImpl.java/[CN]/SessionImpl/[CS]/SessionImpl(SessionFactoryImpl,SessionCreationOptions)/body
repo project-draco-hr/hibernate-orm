@@ -1,0 +1,51 @@
+{
+  super(factory,options);
+  this.transactionType=options.getPersistenceUnitTransactionType();
+  this.synchronizationType=options.getSynchronizationType();
+  this.actionQueue=new ActionQueue(this);
+  this.persistenceContext=new StatefulPersistenceContext(this);
+  this.sessionOwner=options.getSessionOwner();
+  initializeFromSessionOwner(sessionOwner);
+  if (options instanceof SharedSessionCreationOptions && ((SharedSessionCreationOptions)options).isTransactionCoordinatorShared()) {
+    final SharedSessionCreationOptions sharedOptions=(SharedSessionCreationOptions)options;
+    if (sharedOptions.getTransactionCompletionProcesses() != null) {
+      actionQueue.setTransactionCompletionProcesses(sharedOptions.getTransactionCompletionProcesses(),true);
+    }
+    getTransactionCoordinator().addObserver(new TransactionObserver(){
+      @Override public void afterBegin(){
+        log.tracef("TransactionObserver#afterBegin on Session [%s]",getSessionIdentifier());
+      }
+      @Override public void beforeCompletion(){
+        log.tracef("TransactionObserver#beforeCompletion on Session [%s]",getSessionIdentifier());
+        if (isOpen() && flushBeforeCompletionEnabled) {
+          SessionImpl.this.managedFlush();
+        }
+        actionQueue.beforeTransactionCompletion();
+        try {
+          getInterceptor().beforeTransactionCompletion(getTransaction());
+        }
+ catch (        Throwable t) {
+          log.exceptionInBeforeTransactionCompletionInterceptor(t);
+        }
+      }
+      @Override public void afterCompletion(      boolean successful,      boolean delayed){
+        log.tracef("TransactionObserver#afterCompletion(%s, %s) on Session [%s]",successful,delayed,getSessionIdentifier());
+        afterTransactionCompletion(successful,delayed);
+        if (!isClosed() && autoCloseSessionEnabled) {
+          managedClose();
+        }
+      }
+    }
+);
+  }
+  loadQueryInfluencers=new LoadQueryInfluencers(factory);
+  if (getFactory().getStatistics().isStatisticsEnabled()) {
+    getFactory().getStatistics().openSession();
+  }
+  getTransactionCoordinator().pulse();
+  setDefaultProperties();
+  applyProperties();
+  if (TRACE_ENABLED) {
+    log.tracef("Opened Session [%s] at timestamp: %s",getSessionIdentifier(),getTimestamp());
+  }
+}

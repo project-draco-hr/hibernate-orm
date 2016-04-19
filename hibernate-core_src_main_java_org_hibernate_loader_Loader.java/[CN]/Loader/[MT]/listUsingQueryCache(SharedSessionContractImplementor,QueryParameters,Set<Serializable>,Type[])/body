@@ -1,0 +1,20 @@
+{
+  QueryCache queryCache=factory.getCache().getQueryCache(queryParameters.getCacheRegion());
+  QueryKey key=generateQueryKey(session,queryParameters);
+  if (querySpaces == null || querySpaces.size() == 0) {
+    LOG.tracev("Unexpected querySpaces is {0}",(querySpaces == null ? querySpaces : "empty"));
+  }
+ else {
+    LOG.tracev("querySpaces is {0}",querySpaces);
+  }
+  List result=getResultFromQueryCache(session,queryParameters,querySpaces,resultTypes,queryCache,key);
+  if (result == null) {
+    result=doList(session,queryParameters,key.getResultTransformer());
+    putResultInQueryCache(session,queryParameters,resultTypes,queryCache,key,result);
+  }
+  ResultTransformer resolvedTransformer=resolveResultTransformer(queryParameters.getResultTransformer());
+  if (resolvedTransformer != null) {
+    result=(areResultSetRowsTransformedImmediately() ? key.getResultTransformer().retransformResults(result,getResultRowAliases(),queryParameters.getResultTransformer(),includeInResultRow()) : key.getResultTransformer().untransformToTuples(result));
+  }
+  return getResultList(result,queryParameters.getResultTransformer());
+}

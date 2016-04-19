@@ -1,0 +1,18 @@
+{
+  try {
+    final QueryImplementor query=createQuery(jpaqlString,resultClass);
+    if (queryOptions.getValueHandlers() == null) {
+      if (queryOptions.getResultMetadataValidator() != null) {
+        queryOptions.getResultMetadataValidator().validate(query.getReturnTypes());
+      }
+    }
+    List tupleElements=Tuple.class.equals(resultClass) ? ((CompoundSelectionImpl<Tuple>)selection).getCompoundSelectionItems() : null;
+    if (queryOptions.getValueHandlers() != null || tupleElements != null) {
+      query.setResultTransformer(new CriteriaQueryTupleTransformer(queryOptions.getValueHandlers(),tupleElements));
+    }
+    return query;
+  }
+ catch (  RuntimeException e) {
+    throw convert(e);
+  }
+}

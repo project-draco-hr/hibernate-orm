@@ -1,14 +1,12 @@
 {
   this.sessionFactory=sessionFactory;
   this.sessionOwner=null;
-  final Settings settings=sessionFactory.settings;
-  this.interceptor=sessionFactory.getInterceptor();
   this.statementInspector=sessionFactory.getSessionFactoryOptions().getStatementInspector();
-  this.connectionReleaseMode=settings.getConnectionReleaseMode();
-  this.autoClose=settings.isAutoCloseSessionEnabled();
-  this.flushBeforeCompletion=settings.isFlushBeforeCompletionEnabled();
+  this.connectionHandlingMode=sessionFactory.getSessionFactoryOptions().getPhysicalConnectionHandlingMode();
+  this.autoClose=sessionFactory.getSessionFactoryOptions().isAutoCloseSessionEnabled();
+  this.flushBeforeCompletion=sessionFactory.getSessionFactoryOptions().isFlushBeforeCompletionEnabled();
   if (sessionFactory.getCurrentTenantIdentifierResolver() != null) {
     tenantIdentifier=sessionFactory.getCurrentTenantIdentifierResolver().resolveCurrentTenantIdentifier();
   }
-  listeners=settings.getBaselineSessionEventsListenerBuilder().buildBaselineList();
+  listeners=sessionFactory.getSessionFactoryOptions().getBaselineSessionEventsListenerBuilder().buildBaselineList();
 }

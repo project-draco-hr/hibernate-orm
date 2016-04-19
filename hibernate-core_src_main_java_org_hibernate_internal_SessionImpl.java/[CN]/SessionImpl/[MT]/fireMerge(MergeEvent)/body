@@ -1,10 +1,23 @@
 {
-  errorIfClosed();
+  checkOpen();
   checkTransactionSynchStatus();
   checkNoUnresolvedActionsBeforeOperation();
-  for (  MergeEventListener listener : listeners(EventType.MERGE)) {
-    listener.onMerge(event);
+  try {
+    for (    MergeEventListener listener : listeners(EventType.MERGE)) {
+      listener.onMerge(event);
+    }
   }
-  checkNoUnresolvedActionsAfterOperation();
+ catch (  ObjectDeletedException sse) {
+    throw convert(new IllegalArgumentException(sse));
+  }
+catch (  MappingException e) {
+    throw convert(new IllegalArgumentException(e.getMessage(),e));
+  }
+catch (  RuntimeException e) {
+    throw convert(e);
+  }
+ finally {
+    checkNoUnresolvedActionsAfterOperation();
+  }
   return event.getResult();
 }

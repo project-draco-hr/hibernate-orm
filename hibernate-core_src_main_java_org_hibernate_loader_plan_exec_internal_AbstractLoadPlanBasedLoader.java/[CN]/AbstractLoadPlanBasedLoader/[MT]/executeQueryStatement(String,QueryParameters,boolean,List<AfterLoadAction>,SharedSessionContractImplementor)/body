@@ -1,0 +1,8 @@
+{
+  queryParameters.processFilters(sqlStatement,session);
+  final LimitHandler limitHandler=getLimitHandler(queryParameters.getRowSelection());
+  String sql=limitHandler.processSql(queryParameters.getFilteredSQL(),queryParameters.getRowSelection());
+  sql=preprocessSQL(sql,queryParameters,session.getJdbcServices().getJdbcEnvironment().getDialect(),afterLoadActions);
+  final PreparedStatement st=prepareQueryStatement(sql,queryParameters,limitHandler,scroll,session);
+  return new SqlStatementWrapper(st,getResultSet(st,queryParameters.getRowSelection(),limitHandler,queryParameters.hasAutoDiscoverScalarTypes(),session));
+}

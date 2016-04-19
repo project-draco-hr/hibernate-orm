@@ -1,16 +1,26 @@
 {
-  errorIfClosed();
-  checkTransactionSynchStatus();
-  if (object instanceof HibernateProxy) {
-    LazyInitializer li=((HibernateProxy)object).getHibernateLazyInitializer();
-    if (li.isUninitialized()) {
-      return li.getSession() == this;
-    }
- else {
-      object=li.getImplementation();
-    }
+  checkOpen();
+  if (object != null && !(object instanceof HibernateProxy) && getSessionFactory().getMetamodel().entityPersister(object.getClass()) == null) {
+    throw convert(new IllegalArgumentException("Not an entity:" + object.getClass()));
   }
-  EntityEntry entry=persistenceContext.getEntry(object);
-  delayedAfterCompletion();
-  return entry != null && entry.getStatus() != Status.DELETED && entry.getStatus() != Status.GONE;
+  try {
+    if (object instanceof HibernateProxy) {
+      LazyInitializer li=((HibernateProxy)object).getHibernateLazyInitializer();
+      if (li.isUninitialized()) {
+        return li.getSession() == this;
+      }
+ else {
+        object=li.getImplementation();
+      }
+    }
+    EntityEntry entry=persistenceContext.getEntry(object);
+    delayedAfterCompletion();
+    return entry != null && entry.getStatus() != Status.DELETED && entry.getStatus() != Status.GONE;
+  }
+ catch (  MappingException e) {
+    throw new IllegalArgumentException(e.getMessage(),e);
+  }
+catch (  RuntimeException e) {
+    throw convert(e);
+  }
 }

@@ -1,7 +1,8 @@
 {
   super(factory,walker);
-  UpdateStatement updateStatement=(UpdateStatement)walker.getAST();
-  FromElement fromElement=updateStatement.getFromClause().getFromElement();
+  final Dialect dialect=factory.getJdbcServices().getJdbcEnvironment().getDialect();
+  final UpdateStatement updateStatement=(UpdateStatement)walker.getAST();
+  final FromElement fromElement=updateStatement.getFromClause().getFromElement();
   this.targetedPersister=fromElement.getQueryable();
   final String bulkTargetAlias=fromElement.getTableAlias();
   final ProcessedWhereClause processedWhereClause=processWhereClause(updateStatement.getWhereClause());
@@ -15,9 +16,9 @@
   assignmentParameterSpecifications=new ParameterSpecification[tableNames.length][];
   for (int tableIndex=0; tableIndex < tableNames.length; tableIndex++) {
     boolean affected=false;
-    final List<ParameterSpecification> parameterList=new ArrayList<ParameterSpecification>();
-    final Update update=new Update(factory().getDialect()).setTableName(tableNames[tableIndex]).setWhere("(" + StringHelper.join(", ",columnNames[tableIndex]) + ") IN ("+ idSubselect+ ")");
-    if (factory().getSettings().isCommentsEnabled()) {
+    final List<ParameterSpecification> parameterList=new ArrayList<>();
+    final Update update=new Update(dialect).setTableName(tableNames[tableIndex]).setWhere("(" + StringHelper.join(", ",columnNames[tableIndex]) + ") IN ("+ idSubselect+ ")");
+    if (factory().getSessionFactoryOptions().isCommentsEnabled()) {
       update.setComment("bulk update");
     }
     final List<AssignmentSpecification> assignmentSpecifications=walker.getAssignmentSpecifications();

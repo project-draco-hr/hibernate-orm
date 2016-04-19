@@ -29,12 +29,8 @@
   final boolean dirtyTrackingEnabled=readBooleanConfigurationValue(AvailableSettings.ENHANCER_ENABLE_DIRTY_TRACKING);
   final boolean lazyInitializationEnabled=readBooleanConfigurationValue(AvailableSettings.ENHANCER_ENABLE_LAZY_INITIALIZATION);
   final boolean associationManagementEnabled=readBooleanConfigurationValue(AvailableSettings.ENHANCER_ENABLE_ASSOCIATION_MANAGEMENT);
-  final boolean deprecatedInstrumentation=readBooleanConfigurationValue(AvailableSettings.USE_CLASS_ENHANCER);
-  if (deprecatedInstrumentation) {
-    LOG.deprecatedInstrumentationProperty();
-  }
-  if (deprecatedInstrumentation || dirtyTrackingEnabled || lazyInitializationEnabled|| associationManagementEnabled) {
-    EnhancementContext enhancementContext=getEnhancementContext(deprecatedInstrumentation || dirtyTrackingEnabled,deprecatedInstrumentation || lazyInitializationEnabled,deprecatedInstrumentation || associationManagementEnabled);
+  if (dirtyTrackingEnabled || lazyInitializationEnabled || associationManagementEnabled) {
+    EnhancementContext enhancementContext=getEnhancementContext(dirtyTrackingEnabled,lazyInitializationEnabled,associationManagementEnabled);
     persistenceUnit.pushClassTransformer(enhancementContext);
   }
   metamodelBuilder.applyTempClassLoader(null);

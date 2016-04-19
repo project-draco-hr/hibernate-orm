@@ -1,5 +1,5 @@
 {
-  SessionImplementor session=consumer.getLinkedSession();
+  SharedSessionContractImplementor session=consumer.getLinkedSession();
   boolean isTempSession=false;
   boolean isJta=false;
   if (session == null) {
@@ -32,7 +32,7 @@
   if (isTempSession) {
     isJta=session.getTransactionCoordinator().getTransactionCoordinatorBuilder().isJta();
     if (!isJta) {
-      ((Session)session).beginTransaction();
+      session.beginTransaction();
     }
   }
   try {
@@ -42,14 +42,14 @@
     if (isTempSession) {
       try {
         if (!isJta) {
-          ((Session)session).getTransaction().commit();
+          session.getTransaction().commit();
         }
       }
  catch (      Exception e) {
         log.warn("Unable to commit JDBC transaction on temporary session used to load lazy " + "collection associated to no session");
       }
       try {
-        ((Session)session).close();
+        session.close();
       }
  catch (      Exception e) {
         log.warn("Unable to close temporary session used to load lazy collection associated to no session");

@@ -1,0 +1,11 @@
+{
+  if (jdbcConnectionAccess == null) {
+    if (MultiTenancyStrategy.NONE == factory.getSettings().getMultiTenancyStrategy()) {
+      jdbcConnectionAccess=new NonContextualJdbcConnectionAccess(getEventListenerManager(),factory.getServiceRegistry().getService(ConnectionProvider.class));
+    }
+ else {
+      jdbcConnectionAccess=new ContextualJdbcConnectionAccess(getTenantIdentifier(),getEventListenerManager(),factory.getServiceRegistry().getService(MultiTenantConnectionProvider.class));
+    }
+  }
+  return jdbcConnectionAccess;
+}

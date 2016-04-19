@@ -1,23 +1,20 @@
 {
-  if (regionName == null) {
-    return getQueryCache();
-  }
   if (!settings.isQueryCacheEnabled()) {
     return null;
   }
-  QueryCache currentQueryCache=queryCaches.get(regionName);
-  if (currentQueryCache == null) {
-synchronized (allCacheRegions) {
-      currentQueryCache=queryCaches.get(regionName);
-      if (currentQueryCache == null) {
-        currentQueryCache=settings.getQueryCacheFactory().getQueryCache(regionName,updateTimestampsCache,settings,sessionFactory.getProperties());
-        queryCaches.put(regionName,currentQueryCache);
-        allCacheRegions.put(currentQueryCache.getRegion().getName(),currentQueryCache.getRegion());
-      }
- else {
-        return currentQueryCache;
+  if (regionName == null) {
+    return getDefaultQueryCache();
+  }
+  QueryCache queryCache=queryCaches.get(regionName);
+  if (queryCache == null) {
+synchronized (queryCaches) {
+      queryCache=queryCaches.get(regionName);
+      if (queryCache == null) {
+        final QueryResultsRegion region=regionFactory.buildQueryResultsRegion(qualifyRegionName(regionName),sessionFactory.getProperties());
+        queryCache=settings.getQueryCacheFactory().buildQueryCache(region,this);
+        queryCaches.put(regionName,queryCache);
       }
     }
   }
-  return currentQueryCache;
+  return queryCache;
 }

@@ -1,19 +1,18 @@
 {
   EntityManager em=getOrCreateEntityManager();
   em.getTransaction().begin();
-  QueryImpl jpaQuery=em.createQuery("from Lockable l").unwrap(QueryImpl.class);
-  org.hibernate.internal.QueryImpl hqlQuery=(org.hibernate.internal.QueryImpl)jpaQuery.getHibernateQuery();
-  assertEquals(LockMode.NONE,hqlQuery.getLockOptions().getLockMode());
-  assertNull(hqlQuery.getLockOptions().getAliasSpecificLockMode("l"));
-  assertEquals(LockMode.NONE,hqlQuery.getLockOptions().getEffectiveLockMode("l"));
-  jpaQuery.setLockMode(LockModeType.READ);
-  assertEquals(LockMode.OPTIMISTIC,hqlQuery.getLockOptions().getLockMode());
-  assertNull(hqlQuery.getLockOptions().getAliasSpecificLockMode("l"));
-  assertEquals(LockMode.OPTIMISTIC,hqlQuery.getLockOptions().getEffectiveLockMode("l"));
-  jpaQuery.setHint(AvailableSettings.ALIAS_SPECIFIC_LOCK_MODE + ".l",LockModeType.PESSIMISTIC_WRITE);
-  assertEquals(LockMode.OPTIMISTIC,hqlQuery.getLockOptions().getLockMode());
-  assertEquals(LockMode.PESSIMISTIC_WRITE,hqlQuery.getLockOptions().getAliasSpecificLockMode("l"));
-  assertEquals(LockMode.PESSIMISTIC_WRITE,hqlQuery.getLockOptions().getEffectiveLockMode("l"));
+  org.hibernate.query.Query query=em.createQuery("from Lockable l").unwrap(org.hibernate.query.Query.class);
+  assertEquals(LockMode.NONE,query.getLockOptions().getLockMode());
+  assertNull(query.getLockOptions().getAliasSpecificLockMode("l"));
+  assertEquals(LockMode.NONE,query.getLockOptions().getEffectiveLockMode("l"));
+  query.setLockMode(LockModeType.READ);
+  assertEquals(LockMode.OPTIMISTIC,query.getLockOptions().getLockMode());
+  assertNull(query.getLockOptions().getAliasSpecificLockMode("l"));
+  assertEquals(LockMode.OPTIMISTIC,query.getLockOptions().getEffectiveLockMode("l"));
+  query.setHint(AvailableSettings.ALIAS_SPECIFIC_LOCK_MODE + ".l",LockModeType.PESSIMISTIC_WRITE);
+  assertEquals(LockMode.OPTIMISTIC,query.getLockOptions().getLockMode());
+  assertEquals(LockMode.PESSIMISTIC_WRITE,query.getLockOptions().getAliasSpecificLockMode("l"));
+  assertEquals(LockMode.PESSIMISTIC_WRITE,query.getLockOptions().getEffectiveLockMode("l"));
   em.getTransaction().commit();
   em.close();
 }

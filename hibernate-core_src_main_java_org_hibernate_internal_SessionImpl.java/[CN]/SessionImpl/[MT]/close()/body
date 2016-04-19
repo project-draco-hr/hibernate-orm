@@ -1,26 +1,5 @@
 {
-  LOG.trace("Closing session");
-  if (isClosed()) {
-    throw new SessionException("Session was already closed");
-  }
-  if (factory.getStatistics().isStatisticsEnabled()) {
-    factory.getStatisticsImplementor().closeSession();
-  }
-  getEventListenerManager().end();
-  try {
-    if (!isTransactionCoordinatorShared) {
-      jdbcCoordinator.close();
-      return;
-    }
- else {
-      if (getActionQueue().hasBeforeTransactionActions() || getActionQueue().hasAfterTransactionActions()) {
-        LOG.warn("On close, shared Session had before / after transaction actions that have not yet been processed");
-      }
-      return;
-    }
-  }
-  finally {
-    setClosed();
-    cleanup();
-  }
+  log.tracef("Closing session [%s]",getSessionIdentifier());
+  checkOpen();
+  super.close();
 }

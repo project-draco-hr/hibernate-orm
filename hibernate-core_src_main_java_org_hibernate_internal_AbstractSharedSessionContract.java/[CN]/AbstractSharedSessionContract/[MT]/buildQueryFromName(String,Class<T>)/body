@@ -1,0 +1,14 @@
+{
+  checkOpen();
+  checkTransactionSynchStatus();
+  delayedAfterCompletion();
+  final NamedQueryDefinition namedQueryDefinition=getFactory().getNamedQueryRepository().getNamedQueryDefinition(name);
+  if (namedQueryDefinition != null) {
+    return createQuery(namedQueryDefinition,resultType);
+  }
+  final NamedSQLQueryDefinition nativeQueryDefinition=getFactory().getNamedQueryRepository().getNamedSQLQueryDefinition(name);
+  if (nativeQueryDefinition != null) {
+    return (QueryImplementor<T>)createNativeQuery(nativeQueryDefinition,resultType);
+  }
+  throw convert(new IllegalArgumentException("No query defined for that name [" + name + "]"));
+}

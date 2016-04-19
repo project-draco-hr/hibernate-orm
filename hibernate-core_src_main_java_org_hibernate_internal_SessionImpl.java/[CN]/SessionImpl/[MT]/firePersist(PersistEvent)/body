@@ -1,9 +1,19 @@
 {
-  errorIfClosed();
+  checkOpen();
   checkTransactionSynchStatus();
   checkNoUnresolvedActionsBeforeOperation();
-  for (  PersistEventListener listener : listeners(EventType.PERSIST)) {
-    listener.onPersist(event);
+  try {
+    for (    PersistEventListener listener : listeners(EventType.PERSIST)) {
+      listener.onPersist(event);
+    }
   }
-  checkNoUnresolvedActionsAfterOperation();
+ catch (  MappingException e) {
+    throw convert(new IllegalArgumentException(e.getMessage()));
+  }
+catch (  RuntimeException e) {
+    throw convert(e);
+  }
+ finally {
+    checkNoUnresolvedActionsAfterOperation();
+  }
 }

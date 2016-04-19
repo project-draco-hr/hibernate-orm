@@ -1,0 +1,31 @@
+{
+  checkOpen();
+  final CacheMode previousCacheMode=getCacheMode();
+  final CacheMode refreshCacheMode=determineAppropriateLocalCacheMode(properties);
+  LockOptions lockOptions=null;
+  try {
+    setCacheMode(refreshCacheMode);
+    if (!contains(entity)) {
+      throw convert(new IllegalArgumentException("Entity not managed"));
+    }
+    if (lockModeType != null) {
+      if (!LockModeType.NONE.equals(lockModeType)) {
+        checkTransactionNeeded();
+      }
+      lockOptions=buildLockOptions(lockModeType,properties);
+      refresh(entity,lockOptions);
+    }
+ else {
+      refresh(entity);
+    }
+  }
+ catch (  MappingException e) {
+    throw convert(new IllegalArgumentException(e.getMessage(),e));
+  }
+catch (  RuntimeException e) {
+    throw convert(e,lockOptions);
+  }
+ finally {
+    setCacheMode(previousCacheMode);
+  }
+}

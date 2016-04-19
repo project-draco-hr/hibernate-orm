@@ -1,20 +1,7 @@
 {
-  if (!jdbcCoordinator.isReadyForSerialization()) {
-    throw new IllegalStateException("Cannot serialize a session while connected");
-  }
-  LOG.trace("Serializing session");
+  log.tracef("Serializing Session [%s]",getSessionIdentifier());
+  super.writeObject(oos);
   oos.defaultWriteObject();
-  oos.writeObject(connectionReleaseMode.toString());
-  oos.writeBoolean(autoClear);
-  oos.writeBoolean(autoJoinTransactions);
-  oos.writeObject(flushMode.toString());
-  oos.writeObject(cacheMode.name());
-  oos.writeBoolean(flushBeforeCompletionEnabled);
-  oos.writeBoolean(autoCloseSessionEnabled);
-  oos.writeObject(interceptor);
-  factory.serialize(oos);
-  oos.writeObject(sessionOwner);
-  jdbcCoordinator.serialize(oos);
   persistenceContext.serialize(oos);
   actionQueue.serialize(oos);
   oos.writeObject(loadQueryInfluencers);

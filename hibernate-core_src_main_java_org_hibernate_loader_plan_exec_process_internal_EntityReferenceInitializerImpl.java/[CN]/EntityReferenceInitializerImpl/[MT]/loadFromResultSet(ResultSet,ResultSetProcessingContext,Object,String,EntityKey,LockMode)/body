@@ -1,11 +1,11 @@
 {
   final Serializable id=entityKey.getIdentifier();
-  final Loadable concreteEntityPersister=(Loadable)context.getSession().getFactory().getEntityPersister(concreteEntityTypeName);
+  final Loadable concreteEntityPersister=(Loadable)context.getSession().getFactory().getMetamodel().entityPersister(concreteEntityTypeName);
   if (log.isTraceEnabled()) {
     log.tracev("Initializing object from ResultSet: {0}",MessageHelper.infoString(concreteEntityPersister,id,context.getSession().getFactory()));
   }
   TwoPhaseLoad.addUninitializedEntity(entityKey,entityInstance,concreteEntityPersister,lockModeToAcquire,context.getSession());
-  final EntityPersister rootEntityPersister=context.getSession().getFactory().getEntityPersister(concreteEntityPersister.getRootEntityName());
+  final EntityPersister rootEntityPersister=context.getSession().getFactory().getMetamodel().entityPersister(concreteEntityPersister.getRootEntityName());
   final Object[] values;
   try {
     values=concreteEntityPersister.hydrate(resultSet,id,entityInstance,(Loadable)entityReference.getEntityPersister(),concreteEntityPersister == rootEntityPersister ? entityReferenceAliases.getColumnAliases().getSuffixedPropertyAliases() : entityReferenceAliases.getColumnAliases().getSuffixedPropertyAliases(concreteEntityPersister),context.getLoadPlan().areLazyAttributesForceFetched(),context.getSession());

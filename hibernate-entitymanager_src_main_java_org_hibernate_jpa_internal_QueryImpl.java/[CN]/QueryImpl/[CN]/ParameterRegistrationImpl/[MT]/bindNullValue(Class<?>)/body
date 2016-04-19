@@ -1,0 +1,20 @@
+{
+  if (nullParameterType == null) {
+    throw new IllegalArgumentException("nullParameterType must be non-null");
+  }
+  if (getParameterType() != null) {
+    throw new IllegalArgumentException(String.format("Cannot bind null value as type [%s]; it is already mapped as type [%s]",nullParameterType.getName(),getParameterType().getName()));
+  }
+  validateBinding(nullParameterType,null,null);
+  if (!org.hibernate.query.internal.AbstractProducedQuery.class.isInstance(jpaQuery.getHibernateQuery())) {
+    throw new IllegalStateException("Unknown query type for binding null value" + jpaQuery.getHibernateQuery().getClass().getName());
+  }
+  final Type explicitType=null;
+  if (name != null) {
+    nativeQuery.setParameter(name,null,explicitType);
+  }
+ else {
+    nativeQuery.setParameter(position - 1,null,explicitType);
+  }
+  bind=new ParameterBindImpl<T>(null,null);
+}

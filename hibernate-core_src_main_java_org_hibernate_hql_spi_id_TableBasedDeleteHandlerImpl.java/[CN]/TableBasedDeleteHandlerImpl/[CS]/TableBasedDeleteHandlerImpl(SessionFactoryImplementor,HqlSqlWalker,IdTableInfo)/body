@@ -9,11 +9,11 @@
   this.idInsertSelect=generateIdInsertSelect(bulkTargetAlias,idTableInfo,processedWhereClause);
   log.tracev("Generated ID-INSERT-SELECT SQL (multi-table delete) : {0}",idInsertSelect);
   final String idSubselect=generateIdSubselect(targetedPersister,idTableInfo);
-  deletes=new ArrayList<String>();
+  deletes=new ArrayList<>();
   for (  Type type : targetedPersister.getPropertyTypes()) {
     if (type.isCollectionType()) {
       CollectionType cType=(CollectionType)type;
-      AbstractCollectionPersister cPersister=(AbstractCollectionPersister)factory.getCollectionPersister(cType.getRole());
+      AbstractCollectionPersister cPersister=(AbstractCollectionPersister)factory.getMetamodel().collectionPersister(cType.getRole());
       if (cPersister.isManyToMany()) {
         deletes.add(generateDelete(cPersister.getTableName(),cPersister.getKeyColumnNames(),idSubselect,"bulk delete - m2m join table cleanup"));
       }

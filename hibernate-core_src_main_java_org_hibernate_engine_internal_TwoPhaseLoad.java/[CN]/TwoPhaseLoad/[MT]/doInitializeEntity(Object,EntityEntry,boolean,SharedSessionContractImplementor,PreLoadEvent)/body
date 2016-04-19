@@ -1,0 +1,78 @@
+{
+  final PersistenceContext persistenceContext=session.getPersistenceContext();
+  final EntityPersister persister=entityEntry.getPersister();
+  final Serializable id=entityEntry.getId();
+  final Object[] hydratedState=entityEntry.getLoadedState();
+  final boolean debugEnabled=LOG.isDebugEnabled();
+  if (debugEnabled) {
+    LOG.debugf("Resolving associations for %s",MessageHelper.infoString(persister,id,session.getFactory()));
+  }
+  final Type[] types=persister.getPropertyTypes();
+  for (int i=0; i < hydratedState.length; i++) {
+    final Object value=hydratedState[i];
+    if (value != LazyPropertyInitializer.UNFETCHED_PROPERTY && value != PropertyAccessStrategyBackRefImpl.UNKNOWN) {
+      hydratedState[i]=types[i].resolve(value,session,entity);
+    }
+  }
+  if (session.isEventSource()) {
+    preLoadEvent.setEntity(entity).setState(hydratedState).setId(id).setPersister(persister);
+    final EventListenerGroup<PreLoadEventListener> listenerGroup=session.getFactory().getServiceRegistry().getService(EventListenerRegistry.class).getEventListenerGroup(EventType.PRE_LOAD);
+    for (    PreLoadEventListener listener : listenerGroup.listeners()) {
+      listener.onPreLoad(preLoadEvent);
+    }
+  }
+  persister.setPropertyValues(entity,hydratedState);
+  final SessionFactoryImplementor factory=session.getFactory();
+  if (persister.hasCache() && session.getCacheMode().isPutEnabled()) {
+    if (debugEnabled) {
+      LOG.debugf("Adding entity to second-level cache: %s",MessageHelper.infoString(persister,id,session.getFactory()));
+    }
+    final Object version=Versioning.getVersion(hydratedState,persister);
+    final CacheEntry entry=persister.buildCacheEntry(entity,hydratedState,version,session);
+    final EntityRegionAccessStrategy cache=persister.getCacheAccessStrategy();
+    final Object cacheKey=cache.generateCacheKey(id,persister,factory,session.getTenantIdentifier());
+    if (session.getPersistenceContext().wasInsertedDuringTransaction(persister,id)) {
+      cache.update(session,cacheKey,persister.getCacheEntryStructure().structure(entry),version,version);
+    }
+ else {
+      final SessionEventListenerManager eventListenerManager=session.getEventListenerManager();
+      try {
+        eventListenerManager.cachePutStart();
+        final boolean put=cache.putFromLoad(session,cacheKey,persister.getCacheEntryStructure().structure(entry),session.getTimestamp(),version,useMinimalPuts(session,entityEntry));
+        if (put && factory.getStatistics().isStatisticsEnabled()) {
+          factory.getStatistics().secondLevelCachePut(cache.getRegion().getName());
+        }
+      }
+  finally {
+        eventListenerManager.cachePutEnd();
+      }
+    }
+  }
+  if (persister.hasNaturalIdentifier()) {
+    persistenceContext.getNaturalIdHelper().cacheNaturalIdCrossReferenceFromLoad(persister,id,persistenceContext.getNaturalIdHelper().extractNaturalIdValues(hydratedState,persister));
+  }
+  boolean isReallyReadOnly=readOnly;
+  if (!persister.isMutable()) {
+    isReallyReadOnly=true;
+  }
+ else {
+    final Object proxy=persistenceContext.getProxy(entityEntry.getEntityKey());
+    if (proxy != null) {
+      isReallyReadOnly=((HibernateProxy)proxy).getHibernateLazyInitializer().isReadOnly();
+    }
+  }
+  if (isReallyReadOnly) {
+    persistenceContext.setEntryStatus(entityEntry,Status.READ_ONLY);
+  }
+ else {
+    TypeHelper.deepCopy(hydratedState,persister.getPropertyTypes(),persister.getPropertyUpdateability(),hydratedState,session);
+    persistenceContext.setEntryStatus(entityEntry,Status.MANAGED);
+  }
+  persister.afterInitialize(entity,session);
+  if (debugEnabled) {
+    LOG.debugf("Done materializing entity %s",MessageHelper.infoString(persister,id,session.getFactory()));
+  }
+  if (factory.getStatistics().isStatisticsEnabled()) {
+    factory.getStatistics().loadEntity(persister.getEntityName());
+  }
+}

@@ -1,5 +1,5 @@
 {
-  final String call=session().getFactory().getDialect().getCallableStatementSupport().renderCallableStatement(procedureName,parameterStrategy,registeredParameters,session());
+  final String call=getProducer().getJdbcServices().getJdbcEnvironment().getDialect().getCallableStatementSupport().renderCallableStatement(procedureName,parameterStrategy,registeredParameters,getProducer());
   try {
     final CallableStatement statement=(CallableStatement)getSession().getJdbcCoordinator().getStatementPreparer().prepareStatement(call,true);
     int i=1;
@@ -15,6 +15,6 @@
     return new ProcedureOutputsImpl(this,statement);
   }
  catch (  SQLException e) {
-    throw getSession().getFactory().getSQLExceptionHelper().convert(e,"Error preparing CallableStatement",getProcedureName());
+    throw getSession().getJdbcServices().getSqlExceptionHelper().convert(e,"Error preparing CallableStatement",getProcedureName());
   }
 }

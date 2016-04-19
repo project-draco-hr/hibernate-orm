@@ -1,0 +1,9 @@
+{
+  if (!isTransactionCoordinatorShared) {
+    return super.shouldCloseJdbcCoordinatorOnClose(isTransactionCoordinatorShared);
+  }
+  if (getActionQueue().hasBeforeTransactionActions() || getActionQueue().hasAfterTransactionActions()) {
+    log.warn("On close, shared Session had beforeQuery/afterQuery transaction actions that have not yet been processed");
+  }
+  return false;
+}

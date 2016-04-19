@@ -5,21 +5,9 @@
   }
   LOG.closing();
   isClosed=true;
-  settings.getMultiTableBulkIdStrategy().release(jdbcServices,buildLocalConnectionAccess());
-  Iterator iter=entityPersisters.values().iterator();
-  while (iter.hasNext()) {
-    EntityPersister p=(EntityPersister)iter.next();
-    if (p.hasCache()) {
-      p.getCacheAccessStrategy().getRegion().destroy();
-    }
-  }
-  iter=collectionPersisters.values().iterator();
-  while (iter.hasNext()) {
-    CollectionPersister p=(CollectionPersister)iter.next();
-    if (p.hasCache()) {
-      p.getCacheAccessStrategy().getRegion().destroy();
-    }
-  }
+  settings.getMultiTableBulkIdStrategy().release(serviceRegistry.getService(JdbcServices.class),buildLocalConnectionAccess());
+  cacheAccess.close();
+  metamodel.close();
   cacheAccess.close();
   queryPlanCache.cleanup();
   if (delayedDropAction != null) {

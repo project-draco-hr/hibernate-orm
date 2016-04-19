@@ -1,8 +1,21 @@
 {
-  errorIfClosed();
+  checkOpen();
   checkTransactionSynchStatus();
-  for (  MergeEventListener listener : listeners(EventType.MERGE)) {
-    listener.onMerge(event,copiedAlready);
+  try {
+    for (    MergeEventListener listener : listeners(EventType.MERGE)) {
+      listener.onMerge(event,copiedAlready);
+    }
   }
-  delayedAfterCompletion();
+ catch (  ObjectDeletedException sse) {
+    throw convert(new IllegalArgumentException(sse));
+  }
+catch (  MappingException e) {
+    throw convert(new IllegalArgumentException(e.getMessage(),e));
+  }
+catch (  RuntimeException e) {
+    throw convert(e);
+  }
+ finally {
+    delayedAfterCompletion();
+  }
 }

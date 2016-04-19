@@ -1,0 +1,27 @@
+{
+  final Session session=(Session)sessionImplementor;
+  final EntityPersister persister=sessionImplementor.getFactory().getMetamodel().entityPersister(entityName);
+  Object associatedObject=persister.getPropertyValue(object,propertyName);
+  if (associatedObject == null) {
+    throw new IdentifierGenerationException("attempted to assign id from null one-to-one property [" + getRole() + "]");
+  }
+  final EntityType foreignValueSourceType;
+  final Type propertyType=persister.getPropertyType(propertyName);
+  if (propertyType.isEntityType()) {
+    foreignValueSourceType=(EntityType)propertyType;
+  }
+ else {
+    foreignValueSourceType=(EntityType)persister.getPropertyType(PropertyPath.IDENTIFIER_MAPPER_PROPERTY + "." + propertyName);
+  }
+  Serializable id;
+  try {
+    id=ForeignKeys.getEntityIdentifierIfNotUnsaved(foreignValueSourceType.getAssociatedEntityName(),associatedObject,sessionImplementor);
+  }
+ catch (  TransientObjectException toe) {
+    id=session.save(foreignValueSourceType.getAssociatedEntityName(),associatedObject);
+  }
+  if (session.contains(object)) {
+    return IdentifierGeneratorHelper.SHORT_CIRCUIT_INDICATOR;
+  }
+  return id;
+}

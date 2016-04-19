@@ -1,18 +1,16 @@
 {
   EntityManager em=getOrCreateEntityManager();
   em.getTransaction().begin();
-  QueryImpl jpaQuery=em.createQuery("delete from Lockable l").unwrap(QueryImpl.class);
-  org.hibernate.internal.QueryImpl hqlQuery=(org.hibernate.internal.QueryImpl)jpaQuery.getHibernateQuery();
-  assertEquals(LockMode.NONE,hqlQuery.getLockOptions().getLockMode());
-  jpaQuery.setLockMode(LockModeType.NONE);
+  org.hibernate.query.Query query=em.createQuery("delete from Lockable l").unwrap(org.hibernate.query.Query.class);
+  assertEquals(LockMode.NONE,query.getLockOptions().getLockMode());
+  query.setLockMode(LockModeType.NONE);
   em.getTransaction().commit();
   em.clear();
   em.getTransaction().begin();
-  jpaQuery=em.createQuery("delete from Lockable l").unwrap(QueryImpl.class);
-  hqlQuery=(org.hibernate.internal.QueryImpl)jpaQuery.getHibernateQuery();
-  assertEquals(LockMode.NONE,hqlQuery.getLockOptions().getLockMode());
+  query=em.createQuery("delete from Lockable l").unwrap(org.hibernate.query.Query.class);
+  assertEquals(LockMode.NONE,query.getLockOptions().getLockMode());
   try {
-    jpaQuery.setLockMode(LockModeType.PESSIMISTIC_WRITE);
+    query.setLockMode(LockModeType.PESSIMISTIC_WRITE);
     fail("IllegalStateException should have been thrown.");
   }
  catch (  IllegalStateException e) {

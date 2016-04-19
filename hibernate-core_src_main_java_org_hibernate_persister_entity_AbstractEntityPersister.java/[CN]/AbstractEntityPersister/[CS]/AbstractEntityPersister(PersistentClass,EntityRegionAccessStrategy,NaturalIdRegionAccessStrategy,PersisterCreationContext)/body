@@ -11,6 +11,8 @@
  else {
     this.entityEntryFactory=ImmutableEntityEntryFactory.INSTANCE;
   }
+  final JdbcServices jdbcServices=factory.getServiceRegistry().getService(JdbcServices.class);
+  final Dialect dialect=jdbcServices.getJdbcEnvironment().getDialect();
   int batch=persistentClass.getBatchSize();
   if (batch == -1) {
     batch=factory.getSessionFactoryOptions().getDefaultBatchFetchSize();
@@ -29,20 +31,20 @@
   int i=0;
   while (iter.hasNext()) {
     Column col=(Column)iter.next();
-    rootTableKeyColumnNames[i]=col.getQuotedName(factory.getDialect());
-    rootTableKeyColumnReaders[i]=col.getReadExpr(factory.getDialect());
-    rootTableKeyColumnReaderTemplates[i]=col.getTemplate(factory.getDialect(),factory.getSqlFunctionRegistry());
-    identifierAliases[i]=col.getAlias(factory.getDialect(),persistentClass.getRootTable());
+    rootTableKeyColumnNames[i]=col.getQuotedName(dialect);
+    rootTableKeyColumnReaders[i]=col.getReadExpr(dialect);
+    rootTableKeyColumnReaderTemplates[i]=col.getTemplate(dialect,factory.getSqlFunctionRegistry());
+    identifierAliases[i]=col.getAlias(dialect,persistentClass.getRootTable());
     i++;
   }
   if (persistentClass.isVersioned()) {
-    versionColumnName=((Column)persistentClass.getVersion().getColumnIterator().next()).getQuotedName(factory.getDialect());
+    versionColumnName=((Column)persistentClass.getVersion().getColumnIterator().next()).getQuotedName(dialect);
   }
  else {
     versionColumnName=null;
   }
   sqlWhereString=StringHelper.isNotEmpty(persistentClass.getWhere()) ? "( " + persistentClass.getWhere() + ") " : null;
-  sqlWhereStringTemplate=sqlWhereString == null ? null : Template.renderWhereStringTemplate(sqlWhereString,factory.getDialect(),factory.getSqlFunctionRegistry());
+  sqlWhereStringTemplate=sqlWhereString == null ? null : Template.renderWhereStringTemplate(sqlWhereString,dialect,factory.getSqlFunctionRegistry());
   final boolean lazyAvailable=isInstrumented();
   int hydrateSpan=entityMetamodel.getPropertySpan();
   propertyColumnSpans=new int[hydrateSpan];
@@ -79,15 +81,15 @@
     int k=0;
     while (colIter.hasNext()) {
       Selectable thing=(Selectable)colIter.next();
-      colAliases[k]=thing.getAlias(factory.getDialect(),prop.getValue().getTable());
+      colAliases[k]=thing.getAlias(dialect,prop.getValue().getTable());
       if (thing.isFormula()) {
         foundFormula=true;
-        formulaTemplates[k]=thing.getTemplate(factory.getDialect(),factory.getSqlFunctionRegistry());
+        formulaTemplates[k]=thing.getTemplate(dialect,factory.getSqlFunctionRegistry());
       }
  else {
         Column col=(Column)thing;
-        colNames[k]=col.getQuotedName(factory.getDialect());
-        colReaderTemplates[k]=col.getTemplate(factory.getDialect(),factory.getSqlFunctionRegistry());
+        colNames[k]=col.getQuotedName(dialect);
+        colReaderTemplates[k]=col.getTemplate(dialect,factory.getSqlFunctionRegistry());
         colWriters[k]=col.getWriteExpr();
       }
       k++;
@@ -107,7 +109,7 @@
     propertyColumnInsertable[i]=prop.getValue().getColumnInsertability();
     propertySelectable[i]=prop.isSelectable();
     propertyUniqueness[i]=prop.getValue().isAlternateUniqueKey();
-    if (prop.isLob() && getFactory().getDialect().forceLobAsLastValue()) {
+    if (prop.isLob() && dialect.forceLobAsLastValue()) {
       lobProperties.add(i);
     }
     i++;
@@ -160,27 +162,27 @@
     while (colIter.hasNext()) {
       Selectable thing=(Selectable)colIter.next();
       if (thing.isFormula()) {
-        String template=thing.getTemplate(factory.getDialect(),factory.getSqlFunctionRegistry());
+        String template=thing.getTemplate(dialect,factory.getSqlFunctionRegistry());
         formnos[l]=formulaTemplates.size();
         colnos[l]=-1;
         formulaTemplates.add(template);
         forms[l]=template;
-        formulas.add(thing.getText(factory.getDialect()));
-        formulaAliases.add(thing.getAlias(factory.getDialect()));
+        formulas.add(thing.getText(dialect));
+        formulaAliases.add(thing.getAlias(dialect));
         formulasLazy.add(lazy);
       }
  else {
         Column col=(Column)thing;
-        String colName=col.getQuotedName(factory.getDialect());
+        String colName=col.getQuotedName(dialect);
         colnos[l]=columns.size();
         formnos[l]=-1;
         columns.add(colName);
         cols[l]=colName;
-        aliases.add(thing.getAlias(factory.getDialect(),prop.getValue().getTable()));
+        aliases.add(thing.getAlias(dialect,prop.getValue().getTable()));
         columnsLazy.add(lazy);
         columnSelectables.add(Boolean.valueOf(prop.isSelectable()));
-        readers[l]=col.getReadExpr(factory.getDialect());
-        String readerTemplate=col.getTemplate(factory.getDialect(),factory.getSqlFunctionRegistry());
+        readers[l]=col.getReadExpr(dialect);
+        String readerTemplate=col.getTemplate(dialect,factory.getSqlFunctionRegistry());
         readerTemplates[l]=readerTemplate;
         columnReaderTemplates.add(readerTemplate);
       }

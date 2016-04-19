@@ -1,21 +1,20 @@
 {
-  ConcurrentSecondLevelCacheStatisticsImpl slcs=(ConcurrentSecondLevelCacheStatisticsImpl)secondLevelCacheStatistics.get(regionName);
-  if (slcs == null) {
+  ConcurrentSecondLevelCacheStatisticsImpl stat=secondLevelCacheStatistics.get(regionName);
+  if (stat == null) {
     if (sessionFactory == null) {
       return null;
     }
-    Region region=sessionFactory.getSecondLevelCacheRegion(regionName);
-    if (region == null) {
+    final EntityRegionAccessStrategy entityRegionAccess=sessionFactory.getCache().getEntityRegionAccess(regionName);
+    final CollectionRegionAccessStrategy collectionRegionAccess=sessionFactory.getCache().getCollectionRegionAccess(regionName);
+    if (entityRegionAccess == null && collectionRegionAccess == null) {
       return null;
     }
-    RegionAccessStrategy accessStrategy=sessionFactory.getSecondLevelCacheRegionAccessStrategy(regionName);
-    EntityRegionAccessStrategy entityRegionAccessStrategy=accessStrategy instanceof EntityRegionAccessStrategy ? (EntityRegionAccessStrategy)accessStrategy : null;
-    CollectionRegionAccessStrategy collectionRegionAccessStrategy=accessStrategy instanceof CollectionRegionAccessStrategy ? (CollectionRegionAccessStrategy)accessStrategy : null;
-    slcs=new ConcurrentSecondLevelCacheStatisticsImpl(region,entityRegionAccessStrategy,collectionRegionAccessStrategy);
+    final Region region=entityRegionAccess != null ? entityRegionAccess.getRegion() : collectionRegionAccess.getRegion();
+    stat=new ConcurrentSecondLevelCacheStatisticsImpl(region,entityRegionAccess,collectionRegionAccess);
     ConcurrentSecondLevelCacheStatisticsImpl previous;
-    if ((previous=(ConcurrentSecondLevelCacheStatisticsImpl)secondLevelCacheStatistics.putIfAbsent(regionName,slcs)) != null) {
-      slcs=previous;
+    if ((previous=secondLevelCacheStatistics.putIfAbsent(regionName,stat)) != null) {
+      stat=previous;
     }
   }
-  return slcs;
+  return stat;
 }
