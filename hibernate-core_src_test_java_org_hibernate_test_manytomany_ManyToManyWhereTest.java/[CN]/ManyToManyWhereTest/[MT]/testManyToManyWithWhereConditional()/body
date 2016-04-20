@@ -1,0 +1,44 @@
+{
+  Session session=openSession();
+  Transaction transaction=session.beginTransaction();
+  Advertisement advertisement1=new Advertisement();
+  Advertisement advertisement2=new Advertisement();
+  session.saveOrUpdate(advertisement1);
+  session.saveOrUpdate(advertisement2);
+  Attachment a1=new Attachment();
+  a1.setFileName("memo.txt");
+  a1.setAdvertisements(new LinkedHashSet<>(Arrays.asList(advertisement1,advertisement2)));
+  Attachment a2=new Attachment();
+  a2.setFileName("mickeymouse.jpg");
+  a2.setDeleted("true");
+  a2.setAdvertisements(new LinkedHashSet<>(Arrays.asList(advertisement1,advertisement2)));
+  advertisement1.setAttachments(new HashSet<>(Arrays.asList(a1,a2)));
+  advertisement2.setAttachments(new HashSet<>(Arrays.asList(a1,a2)));
+  session.saveOrUpdate(a1);
+  session.saveOrUpdate(a2);
+  transaction.commit();
+  session.close();
+  session=openSession();
+  transaction=session.beginTransaction();
+  List<Advertisement> advertisements=(List<Advertisement>)session.createQuery("FROM Advertisement").list();
+  assertEquals(advertisements.size(),2);
+  for (  Advertisement advertisement : advertisements) {
+    PageAdvertisement pageAd=new PageAdvertisement();
+    pageAd.setAdvertisement(advertisement);
+    session.persist(pageAd);
+  }
+  transaction.commit();
+  session.close();
+  session=openSession();
+  transaction=session.beginTransaction();
+  List<PageAdvertisement> ads=(List<PageAdvertisement>)session.createQuery("FROM PageAdvertisement").list();
+  assertEquals(ads.size(),2);
+  for (  PageAdvertisement ad : ads) {
+    assertEquals(ad.getAdvertisement().getAttachments().size(),1);
+    for (    Attachment attachment : ad.getAdvertisement().getAttachments()) {
+      assertEquals(attachment.getAdvertisements().size(),2);
+    }
+  }
+  transaction.commit();
+  session.close();
+}
