@@ -1,16 +1,18 @@
 {
-  return region.invoke(key,new EntryProcessor<Object,Object,Boolean>(){
-    @Override public Boolean process(    MutableEntry<Object,Object> entry,    Object... args) throws EntryProcessorException {
-      final Lockable item=(Lockable)entry.getValue();
-      final boolean writeable=item == null || item.isWriteable((Long)args[1],args[2],versionComparator);
-      if (writeable) {
-        entry.setValue(new Item(args[0],args[2],region.nextTimestamp()));
+  while (true) {
+    Lockable item=(Lockable)region.get(key);
+    if (item == null) {
+      if (region.putIfAbsent(key,new Item(value,version,txTimestamp,nextItemId()))) {
         return true;
       }
- else {
-        return false;
+    }
+ else     if (item.isWriteable(txTimestamp,version,versionComparator)) {
+      if (region.replace(key,item,new Item(value,version,txTimestamp,nextItemId()))) {
+        return true;
       }
     }
+ else {
+      return false;
+    }
   }
-,value,txTimestamp,version);
 }

@@ -1,16 +1,14 @@
 {
-  region.invoke(key,new EntryProcessor<Object,Object,Void>(){
-    @Override public Void process(    MutableEntry<Object,Object> entry,    Object... args) throws EntryProcessorException {
-      final Lockable item=(Lockable)entry.getValue();
-      if ((item != null) && item.isUnlockable((SoftLock)args[0])) {
-        ((Lock)item).unlock(region.nextTimestamp());
-        entry.setValue(item);
+  while (true) {
+    Lockable item=(Lockable)region.get(key);
+    if (item != null && item.isUnlockable(lock)) {
+      if (region.replace(key,item,((Lock)item).unlock(region.nextTimestamp()))) {
+        return;
       }
+    }
  else {
-        entry.setValue(null);
-      }
-      return null;
+      handleMissingLock(key,item);
+      return;
     }
   }
-,lock);
 }

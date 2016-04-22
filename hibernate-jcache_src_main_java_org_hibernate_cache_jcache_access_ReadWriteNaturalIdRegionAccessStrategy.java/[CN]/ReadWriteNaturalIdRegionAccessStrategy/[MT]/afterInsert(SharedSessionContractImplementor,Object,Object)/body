@@ -1,14 +1,3 @@
 {
-  return region.invoke(key,new EntryProcessor<Object,Object,Boolean>(){
-    @Override public Boolean process(    MutableEntry<Object,Object> entry,    Object... args) throws EntryProcessorException {
-      if (!entry.exists()) {
-        entry.setValue(new Item(args[0],null,(Long)args[1]));
-        return true;
-      }
- else {
-        return false;
-      }
-    }
-  }
-,value,region.nextTimestamp());
+  return region.putIfAbsent(key,new Item(value,null,region.nextTimestamp(),nextItemId()));
 }
