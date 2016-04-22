@@ -1,7 +1,8 @@
 {
   SessionFactory sf=new Configuration().addAnnotatedClass(Investor.class).registerTypeContributor(new InvestorTypeContributor()).setProperty("hibernate.hbm2ddl.auto","create-drop").buildSessionFactory();
+  Session sess=sf.openSession();
   try {
-    Session sess=sf.openSession();
+    sess.getTransaction().begin();
     Investor myInv=getInvestor();
     myInv.setId(2L);
     sess.save(myInv);
@@ -11,7 +12,10 @@
     assertEquals(new BigDecimal("100"),inv.getInvestments().get(0).getAmount().getAmount());
     sess.close();
   }
-  finally {
+ catch (  Exception e) {
+    sess.getTransaction().rollback();
+  }
+ finally {
     sf.close();
   }
 }
