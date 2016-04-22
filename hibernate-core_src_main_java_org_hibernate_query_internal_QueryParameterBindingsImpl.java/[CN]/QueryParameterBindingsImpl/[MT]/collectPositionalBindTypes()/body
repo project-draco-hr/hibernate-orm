@@ -1,11 +1,14 @@
 {
-  List<Type> types=new ArrayList<>();
-  for (  Map.Entry<QueryParameter,QueryParameterBinding> entry : parameterBindingMap.entrySet()) {
-    if (entry.getKey().getPosition() == null) {
-      continue;
-    }
+  TreeMap<Integer,QueryParameterBinding> positionalParameterBindingMap=collectPositionalParameterBindings();
+  Type[] types=new Type[positionalParameterBindingMap.size()];
+  for (  Map.Entry<Integer,QueryParameterBinding> entry : positionalParameterBindingMap.entrySet()) {
+    final int position=entry.getKey();
     Type type=entry.getValue().getBindType();
-    types.add(entry.getKey().getPosition(),type);
+    if (type == null) {
+      log.debugf("Binding for positional-parameter [%s] did not define type, using SerializableType",position);
+      type=SerializableType.INSTANCE;
+    }
+    types[position]=type;
   }
-  return types.toArray(new Type[types.size()]);
+  return types;
 }

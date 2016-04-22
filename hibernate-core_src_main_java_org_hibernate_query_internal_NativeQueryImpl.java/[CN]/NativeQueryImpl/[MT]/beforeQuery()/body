@@ -1,4 +1,24 @@
 {
+  prepareQueryReturnsIfNecessary();
+  boolean noReturns=queryReturns == null || queryReturns.isEmpty();
+  if (noReturns) {
+    this.autoDiscoverTypes=true;
+  }
+ else {
+    for (    NativeSQLQueryReturn queryReturn : queryReturns) {
+      if (queryReturn instanceof NativeSQLQueryScalarReturn) {
+        NativeSQLQueryScalarReturn scalar=(NativeSQLQueryScalarReturn)queryReturn;
+        if (scalar.getType() == null) {
+          autoDiscoverTypes=true;
+          break;
+        }
+      }
+ else       if (NativeSQLQueryConstructorReturn.class.isInstance(queryReturn)) {
+        autoDiscoverTypes=true;
+        break;
+      }
+    }
+  }
   super.beforeQuery();
   if (getSynchronizedQuerySpaces() != null && !getSynchronizedQuerySpaces().isEmpty()) {
     return;

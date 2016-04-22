@@ -7,7 +7,10 @@
     s.createQuery("from Animal a inner join fetch a.offspring as o with o.bodyWeight = :someLimit").setDouble("someLimit",1).list();
     fail("ad-hoc on clause allowed with fetched association");
   }
- catch (  HibernateException e) {
+ catch (  IllegalArgumentException e) {
+    assertTyping(QueryException.class,e.getCause());
+  }
+catch (  HibernateException e) {
   }
   txn.commit();
   s.close();

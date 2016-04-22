@@ -5,7 +5,7 @@
   final Dialect dialect=session.getFactory().getServiceRegistry().getService(JdbcServices.class).getJdbcEnvironment().getDialect();
   final int inExprLimit=dialect.getInExpressionCountLimit();
   for (  Map.Entry<QueryParameter,QueryParameterListBinding> entry : parameterListBindingMap.entrySet()) {
-    final QueryParameterNamedImpl sourceParam=(QueryParameterNamedImpl)entry.getKey();
+    final NamedParameterDescriptor sourceParam=(NamedParameterDescriptor)entry.getKey();
     final Collection bindValues=entry.getValue().getBindValues();
     if (inExprLimit > 0 && bindValues.size() > inExprLimit) {
       log.tooManyInExpressions(dialect.getClass().getName(),inExprLimit,sourceParam.getName(),bindValues.size());
@@ -21,7 +21,7 @@
     final String afterPlaceholder=queryString.substring(loc + placeholder.length());
     boolean isEnclosedInParens=StringHelper.getLastNonWhitespaceCharacter(beforePlaceholder) == '(' && StringHelper.getFirstNonWhitespaceCharacter(afterPlaceholder) == ')';
     if (bindValues.size() == 1 && isEnclosedInParens) {
-      final QueryParameterBinding syntheticBinding=new QueryParameterBindingImpl(entry.getValue().getBindType());
+      final QueryParameterBinding syntheticBinding=makeBinding(entry.getValue().getBindType());
       syntheticBinding.setBindValue(bindValues.iterator().next());
       parameterBindingMap.put(sourceParam,syntheticBinding);
       continue;
@@ -35,7 +35,7 @@
       }
       expansionList.append(ParserHelper.HQL_VARIABLE_PREFIX).append(syntheticName);
       final QueryParameter syntheticParam=new QueryParameterNamedImpl<>(syntheticName,sourceParam.getSourceLocations(),sourceParam.isJpaPositionalParameter(),sourceParam.getType());
-      final QueryParameterBinding syntheticBinding=new QueryParameterBindingImpl(entry.getValue().getBindType());
+      final QueryParameterBinding syntheticBinding=makeBinding(entry.getValue().getBindType());
       syntheticBinding.setBindValue(bindValue);
       if (parameterBindingMap.put(syntheticParam,syntheticBinding) != null) {
         throw new HibernateException("Repeated usage of synthetic parameter name [" + syntheticName + "] while expanding list parameter.");

@@ -97,7 +97,15 @@
     }
     assertEquals(1,count.longValue());
   }
- catch (  SQLGrammarException ex) {
+ catch (  PersistenceException e) {
+    SQLGrammarException cause=assertTyping(SQLGrammarException.class,e.getCause());
+    if (!getDialect().supportsTupleCounts()) {
+    }
+ else {
+      throw e;
+    }
+  }
+catch (  SQLGrammarException ex) {
     if (!getDialect().supportsTupleCounts()) {
     }
  else {

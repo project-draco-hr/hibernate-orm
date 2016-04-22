@@ -1,8 +1,5 @@
 {
   Throwable cause=e;
-  if (e instanceof TransactionException) {
-    cause=e.getCause();
-  }
   if (cause instanceof StaleStateException) {
     final PersistenceException converted=wrapStaleStateException((StaleStateException)cause);
     handlePersistenceException(converted);
@@ -49,6 +46,9 @@
     return converted;
   }
  else   if (cause instanceof QueryException) {
+    return new IllegalArgumentException(cause);
+  }
+ else   if (cause instanceof MultipleBagFetchException) {
     return new IllegalArgumentException(cause);
   }
  else   if (cause instanceof TransientObjectException) {

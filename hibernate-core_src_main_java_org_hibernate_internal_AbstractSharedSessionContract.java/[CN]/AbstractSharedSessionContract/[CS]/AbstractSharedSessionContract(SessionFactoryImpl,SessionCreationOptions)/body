@@ -2,6 +2,9 @@
   this.factory=factory;
   this.sessionIdentifier=StandardRandomStrategy.INSTANCE.generateUUID(null);
   this.timestamp=factory.getCache().getRegionFactory().nextTimestamp();
+  this.transactionType=options.getPersistenceUnitTransactionType();
+  this.synchronizationType=options.getSynchronizationType();
+  this.persistenceContextType=PersistenceContextType.TRANSACTION;
   this.tenantIdentifier=options.getTenantIdentifier();
   if (MultiTenancyStrategy.NONE == factory.getSettings().getMultiTenancyStrategy()) {
     if (tenantIdentifier != null) {
@@ -22,7 +25,6 @@
       throw new SessionException("Cannot simultaneously share transaction context and specify connection");
     }
     this.isTransactionCoordinatorShared=true;
-    this.autoJoinTransactions=false;
     final SharedSessionCreationOptions sharedOptions=(SharedSessionCreationOptions)options;
     this.transactionCoordinator=sharedOptions.getTransactionCoordinator();
     this.jdbcCoordinator=sharedOptions.getJdbcCoordinator();
@@ -33,10 +35,10 @@
     if (sharedOptions.getPhysicalConnectionHandlingMode() != this.jdbcCoordinator.getLogicalConnection().getConnectionHandlingMode()) {
       log.debug("Session creation specified 'PhysicalConnectionHandlingMode which is invalid in conjunction " + "with sharing JDBC connection between sessions; ignoring");
     }
+    addSharedSessionTransactionObserver(transactionCoordinator);
   }
  else {
     this.isTransactionCoordinatorShared=false;
-    this.autoJoinTransactions=options.getSynchronizationType() == SynchronizationType.SYNCHRONIZED;
     this.jdbcCoordinator=new JdbcCoordinatorImpl(options.getConnection(),this);
     this.transactionCoordinator=factory.getServiceRegistry().getService(TransactionCoordinatorBuilder.class).buildTransactionCoordinator(jdbcCoordinator,this);
     getTransaction();

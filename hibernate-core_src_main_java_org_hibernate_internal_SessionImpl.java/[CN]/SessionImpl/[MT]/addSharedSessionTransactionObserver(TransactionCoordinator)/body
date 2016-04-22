@@ -1,0 +1,25 @@
+{
+  transactionCoordinator.addObserver(new TransactionObserver(){
+    @Override public void afterBegin(){
+    }
+    @Override public void beforeCompletion(){
+      if (isOpen() && flushBeforeCompletionEnabled) {
+        managedFlush();
+      }
+      actionQueue.beforeTransactionCompletion();
+      try {
+        getInterceptor().beforeTransactionCompletion(getCurrentTransaction());
+      }
+ catch (      Throwable t) {
+        log.exceptionInBeforeTransactionCompletionInterceptor(t);
+      }
+    }
+    @Override public void afterCompletion(    boolean successful,    boolean delayed){
+      afterTransactionCompletion(successful,delayed);
+      if (!isClosed() && autoCloseSessionEnabled) {
+        managedClose();
+      }
+    }
+  }
+);
+}

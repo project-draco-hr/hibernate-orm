@@ -5,7 +5,10 @@
     s.createQuery("select a, a.weight from Animal a inner join fetch a.offspring").scroll();
     fail("scroll allowed with collection fetch and reurning tuples");
   }
- catch (  HibernateException e) {
+ catch (  IllegalArgumentException e) {
+    assertTyping(QueryException.class,e.getCause());
+  }
+catch (  HibernateException e) {
   }
   txn.commit();
   s.close();

@@ -1,7 +1,12 @@
 {
   checkOpen();
-  if (object != null && !(object instanceof HibernateProxy) && getSessionFactory().getMetamodel().entityPersister(object.getClass()) == null) {
-    throw convert(new IllegalArgumentException("Not an entity:" + object.getClass()));
+  if (object != null && !HibernateProxy.class.isInstance(object)) {
+    try {
+      getSessionFactory().getMetamodel().entityPersister(object.getClass());
+    }
+ catch (    HibernateException e) {
+      throw convert(new IllegalArgumentException("Not an entity:" + object.getClass()));
+    }
   }
   try {
     if (object instanceof HibernateProxy) {

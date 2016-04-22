@@ -5,13 +5,19 @@
     s.createQuery("from Human h inner join h.friends as f with f.bodyWeight < :someLimit").setDouble("someLimit",1).list();
     fail("failure expected");
   }
- catch (  InvalidWithClauseException expected) {
+ catch (  IllegalArgumentException e) {
+    assertTyping(QueryException.class,e.getCause());
+  }
+catch (  InvalidWithClauseException expected) {
   }
   try {
     s.createQuery("from Human h inner join h.offspring o with o.mother.father = :cousin").setEntity("cousin",s.load(Human.class,new Long(123))).list();
     fail("failure expected");
   }
- catch (  InvalidWithClauseException expected) {
+ catch (  IllegalArgumentException e) {
+    assertTyping(QueryException.class,e.getCause());
+  }
+catch (  InvalidWithClauseException expected) {
   }
   txn.commit();
   s.close();

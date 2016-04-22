@@ -1,9 +1,8 @@
 {
-  final LinkedHashSet<String> spacesList=new LinkedHashSet<String>();
+  final LinkedHashSet<String> spacesList=new LinkedHashSet<>();
   spacesList.addAll(tableSpaces);
   final SessionFactoryImplementor factory=session.getFactory();
-  for (  String entityName : factory.getAllClassMetadata().keySet()) {
-    final EntityPersister persister=factory.getEntityPersister(entityName);
+  for (  EntityPersister persister : factory.getMetamodel().entityPersisters().values()) {
     final String[] entitySpaces=(String[])persister.getQuerySpaces();
     if (affectedEntity(tableSpaces,entitySpaces)) {
       spacesList.addAll(Arrays.asList(entitySpaces));
@@ -13,10 +12,10 @@
       if (persister.hasNaturalIdentifier() && persister.hasNaturalIdCache()) {
         naturalIdCleanups.add(new NaturalIdCleanup(persister.getNaturalIdCacheAccessStrategy()));
       }
-      final Set<String> roles=session.getFactory().getCollectionRolesByEntityParticipant(persister.getEntityName());
+      final Set<String> roles=session.getFactory().getMetamodel().getCollectionRolesByEntityParticipant(persister.getEntityName());
       if (roles != null) {
         for (        String role : roles) {
-          final CollectionPersister collectionPersister=factory.getCollectionPersister(role);
+          final CollectionPersister collectionPersister=factory.getMetamodel().collectionPersister(role);
           if (collectionPersister.hasCache()) {
             collectionCleanups.add(new CollectionCleanup(collectionPersister.getCacheAccessStrategy()));
           }

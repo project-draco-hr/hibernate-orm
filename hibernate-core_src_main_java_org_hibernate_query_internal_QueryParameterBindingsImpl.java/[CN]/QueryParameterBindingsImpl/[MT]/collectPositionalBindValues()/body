@@ -1,10 +1,9 @@
 {
-  List<Object> values=new ArrayList<>();
-  for (  Map.Entry<QueryParameter,QueryParameterBinding> entry : parameterBindingMap.entrySet()) {
-    if (entry.getKey().getPosition() == null) {
-      continue;
-    }
-    values.add(entry.getKey().getPosition(),entry.getValue().getBindValue());
+  TreeMap<Integer,QueryParameterBinding> positionalParameterBindingMap=collectPositionalParameterBindings();
+  Object[] values=new Object[positionalParameterBindingMap.size()];
+  for (  Map.Entry<Integer,QueryParameterBinding> entry : positionalParameterBindingMap.entrySet()) {
+    final int position=entry.getKey();
+    values[position]=entry.getValue().getBindValue();
   }
-  return values.toArray(new Object[values.size()]);
+  return values;
 }

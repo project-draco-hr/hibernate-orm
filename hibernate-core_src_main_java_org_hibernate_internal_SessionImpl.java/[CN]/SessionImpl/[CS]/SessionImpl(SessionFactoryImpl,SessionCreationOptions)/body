@@ -1,11 +1,11 @@
 {
   super(factory,options);
-  this.transactionType=options.getPersistenceUnitTransactionType();
-  this.synchronizationType=options.getSynchronizationType();
   this.actionQueue=new ActionQueue(this);
   this.persistenceContext=new StatefulPersistenceContext(this);
   this.sessionOwner=options.getSessionOwner();
   initializeFromSessionOwner(sessionOwner);
+  this.autoClear=options.isClearStateOnCloseEnabled();
+  this.flushBeforeCompletionEnabled=options.isFlushBeforeCompletionEnabled();
   if (options instanceof SharedSessionCreationOptions && ((SharedSessionCreationOptions)options).isTransactionCoordinatorShared()) {
     final SharedSessionCreationOptions sharedOptions=(SharedSessionCreationOptions)options;
     if (sharedOptions.getTransactionCompletionProcesses() != null) {
@@ -31,12 +31,12 @@
       @Override public void afterCompletion(      boolean successful,      boolean delayed){
         log.tracef("TransactionObserver#afterCompletion(%s, %s) on Session [%s]",successful,delayed,getSessionIdentifier());
         afterTransactionCompletion(successful,delayed);
-        if (!isClosed() && autoCloseSessionEnabled) {
-          managedClose();
-        }
       }
     }
 );
+  }
+ else {
+    this.autoCloseSessionEnabled=getPersistenceContextType() == PersistenceContextType.TRANSACTION && factory.getSessionFactoryOptions().isAutoCloseSessionEnabled();
   }
   loadQueryInfluencers=new LoadQueryInfluencers(factory);
   if (getFactory().getStatistics().isStatisticsEnabled()) {
