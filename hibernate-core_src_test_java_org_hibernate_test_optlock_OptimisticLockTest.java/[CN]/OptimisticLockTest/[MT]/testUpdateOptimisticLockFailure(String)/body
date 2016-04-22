@@ -24,21 +24,11 @@
     mainSession.flush();
     fail("expecting opt lock failure");
   }
- catch (  StaleObjectStateException expected) {
-  }
-catch (  StaleStateException expected) {
-  }
-catch (  JDBCException e) {
-    if (!(getDialect() instanceof SQLServerDialect && e.getErrorCode() == 3960)) {
-      throw e;
-    }
- else {
-      mainSession.getTransaction().rollback();
-      mainSession.beginTransaction();
-    }
+ catch (  PersistenceException e) {
+    checkException(mainSession,e);
   }
   mainSession.clear();
-  mainSession.getTransaction().commit();
+  mainSession.getTransaction().rollback();
   mainSession.close();
   mainSession=openSession();
   mainSession.beginTransaction();

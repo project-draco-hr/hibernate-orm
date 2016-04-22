@@ -16,8 +16,11 @@
     s.flush();
     fail("Database Exception not handled");
   }
- catch (  JDBCException e) {
+ catch (  PersistenceException e) {
+    assertTyping(JDBCException.class,e.getCause());
   }
-  tx.rollback();
-  s.close();
+ finally {
+    tx.rollback();
+    s.close();
+  }
 }

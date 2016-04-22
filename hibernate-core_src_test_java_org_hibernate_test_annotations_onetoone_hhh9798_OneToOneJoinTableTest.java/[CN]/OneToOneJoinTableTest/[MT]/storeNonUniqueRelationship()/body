@@ -12,7 +12,10 @@
     tx.commit();
     fail();
   }
-  finally {
+ catch (  PersistenceException e) {
+    assertTyping(ConstraintViolationException.class,e.getCause());
+  }
+ finally {
     if (session != null) {
       session.getTransaction().rollback();
       session.close();

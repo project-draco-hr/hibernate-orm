@@ -31,7 +31,12 @@
     tx.commit();
     fail("Optimistic locking should work");
   }
- catch (  StaleStateException expected) {
+ catch (  PersistenceException expected) {
+    if (expected.getCause() instanceof StaleStateException) {
+    }
+ else {
+      fail("StaleStateException expected but is " + expected.getCause());
+    }
   }
  finally {
     if (tx != null) {

@@ -1,7 +1,17 @@
 {
   Session session=openSession();
-  session.beginTransaction();
-  session.createQuery("select p from Person p join fetch p.data").list();
-  session.getTransaction().commit();
-  session.close();
+  try {
+    session.beginTransaction();
+    session.createQuery("select p from Person p join fetch p.data").list();
+    session.getTransaction().commit();
+  }
+ catch (  IllegalArgumentException e) {
+    assertTyping(QuerySyntaxException.class,e.getCause());
+    session.getTransaction().rollback();
+  }
+catch (  QuerySyntaxException qe) {
+  }
+ finally {
+    session.close();
+  }
 }

@@ -23,8 +23,11 @@
     s.flush();
     fail("Database constraint non-existant");
   }
- catch (  JDBCException e) {
+ catch (  PersistenceException e) {
+    assertTyping(JDBCException.class,e.getCause());
   }
-  tx.rollback();
-  s.close();
+ finally {
+    tx.rollback();
+    s.close();
+  }
 }

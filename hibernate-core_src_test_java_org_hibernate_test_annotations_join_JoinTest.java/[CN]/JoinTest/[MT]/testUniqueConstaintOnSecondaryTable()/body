@@ -11,8 +11,13 @@
     tx.commit();
     fail("unique constraints violation on secondary table");
   }
- catch (  HibernateException e) {
-    tx.rollback();
+ catch (  PersistenceException e) {
+    try {
+      assertTyping(ConstraintViolationException.class,e.getCause());
+    }
+  finally {
+      tx.rollback();
+    }
   }
  finally {
     s.close();

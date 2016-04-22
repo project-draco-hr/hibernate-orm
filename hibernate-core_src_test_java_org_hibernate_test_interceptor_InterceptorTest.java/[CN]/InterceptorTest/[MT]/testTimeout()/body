@@ -11,7 +11,8 @@
     t.commit();
     fail("Transaction should have timed out");
   }
- catch (  TransactionException e) {
-    assertTrue("Transaction failed for the wrong reason.  Expecting transaction timeout, but found [" + e.getMessage() + "]",e.getMessage().contains("transaction timeout expired"));
+ catch (  PersistenceException e) {
+    assertTyping(TransactionException.class,e.getCause());
+    assertTrue("Transaction failed for the wrong reason.  Expecting transaction timeout, but found [" + e.getCause().getMessage() + "]",e.getCause().getMessage().contains("transaction timeout expired"));
   }
 }

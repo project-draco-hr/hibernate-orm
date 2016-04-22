@@ -10,8 +10,9 @@
     s.getTransaction().commit();
     fail("should have failed because inserts are beforeQuery deletes");
   }
- catch (  ConstraintViolationException ex) {
+ catch (  PersistenceException e) {
     s.getTransaction().rollback();
+    assertTyping(ConstraintViolationException.class,e.getCause());
   }
  finally {
     s.close();
