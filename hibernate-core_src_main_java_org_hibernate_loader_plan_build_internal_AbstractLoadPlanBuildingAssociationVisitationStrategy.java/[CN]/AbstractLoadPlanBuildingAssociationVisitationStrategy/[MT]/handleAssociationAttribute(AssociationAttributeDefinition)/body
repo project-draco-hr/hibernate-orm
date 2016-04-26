@@ -1,8 +1,5 @@
 {
   final FetchStrategy fetchStrategy=determineFetchStrategy(attributeDefinition);
-  if (fetchStrategy.getTiming() != FetchTiming.IMMEDIATE) {
-    return false;
-  }
   final ExpandingFetchSource currentSource=currentSource();
   currentSource.validateFetchPlan(fetchStrategy,attributeDefinition);
   final AssociationAttributeDefinition.AssociationNature nature=attributeDefinition.getAssociationNature();
@@ -12,7 +9,7 @@
   }
  else   if (nature == AssociationAttributeDefinition.AssociationNature.ENTITY) {
     EntityFetch fetch=currentSource.buildEntityAttributeFetch(attributeDefinition,fetchStrategy);
-    if (fetchStrategy.getStyle() == FetchStyle.JOIN) {
+    if (FetchStrategyHelper.isJoinFetched(fetchStrategy)) {
       pushToStack((ExpandingFetchSource)fetch);
       return true;
     }
@@ -22,7 +19,7 @@
   }
  else {
     CollectionAttributeFetch fetch=currentSource.buildCollectionAttributeFetch(attributeDefinition,fetchStrategy);
-    if (fetchStrategy.getStyle() == FetchStyle.JOIN) {
+    if (FetchStrategyHelper.isJoinFetched(fetchStrategy)) {
       pushToCollectionStack(fetch);
       return true;
     }

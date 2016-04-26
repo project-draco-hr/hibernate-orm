@@ -1,0 +1,36 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  EmployeeGroup group1=new EmployeeGroup();
+  Employee employee1=new Employee("Jane");
+  Employee employee2=new Employee("Jeff");
+  group1.addEmployee(employee1);
+  group1.addEmployee(employee2);
+  EmployeeGroup group2=new EmployeeGroup();
+  Employee employee3=new Employee("Joan");
+  Employee employee4=new Employee("John");
+  group2.addEmployee(employee3);
+  group2.addEmployee(employee4);
+  s.save(group1);
+  s.save(group2);
+  s.flush();
+  s.clear();
+  sessionFactory().getStatistics().clear();
+  List<EmployeeGroup> results=s.createQuery("from SubselectFetchCollectionFromBatchTest$EmployeeGroup where id in :groups").setParameterList("groups",new Long[]{group1.getId(),group2.getId()}).list();
+  assertEquals(1,sessionFactory().getStatistics().getPrepareStatementCount());
+  sessionFactory().getStatistics().clear();
+  for (  EmployeeGroup group : results) {
+    assertTrue(Hibernate.isInitialized(group));
+    assertFalse(Hibernate.isInitialized(group.getEmployees()));
+  }
+  assertEquals(0,sessionFactory().getStatistics().getPrepareStatementCount());
+  Hibernate.initialize(results.get(0).getEmployees());
+  assertEquals(1,sessionFactory().getStatistics().getPrepareStatementCount());
+  sessionFactory().getStatistics().clear();
+  for (  EmployeeGroup group : results) {
+    assertTrue(Hibernate.isInitialized(group.getEmployees()));
+  }
+  assertEquals(0,sessionFactory().getStatistics().getPrepareStatementCount());
+  t.rollback();
+  s.close();
+}

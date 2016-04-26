@@ -1,0 +1,46 @@
+{
+  Session s=openSession();
+  Transaction t=s.beginTransaction();
+  EmployeeGroup group1=new EmployeeGroup();
+  Employee employee1=new Employee("Jane");
+  Employee employee2=new Employee("Jeff");
+  group1.addEmployee(employee1);
+  group1.addEmployee(employee2);
+  EmployeeGroup group2=new EmployeeGroup();
+  Employee employee3=new Employee("Joan");
+  Employee employee4=new Employee("John");
+  group2.addEmployee(employee3);
+  group2.addEmployee(employee4);
+  s.save(group1);
+  s.save(group2);
+  s.flush();
+  s.clear();
+  sessionFactory().getStatistics().clear();
+  EmployeeGroup[] groups=new EmployeeGroup[]{(EmployeeGroup)s.load(EmployeeGroup.class,group1.getId()),(EmployeeGroup)s.load(EmployeeGroup.class,group2.getId())};
+  assertEquals(0,sessionFactory().getStatistics().getPrepareStatementCount());
+  for (  EmployeeGroup group : groups) {
+    assertFalse(Hibernate.isInitialized(group));
+  }
+  assertEquals(0,sessionFactory().getStatistics().getPrepareStatementCount());
+  for (int i=0; i < groups.length; i++) {
+    Hibernate.initialize(groups[i]);
+    assertTrue(Hibernate.isInitialized(groups[i]));
+    assertFalse(Hibernate.isInitialized(groups[i].getEmployees()));
+  }
+  assertEquals(1,sessionFactory().getStatistics().getPrepareStatementCount());
+  sessionFactory().getStatistics().clear();
+  for (  EmployeeGroup group : groups) {
+    assertTrue(Hibernate.isInitialized(group));
+    assertFalse(Hibernate.isInitialized(group.getEmployees()));
+  }
+  assertEquals(0,sessionFactory().getStatistics().getPrepareStatementCount());
+  Hibernate.initialize(groups[0].getEmployees());
+  assertEquals(1,sessionFactory().getStatistics().getPrepareStatementCount());
+  sessionFactory().getStatistics().clear();
+  for (  EmployeeGroup group : groups) {
+    assertTrue(Hibernate.isInitialized(group.getEmployees()));
+  }
+  assertEquals(0,sessionFactory().getStatistics().getPrepareStatementCount());
+  t.rollback();
+  s.close();
+}
