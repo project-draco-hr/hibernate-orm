@@ -1,6 +1,10 @@
 {
   log.tracef("SessionImpl#afterTransactionCompletion(successful=%s, delayed=%s)",successful,delayed);
-  afterCompletionAction.doAction(successful,this);
+  if (!isClosed()) {
+    if (!successful && autoClear) {
+      clear();
+    }
+  }
   persistenceContext.afterTransactionCompletion();
   actionQueue.afterTransactionCompletion(successful);
   getEventListenerManager().transactionCompletion(successful);
@@ -17,8 +21,5 @@
     if (shouldAutoClose() && !isClosed()) {
       managedClose();
     }
-  }
-  if (autoClear) {
-    internalClear();
   }
 }

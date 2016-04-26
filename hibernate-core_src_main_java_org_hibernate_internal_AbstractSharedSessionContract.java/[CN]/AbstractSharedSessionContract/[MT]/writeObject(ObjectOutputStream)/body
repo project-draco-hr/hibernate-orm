@@ -3,5 +3,11 @@
   if (!jdbcCoordinator.isReadyForSerialization()) {
     throw new IllegalStateException("Cannot serialize " + getClass().getSimpleName() + " ["+ getSessionIdentifier()+ "] while connected");
   }
+  if (isTransactionCoordinatorShared) {
+    throw new IllegalStateException("Cannot serialize " + getClass().getSimpleName() + " ["+ getSessionIdentifier()+ "] as it has a shared TransactionCoordinator");
+  }
   oos.defaultWriteObject();
+  factory.serialize(oos);
+  oos.writeObject(jdbcSessionContext.getStatementInspector());
+  jdbcCoordinator.serialize(oos);
 }

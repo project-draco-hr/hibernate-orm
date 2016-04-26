@@ -3,7 +3,7 @@
     @Override public void afterBegin(){
     }
     @Override public void beforeCompletion(){
-      if (isOpen() && flushBeforeCompletionEnabled) {
+      if (isOpen() && getHibernateFlushMode() != FlushMode.MANUAL) {
         managedFlush();
       }
       actionQueue.beforeTransactionCompletion();
@@ -16,7 +16,7 @@
     }
     @Override public void afterCompletion(    boolean successful,    boolean delayed){
       afterTransactionCompletion(successful,delayed);
-      if (!isClosed() && autoCloseSessionEnabled) {
+      if (!isClosed() && autoClose) {
         managedClose();
       }
     }

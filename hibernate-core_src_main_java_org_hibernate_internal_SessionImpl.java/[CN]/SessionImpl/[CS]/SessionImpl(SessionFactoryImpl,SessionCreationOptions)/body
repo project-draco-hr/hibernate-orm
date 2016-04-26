@@ -4,39 +4,16 @@
   this.persistenceContext=new StatefulPersistenceContext(this);
   this.sessionOwner=options.getSessionOwner();
   initializeFromSessionOwner(sessionOwner);
-  this.autoClear=options.isClearStateOnCloseEnabled();
-  this.flushBeforeCompletionEnabled=options.isFlushBeforeCompletionEnabled();
+  this.autoClear=options.shouldAutoClear();
+  this.autoClose=options.shouldAutoClose();
   if (options instanceof SharedSessionCreationOptions && ((SharedSessionCreationOptions)options).isTransactionCoordinatorShared()) {
     final SharedSessionCreationOptions sharedOptions=(SharedSessionCreationOptions)options;
     if (sharedOptions.getTransactionCompletionProcesses() != null) {
       actionQueue.setTransactionCompletionProcesses(sharedOptions.getTransactionCompletionProcesses(),true);
     }
-    getTransactionCoordinator().addObserver(new TransactionObserver(){
-      @Override public void afterBegin(){
-        log.tracef("TransactionObserver#afterBegin on Session [%s]",getSessionIdentifier());
-      }
-      @Override public void beforeCompletion(){
-        log.tracef("TransactionObserver#beforeCompletion on Session [%s]",getSessionIdentifier());
-        if (isOpen() && flushBeforeCompletionEnabled) {
-          SessionImpl.this.managedFlush();
-        }
-        actionQueue.beforeTransactionCompletion();
-        try {
-          getInterceptor().beforeTransactionCompletion(getTransaction());
-        }
- catch (        Throwable t) {
-          log.exceptionInBeforeTransactionCompletionInterceptor(t);
-        }
-      }
-      @Override public void afterCompletion(      boolean successful,      boolean delayed){
-        log.tracef("TransactionObserver#afterCompletion(%s, %s) on Session [%s]",successful,delayed,getSessionIdentifier());
-        afterTransactionCompletion(successful,delayed);
-      }
-    }
-);
   }
  else {
-    this.autoCloseSessionEnabled=getPersistenceContextType() == PersistenceContextType.TRANSACTION && factory.getSessionFactoryOptions().isAutoCloseSessionEnabled();
+    this.autoClose=options.shouldAutoClose();
   }
   loadQueryInfluencers=new LoadQueryInfluencers(factory);
   if (getFactory().getStatistics().isStatisticsEnabled()) {

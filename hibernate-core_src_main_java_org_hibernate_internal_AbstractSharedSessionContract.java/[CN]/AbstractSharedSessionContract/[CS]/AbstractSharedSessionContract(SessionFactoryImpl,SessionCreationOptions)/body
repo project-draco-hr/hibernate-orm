@@ -2,9 +2,7 @@
   this.factory=factory;
   this.sessionIdentifier=StandardRandomStrategy.INSTANCE.generateUUID(null);
   this.timestamp=factory.getCache().getRegionFactory().nextTimestamp();
-  this.transactionType=options.getPersistenceUnitTransactionType();
-  this.synchronizationType=options.getSynchronizationType();
-  this.persistenceContextType=PersistenceContextType.TRANSACTION;
+  this.flushMode=options.getInitialSessionFlushMode();
   this.tenantIdentifier=options.getTenantIdentifier();
   if (MultiTenancyStrategy.NONE == factory.getSettings().getMultiTenancyStrategy()) {
     if (tenantIdentifier != null) {
@@ -29,8 +27,9 @@
     this.transactionCoordinator=sharedOptions.getTransactionCoordinator();
     this.jdbcCoordinator=sharedOptions.getJdbcCoordinator();
     this.currentHibernateTransaction=sharedOptions.getTransaction();
-    if (sharedOptions.getSynchronizationType() != null) {
+    if (sharedOptions.shouldAutoJoinTransactions()) {
       log.debug("Session creation specified 'autoJoinTransactions', which is invalid in conjunction " + "with sharing JDBC connection between sessions; ignoring");
+      autoJoinTransactions=false;
     }
     if (sharedOptions.getPhysicalConnectionHandlingMode() != this.jdbcCoordinator.getLogicalConnection().getConnectionHandlingMode()) {
       log.debug("Session creation specified 'PhysicalConnectionHandlingMode which is invalid in conjunction " + "with sharing JDBC connection between sessions; ignoring");
@@ -39,6 +38,7 @@
   }
  else {
     this.isTransactionCoordinatorShared=false;
+    this.autoJoinTransactions=options.shouldAutoJoinTransactions();
     this.jdbcCoordinator=new JdbcCoordinatorImpl(options.getConnection(),this);
     this.transactionCoordinator=factory.getServiceRegistry().getService(TransactionCoordinatorBuilder.class).buildTransactionCoordinator(jdbcCoordinator,this);
     getTransaction();
