@@ -8,7 +8,10 @@
     assertEquals(1,schemaExport.getExceptions().size());
   }
   schemaExport.execute(EnumSet.of(TargetType.DATABASE),SchemaExport.Action.BOTH,metadata);
-  assertEquals(0,schemaExport.getExceptions().size());
+  int exceptionCount=schemaExport.getExceptions().size();
+  if (doesDialectSupportDropTableIfExist()) {
+    assertEquals(0,exceptionCount);
+  }
   schemaExport.execute(EnumSet.of(TargetType.DATABASE),SchemaExport.Action.DROP,metadata);
   assertEquals(0,schemaExport.getExceptions().size());
 }
