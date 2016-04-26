@@ -1,18 +1,19 @@
 {
   long initialInsertCount=sessionFactory().getStatistics().getEntityInsertCount();
   Session s=openSession();
-  MyEntity myEntity=new MyEntity("test-persist");
-  myEntity.setSibling(new MySibling("test-persist-sibling-out"));
-  s.persist(myEntity);
-  assertEquals("persist on identity column not delayed",initialInsertCount,sessionFactory().getStatistics().getEntityInsertCount());
-  assertNull(myEntity.getId());
-  s.flush();
-  assertEquals("delayed persist insert not executed on flush",initialInsertCount + 2,sessionFactory().getStatistics().getEntityInsertCount());
-  s.close();
-  s=openSession();
-  s.beginTransaction();
-  s.createQuery("delete MyEntity").executeUpdate();
-  s.createQuery("delete MySibling").executeUpdate();
-  s.getTransaction().commit();
-  s.close();
+  try {
+    MyEntity myEntity=new MyEntity("test-persist");
+    myEntity.setSibling(new MySibling("test-persist-sibling-out"));
+    s.persist(myEntity);
+    assertEquals("persist on identity column not delayed",initialInsertCount,sessionFactory().getStatistics().getEntityInsertCount());
+    assertNull(myEntity.getId());
+    s.flush();
+    fail("TransactionRequiredException expected upon flush.");
+  }
+ catch (  PersistenceException ex) {
+    assertTyping(TransactionRequiredException.class,ex);
+  }
+ finally {
+    s.close();
+  }
 }

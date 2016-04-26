@@ -1,20 +1,21 @@
 {
   long initialInsertCount=sessionFactory().getStatistics().getEntityInsertCount();
   Session s=openSession();
-  MyEntity myEntity2=new MyEntity("test-persist-2");
-  MyChild child=new MyChild("test-child-persist-inverse");
-  myEntity2.getInverseChildren().add(child);
-  child.setInverseParent(myEntity2);
-  s.persist(myEntity2);
-  assertEquals("persist on identity column not delayed",initialInsertCount,sessionFactory().getStatistics().getEntityInsertCount());
-  assertNull(myEntity2.getId());
-  s.flush();
-  assertEquals("delayed persist insert not executed on flush",initialInsertCount + 2,sessionFactory().getStatistics().getEntityInsertCount());
-  s.close();
-  s=openSession();
-  s.beginTransaction();
-  s.createQuery("delete MyChild").executeUpdate();
-  s.createQuery("delete MyEntity").executeUpdate();
-  s.getTransaction().commit();
-  s.close();
+  try {
+    MyEntity myEntity2=new MyEntity("test-persist-2");
+    MyChild child=new MyChild("test-child-persist-inverse");
+    myEntity2.getInverseChildren().add(child);
+    child.setInverseParent(myEntity2);
+    s.persist(myEntity2);
+    assertEquals("persist on identity column not delayed",initialInsertCount,sessionFactory().getStatistics().getEntityInsertCount());
+    assertNull(myEntity2.getId());
+    s.flush();
+    fail("TransactionRequiredException expected upon flush.");
+  }
+ catch (  PersistenceException ex) {
+    assertTyping(TransactionRequiredException.class,ex);
+  }
+ finally {
+    s.close();
+  }
 }
