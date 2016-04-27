@@ -1,0 +1,35 @@
+{
+  checkOpen();
+  checkTransactionSynchStatus();
+  if (object == null) {
+    return false;
+  }
+  try {
+    if (!HibernateProxy.class.isInstance(object) && persistenceContext.getEntry(object) == null) {
+      try {
+        getSessionFactory().getMetamodel().entityPersister(entityName);
+      }
+ catch (      HibernateException e) {
+        throw new IllegalArgumentException("Not an entity [" + entityName + "] : "+ object);
+      }
+    }
+    if (object instanceof HibernateProxy) {
+      LazyInitializer li=((HibernateProxy)object).getHibernateLazyInitializer();
+      if (li.isUninitialized()) {
+        return li.getSession() == this;
+      }
+ else {
+        object=li.getImplementation();
+      }
+    }
+    EntityEntry entry=persistenceContext.getEntry(object);
+    delayedAfterCompletion();
+    return entry != null && entry.getStatus() != Status.DELETED && entry.getStatus() != Status.GONE;
+  }
+ catch (  MappingException e) {
+    throw new IllegalArgumentException(e.getMessage(),e);
+  }
+catch (  RuntimeException e) {
+    throw convert(e);
+  }
+}

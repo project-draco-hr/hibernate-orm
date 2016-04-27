@@ -1,12 +1,8 @@
 {
   checkOpen();
-  if (object != null && !HibernateProxy.class.isInstance(object) && persistenceContext.getEntry(object) == null) {
-    try {
-      getSessionFactory().getMetamodel().entityPersister(object.getClass());
-    }
- catch (    HibernateException e) {
-      throw convert(new IllegalArgumentException("Not an entity:" + object.getClass()));
-    }
+  checkTransactionSynchStatus();
+  if (object == null) {
+    return false;
   }
   try {
     if (object instanceof HibernateProxy) {
@@ -20,7 +16,24 @@
     }
     EntityEntry entry=persistenceContext.getEntry(object);
     delayedAfterCompletion();
-    return entry != null && entry.getStatus() != Status.DELETED && entry.getStatus() != Status.GONE;
+    if (entry == null) {
+      if (!HibernateProxy.class.isInstance(object) && persistenceContext.getEntry(object) == null) {
+        try {
+          final String entityName=getEntityNameResolver().resolveEntityName(object);
+          if (entityName == null) {
+            throw new IllegalArgumentException("Could not resolve entity-name [" + object + "]");
+          }
+          getSessionFactory().getMetamodel().entityPersister(object.getClass());
+        }
+ catch (        HibernateException e) {
+          throw new IllegalArgumentException("Not an entity [" + object.getClass() + "]",e);
+        }
+      }
+      return false;
+    }
+ else {
+      return entry.getStatus() != Status.DELETED && entry.getStatus() != Status.GONE;
+    }
   }
  catch (  MappingException e) {
     throw new IllegalArgumentException(e.getMessage(),e);
