@@ -1,6 +1,9 @@
 {
-  if (!valid) {
-    throw new TransactionException("Transaction instance is no longer valid");
+  if (!transactionCoordinator.isActive()) {
+    throw new TransactionException("Cannot begin Transaction on closed Session/EntityManager");
+  }
+  if (transactionDriverControl == null) {
+    transactionDriverControl=transactionCoordinator.getTransactionDriverControl();
   }
   if (isActive()) {
     throw new IllegalStateException("Transaction already active");

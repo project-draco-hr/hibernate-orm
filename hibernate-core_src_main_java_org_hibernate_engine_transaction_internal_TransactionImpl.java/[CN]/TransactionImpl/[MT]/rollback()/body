@@ -2,7 +2,6 @@
   TransactionStatus status=getStatus();
   if (status == TransactionStatus.ROLLED_BACK || status == TransactionStatus.NOT_ACTIVE) {
     LOG.debug("rollback() called on an inactive transaction");
-    invalidate();
     return;
   }
   if (!status.canRollback()) {
@@ -11,7 +10,7 @@
   LOG.debug("rolling back");
   if (status != TransactionStatus.FAILED_COMMIT || allowFailedCommitToPhysicallyRollback()) {
     try {
-      this.transactionDriverControl.rollback();
+      internalGetTransactionDriverControl().rollback();
     }
   finally {
       invalidate();

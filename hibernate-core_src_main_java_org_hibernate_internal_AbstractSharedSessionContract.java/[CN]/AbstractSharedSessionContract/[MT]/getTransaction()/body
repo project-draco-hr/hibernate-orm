@@ -1,8 +1,22 @@
 {
-  checkOpen();
-  if (this.currentHibernateTransaction == null || this.currentHibernateTransaction.getStatus() != TransactionStatus.ACTIVE) {
-    this.currentHibernateTransaction=new TransactionImpl(getTransactionCoordinator());
+  if (getFactory().getSessionFactoryOptions().isJpaBootstrap()) {
+    if (getTransactionCoordinator().getTransactionCoordinatorBuilder().isJta()) {
+      throw new IllegalStateException("A JTA EntityManager cannot use getTransaction()");
+    }
+    if (this.currentHibernateTransaction == null) {
+      this.currentHibernateTransaction=new TransactionImpl(getTransactionCoordinator());
+    }
+    if (!isClosed()) {
+      getTransactionCoordinator().pulse();
+    }
+    return currentHibernateTransaction;
   }
-  getTransactionCoordinator().pulse();
-  return currentHibernateTransaction;
+ else {
+    checkOpen();
+    if (this.currentHibernateTransaction == null || this.currentHibernateTransaction.getStatus() != TransactionStatus.ACTIVE) {
+      this.currentHibernateTransaction=new TransactionImpl(getTransactionCoordinator());
+    }
+    getTransactionCoordinator().pulse();
+    return currentHibernateTransaction;
+  }
 }
