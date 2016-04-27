@@ -1,8 +1,16 @@
 {
-  checkOpen();
-  checkTransactionSynchStatus();
-  for (  RefreshEventListener listener : listeners(EventType.REFRESH)) {
-    listener.onRefresh(event,refreshedAlready);
+  try {
+    checkOpen();
+    checkTransactionSynchStatus();
+    for (    RefreshEventListener listener : listeners(EventType.REFRESH)) {
+      listener.onRefresh(event,refreshedAlready);
+    }
+    delayedAfterCompletion();
   }
-  delayedAfterCompletion();
+ catch (  RuntimeException e) {
+    throw convert(e);
+  }
+ finally {
+    delayedAfterCompletion();
+  }
 }
