@@ -7,7 +7,7 @@
       final AccessDelegate delegate=localRegion.getCache().getCacheConfiguration().transaction().transactionMode().isTransactional() ? new TxInvalidationCacheAccessDelegate(localRegion,validator) : new NonTxInvalidationCacheAccessDelegate(localRegion,validator);
       Callable<Void> pferCallable=new Callable<Void>(){
         public Void call() throws Exception {
-          SessionImplementor session=mockedSession();
+          SharedSessionContractImplementor session=mockedSession();
           delegate.putFromLoad(session,"k1","v1",session.getTimestamp(),null);
           return null;
         }
@@ -16,7 +16,7 @@
       Callable<Void> removeCallable=new Callable<Void>(){
         public Void call() throws Exception {
           removeLatch.await();
-          SessionImplementor session=mockedSession();
+          SharedSessionContractImplementor session=mockedSession();
           withTx(localEnvironment,session,new Callable<Void>(){
             @Override public Void call() throws Exception {
               delegate.remove(session,"k1");
