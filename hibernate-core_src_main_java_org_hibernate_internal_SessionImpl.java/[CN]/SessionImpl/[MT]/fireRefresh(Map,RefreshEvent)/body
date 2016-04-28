@@ -8,6 +8,12 @@
     delayedAfterCompletion();
   }
  catch (  RuntimeException e) {
+    if (!getSessionFactory().getSessionFactoryOptions().isJpaBootstrap()) {
+      if (e instanceof HibernateException) {
+        handlePersistenceException((HibernateException)e);
+        throw e;
+      }
+    }
     throw convert(e);
   }
  finally {
