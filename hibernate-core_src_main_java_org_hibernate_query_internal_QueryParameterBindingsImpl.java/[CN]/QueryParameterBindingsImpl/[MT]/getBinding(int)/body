@@ -1,7 +1,11 @@
 {
-  final QueryParameterBinding binding=locateBinding(position);
-  if (binding == null) {
-    throw new IllegalArgumentException("Unknown parameter position : " + position);
+  Map.Entry<QueryParameter,QueryParameterBinding> bindingEntry=locatePositionBinding(position);
+  if (bindingEntry == null) {
+    bindingEntry=locateBindingEntry(position);
+    positionParameterBindingMap.put(bindingEntry.getKey(),bindingEntry.getValue());
   }
-  return binding;
+  if (bindingEntry == null) {
+    throw new IllegalArgumentException("Unknown parameter position: " + position);
+  }
+  return bindingEntry.getValue();
 }
