@@ -1,10 +1,10 @@
 {
   String typename=clazz.getName();
-  Type type=sessionFactory.getTypeResolver().heuristicType(typename);
+  Type type=getTypeResolver().heuristicType(typename);
   boolean serializable=type != null && type instanceof SerializableType;
   if (type == null || serializable) {
     try {
-      sessionFactory.getMetamodel().entityPersister(clazz);
+      getMetamodel().entityPersister(clazz.getName());
     }
  catch (    MappingException me) {
       if (serializable) {
@@ -14,7 +14,7 @@
         throw new HibernateException("Could not determine a type for class: " + typename);
       }
     }
-    return sessionFactory.getTypeHelper().entity(clazz);
+    return getTypeHelper().entity(clazz);
   }
  else {
     return type;
