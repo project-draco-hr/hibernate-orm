@@ -11,7 +11,8 @@
     s.flush();
     fail("should have failed because of transient entities have non-nullable, circular dependency.");
   }
- catch (  HibernateException ex) {
+ catch (  IllegalStateException ex) {
+    assertThat(ex.getCause(),instanceOf(TransientPropertyValueException.class));
   }
   tx.rollback();
   s.close();
