@@ -11,8 +11,14 @@
       }
     }
   }
-  final int positionalValueSpan=getPositionalValueSpan(reserveFirstParameter);
-  final int positionCounts=getPositionalParameterCount();
+  for (int i=0; i < positionalParameterBindings.size(); i++) {
+    final QueryParameterBinding binding=positionalParameterBindings.get(i);
+    if (binding == null || !binding.isBound()) {
+      throw new QueryException("Positional parameter [" + i + "] not set");
+    }
+  }
+  final int positionalValueSpan=calculatePositionalValueSpan(reserveFirstParameter);
+  final int positionCounts=parameterMetadata.getPositionalParameterCount();
   if (positionCounts != positionalValueSpan) {
     if (reserveFirstParameter && positionCounts - 1 != positionalValueSpan) {
       throw new QueryException("Expected positional parameter count: " + (positionCounts - 1) + ", actually detected "+ positionalValueSpan);

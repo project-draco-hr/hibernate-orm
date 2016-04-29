@@ -1,11 +1,32 @@
 {
-  Map.Entry<QueryParameter,QueryParameterBinding> bindingEntry=locatePositionBinding(position);
-  if (bindingEntry == null) {
-    bindingEntry=locateBindingEntry(position);
-    positionParameterBindingMap.put(bindingEntry.getKey(),bindingEntry.getValue());
+  final boolean isJpaBootstrap=sessionFactory.getSessionFactoryOptions().isJpaBootstrap();
+  QueryParameterBinding binding=null;
+  if (parameterMetadata != null) {
+    if (isJpaBootstrap && parameterMetadata.getPositionalParameterCount() == 0) {
+      binding=locateBinding(String.valueOf(position));
+    }
+ else {
+      final int positionIndex=(isJpaBootstrap ? position - 1 : position);
+      final int parameterIndex=(isJpaBootstrap ? position : position + 1);
+      if (positionIndex < positionalParameterBindings.size()) {
+        binding=positionalParameterBindings.get(positionIndex);
+        if (binding == null) {
+          binding=makeBinding(parameterMetadata.getQueryParameter(parameterIndex));
+          positionalParameterBindings.set(positionIndex,binding);
+        }
+      }
+ else {
+        for (int i=0; i < positionIndex - positionalParameterBindings.size(); i++) {
+          positionalParameterBindings.add(null);
+        }
+        QueryParameter queryParameter=parameterMetadata.getQueryParameter(parameterIndex);
+        binding=makeBinding(queryParameter);
+        positionalParameterBindings.add(binding);
+      }
+    }
   }
-  if (bindingEntry == null) {
+  if (binding == null) {
     throw new IllegalArgumentException("Unknown parameter position: " + position);
   }
-  return bindingEntry.getValue();
+  return binding;
 }
