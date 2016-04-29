@@ -7,16 +7,23 @@
   w.setSerial("0100202002");
   em.persist(w);
   em.flush();
-  Query query=em.createQuery("select w from Wallet w where w.brand = ?1 and w.model = ?3");
-  query.setParameter(1,"Lacoste");
+  Query jpaQuery=em.createQuery("select w from Wallet w where w.brand = ?1 and w.model = ?3");
+  jpaQuery.setParameter(1,"Lacoste");
   try {
-    query.setParameter(2,"Expensive");
+    jpaQuery.setParameter(2,"Expensive");
     fail("Should fail due to a user error in parameters");
   }
  catch (  IllegalArgumentException e) {
   }
- finally {
-    em.getTransaction().rollback();
-    em.close();
+  Query hqlQuery=em.createQuery("select w from Wallet w where w.brand = ? and w.model = ?");
+  try {
+    hqlQuery.setParameter(1,"Lacoste");
+    hqlQuery.setParameter(2,"Expensive");
+    fail("Should fail due to a user error in parameters");
   }
+ catch (  QueryParameterException e) {
+    e.printStackTrace();
+  }
+  em.getTransaction().rollback();
+  em.close();
 }
