@@ -15,17 +15,8 @@
   this.flushBeforeCompletionEnabled=cfgService.getSetting(FLUSH_BEFORE_COMPLETION,BOOLEAN,true);
   this.autoCloseSessionEnabled=cfgService.getSetting(AUTO_CLOSE_SESSION,BOOLEAN,false);
   this.statisticsEnabled=cfgService.getSetting(GENERATE_STATISTICS,BOOLEAN,false);
-  this.interceptor=strategySelector.resolveDefaultableStrategy(Interceptor.class,configurationSettings.get(INTERCEPTOR),EmptyInterceptor.INSTANCE);
-  final Object statelessInterceptorSetting=configurationSettings.get(SESSION_SCOPED_INTERCEPTOR);
-  if (statelessInterceptorSetting == null) {
-    this.statelessInterceptorClass=null;
-  }
- else   if (statelessInterceptorSetting instanceof Class) {
-    this.statelessInterceptorClass=(Class<? extends Interceptor>)statelessInterceptorSetting;
-  }
- else {
-    this.statelessInterceptorClass=strategySelector.selectStrategyImplementor(Interceptor.class,statelessInterceptorSetting.toString());
-  }
+  this.interceptor=determineInterceptor(configurationSettings,strategySelector);
+  this.statelessInterceptorClass=determineStatelessInterceptorClass(configurationSettings,strategySelector);
   this.statementInspector=strategySelector.resolveStrategy(StatementInspector.class,configurationSettings.get(STATEMENT_INSPECTOR));
   final String autoSessionEventsListenerName=(String)configurationSettings.get(AUTO_SESSION_EVENTS_LISTENER);
   final Class<? extends SessionEventListener> autoSessionEventsListener=autoSessionEventsListenerName == null ? null : strategySelector.selectStrategyImplementor(SessionEventListener.class,autoSessionEventsListenerName);

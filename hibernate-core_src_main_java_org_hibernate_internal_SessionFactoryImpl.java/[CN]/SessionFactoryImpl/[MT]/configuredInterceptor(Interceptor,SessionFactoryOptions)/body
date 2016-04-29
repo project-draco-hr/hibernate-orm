@@ -1,0 +1,17 @@
+{
+  if (interceptor != null && interceptor != EmptyInterceptor.INSTANCE) {
+    return interceptor;
+  }
+  if (options.getInterceptor() != null && options.getInterceptor() != EmptyInterceptor.INSTANCE) {
+    return options.getInterceptor();
+  }
+  if (options.getStatelessInterceptorImplementor() != null) {
+    try {
+      return options.getStatelessInterceptorImplementor().newInstance();
+    }
+ catch (    InstantiationException|IllegalAccessException e) {
+      throw new HibernateException("Could not instantiate session-scoped SessionFactory Interceptor",e);
+    }
+  }
+  return null;
+}
