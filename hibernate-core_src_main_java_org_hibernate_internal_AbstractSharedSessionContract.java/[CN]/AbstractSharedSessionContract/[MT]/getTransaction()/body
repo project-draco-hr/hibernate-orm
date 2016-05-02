@@ -4,7 +4,7 @@
       throw new IllegalStateException("A JTA EntityManager cannot use getTransaction()");
     }
     if (this.currentHibernateTransaction == null) {
-      this.currentHibernateTransaction=new TransactionImpl(getTransactionCoordinator());
+      this.currentHibernateTransaction=new TransactionImpl(getTransactionCoordinator(),getExceptionConverter());
     }
     if (!isClosed()) {
       getTransactionCoordinator().pulse();
@@ -14,7 +14,7 @@
  else {
     checkOpen();
     if (this.currentHibernateTransaction == null || this.currentHibernateTransaction.getStatus() != TransactionStatus.ACTIVE) {
-      this.currentHibernateTransaction=new TransactionImpl(getTransactionCoordinator());
+      this.currentHibernateTransaction=new TransactionImpl(getTransactionCoordinator(),getExceptionConverter());
     }
     getTransactionCoordinator().pulse();
     return currentHibernateTransaction;

@@ -3,5 +3,10 @@
     throw new IllegalStateException("Transaction not successfully started");
   }
   LOG.debug("committing");
-  internalGetTransactionDriverControl().commit();
+  try {
+    internalGetTransactionDriverControl().commit();
+  }
+ catch (  RuntimeException e) {
+    throw exceptionConverter.convertCommitException(e);
+  }
 }
