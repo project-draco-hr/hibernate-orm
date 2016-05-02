@@ -6,8 +6,17 @@
  else   if (value instanceof Collection) {
     setParameterList((QueryParameter)parameter,(Collection)value);
   }
- else {
+ else   if (parameter instanceof QueryParameter) {
     queryParameterBindings.getBinding((QueryParameter)parameter).setBindValue(value);
+  }
+ else   if (parameter.getName() != null) {
+    queryParameterBindings.getBinding(parameter.getName()).setBindValue(value);
+  }
+ else   if (parameter.getPosition() != null) {
+    queryParameterBindings.getBinding(parameter.getPosition()).setBindValue(value);
+  }
+ else {
+    throw getExceptionConverter().convert(new IllegalArgumentException("Could not resolve parameter instance [" + parameter + "] as query parameter"));
   }
   return this;
 }

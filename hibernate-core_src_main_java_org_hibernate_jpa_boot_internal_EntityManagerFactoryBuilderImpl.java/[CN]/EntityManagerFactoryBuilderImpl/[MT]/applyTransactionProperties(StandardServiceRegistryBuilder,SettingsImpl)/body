@@ -1,5 +1,5 @@
 {
-  PersistenceUnitTransactionType txnType=PersistenceUnitTransactionTypeHelper.interpretTransactionType(configurationValues.get(AvailableSettings.TRANSACTION_TYPE));
+  PersistenceUnitTransactionType txnType=PersistenceUnitTransactionTypeHelper.interpretTransactionType(configurationValues.get(JPA_TRANSACTION_TYPE));
   if (txnType == null) {
     txnType=persistenceUnit.getTransactionType();
   }
@@ -7,16 +7,16 @@
     txnType=PersistenceUnitTransactionType.RESOURCE_LOCAL;
   }
   settings.setTransactionType(txnType);
-  boolean hasTxStrategy=configurationValues.containsKey(Environment.TRANSACTION_COORDINATOR_STRATEGY);
+  boolean hasTxStrategy=configurationValues.containsKey(TRANSACTION_COORDINATOR_STRATEGY);
   if (hasTxStrategy) {
-    LOG.overridingTransactionStrategyDangerous(Environment.TRANSACTION_COORDINATOR_STRATEGY);
+    LOG.overridingTransactionStrategyDangerous(TRANSACTION_COORDINATOR_STRATEGY);
   }
  else {
     if (txnType == PersistenceUnitTransactionType.JTA) {
-      ssrBuilder.applySetting(Environment.TRANSACTION_COORDINATOR_STRATEGY,JtaTransactionCoordinatorBuilderImpl.class);
+      ssrBuilder.applySetting(TRANSACTION_COORDINATOR_STRATEGY,JtaTransactionCoordinatorBuilderImpl.class);
     }
  else     if (txnType == PersistenceUnitTransactionType.RESOURCE_LOCAL) {
-      ssrBuilder.applySetting(Environment.TRANSACTION_COORDINATOR_STRATEGY,JdbcResourceLocalTransactionCoordinatorBuilderImpl.class);
+      ssrBuilder.applySetting(TRANSACTION_COORDINATOR_STRATEGY,JdbcResourceLocalTransactionCoordinatorBuilderImpl.class);
     }
   }
 }
