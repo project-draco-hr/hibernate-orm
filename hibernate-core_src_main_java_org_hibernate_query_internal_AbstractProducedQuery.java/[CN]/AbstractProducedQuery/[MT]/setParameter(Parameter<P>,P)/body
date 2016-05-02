@@ -1,22 +1,12 @@
 {
   if (value instanceof TypedParameterValue) {
-    final TypedParameterValue typedValueWrapper=(TypedParameterValue)value;
-    setParameter((QueryParameter)parameter,typedValueWrapper.getValue(),typedValueWrapper.getType());
+    setParameter(parameter,((TypedParameterValue)value).getValue(),((TypedParameterValue)value).getType());
   }
  else   if (value instanceof Collection) {
-    setParameterList((QueryParameter)parameter,(Collection)value);
-  }
- else   if (parameter instanceof QueryParameter) {
-    queryParameterBindings.getBinding((QueryParameter)parameter).setBindValue(value);
-  }
- else   if (parameter.getName() != null) {
-    queryParameterBindings.getBinding(parameter.getName()).setBindValue(value);
-  }
- else   if (parameter.getPosition() != null) {
-    queryParameterBindings.getBinding(parameter.getPosition()).setBindValue(value);
+    locateListBinding(parameter).setBindValues((Collection)value);
   }
  else {
-    throw getExceptionConverter().convert(new IllegalArgumentException("Could not resolve parameter instance [" + parameter + "] as query parameter"));
+    locateBinding(parameter).setBindValue(value);
   }
   return this;
 }
