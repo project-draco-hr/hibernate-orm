@@ -1,4 +1,13 @@
 {
+  final HQLQueryPlan entityGraphHintedQueryPlan;
+  if (entityGraphQueryHint == null) {
+    entityGraphHintedQueryPlan=null;
+  }
+ else {
+    queryParameterBindings.verifyParametersBound(false);
+    final String expandedQuery=queryParameterBindings.expandListValuedParameters(getQueryString(),getProducer());
+    entityGraphHintedQueryPlan=new HQLQueryPlan(expandedQuery,false,getProducer().getLoadQueryInfluencers().getEnabledFilters(),getProducer().getFactory(),entityGraphQueryHint);
+  }
   QueryParameters queryParameters=new QueryParameters(getPositionalParameterTypes(),getPositionalParameterValues(),getNamedParameterMap(),getLockOptions(),queryOptions,true,isReadOnly(),cacheable,cacheRegion,comment,dbHints,null,optionalObject,optionalEntityName,optionalId,resultTransformer);
   queryParameters.setQueryPlan(entityGraphHintedQueryPlan);
   return queryParameters;
