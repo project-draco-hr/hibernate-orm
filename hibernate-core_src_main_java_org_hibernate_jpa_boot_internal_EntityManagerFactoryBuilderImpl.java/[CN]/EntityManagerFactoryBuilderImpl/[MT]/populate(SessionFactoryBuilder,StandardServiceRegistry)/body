@@ -1,6 +1,10 @@
 {
   ((SessionFactoryBuilderImplementor)sfBuilder).markAsJpaBootstrap();
   final StrategySelector strategySelector=ssr.getService(StrategySelector.class);
+  final boolean jtaTransactionAccessEnabled=readBooleanConfigurationValue(AvailableSettings.ALLOW_JTA_TRANSACTION_ACCESS);
+  if (!jtaTransactionAccessEnabled) {
+    ((SessionFactoryBuilderImplementor)sfBuilder).disableJtaTransactionAccess();
+  }
   final Object sessionFactoryObserverSetting=configurationValues.remove(AvailableSettings.SESSION_FACTORY_OBSERVER);
   if (sessionFactoryObserverSetting != null) {
     final SessionFactoryObserver suppliedSessionFactoryObserver=strategySelector.resolveStrategy(SessionFactoryObserver.class,sessionFactoryObserverSetting);
