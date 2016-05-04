@@ -1,0 +1,22 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  org.hibernate.query.Query query=em.createQuery("delete from Lockable l").unwrap(org.hibernate.query.Query.class);
+  assertEquals(LockMode.NONE,query.getLockOptions().getLockMode());
+  query.setLockMode(LockModeType.NONE);
+  em.getTransaction().commit();
+  em.clear();
+  em.getTransaction().begin();
+  query=em.createQuery("delete from Lockable l").unwrap(org.hibernate.query.Query.class);
+  assertEquals(LockMode.NONE,query.getLockOptions().getLockMode());
+  try {
+    query.setLockMode(LockModeType.PESSIMISTIC_WRITE);
+    fail("IllegalStateException should have been thrown.");
+  }
+ catch (  IllegalStateException e) {
+  }
+ finally {
+    em.getTransaction().rollback();
+    em.close();
+  }
+}

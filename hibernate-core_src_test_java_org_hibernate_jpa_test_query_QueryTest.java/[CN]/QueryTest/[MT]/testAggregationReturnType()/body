@@ -1,0 +1,13 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  Item item=new Item("Mouse","Micro$oft mouse");
+  em.persist(item);
+  item=new Item("Computer","Apple II");
+  em.persist(item);
+  Query q=em.createQuery("select count(i) from Item i where i.name like :itemName");
+  q.setParameter("itemName","%");
+  assertTrue(q.getSingleResult() instanceof Long);
+  em.getTransaction().rollback();
+  em.close();
+}

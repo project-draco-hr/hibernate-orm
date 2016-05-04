@@ -15,18 +15,36 @@
   p.name="Homer";
   s=openSession();
   tx=s.beginTransaction();
-  s.persist(p);
-  tx.commit();
-  s.close();
+  try {
+    s.persist(p);
+    tx.commit();
+  }
+ catch (  Exception e) {
+    if (tx != null && tx.isActive()) {
+      tx.rollback();
+    }
+  }
+ finally {
+    s.close();
+  }
   s=openSession();
   tx=s.beginTransaction();
-  p=(Person)s.createQuery("from Person p where p.bornIn = :b").setParameter("b",p.bornIn).uniqueResult();
-  assertNotNull(p);
-  assertNotNull(p.address);
-  assertEquals("Springfield",p.address.city);
-  assertNotNull(p.address.country);
-  assertEquals("DM",p.address.country.getIso2());
-  assertNull(p.bornIn);
-  tx.commit();
-  s.close();
+  try {
+    p=(Person)s.createQuery("from Person p where p.bornIn = :b").setParameter("b",p.bornIn).uniqueResult();
+    assertNotNull(p);
+    assertNotNull(p.address);
+    assertEquals("Springfield",p.address.city);
+    assertNotNull(p.address.country);
+    assertEquals("DM",p.address.country.getIso2());
+    assertNull(p.bornIn);
+    tx.commit();
+  }
+ catch (  Exception e) {
+    if (tx != null && tx.isActive()) {
+      tx.rollback();
+    }
+  }
+ finally {
+    s.close();
+  }
 }

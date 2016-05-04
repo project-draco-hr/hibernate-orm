@@ -1,0 +1,18 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+{
+    CriteriaQuery<CreditCard> criteriaQuery=builder.createQuery(CreditCard.class);
+    Root<CreditCard> root=criteriaQuery.from(CreditCard.class);
+    criteriaQuery.where(builder.isFalse(root.get(CreditCard_.approved)));
+    em.createQuery(criteriaQuery).getResultList();
+  }
+{
+    CriteriaQuery<Order> criteriaQuery=builder.createQuery(Order.class);
+    Root<Order> root=criteriaQuery.from(Order.class);
+    criteriaQuery.where(builder.isFalse(root.get(Order_.creditCard).get(CreditCard_.approved)));
+    em.createQuery(criteriaQuery).getResultList();
+  }
+  em.getTransaction().commit();
+  em.close();
+}

@@ -1,0 +1,31 @@
+{
+  Book book=new Book();
+  book.name="Stolen keys";
+  book.id=null;
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  try {
+    em.persist(book);
+    em.flush();
+    em.clear();
+    book.setName("kitty kid");
+    em.merge(book);
+    em.flush();
+    em.clear();
+    book.setName("kitty kid2");
+    em.merge(book);
+    em.flush();
+    fail("optimistic locking exception");
+  }
+ catch (  PersistenceException e) {
+  }
+  try {
+    em.getTransaction().commit();
+    fail("Commit should be rollbacked");
+  }
+ catch (  RollbackException e) {
+  }
+ finally {
+    em.close();
+  }
+}

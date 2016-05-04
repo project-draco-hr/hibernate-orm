@@ -1,0 +1,33 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  Item item=new Item("Mouse","Micro$oft mouse");
+  em.persist(item);
+  Query q=em.createQuery("from Item i where i.intVal=?");
+  Parameter p=new Parameter(){
+    @Override public String getName(){
+      return null;
+    }
+    @Override public Integer getPosition(){
+      return 0;
+    }
+    @Override public Class getParameterType(){
+      return Integer.class;
+    }
+  }
+;
+  q.setParameter(p,null);
+  Parameter pGotten=q.getParameter(p.getPosition());
+  List results=q.getResultList();
+  assertEquals(0,results.size());
+  q=em.createQuery("from Item i where i.intVal is null and ? is null");
+  q.setParameter(p,null);
+  results=q.getResultList();
+  assertEquals(1,results.size());
+  q=em.createQuery("from Item i where i.intVal is null or i.intVal = ?");
+  q.setParameter(p,null);
+  results=q.getResultList();
+  assertEquals(1,results.size());
+  em.getTransaction().rollback();
+  em.close();
+}

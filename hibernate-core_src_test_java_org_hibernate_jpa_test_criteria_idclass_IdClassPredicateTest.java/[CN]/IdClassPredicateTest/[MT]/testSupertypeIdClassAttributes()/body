@@ -1,0 +1,16 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  List<String> types=new ArrayList<String>();
+  types.add("NA");
+  types.add("EU");
+  CriteriaBuilder criteria=em.getCriteriaBuilder();
+  CriteriaQuery<Tool> query=criteria.createQuery(Tool.class);
+  Root<Tool> root=query.from(Tool.class);
+  Predicate predicate=root.get("type").in(types);
+  query.where(predicate);
+  List<Tool> tools=em.createQuery(query).getResultList();
+  Assert.assertEquals(4,tools.size());
+  em.getTransaction().commit();
+  em.close();
+}

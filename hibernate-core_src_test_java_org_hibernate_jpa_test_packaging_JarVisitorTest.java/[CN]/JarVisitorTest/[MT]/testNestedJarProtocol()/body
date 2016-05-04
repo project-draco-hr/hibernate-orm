@@ -1,0 +1,20 @@
+{
+  File defaultPar=buildDefaultPar();
+  File nestedEar=buildNestedEar(defaultPar);
+  File nestedEarDir=buildNestedEarDir(defaultPar);
+  addPackageToClasspath(nestedEar);
+  String jarFileName=nestedEar.toURL().toExternalForm() + "!/defaultpar.par";
+  URL rootUrl=new URL(jarFileName);
+  JarProtocolArchiveDescriptor archiveDescriptor=new JarProtocolArchiveDescriptor(StandardArchiveDescriptorFactory.INSTANCE,rootUrl,"");
+  ScanEnvironment environment=new ScanEnvironmentImpl(rootUrl);
+  ScanResultCollector collector=new ScanResultCollector(environment,new StandardScanOptions(),StandardScanParameters.INSTANCE);
+  archiveDescriptor.visitArchive(new AbstractScannerImpl.ArchiveContextImpl(true,collector));
+  validateResults(collector.toScanResult(),org.hibernate.jpa.test.pack.defaultpar.ApplicationServer.class,Version.class);
+  jarFileName=nestedEarDir.toURL().toExternalForm() + "!/defaultpar.par";
+  rootUrl=new URL(jarFileName);
+  archiveDescriptor=new JarProtocolArchiveDescriptor(StandardArchiveDescriptorFactory.INSTANCE,rootUrl,"");
+  environment=new ScanEnvironmentImpl(rootUrl);
+  collector=new ScanResultCollector(environment,new StandardScanOptions(),StandardScanParameters.INSTANCE);
+  archiveDescriptor.visitArchive(new AbstractScannerImpl.ArchiveContextImpl(true,collector));
+  validateResults(collector.toScanResult(),org.hibernate.jpa.test.pack.defaultpar.ApplicationServer.class,Version.class);
+}

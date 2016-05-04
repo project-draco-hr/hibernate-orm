@@ -1,0 +1,27 @@
+{
+  assertFalse(JtaStatusHelper.isActive(TestingJtaPlatformImpl.INSTANCE.getTransactionManager()));
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();
+  assertTrue(JtaStatusHelper.isActive(TestingJtaPlatformImpl.INSTANCE.getTransactionManager()));
+  EntityManagerFactory entityManagerFactory=entityManagerFactory();
+  entityManagerFactory.close();
+  try {
+    entityManagerFactory.createEntityManager();
+    fail("expected IllegalStateException when calling emf.createEntityManager with closed emf");
+  }
+ catch (  IllegalStateException expected) {
+  }
+  try {
+    entityManagerFactory.getCriteriaBuilder();
+    fail("expected IllegalStateException when calling emf.getCriteriaBuilder with closed emf");
+  }
+ catch (  IllegalStateException expected) {
+  }
+  try {
+    entityManagerFactory.getCache();
+    fail("expected IllegalStateException when calling emf.getCache with closed emf");
+  }
+ catch (  IllegalStateException expected) {
+  }
+  assertFalse(entityManagerFactory.isOpen());
+  TestingJtaPlatformImpl.INSTANCE.getTransactionManager().commit();
+}

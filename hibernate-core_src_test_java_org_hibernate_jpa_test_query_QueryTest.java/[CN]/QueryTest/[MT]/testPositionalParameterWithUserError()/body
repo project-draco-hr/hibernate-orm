@@ -1,0 +1,29 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  em.getTransaction().begin();
+  Wallet w=new Wallet();
+  w.setBrand("Lacoste");
+  w.setModel("Minimic");
+  w.setSerial("0100202002");
+  em.persist(w);
+  em.flush();
+  Query jpaQuery=em.createQuery("select w from Wallet w where w.brand = ?1 and w.model = ?3");
+  jpaQuery.setParameter(1,"Lacoste");
+  try {
+    jpaQuery.setParameter(2,"Expensive");
+    fail("Should fail due to a user error in parameters");
+  }
+ catch (  IllegalArgumentException e) {
+  }
+  Query hqlQuery=em.createQuery("select w from Wallet w where w.brand = ? and w.model = ?");
+  try {
+    hqlQuery.setParameter(1,"Lacoste");
+    hqlQuery.setParameter(2,"Expensive");
+    fail("Should fail due to a user error in parameters");
+  }
+ catch (  IllegalArgumentException e) {
+    e.printStackTrace();
+  }
+  em.getTransaction().rollback();
+  em.close();
+}

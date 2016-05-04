@@ -1,0 +1,26 @@
+{
+  final EntityManager em=getOrCreateEntityManager();
+  final EntityManager isolatedEntityManager=createIsolatedEntityManager();
+  Lock lock=createAndPersistLockInstance(em);
+  try {
+    inFirstTransactionReloadAndModifyLockInstance(em,lock);
+    final CountDownLatch latch=new CountDownLatch(1);
+    FutureTask<Boolean> future=inBackgroundThreadStartSecondTransactionAndReadLockInstance(latch,isolatedEntityManager);
+    log.debug("testContendedPessimisticLock:  wait on BG thread");
+    boolean backGroundThreadCompleted=latch.await(3,TimeUnit.SECONDS);
+    if (backGroundThreadCompleted) {
+      boolean backgroundThreadHasReadNewValue=future.get();
+      assertFalse("The background thread is not allowed to see the updated value while the first transaction has not committed yet",backgroundThreadHasReadNewValue);
+      em.getTransaction().commit();
+    }
+ else {
+      log.debug("The background thread was blocked");
+      em.getTransaction().commit();
+      boolean backgroundThreadHasReadNewValue=future.get();
+      assertTrue("Background thread should read the new value afterQuery being unblocked",backgroundThreadHasReadNewValue);
+    }
+  }
+  finally {
+    cleanup(em,isolatedEntityManager,lock);
+  }
+}

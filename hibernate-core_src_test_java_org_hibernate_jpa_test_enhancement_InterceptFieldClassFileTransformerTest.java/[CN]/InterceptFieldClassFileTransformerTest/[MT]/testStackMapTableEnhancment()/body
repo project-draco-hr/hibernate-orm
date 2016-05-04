@@ -1,0 +1,13 @@
+{
+  byte[] classBytes=loader.loadClassBytes(entities.get(0));
+  ClassPool classPool=new ClassPool();
+  CtClass ctClass=classPool.makeClass(new ByteArrayInputStream(classBytes));
+  for (  CtMethod ctMethod : ctClass.getMethods()) {
+    if (ctMethod.getName().startsWith("$javassist_")) {
+      AttributeInfo attributeInfo=ctMethod.getMethodInfo().getCodeAttribute().getAttribute(StackMapTable.tag);
+      Assert.assertNotNull(attributeInfo);
+      StackMapTable smt=(StackMapTable)attributeInfo;
+      Assert.assertNotNull(smt.get());
+    }
+  }
+}
