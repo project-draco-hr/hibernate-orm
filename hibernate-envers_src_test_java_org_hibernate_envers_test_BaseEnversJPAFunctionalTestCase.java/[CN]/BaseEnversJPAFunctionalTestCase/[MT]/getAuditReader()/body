@@ -1,7 +1,7 @@
 {
   EntityManager entityManager=getOrCreateEntityManager();
-  PersistenceUnitTransactionType transactionType=((EntityManagerImpl)entityManager).getTransactionType();
-  if (transactionType == PersistenceUnitTransactionType.JTA) {
+  SessionImplementor sessionImplementor=entityManager.unwrap(SessionImplementor.class);
+  if (sessionImplementor.getTransactionCoordinator().getTransactionCoordinatorBuilder().isJta()) {
     if (!JtaStatusHelper.isActive(TestingJtaPlatformImpl.INSTANCE.getTransactionManager())) {
       try {
         TestingJtaPlatformImpl.INSTANCE.getTransactionManager().begin();

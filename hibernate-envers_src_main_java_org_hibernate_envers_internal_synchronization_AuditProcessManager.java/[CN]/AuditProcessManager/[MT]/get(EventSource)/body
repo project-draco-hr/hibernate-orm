@@ -1,5 +1,5 @@
 {
-  final Transaction transaction=session.getTransaction();
+  final Transaction transaction=session.accessTransaction();
   AuditProcess auditProcess=auditProcesses.get(transaction);
   if (auditProcess == null) {
     auditProcess=new AuditProcess(revisionInfoGenerator,session);
@@ -14,7 +14,7 @@
     }
 );
     session.getActionQueue().registerProcess(new AfterTransactionCompletionProcess(){
-      public void doAfterTransactionCompletion(      boolean success,      SessionImplementor session){
+      public void doAfterTransactionCompletion(      boolean success,      SharedSessionContractImplementor session){
         auditProcesses.remove(transaction);
       }
     }
