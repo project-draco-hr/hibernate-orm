@@ -5,17 +5,15 @@
   if (!"".equals(extraPhysycalTableTypesConfig.trim())) {
     this.extraPhysicalTableTypes=StringHelper.splitTrimmingTokens(",;",extraPhysycalTableTypesConfig,false);
   }
-  final String[] tempTableTypes;
+  final List<String> tableTypesList=new ArrayList<>();
+  tableTypesList.add("TABLE");
+  tableTypesList.add("VIEW");
   if (ConfigurationHelper.getBoolean(AvailableSettings.ENABLE_SYNONYMS,configService.getSettings(),false)) {
-    tempTableTypes=new String[]{"TABLE","VIEW","SYNONYM"};
+    tableTypesList.add("SYNONYM");
   }
- else {
-    tempTableTypes=new String[]{"TABLE","VIEW"};
+  if (extraPhysicalTableTypes != null) {
+    Collections.addAll(tableTypesList,extraPhysicalTableTypes);
   }
-  if (this.extraPhysicalTableTypes != null) {
-    this.tableTypes=ArrayHelper.join(tempTableTypes,this.extraPhysicalTableTypes);
-  }
- else {
-    this.tableTypes=tempTableTypes;
-  }
+  extractionContext.getJdbcEnvironment().getDialect().augmentRecognizedTableTypes(tableTypesList);
+  this.tableTypes=tableTypesList.toArray(new String[tableTypesList.size()]);
 }
