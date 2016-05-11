@@ -2,7 +2,21 @@
   String propertyName=CriteriaTools.determinePropertyName(enversService,versionsReader,entityName,propertyNameGetter);
   RelationDescription relatedEntity=CriteriaTools.getRelatedEntity(enversService,entityName,propertyName);
   if (relatedEntity == null) {
-    parameters.addWhereWithParam(propertyName,op,value);
+    final SessionImplementor session=versionsReader.getSessionImplementor();
+    final Type type=getPropertyType(session,entityName,propertyName);
+    if (type != null && type.isComponentType()) {
+      if (!"=".equals(op) && !"<>".equals(op)) {
+        throw new AuditException("Component-based criterion is not supported for op: " + op);
+      }
+      final ComponentType componentType=(ComponentType)type;
+      for (int i=0; i < componentType.getPropertyNames().length; i++) {
+        final Object componentValue=componentType.getPropertyValue(value,i,session);
+        parameters.addWhereWithParam(propertyName + "_" + componentType.getPropertyNames()[i],op,componentValue);
+      }
+    }
+ else {
+      parameters.addWhereWithParam(propertyName,op,value);
+    }
   }
  else {
     if (!"=".equals(op) && !"<>".equals(op)) {
