@@ -1,0 +1,12 @@
+{
+  String propertyName=CriteriaTools.determinePropertyName(enversService,versionsReader,entityName,propertyNameGetter);
+  RelationDescription relatedEntity=CriteriaTools.getRelatedEntity(enversService,entityName,propertyName);
+  if (relatedEntity == null) {
+    throw new AuditException("The criterion can only be used on a property that is a relation to another property.");
+  }
+  List<QueryParameterData> qpdList=relatedEntity.getIdMapper().mapToQueryParametersFromId(propertyName);
+  if (qpdList != null) {
+    QueryParameterData qpd=qpdList.iterator().next();
+    parameters.addWhereWithParams(qpd.getQueryParameterName(),"in (",ids,")");
+  }
+}

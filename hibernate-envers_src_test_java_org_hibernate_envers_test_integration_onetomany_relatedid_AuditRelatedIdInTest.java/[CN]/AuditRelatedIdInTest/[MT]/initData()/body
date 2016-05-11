@@ -1,0 +1,41 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  try {
+    Company company1=new Company("COMPANY1");
+    Company company2=new Company("COMPANY2");
+    Employee employee1=new Employee("Employee1",company1);
+    Employee employee2=new Employee("Employee2",company2);
+    Employee employee3=new Employee("Employee3",company2);
+    em.getTransaction().begin();
+    em.persist(company1);
+    em.persist(company2);
+    em.persist(employee1);
+    em.persist(employee2);
+    em.persist(employee3);
+    em.getTransaction().commit();
+    company1Id=company1.getId();
+    company2Id=company2.getId();
+    employee1Id=employee1.getId();
+    employee2Id=employee2.getId();
+    employee3Id=employee3.getId();
+    em.getTransaction().begin();
+    employee2=em.find(Employee.class,employee2.getId());
+    employee2.setCompany(company1);
+    company2=em.find(Company.class,company2.getId());
+    company2.setName("COMPANY2-CHANGED");
+    em.merge(employee2);
+    em.merge(company2);
+    em.getTransaction().commit();
+    Company company3=new Company("COMPANY3");
+    Employee employee4=new Employee("Employee4",company3);
+    em.getTransaction().begin();
+    em.persist(company3);
+    em.persist(employee4);
+    em.getTransaction().commit();
+    employee4Id=employee4.getId();
+    company3Id=company3.getId();
+  }
+  finally {
+    em.close();
+  }
+}
