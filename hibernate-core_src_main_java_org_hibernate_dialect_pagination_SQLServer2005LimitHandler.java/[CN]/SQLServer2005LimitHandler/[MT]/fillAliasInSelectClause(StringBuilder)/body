@@ -1,14 +1,14 @@
 {
   final List<String> aliases=new LinkedList<String>();
-  final int startPos=shallowIndexOf(sb,SELECT_WITH_SPACE,0);
-  int endPos=shallowIndexOfWord(sb,FROM,startPos);
+  final int startPos=shallowIndexOfPattern(sb,SELECT_PATTERN,0);
+  int endPos=shallowIndexOfPattern(sb,FROM_PATTERN,startPos);
   int nextComa=startPos;
   int prevComa=startPos;
   int unique=0;
   boolean selectsMultipleColumns=false;
   while (nextComa != -1) {
     prevComa=nextComa;
-    nextComa=shallowIndexOf(sb,",",nextComa);
+    nextComa=shallowIndexOfPattern(sb,COMMA_PATTERN,nextComa);
     if (nextComa > endPos) {
       break;
     }
@@ -32,7 +32,7 @@
       ++nextComa;
     }
   }
-  endPos=shallowIndexOfWord(sb,FROM,startPos);
+  endPos=shallowIndexOfPattern(sb,FROM_PATTERN,startPos);
   final String expression=sb.substring(prevComa,endPos);
   if (selectsMultipleColumns(expression)) {
     selectsMultipleColumns=true;
