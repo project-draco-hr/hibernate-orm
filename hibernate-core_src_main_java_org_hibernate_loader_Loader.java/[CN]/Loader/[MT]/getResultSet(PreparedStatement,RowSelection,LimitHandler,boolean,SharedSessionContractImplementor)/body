@@ -10,14 +10,9 @@
     }
     return rs;
   }
- catch (  SQLException sqle) {
-    session.getJdbcCoordinator().getResourceRegistry().release(st);
+ catch (  SQLException|HibernateException e) {
+    session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release(st);
     session.getJdbcCoordinator().afterStatementExecution();
-    throw sqle;
-  }
-catch (  HibernateException he) {
-    session.getJdbcCoordinator().getResourceRegistry().release(st);
-    session.getJdbcCoordinator().afterStatementExecution();
-    throw he;
+    throw e;
   }
 }

@@ -3,26 +3,26 @@
   this.sql=customQuery.getSQL();
   this.querySpaces.addAll(customQuery.getQuerySpaces());
   this.namedParameterBindPoints=customQuery.getNamedParameterBindPoints();
-  List<Queryable> entityPersisters=new ArrayList<Queryable>();
-  List<Integer> entityOwners=new ArrayList<Integer>();
-  List<EntityAliases> entityAliases=new ArrayList<EntityAliases>();
-  List<QueryableCollection> collectionPersisters=new ArrayList<QueryableCollection>();
-  List<Integer> collectionOwners=new ArrayList<Integer>();
-  List<CollectionAliases> collectionAliases=new ArrayList<CollectionAliases>();
-  List<LockMode> lockModes=new ArrayList<LockMode>();
-  List<ResultColumnProcessor> resultColumnProcessors=new ArrayList<ResultColumnProcessor>();
-  List<Return> nonScalarReturnList=new ArrayList<Return>();
-  List<Type> resultTypes=new ArrayList<Type>();
-  List<String> specifiedAliases=new ArrayList<String>();
+  List<Queryable> entityPersisters=new ArrayList<>();
+  List<Integer> entityOwners=new ArrayList<>();
+  List<EntityAliases> entityAliases=new ArrayList<>();
+  List<QueryableCollection> collectionPersisters=new ArrayList<>();
+  List<Integer> collectionOwners=new ArrayList<>();
+  List<CollectionAliases> collectionAliases=new ArrayList<>();
+  List<LockMode> lockModes=new ArrayList<>();
+  List<ResultColumnProcessor> resultColumnProcessors=new ArrayList<>();
+  List<Return> nonScalarReturnList=new ArrayList<>();
+  List<Type> resultTypes=new ArrayList<>();
+  List<String> specifiedAliases=new ArrayList<>();
   int returnableCounter=0;
   boolean hasScalars=false;
-  List<Boolean> includeInResultRowList=new ArrayList<Boolean>();
+  List<Boolean> includeInResultRowList=new ArrayList<>();
   for (  Return rtn : customQuery.getCustomQueryReturns()) {
     if (rtn instanceof ScalarReturn) {
       ScalarReturn scalarRtn=(ScalarReturn)rtn;
       resultTypes.add(scalarRtn.getType());
       specifiedAliases.add(scalarRtn.getColumnAlias());
-      resultColumnProcessors.add(new ScalarResultColumnProcessor(StringHelper.unquote(scalarRtn.getColumnAlias(),factory.getDialect()),scalarRtn.getType()));
+      resultColumnProcessors.add(new ScalarResultColumnProcessor(StringHelper.unquote(scalarRtn.getColumnAlias(),factory.getJdbcServices().getDialect()),scalarRtn.getType()));
       includeInResultRowList.add(true);
       hasScalars=true;
     }
@@ -34,13 +34,13 @@
       ScalarResultColumnProcessor[] scalarProcessors=new ScalarResultColumnProcessor[constructorReturn.getScalars().length];
       int i=0;
       for (      ScalarReturn scalarReturn : constructorReturn.getScalars()) {
-        scalarProcessors[i++]=new ScalarResultColumnProcessor(StringHelper.unquote(scalarReturn.getColumnAlias(),factory.getDialect()),scalarReturn.getType());
+        scalarProcessors[i++]=new ScalarResultColumnProcessor(StringHelper.unquote(scalarReturn.getColumnAlias(),factory.getJdbcServices().getDialect()),scalarReturn.getType());
       }
       resultColumnProcessors.add(new ConstructorResultColumnProcessor(constructorReturn.getTargetClass(),scalarProcessors));
     }
  else     if (rtn instanceof RootReturn) {
       RootReturn rootRtn=(RootReturn)rtn;
-      Queryable persister=(Queryable)factory.getEntityPersister(rootRtn.getEntityName());
+      Queryable persister=(Queryable)factory.getMetamodel().entityPersister(rootRtn.getEntityName());
       entityPersisters.add(persister);
       lockModes.add((rootRtn.getLockMode()));
       resultColumnProcessors.add(new NonScalarResultColumnProcessor(returnableCounter++));
@@ -55,7 +55,7 @@
  else     if (rtn instanceof CollectionReturn) {
       CollectionReturn collRtn=(CollectionReturn)rtn;
       String role=collRtn.getOwnerEntityName() + "." + collRtn.getOwnerProperty();
-      QueryableCollection persister=(QueryableCollection)factory.getCollectionPersister(role);
+      QueryableCollection persister=(QueryableCollection)factory.getMetamodel().collectionPersister(role);
       collectionPersisters.add(persister);
       lockModes.add(collRtn.getLockMode());
       resultColumnProcessors.add(new NonScalarResultColumnProcessor(returnableCounter++));
@@ -83,7 +83,7 @@
       Queryable ownerPersister=determineAppropriateOwnerPersister(ownerDescriptor);
       EntityType fetchedType=(EntityType)ownerPersister.getPropertyType(fetchRtn.getOwnerProperty());
       String entityName=fetchedType.getAssociatedEntityName(getFactory());
-      Queryable persister=(Queryable)factory.getEntityPersister(entityName);
+      Queryable persister=(Queryable)factory.getMetamodel().entityPersister(entityName);
       entityPersisters.add(persister);
       nonScalarReturnList.add(rtn);
       specifiedAliases.add(fetchRtn.getAlias());
@@ -99,7 +99,7 @@
       lockModes.add(fetchRtn.getLockMode());
       Queryable ownerPersister=determineAppropriateOwnerPersister(ownerDescriptor);
       String role=ownerPersister.getEntityName() + '.' + fetchRtn.getOwnerProperty();
-      QueryableCollection persister=(QueryableCollection)factory.getCollectionPersister(role);
+      QueryableCollection persister=(QueryableCollection)factory.getMetamodel().collectionPersister(role);
       collectionPersisters.add(persister);
       nonScalarReturnList.add(rtn);
       specifiedAliases.add(fetchRtn.getAlias());
