@@ -1,11 +1,16 @@
 {
   final EntityManager entityManager=getOrCreateEntityManager();
-  for (int i=0; i < 1000; i++) {
-    try {
-      entityManager.createNativeQuery("Select 1 from NotExistedTable").getResultList();
-      fail("expected PersistenceException");
+  try {
+    for (int i=0; i < 1000; i++) {
+      try {
+        entityManager.createNativeQuery("Select 1 from NotExistedTable").getResultList();
+        fail("expected PersistenceException");
+      }
+ catch (      PersistenceException e) {
+      }
     }
- catch (    PersistenceException e) {
-    }
+  }
+  finally {
+    entityManager.close();
   }
 }

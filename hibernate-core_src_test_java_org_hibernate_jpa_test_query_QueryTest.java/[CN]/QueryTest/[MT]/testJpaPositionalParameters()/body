@@ -1,11 +1,21 @@
 {
   EntityManager em=getOrCreateEntityManager();
   em.getTransaction().begin();
-  Query query=em.createQuery("from Item item where item.name =?1 or item.descr = ?1");
-  Parameter p1=query.getParameter(1);
-  Assert.assertNotNull(p1);
-  Assert.assertNotNull(p1.getName());
-  Assert.assertNull(p1.getPosition());
-  em.getTransaction().commit();
-  em.close();
+  try {
+    Query query=em.createQuery("from Item item where item.name =?1 or item.descr = ?1");
+    Parameter p1=query.getParameter(1);
+    Assert.assertNotNull(p1);
+    Assert.assertNotNull(p1.getName());
+    Assert.assertNull(p1.getPosition());
+    em.getTransaction().commit();
+  }
+ catch (  Exception e) {
+    if (em.getTransaction() != null && em.getTransaction().isActive()) {
+      em.getTransaction().rollback();
+    }
+    throw e;
+  }
+ finally {
+    em.close();
+  }
 }
