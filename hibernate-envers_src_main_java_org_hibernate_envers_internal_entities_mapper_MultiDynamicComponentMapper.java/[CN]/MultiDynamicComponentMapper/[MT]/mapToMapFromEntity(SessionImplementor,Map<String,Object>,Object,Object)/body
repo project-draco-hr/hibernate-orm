@@ -1,12 +1,14 @@
 {
   boolean ret=false;
-  for (  PropertyData propertyData : properties.keySet()) {
+  for (  Map.Entry<PropertyData,PropertyMapper> entry : properties.entrySet()) {
+    final PropertyData propertyData=entry.getKey();
+    final PropertyMapper propertyMapper=entry.getValue();
     if (newObj == null && oldObj == null) {
       return false;
     }
     Object newValue=newObj == null ? null : getValue(newObj,propertyData);
     Object oldValue=oldObj == null ? null : getValue(oldObj,propertyData);
-    ret|=properties.get(propertyData).mapToMapFromEntity(session,data,newValue,oldValue);
+    ret|=propertyMapper.mapToMapFromEntity(session,data,newValue,oldValue);
   }
   return ret;
 }

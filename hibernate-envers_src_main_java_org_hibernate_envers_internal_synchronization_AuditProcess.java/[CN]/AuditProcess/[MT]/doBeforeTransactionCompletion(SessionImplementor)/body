@@ -9,7 +9,7 @@
   if (FlushModeType.COMMIT.equals(session.getFlushMode())) {
     Session temporarySession=null;
     try {
-      temporarySession=((Session)session).sessionWithOptions().transactionContext().autoClose(false).connectionReleaseMode(ConnectionReleaseMode.AFTER_TRANSACTION).openSession();
+      temporarySession=session.sessionWithOptions().connection().autoClose(false).connectionHandlingMode(PhysicalConnectionHandlingMode.DELAYED_ACQUISITION_AND_RELEASE_AFTER_TRANSACTION).openSession();
       executeInSession(temporarySession);
       temporarySession.flush();
     }
@@ -20,7 +20,7 @@
     }
   }
  else {
-    executeInSession((Session)session);
+    executeInSession(session);
     session.flush();
   }
 }

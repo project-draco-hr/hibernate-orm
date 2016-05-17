@@ -1,6 +1,8 @@
 {
   boolean ret=false;
-  for (  PropertyData propertyData : properties.keySet()) {
+  for (  Map.Entry<PropertyData,PropertyMapper> entry : properties.entrySet()) {
+    final PropertyData propertyData=entry.getKey();
+    final PropertyMapper propertyMapper=entry.getValue();
     Getter getter;
     if (newObj != null) {
       getter=ReflectionTools.getGetter(newObj.getClass(),propertyData,session.getFactory().getServiceRegistry());
@@ -11,7 +13,7 @@
  else {
       return false;
     }
-    ret|=properties.get(propertyData).mapToMapFromEntity(session,data,newObj == null ? null : getter.get(newObj),oldObj == null ? null : getter.get(oldObj));
+    ret|=propertyMapper.mapToMapFromEntity(session,data,newObj == null ? null : getter.get(newObj),oldObj == null ? null : getter.get(oldObj));
   }
   return ret;
 }

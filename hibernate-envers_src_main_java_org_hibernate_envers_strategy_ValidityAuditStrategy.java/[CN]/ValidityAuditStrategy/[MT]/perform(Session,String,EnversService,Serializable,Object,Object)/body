@@ -18,10 +18,10 @@
  else {
           updateTableName=rootAuditedEntityQueryable.getTableName();
         }
-        final Type revisionInfoIdType=sessionImplementor.getFactory().getEntityPersister(revisionInfoEntityName).getIdentifierType();
+        final Type revisionInfoIdType=sessionImplementor.getFactory().getMetamodel().entityPersister(revisionInfoEntityName).getIdentifierType();
         final String revEndColumnName=rootAuditedEntityQueryable.toColumns(enversService.getAuditEntitiesConfiguration().getRevisionEndFieldName())[0];
         final boolean isRevisionEndTimestampEnabled=enversService.getAuditEntitiesConfiguration().isRevisionEndTimestampEnabled();
-        final Update update=new Update(sessionImplementor.getFactory().getDialect()).setTableName(updateTableName);
+        final Update update=new Update(sessionImplementor.getFactory().getJdbcServices().getDialect()).setTableName(updateTableName);
         update.addColumn(revEndColumnName);
         if (isRevisionEndTimestampEnabled) {
           update.addColumn(rootAuditedEntityQueryable.toColumns(enversService.getAuditEntitiesConfiguration().getRevisionEndTimestampFieldName())[0]);
@@ -30,7 +30,7 @@
         update.addWhereColumn(rootAuditedEntityQueryable.toColumns(enversService.getAuditEntitiesConfiguration().getRevisionNumberPath())[0],"<> ?");
         update.addWhereColumn(revEndColumnName," is null");
         final String updateSql=update.toStatementString();
-        int rowCount=((Session)sessionImplementor).doReturningWork(new ReturningWork<Integer>(){
+        int rowCount=sessionImplementor.doReturningWork(new ReturningWork<Integer>(){
           @Override public Integer execute(          Connection connection) throws SQLException {
             PreparedStatement preparedStatement=sessionImplementor.getJdbcCoordinator().getStatementPreparer().prepareStatement(updateSql);
             try {
@@ -53,7 +53,7 @@
               return sessionImplementor.getJdbcCoordinator().getResultSetReturn().executeUpdate(preparedStatement);
             }
   finally {
-              sessionImplementor.getJdbcCoordinator().getResourceRegistry().release(preparedStatement);
+              sessionImplementor.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release(preparedStatement);
               sessionImplementor.getJdbcCoordinator().afterStatementExecution();
             }
           }

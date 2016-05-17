@@ -4,16 +4,16 @@
   checkSession();
   final Session session=auditReaderImplementor.getSession();
   final SessionImplementor sessionImplementor=auditReaderImplementor.getSessionImplementor();
-  final Set<Number> revisions=new HashSet<Number>(1);
+  final Set<Number> revisions=new HashSet<>(1);
   revisions.add(revision);
-  final Criteria query=enversService.getRevisionInfoQueryCreator().getRevisionsQuery(session,revisions);
+  final Query<?> query=enversService.getRevisionInfoQueryCreator().getRevisionsQuery(session,revisions);
   final Object revisionInfo=query.uniqueResult();
   if (revisionInfo != null) {
     final Set<String> entityNames=enversService.getModifiedEntityNamesReader().getModifiedEntityNames(revisionInfo);
     if (entityNames != null) {
-      final Set<Pair<String,Class>> result=new HashSet<Pair<String,Class>>();
+      final Set<Pair<String,Class>> result=new HashSet<>();
       for (      String entityName : entityNames) {
-        result.add(Pair.make(entityName,EntityTools.getEntityClass(sessionImplementor,session,entityName)));
+        result.add(Pair.make(entityName,EntityTools.getEntityClass(sessionImplementor,entityName)));
       }
       return result;
     }

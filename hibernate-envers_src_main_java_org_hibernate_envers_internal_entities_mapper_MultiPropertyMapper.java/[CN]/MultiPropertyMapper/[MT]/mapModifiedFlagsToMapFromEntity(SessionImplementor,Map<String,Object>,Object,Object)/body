@@ -1,5 +1,7 @@
 {
-  for (  PropertyData propertyData : properties.keySet()) {
+  for (  Map.Entry<PropertyData,PropertyMapper> entry : properties.entrySet()) {
+    final PropertyData propertyData=entry.getKey();
+    final PropertyMapper propertyMapper=entry.getValue();
     Getter getter;
     if (newObj != null) {
       getter=ReflectionTools.getGetter(newObj.getClass(),propertyData,session.getFactory().getServiceRegistry());
@@ -10,6 +12,6 @@
  else {
       return;
     }
-    properties.get(propertyData).mapModifiedFlagsToMapFromEntity(session,data,newObj == null ? null : getter.get(newObj),oldObj == null ? null : getter.get(oldObj));
+    propertyMapper.mapModifiedFlagsToMapFromEntity(session,data,newObj == null ? null : getter.get(newObj),oldObj == null ? null : getter.get(oldObj));
   }
 }
