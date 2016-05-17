@@ -1,0 +1,20 @@
+{
+  Configuration cfg=new Configuration();
+  cfg.setProperty(AvailableSettings.SHOW_SQL,Boolean.FALSE.toString());
+  cfg.setProperty(AvailableSettings.USE_SQL_COMMENTS,Boolean.TRUE.toString());
+  super.prepare(cfg);
+  Session s=getFactory().openSession();
+  s.beginTransaction();
+  Bar bar1=new Bar();
+  Bar bar2=new Bar();
+  Foo foo=new Foo();
+  s.save(bar1);
+  s.save(bar2);
+  s.save(foo);
+  bar1.foo=foo;
+  bar2.foo=foo;
+  fooId=foo.id;
+  s.getTransaction().commit();
+  s.clear();
+  s.close();
+}
