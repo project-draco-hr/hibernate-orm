@@ -5,12 +5,23 @@
  else   if (mode == ParameterMode.REF_CURSOR) {
     throw new ParameterMisuseException("REF_CURSOR parameters should be accessed via results");
   }
+  final boolean useNamed=sqlTypes.length == 1 && procedureCall.getParameterStrategy() == ParameterStrategy.NAMED && canDoNameParameterBinding();
   try {
     if (ProcedureParameterExtractionAware.class.isInstance(hibernateType)) {
-      return (T)((ProcedureParameterExtractionAware)hibernateType).extract(statement,startIndex,session());
+      if (useNamed) {
+        return (T)((ProcedureParameterExtractionAware)hibernateType).extract(statement,new String[]{getName()},session());
+      }
+ else {
+        return (T)((ProcedureParameterExtractionAware)hibernateType).extract(statement,startIndex,session());
+      }
     }
  else {
-      return (T)statement.getObject(startIndex);
+      if (useNamed) {
+        return (T)statement.getObject(name);
+      }
+ else {
+        return (T)statement.getObject(startIndex);
+      }
     }
   }
  catch (  SQLException e) {

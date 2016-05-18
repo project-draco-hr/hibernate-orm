@@ -34,8 +34,13 @@ if (sqlTypesToUse.length > 1) {
     throw new UnsupportedOperationException("Type [" + hibernateType + "] does support multi-parameter value extraction");
   }
 }
-for (int i=0; i < sqlTypesToUse.length; i++) {
-  statement.registerOutParameter(startIndex + i,sqlTypesToUse[i]);
+if (sqlTypesToUse.length == 1 && procedureCall.getParameterStrategy() == ParameterStrategy.NAMED && canDoNameParameterBinding()) {
+  statement.registerOutParameter(getName(),sqlTypesToUse[0]);
+}
+ else {
+  for (int i=0; i < sqlTypesToUse.length; i++) {
+    statement.registerOutParameter(startIndex + i,sqlTypesToUse[i]);
+  }
 }
 }
 if (mode == ParameterMode.INOUT || mode == ParameterMode.IN) {
