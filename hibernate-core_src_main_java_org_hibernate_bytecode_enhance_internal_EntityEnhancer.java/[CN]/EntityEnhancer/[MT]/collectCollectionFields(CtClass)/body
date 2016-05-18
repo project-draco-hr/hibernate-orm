@@ -1,21 +1,24 @@
 {
   final List<CtField> collectionList=new LinkedList<CtField>();
-  try {
-    for (    CtField ctField : managedCtClass.getDeclaredFields()) {
-      if (Modifier.isStatic(ctField.getModifiers()) || ctField.getName().startsWith("$$_hibernate_")) {
-        continue;
-      }
-      if (enhancementContext.isPersistentField(ctField)) {
-        for (        CtClass ctClass : ctField.getType().getInterfaces()) {
-          if (PersistentAttributesHelper.isAssignable(ctClass,Collection.class.getName())) {
-            collectionList.add(ctField);
-            break;
-          }
-        }
+  for (  CtField ctField : managedCtClass.getDeclaredFields()) {
+    if (Modifier.isStatic(ctField.getModifiers()) || ctField.getName().startsWith("$$_hibernate_")) {
+      continue;
+    }
+    if (enhancementContext.isPersistentField(ctField)) {
+      if (PersistentAttributesHelper.isAssignable(ctField,Collection.class.getName()) || PersistentAttributesHelper.isAssignable(ctField,Map.class.getName())) {
+        collectionList.add(ctField);
       }
     }
   }
- catch (  NotFoundException ignored) {
+  for (  CtField ctField : managedCtClass.getDeclaredFields()) {
+    if (!ctField.getDeclaringClass().hasAnnotation(MappedSuperclass.class) || Modifier.isStatic(ctField.getModifiers())) {
+      continue;
+    }
+    if (enhancementContext.isPersistentField(ctField)) {
+      if (PersistentAttributesHelper.isAssignable(ctField,Collection.class.getName()) || PersistentAttributesHelper.isAssignable(ctField,Map.class.getName())) {
+        collectionList.add(ctField);
+      }
+    }
   }
   return collectionList;
 }

@@ -11,5 +11,13 @@
       persistentFieldList.add(ctField);
     }
   }
+  for (  CtField ctField : managedCtClass.getFields()) {
+    if (!ctField.getDeclaringClass().hasAnnotation(MappedSuperclass.class) || Modifier.isStatic(ctField.getModifiers())) {
+      continue;
+    }
+    if (enhancementContext.isPersistentField(ctField)) {
+      persistentFieldList.add(ctField);
+    }
+  }
   return enhancementContext.order(persistentFieldList.toArray(new CtField[persistentFieldList.size()]));
 }
