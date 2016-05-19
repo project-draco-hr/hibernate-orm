@@ -1,4 +1,5 @@
 {
+  final String separator=System.lineSeparator();
   final List<String> aliases=new LinkedList<String>();
   final int startPos=shallowIndexOfPattern(sb,SELECT_PATTERN,0);
   int endPos=shallowIndexOfPattern(sb,FROM_PATTERN,startPos);
@@ -40,9 +41,9 @@
  else {
     String alias=getAlias(expression);
     if (alias == null) {
-      endPos=shallowIndexOfPattern(sb,Pattern.compile("(\\s+" + FROM + ")",Pattern.CASE_INSENSITIVE),startPos);
       alias=StringHelper.generateAlias("page",unique);
-      sb.insert(endPos," as " + alias);
+      final boolean endWithSeparator=sb.substring(endPos - separator.length()).startsWith(separator);
+      sb.insert(endPos - (endWithSeparator ? 2 : 1)," as " + alias);
     }
     aliases.add(alias);
   }
