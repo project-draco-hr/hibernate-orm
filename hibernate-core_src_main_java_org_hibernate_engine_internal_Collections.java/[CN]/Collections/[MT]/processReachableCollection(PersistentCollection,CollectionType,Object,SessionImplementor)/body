@@ -4,21 +4,29 @@
   if (ce == null) {
     throw new HibernateException("Found two representations of same collection: " + type.getRole());
   }
-  if (ce.isReached()) {
-    throw new HibernateException("Found shared references to a collection: " + type.getRole());
-  }
-  ce.setReached(true);
   final SessionFactoryImplementor factory=session.getFactory();
-  final CollectionPersister persister=factory.getCollectionPersister(type.getRole());
+  final CollectionPersister persister=factory.getMetamodel().collectionPersister(type.getRole());
   ce.setCurrentPersister(persister);
   ce.setCurrentKey(type.getKeyOfOwner(entity,session));
-  if (LOG.isDebugEnabled()) {
-    if (collection.wasInitialized()) {
-      LOG.debugf("Collection found: %s, was: %s (initialized)",MessageHelper.collectionInfoString(persister,collection,ce.getCurrentKey(),session),MessageHelper.collectionInfoString(ce.getLoadedPersister(),collection,ce.getLoadedKey(),session));
-    }
- else {
-      LOG.debugf("Collection found: %s, was: %s (uninitialized)",MessageHelper.collectionInfoString(persister,collection,ce.getCurrentKey(),session),MessageHelper.collectionInfoString(ce.getLoadedPersister(),collection,ce.getLoadedKey(),session));
-    }
+  final boolean isBytecodeEnhanced=persister.getOwnerEntityPersister().getInstrumentationMetadata().isEnhancedForLazyLoading();
+  if (isBytecodeEnhanced && !collection.wasInitialized()) {
+    LOG.debugf("Skipping uninitialized bytecode-lazy collection: %s",MessageHelper.collectionInfoString(persister,collection,ce.getCurrentKey(),session));
+    ce.setReached(true);
+    ce.setProcessed(true);
   }
-  prepareCollectionForUpdate(collection,ce,factory);
+ else {
+    if (ce.isReached()) {
+      throw new HibernateException("Found shared references to a collection: " + type.getRole());
+    }
+    ce.setReached(true);
+    if (LOG.isDebugEnabled()) {
+      if (collection.wasInitialized()) {
+        LOG.debugf("Collection found: %s, was: %s (initialized)",MessageHelper.collectionInfoString(persister,collection,ce.getCurrentKey(),session),MessageHelper.collectionInfoString(ce.getLoadedPersister(),collection,ce.getLoadedKey(),session));
+      }
+ else {
+        LOG.debugf("Collection found: %s, was: %s (uninitialized)",MessageHelper.collectionInfoString(persister,collection,ce.getCurrentKey(),session),MessageHelper.collectionInfoString(ce.getLoadedPersister(),collection,ce.getLoadedKey(),session));
+      }
+    }
+    prepareCollectionForUpdate(collection,ce,factory);
+  }
 }
