@@ -1,27 +1,31 @@
 {
-  if (hasCriterions() || hasOrders() || hasProjections()) {
-    if (enversService.getEntitiesConfigurations().isVersioned(entityName)) {
-      String auditEntityName=enversService.getAuditEntitiesConfiguration().getAuditEntityName(entityName);
-      queryBuilder.addFrom(auditEntityName,alias,false);
-      AuditEntitiesConfiguration verEntCfg=enversService.getAuditEntitiesConfiguration();
-      String originalIdPropertyName=verEntCfg.getOriginalIdPropName();
-      IdMapper idMapperTarget=enversService.getEntitiesConfigurations().get(entityName).getIdMapper();
-      final String prefix=alias.concat(".").concat(originalIdPropertyName);
-      ownerAssociationIdMapper.addIdsEqualToQuery(queryBuilder.getRootParameters(),ownerAlias,idMapperTarget,prefix);
-      String revisionPropertyPath=verEntCfg.getRevisionNumberPath();
-      MiddleIdData referencedIdData=new MiddleIdData(verEntCfg,enversService.getEntitiesConfigurations().get(entityName).getIdMappingData(),null,entityName,enversService.getEntitiesConfigurations().isVersioned(entityName));
-      enversService.getAuditStrategy().addEntityAtRevisionRestriction(enversService.getGlobalConfiguration(),queryBuilder,parameters,revisionPropertyPath,verEntCfg.getRevisionEndFieldName(),true,referencedIdData,revisionPropertyPath,originalIdPropertyName,alias,queryBuilder.generateAlias(),true);
+  if (enversService.getEntitiesConfigurations().isVersioned(entityName)) {
+    String auditEntityName=enversService.getAuditEntitiesConfiguration().getAuditEntityName(entityName);
+    Parameters joinConditionParameters=queryBuilder.addJoin(joinType,auditEntityName,alias,false);
+    AuditEntitiesConfiguration verEntCfg=enversService.getAuditEntitiesConfiguration();
+    String originalIdPropertyName=verEntCfg.getOriginalIdPropName();
+    IdMapper idMapperTarget=enversService.getEntitiesConfigurations().get(entityName).getIdMapper();
+    final String prefix=alias.concat(".").concat(originalIdPropertyName);
+    ownerAssociationIdMapper.addIdsEqualToQuery(joinConditionParameters,ownerAlias,idMapperTarget,prefix);
+    Parameters parametersToUse=parameters;
+    String revisionPropertyPath=verEntCfg.getRevisionNumberPath();
+    if (joinType == JoinType.LEFT) {
+      parametersToUse=parameters.addSubParameters(Parameters.OR);
+      parametersToUse.addNullRestriction(revisionPropertyPath,true);
+      parametersToUse=parametersToUse.addSubParameters(Parameters.AND);
     }
+    MiddleIdData referencedIdData=new MiddleIdData(verEntCfg,enversService.getEntitiesConfigurations().get(entityName).getIdMappingData(),null,entityName,enversService.getEntitiesConfigurations().isVersioned(entityName));
+    enversService.getAuditStrategy().addEntityAtRevisionRestriction(enversService.getGlobalConfiguration(),queryBuilder,parametersToUse,revisionPropertyPath,verEntCfg.getRevisionEndFieldName(),true,referencedIdData,revisionPropertyPath,originalIdPropertyName,alias,queryBuilder.generateAlias(),true);
+  }
  else {
-      queryBuilder.addFrom(entityName,alias,false);
-      final IdMapper idMapperTarget=enversService.getEntitiesConfigurations().getNotVersionEntityConfiguration(entityName).getIdMapper();
-      ownerAssociationIdMapper.addIdsEqualToQuery(queryBuilder.getRootParameters(),ownerAlias,idMapperTarget,alias);
-    }
-    for (    AuditCriterion criterion : criterions) {
-      criterion.addToQuery(enversService,versionsReader,entityName,alias,queryBuilder,parameters);
-    }
-    for (    final AuditAssociationQueryImpl<?> sub : associationQueries) {
-      sub.addCriterionsToQuery(versionsReader);
-    }
+    Parameters joinConditionParameters=queryBuilder.addJoin(joinType,entityName,alias,false);
+    final IdMapper idMapperTarget=enversService.getEntitiesConfigurations().getNotVersionEntityConfiguration(entityName).getIdMapper();
+    ownerAssociationIdMapper.addIdsEqualToQuery(joinConditionParameters,ownerAlias,idMapperTarget,alias);
+  }
+  for (  AuditCriterion criterion : criterions) {
+    criterion.addToQuery(enversService,versionsReader,aliasToEntityNameMap,alias,queryBuilder,parameters);
+  }
+  for (  final AuditAssociationQueryImpl<?> sub : associationQueries) {
+    sub.addCriterionsToQuery(versionsReader);
   }
 }

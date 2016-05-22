@@ -1,7 +1,9 @@
 {
   hasOrder=true;
-  Pair<String,Boolean> orderData=order.getData(enversService);
-  String propertyName=CriteriaTools.determinePropertyName(enversService,versionsReader,entityName,orderData.getFirst());
-  qb.addOrder(REFERENCED_ENTITY_ALIAS,propertyName,orderData.getSecond());
+  AuditOrder.OrderData orderData=order.getData(enversService);
+  String orderEntityAlias=orderData.getAlias(REFERENCED_ENTITY_ALIAS);
+  String orderEntityName=aliasToEntityNameMap.get(orderEntityAlias);
+  String propertyName=CriteriaTools.determinePropertyName(enversService,versionsReader,orderEntityName,orderData.getPropertyName());
+  qb.addOrder(orderEntityAlias,propertyName,orderData.isAscending());
   return this;
 }
