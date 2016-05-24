@@ -1,4 +1,5 @@
 {
-  LOG.tracef("Building batch [size=%s]",size);
-  return size > 1 ? new BatchingBatch(key,jdbcCoordinator,size) : new NonBatchingBatch(key,jdbcCoordinator);
+  final Integer sessionJdbcBatchSize=jdbcCoordinator.getJdbcSessionOwner().getJdbcBatchSize();
+  final int jdbcBatchSizeToUse=sessionJdbcBatchSize == null ? this.jdbcBatchSize : sessionJdbcBatchSize;
+  return jdbcBatchSizeToUse > 1 ? new BatchingBatch(key,jdbcCoordinator,jdbcBatchSizeToUse) : new NonBatchingBatch(key,jdbcCoordinator);
 }
