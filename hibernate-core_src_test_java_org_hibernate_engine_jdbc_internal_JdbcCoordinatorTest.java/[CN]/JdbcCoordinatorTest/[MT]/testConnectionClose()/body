@@ -1,0 +1,33 @@
+{
+  Connection connection=Mockito.mock(Connection.class);
+  JdbcSessionOwner sessionOwner=Mockito.mock(JdbcSessionOwner.class);
+  JdbcConnectionAccess jdbcConnectionAccess=Mockito.mock(JdbcConnectionAccess.class);
+  when(jdbcConnectionAccess.obtainConnection()).thenReturn(connection);
+  when(jdbcConnectionAccess.supportsAggressiveRelease()).thenReturn(false);
+  JdbcSessionContext sessionContext=Mockito.mock(JdbcSessionContext.class);
+  when(sessionOwner.getJdbcSessionContext()).thenReturn(sessionContext);
+  when(sessionOwner.getJdbcConnectionAccess()).thenReturn(jdbcConnectionAccess);
+  ServiceRegistry serviceRegistry=Mockito.mock(ServiceRegistry.class);
+  when(sessionContext.getServiceRegistry()).thenReturn(serviceRegistry);
+  when(sessionContext.getPhysicalConnectionHandlingMode()).thenReturn(PhysicalConnectionHandlingMode.IMMEDIATE_ACQUISITION_AND_HOLD);
+  JdbcObserver jdbcObserver=Mockito.mock(JdbcObserver.class);
+  when(sessionContext.getObserver()).thenReturn(jdbcObserver);
+  JdbcServices jdbcServices=Mockito.mock(JdbcServices.class);
+  when(serviceRegistry.getService(eq(JdbcServices.class))).thenReturn(jdbcServices);
+  SqlExceptionHelper sqlExceptionHelper=Mockito.mock(SqlExceptionHelper.class);
+  when(jdbcServices.getSqlExceptionHelper()).thenReturn(sqlExceptionHelper);
+  JdbcCoordinatorImpl jdbcCoordinator=new JdbcCoordinatorImpl(null,sessionOwner);
+  Batch currentBatch=Mockito.mock(Batch.class);
+  Field currentBatchField=JdbcCoordinatorImpl.class.getDeclaredField("currentBatch");
+  currentBatchField.setAccessible(true);
+  currentBatchField.set(jdbcCoordinator,currentBatch);
+  doThrow(IllegalStateException.class).when(currentBatch).release();
+  try {
+    jdbcCoordinator.close();
+    fail("Should throw IllegalStateException");
+  }
+ catch (  Exception expected) {
+    assertEquals(IllegalStateException.class,expected.getClass());
+  }
+  verify(jdbcConnectionAccess,times(1)).releaseConnection(same(connection));
+}
