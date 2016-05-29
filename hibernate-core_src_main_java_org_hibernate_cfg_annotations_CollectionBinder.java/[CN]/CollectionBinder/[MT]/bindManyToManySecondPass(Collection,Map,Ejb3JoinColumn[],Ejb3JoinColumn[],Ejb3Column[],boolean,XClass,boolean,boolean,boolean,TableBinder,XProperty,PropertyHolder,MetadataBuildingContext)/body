@@ -99,11 +99,13 @@
       final JoinTable joinTableAnn=property.getAnnotation(JoinTable.class);
       if (joinTableAnn != null) {
         String foreignKeyName=joinTableAnn.inverseForeignKey().name();
+        String foreignKeyDefinition=joinTableAnn.inverseForeignKey().foreignKeyDefinition();
         ConstraintMode foreignKeyValue=joinTableAnn.foreignKey().value();
         if (joinTableAnn.inverseJoinColumns().length != 0) {
           final JoinColumn joinColumnAnn=joinTableAnn.inverseJoinColumns()[0];
           if ("".equals(foreignKeyName)) {
             foreignKeyName=joinColumnAnn.foreignKey().name();
+            foreignKeyDefinition=joinColumnAnn.foreignKey().foreignKeyDefinition();
           }
           if (foreignKeyValue != ConstraintMode.NO_CONSTRAINT) {
             foreignKeyValue=joinColumnAnn.foreignKey().value();
@@ -114,6 +116,7 @@
         }
  else {
           element.setForeignKeyName(StringHelper.nullIfEmpty(foreignKeyName));
+          element.setForeignKeyDefinition(StringHelper.nullIfEmpty(foreignKeyDefinition));
         }
       }
     }

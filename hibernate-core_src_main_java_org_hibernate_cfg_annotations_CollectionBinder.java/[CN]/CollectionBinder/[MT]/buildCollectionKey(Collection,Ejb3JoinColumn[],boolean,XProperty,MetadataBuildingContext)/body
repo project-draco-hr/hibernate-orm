@@ -35,17 +35,20 @@
         }
  else {
           key.setForeignKeyName(StringHelper.nullIfEmpty(collectionTableAnn.foreignKey().name()));
+          key.setForeignKeyDefinition(StringHelper.nullIfEmpty(collectionTableAnn.foreignKey().foreignKeyDefinition()));
         }
       }
  else {
         final JoinTable joinTableAnn=property.getAnnotation(JoinTable.class);
         if (joinTableAnn != null) {
           String foreignKeyName=joinTableAnn.foreignKey().name();
+          String foreignKeyDefinition=joinTableAnn.foreignKey().foreignKeyDefinition();
           ConstraintMode foreignKeyValue=joinTableAnn.foreignKey().value();
           if (joinTableAnn.joinColumns().length != 0) {
             final JoinColumn joinColumnAnn=joinTableAnn.joinColumns()[0];
             if ("".equals(foreignKeyName)) {
               foreignKeyName=joinColumnAnn.foreignKey().name();
+              foreignKeyDefinition=joinColumnAnn.foreignKey().foreignKeyDefinition();
             }
             if (foreignKeyValue != ConstraintMode.NO_CONSTRAINT) {
               foreignKeyValue=joinColumnAnn.foreignKey().value();
@@ -56,6 +59,7 @@
           }
  else {
             key.setForeignKeyName(StringHelper.nullIfEmpty(foreignKeyName));
+            key.setForeignKeyDefinition(StringHelper.nullIfEmpty(foreignKeyDefinition));
           }
         }
  else {
@@ -66,6 +70,7 @@
             }
  else {
               key.setForeignKeyName(StringHelper.nullIfEmpty(joinColumnAnn.foreignKey().name()));
+              key.setForeignKeyDefinition(StringHelper.nullIfEmpty(joinColumnAnn.foreignKey().foreignKeyDefinition()));
             }
           }
         }

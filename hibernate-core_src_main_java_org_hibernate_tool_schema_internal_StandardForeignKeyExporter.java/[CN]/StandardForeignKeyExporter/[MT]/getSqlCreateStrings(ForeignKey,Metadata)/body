@@ -34,7 +34,7 @@
   final JdbcEnvironment jdbcEnvironment=metadata.getDatabase().getJdbcEnvironment();
   final String sourceTableName=jdbcEnvironment.getQualifiedObjectNameFormatter().format(foreignKey.getTable().getQualifiedTableName(),dialect);
   final String targetTableName=jdbcEnvironment.getQualifiedObjectNameFormatter().format(foreignKey.getReferencedTable().getQualifiedTableName(),dialect);
-  final StringBuilder buffer=new StringBuilder("alter table ").append(sourceTableName).append(dialect.getAddForeignKeyConstraintString(foreignKey.getName(),columnNames,targetTableName,targetColumnNames,foreignKey.isReferenceToPrimaryKey()));
+  final StringBuilder buffer=new StringBuilder("alter table ").append(sourceTableName).append(foreignKey.getKeyDefinition() != null ? dialect.getAddForeignKeyConstraintString(foreignKey.getName(),foreignKey.getKeyDefinition()) : dialect.getAddForeignKeyConstraintString(foreignKey.getName(),columnNames,targetTableName,targetColumnNames,foreignKey.isReferenceToPrimaryKey()));
   if (dialect.supportsCascadeDelete()) {
     if (foreignKey.isCascadeDeleteEnabled()) {
       buffer.append(" on delete cascade");
