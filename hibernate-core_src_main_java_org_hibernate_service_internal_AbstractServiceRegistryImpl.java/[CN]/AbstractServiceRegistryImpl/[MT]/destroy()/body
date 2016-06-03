@@ -1,21 +1,19 @@
 {
-  if (!active) {
-    return;
-  }
-  active=false;
-  try {
+  if (active.compareAndSet(true,false)) {
+    try {
+      initializedServiceByRole.clear();
 synchronized (serviceBindingList) {
-      ListIterator<ServiceBinding> serviceBindingsIterator=serviceBindingList.listIterator(serviceBindingList.size());
-      while (serviceBindingsIterator.hasPrevious()) {
-        final ServiceBinding serviceBinding=serviceBindingsIterator.previous();
-        serviceBinding.getLifecycleOwner().stopService(serviceBinding);
+        ListIterator<ServiceBinding> serviceBindingsIterator=serviceBindingList.listIterator(serviceBindingList.size());
+        while (serviceBindingsIterator.hasPrevious()) {
+          final ServiceBinding serviceBinding=serviceBindingsIterator.previous();
+          serviceBinding.getLifecycleOwner().stopService(serviceBinding);
+        }
+        serviceBindingList.clear();
       }
-      serviceBindingList.clear();
+      serviceBindingMap.clear();
     }
-    serviceBindingMap.clear();
-    initializedServiceByRole.clear();
-  }
   finally {
-    parent.deRegisterChild(this);
+      parent.deRegisterChild(this);
+    }
   }
 }
