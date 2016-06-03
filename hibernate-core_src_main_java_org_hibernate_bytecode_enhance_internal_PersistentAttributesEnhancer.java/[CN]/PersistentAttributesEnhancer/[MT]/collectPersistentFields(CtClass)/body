@@ -12,7 +12,10 @@
     }
   }
   for (  CtField ctField : managedCtClass.getFields()) {
-    if (!ctField.getDeclaringClass().hasAnnotation(MappedSuperclass.class) || Modifier.isStatic(ctField.getModifiers())) {
+    if (ctField.getDeclaringClass().equals(managedCtClass)) {
+      continue;
+    }
+    if (!enhancementContext.isMappedSuperclassClass(ctField.getDeclaringClass()) || Modifier.isStatic(ctField.getModifiers())) {
       continue;
     }
     if (enhancementContext.isPersistentField(ctField)) {

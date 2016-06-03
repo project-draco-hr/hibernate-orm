@@ -1,14 +1,12 @@
 {
   try {
     final CtClass ctClass=classPool.makeClass(new FileInputStream(javaClassFile));
-    if (this.isEntityClass(ctClass)) {
-      processEntityClassFile(javaClassFile,ctClass);
-    }
- else     if (this.isCompositeClass(ctClass)) {
-      processCompositeClassFile(javaClassFile,ctClass);
+    byte[] result=enhancer.enhance(ctClass.getName(),ctClass.toBytecode());
+    if (result != null) {
+      writeEnhancedClass(javaClassFile,result);
     }
   }
- catch (  IOException e) {
-    throw new BuildException(String.format("Error processing included file [%s]",javaClassFile.getAbsolutePath()),e);
+ catch (  Exception e) {
+    log("Unable to enhance class file [" + javaClassFile.getAbsolutePath() + "]",e,Project.MSG_WARN);
   }
 }
