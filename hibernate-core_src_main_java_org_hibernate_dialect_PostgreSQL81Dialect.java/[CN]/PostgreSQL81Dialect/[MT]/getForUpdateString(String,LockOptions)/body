@@ -10,5 +10,21 @@
       }
     }
   }
-  return getForUpdateString(aliases);
+  LockMode lockMode=lockOptions.getLockMode();
+switch (lockMode) {
+case UPGRADE:
+    return getForUpdateString(aliases);
+case PESSIMISTIC_READ:
+  return getReadLockString(aliases,lockOptions.getTimeOut());
+case PESSIMISTIC_WRITE:
+return getWriteLockString(aliases,lockOptions.getTimeOut());
+case UPGRADE_NOWAIT:
+case FORCE:
+case PESSIMISTIC_FORCE_INCREMENT:
+return getForUpdateNowaitString(aliases);
+case UPGRADE_SKIPLOCKED:
+return getForUpdateSkipLockedString(aliases);
+default :
+return "";
+}
 }
