@@ -1,0 +1,15 @@
+{
+  Session session=sessionFactory().openSession();
+  session.beginTransaction();
+  try {
+    addEvents(session);
+  }
+  finally {
+    connectionProvider.getPreparedStatementStatistics().clear();
+    session.getTransaction().commit();
+    session.close();
+  }
+  JdbcStatisticsConnectionProvider.PreparedStatementStatistics statementStatistics=connectionProvider.getPreparedStatementStatistics().get("insert into Event (name, id) values (?, ?)");
+  assertEquals(5,statementStatistics.getAddBatchCount());
+  assertEquals(3,statementStatistics.getExecuteBatchCount());
+}
