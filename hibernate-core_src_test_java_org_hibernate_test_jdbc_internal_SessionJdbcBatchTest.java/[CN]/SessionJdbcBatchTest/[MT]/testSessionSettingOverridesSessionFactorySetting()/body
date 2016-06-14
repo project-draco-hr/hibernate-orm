@@ -24,7 +24,9 @@
     session.getTransaction().commit();
     session.close();
   }
-  preparedStatement=connectionProvider.getPreparedStatement("insert into Event (name, id) values (?, ?)");
+  List<PreparedStatement> preparedStatements=connectionProvider.getPreparedStatements();
+  assertEquals(1,preparedStatements.size());
+  preparedStatement=preparedStatements.get(0);
   verify(preparedStatement,times(5)).addBatch();
   verify(preparedStatement,times(3)).executeBatch();
 }
