@@ -10,9 +10,9 @@
     session.getTransaction().commit();
     session.close();
   }
-  JdbcStatisticsConnectionProvider.PreparedStatementStatistics statementStatistics=connectionProvider.getPreparedStatementStatistics().get("insert into Event (name, id) values (?, ?)");
-  assertEquals(5,statementStatistics.getAddBatchCount());
-  assertEquals(2,statementStatistics.getExecuteBatchCount());
+  PreparedStatement preparedStatement=connectionProvider.getPreparedStatement("insert into Event (name, id) values (?, ?)");
+  verify(preparedStatement,times(5)).addBatch();
+  verify(preparedStatement,times(2)).executeBatch();
   session=sessionFactory().openSession();
   session.setJdbcBatchSize(null);
   session.beginTransaction();
@@ -24,7 +24,7 @@
     session.getTransaction().commit();
     session.close();
   }
-  statementStatistics=connectionProvider.getPreparedStatementStatistics().get("insert into Event (name, id) values (?, ?)");
-  assertEquals(5,statementStatistics.getAddBatchCount());
-  assertEquals(3,statementStatistics.getExecuteBatchCount());
+  preparedStatement=connectionProvider.getPreparedStatement("insert into Event (name, id) values (?, ?)");
+  verify(preparedStatement,times(5)).addBatch();
+  verify(preparedStatement,times(3)).executeBatch();
 }
