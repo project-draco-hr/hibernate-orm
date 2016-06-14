@@ -1,10 +1,17 @@
 {
   final CollectionEntry collectionEntry=getCollectionEntry(event);
-  if (collectionEntry != null && !collectionEntry.getLoadedPersister().isInverse()) {
-    Serializable oldColl=collectionEntry.getSnapshot();
-    if (!event.getCollection().wasInitialized() && shouldGenerateRevision(event)) {
-      oldColl=initializeCollection(event);
+  if (collectionEntry != null) {
+    if (!collectionEntry.getLoadedPersister().isInverse()) {
+      Serializable oldColl=collectionEntry.getSnapshot();
+      if (!event.getCollection().wasInitialized() && shouldGenerateRevision(event)) {
+        oldColl=initializeCollection(event);
+      }
+      onCollectionAction(event,null,oldColl,collectionEntry);
     }
-    onCollectionAction(event,null,oldColl,collectionEntry);
+ else {
+      if (getEnversService().getGlobalConfiguration().isGlobalWithModifiedFlag()) {
+        initializeCollection(event);
+      }
+    }
   }
 }
