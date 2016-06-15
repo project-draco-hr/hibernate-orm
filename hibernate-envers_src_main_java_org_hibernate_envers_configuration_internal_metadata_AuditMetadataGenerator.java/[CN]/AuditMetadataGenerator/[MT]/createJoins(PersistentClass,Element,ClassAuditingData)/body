@@ -16,6 +16,12 @@
     final String catalog=getCatalog(auditingData.getAuditTable().catalog(),join.getTable());
     final Element joinElement=MetadataTools.createJoin(parent,auditTableName,schema,catalog);
     joinElements.put(join,joinElement);
+    if (join.isOptional()) {
+      joinElement.addAttribute("optional","true");
+    }
+    if (join.isInverse()) {
+      joinElement.addAttribute("inverse","true");
+    }
     final Element joinKey=joinElement.addElement("key");
     MetadataTools.addColumns(joinKey,join.getKey().getColumnIterator());
     MetadataTools.addColumn(joinKey,verEntCfg.getRevisionFieldName(),null,null,null,null,null,null);
