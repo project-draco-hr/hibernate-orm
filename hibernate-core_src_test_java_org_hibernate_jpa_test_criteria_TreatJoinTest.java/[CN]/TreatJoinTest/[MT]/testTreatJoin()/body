@@ -1,0 +1,14 @@
+{
+  EntityManager em=createEntityManager();
+  try {
+    CriteriaBuilder cb=em.getCriteriaBuilder();
+    CriteriaQuery<Bid> query=cb.createQuery(Bid.class);
+    Root<Bid> bid=query.from(Bid.class);
+    Join<Bid,Book> book=cb.treat(bid.join("item"),Book.class);
+    query.select(book.get("title"));
+    em.createQuery(query).getResultList();
+  }
+  finally {
+    em.close();
+  }
+}

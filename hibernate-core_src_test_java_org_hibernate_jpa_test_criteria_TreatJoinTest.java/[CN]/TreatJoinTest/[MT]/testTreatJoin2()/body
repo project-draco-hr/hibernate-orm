@@ -1,0 +1,15 @@
+{
+  EntityManager em=createEntityManager();
+  try {
+    CriteriaBuilder cb=em.getCriteriaBuilder();
+    CriteriaQuery<Bid> query=cb.createQuery(Bid.class);
+    Root<Bid> bid=query.from(Bid.class);
+    cb.treat(bid.join("item"),Book.class);
+    cb.treat(bid.join("item"),Car.class);
+    query.select(bid);
+    em.createQuery(query).getResultList();
+  }
+  finally {
+    em.close();
+  }
+}

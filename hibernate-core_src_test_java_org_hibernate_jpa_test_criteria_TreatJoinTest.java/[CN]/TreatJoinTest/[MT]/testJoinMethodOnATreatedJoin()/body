@@ -1,0 +1,18 @@
+{
+  EntityManager em=createEntityManager();
+  try {
+    CriteriaBuilder cb=em.getCriteriaBuilder();
+    CriteriaQuery<Bid> query=cb.createQuery(Bid.class);
+    Root<Bid> bid=query.from(Bid.class);
+    final Join<Bid,Book> item=bid.join("item");
+    final Join<Object,Object> price=item.join("price");
+    Join<Bid,Book> book=cb.treat(item,Book.class);
+    Join<Book,Author> owner=book.join("author");
+    query.select(owner.get("name"));
+    query.where(cb.equal(price.get("amount"),1L));
+    em.createQuery(query).getResultList();
+  }
+  finally {
+    em.close();
+  }
+}
