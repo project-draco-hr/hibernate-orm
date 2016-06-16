@@ -6,11 +6,8 @@
   if (applyNamingStrategy) {
     if (StringHelper.isEmpty(columnName)) {
       if (propertyName != null) {
-        if (propertyName.contains(".collection&&element.")) {
-          propertyName=propertyName.replace("collection&&element.","");
-        }
         final AttributePath attributePath=AttributePath.parse(propertyName);
-        final Identifier implicitName=normalizer.normalizeIdentifierQuoting(implicitNamingStrategy.determineBasicColumnName(new ImplicitBasicColumnNameSource(){
+        Identifier implicitName=normalizer.normalizeIdentifierQuoting(implicitNamingStrategy.determineBasicColumnName(new ImplicitBasicColumnNameSource(){
           @Override public AttributePath getAttributePath(){
             return attributePath;
           }
@@ -22,6 +19,9 @@
           }
         }
 ));
+        if (implicitName.getText().contains("_collection&&element_")) {
+          implicitName=Identifier.toIdentifier(implicitName.getText().replace("_collection&&element_","_"),implicitName.isQuoted());
+        }
         final Identifier physicalName=physicalNamingStrategy.toPhysicalColumnName(implicitName,database.getJdbcEnvironment());
         mappingColumn.setName(physicalName.render(database.getDialect()));
       }
