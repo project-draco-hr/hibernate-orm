@@ -18,16 +18,31 @@
     }
   }
  else {
-    final String keyPath=removePrefix(info.getAttributeName(),"key");
-    final String elementPath=removePrefix(info.getAttributeName(),"value");
-    if (canElementBeConverted && canKeyBeConverted && keyPath == null && elementPath == null) {
-      throw new IllegalStateException("@Convert placed on Map attribute [" + collection.getRole() + "] must define attributeName of 'key' or 'value'");
+    final String keyPath;
+    final String elementPath;
+    if (canElementBeConverted && canKeyBeConverted) {
+      keyPath=removePrefix(info.getAttributeName(),"key");
+      elementPath=removePrefix(info.getAttributeName(),"value");
+      if (keyPath == null && elementPath == null) {
+        throw new IllegalStateException("@Convert placed on Map attribute [" + collection.getRole() + "] must define attributeName of 'key' or 'value'");
+      }
+    }
+ else     if (canKeyBeConverted) {
+      keyPath=removePrefix(info.getAttributeName(),"key",info.getAttributeName());
+      elementPath=null;
+    }
+ else {
+      keyPath=null;
+      elementPath=removePrefix(info.getAttributeName(),"value",info.getAttributeName());
     }
     if (keyPath != null) {
       keyAttributeConversionInfoMap.put(keyPath,info);
     }
  else     if (elementPath != null) {
       elementAttributeConversionInfoMap.put(elementPath,info);
+    }
+ else {
+      throw new IllegalStateException(String.format(Locale.ROOT,"Could not determine how to apply @Convert(attributeName='%s') to collection [%s]",info.getAttributeName(),collection.getRole()));
     }
   }
 }
