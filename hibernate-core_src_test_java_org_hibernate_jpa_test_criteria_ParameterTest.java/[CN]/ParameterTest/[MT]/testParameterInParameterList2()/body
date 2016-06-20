@@ -1,0 +1,24 @@
+{
+  EntityManager em=getOrCreateEntityManager();
+  try {
+    em.getTransaction().begin();
+    final CriteriaQuery<MultiTypedBasicAttributesEntity> query=em.getCriteriaBuilder().createQuery(MultiTypedBasicAttributesEntity.class);
+    final Root<MultiTypedBasicAttributesEntity> root=query.from(MultiTypedBasicAttributesEntity.class);
+    root.get("id");
+    final ParameterExpression<Iterable> parameter=em.getCriteriaBuilder().parameter(Iterable.class);
+    root.in(new Expression[]{parameter});
+    query.select(root);
+    final TypedQuery<MultiTypedBasicAttributesEntity> query1=em.createQuery(query);
+    query1.setParameter(parameter,Arrays.asList(1L,2L,3L));
+    query1.getResultList();
+    em.getTransaction().commit();
+  }
+ catch (  Exception e) {
+    if (em.getTransaction().isActive()) {
+      em.getTransaction().rollback();
+    }
+  }
+ finally {
+    em.close();
+  }
+}
