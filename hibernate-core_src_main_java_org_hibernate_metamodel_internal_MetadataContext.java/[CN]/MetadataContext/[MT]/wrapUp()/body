@@ -3,7 +3,7 @@
   if (traceEnabled) {
     LOG.trace("Wrapping up metadata context...");
   }
-  boolean staticMetamodelEnabled=Boolean.parseBoolean(sessionFactory.getProperties().getOrDefault(AvailableSettings.STATIC_METAMODEL_ENABLED,"true").toString());
+  boolean staticMetamodelScanEnabled=JpaStaticMetaModelPopulationSetting.determineJpaMetaModelPopulationSetting(sessionFactory.getProperties()) != JpaStaticMetaModelPopulationSetting.DISABLED;
   for (  Object mapping : orderedMappings) {
     if (PersistentClass.class.isAssignableFrom(mapping.getClass())) {
       @SuppressWarnings("unchecked") final PersistentClass safeMapping=(PersistentClass)mapping;
@@ -29,7 +29,7 @@
           }
         }
         jpa2Mapping.lock();
-        if (staticMetamodelEnabled) {
+        if (staticMetamodelScanEnabled) {
           populateStaticMetamodel(jpa2Mapping);
         }
       }
@@ -60,7 +60,7 @@
           }
         }
         jpa2Mapping.lock();
-        if (staticMetamodelEnabled) {
+        if (staticMetamodelScanEnabled) {
           populateStaticMetamodel(jpa2Mapping);
         }
       }
@@ -74,7 +74,7 @@
       throw new AssertionFailure("Unexpected mapping type: " + mapping.getClass());
     }
   }
-  if (staticMetamodelEnabled) {
+  if (staticMetamodelScanEnabled) {
     for (    EmbeddableTypeImpl embeddable : embeddables.values()) {
       populateStaticMetamodel(embeddable);
     }
