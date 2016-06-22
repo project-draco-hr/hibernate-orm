@@ -1,15 +1,13 @@
 {
-  if ("native".equals(strategy)) {
-    return getDialect().getNativeIdentifierGeneratorClass();
-  }
   if ("hilo".equals(strategy)) {
     throw new UnsupportedOperationException("Support for 'hilo' generator has been removed");
   }
-  Class generatorClass=generatorStrategyToClassNameMap.get(strategy);
+  String resolvedStrategy="native".equals(strategy) ? getDialect().getNativeIdentifierGeneratorStrategy() : strategy;
+  Class generatorClass=generatorStrategyToClassNameMap.get(resolvedStrategy);
   try {
     if (generatorClass == null) {
       final ClassLoaderService cls=serviceRegistry.getService(ClassLoaderService.class);
-      generatorClass=cls.classForName(strategy);
+      generatorClass=cls.classForName(resolvedStrategy);
     }
   }
  catch (  ClassLoadingException e) {
