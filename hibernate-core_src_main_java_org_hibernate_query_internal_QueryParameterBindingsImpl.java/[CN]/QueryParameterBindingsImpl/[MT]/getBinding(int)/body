@@ -1,4 +1,8 @@
 {
+  int positionAdjustment=0;
+  if (!parameterMetadata.isOrdinalParametersZeroBased()) {
+    positionAdjustment=-1;
+  }
   QueryParameterBinding binding=null;
   if (parameterMetadata != null) {
     if (!parameterMetadata.hasPositionalParameters()) {
@@ -6,15 +10,15 @@
     }
  else {
       try {
-        if (position < positionalParameterBindings.size()) {
-          binding=positionalParameterBindings.get(position);
+        if (position + positionAdjustment < positionalParameterBindings.size()) {
+          binding=positionalParameterBindings.get(position + positionAdjustment);
           if (binding == null) {
             binding=makeBinding(parameterMetadata.getQueryParameter(position));
-            positionalParameterBindings.set(position,binding);
+            positionalParameterBindings.set(position + positionAdjustment,binding);
           }
         }
  else {
-          for (int i=0; i < position - positionalParameterBindings.size(); i++) {
+          for (int i=0; i < position + positionAdjustment - positionalParameterBindings.size(); i++) {
             positionalParameterBindings.add(null);
           }
           QueryParameter queryParameter=parameterMetadata.getQueryParameter(position);
