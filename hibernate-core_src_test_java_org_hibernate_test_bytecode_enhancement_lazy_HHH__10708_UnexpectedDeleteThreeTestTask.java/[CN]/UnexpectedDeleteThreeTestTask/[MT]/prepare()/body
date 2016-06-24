@@ -1,0 +1,21 @@
+{
+  Configuration cfg=new Configuration();
+  cfg.setProperty(Environment.ENABLE_LAZY_LOAD_NO_TRANS,"true");
+  cfg.setProperty(Environment.USE_SECOND_LEVEL_CACHE,"false");
+  prepare(cfg);
+  Session s=getFactory().openSession();
+  s.beginTransaction();
+  Child child=new Child();
+  child.setId(2L);
+  s.save(child);
+  Parent parent=new Parent();
+  parent.setId(1L);
+  parent.setNames(Collections.singleton("name"));
+  Set<Child> children=new HashSet<Child>();
+  children.add(child);
+  parent.setChildren(children);
+  s.save(parent);
+  s.getTransaction().commit();
+  s.clear();
+  s.close();
+}

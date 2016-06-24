@@ -1,0 +1,23 @@
+{
+  Session s=getFactory().openSession();
+  s.beginTransaction();
+  Parent parent=s.get(Parent.class,1L);
+  Set<Child> children=parent.getChildren();
+  if (children == null) {
+    children=new HashSet<Child>();
+    parent.setChildren(children);
+  }
+  Child child=new Child();
+  child.setId(1L);
+  s.save(child);
+  children.add(child);
+  s.save(parent);
+  s.getTransaction().commit();
+  s.close();
+  s=getFactory().openSession();
+  s.beginTransaction();
+  Parent application=s.get(Parent.class,1L);
+  Assert.assertEquals("Loaded Children collection has unexpected size",2,application.getChildren().size());
+  s.getTransaction().commit();
+  s.close();
+}
