@@ -1,0 +1,14 @@
+{
+  s.getTransaction().begin();
+  try {
+    final Serializable result=sp.get();
+    s.getTransaction().commit();
+    return result;
+  }
+ catch (  Exception e) {
+    if (s.getTransaction().getStatus() == TransactionStatus.ACTIVE) {
+      s.getTransaction().rollback();
+    }
+    throw e;
+  }
+}
