@@ -1,10 +1,9 @@
 {
-  final AuditEntitiesConfiguration audEntitiesCfg=enversService.getAuditEntitiesConfiguration();
   final String auditedEntityName=audEntitiesCfg.getAuditEntityName(entityName);
-  final String revisionInfoEntityName=enversService.getAuditEntitiesConfiguration().getRevisionInfoEntityName();
+  final String revisionInfoEntityName=audEntitiesCfg.getRevisionInfoEntityName();
   session.save(auditedEntityName,data);
-  final boolean reuseEntityIdentifier=enversService.getGlobalConfiguration().isAllowIdentifierReuse();
-  if (reuseEntityIdentifier || getRevisionType(enversService,data) != RevisionType.ADD) {
+  final boolean reuseEntityIdentifier=audEntitiesCfg.getEnversService().getGlobalConfiguration().isAllowIdentifierReuse();
+  if (reuseEntityIdentifier || getRevisionType(audEntitiesCfg,data) != RevisionType.ADD) {
     ((EventSource)session).getActionQueue().registerProcess(new BeforeTransactionCompletionProcess(){
       @Override public void doBeforeTransactionCompletion(      final SessionImplementor sessionImplementor){
         final Queryable productionEntityQueryable=getQueryable(entityName,sessionImplementor);
@@ -19,15 +18,15 @@
           updateTableName=rootAuditedEntityQueryable.getTableName();
         }
         final Type revisionInfoIdType=sessionImplementor.getFactory().getMetamodel().entityPersister(revisionInfoEntityName).getIdentifierType();
-        final String revEndColumnName=rootAuditedEntityQueryable.toColumns(enversService.getAuditEntitiesConfiguration().getRevisionEndFieldName())[0];
-        final boolean isRevisionEndTimestampEnabled=enversService.getAuditEntitiesConfiguration().isRevisionEndTimestampEnabled();
+        final String revEndColumnName=rootAuditedEntityQueryable.toColumns(audEntitiesCfg.getRevisionEndFieldName())[0];
+        final boolean isRevisionEndTimestampEnabled=audEntitiesCfg.isRevisionEndTimestampEnabled();
         final Update update=new Update(sessionImplementor.getFactory().getJdbcServices().getDialect()).setTableName(updateTableName);
         update.addColumn(revEndColumnName);
         if (isRevisionEndTimestampEnabled) {
-          update.addColumn(rootAuditedEntityQueryable.toColumns(enversService.getAuditEntitiesConfiguration().getRevisionEndTimestampFieldName())[0]);
+          update.addColumn(rootAuditedEntityQueryable.toColumns(audEntitiesCfg.getRevisionEndTimestampFieldName())[0]);
         }
         update.addPrimaryKeyColumns(rootProductionEntityQueryable.getIdentifierColumnNames());
-        update.addWhereColumn(rootAuditedEntityQueryable.toColumns(enversService.getAuditEntitiesConfiguration().getRevisionNumberPath())[0],"<> ?");
+        update.addWhereColumn(rootAuditedEntityQueryable.toColumns(audEntitiesCfg.getRevisionNumberPath())[0],"<> ?");
         update.addWhereColumn(revEndColumnName," is null");
         final String updateSql=update.toStatementString();
         int rowCount=sessionImplementor.doReturningWork(new ReturningWork<Integer>(){
@@ -35,20 +34,20 @@
             PreparedStatement preparedStatement=sessionImplementor.getJdbcCoordinator().getStatementPreparer().prepareStatement(updateSql);
             try {
               int index=1;
-              final Number revisionNumber=enversService.getRevisionInfoNumberReader().getRevisionNumber(revision);
+              final Number revisionNumber=audEntitiesCfg.getEnversService().getRevisionInfoNumberReader().getRevisionNumber(revision);
               revisionInfoIdType.nullSafeSet(preparedStatement,revisionNumber,index,sessionImplementor);
               index+=revisionInfoIdType.getColumnSpan(sessionImplementor.getFactory());
               if (isRevisionEndTimestampEnabled) {
                 final Object revEndTimestampObj=revisionTimestampGetter.get(revision);
                 final Date revisionEndTimestamp=convertRevEndTimestampToDate(revEndTimestampObj);
-                final Type revEndTsType=rootAuditedEntityQueryable.getPropertyType(enversService.getAuditEntitiesConfiguration().getRevisionEndTimestampFieldName());
+                final Type revEndTsType=rootAuditedEntityQueryable.getPropertyType(audEntitiesCfg.getRevisionEndTimestampFieldName());
                 revEndTsType.nullSafeSet(preparedStatement,revisionEndTimestamp,index,sessionImplementor);
                 index+=revEndTsType.getColumnSpan(sessionImplementor.getFactory());
               }
               final Type idType=rootProductionEntityQueryable.getIdentifierType();
               idType.nullSafeSet(preparedStatement,id,index,sessionImplementor);
               index+=idType.getColumnSpan(sessionImplementor.getFactory());
-              final Type revType=rootAuditedEntityQueryable.getPropertyType(enversService.getAuditEntitiesConfiguration().getRevisionNumberPath());
+              final Type revType=rootAuditedEntityQueryable.getPropertyType(audEntitiesCfg.getRevisionNumberPath());
               revType.nullSafeSet(preparedStatement,revisionNumber,index,sessionImplementor);
               return sessionImplementor.getJdbcCoordinator().getResultSetReturn().executeUpdate(preparedStatement);
             }
@@ -59,7 +58,7 @@
           }
         }
 );
-        if (rowCount != 1 && (!reuseEntityIdentifier || (getRevisionType(enversService,data) != RevisionType.ADD))) {
+        if (rowCount != 1 && (!reuseEntityIdentifier || (getRevisionType(audEntitiesCfg,data) != RevisionType.ADD))) {
           throw new RuntimeException("Cannot update previous revision for entity " + auditedEntityName + " and id "+ id);
         }
       }

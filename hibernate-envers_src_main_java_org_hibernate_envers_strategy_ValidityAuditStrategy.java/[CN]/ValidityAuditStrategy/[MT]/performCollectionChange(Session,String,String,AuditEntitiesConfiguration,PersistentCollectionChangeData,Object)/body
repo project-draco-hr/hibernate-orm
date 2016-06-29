@@ -1,9 +1,9 @@
 {
   final QueryBuilder qb=new QueryBuilder(persistentCollectionChangeData.getEntityName(),MIDDLE_ENTITY_ALIAS);
-  final String originalIdPropName=enversService.getAuditEntitiesConfiguration().getOriginalIdPropName();
+  final String originalIdPropName=auditEntitiesConfiguration.getOriginalIdPropName();
   final Map<String,Object> originalId=(Map<String,Object>)persistentCollectionChangeData.getData().get(originalIdPropName);
-  final String revisionFieldName=enversService.getAuditEntitiesConfiguration().getRevisionFieldName();
-  final String revisionTypePropName=enversService.getAuditEntitiesConfiguration().getRevisionTypePropName();
+  final String revisionFieldName=auditEntitiesConfiguration.getRevisionFieldName();
+  final String revisionTypePropName=auditEntitiesConfiguration.getRevisionTypePropName();
   for (  Map.Entry<String,Object> originalIdEntry : originalId.entrySet()) {
     if (!revisionFieldName.equals(originalIdEntry.getKey()) && !revisionTypePropName.equals(originalIdEntry.getKey())) {
       qb.getRootParameters().addWhereWithParam(originalIdPropName + "." + originalIdEntry.getKey(),true,"=",originalIdEntry.getValue());
@@ -21,10 +21,10 @@
       }
     }
   }
-  addEndRevisionNullRestriction(enversService,qb.getRootParameters());
+  addEndRevisionNullRestriction(auditEntitiesConfiguration,qb.getRootParameters());
   final List<Object> l=qb.toQuery(session).setLockOptions(LockOptions.UPGRADE).list();
   if (l.size() > 0) {
-    updateLastRevision(session,enversService,l,originalId,persistentCollectionChangeData.getEntityName(),revision);
+    updateLastRevision(session,auditEntitiesConfiguration,l,originalId,persistentCollectionChangeData.getEntityName(),revision);
   }
   session.save(persistentCollectionChangeData.getEntityName(),persistentCollectionChangeData.getData());
   sessionCacheCleaner.scheduleAuditDataRemoval(session,persistentCollectionChangeData.getData());
