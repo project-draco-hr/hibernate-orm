@@ -9,6 +9,10 @@
     createParameterImpl();
   }
   Type result=metadata.getTypeResolver().heuristicType(typeName,typeParameters);
+  if (isVersion && BinaryType.class.isInstance(result)) {
+    log.debug("version is BinaryType; changing to RowVersionType");
+    result=RowVersionType.INSTANCE;
+  }
   if (result == null) {
     String msg="Could not determine type for: " + typeName;
     if (table != null) {
