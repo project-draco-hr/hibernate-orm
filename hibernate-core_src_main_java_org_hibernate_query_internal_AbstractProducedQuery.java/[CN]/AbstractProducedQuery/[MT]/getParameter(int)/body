@@ -1,9 +1,14 @@
 {
   try {
-    if (parameterMetadata.getPositionalParameterCount() == 0) {
-      return parameterMetadata.getQueryParameter(Integer.toString(position));
+    if (getParameterMetadata().getPositionalParameterCount() == 0) {
+      try {
+        return getParameterMetadata().getQueryParameter(Integer.toString(position));
+      }
+ catch (      HibernateException e) {
+        throw new QueryParameterException("could not locate parameter at position [" + position + "]");
+      }
     }
-    return parameterMetadata.getQueryParameter(position);
+    return getParameterMetadata().getQueryParameter(position);
   }
  catch (  HibernateException e) {
     throw getExceptionConverter().convert(e);
