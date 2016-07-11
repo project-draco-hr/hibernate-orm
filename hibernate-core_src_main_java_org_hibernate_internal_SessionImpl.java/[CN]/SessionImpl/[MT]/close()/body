@@ -1,10 +1,20 @@
 {
   log.tracef("Closing session [%s]",getSessionIdentifier());
   if (getSessionFactory().getSessionFactoryOptions().isJpaBootstrap()) {
+    checkSessionFactoryOpen();
     checkOpen();
+    if (discardOnClose || !isTransactionInProgress()) {
+      super.close();
+    }
+ else {
+      waitingForAutoClose=true;
+      closed=true;
+    }
   }
-  super.close();
-  if (getFactory().getStatistics().isStatisticsEnabled()) {
-    getFactory().getStatistics().closeSession();
+ else {
+    super.close();
+    if (getFactory().getStatistics().isStatisticsEnabled()) {
+      getFactory().getStatistics().closeSession();
+    }
   }
 }
