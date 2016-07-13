@@ -1,15 +1,24 @@
 {
+  Store store=null;
   getFactory().getStatistics().clear();
-  Session s=getFactory().openSession();
-  s.beginTransaction();
-  Store store=s.load(Store.class,1);
-  assertNotNull(store);
-  assertFalse(Hibernate.isInitialized(store));
-  assertEquals(1,getFactory().getStatistics().getSessionOpenCount());
-  assertEquals(0,getFactory().getStatistics().getSessionCloseCount());
-  s.getTransaction().commit();
-  s.close();
-  assertEquals(1,getFactory().getStatistics().getSessionOpenCount());
+  try (Session s=getFactory().openSession()){
+    s.beginTransaction();
+    try {
+      store=s.load(Store.class,1);
+      assertNotNull(store);
+      assertFalse(Hibernate.isInitialized(store));
+      assertEquals(1,getFactory().getStatistics().getSessionOpenCount());
+      assertEquals(0,getFactory().getStatistics().getSessionCloseCount());
+      s.getTransaction().commit();
+    }
+ catch (    Exception e) {
+      if (s.getTransaction().isActive()) {
+        s.getTransaction().rollback();
+      }
+      throw e;
+    }
+  }
+   assertEquals(1,getFactory().getStatistics().getSessionOpenCount());
   assertEquals(1,getFactory().getStatistics().getSessionCloseCount());
   store.getName();
   assertTrue(Hibernate.isInitialized(store));
