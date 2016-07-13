@@ -1,14 +1,21 @@
 {
   Session s=getFactory().openSession();
   s.beginTransaction();
-  TestEntity testEntity=s.get(TestEntity.class,"foo");
-  Assert.assertEquals("{\"paramName\":\"paramValue\"}",testEntity.getParamsAsString());
-  TestOtherEntity testOtherEntity=s.get(TestOtherEntity.class,"foo");
-  Assert.assertEquals("{\"paramName\":\"paramValue\"}",testOtherEntity.getParamsAsString());
-  cleanup=true;
-  testEntity.setParamsAsString("{}");
-  testOtherEntity.setParamsAsString("{}");
-  s.getTransaction().commit();
-  s.clear();
-  s.close();
+  try {
+    TestEntity testEntity=s.get(TestEntity.class,"foo");
+    Assert.assertEquals("{\"paramName\":\"paramValue\"}",testEntity.getParamsAsString());
+    TestOtherEntity testOtherEntity=s.get(TestOtherEntity.class,"foo");
+    Assert.assertEquals("{\"paramName\":\"paramValue\"}",testOtherEntity.getParamsAsString());
+    cleanup=true;
+    testEntity.setParamsAsString("{}");
+    testOtherEntity.setParamsAsString("{}");
+    s.getTransaction().commit();
+  }
+ catch (  RuntimeException e) {
+    s.getTransaction().rollback();
+    throw e;
+  }
+ finally {
+    s.close();
+  }
 }

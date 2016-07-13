@@ -1,3 +1,12 @@
 {
-  new MetadataSources().addResource("org/hibernate/test/util/dtd/Parent.hbm.xml").buildMetadata();
+  final MetadataSources metadataSources=new MetadataSources().addResource("org/hibernate/test/util/dtd/Parent.hbm.xml");
+  try {
+    metadataSources.buildMetadata();
+  }
+  finally {
+    ServiceRegistry metaServiceRegistry=metadataSources.getServiceRegistry();
+    if (metaServiceRegistry instanceof BootstrapServiceRegistry) {
+      BootstrapServiceRegistryBuilder.destroy(metaServiceRegistry);
+    }
+  }
 }

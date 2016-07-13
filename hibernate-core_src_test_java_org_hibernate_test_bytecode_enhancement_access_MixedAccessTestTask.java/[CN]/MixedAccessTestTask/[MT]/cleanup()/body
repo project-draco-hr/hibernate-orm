@@ -1,11 +1,18 @@
 {
   Session s=getFactory().openSession();
   s.beginTransaction();
-  TestEntity testEntity=s.get(TestEntity.class,"foo");
-  Assert.assertTrue(testEntity.getParams().isEmpty());
-  TestOtherEntity testOtherEntity=s.get(TestOtherEntity.class,"foo");
-  Assert.assertTrue(testOtherEntity.getParams().isEmpty());
-  s.getTransaction().commit();
-  s.clear();
-  s.close();
+  try {
+    TestEntity testEntity=s.get(TestEntity.class,"foo");
+    Assert.assertTrue(testEntity.getParams().isEmpty());
+    TestOtherEntity testOtherEntity=s.get(TestOtherEntity.class,"foo");
+    Assert.assertTrue(testOtherEntity.getParams().isEmpty());
+    s.getTransaction().commit();
+  }
+ catch (  RuntimeException e) {
+    s.getTransaction().rollback();
+    throw e;
+  }
+ finally {
+    s.close();
+  }
 }

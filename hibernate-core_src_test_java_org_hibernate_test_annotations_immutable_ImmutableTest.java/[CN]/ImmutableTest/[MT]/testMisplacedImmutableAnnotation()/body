@@ -1,8 +1,15 @@
 {
+  MetadataSources metadataSources=new MetadataSources().addAnnotatedClass(Foobar.class);
   try {
-    new MetadataSources().addAnnotatedClass(Foobar.class).buildMetadata();
+    metadataSources.buildMetadata();
     fail("Expecting exception due to misplaced @Immutable annotation");
   }
  catch (  AnnotationException ignore) {
+  }
+ finally {
+    ServiceRegistry metaServiceRegistry=metadataSources.getServiceRegistry();
+    if (metaServiceRegistry instanceof BootstrapServiceRegistry) {
+      BootstrapServiceRegistryBuilder.destroy(metaServiceRegistry);
+    }
   }
 }

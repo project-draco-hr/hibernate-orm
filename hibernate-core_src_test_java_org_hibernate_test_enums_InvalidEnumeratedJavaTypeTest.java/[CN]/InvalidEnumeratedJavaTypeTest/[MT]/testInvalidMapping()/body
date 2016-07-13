@@ -1,8 +1,15 @@
 {
+  MetadataSources metadataSources=new MetadataSources().addAnnotatedClass(TheEntity.class);
   try {
-    new MetadataSources().addAnnotatedClass(TheEntity.class).buildMetadata();
+    metadataSources.buildMetadata();
     fail("Was expecting failure");
   }
  catch (  AnnotationException ignore) {
+  }
+ finally {
+    ServiceRegistry metaServiceRegistry=metadataSources.getServiceRegistry();
+    if (metaServiceRegistry instanceof BootstrapServiceRegistry) {
+      BootstrapServiceRegistryBuilder.destroy(metaServiceRegistry);
+    }
   }
 }

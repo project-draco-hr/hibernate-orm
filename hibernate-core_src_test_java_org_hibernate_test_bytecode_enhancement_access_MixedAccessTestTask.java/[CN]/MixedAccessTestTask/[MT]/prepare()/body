@@ -5,13 +5,20 @@
   super.prepare(cfg);
   Session s=getFactory().openSession();
   s.beginTransaction();
-  TestEntity testEntity=new TestEntity("foo");
-  testEntity.setParamsAsString("{\"paramName\":\"paramValue\"}");
-  s.persist(testEntity);
-  TestOtherEntity testOtherEntity=new TestOtherEntity("foo");
-  testOtherEntity.setParamsAsString("{\"paramName\":\"paramValue\"}");
-  s.persist(testOtherEntity);
-  s.getTransaction().commit();
-  s.clear();
-  s.close();
+  try {
+    TestEntity testEntity=new TestEntity("foo");
+    testEntity.setParamsAsString("{\"paramName\":\"paramValue\"}");
+    s.persist(testEntity);
+    TestOtherEntity testOtherEntity=new TestOtherEntity("foo");
+    testOtherEntity.setParamsAsString("{\"paramName\":\"paramValue\"}");
+    s.persist(testOtherEntity);
+    s.getTransaction().commit();
+  }
+ catch (  Exception e) {
+    s.getTransaction().rollback();
+    throw e;
+  }
+ finally {
+    s.close();
+  }
 }

@@ -1,7 +1,15 @@
 {
   final MetadataSources metadataSources=new MetadataSources();
-  metadataSources.addAnnotatedClass(Input.class);
-  metadataSources.addAnnotatedClass(Ptx.class);
-  final Metadata metadata=metadataSources.getMetadataBuilder().build();
-  assertSameTableUsed(metadata);
+  try {
+    metadataSources.addAnnotatedClass(Input.class);
+    metadataSources.addAnnotatedClass(Ptx.class);
+    final Metadata metadata=metadataSources.getMetadataBuilder().build();
+    assertSameTableUsed(metadata);
+  }
+  finally {
+    ServiceRegistry metaServiceRegistry=metadataSources.getServiceRegistry();
+    if (metaServiceRegistry instanceof BootstrapServiceRegistry) {
+      BootstrapServiceRegistryBuilder.destroy(metaServiceRegistry);
+    }
+  }
 }
