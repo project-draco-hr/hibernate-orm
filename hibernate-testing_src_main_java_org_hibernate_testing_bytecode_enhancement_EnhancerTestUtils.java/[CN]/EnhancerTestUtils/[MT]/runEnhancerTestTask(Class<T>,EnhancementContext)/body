@@ -2,11 +2,11 @@
   EnhancerTestTask taskObject=null;
   ClassLoader defaultCL=Thread.currentThread().getContextClassLoader();
   try {
-    ClassLoader cl=EnhancerTestUtils.getEnhancerClassLoader(task.getPackage().getName());
+    ClassLoader cl=EnhancerTestUtils.getEnhancerClassLoader(context,task.getPackage().getName());
     EnhancerTestUtils.setupClassLoader(cl,task);
     EnhancerTestUtils.setupClassLoader(cl,task.newInstance().getAnnotatedClasses());
     Thread.currentThread().setContextClassLoader(cl);
-    taskObject=((Class<? extends EnhancerTestTask>)cl.loadClass(task.getName())).newInstance();
+    taskObject=cl.loadClass(task.getName()).asSubclass(EnhancerTestTask.class).newInstance();
     taskObject.prepare();
     taskObject.execute();
   }
