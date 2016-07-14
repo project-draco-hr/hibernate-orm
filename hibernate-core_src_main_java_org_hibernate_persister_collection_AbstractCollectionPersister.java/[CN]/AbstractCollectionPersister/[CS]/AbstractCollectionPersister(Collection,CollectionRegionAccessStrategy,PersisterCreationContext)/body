@@ -107,10 +107,13 @@
     IndexedCollection indexedCollection=(IndexedCollection)collectionBinding;
     indexType=indexedCollection.getIndex().getType();
     int indexSpan=indexedCollection.getIndex().getColumnSpan();
+    boolean[] indexColumnInsertability=indexedCollection.getIndex().getColumnInsertability();
+    boolean[] indexColumnUpdatability=indexedCollection.getIndex().getColumnUpdateability();
     iter=indexedCollection.getIndex().getColumnIterator();
     indexColumnNames=new String[indexSpan];
     indexFormulaTemplates=new String[indexSpan];
     indexFormulas=new String[indexSpan];
+    indexColumnIsGettable=new boolean[indexSpan];
     indexColumnIsSettable=new boolean[indexSpan];
     indexColumnAliases=new String[indexSpan];
     int i=0;
@@ -127,7 +130,8 @@
  else {
         Column indexCol=(Column)s;
         indexColumnNames[i]=indexCol.getQuotedName(dialect);
-        indexColumnIsSettable[i]=true;
+        indexColumnIsGettable[i]=true;
+        indexColumnIsSettable[i]=indexColumnInsertability[i] || indexColumnUpdatability[i];
       }
       i++;
     }
@@ -136,6 +140,7 @@
   }
  else {
     indexContainsFormula=false;
+    indexColumnIsGettable=null;
     indexColumnIsSettable=null;
     indexFormulaTemplates=null;
     indexFormulas=null;
