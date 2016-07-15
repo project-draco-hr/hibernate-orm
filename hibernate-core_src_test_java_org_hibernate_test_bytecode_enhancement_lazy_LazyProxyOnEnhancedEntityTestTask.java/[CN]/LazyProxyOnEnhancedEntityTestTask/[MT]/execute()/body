@@ -1,0 +1,11 @@
+{
+  EventListenerRegistry registry=getFactory().unwrap(SessionFactoryImplementor.class).getServiceRegistry().getService(EventListenerRegistry.class);
+  registry.prependListeners(EventType.FLUSH,new JpaFlushEventListener());
+  registry.prependListeners(EventType.LOAD,new ImmediateLoadTrap());
+  EntityManager em=getFactory().createEntityManager();
+  em.getTransaction().begin();
+  Parent p=em.find(Parent.class,parentID);
+  em.flush();
+  em.getTransaction().commit();
+  em.close();
+}
