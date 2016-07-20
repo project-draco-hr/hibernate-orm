@@ -3,7 +3,13 @@
   EntityManagerFactoryBuilder emfb=Bootstrap.getEntityManagerFactoryBuilder(buildPersistenceUnitDescriptor(),settings);
   EntityManagerFactory emf=emfb.build();
   try {
-    Assert.assertNotNull(emf.createEntityManager().find(Item.class,"schemagen-test"));
+    EntityManager em=emf.createEntityManager();
+    try {
+      Assert.assertNotNull(em.find(Item.class,encodedName()));
+    }
+  finally {
+      em.close();
+    }
   }
   finally {
     emf.close();

@@ -5,8 +5,9 @@
   if (includesScripts && scriptSourceSetting == null) {
     throw new SchemaManagementException("Schema generation configuration indicated to include CREATE scripts, but no script was specified");
   }
-  final ScriptSourceInput scriptSourceInput=includesScripts ? Helper.interpretScriptSourceSetting(scriptSourceSetting,serviceRegistry.getService(ClassLoaderService.class)) : null;
-  final ScriptTargetOutput scriptTargetOutput=Helper.interpretScriptTargetSetting(settingSelector.getScriptTargetSetting(configurationValues),serviceRegistry.getService(ClassLoaderService.class));
+  String charsetName=(String)configurationValues.get(AvailableSettings.HBM2DDL_CHARSET_NAME);
+  final ScriptSourceInput scriptSourceInput=includesScripts ? Helper.interpretScriptSourceSetting(scriptSourceSetting,serviceRegistry.getService(ClassLoaderService.class),charsetName) : null;
+  final ScriptTargetOutput scriptTargetOutput=Helper.interpretScriptTargetSetting(settingSelector.getScriptTargetSetting(configurationValues),serviceRegistry.getService(ClassLoaderService.class),charsetName);
   return new JpaTargetAndSourceDescriptor(){
     @Override public EnumSet<TargetType> getTargetTypes(){
       return EnumSet.of(TargetType.SCRIPT);
