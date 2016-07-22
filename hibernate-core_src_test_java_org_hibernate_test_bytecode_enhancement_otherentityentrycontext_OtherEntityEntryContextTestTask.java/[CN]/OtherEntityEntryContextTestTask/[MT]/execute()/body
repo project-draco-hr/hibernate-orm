@@ -1,0 +1,35 @@
+{
+  Session s1=getFactory().openSession();
+  s1.beginTransaction();
+  Parent p=(Parent)s1.get(Parent.class,1);
+  assertTrue(ManagedEntity.class.isInstance(p));
+  p.setName("second");
+  assertTrue(s1.contains(p));
+  Session s2=getFactory().openSession();
+  s2.beginTransaction();
+  assertFalse(s2.contains(p));
+  s2.evict(p);
+  assertFalse(s2.contains(p));
+  assertNull(((SharedSessionContractImplementor)s2).getPersistenceContext().getEntry(p));
+  try {
+    s2.update(p);
+    fail("should have failed because p is already associated with a PersistenceContext that is still open.");
+  }
+ catch (  HibernateException expected) {
+    s2.getTransaction().rollback();
+    s2.close();
+  }
+  s1.getTransaction().commit();
+  s1.close();
+  p.setName("third");
+  s1=getFactory().openSession();
+  s1.getTransaction().begin();
+  s1.update(p);
+  assertTrue(s1.contains(p));
+  s1.evict(p);
+  assertFalse(s1.contains(p));
+  p=s1.get(Parent.class,p.getId());
+  assertEquals("second",p.getName());
+  s1.getTransaction().commit();
+  s1.close();
+}

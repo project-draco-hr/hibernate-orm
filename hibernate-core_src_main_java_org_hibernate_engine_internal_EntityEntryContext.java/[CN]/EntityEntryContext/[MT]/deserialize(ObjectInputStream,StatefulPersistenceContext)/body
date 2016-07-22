@@ -1,7 +1,7 @@
 {
   final int count=ois.readInt();
   log.tracef("Starting deserialization of [%s] EntityEntry entries",count);
-  final EntityEntryContext context=new EntityEntryContext();
+  final EntityEntryContext context=new EntityEntryContext(rtn);
   context.count=count;
   context.dirty=true;
   if (count == 0) {
@@ -19,7 +19,16 @@
     final EntityEntry entry=deserializeEntityEntry(entityEntryClassNameArr,ois,rtn);
     final ManagedEntity managedEntity;
     if (isEnhanced) {
-      managedEntity=(ManagedEntity)entity;
+      if (entry.getPersister().isMutable()) {
+        managedEntity=(ManagedEntity)entity;
+      }
+ else {
+        managedEntity=new ImmutableManagedEntityHolder((ManagedEntity)entity);
+        if (context.immutableManagedEntityXref == null) {
+          context.immutableManagedEntityXref=new IdentityHashMap<ManagedEntity,ImmutableManagedEntityHolder>();
+        }
+        context.immutableManagedEntityXref.put((ManagedEntity)entity,(ImmutableManagedEntityHolder)managedEntity);
+      }
     }
  else {
       managedEntity=new ManagedEntityImpl(entity);
