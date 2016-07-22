@@ -1,11 +1,12 @@
 {
-  final StringBuilder builder=new StringBuilder();
+  StringBuilder builder=new StringBuilder();
   try {
     if (PersistentAttributesHelper.hasAnnotation(currentValue,Id.class) || PersistentAttributesHelper.hasAnnotation(currentValue,EmbeddedId.class)) {
       return "";
     }
+    String readFragment=inheritanceMetadata.isInherited() && !inheritanceMetadata.isVisible() ? "super." + inheritanceMetadata.getReaderName() + "()" : "this." + currentValue.getName();
     if (currentValue.getType().isPrimitive() || currentValue.getType().isEnum()) {
-      builder.append(String.format("  if (%s != $1)",currentValue.getName()));
+      builder.append(String.format("  if ( %s != $1 )",readFragment));
     }
  else {
       for (      CtClass ctClass : currentValue.getType().getInterfaces()) {
@@ -15,12 +16,11 @@
           }
         }
       }
-      builder.append(String.format("  if ( !%s.areEqual( %s, $1 ) )",EqualsHelper.class.getName(),currentValue.getName()));
+      builder.append(String.format("  if ( !%s.areEqual( %s, $1 ) )",EqualsHelper.class.getName(),readFragment));
     }
     builder.append(String.format("  {  %s(\"%s\");  }",EnhancerConstants.TRACKER_CHANGER_NAME,currentValue.getName()));
   }
- catch (  NotFoundException e) {
-    e.printStackTrace();
+ catch (  NotFoundException ignore) {
   }
   return builder.toString();
 }

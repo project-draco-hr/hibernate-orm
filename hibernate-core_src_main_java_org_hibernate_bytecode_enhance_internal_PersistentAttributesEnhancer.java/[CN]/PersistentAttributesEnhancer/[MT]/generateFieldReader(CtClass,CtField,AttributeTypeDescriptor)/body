@@ -1,11 +1,37 @@
 {
-  final String fieldName=persistentField.getName();
-  final String readerName=EnhancerConstants.PERSISTENT_FIELD_READER_PREFIX + fieldName;
-  if (!enhancementContext.hasLazyLoadableAttributes(managedCtClass) || !enhancementContext.isLazyLoadable(persistentField)) {
-    return MethodWriter.addGetter(managedCtClass,fieldName,readerName);
-  }
+  String fieldName=persistentField.getName();
+  String readerName=EnhancerConstants.PERSISTENT_FIELD_READER_PREFIX + fieldName;
+  String writerName=EnhancerConstants.PERSISTENT_FIELD_WRITER_PREFIX + fieldName;
+  CtMethod tmpSuperReader=null;
+  CtMethod tmpSuperWriter=null;
+  CtMethod reader=null;
   try {
-    return MethodWriter.write(managedCtClass,"public %s %s() {%n%s%n  return this.%s;%n}",persistentField.getType().getName(),readerName,typeDescriptor.buildReadInterceptionBodyFragment(fieldName),fieldName);
+    boolean declared=persistentField.getDeclaringClass().equals(managedCtClass);
+    String declaredReadFragment="this." + fieldName + "";
+    String superReadFragment="super." + readerName + "()";
+    if (!declared) {
+      try {
+        persistentField.getDeclaringClass().getDeclaredMethod(readerName);
+        persistentField.getDeclaringClass().getDeclaredMethod(writerName);
+      }
+ catch (      NotFoundException nfe) {
+        tmpSuperReader=MethodWriter.addGetter(persistentField.getDeclaringClass(),persistentField.getName(),readerName);
+        tmpSuperWriter=MethodWriter.addSetter(persistentField.getDeclaringClass(),persistentField.getName(),writerName);
+      }
+    }
+    if (!enhancementContext.hasLazyLoadableAttributes(managedCtClass) || !enhancementContext.isLazyLoadable(persistentField)) {
+      reader=MethodWriter.write(managedCtClass,"public %s %s() {  return %s;%n}",persistentField.getType().getName(),readerName,declared ? declaredReadFragment : superReadFragment);
+    }
+ else {
+      reader=MethodWriter.write(managedCtClass,"public %s %s() {%n%s%n  return %s;%n}",persistentField.getType().getName(),readerName,typeDescriptor.buildReadInterceptionBodyFragment(fieldName),declared ? declaredReadFragment : superReadFragment);
+    }
+    if (tmpSuperReader != null) {
+      persistentField.getDeclaringClass().removeMethod(tmpSuperReader);
+    }
+    if (tmpSuperWriter != null) {
+      persistentField.getDeclaringClass().removeMethod(tmpSuperWriter);
+    }
+    return reader;
   }
  catch (  CannotCompileException cce) {
     final String msg=String.format("Could not enhance entity class [%s] to add field reader method [%s]",managedCtClass.getName(),readerName);

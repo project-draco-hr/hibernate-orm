@@ -1,10 +1,26 @@
 {
-  final String fieldName=persistentField.getName();
-  final String writerName=EnhancerConstants.PERSISTENT_FIELD_WRITER_PREFIX + fieldName;
+  String fieldName=persistentField.getName();
+  String readerName=EnhancerConstants.PERSISTENT_FIELD_READER_PREFIX + fieldName;
+  String writerName=EnhancerConstants.PERSISTENT_FIELD_WRITER_PREFIX + fieldName;
+  CtMethod tmpSuperReader=null;
+  CtMethod tmpSuperWriter=null;
+  CtMethod writer;
   try {
-    final CtMethod writer;
+    boolean declared=persistentField.getDeclaringClass().equals(managedCtClass);
+    String declaredWriteFragment="this." + fieldName + "="+ fieldName+ ";";
+    String superWriteFragment="super." + writerName + "("+ fieldName+ ");";
+    if (!declared) {
+      try {
+        persistentField.getDeclaringClass().getDeclaredMethod(readerName);
+        persistentField.getDeclaringClass().getDeclaredMethod(writerName);
+      }
+ catch (      NotFoundException nfe) {
+        tmpSuperReader=MethodWriter.addGetter(persistentField.getDeclaringClass(),persistentField.getName(),readerName);
+        tmpSuperWriter=MethodWriter.addSetter(persistentField.getDeclaringClass(),persistentField.getName(),writerName);
+      }
+    }
     if (!enhancementContext.hasLazyLoadableAttributes(managedCtClass) || !enhancementContext.isLazyLoadable(persistentField)) {
-      writer=MethodWriter.addSetter(managedCtClass,fieldName,writerName);
+      writer=MethodWriter.write(managedCtClass,"public void %s(%s %s) {%n  %s%n}",writerName,persistentField.getType().getName(),fieldName,declared ? declaredWriteFragment : superWriteFragment);
     }
  else {
       writer=MethodWriter.write(managedCtClass,"public void %s(%s %s) {%n%s%n}",writerName,persistentField.getType().getName(),fieldName,typeDescriptor.buildWriteInterceptionBodyFragment(fieldName));
@@ -20,6 +36,12 @@
     }
     if (enhancementContext.doBiDirectionalAssociationManagement(persistentField)) {
       handleBiDirectionalAssociation(managedCtClass,persistentField,writer);
+    }
+    if (tmpSuperReader != null) {
+      persistentField.getDeclaringClass().removeMethod(tmpSuperReader);
+    }
+    if (tmpSuperWriter != null) {
+      persistentField.getDeclaringClass().removeMethod(tmpSuperWriter);
     }
     return writer;
   }

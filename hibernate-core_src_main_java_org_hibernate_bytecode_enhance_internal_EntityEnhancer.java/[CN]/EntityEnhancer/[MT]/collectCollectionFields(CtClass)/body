@@ -1,5 +1,5 @@
 {
-  final List<CtField> collectionList=new LinkedList<CtField>();
+  List<CtField> collectionList=new ArrayList<>();
   for (  CtField ctField : managedCtClass.getDeclaredFields()) {
     if (Modifier.isStatic(ctField.getModifiers()) || ctField.getName().startsWith("$$_hibernate_")) {
       continue;
@@ -10,15 +10,6 @@
       }
     }
   }
-  for (  CtField ctField : managedCtClass.getDeclaredFields()) {
-    if (!enhancementContext.isMappedSuperclassClass(ctField.getDeclaringClass()) || Modifier.isStatic(ctField.getModifiers())) {
-      continue;
-    }
-    if (enhancementContext.isPersistentField(ctField)) {
-      if (PersistentAttributesHelper.isAssignable(ctField,Collection.class.getName()) || PersistentAttributesHelper.isAssignable(ctField,Map.class.getName())) {
-        collectionList.add(ctField);
-      }
-    }
-  }
+  collectionList.addAll(collectInheritCollectionFields(managedCtClass));
   return collectionList;
 }

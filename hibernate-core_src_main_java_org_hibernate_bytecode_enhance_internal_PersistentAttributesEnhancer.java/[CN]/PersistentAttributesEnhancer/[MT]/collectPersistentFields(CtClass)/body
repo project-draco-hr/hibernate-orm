@@ -1,26 +1,15 @@
 {
-  final List<CtField> persistentFieldList=new LinkedList<CtField>();
+  List<CtField> persistentFieldList=new ArrayList<CtField>();
   for (  CtField ctField : managedCtClass.getDeclaredFields()) {
-    if (Modifier.isStatic(ctField.getModifiers()) || ctField.getName().startsWith("$$_hibernate_")) {
+    if (ctField.getName().startsWith("$$_hibernate_") || "this$0".equals(ctField.getName())) {
       continue;
     }
-    if ("this$0".equals(ctField.getName())) {
-      continue;
-    }
-    if (enhancementContext.isPersistentField(ctField)) {
+    if (!Modifier.isStatic(ctField.getModifiers()) && enhancementContext.isPersistentField(ctField)) {
       persistentFieldList.add(ctField);
     }
   }
-  for (  CtField ctField : managedCtClass.getFields()) {
-    if (ctField.getDeclaringClass().equals(managedCtClass)) {
-      continue;
-    }
-    if (!enhancementContext.isMappedSuperclassClass(ctField.getDeclaringClass()) || Modifier.isStatic(ctField.getModifiers())) {
-      continue;
-    }
-    if (enhancementContext.isPersistentField(ctField)) {
-      persistentFieldList.add(ctField);
-    }
-  }
-  return enhancementContext.order(persistentFieldList.toArray(new CtField[persistentFieldList.size()]));
+  persistentFieldList.addAll(collectInheritPersistentFields(managedCtClass));
+  CtField[] orderedFields=enhancementContext.order(persistentFieldList.toArray(new CtField[0]));
+  log.debugf("Persistent fields for entity %s: %s",managedCtClass.getName(),Arrays.toString(orderedFields));
+  return orderedFields;
 }
