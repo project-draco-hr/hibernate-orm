@@ -1,0 +1,20 @@
+{
+  Configuration cfg=new Configuration();
+  cfg.setProperty(Environment.ENABLE_LAZY_LOAD_NO_TRANS,"true");
+  cfg.setProperty(Environment.USE_SECOND_LEVEL_CACHE,"false");
+  super.prepare(cfg);
+  Session s=getFactory().openSession();
+  s.beginTransaction();
+  Parent parent=new Parent();
+  parent.setChildren(new ArrayList<Child>());
+  for (int i=0; i < CHILDREN_SIZE; i++) {
+    final Child child=new Child();
+    child.setParent(parent);
+    s.persist(child);
+    lastChildID=child.getId();
+  }
+  s.persist(parent);
+  parentID=parent.getId();
+  s.getTransaction().commit();
+  s.close();
+}
