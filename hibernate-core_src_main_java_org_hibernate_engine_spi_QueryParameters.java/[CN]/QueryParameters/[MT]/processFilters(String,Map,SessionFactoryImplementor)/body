@@ -37,12 +37,24 @@
         }
       }
  else {
+        result.append(token);
         if ("?".equals(token) && positionalIndex < getPositionalParameterValues().length) {
+          final Type type=getPositionalParameterTypes()[positionalIndex];
+          if (type.isComponentType()) {
+            int paramIndex=1;
+            final int numberOfParametersCoveredBy=getNumberOfParametersCoveredBy(((ComponentType)type).getSubtypes());
+            while (paramIndex < numberOfParametersCoveredBy) {
+              final String nextToken=tokens.nextToken();
+              if ("?".equals(nextToken)) {
+                paramIndex++;
+              }
+              result.append(nextToken);
+            }
+          }
           parameters.add(getPositionalParameterValues()[positionalIndex]);
-          parameterTypes.add(getPositionalParameterTypes()[positionalIndex]);
+          parameterTypes.add(type);
           positionalIndex++;
         }
-        result.append(token);
       }
     }
     processedPositionalParameterValues=parameters.toArray();
