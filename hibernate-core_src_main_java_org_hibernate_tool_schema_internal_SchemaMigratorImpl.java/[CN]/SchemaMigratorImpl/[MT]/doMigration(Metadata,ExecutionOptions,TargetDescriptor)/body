@@ -3,10 +3,12 @@
     return;
   }
   final JdbcContext jdbcContext=tool.resolveJdbcContext(options.getConfigurationValues());
-  final JdbcConnectionContextSharedImpl connectionContext=new JdbcConnectionContextSharedImpl(jdbcContext.getJdbcConnectionAccess(),jdbcContext.getSqlStatementLogger(),targetDescriptor.getTargetTypes().contains(TargetType.DATABASE));
+  final DdlTransactionIsolator ddlTransactionIsolator=tool.getDdlTransactionIsolator(jdbcContext);
   try {
-    final DatabaseInformation databaseInformation=Helper.buildDatabaseInformation(tool.getServiceRegistry(),connectionContext,metadata.getDatabase().getDefaultNamespace().getName());
-    final GenerationTarget[] targets=tool.buildGenerationTargets(targetDescriptor,connectionContext,options.getConfigurationValues());
+    ddlTransactionIsolator.prepare();
+    final DdlTransactionIsolator sharedDdlTransactionIsolator=new DdlTransactionIsolatorSharedImpl(ddlTransactionIsolator);
+    final DatabaseInformation databaseInformation=Helper.buildDatabaseInformation(tool.getServiceRegistry(),sharedDdlTransactionIsolator,metadata.getDatabase().getDefaultNamespace().getName());
+    final GenerationTarget[] targets=tool.buildGenerationTargets(targetDescriptor,sharedDdlTransactionIsolator,options.getConfigurationValues());
     try {
       doMigration(metadata,databaseInformation,options,jdbcContext.getDialect(),targets);
     }
@@ -20,6 +22,6 @@
     }
   }
   finally {
-    connectionContext.reallyRelease();
+    ddlTransactionIsolator.release();
   }
 }

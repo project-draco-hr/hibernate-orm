@@ -7,7 +7,7 @@
   ServiceRegistryImplementor serviceRegistry=(ServiceRegistryImplementor)new StandardServiceRegistryBuilder().applySettings(settings).build();
   DriverManagerConnectionProviderImpl connectionProvider=new DriverManagerConnectionProviderImpl();
   connectionProvider.configure(properties());
-  final GenerationTargetToDatabase schemaGenerator=new GenerationTargetToDatabase(new JdbcConnectionContextNonSharedImpl(new JdbcConnectionAccessImpl(connectionProvider),new SqlStatementLogger(false,true),true));
+  final GenerationTargetToDatabase schemaGenerator=new GenerationTargetToDatabase(new DdlTransactionIsolatorTestingImpl(serviceRegistry,new JdbcConnectionAccessImpl(connectionProvider)));
   try {
     new SchemaCreatorImpl(ssr).doCreation(metadata,serviceRegistry,settings,true,schemaGenerator);
     metadataSources=new MetadataSources(ssr);

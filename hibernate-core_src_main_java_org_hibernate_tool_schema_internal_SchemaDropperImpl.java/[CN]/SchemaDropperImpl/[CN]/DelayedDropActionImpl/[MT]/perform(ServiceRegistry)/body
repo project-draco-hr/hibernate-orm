@@ -1,10 +1,7 @@
 {
   log.startingDelayedSchemaDrop();
-  final ConnectionProvider connectionProvider=serviceRegistry.getService(ConnectionProvider.class);
-  if (connectionProvider == null) {
-    throw new SchemaManagementException("Could not build JDBC Connection context to drop schema on SessionFactory close");
-  }
-  final GenerationTargetToDatabase target=new GenerationTargetToDatabase(new JdbcConnectionContextNonSharedImpl(new JdbcConnectionAccessConnectionProviderImpl(connectionProvider),serviceRegistry.getService(JdbcServices.class).getSqlStatementLogger(),true),serviceRegistry.getService(JdbcEnvironment.class).getSqlExceptionHelper());
+  final JdbcContext jdbcContext=new JdbcContextDelayedDropImpl(serviceRegistry);
+  final GenerationTargetToDatabase target=new GenerationTargetToDatabase(serviceRegistry.getService(TransactionCoordinatorBuilder.class).buildDdlTransactionIsolator(jdbcContext));
   target.prepare();
   try {
     for (    String command : commands) {

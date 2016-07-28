@@ -1,12 +1,12 @@
 {
+  ddlTransactionIsolator.getJdbcContext().getSqlStatementLogger().logStatement(command,DDLFormatterImpl.INSTANCE);
   try {
-    jdbcConnectionContext.logSqlStatement(command);
     final Statement jdbcStatement=jdbcStatement();
     jdbcStatement.execute(command);
     try {
       SQLWarning warnings=jdbcStatement.getWarnings();
       if (warnings != null) {
-        sqlExceptionHelper.logAndClearWarnings(jdbcStatement);
+        ddlTransactionIsolator.getJdbcContext().getSqlExceptionHelper().logAndClearWarnings(jdbcStatement);
       }
     }
  catch (    SQLException e) {
@@ -14,6 +14,6 @@
     }
   }
  catch (  SQLException e) {
-    throw new CommandAcceptanceException("Unable to execute command [" + command + "]",e);
+    throw new CommandAcceptanceException("Error executing DDL via JDBC Statement",e);
   }
 }

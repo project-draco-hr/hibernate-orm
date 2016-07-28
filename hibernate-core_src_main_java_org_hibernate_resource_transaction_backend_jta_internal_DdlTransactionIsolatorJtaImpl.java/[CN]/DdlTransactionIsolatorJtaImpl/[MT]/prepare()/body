@@ -1,0 +1,20 @@
+{
+  try {
+    this.suspendedTransaction=jdbcContext.getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager().suspend();
+  }
+ catch (  SystemException e) {
+    throw new HibernateException("Unable to suspend current JTA transaction in preparation for DDL execution");
+  }
+  try {
+    this.jdbcConnection=jdbcContext.getJdbcConnectionAccess().obtainConnection();
+  }
+ catch (  SQLException e) {
+    throw jdbcContext.getSqlExceptionHelper().convert(e,"Unable to open JDBC Connection for DDL execution");
+  }
+  try {
+    jdbcConnection.setAutoCommit(true);
+  }
+ catch (  SQLException e) {
+    throw jdbcContext.getSqlExceptionHelper().convert(e,"Unable set JDBC Connection for DDL execution to autocommit");
+  }
+}
