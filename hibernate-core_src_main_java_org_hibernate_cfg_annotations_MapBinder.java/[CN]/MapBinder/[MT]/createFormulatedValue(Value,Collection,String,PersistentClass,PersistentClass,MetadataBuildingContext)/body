@@ -14,7 +14,7 @@
         throw new AnnotationException("SecondaryTable JoinColumn cannot reference a non primary key");
       }
     }
-    Iterator referencedEntityColumns;
+    Iterator<Selectable> referencedEntityColumns;
     if (referencedPropertyName == null) {
       referencedEntityColumns=associatedClass.getIdentifier().getColumnIterator();
     }
@@ -22,15 +22,12 @@
       Property referencedProperty=associatedClass.getRecursiveProperty(referencedPropertyName);
       referencedEntityColumns=referencedProperty.getColumnIterator();
     }
-    String alias="$alias$";
-    StringBuilder fromAndWhereSb=new StringBuilder(" from ").append(associatedClass.getTable().getName()).append(" ").append(alias).append(" where ");
-    Iterator collectionTableColumns=element.getColumnIterator();
-    while (collectionTableColumns.hasNext()) {
-      Column colColumn=(Column)collectionTableColumns.next();
-      Column refColumn=(Column)referencedEntityColumns.next();
-      fromAndWhereSb.append(alias).append('.').append(refColumn.getQuotedName()).append('=').append(colColumn.getQuotedName()).append(" and ");
+    fromAndWhere=getFromAndWhereFormula(associatedClass.getTable().getName(),element.getColumnIterator(),referencedEntityColumns);
+  }
+ else {
+    if (!associatedClass.equals(targetPropertyPersistentClass)) {
+      fromAndWhere=getFromAndWhereFormula(targetPropertyPersistentClass.getTable().getQualifiedTableName().toString(),element.getColumnIterator(),associatedClass.getIdentifier().getColumnIterator());
     }
-    fromAndWhere=fromAndWhereSb.substring(0,fromAndWhereSb.length() - 5);
   }
   if (value instanceof Component) {
     Component component=(Component)value;
@@ -51,7 +48,7 @@
       newProperty.setPersistentClass(current.getPersistentClass());
       newProperty.setPropertyAccessorName(current.getPropertyAccessorName());
       newProperty.setSelectable(current.isSelectable());
-      newProperty.setValue(createFormulatedValue(current.getValue(),collection,targetPropertyName,associatedClass,buildingContext));
+      newProperty.setValue(createFormulatedValue(current.getValue(),collection,targetPropertyName,associatedClass,associatedClass,buildingContext));
       indexComponent.addProperty(newProperty);
     }
     return indexComponent;

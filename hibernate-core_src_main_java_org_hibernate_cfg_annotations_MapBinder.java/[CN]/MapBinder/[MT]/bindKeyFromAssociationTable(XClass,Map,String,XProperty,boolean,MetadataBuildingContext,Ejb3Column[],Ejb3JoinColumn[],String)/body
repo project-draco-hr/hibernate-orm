@@ -7,7 +7,9 @@
       throw new AnnotationException("Map key property not found: " + collType + "."+ mapKeyPropertyName);
     }
     org.hibernate.mapping.Map map=(org.hibernate.mapping.Map)this.collection;
-    Value indexValue=createFormulatedValue(mapProperty.getValue(),map,targetPropertyName,associatedClass,buildingContext);
+    InheritanceState inheritanceState=inheritanceStatePerClass.get(collType);
+    PersistentClass targetPropertyPersistentClass=InheritanceType.JOINED.equals(inheritanceState.getType()) ? mapProperty.getPersistentClass() : associatedClass;
+    Value indexValue=createFormulatedValue(mapProperty.getValue(),map,targetPropertyName,associatedClass,targetPropertyPersistentClass,buildingContext);
     map.setIndex(indexValue);
   }
  else {
