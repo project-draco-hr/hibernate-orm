@@ -1,29 +1,5 @@
 {
-  PersistentClass referencedClass=null;
-  if (collectionValue.getElement() instanceof OneToMany) {
-    final OneToMany oneToManyValue=(OneToMany)collectionValue.getElement();
-    referencedClass=oneToManyValue.getAssociatedClass();
-  }
- else   if (collectionValue.getElement() instanceof ManyToOne) {
-    final ManyToOne manyToOneValue=(ManyToOne)collectionValue.getElement();
-    referencedClass=manyToOneValue.getMetadata().getEntityBinding(manyToOneValue.getReferencedEntityName());
-  }
-  final String auditMappedBy=propertyAuditingData.getAuditMappedBy();
-  if (auditMappedBy != null) {
-    return auditMappedBy;
-  }
-  String mappedBy=this.searchMappedBy(referencedClass,collectionValue);
-  if (mappedBy == null) {
-    LOG.debugf("Going to search the mapped by attribute for %s in superclasses of entity: %s",propertyName,referencedClass.getClassName());
-    PersistentClass tempClass=referencedClass;
-    while ((mappedBy == null) && (tempClass.getSuperclass() != null)) {
-      LOG.debugf("Searching in superclass: %s",tempClass.getSuperclass().getClassName());
-      mappedBy=this.searchMappedBy(tempClass.getSuperclass(),collectionValue);
-      tempClass=tempClass.getSuperclass();
-    }
-  }
-  if (mappedBy == null) {
-    throw new MappingException("Unable to read the mapped by attribute for " + propertyName + " in "+ referencedClass.getClassName()+ "!");
-  }
-  return mappedBy;
+  final PersistentClass referencedClass=getReferenceCollectionClass(collectionValue);
+  final ValueHolder valueHolder=new ValueHolder(collectionValue);
+  return getMappedBy(referencedClass,valueHolder);
 }
