@@ -1,22 +1,45 @@
 {
-  Class<?> roleOwnerType=attribute.getDeclaringType().getJavaType();
-  if (attribute.getDeclaringType().getPersistenceType() == Type.PersistenceType.MAPPED_SUPERCLASS) {
+switch (attribute.getDeclaringType().getPersistenceType()) {
+case ENTITY:
+{
+      return attribute.getDeclaringType().getJavaType().getName() + '.' + attribute.getName();
+    }
+case MAPPED_SUPERCLASS:
+{
     if (getPathSource().getModel().getBindableType() == Bindable.BindableType.ENTITY_TYPE) {
-      EntityType entityTypeNearestDeclaringType=(EntityType)getPathSource().getModel();
-      IdentifiableType superType=entityTypeNearestDeclaringType.getSupertype();
-      IdentifiableType previousType=entityTypeNearestDeclaringType;
-      while (superType != attribute.getDeclaringType()) {
-        if (superType == null) {
-          throw new IllegalStateException(String.format("Cannot determine nearest EntityType extending mapped superclass [%s]; [%s] extends [%s], but supertype of [%s] is null",attribute.getDeclaringType().getJavaType().getName(),((EntityType)getPathSource().getModel()).getJavaType().getName(),previousType.getJavaType().getName(),previousType.getJavaType().getName()));
-        }
-        if (superType.getPersistenceType() == Type.PersistenceType.ENTITY) {
-          entityTypeNearestDeclaringType=(EntityType)superType;
-        }
-        previousType=superType;
-        superType=superType.getSupertype();
-      }
-      roleOwnerType=entityTypeNearestDeclaringType.getJavaType();
+      final EntityType entityTypeNearestDeclaringType=locateNearestSubclassEntity((MappedSuperclassType)attribute.getDeclaringType(),(EntityType)getPathSource().getModel());
+      return entityTypeNearestDeclaringType.getJavaType().getName() + '.' + attribute.getName();
+    }
+ else {
+      throw new AssertionFailure(String.format("Unexpected BindableType; expected [%s]; instead got [%s]",Bindable.BindableType.ENTITY_TYPE,getPathSource().getModel().getBindableType()));
     }
   }
-  return roleOwnerType.getName() + '.' + attribute.getName();
+case EMBEDDABLE:
+{
+  StringBuilder role=new StringBuilder().append('.').append(attribute.getName());
+  PathSource parentPath=getPathSource();
+  SingularAttribute singularAttribute;
+  do {
+    final SingularAttributePath singularAttributePath=(SingularAttributePath)parentPath;
+    singularAttribute=singularAttributePath.getAttribute();
+    role.insert(0,'.');
+    role.insert(1,singularAttributePath.getAttribute().getName());
+    parentPath=singularAttributePath.getPathSource();
+  }
+ while ((SingularAttributePath.class.isInstance(parentPath)));
+  final EntityType entityType;
+  if (singularAttribute.getDeclaringType().getPersistenceType() == Type.PersistenceType.ENTITY) {
+    entityType=(EntityType)singularAttribute.getDeclaringType();
+  }
+ else   if (singularAttribute.getDeclaringType().getPersistenceType() == Type.PersistenceType.MAPPED_SUPERCLASS) {
+    entityType=locateNearestSubclassEntity((MappedSuperclassType)singularAttribute.getDeclaringType(),(EntityType)parentPath.getModel());
+  }
+ else {
+    throw new AssertionFailure(String.format("Unexpected PersistenceType: [%s]",singularAttribute.getDeclaringType().getPersistenceType()));
+  }
+  return role.insert(0,entityType.getJavaType().getName()).toString();
+}
+default :
+throw new AssertionFailure(String.format("Unexpected PersistenceType: [%s]",attribute.getDeclaringType().getPersistenceType()));
+}
 }
