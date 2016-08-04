@@ -1,0 +1,11 @@
+{
+  final OneToManyOwned oneToMany=new OneToManyOwned(1L,"data",null);
+  final ManyToOneOwned manyToOne=new ManyToOneOwned(3L,"data2");
+  final ManyToManyCompositeKey rev1=getAuditReader().find(ManyToManyCompositeKey.class,owning2Id,1);
+  assertEquals(rev1.getOneToMany(),oneToMany);
+  assertEquals(rev1.getManyToOne(),manyToOne);
+  assertNull(getAuditReader().find(ManyToManyCompositeKey.class,owning2Id,3));
+  final ManyToManyCompositeKey rev2=(ManyToManyCompositeKey)getAuditReader().createQuery().forRevisionsOfEntity(ManyToManyCompositeKey.class,true,true).add(AuditEntity.id().eq(owning2Id)).add(AuditEntity.revisionNumber().eq(3)).getSingleResult();
+  assertEquals(rev2.getOneToMany(),oneToMany);
+  assertEquals(rev2.getManyToOne(),manyToOne);
+}
