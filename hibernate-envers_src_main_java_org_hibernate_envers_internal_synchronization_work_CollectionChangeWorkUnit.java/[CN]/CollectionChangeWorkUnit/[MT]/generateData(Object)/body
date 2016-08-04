@@ -1,9 +1,11 @@
 {
   fillDataWithId(data,revisionData);
   final Map<String,Object> preGenerateData=new HashMap<>(data);
-  enversService.getEntitiesConfigurations().get(getEntityName()).getPropertyMapper().mapToMapFromEntity(sessionImplementor,data,entity,null);
-  enversService.getEntitiesConfigurations().get(getEntityName()).getPropertyMapper().mapModifiedFlagsToMapFromEntity(sessionImplementor,data,entity,entity);
-  enversService.getEntitiesConfigurations().get(getEntityName()).getPropertyMapper().mapModifiedFlagsToMapForCollectionChange(collectionPropertyName,data);
+  final EntityConfiguration entityConfig=enversService.getEntitiesConfigurations().get(getEntityName());
+  final PropertyMapper propertyMapper=entityConfig.getPropertyMapper();
+  propertyMapper.mapToMapFromEntity(sessionImplementor,data,entity,entity);
+  propertyMapper.mapModifiedFlagsToMapFromEntity(sessionImplementor,data,entity,entity);
+  propertyMapper.mapModifiedFlagsToMapForCollectionChange(collectionPropertyName,data);
   data.putAll(preGenerateData);
   return data;
 }
