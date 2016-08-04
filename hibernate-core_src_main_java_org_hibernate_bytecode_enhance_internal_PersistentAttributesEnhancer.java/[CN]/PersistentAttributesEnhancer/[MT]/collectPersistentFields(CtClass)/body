@@ -8,7 +8,9 @@
       persistentFieldList.add(ctField);
     }
   }
-  persistentFieldList.addAll(collectInheritPersistentFields(managedCtClass));
+  if (!enhancementContext.isMappedSuperclassClass(managedCtClass)) {
+    persistentFieldList.addAll(collectInheritPersistentFields(managedCtClass));
+  }
   CtField[] orderedFields=enhancementContext.order(persistentFieldList.toArray(new CtField[0]));
   log.debugf("Persistent fields for entity %s: %s",managedCtClass.getName(),Arrays.toString(orderedFields));
   return orderedFields;
