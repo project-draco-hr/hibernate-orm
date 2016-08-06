@@ -1,0 +1,14 @@
+{
+  URL persistenceXmlUrl=Thread.currentThread().getContextClassLoader().getResource(PERSISTENCE_XML_RESOURCE_NAME);
+  if (persistenceXmlUrl == null) {
+    persistenceXmlUrl=Thread.currentThread().getContextClassLoader().getResource('/' + PERSISTENCE_XML_RESOURCE_NAME);
+  }
+  assertNotNull(persistenceXmlUrl);
+  ParsedPersistenceXmlDescriptor persistenceUnit=PersistenceXmlParser.locateIndividualPersistenceUnit(persistenceXmlUrl);
+  EntityManagerFactory emf=Bootstrap.getEntityManagerFactoryBuilder(persistenceUnit,Collections.emptyMap()).build();
+  final TransactionManager tm=emf.unwrap(SessionFactoryImplementor.class).getServiceRegistry().getService(JtaPlatform.class).retrieveTransactionManager();
+  tm.begin();
+  Transaction txn=tm.getTransaction();
+  emf.close();
+  txn.commit();
+}

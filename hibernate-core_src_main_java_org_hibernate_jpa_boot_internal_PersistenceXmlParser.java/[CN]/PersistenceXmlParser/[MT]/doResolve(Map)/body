@@ -1,12 +1,12 @@
 {
-  final List<ParsedPersistenceXmlDescriptor> persistenceUnits=new ArrayList<ParsedPersistenceXmlDescriptor>();
+  final Map<String,ParsedPersistenceXmlDescriptor> persistenceUnits=new ConcurrentHashMap<>();
   final List<URL> xmlUrls=classLoaderService.locateResources("META-INF/persistence.xml");
   if (xmlUrls.isEmpty()) {
     LOG.unableToFindPersistenceXmlInClasspath();
   }
  else {
     for (    URL xmlUrl : xmlUrls) {
-      persistenceUnits.addAll(parsePersistenceXml(xmlUrl,integration));
+      persistenceUnits.putAll(parsePersistenceXml(xmlUrl,integration));
     }
   }
   return persistenceUnits;

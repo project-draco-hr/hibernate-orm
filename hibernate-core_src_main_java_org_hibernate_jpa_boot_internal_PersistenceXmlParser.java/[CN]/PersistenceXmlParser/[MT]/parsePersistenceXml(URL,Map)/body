@@ -2,7 +2,7 @@
   LOG.tracef("Attempting to parse persistence.xml file : %s",xmlUrl.toExternalForm());
   final Document doc=loadUrl(xmlUrl);
   final Element top=doc.getDocumentElement();
-  final List<ParsedPersistenceXmlDescriptor> persistenceUnits=new ArrayList<ParsedPersistenceXmlDescriptor>();
+  final Map<String,ParsedPersistenceXmlDescriptor> persistenceUnits=new ConcurrentHashMap<>();
   final NodeList children=top.getChildNodes();
   for (int i=0; i < children.getLength(); i++) {
     if (children.item(i).getNodeType() == Node.ELEMENT_NODE) {
@@ -28,7 +28,7 @@
         decodeTransactionType(persistenceUnit);
         Properties properties=persistenceUnit.getProperties();
         ConfigurationHelper.overrideProperties(properties,integration);
-        persistenceUnits.add(persistenceUnit);
+        persistenceUnits.put(persistenceUnit.getName(),persistenceUnit);
       }
     }
   }
