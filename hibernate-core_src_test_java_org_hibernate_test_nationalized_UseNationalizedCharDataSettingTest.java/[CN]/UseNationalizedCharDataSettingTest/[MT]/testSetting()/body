@@ -6,7 +6,12 @@
     final Metadata metadata=ms.buildMetadata();
     final PersistentClass pc=metadata.getEntityBinding(NationalizedBySettingEntity.class.getName());
     final Property nameAttribute=pc.getProperty("name");
-    assertSame(StringNVarcharType.INSTANCE,nameAttribute.getType());
+    if (metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect) {
+      assertSame(StringType.INSTANCE,nameAttribute.getType());
+    }
+ else {
+      assertSame(StringNVarcharType.INSTANCE,nameAttribute.getType());
+    }
   }
   finally {
     StandardServiceRegistryBuilder.destroy(ssr);

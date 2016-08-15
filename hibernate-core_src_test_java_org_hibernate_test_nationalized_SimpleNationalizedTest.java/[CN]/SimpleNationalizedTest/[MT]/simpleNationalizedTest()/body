@@ -7,17 +7,37 @@
     PersistentClass pc=metadata.getEntityBinding(NationalizedEntity.class.getName());
     assertNotNull(pc);
     Property prop=pc.getProperty("nvarcharAtt");
-    assertSame(StringNVarcharType.INSTANCE,prop.getType());
+    if (metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect) {
+      assertSame(StringType.INSTANCE,prop.getType());
+    }
+ else {
+      assertSame(StringNVarcharType.INSTANCE,prop.getType());
+    }
     prop=pc.getProperty("materializedNclobAtt");
-    assertSame(MaterializedNClobType.INSTANCE,prop.getType());
+    if (metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect) {
+      assertSame(MaterializedClobType.INSTANCE,prop.getType());
+    }
+ else {
+      assertSame(MaterializedNClobType.INSTANCE,prop.getType());
+    }
     prop=pc.getProperty("nclobAtt");
     assertSame(NClobType.INSTANCE,prop.getType());
     prop=pc.getProperty("nlongvarcharcharAtt");
     assertSame(NTextType.INSTANCE,prop.getType());
     prop=pc.getProperty("ncharArrAtt");
-    assertSame(StringNVarcharType.INSTANCE,prop.getType());
+    if (metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect) {
+      assertSame(CharacterArrayType.INSTANCE,prop.getType());
+    }
+ else {
+      assertSame(StringNVarcharType.INSTANCE,prop.getType());
+    }
     prop=pc.getProperty("ncharacterAtt");
-    assertSame(CharacterNCharType.INSTANCE,prop.getType());
+    if (metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect) {
+      assertSame(CharacterType.INSTANCE,prop.getType());
+    }
+ else {
+      assertSame(CharacterNCharType.INSTANCE,prop.getType());
+    }
   }
   finally {
     StandardServiceRegistryBuilder.destroy(ssr);
