@@ -5,10 +5,8 @@
   final JdbcContext jdbcContext=tool.resolveJdbcContext(options.getConfigurationValues());
   final DdlTransactionIsolator ddlTransactionIsolator=tool.getDdlTransactionIsolator(jdbcContext);
   try {
-    ddlTransactionIsolator.prepare();
-    final DdlTransactionIsolator sharedDdlTransactionIsolator=new DdlTransactionIsolatorSharedImpl(ddlTransactionIsolator);
-    final DatabaseInformation databaseInformation=Helper.buildDatabaseInformation(tool.getServiceRegistry(),sharedDdlTransactionIsolator,metadata.getDatabase().getDefaultNamespace().getName());
-    final GenerationTarget[] targets=tool.buildGenerationTargets(targetDescriptor,sharedDdlTransactionIsolator,options.getConfigurationValues());
+    final DatabaseInformation databaseInformation=Helper.buildDatabaseInformation(tool.getServiceRegistry(),ddlTransactionIsolator,metadata.getDatabase().getDefaultNamespace().getName());
+    final GenerationTarget[] targets=tool.buildGenerationTargets(targetDescriptor,ddlTransactionIsolator,options.getConfigurationValues());
     try {
       doMigration(metadata,databaseInformation,options,jdbcContext.getDialect(),targets);
     }

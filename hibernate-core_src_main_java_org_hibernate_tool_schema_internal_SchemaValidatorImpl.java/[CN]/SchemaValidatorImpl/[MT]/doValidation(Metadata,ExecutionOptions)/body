@@ -1,6 +1,7 @@
 {
   final JdbcContext jdbcContext=tool.resolveJdbcContext(options.getConfigurationValues());
-  final DatabaseInformation databaseInformation=Helper.buildDatabaseInformation(tool.getServiceRegistry(),tool.getDdlTransactionIsolator(jdbcContext),metadata.getDatabase().getDefaultNamespace().getName());
+  final DdlTransactionIsolator isolator=tool.getDdlTransactionIsolator(jdbcContext);
+  final DatabaseInformation databaseInformation=Helper.buildDatabaseInformation(tool.getServiceRegistry(),isolator,metadata.getDatabase().getDefaultNamespace().getName());
   try {
     performValidation(metadata,databaseInformation,options,jdbcContext.getDialect());
   }
@@ -11,5 +12,6 @@
  catch (    Exception e) {
       log.debug("Problem releasing DatabaseInformation : " + e.getMessage());
     }
+    isolator.release();
   }
 }
