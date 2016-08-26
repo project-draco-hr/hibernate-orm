@@ -1,10 +1,22 @@
 {
   final String methodName=method.getName();
+  if ("equals".equals(methodName) && method.getParameterCount() == 1) {
+    if (args[0] == null || !Proxy.isProxyClass(args[0].getClass())) {
+      return false;
+    }
+    return this.equals(Proxy.getInvocationHandler(args[0]));
+  }
+ else   if ("hashCode".equals(methodName) && method.getParameterCount() == 0) {
+    return this.hashCode();
+  }
+ else   if ("toString".equals(methodName) && method.getParameterCount() == 0) {
+    return String.format(Locale.ROOT,"ThreadLocalSessionContext.TransactionProtectionWrapper[%s]",realSession);
+  }
   try {
     if ("close".equals(methodName)) {
       unbind(realSession.getSessionFactory());
     }
- else     if ("toString".equals(methodName) || "equals".equals(methodName) || "hashCode".equals(methodName)|| "getStatistics".equals(methodName)|| "isOpen".equals(methodName)|| "getListeners".equals(methodName)) {
+ else     if ("getStatistics".equals(methodName) || "isOpen".equals(methodName) || "getListeners".equals(methodName)) {
       LOG.tracef("Allowing invocation [%s] to proceed to real session",methodName);
     }
  else     if (!realSession.isOpen()) {
