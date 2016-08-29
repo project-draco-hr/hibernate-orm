@@ -1,0 +1,31 @@
+{
+  final MetadataSources metadataSources=new MetadataSources(ssr);
+  metadataSources.addAnnotatedClass(SchemaOneEntity.class);
+  metadataSources.addAnnotatedClass(SchemaTwoEntity.class);
+  MetadataImplementor metadata=(MetadataImplementor)metadataSources.buildMetadata();
+  metadata.validate();
+  final HibernateSchemaManagementTool tool=(HibernateSchemaManagementTool)ssr.getService(SchemaManagementTool.class);
+  final Map configurationValues=ssr.getService(ConfigurationService.class).getSettings();
+  final ExecutionOptions options=new ExecutionOptions(){
+    @Override public boolean shouldManageNamespaces(){
+      return true;
+    }
+    @Override public Map getConfigurationValues(){
+      return configurationValues;
+    }
+    @Override public ExceptionHandler getExceptionHandler(){
+      return ExceptionHandlerLoggedImpl.INSTANCE;
+    }
+  }
+;
+  new GroupedSchemaMigratorImpl(tool,DefaultSchemaFilter.INSTANCE).doMigration(metadata,options,TargetDescriptorImpl.INSTANCE);
+  new SchemaDropperImpl(tool).doDrop(metadata,options,ssr.getService(JdbcEnvironment.class).getDialect(),new SourceDescriptor(){
+    @Override public SourceType getSourceType(){
+      return SourceType.METADATA;
+    }
+    @Override public ScriptSourceInput getScriptSourceInput(){
+      return null;
+    }
+  }
+,buildTargets());
+}

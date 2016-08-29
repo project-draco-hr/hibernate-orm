@@ -1,0 +1,45 @@
+{
+  String catalogFilter=null;
+  String schemaFilter=null;
+  if (extractionContext.getJdbcEnvironment().getNameQualifierSupport().supportsCatalogs()) {
+    if (catalog == null) {
+      if (extractionContext.getJdbcEnvironment().getCurrentCatalog() != null) {
+        catalogFilter=toMetaDataObjectName(extractionContext.getJdbcEnvironment().getCurrentCatalog());
+      }
+ else       if (extractionContext.getDefaultCatalog() != null) {
+        catalogFilter=toMetaDataObjectName(extractionContext.getDefaultCatalog());
+      }
+ else {
+        catalogFilter="";
+      }
+    }
+ else {
+      catalogFilter=toMetaDataObjectName(catalog);
+    }
+  }
+  if (extractionContext.getJdbcEnvironment().getNameQualifierSupport().supportsSchemas()) {
+    if (schema == null) {
+      if (extractionContext.getJdbcEnvironment().getCurrentSchema() != null) {
+        schemaFilter=toMetaDataObjectName(extractionContext.getJdbcEnvironment().getCurrentSchema());
+      }
+ else       if (extractionContext.getDefaultSchema() != null) {
+        schemaFilter=toMetaDataObjectName(extractionContext.getDefaultSchema());
+      }
+ else {
+        schemaFilter="";
+      }
+    }
+ else {
+      schemaFilter=toMetaDataObjectName(schema);
+    }
+  }
+  try {
+    ResultSet resultSet=extractionContext.getJdbcDatabaseMetaData().getTables(catalogFilter,schemaFilter,"%",tableTypes);
+    final NameSpaceTablesInformation tablesInformation=processTableResults(resultSet);
+    populateTablesWithColumns(catalogFilter,schemaFilter,tablesInformation);
+    return tablesInformation;
+  }
+ catch (  SQLException sqlException) {
+    throw convertSQLException(sqlException,"Error accessing table metadata");
+  }
+}

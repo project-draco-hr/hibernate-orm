@@ -1,0 +1,30 @@
+{
+  MetadataSources metadataSources=new MetadataSources(ssr);
+  metadataSources.addAnnotatedClass(NoNameColumn.class);
+  MetadataImplementor metadata=(MetadataImplementor)metadataSources.buildMetadata();
+  metadata.validate();
+  Map<String,Object> settings=new HashMap<>();
+  ServiceRegistryImplementor serviceRegistry=(ServiceRegistryImplementor)new StandardServiceRegistryBuilder().applySettings(settings).build();
+  DriverManagerConnectionProviderImpl connectionProvider=new DriverManagerConnectionProviderImpl();
+  connectionProvider.configure(properties());
+  final GenerationTargetToDatabase schemaGenerator=new GenerationTargetToDatabase(new DdlTransactionIsolatorTestingImpl(serviceRegistry,new JdbcConnectionAccessImpl(connectionProvider)));
+  try {
+    new SchemaCreatorImpl(ssr).doCreation(metadata,serviceRegistry,settings,true,schemaGenerator);
+    metadataSources=new MetadataSources(ssr);
+    metadataSources.addAnnotatedClass(NameColumn.class);
+    metadata=(MetadataImplementor)metadataSources.buildMetadata();
+    metadata.validate();
+    try {
+      getSchemaValidator(metadata);
+      Assert.fail("SchemaManagementException expected");
+    }
+ catch (    SchemaManagementException e) {
+      assertEquals("Schema-validation: missing column [name] in table [SomeSchema.ColumnEntity]",e.getMessage());
+    }
+  }
+  finally {
+    new SchemaDropperImpl(serviceRegistry).doDrop(metadata,false,schemaGenerator);
+    serviceRegistry.destroy();
+    connectionProvider.stop();
+  }
+}

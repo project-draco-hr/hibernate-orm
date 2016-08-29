@@ -1,0 +1,29 @@
+{
+  final NameSpaceTablesInformation tablesInformation=new NameSpaceTablesInformation(metadata.getDatabase().getJdbcEnvironment().getIdentifierHelper());
+  if (schemaFilter.includeNamespace(namespace)) {
+    createSchemaAndCatalog(existingDatabase,options,dialect,formatter,tryToCreateCatalogs,tryToCreateSchemas,exportedCatalogs,namespace,targets);
+    for (    Table table : namespace.getTables()) {
+      if (schemaFilter.includeTable(table) && table.isPhysicalTable()) {
+        checkExportIdentifier(table,exportIdentifiers);
+        final TableInformation tableInformation=existingDatabase.getTableInformation(table.getQualifiedTableName());
+        if (tableInformation == null) {
+          createTable(table,dialect,metadata,formatter,options,targets);
+        }
+ else         if (tableInformation != null && tableInformation.isPhysicalTable()) {
+          tablesInformation.addTableInformation(tableInformation);
+          migrateTable(table,tableInformation,dialect,metadata,formatter,options,targets);
+        }
+      }
+    }
+    for (    Table table : namespace.getTables()) {
+      if (schemaFilter.includeTable(table) && table.isPhysicalTable()) {
+        final TableInformation tableInformation=tablesInformation.getTableInformation(table);
+        if (tableInformation == null || (tableInformation != null && tableInformation.isPhysicalTable())) {
+          applyIndexes(table,tableInformation,dialect,metadata,formatter,options,targets);
+          applyUniqueKeys(table,tableInformation,dialect,metadata,formatter,options,targets);
+        }
+      }
+    }
+  }
+  return tablesInformation;
+}

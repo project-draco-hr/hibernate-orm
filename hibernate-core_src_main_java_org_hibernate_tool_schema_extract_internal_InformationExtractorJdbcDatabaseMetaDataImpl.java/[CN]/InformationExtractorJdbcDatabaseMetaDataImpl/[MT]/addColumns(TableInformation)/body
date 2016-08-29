@@ -1,0 +1,35 @@
+{
+  final QualifiedTableName tableName=tableInformation.getName();
+  final Identifier catalog=tableName.getCatalogName();
+  final Identifier schema=tableName.getSchemaName();
+  final String catalogFilter;
+  final String schemaFilter;
+  if (catalog == null) {
+    catalogFilter="";
+  }
+ else {
+    catalogFilter=catalog.getText();
+  }
+  if (schema == null) {
+    schemaFilter="";
+  }
+ else {
+    schemaFilter=schema.getText();
+  }
+  try {
+    ResultSet resultSet=extractionContext.getJdbcDatabaseMetaData().getColumns(catalogFilter,schemaFilter,tableName.getTableName().getText(),"%");
+    try {
+      while (resultSet.next()) {
+        final String columnName=resultSet.getString("COLUMN_NAME");
+        final ColumnInformationImpl columnInformation=new ColumnInformationImpl(tableInformation,DatabaseIdentifier.toIdentifier(columnName),resultSet.getInt("DATA_TYPE"),new StringTokenizer(resultSet.getString("TYPE_NAME"),"() ").nextToken(),resultSet.getInt("COLUMN_SIZE"),resultSet.getInt("DECIMAL_DIGITS"),interpretTruthValue(resultSet.getString("IS_NULLABLE")));
+        tableInformation.addColumn(columnInformation);
+      }
+    }
+  finally {
+      resultSet.close();
+    }
+  }
+ catch (  SQLException e) {
+    throw convertSQLException(e,"Error accessing column metadata: " + tableName.toString());
+  }
+}

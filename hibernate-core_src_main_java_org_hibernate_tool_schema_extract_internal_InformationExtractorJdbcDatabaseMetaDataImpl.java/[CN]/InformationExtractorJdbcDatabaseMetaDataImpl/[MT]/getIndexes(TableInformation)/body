@@ -1,19 +1,36 @@
 {
-  final Map<Identifier,IndexInformationImpl.Builder> builders=new HashMap<Identifier,IndexInformationImpl.Builder>();
+  final Map<Identifier,IndexInformationImpl.Builder> builders=new HashMap<>();
+  final QualifiedTableName tableName=tableInformation.getName();
+  final Identifier catalog=tableName.getCatalogName();
+  final Identifier schema=tableName.getSchemaName();
+  final String catalogFilter;
+  final String schemaFilter;
+  if (catalog == null) {
+    catalogFilter="";
+  }
+ else {
+    catalogFilter=catalog.getText();
+  }
+  if (schema == null) {
+    schemaFilter="";
+  }
+ else {
+    schemaFilter=schema.getText();
+  }
   try {
-    ResultSet resultSet=extractionContext.getJdbcDatabaseMetaData().getIndexInfo(identifierHelper().toMetaDataCatalogName(tableInformation.getName().getCatalogName()),identifierHelper().toMetaDataSchemaName(tableInformation.getName().getSchemaName()),identifierHelper().toMetaDataObjectName(tableInformation.getName().getTableName()),false,true);
+    ResultSet resultSet=extractionContext.getJdbcDatabaseMetaData().getIndexInfo(catalogFilter,schemaFilter,tableName.getTableName().getText(),false,true);
     try {
       while (resultSet.next()) {
         if (resultSet.getShort("TYPE") == DatabaseMetaData.tableIndexStatistic) {
           continue;
         }
-        final Identifier indexIdentifier=identifierHelper().toIdentifier(resultSet.getString("INDEX_NAME"));
+        final Identifier indexIdentifier=DatabaseIdentifier.toIdentifier(resultSet.getString("INDEX_NAME"));
         IndexInformationImpl.Builder builder=builders.get(indexIdentifier);
         if (builder == null) {
           builder=IndexInformationImpl.builder(indexIdentifier);
           builders.put(indexIdentifier,builder);
         }
-        final Identifier columnIdentifier=identifierHelper().toIdentifier(resultSet.getString("COLUMN_NAME"));
+        final Identifier columnIdentifier=DatabaseIdentifier.toIdentifier(resultSet.getString("COLUMN_NAME"));
         final ColumnInformation columnInformation=tableInformation.getColumn(columnIdentifier);
         if (columnInformation == null) {
           log.logCannotLocateIndexColumnInformation(columnIdentifier.getText(),indexIdentifier.getText());

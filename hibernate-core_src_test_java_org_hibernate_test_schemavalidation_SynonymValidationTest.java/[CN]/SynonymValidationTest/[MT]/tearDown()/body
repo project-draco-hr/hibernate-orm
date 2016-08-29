@@ -1,0 +1,16 @@
+{
+  Session s=openSession();
+  try {
+    s.getTransaction().begin();
+    s.createSQLQuery("DROP SYNONYM test_synonym FORCE").executeUpdate();
+    s.getTransaction().commit();
+  }
+ catch (  Exception e) {
+    if (s.getTransaction().isActive()) {
+      s.getTransaction().rollback();
+    }
+  }
+ finally {
+    s.close();
+  }
+}

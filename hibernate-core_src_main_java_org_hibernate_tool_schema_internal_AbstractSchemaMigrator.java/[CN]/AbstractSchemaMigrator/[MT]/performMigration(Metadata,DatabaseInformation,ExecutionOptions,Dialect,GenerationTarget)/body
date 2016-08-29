@@ -1,0 +1,59 @@
+{
+  final boolean format=Helper.interpretFormattingEnabled(options.getConfigurationValues());
+  final Formatter formatter=format ? FormatStyle.DDL.getFormatter() : FormatStyle.NONE.getFormatter();
+  final Set<String> exportIdentifiers=new HashSet<String>(50);
+  final Database database=metadata.getDatabase();
+  for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects()) {
+    if (auxiliaryDatabaseObject.appliesToDialect(dialect)) {
+      applySqlStrings(true,dialect.getAuxiliaryDatabaseObjectExporter().getSqlDropStrings(auxiliaryDatabaseObject,metadata),formatter,options,targets);
+    }
+  }
+  for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects()) {
+    if (!auxiliaryDatabaseObject.beforeTablesOnCreation() && auxiliaryDatabaseObject.appliesToDialect(dialect)) {
+      applySqlStrings(true,auxiliaryDatabaseObject.sqlCreateStrings(dialect),formatter,options,targets);
+    }
+  }
+  boolean tryToCreateCatalogs=false;
+  boolean tryToCreateSchemas=false;
+  if (options.shouldManageNamespaces()) {
+    if (dialect.canCreateSchema()) {
+      tryToCreateSchemas=true;
+    }
+    if (dialect.canCreateCatalog()) {
+      tryToCreateCatalogs=true;
+    }
+  }
+  final Map<Namespace,NameSpaceTablesInformation> tablesInformation=new HashMap<>();
+  Set<Identifier> exportedCatalogs=new HashSet<>();
+  for (  Namespace namespace : database.getNamespaces()) {
+    final NameSpaceTablesInformation nameSpaceTablesInformation=performTablesMigration(metadata,existingDatabase,options,dialect,formatter,exportIdentifiers,tryToCreateCatalogs,tryToCreateSchemas,exportedCatalogs,namespace,targets);
+    tablesInformation.put(namespace,nameSpaceTablesInformation);
+    if (schemaFilter.includeNamespace(namespace)) {
+      for (      Sequence sequence : namespace.getSequences()) {
+        checkExportIdentifier(sequence,exportIdentifiers);
+        final SequenceInformation sequenceInformation=existingDatabase.getSequenceInformation(sequence.getName());
+        if (sequenceInformation == null) {
+          applySqlStrings(false,dialect.getSequenceExporter().getSqlCreateStrings(sequence,metadata),formatter,options,targets);
+        }
+      }
+    }
+  }
+  for (  Namespace namespace : database.getNamespaces()) {
+    if (schemaFilter.includeNamespace(namespace)) {
+      final NameSpaceTablesInformation nameSpaceTablesInformation=tablesInformation.get(namespace);
+      for (      Table table : namespace.getTables()) {
+        if (schemaFilter.includeTable(table)) {
+          final TableInformation tableInformation=nameSpaceTablesInformation.getTableInformation(table);
+          if (tableInformation == null || (tableInformation != null && tableInformation.isPhysicalTable())) {
+            applyForeignKeys(table,tableInformation,dialect,metadata,formatter,options,targets);
+          }
+        }
+      }
+    }
+  }
+  for (  AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects()) {
+    if (auxiliaryDatabaseObject.beforeTablesOnCreation() && auxiliaryDatabaseObject.appliesToDialect(dialect)) {
+      applySqlStrings(true,auxiliaryDatabaseObject.sqlCreateStrings(dialect),formatter,options,targets);
+    }
+  }
+}

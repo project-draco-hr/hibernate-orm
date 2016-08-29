@@ -1,13 +1,30 @@
 {
+  final QualifiedTableName tableName=tableInformation.getName();
+  final Identifier catalog=tableName.getCatalogName();
+  final Identifier schema=tableName.getSchemaName();
+  final String catalogFilter;
+  final String schemaFilter;
+  if (catalog == null) {
+    catalogFilter="";
+  }
+ else {
+    catalogFilter=catalog.getText();
+  }
+  if (schema == null) {
+    schemaFilter="";
+  }
+ else {
+    schemaFilter=schema.getText();
+  }
   try {
-    ResultSet resultSet=extractionContext.getJdbcDatabaseMetaData().getPrimaryKeys(identifierHelper().toMetaDataCatalogName(tableInformation.getName().getCatalogName()),identifierHelper().toMetaDataSchemaName(tableInformation.getName().getSchemaName()),identifierHelper().toMetaDataObjectName(tableInformation.getName().getTableName()));
+    ResultSet resultSet=extractionContext.getJdbcDatabaseMetaData().getPrimaryKeys(catalogFilter,schemaFilter,tableInformation.getName().getTableName().getText());
     final List<ColumnInformation> pkColumns=new ArrayList<ColumnInformation>();
     boolean firstPass=true;
     Identifier pkIdentifier=null;
     try {
       while (resultSet.next()) {
         final String currentPkName=resultSet.getString("PK_NAME");
-        final Identifier currentPkIdentifier=currentPkName == null ? null : identifierHelper().toIdentifier(currentPkName);
+        final Identifier currentPkIdentifier=currentPkName == null ? null : DatabaseIdentifier.toIdentifier(currentPkName);
         if (firstPass) {
           pkIdentifier=currentPkIdentifier;
           firstPass=false;
@@ -18,8 +35,7 @@
           }
         }
         final int columnPosition=resultSet.getInt("KEY_SEQ");
-        final String columnName=resultSet.getString("COLUMN_NAME");
-        final Identifier columnIdentifier=identifierHelper().toIdentifier(columnName);
+        final Identifier columnIdentifier=DatabaseIdentifier.toIdentifier(resultSet.getString("COLUMN_NAME"));
         final ColumnInformation column=tableInformation.getColumn(columnIdentifier);
         pkColumns.add(columnPosition - 1,column);
       }
