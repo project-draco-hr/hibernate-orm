@@ -1,0 +1,38 @@
+{
+  final List<PersistentCollectionChangeData> collectionChanges=new ArrayList<PersistentCollectionChangeData>();
+  final Collection newCollection=getNewCollectionContent(newColl);
+  final Collection oldCollection=getOldCollectionContent(oldColl);
+  final Set<Object> added=new HashSet<>();
+  if (newColl != null) {
+    added.addAll(newCollection);
+  }
+  if (oldColl != null && collectionPersister != null) {
+    for (    Object object : oldCollection) {
+      for (Iterator addedIt=added.iterator(); addedIt.hasNext(); ) {
+        Object object2=addedIt.next();
+        if (collectionPersister.getElementType().isSame(object,object2)) {
+          addedIt.remove();
+          break;
+        }
+      }
+    }
+  }
+  addCollectionChanges(session,collectionChanges,added,RevisionType.ADD,id);
+  final Set<Object> deleted=new HashSet<>();
+  if (oldColl != null) {
+    deleted.addAll(oldCollection);
+  }
+  if (newColl != null && collectionPersister != null) {
+    for (    Object object : newCollection) {
+      for (Iterator deletedIt=deleted.iterator(); deletedIt.hasNext(); ) {
+        Object object2=deletedIt.next();
+        if (collectionPersister.getElementType().isSame(object,object2)) {
+          deletedIt.remove();
+          break;
+        }
+      }
+    }
+  }
+  addCollectionChanges(session,collectionChanges,deleted,RevisionType.DEL,id);
+  return collectionChanges;
+}
