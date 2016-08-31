@@ -1,0 +1,38 @@
+{
+  EntityManager entityManager=getEntityManager();
+  try {
+    entityManager.getTransaction().begin();
+    Component component1=new Component();
+    component1.setName("User1");
+    component1.setData("Test1");
+    Component component2=new Component();
+    component2.setName("User2");
+    component2.setData("Test2");
+    ComponentEntity entity=new ComponentEntity();
+    entity.getComponents().add(component1);
+    entity.getComponents().add(component2);
+    entityManager.persist(entity);
+    entityManager.getTransaction().commit();
+    id=entity.getId();
+    entityManager.getTransaction().begin();
+    component1.setName("User1-Inline");
+    entityManager.merge(entity);
+    entityManager.getTransaction().commit();
+    entityManager.getTransaction().begin();
+    entity.getComponents().remove(component2);
+    Component component3=new Component();
+    component3.setName("User2");
+    component3.setData("Test3");
+    entity.getComponents().add(component3);
+    entityManager.merge(entity);
+    entityManager.getTransaction().commit();
+  }
+ catch (  Exception e) {
+    if (entityManager.getTransaction().isActive()) {
+      entityManager.getTransaction().rollback();
+    }
+  }
+ finally {
+    entityManager.close();
+  }
+}
