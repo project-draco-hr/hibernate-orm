@@ -82,4 +82,17 @@
   this.preferUserTransaction=ConfigurationHelper.getBoolean(PREFER_USER_TRANSACTION,configurationSettings,false);
   this.allowOutOfTransactionUpdateOperations=ConfigurationHelper.getBoolean(ALLOW_UPDATE_OUTSIDE_TRANSACTION,configurationSettings,false);
   this.releaseResourcesOnCloseEnabled=ConfigurationHelper.getBoolean(DISCARD_PC_ON_CLOSE,configurationSettings,false);
+  Object jdbcTimeZoneValue=configurationSettings.get(JDBC_TIME_ZONE);
+  if (jdbcTimeZoneValue instanceof TimeZone) {
+    this.jdbcTimeZone=(TimeZone)jdbcTimeZoneValue;
+  }
+ else   if (jdbcTimeZoneValue instanceof ZoneId) {
+    this.jdbcTimeZone=TimeZone.getTimeZone((ZoneId)jdbcTimeZoneValue);
+  }
+ else   if (jdbcTimeZoneValue instanceof String) {
+    this.jdbcTimeZone=TimeZone.getTimeZone(ZoneId.of((String)jdbcTimeZoneValue));
+  }
+ else   if (jdbcTimeZoneValue != null) {
+    throw new IllegalArgumentException("Configuration property " + JDBC_TIME_ZONE + " value ["+ jdbcTimeZoneValue+ "] is not supported!");
+  }
 }
