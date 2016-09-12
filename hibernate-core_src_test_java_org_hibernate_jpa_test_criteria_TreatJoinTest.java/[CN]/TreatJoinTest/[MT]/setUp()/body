@@ -1,0 +1,25 @@
+{
+  final EntityManager em=createEntityManager();
+  try {
+    em.getTransaction().begin();
+    try {
+      Price price=new Price(10,"EUR");
+      Author author=new Author("Andrea Camilleri");
+      Book book=new Book(author,"Il nipote del Negus",price);
+      Bid bid=new Bid(book);
+      em.persist(bid);
+      book=new Book(author,"La moneta di Akragas",price);
+      bid=new Bid(book);
+      em.persist(bid);
+      em.getTransaction().commit();
+    }
+ catch (    Exception e) {
+      if (em.getTransaction().isActive()) {
+        em.getTransaction().rollback();
+      }
+    }
+  }
+  finally {
+    em.close();
+  }
+}
