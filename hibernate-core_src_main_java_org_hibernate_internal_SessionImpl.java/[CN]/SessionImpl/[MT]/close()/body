@@ -2,7 +2,9 @@
   log.tracef("Closing session [%s]",getSessionIdentifier());
   if (getSessionFactory().getSessionFactoryOptions().isJpaBootstrap()) {
     checkSessionFactoryOpen();
-    checkOpen();
+    if (!waitingForAutoClose) {
+      checkOpen();
+    }
     if (discardOnClose || !isTransactionInProgress()) {
       super.close();
     }

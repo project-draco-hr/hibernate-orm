@@ -1,6 +1,6 @@
 {
   log.tracef("SessionImpl#afterTransactionCompletion(successful=%s, delayed=%s)",successful,delayed);
-  if (!isClosed()) {
+  if (!isClosed() || waitingForAutoClose) {
     if (autoClear || !successful) {
       internalClear();
     }
@@ -18,7 +18,7 @@
     log.exceptionInAfterTransactionCompletionInterceptor(t);
   }
   if (!delayed) {
-    if (shouldAutoClose() && !isClosed()) {
+    if (shouldAutoClose() && (!isClosed() || waitingForAutoClose)) {
       managedClose();
     }
   }
