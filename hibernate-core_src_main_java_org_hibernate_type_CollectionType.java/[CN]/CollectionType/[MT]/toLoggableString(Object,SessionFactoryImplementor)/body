@@ -2,7 +2,18 @@
   if (value == null) {
     return "null";
   }
- else   if (!Hibernate.isInitialized(value)) {
+  if (!getReturnedClass().isInstance(value) && !PersistentCollection.class.isInstance(value)) {
+    final CollectionPersister persister=getPersister(factory);
+    if (persister.getKeyType().getReturnedClass().isInstance(value)) {
+      return getRole() + "#" + getPersister(factory).getKeyType().toLoggableString(value,factory);
+    }
+ else {
+      if (persister.getIdentifierType() != null && persister.getIdentifierType().getReturnedClass().isInstance(value)) {
+        return getRole() + "#" + getPersister(factory).getIdentifierType().toLoggableString(value,factory);
+      }
+    }
+  }
+  if (!Hibernate.isInitialized(value)) {
     return "<uninitialized>";
   }
  else {

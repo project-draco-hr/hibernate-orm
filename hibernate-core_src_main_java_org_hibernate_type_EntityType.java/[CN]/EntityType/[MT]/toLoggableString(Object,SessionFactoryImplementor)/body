@@ -2,8 +2,13 @@
   if (value == null) {
     return "null";
   }
-  EntityPersister persister=getAssociatedEntityPersister(factory);
-  StringBuilder result=new StringBuilder().append(associatedEntityName);
+  final EntityPersister persister=getAssociatedEntityPersister(factory);
+  if (!persister.getEntityTuplizer().isInstance(value)) {
+    if (persister.getIdentifierType().getReturnedClass().isInstance(value)) {
+      return associatedEntityName + "#" + value;
+    }
+  }
+  final StringBuilder result=new StringBuilder().append(associatedEntityName);
   if (persister.hasIdentifierProperty()) {
     final Serializable id;
     if (value instanceof HibernateProxy) {
