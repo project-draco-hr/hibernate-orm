@@ -1,0 +1,18 @@
+{
+  Session session=openSession();
+  session.beginTransaction();
+  session.persist(new TheEntity(1));
+  session.getTransaction().commit();
+  session.close();
+  assertThat(mutableToDomainCallCount,is(1));
+  assertThat(mutableToDatabaseCallCount,is(2));
+  assertThat(immutableToDomainCallCount,is(0));
+  assertThat(immutableToDatabaseCallCount,is(1));
+  assertThat(immutableMutableToDomainCallCount,is(0));
+  assertThat(immutableMutableToDatabaseCallCount,is(1));
+  session=openSession();
+  session.beginTransaction();
+  session.delete(session.byId(TheEntity.class).getReference(1));
+  session.getTransaction().commit();
+  session.close();
+}
