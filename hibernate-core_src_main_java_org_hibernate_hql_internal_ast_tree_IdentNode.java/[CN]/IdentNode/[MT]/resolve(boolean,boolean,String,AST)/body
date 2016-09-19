@@ -1,6 +1,25 @@
 {
   if (!isResolved()) {
     if (getWalker().getCurrentFromClause().isFromElementAlias(getText())) {
+      FromElement fromElement=getWalker().getCurrentFromClause().getFromElement(getText());
+      if (fromElement.getQueryableCollection() != null && fromElement.getQueryableCollection().getElementType().isComponentType()) {
+        if (getWalker().isInSelect()) {
+          setFromElement(fromElement);
+          super.setDataType(fromElement.getQueryableCollection().getElementType());
+          this.columns=resolveColumns(fromElement.getQueryableCollection());
+          initText(getColumns());
+          setFirstChild(null);
+        }
+ else {
+          resolveAsAlias();
+        }
+      }
+ else       if (resolveAsAlias()) {
+        setResolved();
+      }
+    }
+ else     if (getColumns() != null && (getWalker().getAST() instanceof AbstractMapComponentNode || getWalker().getAST() instanceof IndexNode) && getWalker().getCurrentFromClause().isFromElementAlias(getOriginalText())) {
+      setText(getOriginalText());
       if (resolveAsAlias()) {
         setResolved();
       }
