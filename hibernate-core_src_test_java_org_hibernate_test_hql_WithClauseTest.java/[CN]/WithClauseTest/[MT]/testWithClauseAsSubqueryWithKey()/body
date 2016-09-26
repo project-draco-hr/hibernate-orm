@@ -1,0 +1,11 @@
+{
+  TestData data=new TestData();
+  data.prepare();
+  Session s=openSession();
+  Transaction txn=s.beginTransaction();
+  List list=s.createQuery("from Human h left join h.family as f with key(f) like 'son1' where h.description = 'father'").list();
+  assertEquals("subquery rewriting of join table did not take effect",1,list.size());
+  txn.commit();
+  s.close();
+  data.cleanup();
+}
