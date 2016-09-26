@@ -1,0 +1,20 @@
+{
+  Session session=openSession();
+  try {
+    ChildEntity ce=new ChildEntity(1,"Child");
+    session.getTransaction().begin();
+    session.save(ce);
+    session.getTransaction().commit();
+    session.clear();
+    ce=(ChildEntity)session.find(ChildEntity.class,1);
+    assertEquals("ce",ce.getType());
+  }
+ catch (  Exception e) {
+    if (session.getTransaction().isActive()) {
+      session.getTransaction().rollback();
+    }
+  }
+ finally {
+    session.close();
+  }
+}
