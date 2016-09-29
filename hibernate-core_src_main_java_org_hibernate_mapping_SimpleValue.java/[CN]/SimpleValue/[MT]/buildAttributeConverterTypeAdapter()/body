@@ -19,7 +19,7 @@
   if (isNationalized()) {
     jdbcTypeCode=NationalizedTypeMappings.INSTANCE.getCorrespondingNationalizedCode(jdbcTypeCode);
   }
-  final SqlTypeDescriptor sqlTypeDescriptor=SqlTypeDescriptorRegistry.INSTANCE.getDescriptor(jdbcTypeCode);
+  final SqlTypeDescriptor sqlTypeDescriptor=metadata.getMetadataBuildingOptions().getServiceRegistry().getService(JdbcServices.class).getJdbcEnvironment().getDialect().remapSqlTypeDescriptor(SqlTypeDescriptorRegistry.INSTANCE.getDescriptor(jdbcTypeCode));
   final JavaTypeDescriptor intermediateJavaTypeDescriptor=JavaTypeDescriptorRegistry.INSTANCE.getDescriptor(databaseColumnJavaType);
   final SqlTypeDescriptor sqlTypeDescriptorAdapter=new AttributeConverterSqlTypeDescriptorAdapter(attributeConverterDescriptor.getAttributeConverter(),sqlTypeDescriptor,intermediateJavaTypeDescriptor);
   final String name=AttributeConverterTypeAdapter.NAME_PREFIX + attributeConverterDescriptor.getAttributeConverter().getClass().getName();

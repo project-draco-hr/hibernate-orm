@@ -1,0 +1,36 @@
+{
+  EntityPersister persister=sessionFactory().getMetamodel().entityPersisters().get(Address.class.getName());
+  EntityRegionImpl region=(EntityRegionImpl)persister.getCacheAccessStrategy().getRegion();
+  PostalAreaConverter.clearCounts();
+  Session session=openSession();
+  session.getTransaction().begin();
+  session.save(new Address(1,"123 Main St.",null,PostalArea._78729));
+  session.getTransaction().commit();
+  session.close();
+{
+    final Object cachedItem=region.getDataMap().values().iterator().next();
+    final Map<String,?> state=(Map)((ReadWriteEntityRegionAccessStrategy.Item)cachedItem).getValue();
+    assertThat(state.get("postalArea"),instanceOf(PostalArea.class));
+  }
+  assertThat(PostalAreaConverter.toDatabaseCallCount,is(1));
+  assertThat(PostalAreaConverter.toDomainCallCount,is(0));
+  PostalAreaConverter.clearCounts();
+  region.evictAll();
+  session=openSession();
+  session.getTransaction().begin();
+  Address address=session.get(Address.class,1);
+  session.getTransaction().commit();
+  session.close();
+{
+    final Object cachedItem=region.getDataMap().values().iterator().next();
+    final Map<String,?> state=(Map)((ReadWriteEntityRegionAccessStrategy.Item)cachedItem).getValue();
+    assertThat(state.get("postalArea"),instanceOf(PostalArea.class));
+  }
+  assertThat(PostalAreaConverter.toDatabaseCallCount,is(0));
+  assertThat(PostalAreaConverter.toDomainCallCount,is(1));
+  session=openSession();
+  session.getTransaction().begin();
+  session.delete(address);
+  session.getTransaction().commit();
+  session.close();
+}
